@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.indexter.games.MainWindowController">
+   <children>
+      <SplitPane disable="true" dividerPositions="0.65">
+         <items>
+            <TilePane fx:id="gameWall" hgap="10.0" prefColumns="10" prefRows="1000" tileAlignment="TOP_LEFT" vgap="10.0" />
+            <VBox fx:id="gameDetails" />
+         </items>
+      </SplitPane>
+   </children>
+</StackPane>

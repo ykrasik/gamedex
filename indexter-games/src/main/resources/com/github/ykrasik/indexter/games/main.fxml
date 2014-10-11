@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<StackPane prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.indexter.games.MainWindowController">
+   <children>
+      <BorderPane prefHeight="200.0" prefWidth="200.0">
+         <left>
+            <TilePane fx:id="gameWall" hgap="10.0" prefColumns="10" prefRows="1000" tileAlignment="TOP_LEFT" vgap="10.0" BorderPane.alignment="CENTER" />
+         </left>
+         <right>
+            <VBox fx:id="gameDetails" BorderPane.alignment="CENTER" />
+         </right>
+      </BorderPane>
+   </children>
+</StackPane>

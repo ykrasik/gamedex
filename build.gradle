@@ -1,0 +1,56 @@
+buildscript {
+    ext {
+        guavaVersion = '18.0'
+        jerminalVersion = '0.1.1'
+        boonVersion = '0.29'
+
+        junitVersion = '4.11'
+        mockitoVersion = '1.9.5'
+    }
+}
+
+allprojects {
+    apply plugin: "java"
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+project("indexter-core") {
+    description "inDexter core module"
+
+    dependencies {
+        compile 'org.springframework:spring-context:4.1.1.RELEASE'
+        compile "com.google.guava:guava:$guavaVersion"
+        compile 'org.apache.httpcomponents:httpclient:4.3.5'
+        compile 'com.mashape.unirest:unirest-java:1.3.22'
+        compile 'com.cedarsoftware:json-io:2.7.1'
+        compile "io.fastjson:boon:$boonVersion"
+        compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+        compile 'org.slf4j:slf4j-api:1.7.6'
+        compile 'ch.qos.logback:logback-classic:1.1.2'
+
+
+
+        compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
+        compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"
+
+        testCompile "junit:junit:$junitVersion"
+        testCompile "org.mockito:mockito-all:$mockitoVersion"
+    }
+}
+
+project("indexter-games") {
+    description "inDexter games module"
+
+    dependencies {
+        compile project(":indexter-core")
+
+        testCompile "junit:junit:$junitVersion"
+    }
+}

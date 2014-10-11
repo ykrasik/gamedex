@@ -1,0 +1,4 @@
+rootProject.name = 'indexter'
+
+include "indexter-core"
+include "indexter-games"
