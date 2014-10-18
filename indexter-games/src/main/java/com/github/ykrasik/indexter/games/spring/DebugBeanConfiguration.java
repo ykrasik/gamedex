@@ -5,8 +5,10 @@ import com.github.ykrasik.indexter.games.debug.DataServiceDebugCommands;
 import com.github.ykrasik.indexter.games.debug.GiantBombDebugCommands;
 import com.github.ykrasik.indexter.games.debug.MetacriticDebugCommands;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,13 +19,16 @@ import org.springframework.context.annotation.Configuration;
 public class DebugBeanConfiguration {
     @Bean
     public MetacriticDebugCommands metacriticDebugCommands(MetacriticGameInfoService service,
-                                                           MetacriticGameInfoClient client) {
-        return new MetacriticDebugCommands(service, client);
+                                                           MetacriticGameInfoClient client,
+                                                           ObjectMapper objectMapper) {
+        return new MetacriticDebugCommands(service, client, objectMapper);
     }
 
     @Bean
-    public GiantBombDebugCommands giantBombDebugCommands(GiantBombGameInfoService service) {
-        return new GiantBombDebugCommands(service);
+    public GiantBombDebugCommands giantBombDebugCommands(GiantBombGameInfoService service,
+                                                         GiantBombGameInfoClient client,
+                                                         ObjectMapper objectMapper) {
+        return new GiantBombDebugCommands(service, client, objectMapper);
     }
 
     @Bean

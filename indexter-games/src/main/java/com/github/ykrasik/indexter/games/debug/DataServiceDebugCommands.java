@@ -29,7 +29,7 @@ public class DataServiceDebugCommands {
                     @StringParam("name") String name,
                     @StringParam(value = "platform", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final Platform platform = Platform.valueOf(platformStr);
-        final GameDetailedInfo info = service.get(name, platform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
+        final GameDetailedInfo info = service.getDetails(name, platform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
         dataService.add(info);
     }
 }

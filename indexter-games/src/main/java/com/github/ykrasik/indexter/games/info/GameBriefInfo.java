@@ -13,15 +13,15 @@ public class GameBriefInfo {
     private final String name;
     private final Platform platform;
     private final Optional<LocalDate> releaseDate;
-    private final double score;
-    private final String imageUrl;
+    private final double score;    // FIXME: Should this be here in the brief? Giantbomb doesn't provide it.
+    private final Optional<String> imageUrl;
     private final String moreDetailsId;
 
     public GameBriefInfo(String name,
                          Platform platform,
                          Optional<LocalDate> releaseDate,
                          double score,
-                         String imageUrl,
+                         Optional<String> imageUrl,
                          String moreDetailsId) {
         this.name = Objects.requireNonNull(name);
         this.platform = Objects.requireNonNull(platform);
@@ -47,7 +47,7 @@ public class GameBriefInfo {
         return score;
     }
 
-    public String getImageUrl() {
+    public Optional<String> getImageUrl() {
         return imageUrl;
     }
 

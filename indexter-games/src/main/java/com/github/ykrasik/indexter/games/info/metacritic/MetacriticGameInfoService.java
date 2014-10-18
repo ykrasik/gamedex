@@ -6,6 +6,7 @@ import com.github.ykrasik.indexter.games.info.GameDetailedInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.Platform;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -18,24 +19,20 @@ import java.util.*;
  */
 public class MetacriticGameInfoService extends AbstractService implements GameInfoService {
     private final MetacriticGameInfoClient client;
+    private final MetacriticProperties properties;
     private final ObjectMapper objectMapper;
-    private final Map<Platform, Integer> platformMap;
 
-    public MetacriticGameInfoService(MetacriticGameInfoClient client, ObjectMapper objectMapper) {
+    public MetacriticGameInfoService(MetacriticGameInfoClient client,
+                                     MetacriticProperties properties,
+                                     ObjectMapper objectMapper) {
         this.client = Objects.requireNonNull(client);
+        this.properties = Objects.requireNonNull(properties);
         this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.platformMap = new HashMap<>();
     }
 
     @Override
     protected void doStart() throws Exception {
-        LOG.info("Fetching platforms...");
-        final String rawBody = client.fetchPlatforms();
-        LOG.debug("rawBody={}", rawBody);
 
-        final JsonNode root = objectMapper.readTree(rawBody);
-        platformMap.putAll(translateTypeDescriptions(root));
-        LOG.info("Finished fetching platforms: {}", platformMap);
     }
 
     @Override
@@ -43,36 +40,10 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
 
     }
 
-    private Map<Platform, Integer> translateTypeDescriptions(JsonNode root) {
-        final Map<Platform, Integer> map = new HashMap<>();
-        final JsonNode platformsNode = root.get("platforms");
-        final Iterator<String> iterator = platformsNode.getFieldNames();
-        while (iterator.hasNext()) {
-            final String id = iterator.next();
-            final String value = platformsNode.get(id).asText();
-            final Optional<Platform> platform = translatePlatform(value);
-            if (platform.isPresent()) {
-                map.put(platform.get(), Integer.parseInt(id));
-            }
-        }
-        return map;
-    }
-
-    private Optional<Platform> translatePlatform(String value) {
-        switch (value) {
-            case "PC": return Optional.of(Platform.PC);
-            case "Xbox 360": return Optional.of(Platform.XBOX_360);
-            case "Xbox One": return Optional.of(Platform.XBOX_ONE);
-            case "PlayStation 3": return Optional.of(Platform.PS3);
-            case "PlayStation 4": return Optional.of(Platform.PS4);
-        }
-        return Optional.empty();
-    }
-
     @Override
-    public List<GameBriefInfo> search(String name, Platform platform) throws Exception {
+    public List<GameBriefInfo> searchGames(String name, Platform platform) throws Exception {
         LOG.info("Searching for name={}, platform={}...", name, platform);
-        final int platformId = getPlatformId(platform);
+        final int platformId = properties.getPlatformId(platform);
         final String rawBody = client.searchGames(name, platformId);
         LOG.debug("rawBody={}", rawBody);
 
@@ -89,15 +60,18 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
     }
 
     private GameBriefInfo translateGameBriefInfo(JsonNode node, Platform platform) {
-        // The Metacritic API fetches more details by name.
-        final String moreDetailsId = node.get("name").asText();
+        final String name = node.get("name").asText();
+        final Optional<LocalDate> releaseDate = translateDate(node.get("rlsdate").asText());
+        final double score = node.get("score").asDouble();
+        final Optional<String> thumbnailUrl = Optional.<String>empty();     // Metacritic API doesn't provide a thumbnail on brief.
+        final String moreDetailsId = name;  // Metacritic API fetches more details by name.
 
         return new GameBriefInfo(
-            node.get("name").asText(),
+            name,
             platform,
-            translateDate(node.get("rlsdate").asText()),
-            node.get("score").asDouble(),
-            node.get("url").asText(),
+            releaseDate,
+            score,
+            thumbnailUrl,
             moreDetailsId
         );
     }
@@ -112,9 +86,9 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
     }
 
     @Override
-    public Optional<GameDetailedInfo> get(String moreDetailsId, Platform platform) throws Exception {
+    public Optional<GameDetailedInfo> getDetails(String moreDetailsId, Platform platform) throws Exception {
         LOG.info("Getting details for name={}, platform={}...", moreDetailsId, platform);
-        final int platformId = getPlatformId(platform);
+        final int platformId = properties.getPlatformId(platform);
         final String rawBody = client.fetchDetails(moreDetailsId, platformId);
         LOG.debug("rawBody={}", rawBody);
 
@@ -124,33 +98,46 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
             LOG.info("Not found.");
             return Optional.empty();
         } else {
-            final GameDetailedInfo info = translateGetResult(resultNode);
+            final GameDetailedInfo info = translateGetDetailsResult(resultNode, platform);
             LOG.info("Found: {}", info);
             return Optional.of(info);
         }
     }
 
-    private GameDetailedInfo translateGetResult(JsonNode resultNode) {
-        return new GameDetailedInfo(
-            resultNode.get("name").asText(),
-            Optional.empty(),   // No description from Metacritic API
-            Platform.valueOf(resultNode.get("platform").asText()),
-            translateDate(resultNode.get("rlsdate").asText()),
-            resultNode.get("score").asDouble(),
-            resultNode.get("userscore").asDouble(),
-            Arrays.asList(resultNode.get("genre").asText()),    // Only 1 genre from Metacritic API
-            resultNode.get("publisher").asText(),
-            resultNode.get("developer").asText(),
-            resultNode.get("url").asText(),
-            resultNode.get("thumbnail").asText()
-        );
-    }
+    private GameDetailedInfo translateGetDetailsResult(JsonNode resultNode, Platform platform) {
+        final String name = resultNode.get("name").asText();
 
-    private int getPlatformId(Platform platform) {
-        final Integer platformId = platformMap.get(platform);
-        if (platformId == null) {
-            throw new RuntimeException("Unable to find id for platform: " + platform);
-        }
-        return platformId;
+        // Metacritic API does not provide description.
+        final Optional<String> description = Optional.empty();
+
+        final Optional<LocalDate> releaseDate = translateDate(resultNode.get("rlsdate").asText());
+        final double criticScore = resultNode.get("score").asDouble();
+        final double userscore = resultNode.get("userscore").asDouble();
+
+        // Only 1 genre from Metacritic API.
+        final List<String> genres = Collections.singletonList(resultNode.get("genre").asText());
+
+        // Only 1 publisher from Metacritic API
+        final List<String> publishers = Collections.singletonList(resultNode.get("publisher").asText());
+
+        // Only 1 developer from Metacritic API
+        final List<String> developers = Collections.singletonList(resultNode.get("developer").asText());
+
+        final String url = resultNode.get("url").asText();
+        final String thumbnailUrl = resultNode.get("thumbnail").asText();
+
+        return new GameDetailedInfo(
+            name,
+            description,
+            platform,
+            releaseDate,
+            criticScore,
+            userscore,
+            genres,
+            publishers,
+            developers,
+            url,
+            thumbnailUrl
+        );
     }
 }

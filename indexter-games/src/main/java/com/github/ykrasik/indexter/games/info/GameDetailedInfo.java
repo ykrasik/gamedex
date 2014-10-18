@@ -18,8 +18,8 @@ public class GameDetailedInfo {
     private final double criticScore;
     private final double userScore;
     private final List<String> genres;
-    private final String publisher;
-    private final String developer;
+    private final List<String> publishers;
+    private final List<String> developers;
     private final String url;
     private final String thumbnailUrl;
 
@@ -30,8 +30,8 @@ public class GameDetailedInfo {
                             double criticScore,
                             double userScore,
                             List<String> genres,
-                            String publisher,
-                            String developer,
+                            List<String> publishers,
+                            List<String> developers,
                             String url,
                             String thumbnailUrl) {
         this.name = Objects.requireNonNull(name);
@@ -41,8 +41,8 @@ public class GameDetailedInfo {
         this.criticScore = criticScore;
         this.userScore = userScore;
         this.genres = Objects.requireNonNull(genres);
-        this.publisher = Objects.requireNonNull(publisher);
-        this.developer = Objects.requireNonNull(developer);
+        this.publishers = Objects.requireNonNull(publishers);
+        this.developers = Objects.requireNonNull(developers);
         this.url = Objects.requireNonNull(url);
         this.thumbnailUrl = Objects.requireNonNull(thumbnailUrl);
     }
@@ -75,12 +75,12 @@ public class GameDetailedInfo {
         return genres;
     }
 
-    public String getPublisher() {
-        return publisher;
+    public List<String> getPublishers() {
+        return publishers;
     }
 
-    public String getDeveloper() {
-        return developer;
+    public List<String> getDevelopers() {
+        return developers;
     }
 
     public String getUrl() {
@@ -101,8 +101,8 @@ public class GameDetailedInfo {
             .add("criticScore", criticScore)
             .add("userScore", userScore)
             .add("genres", genres)
-            .add("publisher", publisher)
-            .add("developer", developer)
+            .add("publishers", publishers)
+            .add("developers", developers)
             .add("url", url)
             .add("thumbnailUrl", thumbnailUrl)
             .toString();
