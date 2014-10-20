@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.info;
+package com.github.ykrasik.indexter.games.datamodel;
 
 import com.google.common.base.MoreObjects;
 
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class GameDetailedInfo {
     private final String name;
     private final Optional<String> description;
-    private final Platform platform;
+    private final GamePlatform gamePlatform;
     private final Optional<LocalDate> releaseDate;
     private final double criticScore;
     private final double userScore;
@@ -25,7 +25,7 @@ public class GameDetailedInfo {
 
     public GameDetailedInfo(String name,
                             Optional<String> description,
-                            Platform platform,
+                            GamePlatform gamePlatform,
                             Optional<LocalDate> releaseDate,
                             double criticScore,
                             double userScore,
@@ -36,7 +36,7 @@ public class GameDetailedInfo {
                             String thumbnailUrl) {
         this.name = Objects.requireNonNull(name);
         this.description = Objects.requireNonNull(description);
-        this.platform = Objects.requireNonNull(platform);
+        this.gamePlatform = Objects.requireNonNull(gamePlatform);
         this.releaseDate = Objects.requireNonNull(releaseDate);
         this.criticScore = criticScore;
         this.userScore = userScore;
@@ -55,8 +55,8 @@ public class GameDetailedInfo {
         return description;
     }
 
-    public Platform getPlatform() {
-        return platform;
+    public GamePlatform getGamePlatform() {
+        return gamePlatform;
     }
 
     public Optional<LocalDate> getReleaseDate() {
@@ -96,7 +96,7 @@ public class GameDetailedInfo {
         return MoreObjects.toStringHelper(this)
             .add("name", name)
             .add("description", description)
-            .add("platform", platform)
+            .add("platform", gamePlatform)
             .add("releaseDate", releaseDate)
             .add("criticScore", criticScore)
             .add("userScore", userScore)

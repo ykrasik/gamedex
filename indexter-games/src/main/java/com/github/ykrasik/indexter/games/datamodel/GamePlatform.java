@@ -1,9 +1,9 @@
-package com.github.ykrasik.indexter.games.info;
+package com.github.ykrasik.indexter.games.datamodel;
 
 /**
  * @author Yevgeny Krasik
  */
-public enum Platform {
+public enum GamePlatform {
     PC,
     XBOX_360,
     XBOX_ONE,

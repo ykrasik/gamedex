@@ -1,10 +1,10 @@
 package com.github.ykrasik.indexter.games.info.metacritic;
 
 import com.github.ykrasik.indexter.AbstractService;
-import com.github.ykrasik.indexter.games.info.GameBriefInfo;
-import com.github.ykrasik.indexter.games.info.GameDetailedInfo;
+import com.github.ykrasik.indexter.games.datamodel.GameBriefInfo;
+import com.github.ykrasik.indexter.games.datamodel.GameDetailedInfo;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.info.Platform;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
 import org.codehaus.jackson.JsonNode;
@@ -41,9 +41,9 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
     }
 
     @Override
-    public List<GameBriefInfo> searchGames(String name, Platform platform) throws Exception {
-        LOG.info("Searching for name={}, platform={}...", name, platform);
-        final int platformId = properties.getPlatformId(platform);
+    public List<GameBriefInfo> searchGames(String name, GamePlatform gamePlatform) throws Exception {
+        LOG.info("Searching for name={}, platform={}...", name, gamePlatform);
+        final int platformId = properties.getPlatformId(gamePlatform);
         final String rawBody = client.searchGames(name, platformId);
         LOG.debug("rawBody={}", rawBody);
 
@@ -52,14 +52,14 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
         final Iterator<JsonNode> iterator = root.get("results").getElements();
         while (iterator.hasNext()) {
             final JsonNode node = iterator.next();
-            infos.add(translateGameBriefInfo(node, platform));
+            infos.add(translateGameBriefInfo(node, gamePlatform));
         }
 
         LOG.info("Found {} results.", infos.size());
         return infos;
     }
 
-    private GameBriefInfo translateGameBriefInfo(JsonNode node, Platform platform) {
+    private GameBriefInfo translateGameBriefInfo(JsonNode node, GamePlatform gamePlatform) {
         final String name = node.get("name").asText();
         final Optional<LocalDate> releaseDate = translateDate(node.get("rlsdate").asText());
         final double score = node.get("score").asDouble();
@@ -68,7 +68,7 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
 
         return new GameBriefInfo(
             name,
-            platform,
+            gamePlatform,
             releaseDate,
             score,
             thumbnailUrl,
@@ -86,9 +86,9 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
     }
 
     @Override
-    public Optional<GameDetailedInfo> getDetails(String moreDetailsId, Platform platform) throws Exception {
-        LOG.info("Getting details for name={}, platform={}...", moreDetailsId, platform);
-        final int platformId = properties.getPlatformId(platform);
+    public Optional<GameDetailedInfo> getDetails(String moreDetailsId, GamePlatform gamePlatform) throws Exception {
+        LOG.info("Getting details for name={}, platform={}...", moreDetailsId, gamePlatform);
+        final int platformId = properties.getPlatformId(gamePlatform);
         final String rawBody = client.fetchDetails(moreDetailsId, platformId);
         LOG.debug("rawBody={}", rawBody);
 
@@ -98,13 +98,13 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
             LOG.info("Not found.");
             return Optional.empty();
         } else {
-            final GameDetailedInfo info = translateGetDetailsResult(resultNode, platform);
+            final GameDetailedInfo info = translateGetDetailsResult(resultNode, gamePlatform);
             LOG.info("Found: {}", info);
             return Optional.of(info);
         }
     }
 
-    private GameDetailedInfo translateGetDetailsResult(JsonNode resultNode, Platform platform) {
+    private GameDetailedInfo translateGetDetailsResult(JsonNode resultNode, GamePlatform gamePlatform) {
         final String name = resultNode.get("name").asText();
 
         // Metacritic API does not provide description.
@@ -129,7 +129,7 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
         return new GameDetailedInfo(
             name,
             description,
-            platform,
+            gamePlatform,
             releaseDate,
             criticScore,
             userscore,

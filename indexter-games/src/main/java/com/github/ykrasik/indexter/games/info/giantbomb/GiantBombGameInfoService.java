@@ -1,10 +1,10 @@
 package com.github.ykrasik.indexter.games.info.giantbomb;
 
 import com.github.ykrasik.indexter.AbstractService;
-import com.github.ykrasik.indexter.games.info.GameBriefInfo;
-import com.github.ykrasik.indexter.games.info.GameDetailedInfo;
+import com.github.ykrasik.indexter.games.datamodel.GameBriefInfo;
+import com.github.ykrasik.indexter.games.datamodel.GameDetailedInfo;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.info.Platform;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
 import org.codehaus.jackson.JsonNode;
@@ -41,29 +41,29 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
     }
 
     @Override
-    public List<GameBriefInfo> searchGames(String name, Platform platform) throws Exception {
-        LOG.info("Searching for name={}, platform={}...", name, platform);
-        final int platformId = properties.getPlatformId(platform);
+    public List<GameBriefInfo> searchGames(String name, GamePlatform gamePlatform) throws Exception {
+        LOG.info("Searching for name={}, platform={}...", name, gamePlatform);
+        final int platformId = properties.getPlatformId(gamePlatform);
         final String rawBody = client.searchGames(name, platformId);
         LOG.debug("rawBody={}", rawBody);
 
         final JsonNode root = objectMapper.readTree(rawBody);
         if (root.get("status_code").asInt() != 1) {
-            throw new RuntimeException("Error executing request: searchGames. name=" + name + ", platform=" + platform);
+            throw new RuntimeException("Error executing request: searchGames. name=" + name + ", platform=" + gamePlatform);
         }
 
         final List<GameBriefInfo> infos = new ArrayList<>();
         final Iterator<JsonNode> iterator = root.get("results").getElements();
         while (iterator.hasNext()) {
             final JsonNode node = iterator.next();
-            infos.add(translateGameBriefInfo(node, platform));
+            infos.add(translateGameBriefInfo(node, gamePlatform));
         }
 
         LOG.info("Found {} results.", infos.size());
         return infos;
     }
 
-    private GameBriefInfo translateGameBriefInfo(JsonNode node, Platform platform) {
+    private GameBriefInfo translateGameBriefInfo(JsonNode node, GamePlatform gamePlatform) {
         final String name = node.get("name").asText();
         final Optional<LocalDate> releaseDate = translateDate(node.get("original_release_date").asText());
 
@@ -77,7 +77,7 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
 
         return new GameBriefInfo(
             name,
-            platform,
+            gamePlatform,
             releaseDate,
             score,
             thumbnailUrl,
@@ -99,7 +99,7 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
     }
 
     @Override
-    public Optional<GameDetailedInfo> getDetails(String apiDetailUrl, Platform platform) throws Exception {
+    public Optional<GameDetailedInfo> getDetails(String apiDetailUrl, GamePlatform gamePlatform) throws Exception {
         // GiantBomb doesn't need to filter by platform, the apiDetailUrl points to an exact entry.
         LOG.info("Getting details for apiDetailUrl={}...", apiDetailUrl);
         final String rawBody = client.fetchDetails(apiDetailUrl);
@@ -116,12 +116,12 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         }
 
         final JsonNode resultNode = root.get("results");
-        final GameDetailedInfo info = translateGetDetailsResult(resultNode, platform);
+        final GameDetailedInfo info = translateGetDetailsResult(resultNode, gamePlatform);
         LOG.info("Found: {}", info);
         return Optional.of(info);
     }
 
-    private GameDetailedInfo translateGetDetailsResult(JsonNode node, Platform platform) {
+    private GameDetailedInfo translateGetDetailsResult(JsonNode node, GamePlatform gamePlatform) {
         final String name = node.get("name").asText();
         final Optional<String> description = Optional.of(node.get("deck").asText());
         final Optional<LocalDate> releaseDate = translateDate(node.get("original_release_date").asText());
@@ -139,7 +139,7 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         return new GameDetailedInfo(
             name,
             description,
-            platform,
+            gamePlatform,
             releaseDate,
             criticScore,
             userScore,

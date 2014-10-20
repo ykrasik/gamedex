@@ -1,7 +1,5 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.data.GameDataService;
-import com.github.ykrasik.indexter.games.data.GameDataServiceImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClientImpl;
@@ -12,10 +10,14 @@ import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameIn
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClientImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
 import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticPropertiesImpl;
+import com.github.ykrasik.indexter.games.persistence.GameDataService;
+import com.github.ykrasik.indexter.games.persistence.GameDataServiceImpl;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author Yevgeny Krasik
@@ -27,6 +29,13 @@ public class BeanConfiguration {
         return new GameDataServiceImpl();
     }
 
+    @Bean
+    public BeanPostProcessor gameDataListenerBeanProcessor(GameDataService dataService) {
+        return new GameDataListenerBeanProcessor(dataService);
+    }
+
+    // FIXME: Find a solution to this.
+    @Primary
     @Bean
     public MetacriticGameInfoService metacriticGameInfoService(MetacriticGameInfoClient client,
                                                                MetacriticProperties properties,

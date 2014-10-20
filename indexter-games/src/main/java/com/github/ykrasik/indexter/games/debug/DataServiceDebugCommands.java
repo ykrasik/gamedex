@@ -1,9 +1,10 @@
 package com.github.ykrasik.indexter.games.debug;
 
-import com.github.ykrasik.indexter.games.data.GameDataService;
-import com.github.ykrasik.indexter.games.info.GameDetailedInfo;
+import com.github.ykrasik.indexter.debug.DebugCommands;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.persistence.GameDataService;
+import com.github.ykrasik.indexter.games.datamodel.GameDetailedInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.info.Platform;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
@@ -15,21 +16,21 @@ import java.util.Objects;
  * @author Yevgeny Krasik
  */
 @ShellPath("data")
-public class DataServiceDebugCommands {
+public class DataServiceDebugCommands implements DebugCommands {
     private final GameDataService dataService;
-    private final GameInfoService service;
+    private final GameInfoService infoService;
 
-    public DataServiceDebugCommands(GameDataService dataService, GameInfoService service) {
+    public DataServiceDebugCommands(GameDataService dataService, GameInfoService infoService) {
         this.dataService = Objects.requireNonNull(dataService);
-        this.service = Objects.requireNonNull(service);
+        this.infoService = Objects.requireNonNull(infoService);
     }
 
     @Command
     public void add(OutputPrinter outputPrinter,
                     @StringParam("name") String name,
                     @StringParam(value = "platform", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final Platform platform = Platform.valueOf(platformStr);
-        final GameDetailedInfo info = service.getDetails(name, platform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
+        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
+        final GameDetailedInfo info = infoService.getDetails(name, gamePlatform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
         dataService.add(info);
     }
 }

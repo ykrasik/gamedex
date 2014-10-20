@@ -1,6 +1,7 @@
 package com.github.ykrasik.indexter.games.debug;
 
-import com.github.ykrasik.indexter.games.info.Platform;
+import com.github.ykrasik.indexter.debug.DebugCommands;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
@@ -13,7 +14,7 @@ import java.util.Objects;
  * @author Yevgeny Krasik
  */
 @ShellPath("giantbomb")
-public class GiantBombDebugCommands {
+public class GiantBombDebugCommands implements DebugCommands {
     private final GiantBombGameInfoService service;
     private final GiantBombGameInfoClient client;
     private final ObjectMapper objectMapper;
@@ -30,16 +31,16 @@ public class GiantBombDebugCommands {
     public void search(OutputPrinter outputPrinter,
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final Platform platform = Platform.valueOf(platformStr);
-        service.searchGames(name, platform).forEach(result -> outputPrinter.println(result.toString()));
+        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
+        service.searchGames(name, gamePlatform).forEach(result -> outputPrinter.println(result.toString()));
     }
 
     @Command
     public void get(OutputPrinter outputPrinter,
                     @StringParam("name") String name,
                     @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final Platform platform = Platform.valueOf(platformStr);
-        outputPrinter.println(service.getDetails(name, platform).toString());
+        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
+        outputPrinter.println(service.getDetails(name, gamePlatform).toString());
     }
 
     @ShellPath("client")
@@ -63,10 +64,10 @@ public class GiantBombDebugCommands {
     }
 
     private String[] platformValues() {
-        final Platform[] platforms = Platform.values();
-        final String[] values = new String[platforms.length];
-        for (int i = 0; i < platforms.length; i++) {
-            values[i] = platforms[i].name();
+        final GamePlatform[] gamePlatforms = GamePlatform.values();
+        final String[] values = new String[gamePlatforms.length];
+        for (int i = 0; i < gamePlatforms.length; i++) {
+            values[i] = gamePlatforms[i].name();
         }
         return values;
     }

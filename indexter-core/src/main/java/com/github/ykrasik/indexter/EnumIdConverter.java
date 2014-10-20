@@ -6,6 +6,7 @@ import java.util.Map;
 /**
  * @author Yevgeny Krasik
  */
+// FIXME: Redundant
 public class EnumIdConverter<K, V extends Enum<V> & IdentifiableEnum<K>> {
     private final Map<K, V> map = new HashMap<>();
 

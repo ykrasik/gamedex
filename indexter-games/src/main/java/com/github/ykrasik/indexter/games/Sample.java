@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * @author Yevgeny Krasik
  */
-// FIXME: JavaDoc
+// FIXME: Delete this.
 public class Sample extends Application {
     public static void main(String[] args) {
         launch(args);

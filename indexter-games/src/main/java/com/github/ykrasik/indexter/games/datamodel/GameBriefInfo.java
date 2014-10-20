@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.info;
+package com.github.ykrasik.indexter.games.datamodel;
 
 import com.google.common.base.MoreObjects;
 
@@ -11,20 +11,20 @@ import java.util.Optional;
  */
 public class GameBriefInfo {
     private final String name;
-    private final Platform platform;
+    private final GamePlatform gamePlatform;
     private final Optional<LocalDate> releaseDate;
     private final double score;    // FIXME: Should this be here in the brief? Giantbomb doesn't provide it.
     private final Optional<String> imageUrl;
     private final String moreDetailsId;
 
     public GameBriefInfo(String name,
-                         Platform platform,
+                         GamePlatform gamePlatform,
                          Optional<LocalDate> releaseDate,
                          double score,
                          Optional<String> imageUrl,
                          String moreDetailsId) {
         this.name = Objects.requireNonNull(name);
-        this.platform = Objects.requireNonNull(platform);
+        this.gamePlatform = Objects.requireNonNull(gamePlatform);
         this.releaseDate = Objects.requireNonNull(releaseDate);
         this.score = score;
         this.imageUrl = Objects.requireNonNull(imageUrl);
@@ -35,8 +35,8 @@ public class GameBriefInfo {
         return name;
     }
 
-    public Platform getPlatform() {
-        return platform;
+    public GamePlatform getGamePlatform() {
+        return gamePlatform;
     }
 
     public Optional<LocalDate> getReleaseDate() {
@@ -59,7 +59,7 @@ public class GameBriefInfo {
     public String toString() {
         return MoreObjects.toStringHelper(this)
             .add("name", name)
-            .add("platform", platform)
+            .add("platform", gamePlatform)
             .add("releaseDate", releaseDate)
             .add("score", score)
             .add("imageUrl", imageUrl)

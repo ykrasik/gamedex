@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.info.giantbomb.config;
 
-import com.github.ykrasik.indexter.games.info.Platform;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 
 /**
  * @author Yevgeny Krasik
@@ -8,5 +8,5 @@ import com.github.ykrasik.indexter.games.info.Platform;
 public interface GiantBombProperties {
     String getApplicationKey();
 
-    int getPlatformId(Platform platform);
+    int getPlatformId(GamePlatform gamePlatform);
 }

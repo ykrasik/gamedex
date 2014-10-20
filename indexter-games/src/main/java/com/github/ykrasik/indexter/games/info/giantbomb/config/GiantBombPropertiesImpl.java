@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.info.giantbomb.config;
 
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.AbstractGameInfoProperties;
-import com.github.ykrasik.indexter.games.info.Platform;
 
 import java.util.Map;
 import java.util.Objects;
@@ -12,7 +12,7 @@ import java.util.Properties;
  */
 public class GiantBombPropertiesImpl extends AbstractGameInfoProperties implements GiantBombProperties {
     private final String applicationKey;
-    private final Map<Platform, Integer> platformIdMap;
+    private final Map<GamePlatform, Integer> platformIdMap;
 
     public GiantBombPropertiesImpl() {
         final Properties properties = readProperties("giantbomb.properties");
@@ -26,7 +26,7 @@ public class GiantBombPropertiesImpl extends AbstractGameInfoProperties implemen
     }
 
     @Override
-    public int getPlatformId(Platform platform) {
-        return Objects.requireNonNull(platformIdMap.get(platform));
+    public int getPlatformId(GamePlatform gamePlatform) {
+        return Objects.requireNonNull(platformIdMap.get(gamePlatform));
     }
 }

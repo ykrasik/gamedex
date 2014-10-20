@@ -5,8 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
-<StackPane prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.indexter.games.MainWindowController">
+<StackPane prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <BorderPane prefHeight="200.0" prefWidth="200.0">
          <left>
@@ -15,6 +14,13 @@
          <right>
             <VBox fx:id="gameDetails" BorderPane.alignment="CENTER" />
          </right>
+         <top>
+            <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+              <items>
+                <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#addGame" text="Add game" />
+              </items>
+            </ToolBar>
+         </top>
       </BorderPane>
    </children>
 </StackPane>
