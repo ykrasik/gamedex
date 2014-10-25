@@ -1,7 +1,6 @@
 package com.github.ykrasik.indexter.games.info;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.google.common.base.MoreObjects;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -15,20 +14,23 @@ public class GameRawBriefInfo {
     private final GamePlatform gamePlatform;
     private final Optional<LocalDate> releaseDate;
     private final double score;    // FIXME: Should this be here in the brief? Giantbomb doesn't provide it.
-    private final Optional<String> imageUrl;
+    private final Optional<String> thumbnailUrl;
+    private final Optional<String> tinyImageUrl;
     private final String moreDetailsId;
 
     public GameRawBriefInfo(String name,
                             GamePlatform gamePlatform,
                             Optional<LocalDate> releaseDate,
                             double score,
-                            Optional<String> imageUrl,
+                            Optional<String> thumbnailUrl,
+                            Optional<String> tinyImageUrl,
                             String moreDetailsId) {
         this.name = Objects.requireNonNull(name);
         this.gamePlatform = Objects.requireNonNull(gamePlatform);
         this.releaseDate = Objects.requireNonNull(releaseDate);
         this.score = score;
-        this.imageUrl = Objects.requireNonNull(imageUrl);
+        this.thumbnailUrl = Objects.requireNonNull(thumbnailUrl);
+        this.tinyImageUrl = Objects.requireNonNull(tinyImageUrl);
         this.moreDetailsId = Objects.requireNonNull(moreDetailsId);
     }
 
@@ -48,8 +50,12 @@ public class GameRawBriefInfo {
         return score;
     }
 
-    public Optional<String> getImageUrl() {
-        return imageUrl;
+    public Optional<String> getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public Optional<String> getTinyImageUrl() {
+        return tinyImageUrl;
     }
 
     public String getMoreDetailsId() {
@@ -58,13 +64,9 @@ public class GameRawBriefInfo {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-            .add("name", name)
-            .add("platform", gamePlatform)
-            .add("releaseDate", releaseDate)
-            .add("score", score)
-            .add("imageUrl", imageUrl)
-            .add("moreDetailsId", moreDetailsId)
-            .toString();
+        return String.format(
+            "Name: '%s', Release date: %s, Score: %s",
+            name, releaseDate.map(Object::toString).orElse("Not Available"), score
+        );
     }
 }

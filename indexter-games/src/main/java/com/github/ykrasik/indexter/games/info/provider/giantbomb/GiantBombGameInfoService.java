@@ -69,22 +69,15 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         final String name = node.get("name").asText();
         final Optional<LocalDate> releaseDate = translateDate(node.get("original_release_date").asText());
 
-        // GiantBomb API doesn't provide reviews for brief.
+        // GiantBomb API doesn't provide score for brief.
         final double score = 0.0;
 
-        final Optional<String> thumbnailUrl = Optional.of(extractThumbnailUrl(node));
-
+        final Optional<String> thumbnailUrl = extractThumbnailUrl(node);
+        final Optional<String> tinyImageUrl = extractTinyImageUrl(node);
         // The GiantBomb API fetches more details by an api_detail_url field.
         final String moreDetailsId = node.get("api_detail_url").asText();
 
-        return new GameRawBriefInfo(
-            name,
-            gamePlatform,
-            releaseDate,
-            score,
-            thumbnailUrl,
-            moreDetailsId
-        );
+        return new GameRawBriefInfo(name, gamePlatform, releaseDate, score, thumbnailUrl, tinyImageUrl, moreDetailsId);
     }
 
     private Optional<LocalDate> translateDate(String raw) {
@@ -135,7 +128,7 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         final List<String> publishers = extractField(node.get("publishers"), "name");
         final List<String> developers = extractField(node.get("developers"), "name");
         final String url = node.get("site_detail_url").asText();
-        final String thumbnailUrl = extractThumbnailUrl(node);
+        final Optional<String> thumbnailUrl = extractThumbnailUrl(node);
 
         return GameInfoFactory.from(
             name, description, gamePlatform, releaseDate, criticScore, userScore,
@@ -143,12 +136,21 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         );
     }
 
-    private String extractThumbnailUrl(JsonNode root) {
+    private Optional<String> extractThumbnailUrl(JsonNode root) {
         return extractImageUrl(root, "thumb_url");
     }
 
-    private String extractImageUrl(JsonNode root, String imageName) {
-        return root.get("image").get(imageName).asText();
+    private Optional<String> extractTinyImageUrl(JsonNode root) {
+        return extractImageUrl(root, "tiny_url");
+    }
+
+    private Optional<String> extractImageUrl(JsonNode root, String imageName) {
+        final JsonNode image = root.get("image");
+        if (!image.isNull()) {
+            return Optional.of(image.get(imageName).asText());
+        } else {
+            return Optional.empty();
+        }
     }
 
     private List<String> extractField(JsonNode root, String fieldName) {

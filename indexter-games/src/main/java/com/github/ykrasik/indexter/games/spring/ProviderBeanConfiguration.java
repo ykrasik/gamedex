@@ -24,7 +24,7 @@ public class ProviderBeanConfiguration {
 
 
     // FIXME: Find a solution to this.
-    @Primary
+//    @Primary
     @Bean
     public MetacriticGameInfoService metacriticGameInfoService(MetacriticGameInfoClient client,
                                                                MetacriticProperties properties,
@@ -42,6 +42,7 @@ public class ProviderBeanConfiguration {
         return new MetacriticPropertiesImpl();
     }
 
+    @Primary
     @Bean
     public GiantBombGameInfoService giantBombGameInfoService(GiantBombGameInfoClient client,
                                                              GiantBombProperties properties,

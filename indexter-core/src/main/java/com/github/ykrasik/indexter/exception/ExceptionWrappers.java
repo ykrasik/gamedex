@@ -28,7 +28,7 @@ public class ExceptionWrappers {
      * technique in 2009 on the java posse mailing list.
      * http://www.mail-archive.com/javaposse@googlegroups.com/msg05984.html
      */
-    public static <T extends Throwable> T sneakyThrow(Throwable t) throws T {
+    private static <T extends Throwable> T sneakyThrow(Throwable t) throws T {
         throw (T) t;
     }
 }

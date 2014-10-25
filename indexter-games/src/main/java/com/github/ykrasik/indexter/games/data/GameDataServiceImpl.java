@@ -77,9 +77,7 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
     public Collection<GameInfo> getAll() throws DataException {
         try {
             final List<GameInfoEntity> entities = gameInfoEntityDao.queryForAll();
-            return entities.stream()
-                .map(translator::translate)
-                .collect(Collectors.toList());
+            return entities.stream().map(translator::translate).collect(Collectors.toList());
         } catch (SQLException e) {
             throw new DataException(e);
         }

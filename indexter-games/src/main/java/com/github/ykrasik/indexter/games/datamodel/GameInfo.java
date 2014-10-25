@@ -23,8 +23,8 @@ public class GameInfo {
     private final List<String> publishers;
     private final List<String> developers;
     private final String url;
-    private final byte[] thumbnailData;
-    private final Image thumbnail;
+    private final Optional<byte[]> thumbnailData;
+    private final Optional<Image> thumbnail;
 
     public GameInfo(String name,
                     Optional<String> description,
@@ -36,7 +36,7 @@ public class GameInfo {
                     List<String> publishers,
                     List<String> developers,
                     String url,
-                    byte[] thumbnailData) {
+                    Optional<byte[]> thumbnailData) {
         this.name = Objects.requireNonNull(name);
         this.description = Objects.requireNonNull(description);
         this.gamePlatform = Objects.requireNonNull(gamePlatform);
@@ -50,7 +50,7 @@ public class GameInfo {
         this.thumbnailData = Objects.requireNonNull(thumbnailData);
 
         // There is no need to close byte array input streams.
-        this.thumbnail = new Image(new ByteArrayInputStream(thumbnailData));
+        this.thumbnail = thumbnailData.map(data -> new Image(new ByteArrayInputStream(data)));
     }
 
     public String getName() {
@@ -93,11 +93,11 @@ public class GameInfo {
         return url;
     }
 
-    public byte[] getThumbnailData() {
+    public Optional<byte[]> getThumbnailData() {
         return thumbnailData;
     }
 
-    public Image getThumbnail() {
+    public Optional<Image> getThumbnail() {
         return thumbnail;
     }
 

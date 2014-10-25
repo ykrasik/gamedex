@@ -1,9 +1,8 @@
 package com.github.ykrasik.indexter.games.datamodel;
 
-import org.apache.commons.io.IOUtils;
+import com.github.ykrasik.indexter.util.UrlUtils;
 
 import java.io.IOException;
-import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -25,16 +24,17 @@ public final class GameInfoFactory {
                                 List<String> publishers,
                                 List<String> developers,
                                 String url,
-                                String thumbnailUrl) throws IOException {
-        final byte[] thumbnailData = fetchThumbnail(thumbnailUrl);
+                                Optional<String> thumbnailUrl) throws IOException {
+        final Optional<byte[]> thumbnailData;
+        if (thumbnailUrl.isPresent()) {
+            thumbnailData = Optional.of(UrlUtils.fetchData(thumbnailUrl.get()));
+        } else {
+            thumbnailData = Optional.empty();
+        }
+
         return new GameInfo(
             name, description, gamePlatform, releaseDate, criticScore, userScore,
             genres, publishers, developers, url, thumbnailData
         );
-    }
-
-    private static byte[] fetchThumbnail(String urlStr) throws IOException {
-        final URL url = new URL(urlStr);
-        return IOUtils.toByteArray(url);
     }
 }

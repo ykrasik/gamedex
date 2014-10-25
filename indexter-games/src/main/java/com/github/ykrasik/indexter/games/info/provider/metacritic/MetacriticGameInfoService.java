@@ -65,17 +65,15 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
         final String name = node.get("name").asText();
         final Optional<LocalDate> releaseDate = translateDate(node.get("rlsdate").asText());
         final double score = node.get("score").asDouble();
-        final Optional<String> thumbnailUrl = Optional.<String>empty();     // Metacritic API doesn't provide a thumbnail on brief.
-        final String moreDetailsId = name;  // Metacritic API fetches more details by name.
 
-        return new GameRawBriefInfo(
-            name,
-            gamePlatform,
-            releaseDate,
-            score,
-            thumbnailUrl,
-            moreDetailsId
-        );
+        // Metacritic API doesn't provide a thumbnail or tinyImage on brief.
+        final Optional<String> thumbnailUrl = Optional.<String>empty();
+        final Optional<String> tinyImageUrl = Optional.<String>empty();
+
+        // Metacritic API fetches more details by name.
+        final String moreDetailsId = name;
+
+        return new GameRawBriefInfo(name, gamePlatform, releaseDate, score, thumbnailUrl, tinyImageUrl, moreDetailsId);
     }
 
     private Optional<LocalDate> translateDate(String raw) {
@@ -125,7 +123,7 @@ public class MetacriticGameInfoService extends AbstractService implements GameIn
         final List<String> developers = Collections.singletonList(resultNode.get("developer").asText());
 
         final String url = resultNode.get("url").asText();
-        final String thumbnailUrl = resultNode.get("thumbnail").asText();
+        final Optional<String> thumbnailUrl = Optional.of(resultNode.get("thumbnail").asText());
 
         return GameInfoFactory.from(
             name, description, gamePlatform, releaseDate, criticScore, userscore,

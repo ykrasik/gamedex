@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
@@ -8,18 +10,92 @@
 
 <BorderPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <right>
-      <VBox fx:id="gameDetails" BorderPane.alignment="CENTER" />
+      <VBox fx:id="gameDetails" BorderPane.alignment="CENTER">
+         <children>
+            <ImageView fx:id="thumbnail" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+            <HBox>
+               <children>
+                  <Label text="Name" />
+                  <TextField fx:id="name" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="Description" />
+                  <TextArea fx:id="description" editable="false" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="Platform" />
+                  <TextField fx:id="platform" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="Release Date" />
+                  <TextField fx:id="releaseDate" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="Critic Score" />
+                  <TextField fx:id="criticScore" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="User Score" />
+                  <TextField fx:id="userScore" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
+                  <Label text="Url" />
+                  <TextField fx:id="url" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
    </right>
    <top>
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
-          <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#addGame" text="Add game" />
-            <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#scanDirectory" text="Scan Directory" />
+          <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#showAddGameDialog" text="Add game" />
+            <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#showScanDirectoryDialog" text="Scan Directory" />
         </items>
       </ToolBar>
    </top>
    <center>
-      <TilePane fx:id="gameWall" hgap="10.0" prefColumns="10" prefRows="1000" tileAlignment="TOP_LEFT" vgap="10.0" BorderPane.alignment="CENTER" />
+      <TilePane fx:id="gameWall" hgap="10.0" prefColumns="10" prefRows="1000" styleClass="gameTyle" tileAlignment="TOP_LEFT" vgap="10.0" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </BorderPane.margin>
+      </TilePane>
    </center>
    <left>
       <ListView fx:id="gamesList" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />

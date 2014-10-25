@@ -41,7 +41,7 @@ public class GameInfoEntity {
     @DatabaseField(canBeNull = false)
     private String url;
 
-    @DatabaseField(dataType = DataType.BYTE_ARRAY, canBeNull = false)
+    @DatabaseField(dataType = DataType.BYTE_ARRAY)
     private byte[] thumbnailData;
 
     GameInfoEntity() {

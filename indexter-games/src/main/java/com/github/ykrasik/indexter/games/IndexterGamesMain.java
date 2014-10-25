@@ -66,6 +66,8 @@ public class IndexterGamesMain extends Application {
     }
 
     private void initStage(Stage stage, Scene mainScene, Scene debugConsoleScene) {
+        mainScene.getStylesheets().add("com/github/ykrasik/indexter/games/ui/games.css");
+
         // FIXME: Should be done in spring, inject configurations with a properties object.
         stage.setWidth(1280);
         stage.setHeight(720);
