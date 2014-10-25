@@ -2,8 +2,8 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
-import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
+import com.github.ykrasik.indexter.games.info.provider.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -40,7 +40,7 @@ public class GiantBombDebugCommands implements DebugCommands {
                     @StringParam("name") String name,
                     @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        outputPrinter.println(service.getDetails(name, gamePlatform).toString());
+        outputPrinter.println(service.getGameInfo(name, gamePlatform).toString());
     }
 
     @ShellPath("client")

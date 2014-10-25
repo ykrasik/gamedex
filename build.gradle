@@ -29,15 +29,15 @@ project("indexter-core") {
         compile "com.google.guava:guava:$guavaVersion"
         compile 'org.apache.httpcomponents:httpclient:4.3.5'
         compile 'com.mashape.unirest:unirest-java:1.3.22'
-        compile 'com.cedarsoftware:json-io:2.7.1'
         compile "io.fastjson:boon:$boonVersion"
         compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
         compile 'org.slf4j:slf4j-api:1.7.6'
         compile 'ch.qos.logback:logback-classic:1.1.2'
         compile 'org.controlsfx:controlsfx:8.0.5'
-
-
-
+        compile 'commons-io:commons-io:2.4'
+        compile 'com.j256.ormlite:ormlite-core:4.48'
+        compile 'com.j256.ormlite:ormlite-jdbc:4.48'
+        compile 'com.h2database:h2:1.4.182'
 
         compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
         compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"

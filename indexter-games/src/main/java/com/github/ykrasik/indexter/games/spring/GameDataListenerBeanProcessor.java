@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.persistence.GameDataListener;
-import com.github.ykrasik.indexter.games.persistence.GameDataService;
+import com.github.ykrasik.indexter.games.data.GameDataListener;
+import com.github.ykrasik.indexter.games.data.GameDataService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 

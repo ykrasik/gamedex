@@ -1,10 +1,10 @@
 package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
+import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.persistence.GameDataService;
-import com.github.ykrasik.indexter.games.datamodel.GameDetailedInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
+import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
@@ -30,7 +30,7 @@ public class DataServiceDebugCommands implements DebugCommands {
                     @StringParam("name") String name,
                     @StringParam(value = "platform", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        final GameDetailedInfo info = infoService.getDetails(name, gamePlatform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
+        final GameInfo info = infoService.getGameInfo(name, gamePlatform).orElseThrow(() -> new RuntimeException("No info available for: " + name));
         dataService.add(info);
     }
 }

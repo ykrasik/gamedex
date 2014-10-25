@@ -3,7 +3,7 @@ package com.github.ykrasik.indexter.games.spring;
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.persistence.GameDataService;
+import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
@@ -49,9 +49,7 @@ public class UiBeanConfiguration {
     }
 
     @Bean
-    public GameCollectionController gameCollectionController(Stage stage,
-                                                             GameInfoService infoService,
-                                                             GameDataService dataService) {
+    public GameCollectionController gameCollectionController(Stage stage, GameInfoService infoService, GameDataService dataService) {
         return new GameCollectionController(stage, infoService, dataService);
     }
 }

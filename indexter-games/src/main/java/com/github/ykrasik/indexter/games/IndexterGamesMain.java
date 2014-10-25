@@ -16,7 +16,8 @@
 
 package com.github.ykrasik.indexter.games;
 
-import com.github.ykrasik.indexter.games.spring.BeanConfiguration;
+import com.github.ykrasik.indexter.games.spring.DataBeanConfiguration;
+import com.github.ykrasik.indexter.games.spring.ProviderBeanConfiguration;
 import com.github.ykrasik.indexter.games.spring.DebugBeanConfiguration;
 import com.github.ykrasik.indexter.games.spring.UiBeanConfiguration;
 import javafx.application.Application;
@@ -88,8 +89,9 @@ public class IndexterGamesMain extends Application {
         final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.getBeanFactory().registerSingleton("stage", stage);
         context.register(
+            DataBeanConfiguration.class,
+            ProviderBeanConfiguration.class,
             UiBeanConfiguration.class,
-            BeanConfiguration.class,
             DebugBeanConfiguration.class
         );
         context.refresh();

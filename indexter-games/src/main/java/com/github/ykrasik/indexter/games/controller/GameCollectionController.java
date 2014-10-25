@@ -1,33 +1,39 @@
 package com.github.ykrasik.indexter.games.controller;
 
-import com.github.ykrasik.indexter.games.datamodel.GameBriefInfo;
-import com.github.ykrasik.indexter.games.datamodel.GameDetailedInfo;
+import com.github.ykrasik.indexter.games.datamodel.GameInfo;
+import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.persistence.GameDataListener;
-import com.github.ykrasik.indexter.games.persistence.GameDataService;
-import javafx.application.Platform;
+import com.github.ykrasik.indexter.games.data.GameDataListener;
+import com.github.ykrasik.indexter.games.data.GameDataService;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
+import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.TilePane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.dialog.Dialogs.CommandLink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Yevgeny Krasik
  */
 public class GameCollectionController implements GameDataListener {
+    private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
+
     private final Stage stage;
     private final GameInfoService infoService;
     private final GameDataService dataService;
@@ -36,7 +42,7 @@ public class GameCollectionController implements GameDataListener {
     private TilePane gameWall;
 
     @FXML
-    private Button addGameButton;
+    private ListView<String> gamesList;
 
     public GameCollectionController(Stage stage, GameInfoService infoService, GameDataService dataService) {
         this.stage = Objects.requireNonNull(stage);
@@ -44,18 +50,46 @@ public class GameCollectionController implements GameDataListener {
         this.dataService = Objects.requireNonNull(dataService);
     }
 
+    // Called by JavaFx
+    public void initialize() {
+        LOG.debug("Populating initial data...");
+        onUpdate(dataService.getAll());
+    }
+
     @Override
-    public void onUpdate(GameDataService dataService) {
-        final Collection<GameDetailedInfo> infos = dataService.getAll();
+    public void onUpdate(Collection<GameInfo> newOrUpdatedInfos) {
 
         // FIXME: thumbnail should be cached.
-        final List<ImageView> newChildren = infos.stream()
-            .map(info -> new ImageView(new Image(info.getThumbnailUrl())))
+        final List<ImageView> newChildren = newOrUpdatedInfos.stream()
+            .map(info -> new ImageView(info.getThumbnail()))
             .collect(Collectors.toList());
 
         final ObservableList<Node> children = gameWall.getChildren();
-        children.clear();
         children.addAll(newChildren);
+
+        for (GameInfo info : newOrUpdatedInfos) {
+            gamesList.getItems().add(info.getName());
+        }
+        Collections.sort(gamesList.getItems());
+    }
+
+    @FXML
+    public void scanDirectory() throws IOException {
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Add game");
+        directoryChooser.setInitialDirectory(prevDirectory);
+        prevDirectory = directoryChooser.showDialog(stage);
+        if (prevDirectory != null) {
+            final String name = prevDirectory.getName();
+
+            // FIXME: Do this in background thread.
+            // FIXME: Platform should be a param
+            final Path path = Paths.get(prevDirectory.toURI());
+            try (Stream<Path> list = Files.list(path).filter(Files::isDirectory)) {
+                list.forEach(dir -> addGame(dir.getFileName().toString(), GamePlatform.PC));
+            }
+            addGame(name, GamePlatform.PC);
+        }
     }
 
     // TODO: Encapsulate this.
@@ -78,23 +112,60 @@ public class GameCollectionController implements GameDataListener {
     private void addGame(String name, GamePlatform gamePlatform) {
         // FIXME: Handle exceptions
         try {
-            final List<GameBriefInfo> briefInfos = infoService.searchGames(name, gamePlatform);
+            final List<GameRawBriefInfo> briefInfos = infoService.searchGames(name, gamePlatform);
             if (briefInfos.isEmpty()) {
                 throw new RuntimeException("Not found: " + name);
             }
             if (briefInfos.size() == 1) {
-                final Optional<GameDetailedInfo> details = infoService.getDetails(briefInfos.get(0).getMoreDetailsId(), gamePlatform);
-                if (!details.isPresent()) {
-                    throw new RuntimeException("Specific search found nothing!!!");
-                }
-
-                dataService.add(details.get());
+                doAddGame(briefInfos.get(0), gamePlatform);
             } else {
-                // TODO: Display a "choose specific"
-                throw new RuntimeException("More then 1 option available: " + briefInfos);
+                final List<CommandLink> possibilities = briefInfos.stream()
+                    .map(brief -> new CommandLinkWithItem<>(brief.getName(), serializeBriefInfo(brief), brief))
+                    .collect(Collectors.toList());
+
+                final CommandLinkWithItem<GameRawBriefInfo> choice = (CommandLinkWithItem<GameRawBriefInfo>) Dialogs.create()
+                    .title("Please choose one:")
+                    .masthead("Please choose one:")
+                    .message("Please choose one:")
+                    .showCommandLinks(possibilities.get(0), possibilities);
+
+                doAddGame(choice.getItem(), gamePlatform);
             }
         } catch (Exception e) {
             e.printStackTrace();
+            LOG.warn("Error: ", e);
+        }
+    }
+
+    private void doAddGame(GameRawBriefInfo briefInfo, GamePlatform gamePlatform) throws Exception {
+        final GameInfo info = infoService.getGameInfo(briefInfo.getMoreDetailsId(), gamePlatform).orElseThrow(
+            () -> new RuntimeException("Specific search found nothing!!!")
+        );
+
+        dataService.add(info);
+    }
+
+    private String serializeBriefInfo(GameRawBriefInfo briefInfo) {
+        return
+            "Release date: " + briefInfo.getReleaseDate() + '\n' +
+            "Score: " + briefInfo.getScore();
+    }
+
+    private static class CommandLinkWithItem<T> extends CommandLink {
+        private final T item;
+
+        public CommandLinkWithItem(Node graphic, String text, String longText, T item) {
+            super(graphic, text, longText);
+            this.item = item;
+        }
+
+        public CommandLinkWithItem(String message, String comment, T item) {
+            super(message, comment);
+            this.item = item;
+        }
+
+        public T getItem() {
+            return item;
         }
     }
 }
