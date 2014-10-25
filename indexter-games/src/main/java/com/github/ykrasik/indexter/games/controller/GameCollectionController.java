@@ -99,7 +99,7 @@ public class GameCollectionController implements GameDataListener {
         releaseDate.setText(info.getReleaseDate().map(Object::toString).orElse("Unavailable."));
         criticScore.setText(String.valueOf(info.getCriticScore()));
         userScore.setText(String.valueOf(info.getUserScore()));
-        url.setText(info.getUrl());
+        url.setText(info.getUrl().orElse("Unavailable."));
     }
 
     @FXML

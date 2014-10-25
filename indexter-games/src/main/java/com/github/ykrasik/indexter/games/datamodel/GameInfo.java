@@ -1,9 +1,11 @@
 package com.github.ykrasik.indexter.games.datamodel;
 
+import com.github.ykrasik.indexter.util.UrlUtils;
 import com.google.common.base.MoreObjects;
 import javafx.scene.image.Image;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +24,7 @@ public class GameInfo {
     private final List<String> genres;
     private final List<String> publishers;
     private final List<String> developers;
-    private final String url;
+    private final Optional<String> url;
     private final Optional<byte[]> thumbnailData;
     private final Optional<Image> thumbnail;
 
@@ -35,7 +37,7 @@ public class GameInfo {
                     List<String> genres,
                     List<String> publishers,
                     List<String> developers,
-                    String url,
+                    Optional<String> url,
                     Optional<byte[]> thumbnailData) {
         this.name = Objects.requireNonNull(name);
         this.description = Objects.requireNonNull(description);
@@ -89,7 +91,7 @@ public class GameInfo {
         return developers;
     }
 
-    public String getUrl() {
+    public Optional<String> getUrl() {
         return url;
     }
 
@@ -107,5 +109,29 @@ public class GameInfo {
             .add("name", name)
             .add("gamePlatform", gamePlatform)
             .toString();
+    }
+
+    public static GameInfo from(String name,
+                                Optional<String> description,
+                                GamePlatform gamePlatform,
+                                Optional<LocalDate> releaseDate,
+                                double criticScore,
+                                double userScore,
+                                List<String> genres,
+                                List<String> publishers,
+                                List<String> developers,
+                                Optional<String> url,
+                                Optional<String> thumbnailUrl) throws IOException {
+        final Optional<byte[]> thumbnailData;
+        if (thumbnailUrl.isPresent()) {
+            thumbnailData = Optional.of(UrlUtils.fetchData(thumbnailUrl.get()));
+        } else {
+            thumbnailData = Optional.empty();
+        }
+
+        return new GameInfo(
+            name, description, gamePlatform, releaseDate, criticScore, userScore,
+            genres, publishers, developers, url, thumbnailData
+        );
     }
 }

@@ -11,10 +11,10 @@ import java.util.Optional;
  */
 public interface GameInfoService {
     // FIXME: Return a future
-    List<GameRawBriefInfo> searchGames(String name, GamePlatform gamePlatform) throws Exception;
+    List<GameRawBriefInfo> searchGames(String name, GamePlatform platform) throws Exception;
 
     // FIXME: Add type-safety, for metacritic this is name, for giantbomb this is a url.
     // FIXME: Return a future
-    Optional<GameInfo> getGameInfo(String moreDetailsId, GamePlatform gamePlatform) throws Exception;
+    Optional<GameInfo> getGameInfo(String moreDetailsId, GamePlatform platform) throws Exception;
 }
 

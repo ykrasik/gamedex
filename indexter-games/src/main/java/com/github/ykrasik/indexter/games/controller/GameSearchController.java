@@ -7,10 +7,6 @@ import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
 import com.github.ykrasik.indexter.util.FileUtils;
-import com.github.ykrasik.indexter.util.UrlUtils;
-import javafx.scene.Node;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog.Actions;
@@ -19,13 +15,9 @@ import org.controlsfx.dialog.Dialogs.CommandLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Yevgeny Krasik
@@ -67,43 +59,35 @@ public class GameSearchController {
             return;
         }
 
-        final List<CommandLink> possibilities = briefInfos.stream()
-            .limit(3).map(this::createChoiceCommandLink).collect(Collectors.toList());
-        final CommandLink rename = new CommandLink("Rename", "Retry with a different name.");
+        final CommandLink differentName = new CommandLink("Different name", "Retry with a different name.");
         final CommandLink showAll = new CommandLink("Show all", "Show all possibilities.");
         final CommandLink scanChildren = new CommandLink("Scan Children", "Treat this directory as a root directory containing more children.");
-        possibilities.add(0, rename);
-        possibilities.add(1, showAll);
-        possibilities.add(2, scanChildren);
 
-        final String masthead = String.format("%s\n\nToo many possibilities, choose an action:", directory);
         final Action choice = Dialogs.create()
             .owner(stage)
             .title("Too many possibilities!")
-            .masthead(masthead)
-            .message(String.format("Too many possibilities(%d) for '%s', choose an action:", briefInfos.size(), name))
-            .showCommandLinks(rename, possibilities);
+            .masthead(String.format("%s\n\nToo many possibilities, choose an action:", directory))
+            .message(String.format("Too many possibilities (%d) for '%s', choose an action:", briefInfos.size(), name))
+            .showCommandLinks(differentName, differentName, showAll, scanChildren);
 
         if (choice != Actions.CANCEL) {
-            if (choice == rename) {
+            if (choice == differentName) {
                 showDifferentNameDialog(directory, name, platform);
             } else if (choice == showAll) {
                 showAllPossibilities(directory, platform, briefInfos);
             } else if (choice == scanChildren) {
                 scanDirectory(directory, platform);
             } else {
-                final GameRawBriefInfo choiceItem = ((CommandLinkWithItem<GameRawBriefInfo>) choice).item;
-                doAddGame(choiceItem, platform);
+                throw new IndexterException("Invalid choice: " + choice);
             }
         }
     }
 
     private void showDifferentNameDialog(Path directory, String name, GamePlatform gamePlatform) throws Exception {
-        final String masthead = String.format("%s\n\nCouldn't find game: '%s'\nEnter new name or cancel to skip.", directory, name);
         final String newName = Dialogs.create()
             .owner(stage)
             .title("Couldn't find game!")
-            .masthead(masthead)
+            .masthead(String.format("%s\n\nCouldn't find game: '%s'\nEnter new name or cancel to skip.", directory, name))
             .showTextInput(name);
 
         if (newName != null) {
@@ -123,48 +107,10 @@ public class GameSearchController {
         }
     }
 
-    private CommandLinkWithItem<GameRawBriefInfo> createChoiceCommandLink(GameRawBriefInfo briefInfo) {
-        try {
-            final Optional<String> tinyImageUrl = briefInfo.getTinyImageUrl();
-            final ImageView imageView;
-            if (tinyImageUrl.isPresent()) {
-                final byte[] bytes = UrlUtils.fetchData(tinyImageUrl.get());
-                imageView = new ImageView(new Image(new ByteArrayInputStream(bytes)));
-            } else {
-                imageView = null;
-            }
-
-            final String name = briefInfo.getName();
-            final String description = String.format("Release date: %s\nScore: %s",
-                briefInfo.getReleaseDate().map(Object::toString).orElse("Not available"), briefInfo.getScore());
-            if (imageView != null) {
-                return new CommandLinkWithItem<>(imageView, name, description, briefInfo);
-            } else {
-                return new CommandLinkWithItem<>(name, description, briefInfo);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void doAddGame(GameRawBriefInfo briefInfo, GamePlatform gamePlatform) throws Exception {
         final GameInfo info = infoService.getGameInfo(briefInfo.getMoreDetailsId(), gamePlatform).orElseThrow(
             () -> new IndexterException("Specific search found nothing: %s", briefInfo)
         );
         dataService.add(info);
-    }
-
-    private static class CommandLinkWithItem<T> extends CommandLink {
-        private final T item;
-
-        private CommandLinkWithItem(Node graphic, String text, String longText, T item) {
-            super(graphic, text, longText);
-            this.item = item;
-        }
-
-        private CommandLinkWithItem(String message, String comment, T item) {
-            super(message, comment);
-            this.item = item;
-        }
     }
 }

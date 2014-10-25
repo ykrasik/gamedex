@@ -25,7 +25,7 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
         final List<String> genres = Collections.<String>emptyList();
         final List<String> publishers = Collections.<String>emptyList();
         final List<String> developers = Collections.<String>emptyList();
-        final String url = entity.getUrl();
+        final Optional<String> url = Optional.ofNullable(entity.getUrl());
         final Optional<byte[]> thumbnailData = Optional.ofNullable(entity.getThumbnailData());
 
         return new GameInfo(
@@ -42,16 +42,9 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
         final Date releaseDate = info.getReleaseDate().map(this::translateDate).orElse(null);
         final double criticScore = info.getCriticScore();
         final double userScore = info.getUserScore();
-        final String url = info.getUrl();
+        final String url = info.getUrl().orElse(null);
         final byte[] thumbnailData = info.getThumbnailData().orElse(null);
 
-        return new GameInfoEntity(name)
-            .setDescription(description)
-            .setGamePlatform(gamePlatform)
-            .setReleaseDate(releaseDate)
-            .setCriticScore(criticScore)
-            .setUserScore(userScore)
-            .setUrl(url)
-            .setThumbnailData(thumbnailData);
+        return new GameInfoEntity(name, description, gamePlatform, releaseDate, criticScore, userScore, url, thumbnailData);
     }
 }

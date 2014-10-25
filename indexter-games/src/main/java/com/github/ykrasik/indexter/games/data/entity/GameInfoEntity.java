@@ -38,7 +38,7 @@ public class GameInfoEntity {
 //
 //    private List<String> developers;
 
-    @DatabaseField(canBeNull = false)
+    @DatabaseField
     private String url;
 
     @DatabaseField(dataType = DataType.BYTE_ARRAY)
@@ -48,80 +48,54 @@ public class GameInfoEntity {
         // For ORM.
     }
 
-    public GameInfoEntity(String name) {
+    public GameInfoEntity(String name,
+                          String description,
+                          GamePlatform gamePlatform,
+                          Date releaseDate,
+                          double criticScore,
+                          double userScore,
+                          String url,
+                          byte[] thumbnailData) {
         this.name = Objects.requireNonNull(name);
+        this.description = description;
+        this.gamePlatform = Objects.requireNonNull(gamePlatform);
+        this.releaseDate = releaseDate;
+        this.criticScore = criticScore;
+        this.userScore = userScore;
+        this.url = url;
+        this.thumbnailData = thumbnailData;
     }
 
     public String getName() {
         return name;
     }
 
-    public GameInfoEntity setName(String name) {
-        this.name = name;
-        return this;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public GameInfoEntity setDescription(String description) {
-        this.description = description;
-        return this;
     }
 
     public GamePlatform getGamePlatform() {
         return gamePlatform;
     }
 
-    public GameInfoEntity setGamePlatform(GamePlatform gamePlatform) {
-        this.gamePlatform = gamePlatform;
-        return this;
-    }
-
     public Date getReleaseDate() {
         return releaseDate;
-    }
-
-    public GameInfoEntity setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
-        return this;
     }
 
     public double getCriticScore() {
         return criticScore;
     }
 
-    public GameInfoEntity setCriticScore(double criticScore) {
-        this.criticScore = criticScore;
-        return this;
-    }
-
     public double getUserScore() {
         return userScore;
-    }
-
-    public GameInfoEntity setUserScore(double userScore) {
-        this.userScore = userScore;
-        return this;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public GameInfoEntity setUrl(String url) {
-        this.url = url;
-        return this;
-    }
-
     public byte[] getThumbnailData() {
         return thumbnailData;
-    }
-
-    public GameInfoEntity setThumbnailData(byte[] thumbnailData) {
-        this.thumbnailData = thumbnailData;
-        return this;
     }
 
     @Override
