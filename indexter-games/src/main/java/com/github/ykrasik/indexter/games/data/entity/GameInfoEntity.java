@@ -15,6 +15,9 @@ import java.util.Objects;
 @DatabaseTable(tableName = "game_infos")
 public class GameInfoEntity {
     @DatabaseField(id = true)
+    private String path;
+
+    @DatabaseField(canBeNull = false)
     private String name;
 
     @DatabaseField
@@ -48,7 +51,8 @@ public class GameInfoEntity {
         // For ORM.
     }
 
-    public GameInfoEntity(String name,
+    public GameInfoEntity(String path,
+                          String name,
                           String description,
                           GamePlatform gamePlatform,
                           Date releaseDate,
@@ -56,6 +60,7 @@ public class GameInfoEntity {
                           double userScore,
                           String url,
                           byte[] thumbnailData) {
+        this.path = Objects.requireNonNull(path);
         this.name = Objects.requireNonNull(name);
         this.description = description;
         this.gamePlatform = Objects.requireNonNull(gamePlatform);
@@ -64,6 +69,10 @@ public class GameInfoEntity {
         this.userScore = userScore;
         this.url = url;
         this.thumbnailData = thumbnailData;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public String getName() {
@@ -101,6 +110,7 @@ public class GameInfoEntity {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+            .add("path", path)
             .add("name", name)
             .toString();
     }

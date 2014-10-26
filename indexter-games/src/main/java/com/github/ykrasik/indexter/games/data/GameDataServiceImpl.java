@@ -2,19 +2,19 @@ package com.github.ykrasik.indexter.games.data;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.DataException;
-import com.github.ykrasik.indexter.exception.ExceptionWrappers;
 import com.github.ykrasik.indexter.games.data.config.PersistenceProperties;
 import com.github.ykrasik.indexter.games.data.entity.GameInfoEntity;
 import com.github.ykrasik.indexter.games.data.translator.GameEntityTranslator;
-import com.github.ykrasik.indexter.games.datamodel.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
+import com.github.ykrasik.indexter.util.ListUtils;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Yevgeny Krasik
@@ -62,29 +62,35 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
     }
 
     @Override
-    public void add(GameInfo info) throws DataException {
+    public void add(LocalGameInfo info) throws DataException {
         doAdd(info);
         notifyListeners(Collections.singleton(info));
     }
 
     @Override
-    public void addAll(Collection<GameInfo> infos) throws DataException {
-        infos.forEach(ExceptionWrappers.rethrow(this::doAdd));
-        notifyListeners(infos);
-    }
-
-    @Override
-    public Collection<GameInfo> getAll() throws DataException {
+    public Optional<LocalGameInfo> get(Path path) throws DataException {
         try {
-            final List<GameInfoEntity> entities = gameInfoEntityDao.queryForAll();
-            return entities.stream().map(translator::translate).collect(Collectors.toList());
+            final Optional<GameInfoEntity> entity = Optional.ofNullable(gameInfoEntityDao.queryForId(path.toString()));
+            return entity.map(translator::translate);
         } catch (SQLException e) {
             throw new DataException(e);
         }
     }
 
-    private void doAdd(GameInfo info) throws DataException {
+    @Override
+    public Collection<LocalGameInfo> getAll() throws DataException {
+        try {
+            final List<GameInfoEntity> entities = gameInfoEntityDao.queryForAll();
+            return ListUtils.map(entities, translator::translate);
+        } catch (SQLException e) {
+            throw new DataException(e);
+        }
+    }
+
+    private void doAdd(LocalGameInfo info) throws DataException {
         final GameInfoEntity entity = translator.translate(info);
+        LOG.debug("Inserting {}...", entity);
+
         try {
             if (gameInfoEntityDao.create(entity) != 1) {
                 throw new DataException("Error inserting entity: " + entity);
@@ -99,7 +105,7 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
         listeners.add(listener);
     }
 
-    private void notifyListeners(Collection<GameInfo> newOrUpdatedInfos) {
+    private void notifyListeners(Collection<LocalGameInfo> newOrUpdatedInfos) {
         for (GameDataListener listener : listeners) {
             listener.onUpdate(newOrUpdatedInfos);
         }

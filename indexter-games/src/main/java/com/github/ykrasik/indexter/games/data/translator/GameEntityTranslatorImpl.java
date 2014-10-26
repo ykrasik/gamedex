@@ -3,7 +3,10 @@ package com.github.ykrasik.indexter.games.data.translator;
 import com.github.ykrasik.indexter.games.data.entity.GameInfoEntity;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
@@ -15,7 +18,9 @@ import java.util.Optional;
  */
 public class GameEntityTranslatorImpl extends AbstractEntityTranslator implements GameEntityTranslator {
     @Override
-    public GameInfo translate(GameInfoEntity entity) {
+    public LocalGameInfo translate(GameInfoEntity entity) {
+        final Path path = Paths.get(entity.getPath());
+
         final String name = entity.getName();
         final Optional<String> description = Optional.ofNullable(entity.getDescription());
         final GamePlatform gamePlatform = entity.getGamePlatform();
@@ -28,23 +33,30 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
         final Optional<String> url = Optional.ofNullable(entity.getUrl());
         final Optional<byte[]> thumbnailData = Optional.ofNullable(entity.getThumbnailData());
 
-        return new GameInfo(
+        final GameInfo gameInfo = new GameInfo(
             name, description, gamePlatform, releaseDate, criticScore, userScore,
             genres, publishers, developers, url, thumbnailData
         );
+
+        return new LocalGameInfo(path, gameInfo);
     }
 
     @Override
-    public GameInfoEntity translate(GameInfo info) {
-        final String name = info.getName();
-        final String description = info.getDescription().orElse(null);
-        final GamePlatform gamePlatform = info.getGamePlatform();
-        final Date releaseDate = info.getReleaseDate().map(this::translateDate).orElse(null);
-        final double criticScore = info.getCriticScore();
-        final double userScore = info.getUserScore();
-        final String url = info.getUrl().orElse(null);
-        final byte[] thumbnailData = info.getThumbnailData().orElse(null);
+    public GameInfoEntity translate(LocalGameInfo localInfo) {
+        final String path = localInfo.getPath().toString();
 
-        return new GameInfoEntity(name, description, gamePlatform, releaseDate, criticScore, userScore, url, thumbnailData);
+        final GameInfo gameInfo = localInfo.getGameInfo();
+        final String name = gameInfo.getName();
+        final String description = gameInfo.getDescription().orElse(null);
+        final GamePlatform gamePlatform = gameInfo.getGamePlatform();
+        final Date releaseDate = gameInfo.getReleaseDate().map(this::translateDate).orElse(null);
+        final double criticScore = gameInfo.getCriticScore();
+        final double userScore = gameInfo.getUserScore();
+        final String url = gameInfo.getUrl().orElse(null);
+        final byte[] thumbnailData = gameInfo.getThumbnailData().orElse(null);
+
+        return new GameInfoEntity(
+            path, name, description, gamePlatform, releaseDate, criticScore, userScore, url, thumbnailData
+        );
     }
 }

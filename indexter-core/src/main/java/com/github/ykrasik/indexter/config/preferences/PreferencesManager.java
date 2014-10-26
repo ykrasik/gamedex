@@ -21,6 +21,10 @@ public class PreferencesManager {
         this.preferences = Preferences.userNodeForPackage(Objects.requireNonNull(clazz));
     }
 
+    public void clear(String name) {
+        preferences.remove(name);
+    }
+
     public Optional<String> get(String name) {
         return Optional.ofNullable(preferences.get(name, null));
     }
@@ -35,7 +39,7 @@ public class PreferencesManager {
     }
 
     public <T> void putList(String name, List<T> list, Function<T, String> serializer) {
-        final String value = StringUtils.toList(list, serializer);
+        final String value = StringUtils.toString(list, serializer);
         preferences.put(name, value);
     }
 
@@ -44,8 +48,8 @@ public class PreferencesManager {
         return OptionalUtils.flatMapToMap(optionalValue, value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer));
     }
 
-    public <K, V> void putMap(String name, Map<K, V> map, Function<String, K> keySerializer, Function<String, V> valueSerializer) {
-        final String value = StringUtils.toMap(map, keySerializer, valueSerializer);
+    public <K, V> void putMap(String name, Map<K, V> map, Function<K, String> keySerializer, Function<V, String> valueSerializer) {
+        final String value = StringUtils.toString(map, keySerializer, valueSerializer);
         preferences.put(name, value);
     }
 

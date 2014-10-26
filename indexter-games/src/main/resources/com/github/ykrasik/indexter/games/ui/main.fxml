@@ -15,6 +15,16 @@
             <ImageView fx:id="thumbnail" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
             <HBox>
                <children>
+                  <Label text="Path" />
+                  <TextField fx:id="path" editable="false">
+                     <HBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox>
+               <children>
                   <Label text="Name" />
                   <TextField fx:id="name" editable="false">
                      <HBox.margin>
@@ -87,6 +97,9 @@
         <items>
           <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#showAddGameDialog" text="Add game" />
             <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#showScanDirectoryDialog" text="Scan Directory" />
+            <Region prefWidth="36.0" />
+            <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
+            <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
         </items>
       </ToolBar>
    </top>

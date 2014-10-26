@@ -24,4 +24,15 @@ public final class FileUtils {
         }
         return childDirectories;
     }
+
+    public static boolean hasChildDirectories(Path root) throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(root, DIRECTORY_FILTER)) {
+            for (Path path : stream) {
+                if (Files.isDirectory(path)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

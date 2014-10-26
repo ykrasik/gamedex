@@ -1,11 +1,14 @@
 package com.github.ykrasik.indexter.games.controller;
 
+import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionPreferences;
 import com.github.ykrasik.indexter.games.data.GameDataListener;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
+import com.github.ykrasik.indexter.util.ListUtils;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -24,11 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * @author Yevgeny Krasik
@@ -40,6 +39,7 @@ public class GameCollectionController implements GameDataListener {
     @FXML private TilePane gameWall;
     @FXML private ListView<String> gamesList;
     @FXML private ImageView thumbnail;
+    @FXML private TextField path;
     @FXML private TextField name;
     @FXML private TextArea description;
     @FXML private TextField platform;
@@ -76,20 +76,20 @@ public class GameCollectionController implements GameDataListener {
     }
 
     @Override
-    public void onUpdate(Collection<GameInfo> newOrUpdatedInfos) {
-        final List<ImageView> newChildren = newOrUpdatedInfos.stream().map(this::createImageView).collect(Collectors.toList());
+    public void onUpdate(Collection<LocalGameInfo> newOrUpdatedInfos) {
+        final List<ImageView> newChildren = ListUtils.map(newOrUpdatedInfos, this::createImageView);
 
         final ObservableList<Node> children = gameWall.getChildren();
         children.addAll(newChildren);
 
-        for (GameInfo info : newOrUpdatedInfos) {
-            gamesList.getItems().add(info.getName());
+        for (LocalGameInfo info : newOrUpdatedInfos) {
+            gamesList.getItems().add(info.getGameInfo().getName());
         }
         Collections.sort(gamesList.getItems());
     }
 
-    private ImageView createImageView(GameInfo info) {
-        final ImageView imageView = new ImageView(info.getThumbnail().orElse(NOT_AVAILABLE));
+    private ImageView createImageView(LocalGameInfo info) {
+        final ImageView imageView = new ImageView(info.getGameInfo().getThumbnail().orElse(NOT_AVAILABLE));
         imageView.setOnMouseClicked(event -> {
             displayGameInfo(info);
             event.consume();
@@ -98,15 +98,19 @@ public class GameCollectionController implements GameDataListener {
         return imageView;
     }
 
-    private void displayGameInfo(GameInfo info) {
-        thumbnail.setImage(info.getThumbnail().orElse(NOT_AVAILABLE));
-        name.setText(info.getName());
-        description.setText(info.getDescription().orElse("No description available."));
-        platform.setText(info.getGamePlatform().name());
-        releaseDate.setText(info.getReleaseDate().map(Object::toString).orElse("Unavailable."));
-        criticScore.setText(String.valueOf(info.getCriticScore()));
-        userScore.setText(String.valueOf(info.getUserScore()));
-        url.setText(info.getUrl().orElse("Unavailable."));
+    private void displayGameInfo(LocalGameInfo localInfo) {
+        final Path path = localInfo.getPath();
+        this.path.setText(path.toString());
+
+        final GameInfo gameInfo = localInfo.getGameInfo();
+        thumbnail.setImage(gameInfo.getThumbnail().orElse(NOT_AVAILABLE));
+        name.setText(gameInfo.getName());
+        description.setText(gameInfo.getDescription().orElse("No description available."));
+        platform.setText(gameInfo.getGamePlatform().name());
+        releaseDate.setText(gameInfo.getReleaseDate().map(Object::toString).orElse("Unavailable."));
+        criticScore.setText(String.valueOf(gameInfo.getCriticScore()));
+        userScore.setText(String.valueOf(gameInfo.getUserScore()));
+        url.setText(gameInfo.getUrl().orElse("Unavailable."));
     }
 
     @FXML
@@ -116,13 +120,13 @@ public class GameCollectionController implements GameDataListener {
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
             preferences.setPrevDirectory(prevDirectory);
-            final Path directory = Paths.get(selectedDirectory.toURI());
+            final Path path = Paths.get(selectedDirectory.toURI());
             try {
                 // FIXME: Do this in background thread.
                 // FIXME: Platform should be a param
-                searchController.addGame(directory, GamePlatform.PC);
+                searchController.addGame(path, GamePlatform.PC);
             } catch (Exception e) {
-                LOG.warn("Error adding game: " + directory, e);
+                LOG.warn("Error adding game: " + path, e);
                 Dialogs.create().owner(stage).showException(e);
             }
         }
@@ -146,11 +150,55 @@ public class GameCollectionController implements GameDataListener {
             }
         }
     }
+
+    @FXML
+    public void showAddLibraryDialog() {
+        final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
+        final File selectedDirectory = directoryChooser.showDialog(stage);
+        if (selectedDirectory != null) {
+            prevDirectory = selectedDirectory;
+            preferences.setPrevDirectory(prevDirectory);
+            final Path path = Paths.get(selectedDirectory.toURI());
+            try {
+                final Map<Path, GamePlatform> libraries = preferences.getLibraries();
+                if (libraries.containsKey(path)) {
+                    throw new IndexterException("Already have a library defined for '%s'", path);
+                }
+
+                // TODO: A bug in controlsFx returns null if the default value is selected.
+                // TODO: When fixed, change the default value to PC.
+                final GamePlatform platform = Dialogs.create()
+                    .owner(stage)
+                    .title("Choose library platform")
+                    .masthead(path.toString())
+                    .message("Choose library platform:")
+                    .showChoices(GamePlatform.values());
+                if (platform != null) {
+                    libraries.put(path, platform);
+                    preferences.setLibraries(libraries);
+                }
+            } catch (Exception e) {
+                LOG.warn("Error adding library: " + path, e);
+                Dialogs.create().owner(stage).showException(e);
+            }
+        }
+    }
+
+    @FXML
+    public void refreshLibraries() {
+        try {
+            final Map<Path, GamePlatform> libraries = preferences.getLibraries();
+            searchController.refreshLibraries(libraries);
+        } catch (Exception e) {
+            LOG.warn("Error refreshing libraries:", e);
+            Dialogs.create().owner(stage).showException(e);
+        }
+    }
+
     private DirectoryChooser createDirectoryChooser(String title) {
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle(title);
         directoryChooser.setInitialDirectory(prevDirectory);
         return directoryChooser;
     }
-
 }

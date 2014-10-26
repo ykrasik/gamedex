@@ -4,6 +4,7 @@ import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
 import com.github.ykrasik.indexter.util.FileUtils;
@@ -15,9 +16,10 @@ import org.controlsfx.dialog.Dialogs.CommandLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Yevgeny Krasik
@@ -35,82 +37,175 @@ public class GameSearchController {
         this.dataService = Objects.requireNonNull(dataService);
     }
 
+    public void refreshLibraries(Map<Path, GamePlatform> libraries) throws Exception {
+        LOG.debug("Refreshing libraries: {}", libraries);
+        for (Entry<Path, GamePlatform> entry : libraries.entrySet()) {
+            final Path libraryRoot = entry.getKey();
+            final GamePlatform platform = entry.getValue();
+
+            LOG.debug("Refreshing library: {} -> {}", libraryRoot, platform);
+            final List<Path> directories = FileUtils.listChildDirectories(libraryRoot);
+            for (Path path : directories) {
+                refreshPath(path, platform, libraries);
+            }
+            LOG.debug("Finished refreshing library: {} -> {}", libraryRoot, platform);
+        }
+    }
+
+    private void refreshPath(Path path, GamePlatform platform, Map<Path, GamePlatform> libraries) throws Exception {
+        LOG.debug("Refreshing {}...", path);
+        if (libraries.containsKey(path)) {
+            LOG.debug("{} is a library, skipping...", path);
+            return;
+        }
+
+        final Optional<LocalGameInfo> existingValue = dataService.get(path);
+        if (existingValue.isPresent()) {
+            LOG.debug("{} already exists, skipping...", path);
+            return;
+        }
+
+        addGame(path, platform);
+        LOG.debug("Finished refreshing {}.", path);
+    }
+
     public void scanDirectory(Path root, GamePlatform platform) throws Exception {
+        LOG.debug("scanDirectory: root={}, platform={}", root, platform);
         final List<Path> directories = FileUtils.listChildDirectories(root);
         for (Path directory : directories) {
             addGame(directory, platform);
         }
     }
 
-    public void addGame(Path directory, GamePlatform platform) throws Exception {
-        final String name = directory.getFileName().toString();
-        addGame(directory, name, platform);
+    public void addGame(Path path, GamePlatform platform) throws Exception {
+        final String name = path.getFileName().toString();
+        addGame(path, name, platform);
     }
 
-    private void addGame(Path directory, String name, GamePlatform platform) throws Exception {
+    private void addGame(Path path, String name, GamePlatform platform) throws Exception {
+        LOG.debug("addGame: path={}, name={}, platform={}", path, name, platform);
         final List<GameRawBriefInfo> briefInfos = infoService.searchGames(name, platform);
+        LOG.debug("Search found {} results.", briefInfos.size());
+
         if (briefInfos.isEmpty()) {
-            showDifferentNameDialog(directory, name, platform);
+            selectNewName(path, name, platform);
             return;
         }
 
         if (briefInfos.size() == 1) {
-            doAddGame(briefInfos.get(0), platform);
+            doAddGame(path, briefInfos.get(0), platform);
             return;
         }
 
-        final CommandLink differentName = new CommandLink("Different name", "Retry with a different name.");
-        final CommandLink showAll = new CommandLink("Show all", "Show all possibilities.");
-        final CommandLink scanChildren = new CommandLink("Scan Children", "Treat this directory as a root directory containing more children.");
+        final MultipleSearchResultChoice choice = showMultipleSearchResultDialog(path, name, briefInfos);
+        switch (choice) {
+            case SHOW:
+                selectSearchResult(path, name, platform, briefInfos);
+                break;
 
+            case DIFFERENT_NAME:
+                selectNewName(path, name, platform);
+                break;
+
+            case SCAN_CHILDREN:
+                scanDirectory(path, platform);
+                break;
+
+            case CANCEL:
+                // Skip.
+        }
+    }
+
+    private MultipleSearchResultChoice showMultipleSearchResultDialog(Path path, String name, List<GameRawBriefInfo> briefInfos) throws IOException {
+        final CommandLink show = new CommandLink("Show", "Show all search results.");
+        final CommandLink differentName = new CommandLink("Different name", "Retry with a different name.");
+        final CommandLink scanChildren = new CommandLink("Scan Children", "Treat this directory as a root that contains more children.");
+
+        final List<CommandLink> choices = new ArrayList<>();
+        choices.add(show);
+        choices.add(differentName);
+        if (FileUtils.hasChildDirectories(path)) {
+            choices.add(scanChildren);
+        }
+
+        LOG.debug("Showing multiple search result dialog...");
         final Action choice = Dialogs.create()
             .owner(stage)
-            .title("Too many possibilities!")
-            .masthead(String.format("%s\n\nToo many possibilities, choose an action:", directory))
-            .message(String.format("Too many possibilities (%d) for '%s', choose an action:", briefInfos.size(), name))
-            .showCommandLinks(differentName, differentName, showAll, scanChildren);
+            .title("Too many search results!")
+            .masthead(path.toString())
+            .message(String.format("Found %d search results for '%s':", briefInfos.size(), name))
+            .showCommandLinks(show, choices);
 
-        if (choice != Actions.CANCEL) {
-            if (choice == differentName) {
-                showDifferentNameDialog(directory, name, platform);
-            } else if (choice == showAll) {
-                showAllPossibilities(directory, platform, briefInfos);
-            } else if (choice == scanChildren) {
-                scanDirectory(directory, platform);
-            } else {
-                throw new IndexterException("Invalid choice: " + choice);
-            }
+        final MultipleSearchResultChoice multipleSearchResultChoice;
+        if (choice == Actions.CANCEL) {
+            LOG.debug("User canceled.");
+            multipleSearchResultChoice = MultipleSearchResultChoice.CANCEL;
+        } else if (choice == show) {
+            LOG.debug("User chose to show search results.");
+            multipleSearchResultChoice = MultipleSearchResultChoice.SHOW;
+        } else if (choice == differentName) {
+            LOG.debug("User chose to select a different name.");
+            multipleSearchResultChoice = MultipleSearchResultChoice.DIFFERENT_NAME;
+        } else if (choice == scanChildren) {
+            LOG.debug("User chose to scan children.");
+            multipleSearchResultChoice = MultipleSearchResultChoice.SCAN_CHILDREN;
+        } else {
+            throw new IndexterException("Invalid choice: " + choice);
+        }
+        return multipleSearchResultChoice;
+    }
+
+    private void selectNewName(Path path, String name, GamePlatform gamePlatform) throws Exception {
+        LOG.debug("Showing different name dialog...");
+        final Optional<String> newName = showSelectNewNameDialog(path, name);
+        if (newName.isPresent()) {
+            LOG.debug("User chose a new name: '{}'", newName.get());
+            addGame(path, newName.get(), gamePlatform);
+        } else {
+            LOG.debug("User cancelled.");
         }
     }
 
-    private void showDifferentNameDialog(Path directory, String name, GamePlatform gamePlatform) throws Exception {
-        final String newName = Dialogs.create()
+    private Optional<String> showSelectNewNameDialog(Path path, String name) {
+        return Optional.ofNullable(Dialogs.create()
             .owner(stage)
-            .title("Couldn't find game!")
-            .masthead(String.format("%s\n\nCouldn't find game: '%s'\nEnter new name or cancel to skip.", directory, name))
-            .showTextInput(name);
+            .title(String.format("Couldn't find game: '%s'", name))
+            .masthead(path.toString())
+            .showTextInput(name));
+    }
 
-        if (newName != null) {
-            addGame(directory, newName, gamePlatform);
+    private void selectSearchResult(Path path, String name, GamePlatform platform, List<GameRawBriefInfo> briefInfos) throws Exception {
+        LOG.debug("Showing all search results...");
+        final Optional<GameRawBriefInfo> choice = showSelectResultDialog(path, name, briefInfos);
+        if (choice.isPresent()) {
+            LOG.debug("User chose: '{}'", choice.get());
+            doAddGame(path, choice.get(), platform);
+        } else {
+            LOG.debug("User cancelled.");
         }
     }
 
-    private void showAllPossibilities(Path directory, GamePlatform platform, List<GameRawBriefInfo> briefInfos) throws Exception {
-        final GameRawBriefInfo choice = Dialogs.create()
+    private Optional<GameRawBriefInfo> showSelectResultDialog(Path path, String name, List<GameRawBriefInfo> briefInfos) {
+        return Optional.ofNullable(Dialogs.create()
             .owner(stage)
-            .title("Please choose one:")
-            .masthead(String.format("%s\n\nPlease choose one or cancel to skip.", directory))
-            .showChoices(briefInfos);
-
-        if (choice != null) {
-            doAddGame(choice, platform);
-        }
+            .title(String.format("Search results for: '%s'", name))
+            .masthead(path.toString())
+            .showChoices(briefInfos));
     }
 
-    private void doAddGame(GameRawBriefInfo briefInfo, GamePlatform gamePlatform) throws Exception {
-        final GameInfo info = infoService.getGameInfo(briefInfo.getMoreDetailsId(), gamePlatform).orElseThrow(
+    private void doAddGame(Path path, GameRawBriefInfo briefInfo, GamePlatform gamePlatform) throws Exception {
+        LOG.debug("Getting gameInfo from brief: {}", briefInfo);
+        final GameInfo gameInfo = infoService.getGameInfo(briefInfo.getMoreDetailsId(), gamePlatform).orElseThrow(
             () -> new IndexterException("Specific search found nothing: %s", briefInfo)
         );
+        final LocalGameInfo info = new LocalGameInfo(path, gameInfo);
         dataService.add(info);
+    }
+
+    private enum MultipleSearchResultChoice {
+        CANCEL,
+        SHOW,
+        DIFFERENT_NAME,
+        SCAN_CHILDREN
     }
 }
