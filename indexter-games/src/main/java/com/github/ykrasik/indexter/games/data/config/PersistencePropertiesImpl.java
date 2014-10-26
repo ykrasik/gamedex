@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.data.config;
 
-import com.github.ykrasik.indexter.config.PropertiesParser;
+import com.github.ykrasik.indexter.config.properties.PropertiesParser;
 
 import java.time.Duration;
 

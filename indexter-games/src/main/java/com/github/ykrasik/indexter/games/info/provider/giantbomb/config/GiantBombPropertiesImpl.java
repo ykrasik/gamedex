@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.info.provider.giantbomb.config;
 
-import com.github.ykrasik.indexter.config.PropertiesParser;
+import com.github.ykrasik.indexter.config.properties.PropertiesParser;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 
 import java.util.Map;

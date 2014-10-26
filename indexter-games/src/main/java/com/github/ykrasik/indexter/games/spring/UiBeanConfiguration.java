@@ -1,6 +1,7 @@
 package com.github.ykrasik.indexter.games.spring;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
+import com.github.ykrasik.indexter.games.config.GameCollectionPreferences;
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.data.GameDataService;
@@ -49,7 +50,10 @@ public class UiBeanConfiguration {
     }
 
     @Bean
-    public GameCollectionController gameCollectionController(Stage stage, GameInfoService infoService, GameDataService dataService) {
-        return new GameCollectionController(stage, infoService, dataService);
+    public GameCollectionController gameCollectionController(Stage stage,
+                                                             GameCollectionPreferences preferences,
+                                                             GameInfoService infoService,
+                                                             GameDataService dataService) {
+        return new GameCollectionController(stage, preferences, infoService, dataService);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.ykrasik.indexter.games.controller;
 
+import com.github.ykrasik.indexter.games.config.GameCollectionPreferences;
 import com.github.ykrasik.indexter.games.data.GameDataListener;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
@@ -48,18 +49,24 @@ public class GameCollectionController implements GameDataListener {
     @FXML private TextField url;
 
     private final Stage stage;
+    private final GameCollectionPreferences preferences;
     private final GameInfoService infoService;
     private final GameDataService dataService;
     private final GameSearchController searchController;
 
-    // TODO: Encapsulate this.
     private File prevDirectory;
 
-    public GameCollectionController(Stage stage, GameInfoService infoService, GameDataService dataService) {
+    public GameCollectionController(Stage stage,
+                                    GameCollectionPreferences preferences,
+                                    GameInfoService infoService,
+                                    GameDataService dataService) {
         this.stage = Objects.requireNonNull(stage);
+        this.preferences = Objects.requireNonNull(preferences);
         this.infoService = Objects.requireNonNull(infoService);
         this.dataService = Objects.requireNonNull(dataService);
         this.searchController = new GameSearchController(stage, infoService, dataService);
+
+        prevDirectory = preferences.getPrevDirectory().orElse(null);
     }
 
     // Called by JavaFx
@@ -108,6 +115,7 @@ public class GameCollectionController implements GameDataListener {
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
+            preferences.setPrevDirectory(prevDirectory);
             final Path directory = Paths.get(selectedDirectory.toURI());
             try {
                 // FIXME: Do this in background thread.
@@ -126,6 +134,7 @@ public class GameCollectionController implements GameDataListener {
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
+            preferences.setPrevDirectory(prevDirectory);
             final Path root = Paths.get(selectedDirectory.toURI());
             try {
                 // FIXME: Do this in background thread.
