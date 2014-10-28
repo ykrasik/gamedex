@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import org.controlsfx.control.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
-
 
 <BorderPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <right>
@@ -103,14 +103,18 @@
         </items>
       </ToolBar>
    </top>
-   <center>
-      <TilePane fx:id="gameWall" hgap="10.0" prefColumns="10" prefRows="1000" styleClass="gameTyle" tileAlignment="TOP_LEFT" vgap="10.0" BorderPane.alignment="CENTER">
-         <BorderPane.margin>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </BorderPane.margin>
-      </TilePane>
-   </center>
    <left>
       <ListView fx:id="gamesList" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </left>
+   <center>
+      <ScrollPane prefViewportHeight="370.0">
+         <content>
+            <FlowPane fx:id="gameWall" hgap="5.0" vgap="5.0" BorderPane.alignment="CENTER">
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </FlowPane>
+         </content>
+      </ScrollPane>
+   </center>
 </BorderPane>

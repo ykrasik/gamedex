@@ -1,8 +1,8 @@
 package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
-import com.github.ykrasik.indexter.games.config.GameCollectionPreferencesImpl;
-import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfigImpl;
+import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
@@ -18,20 +18,20 @@ import java.util.Objects;
  */
 @ShellPath("preferences")
 public class PreferencesDebugCommands implements DebugCommands {
-    private final GameCollectionPreferencesImpl preferences;
+    private final GameCollectionConfigImpl preferences;
 
-    public PreferencesDebugCommands(GameCollectionPreferencesImpl preferences) {
+    public PreferencesDebugCommands(GameCollectionConfigImpl preferences) {
         this.preferences = Objects.requireNonNull(preferences);
     }
 
     @ShellPath("libraries")
     @Command("get")
     public void getLibraries(OutputPrinter outputPrinter) throws Exception {
-        final Map<Path, GamePlatform> libraries = preferences.getLibraries();
+        final Map<Path, Library> libraries = preferences.getLibraries();
         if (libraries.isEmpty()) {
             outputPrinter.println("Empty.");
         } else {
-            for (Entry<Path, GamePlatform> entry : libraries.entrySet()) {
+            for (Entry<Path, Library> entry : libraries.entrySet()) {
                 outputPrinter.println("%s -> %s", entry.getKey(), entry.getValue());
             }
         }

@@ -4,9 +4,11 @@ import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
+import com.github.ykrasik.indexter.games.library.LibraryManager;
 import com.github.ykrasik.indexter.util.FileUtils;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
@@ -19,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Yevgeny Krasik
@@ -28,45 +29,79 @@ public class GameSearchController {
     private static final Logger LOG = LoggerFactory.getLogger(GameSearchController.class);
 
     private final Stage stage;
+    private final LibraryManager libraryManager;
     private final GameInfoService infoService;
     private final GameDataService dataService;
 
-    public GameSearchController(Stage stage, GameInfoService infoService, GameDataService dataService) {
+    public GameSearchController(Stage stage,
+                                LibraryManager libraryManager,
+                                GameInfoService infoService,
+                                GameDataService dataService) {
         this.stage = Objects.requireNonNull(stage);
+        this.libraryManager = Objects.requireNonNull(libraryManager);
         this.infoService = Objects.requireNonNull(infoService);
         this.dataService = Objects.requireNonNull(dataService);
     }
 
-    public void refreshLibraries(Map<Path, GamePlatform> libraries) throws Exception {
-        LOG.debug("Refreshing libraries: {}", libraries);
-        for (Entry<Path, GamePlatform> entry : libraries.entrySet()) {
-            final Path libraryRoot = entry.getKey();
-            final GamePlatform platform = entry.getValue();
+    // FIXME: Add ability to exclude directories.
+    // FIXME: Get a list of libraries.
+    // FIXME: Instead of scanning children, add the directory as a sub-library.
+    // Returns the new subLibraries.
+    public void refreshLibraries() throws Exception {
+        final List<Library> libraries = libraryManager.getLibraries();
+        doRefreshLibraries(libraries);
+    }
 
-            LOG.debug("Refreshing library: {} -> {}", libraryRoot, platform);
-            final List<Path> directories = FileUtils.listChildDirectories(libraryRoot);
-            for (Path path : directories) {
-                refreshPath(path, platform, libraries);
-            }
-            LOG.debug("Finished refreshing library: {} -> {}", libraryRoot, platform);
+    private void doRefreshLibraries(List<Library> libraries) throws Exception {
+        LOG.debug("Refreshing libraries: {}", libraries);
+        final List<Library> newSubLibraries = new ArrayList<>();
+        for (Library library : libraries) {
+            final List<Library> subLibraries = refreshLibrary(library);
+            newSubLibraries.addAll(subLibraries);
+        }
+        LOG.debug("Finished refreshing libraries.");
+
+        if (!newSubLibraries.isEmpty()) {
+            LOG.debug("New subLibraries detected: {}", newSubLibraries);
+            libraryManager.addSubLibraries(newSubLibraries);
+            doRefreshLibraries(newSubLibraries);
         }
     }
 
-    private void refreshPath(Path path, GamePlatform platform, Map<Path, GamePlatform> libraries) throws Exception {
-        LOG.debug("Refreshing {}...", path);
-        if (libraries.containsKey(path)) {
+    private List<Library> refreshLibrary(Library library) throws Exception {
+        LOG.debug("Refreshing library: {}", library);
+        final List<Library> newSubLibraries = new ArrayList<>();
+        final List<Path> directories = FileUtils.listChildDirectories(library.getPath());
+        for (Path path : directories) {
+            final Optional<Library> newSubLibrary = refreshPath(path, library.getPlatform());
+            newSubLibrary.ifPresent(newSubLibraries::add);
+        }
+        LOG.debug("Finished refreshing library: {}.", library);
+        return newSubLibraries;
+    }
+
+    private Optional<Library> refreshPath(Path path, GamePlatform platform) throws Exception {
+        LOG.debug("Refreshing path: {}", path);
+
+        if (libraryManager.isLibrary(path)) {
             LOG.debug("{} is a library, skipping...", path);
-            return;
+            return Optional.empty();
+        }
+
+        if (libraryManager.isExcluded(path)) {
+            LOG.debug("{} is excluded, skipping...", path);
+            return Optional.empty();
         }
 
         final Optional<LocalGameInfo> existingValue = dataService.get(path);
         if (existingValue.isPresent()) {
-            LOG.debug("{} already exists, skipping...", path);
-            return;
+            LOG.debug("{} is already mapped, skipping...", path);
+            return Optional.empty();
         }
 
-        addGame(path, platform);
+        final Optional<Library> newSubLibrary = addGame(path, platform);
         LOG.debug("Finished refreshing {}.", path);
+        return newSubLibrary;
     }
 
     public void scanDirectory(Path root, GamePlatform platform) throws Exception {
@@ -77,24 +112,23 @@ public class GameSearchController {
         }
     }
 
-    public void addGame(Path path, GamePlatform platform) throws Exception {
+    public Optional<Library> addGame(Path path, GamePlatform platform) throws Exception {
         final String name = path.getFileName().toString();
-        addGame(path, name, platform);
+        return addGame(path, name, platform);
     }
 
-    private void addGame(Path path, String name, GamePlatform platform) throws Exception {
+    private Optional<Library> addGame(Path path, String name, GamePlatform platform) throws Exception {
         LOG.debug("addGame: path={}, name={}, platform={}", path, name, platform);
         final List<GameRawBriefInfo> briefInfos = infoService.searchGames(name, platform);
         LOG.debug("Search found {} results.", briefInfos.size());
 
         if (briefInfos.isEmpty()) {
-            selectNewName(path, name, platform);
-            return;
+            return selectNewName(path, name, platform);
         }
 
         if (briefInfos.size() == 1) {
             doAddGame(path, briefInfos.get(0), platform);
-            return;
+            return Optional.empty();
         }
 
         final MultipleSearchResultChoice choice = showMultipleSearchResultDialog(path, name, briefInfos);
@@ -104,22 +138,22 @@ public class GameSearchController {
                 break;
 
             case DIFFERENT_NAME:
-                selectNewName(path, name, platform);
-                break;
+                return selectNewName(path, name, platform);
 
-            case SCAN_CHILDREN:
-                scanDirectory(path, platform);
-                break;
+            case DESIGNATE_SUB_LIBRARY:
+                return designateSubLibrary(path, name, platform);
 
             case CANCEL:
+                break;
                 // Skip.
         }
+        return Optional.empty();
     }
 
     private MultipleSearchResultChoice showMultipleSearchResultDialog(Path path, String name, List<GameRawBriefInfo> briefInfos) throws IOException {
         final CommandLink show = new CommandLink("Show", "Show all search results.");
         final CommandLink differentName = new CommandLink("Different name", "Retry with a different name.");
-        final CommandLink scanChildren = new CommandLink("Scan Children", "Treat this directory as a root that contains more children.");
+        final CommandLink scanChildren = new CommandLink("Designate as sub-library", "Designate this directory as a mini-library containing other entries.");
 
         final List<CommandLink> choices = new ArrayList<>();
         choices.add(show);
@@ -148,21 +182,43 @@ public class GameSearchController {
             multipleSearchResultChoice = MultipleSearchResultChoice.DIFFERENT_NAME;
         } else if (choice == scanChildren) {
             LOG.debug("User chose to scan children.");
-            multipleSearchResultChoice = MultipleSearchResultChoice.SCAN_CHILDREN;
+            multipleSearchResultChoice = MultipleSearchResultChoice.DESIGNATE_SUB_LIBRARY;
         } else {
             throw new IndexterException("Invalid choice: " + choice);
         }
         return multipleSearchResultChoice;
     }
 
-    private void selectNewName(Path path, String name, GamePlatform gamePlatform) throws Exception {
+    private Optional<Library> designateSubLibrary(Path path, String name, GamePlatform platform) {
+        LOG.debug("Showing designate sub library dialog...");
+        final Optional<Library> subLibrary = showDesignateSubLibraryDialog(path, name, platform);
+        if (subLibrary.isPresent()) {
+            LOG.debug("User created a new subLibrary: {}", subLibrary);
+        } else {
+            LOG.debug("User cancelled.");
+        }
+        return subLibrary;
+    }
+
+    private Optional<Library> showDesignateSubLibraryDialog(Path path, String name, GamePlatform platform) {
+        final Optional<String> libraryName = Optional.ofNullable(Dialogs.create()
+            .owner(stage)
+            .title("Enter library name")
+            .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform))
+            .showTextInput(name)
+        );
+        return libraryName.map(libName -> new Library(libName, path, platform));
+    }
+
+    private Optional<Library> selectNewName(Path path, String name, GamePlatform gamePlatform) throws Exception {
         LOG.debug("Showing different name dialog...");
         final Optional<String> newName = showSelectNewNameDialog(path, name);
         if (newName.isPresent()) {
             LOG.debug("User chose a new name: '{}'", newName.get());
-            addGame(path, newName.get(), gamePlatform);
+            return addGame(path, newName.get(), gamePlatform);
         } else {
             LOG.debug("User cancelled.");
+            return Optional.empty();
         }
     }
 
@@ -206,6 +262,6 @@ public class GameSearchController {
         CANCEL,
         SHOW,
         DIFFERENT_NAME,
-        SCAN_CHILDREN
+        DESIGNATE_SUB_LIBRARY
     }
 }

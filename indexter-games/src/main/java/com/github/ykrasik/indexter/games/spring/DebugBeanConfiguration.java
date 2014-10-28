@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.config.GameCollectionPreferencesImpl;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfigImpl;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.debug.DataServiceDebugCommands;
 import com.github.ykrasik.indexter.games.debug.GiantBombDebugCommands;
@@ -40,7 +40,7 @@ public class DebugBeanConfiguration {
     }
 
     @Bean
-    public PreferencesDebugCommands preferencesDebugCommands(GameCollectionPreferencesImpl preferences) {
+    public PreferencesDebugCommands preferencesDebugCommands(GameCollectionConfigImpl preferences) {
         return new PreferencesDebugCommands(preferences);
     }
 }

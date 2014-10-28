@@ -17,7 +17,7 @@ public class GameInfoEntity {
     @DatabaseField(id = true)
     private String path;
 
-    @DatabaseField(canBeNull = false)
+    @DatabaseField(canBeNull = false, width = 1000)
     private String name;
 
     @DatabaseField

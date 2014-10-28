@@ -1,14 +1,15 @@
 package com.github.ykrasik.indexter.games.controller;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
-import com.github.ykrasik.indexter.games.config.GameCollectionPreferences;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.data.GameDataListener;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.util.ListUtils;
+import com.github.ykrasik.indexter.games.library.LibraryManager;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -17,7 +18,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.TilePane;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.dialog.Dialogs;
@@ -27,7 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
@@ -36,7 +39,7 @@ public class GameCollectionController implements GameDataListener {
     private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
     private static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
-    @FXML private TilePane gameWall;
+    @FXML private FlowPane gameWall;
     @FXML private ListView<String> gamesList;
     @FXML private ImageView thumbnail;
     @FXML private TextField path;
@@ -49,7 +52,8 @@ public class GameCollectionController implements GameDataListener {
     @FXML private TextField url;
 
     private final Stage stage;
-    private final GameCollectionPreferences preferences;
+    private final GameCollectionConfig config;
+    private final LibraryManager libraryManager;
     private final GameInfoService infoService;
     private final GameDataService dataService;
     private final GameSearchController searchController;
@@ -57,16 +61,18 @@ public class GameCollectionController implements GameDataListener {
     private File prevDirectory;
 
     public GameCollectionController(Stage stage,
-                                    GameCollectionPreferences preferences,
+                                    GameCollectionConfig config,
+                                    LibraryManager libraryManager,
                                     GameInfoService infoService,
                                     GameDataService dataService) {
         this.stage = Objects.requireNonNull(stage);
-        this.preferences = Objects.requireNonNull(preferences);
+        this.config = Objects.requireNonNull(config);
+        this.libraryManager = Objects.requireNonNull(libraryManager);
         this.infoService = Objects.requireNonNull(infoService);
         this.dataService = Objects.requireNonNull(dataService);
-        this.searchController = new GameSearchController(stage, infoService, dataService);
+        this.searchController = new GameSearchController(stage, libraryManager, infoService, dataService);
 
-        prevDirectory = preferences.getPrevDirectory().orElse(null);
+        prevDirectory = config.getPrevDirectory().orElse(null);
     }
 
     // Called by JavaFx
@@ -77,10 +83,27 @@ public class GameCollectionController implements GameDataListener {
 
     @Override
     public void onUpdate(Collection<LocalGameInfo> newOrUpdatedInfos) {
-        final List<ImageView> newChildren = ListUtils.map(newOrUpdatedInfos, this::createImageView);
 
         final ObservableList<Node> children = gameWall.getChildren();
-        children.addAll(newChildren);
+        for (LocalGameInfo info : newOrUpdatedInfos) {
+            final ImageView imageView = createImageView(info);
+//            final Image image = info.getGameInfo().getThumbnail().orElse(NOT_AVAILABLE);
+//            gameWall.setCellFactory(gridView -> {
+//                final ImageGridCell gridCell = new ImageGridCell();
+//                gridCell.getStyleClass().add("gameTile");
+//                gridCell.setOnMouseClicked(event -> {
+//                    displayGameInfo(info);
+////                    event.consume();
+//                });
+//                return gridCell;
+//            });
+            children.add(imageView);
+        }
+
+//        final List<Image> newChildren = ListUtils.map(newOrUpdatedInfos, this::createImage);
+
+
+//        children.addAll(newChildren);
 
         for (LocalGameInfo info : newOrUpdatedInfos) {
             gamesList.getItems().add(info.getGameInfo().getName());
@@ -119,7 +142,7 @@ public class GameCollectionController implements GameDataListener {
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
-            preferences.setPrevDirectory(prevDirectory);
+            config.setPrevDirectory(prevDirectory);
             final Path path = Paths.get(selectedDirectory.toURI());
             try {
                 // FIXME: Do this in background thread.
@@ -138,7 +161,7 @@ public class GameCollectionController implements GameDataListener {
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
-            preferences.setPrevDirectory(prevDirectory);
+            config.setPrevDirectory(prevDirectory);
             final Path root = Paths.get(selectedDirectory.toURI());
             try {
                 // FIXME: Do this in background thread.
@@ -157,16 +180,16 @@ public class GameCollectionController implements GameDataListener {
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
             prevDirectory = selectedDirectory;
-            preferences.setPrevDirectory(prevDirectory);
+            config.setPrevDirectory(prevDirectory);
             final Path path = Paths.get(selectedDirectory.toURI());
             try {
-                final Map<Path, GamePlatform> libraries = preferences.getLibraries();
-                if (libraries.containsKey(path)) {
+                if (libraryManager.isLibrary(path)) {
                     throw new IndexterException("Already have a library defined for '%s'", path);
                 }
 
                 // TODO: A bug in controlsFx returns null if the default value is selected.
                 // TODO: When fixed, change the default value to PC.
+                // FIXME: Show a select name dialog too.
                 final GamePlatform platform = Dialogs.create()
                     .owner(stage)
                     .title("Choose library platform")
@@ -174,8 +197,7 @@ public class GameCollectionController implements GameDataListener {
                     .message("Choose library platform:")
                     .showChoices(GamePlatform.values());
                 if (platform != null) {
-                    libraries.put(path, platform);
-                    preferences.setLibraries(libraries);
+                    libraryManager.addLibrary(new Library(path.getFileName().toString(), path, platform));
                 }
             } catch (Exception e) {
                 LOG.warn("Error adding library: " + path, e);
@@ -187,8 +209,7 @@ public class GameCollectionController implements GameDataListener {
     @FXML
     public void refreshLibraries() {
         try {
-            final Map<Path, GamePlatform> libraries = preferences.getLibraries();
-            searchController.refreshLibraries(libraries);
+            searchController.refreshLibraries();
         } catch (Exception e) {
             LOG.warn("Error refreshing libraries:", e);
             Dialogs.create().owner(stage).showException(e);

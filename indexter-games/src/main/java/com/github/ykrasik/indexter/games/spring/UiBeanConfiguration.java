@@ -1,10 +1,11 @@
 package com.github.ykrasik.indexter.games.spring;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
-import com.github.ykrasik.indexter.games.config.GameCollectionPreferences;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.data.GameDataService;
+import com.github.ykrasik.indexter.games.library.LibraryManager;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
@@ -51,9 +52,10 @@ public class UiBeanConfiguration {
 
     @Bean
     public GameCollectionController gameCollectionController(Stage stage,
-                                                             GameCollectionPreferences preferences,
+                                                             GameCollectionConfig config,
+                                                             LibraryManager libraryManager,
                                                              GameInfoService infoService,
                                                              GameDataService dataService) {
-        return new GameCollectionController(stage, preferences, infoService, dataService);
+        return new GameCollectionController(stage, config, libraryManager, infoService, dataService);
     }
 }
