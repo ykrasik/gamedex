@@ -9,136 +9,150 @@
 <?import javafx.scene.layout.*?>
 
 
-<TabPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-   <tabs>
-      <Tab closable="false" text="Wall">
-         <content>
-            <BorderPane prefHeight="200.0" prefWidth="200.0">
-               <right>
-                  <VBox fx:id="gameDetails" BorderPane.alignment="CENTER">
-                     <children>
-                        <ImageView fx:id="thumbnail" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-                        <HBox>
-                           <children>
-                              <Label text="Path" />
-                              <TextField fx:id="path" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Name" />
-                              <TextField fx:id="name" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Description" />
-                              <TextArea fx:id="description" editable="false" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Platform" />
-                              <TextField fx:id="platform" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Release Date" />
-                              <TextField fx:id="releaseDate" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Critic Score" />
-                              <TextField fx:id="criticScore" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="User Score" />
-                              <TextField fx:id="userScore" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <Label text="Url" />
-                              <TextField fx:id="url" editable="false">
-                                 <HBox.margin>
-                                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
-               </right>
-               <top>
-                  <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                    <items>
-                      <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#showAddGameDialog" text="Add game" />
-                        <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#showScanDirectoryDialog" text="Scan Directory" />
-                        <Region prefWidth="36.0" />
-                        <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
-                        <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
-                    </items>
-                  </ToolBar>
-               </top>
-               <left>
-                  <ListView fx:id="gamesList" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-               </left>
-               <center>
-                  <ScrollPane prefViewportHeight="370.0">
-                     <content>
-                        <FlowPane fx:id="gameWall" hgap="5.0" vgap="5.0" BorderPane.alignment="CENTER">
-                           <padding>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </padding>
-                        </FlowPane>
-                     </content>
-                  </ScrollPane>
-               </center>
-            </BorderPane>
-         </content>
-      </Tab>
-      <Tab closable="false" text="Libraries">
-         <content>
-            <BorderPane prefHeight="200.0" prefWidth="200.0">
-               <center>
-                  <TableView fx:id="libraries" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                    <columns>
-                      <TableColumn fx:id="libraryName" editable="false" prefWidth="75.0" text="Name" />
-                        <TableColumn fx:id="libraryPlatform" editable="false" prefWidth="75.0" text="Platform" />
-                      <TableColumn fx:id="libraryPath" editable="false" prefWidth="75.0" text="Path" />
-                    </columns>
-                  </TableView>
-               </center>
-            </BorderPane>
-         </content>
-      </Tab>
-   </tabs>
-</TabPane>
+<BorderPane fx:id="mainBorderPane" prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <center>
+      <TabPane BorderPane.alignment="CENTER">
+         <tabs>
+            <Tab closable="false" text="Wall">
+               <content>
+                  <BorderPane fx:id="gamesBorderPane" prefHeight="200.0" prefWidth="200.0">
+                     <top>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                          <items>
+                            <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#showAddGameDialog" text="Add game" />
+                              <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#showScanDirectoryDialog" text="Scan Directory" />
+                              <Region prefWidth="36.0" />
+                              <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
+                              <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
+                          </items>
+                        </ToolBar>
+                     </top>
+                     <left>
+                        <ListView fx:id="gamesList" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+                     </left>
+                     <center>
+                        <GridView fx:id="gameWall" cellHeight="128.0" cellWidth="96.0" horizontalCellSpacing="3.0" verticalCellSpacing="3.0" />
+                     </center>
+                     <right>
+                        <TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+                          <tabs>
+                            <Tab closable="false" text="Info">
+                                 <content>
+                                    <VBox>
+                                       <children>
+                                          <HBox>
+                                             <children>
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <ImageView fx:id="thumbnail" fitHeight="300.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                             </children>
+                                          </HBox>
+                                          <GridPane hgap="3.0" minWidth="300.0" vgap="3.0">
+                                            <columnConstraints>
+                                              <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" />
+                                              <ColumnConstraints hgrow="SOMETIMES" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                              <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                              <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                             <children>
+                                                <Label text="Path" />
+                                                <TextField fx:id="path" editable="false" GridPane.columnIndex="1" />
+                                                <Label text="Name" GridPane.rowIndex="1" />
+                                                <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                <Label text="Description" GridPane.rowIndex="2" />
+                                                <TextArea fx:id="description" editable="false" prefHeight="200.0" prefWidth="200.0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                <Label text="Platform" GridPane.rowIndex="3" />
+                                                <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                <Label text="Release Date" GridPane.rowIndex="4" />
+                                                <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                <Label text="Critic Score" GridPane.rowIndex="5" />
+                                                <TextField fx:id="criticScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                                <Label text="User Score" GridPane.rowIndex="6" />
+                                                <TextField fx:id="userScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                                <Label text="Url" GridPane.rowIndex="7" />
+                                                <TextField fx:id="url" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                             </children>
+                                             <padding>
+                                                <Insets top="5.0" />
+                                             </padding>
+                                          </GridPane>
+                                       </children>
+                                       <padding>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                       </padding>
+                                    </VBox>
+                                 </content>
+                            </Tab>
+                            <Tab closable="false" text="Reviews">
+                                 <content>
+                                    <HBox>
+                                       <children>
+                                          <VBox fx:id="gameDetails">
+                                             <children>
+                                                <HBox />
+                                                <HBox />
+                                                <HBox />
+                                                <HBox />
+                                                <HBox />
+                                                <HBox />
+                                             </children>
+                                          </VBox>
+                                          <VBox prefHeight="200.0" prefWidth="100.0" />
+                                       </children>
+                                    </HBox>
+                                 </content>
+                            </Tab>
+                          </tabs>
+                        </TabPane>
+                     </right>
+                  </BorderPane>
+               </content>
+            </Tab>
+            <Tab closable="false" text="Libraries">
+               <content>
+                  <BorderPane prefHeight="200.0" prefWidth="200.0">
+                     <center>
+                        <TableView fx:id="libraries" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                          <columns>
+                            <TableColumn fx:id="libraryName" editable="false" prefWidth="75.0" text="Name" />
+                              <TableColumn fx:id="libraryPlatform" editable="false" prefWidth="75.0" text="Platform" />
+                            <TableColumn fx:id="libraryPath" editable="false" prefWidth="75.0" text="Path" />
+                          </columns>
+                        </TableView>
+                     </center>
+                  </BorderPane>
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+</BorderPane>

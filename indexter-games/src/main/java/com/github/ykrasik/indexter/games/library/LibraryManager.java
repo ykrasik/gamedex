@@ -12,10 +12,9 @@ public interface LibraryManager {
     List<Library> getLibraries();
 
     boolean isLibrary(Path path);
-
-    boolean isExcluded(Path path);
-
     void addLibrary(Library library);
+    void addSubLibrary(Library subLibrary);
 
-    void addSubLibraries(List<Library> subLibraries);
+    void setExcluded(Path path);
+    boolean isExcluded(Path path);
 }

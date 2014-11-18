@@ -1,5 +1,6 @@
 buildscript {
     ext {
+        controlsFxVersion = '8.20.8'
         gsCollectionsVersion = '5.1.0'
         guavaVersion = '18.0'
         jerminalVersion = '0.1.1'
@@ -26,6 +27,7 @@ project("indexter-core") {
     description "inDexter core module"
 
     dependencies {
+        compile "org.controlsfx:controlsfx:$controlsFxVersion"
         compile 'org.springframework:spring-context:4.1.1.RELEASE'
         compile "com.google.guava:guava:$guavaVersion"
         compile 'org.apache.httpcomponents:httpclient:4.3.5'
@@ -34,7 +36,6 @@ project("indexter-core") {
         compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
         compile 'org.slf4j:slf4j-api:1.7.6'
         compile 'ch.qos.logback:logback-classic:1.1.2'
-        compile 'org.controlsfx:controlsfx:8.0.5'
         compile 'commons-io:commons-io:2.4'
         compile 'com.j256.ormlite:ormlite-core:4.48'
         compile 'com.j256.ormlite:ormlite-jdbc:4.48'

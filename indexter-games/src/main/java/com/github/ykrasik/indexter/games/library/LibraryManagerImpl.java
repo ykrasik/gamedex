@@ -36,18 +36,22 @@ public class LibraryManagerImpl implements LibraryManager {
     }
 
     @Override
-    public boolean isExcluded(Path path) {
-        // FIXME: Implement.
-        return false;
-    }
-
-    @Override
     public void addLibrary(Library library) {
         config.addLibrary(library);
     }
 
     @Override
-    public void addSubLibraries(List<Library> subLibraries) {
-        config.addSubLibraries(subLibraries);
+    public void addSubLibrary(Library subLibrary) {
+        config.addSubLibrary(subLibrary);
+    }
+
+    @Override
+    public void setExcluded(Path path) {
+        config.addExcludedPath(path);
+    }
+
+    @Override
+    public boolean isExcluded(Path path) {
+        return config.getExcludedPaths().contains(path);
     }
 }

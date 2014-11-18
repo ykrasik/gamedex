@@ -36,7 +36,7 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
         if (!fileContent.isEmpty()) {
             this.config = (Config) XSTREAM.fromXML(fileContent);
         } else {
-            this.config = new Config(Optional.empty(), Collections.emptyMap(), Collections.emptyMap());
+            this.config = Config.empty();
         }
     }
 
@@ -79,19 +79,31 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
     }
 
     @Override
-    public void addSubLibraries(List<Library> subLibraries) {
+    public void addSubLibrary(Library subLibrary) {
         final Config config = this.config;
         final Map<Path, Library> newSubLibraries = new HashMap<>(config.subLibraries);
-        for (Library subLibrary : subLibraries) {
-            newSubLibraries.put(subLibrary.getPath(), subLibrary);
-        }
+        newSubLibraries.put(subLibrary.getPath(), subLibrary);
         this.config = config.withSubLibraries(newSubLibraries);
+        onConfigUpdated();
+    }
+
+    @Override
+    public Set<Path> getExcludedPaths() {
+        return Collections.unmodifiableSet(config.excludedPaths);
+    }
+
+    @Override
+    public void addExcludedPath(Path path) {
+        final Config config = this.config;
+        final Set<Path> newExcludedPaths = new HashSet<>(config.excludedPaths);
+        newExcludedPaths.add(path);
+        this.config = config.withExcludedPaths(newExcludedPaths);
         onConfigUpdated();
     }
 
     @VisibleForTesting
     public void clearLibraries() {
-        config = config.clear();
+        config = Config.empty();
         onConfigUpdated();
     }
 
@@ -105,27 +117,36 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
         private final Optional<File> prevDirectory;
         private final Map<Path, Library> libraries;
         private final Map<Path, Library> subLibraries;
+        private final Set<Path> excludedPaths;
 
-        private Config(Optional<File> prevDirectory, Map<Path, Library> libraries, Map<Path, Library> subLibraries) {
+        private Config(Optional<File> prevDirectory,
+                       Map<Path, Library> libraries,
+                       Map<Path, Library> subLibraries,
+                       Set<Path> excludedPaths) {
             this.prevDirectory = Objects.requireNonNull(prevDirectory);
             this.libraries = Objects.requireNonNull(libraries);
             this.subLibraries = Objects.requireNonNull(subLibraries);
+            this.excludedPaths = Objects.requireNonNull(excludedPaths);
         }
 
         public Config withPrevDirectory(File prevDirectory) {
-            return new Config(Optional.of(prevDirectory), this.libraries, this.subLibraries);
+            return new Config(Optional.of(prevDirectory), libraries, subLibraries, excludedPaths);
         }
 
         public Config withLibraries(Map<Path, Library> libraries) {
-            return new Config(prevDirectory, libraries, subLibraries);
+            return new Config(prevDirectory, libraries, subLibraries, excludedPaths);
         }
 
         public Config withSubLibraries(Map<Path, Library> subLibraries) {
-            return new Config(prevDirectory, libraries, subLibraries);
+            return new Config(prevDirectory, libraries, subLibraries, excludedPaths);
         }
 
-        public Config clear() {
-            return new Config(prevDirectory, Collections.emptyMap(), Collections.emptyMap());
+        public Config withExcludedPaths(Set<Path> excludedPaths) {
+            return new Config(prevDirectory, libraries, subLibraries, excludedPaths);
+        }
+
+        public static Config empty() {
+            return new Config(Optional.empty(), Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet());
         }
     }
 

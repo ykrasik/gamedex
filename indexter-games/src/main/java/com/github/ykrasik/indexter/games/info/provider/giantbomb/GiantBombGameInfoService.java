@@ -48,7 +48,7 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
 
     @Override
     public List<GameRawBriefInfo> searchGames(String name, GamePlatform platform) throws Exception {
-        LOG.info("Searching for name={}, platform={}...", name, platform);
+        LOG.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
         LOG.debug("reply={}", reply);

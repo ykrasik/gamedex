@@ -10,17 +10,18 @@ import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.library.LibraryManager;
+import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.controlsfx.control.GridView;
+import org.controlsfx.control.StatusBar;
 import org.controlsfx.dialog.Dialogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +39,10 @@ import java.util.Optional;
  */
 public class GameCollectionController implements GameDataListener {
     private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
-    private static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
+    public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
-    @FXML private FlowPane gameWall;
+    @FXML private BorderPane mainBorderPane;
+    @FXML private GridView<LocalGameInfo> gameWall;
     @FXML private ListView<String> gamesList;
     @FXML private ImageView thumbnail;
     @FXML private TextField path;
@@ -83,53 +85,41 @@ public class GameCollectionController implements GameDataListener {
 
     // Called by JavaFx
     public void initialize() {
-        LOG.debug("Populating initial data...");
-        onUpdate(dataService.getAll());
+        final StatusBar statusBar = new StatusBar();
+        statusBar.setId("statusBar");
+        mainBorderPane.setBottom(statusBar);
 
         libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
         libraryPlatform.setCellValueFactory(new PropertyValueFactory<Library, String>("platform"));
         libraryPath.setCellValueFactory(new PropertyValueFactory<Library, String>("path"));
         libraries.setItems(FXCollections.observableArrayList(config.getLibraries().values()));
+
+        gameWall.setCellFactory(param -> {
+            final GameInfoCell cell = new GameInfoCell();
+            cell.getStyleClass().add("gameTile");
+            cell.setOnMouseClicked(event -> {
+                final LocalGameInfo info = cell.getItem();
+                displayGameInfo(info);
+                event.consume();
+            });
+            return cell;
+        });
+
+        LOG.debug("Populating initial data...");
+        onUpdate(dataService.getAll());
+
+        statusBar.setText("Welcome to inDexter!");
     }
 
     @Override
     public void onUpdate(Collection<LocalGameInfo> newOrUpdatedInfos) {
 
-        final ObservableList<Node> children = gameWall.getChildren();
-        for (LocalGameInfo info : newOrUpdatedInfos) {
-            final ImageView imageView = createImageView(info);
-//            final Image image = info.getGameInfo().getThumbnail().orElse(NOT_AVAILABLE);
-//            gameWall.setCellFactory(gridView -> {
-//                final ImageGridCell gridCell = new ImageGridCell();
-//                gridCell.getStyleClass().add("gameTile");
-//                gridCell.setOnMouseClicked(event -> {
-//                    displayGameInfo(info);
-////                    event.consume();
-//                });
-//                return gridCell;
-//            });
-            children.add(imageView);
-        }
-
-//        final List<Image> newChildren = ListUtils.map(newOrUpdatedInfos, this::createImage);
-
-
-//        children.addAll(newChildren);
+        gameWall.getItems().addAll(newOrUpdatedInfos);
 
         for (LocalGameInfo info : newOrUpdatedInfos) {
             gamesList.getItems().add(info.getGameInfo().getName());
         }
         Collections.sort(gamesList.getItems());
-    }
-
-    private ImageView createImageView(LocalGameInfo info) {
-        final ImageView imageView = new ImageView(info.getGameInfo().getThumbnail().orElse(NOT_AVAILABLE));
-        imageView.setOnMouseClicked(event -> {
-            displayGameInfo(info);
-            event.consume();
-        });
-        imageView.getStyleClass().add("gameTile");
-        return imageView;
     }
 
     private void displayGameInfo(LocalGameInfo localInfo) {
@@ -158,10 +148,7 @@ public class GameCollectionController implements GameDataListener {
             try {
                 // FIXME: Do this in background thread.
                 // FIXME: Platform should be a param
-                final Optional<Library> subLibrary = searchController.addGame(path, GamePlatform.PC);
-                if (subLibrary.isPresent()) {
-                    libraryManager.addSubLibraries(Collections.singletonList(subLibrary.get()));
-                }
+                searchController.processPath(path, GamePlatform.PC);
             } catch (Exception e) {
                 LOG.warn("Error adding game: " + path, e);
                 Dialogs.create().owner(stage).showException(e);
@@ -201,18 +188,14 @@ public class GameCollectionController implements GameDataListener {
                     throw new IndexterException("Already have a library defined for '%s'", path);
                 }
 
-                // TODO: A bug in controlsFx returns null if the default value is selected.
-                // TODO: When fixed, change the default value to PC.
                 // FIXME: Show a select name dialog too.
-                final GamePlatform platform = Dialogs.create()
+                final Optional<GamePlatform> platform = Dialogs.create()
                     .owner(stage)
                     .title("Choose library platform")
                     .masthead(path.toString())
                     .message("Choose library platform:")
                     .showChoices(GamePlatform.values());
-                if (platform != null) {
-                    libraryManager.addLibrary(new Library(path.getFileName().toString(), path, platform));
-                }
+                platform.ifPresent(p -> libraryManager.addLibrary(new Library(path.getFileName().toString(), path, p)));
             } catch (Exception e) {
                 LOG.warn("Error adding library: " + path, e);
                 Dialogs.create().owner(stage).showException(e);
