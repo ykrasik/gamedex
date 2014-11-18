@@ -18,6 +18,32 @@ public final class ListUtils {
         return retList;
     }
 
+    public static <T, A> List<A> mapThrows(Collection<T> collection, FunctionThrows<T, A> f) throws Exception {
+        final List<A> retList = new ArrayList<>(collection.size());
+        for (T element : collection) {
+            retList.add(f.apply(element));
+        }
+        return retList;
+    }
+
+    public static <T, A> List<A> mapToOption(Collection<T> collection, Function<T, Optional<A>> f) {
+        final List<A> retList = new ArrayList<>(collection.size());
+        for (T element : collection) {
+            final Optional<A> option = f.apply(element);
+            option.ifPresent(retList::add);
+        }
+        return retList;
+    }
+
+    public static <T, A> List<A> mapToOptionThrows(Collection<T> collection, FunctionThrows<T, Optional<A>> f) throws Exception {
+        final List<A> retList = new ArrayList<>(collection.size());
+        for (T element : collection) {
+            final Optional<A> option = f.apply(element);
+            option.ifPresent(retList::add);
+        }
+        return retList;
+    }
+
     public static <T, K> Map<K, T> toMap(Collection<T> collection, Function<T, K> idFunction) {
         final Map<K, T> map = new HashMap<>(collection.size());
         for (T element : collection) {

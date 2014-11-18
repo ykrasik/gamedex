@@ -16,10 +16,10 @@
 
 package com.github.ykrasik.indexter.games;
 
+import com.github.ykrasik.jerminal.javafx.SceneToggler;
 import javafx.application.Application;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -54,33 +54,23 @@ public class IndexterGamesMain extends Application {
         context = createContext(stage);
 
         final Scene mainScene = context.getBean("gameCollectionScene", Scene.class);
-        final Scene debugConsoleScene = context.getBean("debugConsoleScene", Scene.class);
+        final Parent debugConsole = context.getBean("debugConsole", Parent.class);
 
-        initStage(stage, mainScene, debugConsoleScene);
+        initStage(stage, mainScene, debugConsole);
 
         stage.show();
     }
 
-    private void initStage(Stage stage, Scene mainScene, Scene debugConsoleScene) {
-        mainScene.getStylesheets().add("com/github/ykrasik/indexter/games/ui/games.css");
+    private void initStage(Stage stage, Scene mainScene, Parent debugConsole) {
+        mainScene.getStylesheets().add("com/github/ykrasik/indexter/games/ui/css/games.css");
 
         // FIXME: Should be done in spring, inject configurations with a properties object.
         stage.setWidth(1280);
         stage.setHeight(720);
         stage.setTitle("inDexter");
         stage.setScene(mainScene);
-        stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.BACK_QUOTE) {
-                final Scene currentScene = stage.getScene();
-                final Scene nextScene;
-                if (currentScene == mainScene) {
-                    nextScene = debugConsoleScene;
-                } else {
-                    nextScene = mainScene;
-                }
-                stage.setScene(nextScene);
-            }
-        });
+
+        SceneToggler.register(stage, debugConsole);
     }
 
     private AbstractApplicationContext createContext(Stage stage) {

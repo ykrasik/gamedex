@@ -1,5 +1,6 @@
 buildscript {
     ext {
+        gsCollectionsVersion = '5.1.0'
         guavaVersion = '18.0'
         jerminalVersion = '0.1.1'
         boonVersion = '0.29'
@@ -39,13 +40,9 @@ project("indexter-core") {
         compile 'com.j256.ormlite:ormlite-jdbc:4.48'
         compile 'com.h2database:h2:1.4.182'
 
-        compile 'org.jfxtras:jfxtras-common:8.0-r2'
-        compile 'org.jfxtras:jfxtras-menu:8.0-r2'
-        compile 'org.jfxtras:jfxtras-labs:8.0-r1'
-        compile 'org.jrebirth.af:core:7.7.5'
-        compile 'org.jrebirth.af:preloader:7.7.5'
-
         compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
+
+        compile 'com.thoughtworks.xstream:xstream:1.4.7'
 
         compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
         compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"

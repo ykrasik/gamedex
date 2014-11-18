@@ -8,12 +8,17 @@ import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
 import com.github.ykrasik.indexter.games.info.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.provider.giantbomb.config.GiantBombProperties;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.translator.GiantBombTranslator;
+import com.github.ykrasik.indexter.util.ListUtils;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.github.ykrasik.indexter.util.JsonUtils.*;
 
 /**
  * @author Yevgeny Krasik
@@ -45,41 +50,199 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
     public List<GameRawBriefInfo> searchGames(String name, GamePlatform platform) throws Exception {
         LOG.info("Searching for name={}, platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
-        final String rawBody = client.searchGames(name, platformId);
-        LOG.debug("rawBody={}", rawBody);
+        final String reply = client.searchGames(name, platformId);
+        LOG.debug("reply={}", reply);
 
-        final GiantBombTranslator translator = new GiantBombTranslator(mapper, rawBody, platform);
+        final JsonNode root = mapper.readTree(reply);
 
-        final int statusCode = translator.getStatusCode();
+        final int statusCode = getStatusCode(root);
         if (statusCode != 1) {
             throw new IndexterException("SearchGames: Invalid status code. name=%s, platform=%s, statusCode=%d", name, platform, statusCode);
         }
 
-        final List<GameRawBriefInfo> infos = translator.translateBriefInfos();
+        final JsonNode results = getResults(root);
+        final List<GameRawBriefInfo> infos = mapList(results, node -> translateGameBriefInfo(node, platform));
         LOG.info("Found {} results.", infos.size());
         return infos;
+    }
+
+    private GameRawBriefInfo translateGameBriefInfo(JsonNode node, GamePlatform platform) {
+        final String name = getName(node);
+        final Optional<LocalDate> releaseDate = getReleaseDate(node);
+
+        // GiantBomb API doesn't provide score for brief.
+        final double score = 0.0;
+
+        final Optional<String> thumbnailUrl = getThumbnailUrl(node);
+        final Optional<String> tinyImageUrl = getTinyImageUrl(node);
+
+        // The GiantBomb API fetches more details by an api_detail_url field.
+        final String moreDetailsId = getApiDetailUrl(node);
+
+        return new GameRawBriefInfo(name, platform, releaseDate, score, thumbnailUrl, tinyImageUrl, moreDetailsId);
     }
 
     @Override
     public Optional<GameInfo> getGameInfo(String apiDetailUrl, GamePlatform platform) throws Exception {
         // GiantBomb doesn't need to filter by platform, the apiDetailUrl points to an exact entry.
-        LOG.info("Getting rawInfo for apiDetailUrl={}...", apiDetailUrl);
-        final String rawBody = client.fetchDetails(apiDetailUrl);
-        LOG.debug("rawBody={}", rawBody);
+        LOG.info("Getting info for apiDetailUrl={}...", apiDetailUrl);
+        final String reply = client.fetchDetails(apiDetailUrl);
+        LOG.debug("reply={}", reply);
 
-        final GiantBombTranslator translator = new GiantBombTranslator(mapper, rawBody, platform);
+        final JsonNode root = mapper.readTree(reply);
 
-        final int statusCode = translator.getStatusCode();
-        if (statusCode == 101) {
-            LOG.info("Not found.");
-            return Optional.empty();
-        }
+        final int statusCode = getStatusCode(root);
         if (statusCode != 1) {
-            throw new IndexterException("GetGameInfo: Invalid status code. apiDetailUrl=%s, platform=%s, statusCode=%d", apiDetailUrl, platform, statusCode);
+            if (statusCode == 101) {
+                LOG.info("Not found.");
+                return Optional.empty();
+            } else {
+                throw new IndexterException("GetGameInfo: Invalid status code. apiDetailUrl=%s, platform=%s, statusCode=%d", apiDetailUrl, platform, statusCode);
+            }
         }
 
-        final GameInfo info = translator.translateGameInfo();
+        final JsonNode results = getResults(root);
+        final GameInfo info = translateGameInfo(results, platform);
         LOG.info("Found: {}", info);
         return Optional.of(info);
+    }
+
+    private GameInfo translateGameInfo(JsonNode node, GamePlatform platform) throws Exception {
+        final String name = getName(node);
+        final Optional<String> description = getDescription(node);
+        final Optional<LocalDate> releaseDate = getReleaseDate(node);
+
+        final double criticScore = getCriticScore(node);
+        final double userScore = getUserScore(node);
+
+        final List<String> genres = getListOfStrings(node.get("genres"), "name");
+        final List<String> publishers = getListOfStrings(node.get("publishers"), "name");
+        final List<String> developers = getListOfStrings(node.get("developers"), "name");
+        final Optional<String> url = getString(node, "site_detail_url");
+        final Optional<String> thumbnailUrl = getThumbnailUrl(node);
+
+        return GameInfo.from(
+            name, description, platform, releaseDate, criticScore, userScore,
+            genres, publishers, developers, url, thumbnailUrl
+        );
+    }
+
+    private int getStatusCode(JsonNode root) {
+        return getMandatoryInt(root, "status_code");
+    }
+
+    private JsonNode getResults(JsonNode root) {
+        return getMandatoryField(root, "results");
+    }
+
+    private String getName(JsonNode node) {
+        return getMandatoryString(node, "name");
+    }
+
+    private Optional<String> getDescription(JsonNode node) {
+        return getString(node, "deck");
+    }
+
+    private String getApiDetailUrl(JsonNode node) {
+        return getMandatoryString(node, "api_detail_url");
+    }
+
+    private Optional<LocalDate> getReleaseDate(JsonNode node) {
+        final Optional<String> originalReleaseDate = getString(node, "original_release_date");
+        return originalReleaseDate.flatMap(this::translateDate);
+    }
+
+    private Optional<LocalDate> translateDate(String raw) {
+        // The date comes at a non-standard format, with a ' ' between the date and time (rather then 'T' as ISO dictates).
+        // We don't care about the time anyway, just parse the date.
+        try {
+            final int indexOfSpace = raw.indexOf(' ');
+            final String toParse = indexOfSpace != -1 ? raw.substring(0, indexOfSpace) : raw;
+            return Optional.of(LocalDate.parse(toParse));
+        } catch (DateTimeParseException e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getThumbnailUrl(JsonNode node) {
+        return getImageUrl(node, "thumb_url");
+    }
+
+    private Optional<String> getTinyImageUrl(JsonNode node) {
+        return getImageUrl(node, "tiny_url");
+    }
+
+    private Optional<String> getImageUrl(JsonNode node, String imageName) {
+        final Optional<JsonNode> image = getField(node, "image");
+        return image.flatMap(imageNode -> getString(imageNode, imageName));
+    }
+
+    private List<String> getListOfStrings(JsonNode root, String fieldName) {
+        return flatMapList(root, node -> getString(node, fieldName));
+    }
+
+    private List<Double> getListOfDoubles(JsonNode root, String fieldName) {
+        return flatMapList(root, node -> getDouble(node, fieldName));
+    }
+
+    private double getCriticScore(JsonNode node) throws Exception {
+        final List<Double> criticReviewScores = getCriticReviews(node);
+        return getAvgScore(criticReviewScores);
+    }
+
+    // FIXME: Return a Review class that contains more data.
+    private List<Double> getCriticReviews(JsonNode node) throws Exception {
+        final List<String> criticReviewUrls = getListOfStrings(node.get("reviews"), "api_detail_url");
+        return ListUtils.mapToOptionThrows(criticReviewUrls, this::fetchCriticReview);
+    }
+
+    private Optional<Double> fetchCriticReview(String apiDetailUrl) throws Exception {
+        LOG.info("Getting criticReview for apiDetailUrl={}...", apiDetailUrl);
+        final String reply = client.fetchCriticReview(apiDetailUrl);
+        LOG.debug("reply={}", reply);
+
+        final JsonNode root = mapper.readTree(reply);
+
+        final int statusCode = getStatusCode(root);
+        if (statusCode != 1) {
+            throw new IndexterException("GetCriticReview: Invalid status code. apiDetailUrl=%s, statusCode=%d", apiDetailUrl, statusCode);
+        }
+
+        final JsonNode results = getResults(root);
+        return getDouble(results, "score");
+    }
+
+    private double getUserScore(JsonNode node) throws Exception {
+        final List<Double> criticReviewScores = getUserReviews(node);
+        return getAvgScore(criticReviewScores);
+    }
+
+    private List<Double> getUserReviews(JsonNode node) throws Exception {
+        final String gameId = getMandatoryString(node, "id");
+        LOG.info("Getting userReviews for gameId={}...", gameId);
+        final String reply = client.fetchUserReviews(gameId);
+        LOG.debug("reply={}", reply);
+
+        final JsonNode root = mapper.readTree(reply);
+
+        final int statusCode = getStatusCode(root);
+        if (statusCode != 1) {
+            throw new IndexterException("GetUserReviews: Invalid status code. gameId=%s, statusCode=%d", gameId, statusCode);
+        }
+
+        final JsonNode results = getResults(root);
+        return getListOfDoubles(results, "score");
+    }
+
+    private double getAvgScore(List<Double> scores) {
+        if (scores.isEmpty()) {
+            return 0.0;
+        }
+
+        final double total = scores.stream().reduce(0.0, (x, y) -> x + y);
+        final double avgScore = total / scores.size();
+
+        // GiantBomb reviews are scored 0-5. Translate to a scale of 0-100.
+        return avgScore / 5.0 * 100;
     }
 }

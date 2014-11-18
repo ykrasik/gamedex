@@ -27,17 +27,16 @@ import java.util.Objects;
 @Configuration
 public class UiBeanConfiguration {
     @Bean
-    public Scene debugConsoleScene(List<DebugCommands> debugCommands) throws IOException {
+    public Parent debugConsole(List<DebugCommands> debugCommands) throws IOException {
         final ShellFileSystem fileSystem = new ShellFileSystem();
         debugCommands.forEach(fileSystem::processAnnotationsOfObject);
-        final Parent debugConsole = new ConsoleBuilder(fileSystem).build();
-        return new Scene(debugConsole);
+        return new ConsoleBuilder(fileSystem).build();
     }
 
     @Qualifier("gameCollection")
     @Bean
     public Parent gameCollection(GameCollectionController controller) throws IOException {
-        final URL resource = Objects.requireNonNull(getClass().getResource("/com/github/ykrasik/indexter/games/ui/main.fxml"));
+        final URL resource = Objects.requireNonNull(getClass().getResource("/com/github/ykrasik/indexter/games/ui/fxml/games.fxml"));
         final FXMLLoader loader = new FXMLLoader(resource);
         loader.setController(controller);
         return loader.load();

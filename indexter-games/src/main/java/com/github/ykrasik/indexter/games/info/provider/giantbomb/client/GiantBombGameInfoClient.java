@@ -7,4 +7,8 @@ public interface GiantBombGameInfoClient {
     String searchGames(String name, int platformId) throws Exception;
 
     String fetchDetails(String apiDetailUrl) throws Exception;
+
+    String fetchCriticReview(String apiDetailUrl) throws Exception;
+
+    String fetchUserReviews(String gameId) throws Exception;
 }

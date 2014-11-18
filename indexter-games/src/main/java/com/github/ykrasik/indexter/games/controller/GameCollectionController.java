@@ -10,12 +10,12 @@ import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.library.LibraryManager;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -50,6 +51,11 @@ public class GameCollectionController implements GameDataListener {
     @FXML private TextField criticScore;
     @FXML private TextField userScore;
     @FXML private TextField url;
+
+    @FXML private TableView libraries;
+    @FXML private TableColumn libraryName;
+    @FXML private TableColumn libraryPlatform;
+    @FXML private TableColumn libraryPath;
 
     private final Stage stage;
     private final GameCollectionConfig config;
@@ -79,6 +85,11 @@ public class GameCollectionController implements GameDataListener {
     public void initialize() {
         LOG.debug("Populating initial data...");
         onUpdate(dataService.getAll());
+
+        libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
+        libraryPlatform.setCellValueFactory(new PropertyValueFactory<Library, String>("platform"));
+        libraryPath.setCellValueFactory(new PropertyValueFactory<Library, String>("path"));
+        libraries.setItems(FXCollections.observableArrayList(config.getLibraries().values()));
     }
 
     @Override
@@ -147,7 +158,10 @@ public class GameCollectionController implements GameDataListener {
             try {
                 // FIXME: Do this in background thread.
                 // FIXME: Platform should be a param
-                searchController.addGame(path, GamePlatform.PC);
+                final Optional<Library> subLibrary = searchController.addGame(path, GamePlatform.PC);
+                if (subLibrary.isPresent()) {
+                    libraryManager.addSubLibraries(Collections.singletonList(subLibrary.get()));
+                }
             } catch (Exception e) {
                 LOG.warn("Error adding game: " + path, e);
                 Dialogs.create().owner(stage).showException(e);
