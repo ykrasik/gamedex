@@ -1,8 +1,8 @@
 package com.github.ykrasik.indexter.games.controller;
 
+import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
-import com.github.ykrasik.indexter.games.data.GameDataListener;
 import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
@@ -10,6 +10,7 @@ import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.library.LibraryManager;
+import com.github.ykrasik.indexter.games.logic.LogicManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -29,21 +30,19 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
-public class GameCollectionController implements GameDataListener {
+public class GameCollectionController extends AbstractService {
     private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
     public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
     @FXML private BorderPane mainBorderPane;
     @FXML private GridView<LocalGameInfo> gameWall;
-    @FXML private ListView<String> gamesList;
+    @FXML private ListView<LocalGameInfo> gamesList;
     @FXML private ImageView thumbnail;
     @FXML private TextField path;
     @FXML private TextField name;
@@ -64,6 +63,8 @@ public class GameCollectionController implements GameDataListener {
     private final LibraryManager libraryManager;
     private final GameInfoService infoService;
     private final GameDataService dataService;
+
+    private final StatusBar statusBar;
     private final GameSearchController searchController;
 
     private File prevDirectory;
@@ -78,15 +79,29 @@ public class GameCollectionController implements GameDataListener {
         this.libraryManager = Objects.requireNonNull(libraryManager);
         this.infoService = Objects.requireNonNull(infoService);
         this.dataService = Objects.requireNonNull(dataService);
-        this.searchController = new GameSearchController(stage, libraryManager, infoService, dataService);
+
+        this.statusBar = new StatusBar();
+        statusBar.setText("Welcome to inDexter!");
+
+        // FIXME: Create with Spring.
+        final LogicManager logicManager = new LogicManager(libraryManager, infoService, dataService);
+        this.searchController = new GameSearchController(stage, statusBar, logicManager);
 
         prevDirectory = config.getPrevDirectory().orElse(null);
     }
 
+    @Override
+    protected void doStart() throws Exception {
+        searchController.start();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        searchController.stop();
+    }
+
     // Called by JavaFx
     public void initialize() {
-        final StatusBar statusBar = new StatusBar();
-        statusBar.setId("statusBar");
         mainBorderPane.setBottom(statusBar);
 
         libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
@@ -105,21 +120,23 @@ public class GameCollectionController implements GameDataListener {
             return cell;
         });
 
-        LOG.debug("Populating initial data...");
-        onUpdate(dataService.getAll());
+        gamesList.setCellFactory(param -> {
+            final ListCell<LocalGameInfo> cell = new ListCell<LocalGameInfo>() {
+                @Override
+                protected void updateItem(LocalGameInfo item, boolean empty) {
+                    if (empty) {
+                        setGraphic(null);
+                        setText(null);
+                    } else {
+                        setText(item.getGameInfo().getName());
+                    }
+                }
+            };
+            return cell;
+        });
 
-        statusBar.setText("Welcome to inDexter!");
-    }
-
-    @Override
-    public void onUpdate(Collection<LocalGameInfo> newOrUpdatedInfos) {
-
-        gameWall.getItems().addAll(newOrUpdatedInfos);
-
-        for (LocalGameInfo info : newOrUpdatedInfos) {
-            gamesList.getItems().add(info.getGameInfo().getName());
-        }
-        Collections.sort(gamesList.getItems());
+        gameWall.itemsProperty().bind(dataService.itemsProperty());
+        gamesList.itemsProperty().bind(dataService.itemsProperty());
     }
 
     private void displayGameInfo(LocalGameInfo localInfo) {

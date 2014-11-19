@@ -11,6 +11,12 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -22,7 +28,10 @@ import java.util.*;
 public class GameDataServiceImpl extends AbstractService implements GameDataService {
     private final PersistenceProperties properties;
     private final GameEntityTranslator translator;
-    private final List<GameDataListener> listeners;
+
+    private volatile ObservableList<LocalGameInfo> cache = FXCollections.emptyObservableList();
+    private volatile Map<Path, LocalGameInfo> cacheMap = Collections.emptyMap();
+    private ObjectProperty<ObservableList<LocalGameInfo>> itemsProperty;
 
     private JdbcPooledConnectionSource connectionSource;
     private Dao<GameInfoEntity, String> gameInfoEntityDao;
@@ -30,7 +39,6 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
     public GameDataServiceImpl(PersistenceProperties properties, GameEntityTranslator translator) {
         this.properties = Objects.requireNonNull(properties);
         this.translator = Objects.requireNonNull(translator);
-        this.listeners = new ArrayList<>();
     }
 
     @Override
@@ -45,6 +53,12 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
 
         LOG.debug("Instantiating DAOs...");
         instantiateDaos();
+
+        LOG.info("Fetching data...");
+        final List<LocalGameInfo> infos = fetchData();
+        this.cache = FXCollections.observableArrayList(infos);
+        this.cacheMap = ListUtils.toMap(infos, LocalGameInfo::getPath);
+        this.itemsProperty = new SimpleObjectProperty<>(cache);
     }
 
     private void prepareSchema() throws SQLException {
@@ -56,58 +70,52 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
         gameInfoEntityDao = DaoManager.createDao(connectionSource, GameInfoEntity.class);
     }
 
+    private List<LocalGameInfo> fetchData() throws SQLException {
+        final List<GameInfoEntity> entities = gameInfoEntityDao.queryForAll();
+        return ListUtils.map(entities, translator::translate);
+    }
+
     @Override
     protected void doStop() throws Exception {
         connectionSource.close();
     }
 
     @Override
-    public void add(LocalGameInfo info) throws DataException {
-        doAdd(info);
-        notifyListeners(Collections.singleton(info));
+    public synchronized void add(LocalGameInfo info) throws DataException {
+        // Insert to db.
+        insert(info);
+
+        // Update cache.
+        cacheMap.put(info.getPath(), info);
+        // FIXME: This possibly means that this list shouldn't be sitting here.
+        Platform.runLater(() -> cache.add(info));
     }
 
     @Override
-    public Optional<LocalGameInfo> get(Path path) throws DataException {
-        try {
-            final Optional<GameInfoEntity> entity = Optional.ofNullable(gameInfoEntityDao.queryForId(path.toString()));
-            return entity.map(translator::translate);
-        } catch (SQLException e) {
-            throw new DataException(e);
-        }
+    public synchronized Optional<LocalGameInfo> get(Path path) throws DataException {
+        return Optional.ofNullable(cacheMap.get(path));
     }
 
     @Override
-    public Collection<LocalGameInfo> getAll() throws DataException {
-        try {
-            final List<GameInfoEntity> entities = gameInfoEntityDao.queryForAll();
-            return ListUtils.map(entities, translator::translate);
-        } catch (SQLException e) {
-            throw new DataException(e);
-        }
+    public synchronized ObservableList<LocalGameInfo> getAll() throws DataException {
+        return FXCollections.unmodifiableObservableList(cache);
     }
 
-    private void doAdd(LocalGameInfo info) throws DataException {
+    @Override
+    public ReadOnlyObjectProperty<ObservableList<LocalGameInfo>> itemsProperty() {
+        return itemsProperty;
+    }
+
+    private void insert(LocalGameInfo info) throws DataException {
         final GameInfoEntity entity = translator.translate(info);
         LOG.debug("Inserting {}...", entity);
 
         try {
             if (gameInfoEntityDao.create(entity) != 1) {
-                throw new DataException("Error inserting entity: " + entity);
+                throw new DataException("Error inserting entity: %s", entity);
             }
         } catch (SQLException e) {
             throw new DataException(e);
-        }
-    }
-
-    @Override
-    public void addListener(GameDataListener listener) {
-        listeners.add(listener);
-    }
-
-    private void notifyListeners(Collection<LocalGameInfo> newOrUpdatedInfos) {
-        for (GameDataListener listener : listeners) {
-            listener.onUpdate(newOrUpdatedInfos);
         }
     }
 }

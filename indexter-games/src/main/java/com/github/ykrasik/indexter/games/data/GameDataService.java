@@ -2,9 +2,10 @@ package com.github.ykrasik.indexter.games.data;
 
 import com.github.ykrasik.indexter.exception.DataException;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -15,7 +16,7 @@ public interface GameDataService {
 
     Optional<LocalGameInfo> get(Path path) throws DataException;
 
-    Collection<LocalGameInfo> getAll() throws DataException;
+    ObservableList<LocalGameInfo> getAll() throws DataException;
 
-    void addListener(GameDataListener listener);
+    ReadOnlyObjectProperty<ObservableList<LocalGameInfo>> itemsProperty();
 }
