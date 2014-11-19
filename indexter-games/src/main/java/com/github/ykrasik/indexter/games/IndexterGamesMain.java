@@ -18,6 +18,7 @@ package com.github.ykrasik.indexter.games;
 
 import com.github.ykrasik.jerminal.javafx.SceneToggler;
 import javafx.application.Application;
+import javafx.concurrent.Task;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -30,10 +31,16 @@ import java.io.IOException;
  * @author Yevgeny Krasik
  */
 public class IndexterGamesMain extends Application {
+    private IndexterPreloader preloader;
     private AbstractApplicationContext context;
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    @Override
+    public void init() {
+        preloader = new IndexterPreloader();
     }
 
     @Override
@@ -50,15 +57,21 @@ public class IndexterGamesMain extends Application {
         context.stop();
     }
 
-    private void doStart(Stage stage) throws IOException {
-        context = createContext(stage);
+    private void doStart(final Stage mainStage) throws IOException {
+        final Task<AbstractApplicationContext> loadContextTask = new Task<AbstractApplicationContext>() {
+            @Override
+            protected AbstractApplicationContext call() throws InterruptedException {
+                return createContext(mainStage, preloader);
+            }
+        };
 
-        final Scene mainScene = context.getBean("gameCollectionScene", Scene.class);
-        final Parent debugConsole = context.getBean("debugConsole", Parent.class);
-
-        initStage(stage, mainScene, debugConsole);
-
-        stage.show();
+        preloader.start(loadContextTask, v -> {
+            context = v;
+            final Scene mainScene = new Scene(context.getBean("gameCollection", Parent.class));
+            final Parent debugConsole = context.getBean("debugConsole", Parent.class);
+            initStage(mainStage, mainScene, debugConsole);
+            mainStage.show();
+        });
     }
 
     private void initStage(Stage stage, Scene mainScene, Parent debugConsole) {
@@ -73,9 +86,10 @@ public class IndexterGamesMain extends Application {
         SceneToggler.register(stage, debugConsole);
     }
 
-    private AbstractApplicationContext createContext(Stage stage) {
+    private AbstractApplicationContext createContext(Stage stage, IndexterPreloader preloader) {
         final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.getBeanFactory().registerSingleton("stage", stage);
+        context.getBeanFactory().registerSingleton("preloader", preloader);
         context.scan("com.github.ykrasik.indexter");
 //        context.register(
 //            DataBeanConfiguration.class,

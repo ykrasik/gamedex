@@ -16,11 +16,11 @@ import java.util.Objects;
 /**
  * @author Yevgeny Krasik
  */
-@ShellPath("preferences")
-public class PreferencesDebugCommands implements DebugCommands {
+@ShellPath("config")
+public class ConfigDebugCommands implements DebugCommands {
     private final GameCollectionConfigImpl preferences;
 
-    public PreferencesDebugCommands(GameCollectionConfigImpl preferences) {
+    public ConfigDebugCommands(GameCollectionConfigImpl preferences) {
         this.preferences = Objects.requireNonNull(preferences);
     }
 
