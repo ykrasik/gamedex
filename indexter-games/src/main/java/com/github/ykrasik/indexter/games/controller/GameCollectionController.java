@@ -4,14 +4,16 @@ import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.data.GameDataService;
-import com.github.ykrasik.indexter.games.datamodel.GameInfo;
-import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.datamodel.Library;
-import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
+import com.github.ykrasik.indexter.games.datamodel.*;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.library.LibraryManager;
 import com.github.ykrasik.indexter.games.logic.LogicManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
+import com.github.ykrasik.indexter.ui.FixedRating;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,8 +45,11 @@ public class GameCollectionController extends AbstractService {
     public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
     @FXML private BorderPane mainBorderPane;
+
     @FXML private GridView<LocalGameInfo> gameWall;
-    @FXML private ListView<LocalGameInfo> gamesList;
+
+    @FXML private ComboBox<GameSort> gameWallSort;
+
     @FXML private ImageView thumbnail;
     @FXML private TextField path;
     @FXML private TextField name;
@@ -52,6 +59,16 @@ public class GameCollectionController extends AbstractService {
     @FXML private TextField criticScore;
     @FXML private TextField userScore;
     @FXML private TextField url;
+
+    @FXML private TableView<LocalGameInfo> gamesTable;
+    @FXML private TableColumn<LocalGameInfo, String> gameNameColumn;
+    @FXML private TableColumn<LocalGameInfo, String> gamePlatformColumn;
+    @FXML private TableColumn<LocalGameInfo, String> gameReleaseDateColumn;
+    @FXML private TableColumn<LocalGameInfo, String> gameCriticScoreColumn;
+    @FXML private TableColumn<LocalGameInfo, FixedRating> gameCriticScoreVisualColumn;
+    @FXML private TableColumn<LocalGameInfo, String> gameUserScoreColumn;
+    @FXML private TableColumn<LocalGameInfo, FixedRating> gameUserScoreVisualColumn;
+    @FXML private TableColumn<LocalGameInfo, String> gamePathColumn;
 
     @FXML private TableView libraries;
     @FXML private TableColumn libraryName;
@@ -104,11 +121,7 @@ public class GameCollectionController extends AbstractService {
     public void initialize() {
         mainBorderPane.setBottom(statusBar);
 
-        libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
-        libraryPlatform.setCellValueFactory(new PropertyValueFactory<Library, String>("platform"));
-        libraryPath.setCellValueFactory(new PropertyValueFactory<Library, String>("path"));
-        libraries.setItems(FXCollections.observableArrayList(config.getLibraries().values()));
-
+        gameWall.itemsProperty().bind(dataService.itemsProperty());
         gameWall.setCellFactory(param -> {
             final GameInfoCell cell = new GameInfoCell();
             cell.getStyleClass().add("gameTile");
@@ -120,23 +133,47 @@ public class GameCollectionController extends AbstractService {
             return cell;
         });
 
-        gamesList.setCellFactory(param -> {
-            final ListCell<LocalGameInfo> cell = new ListCell<LocalGameInfo>() {
-                @Override
-                protected void updateItem(LocalGameInfo item, boolean empty) {
-                    if (empty) {
-                        setGraphic(null);
-                        setText(null);
-                    } else {
-                        setText(item.getGameInfo().getName());
-                    }
+        gameWallSort.setItems(FXCollections.observableArrayList(GameSort.values()));
+        gameWallSort.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GameSort>() {
+            @Override
+            public void changed(ObservableValue<? extends GameSort> observable, GameSort oldValue, GameSort newValue) {
+                final Comparator<LocalGameInfo> comparator;
+                switch (newValue) {
+                    case DATE_ADDED: comparator = GameComparators.dateAddedComparator(); break;
+                    case NAME: comparator = GameComparators.nameComparator(); break;
+                    case CRITIC_SCORE: comparator = GameComparators.criticScoreComparator(); break;
+                    case USER_SCORE: comparator = GameComparators.userScoreComparator(); break;
+                    case RELEASE_DATE: comparator = GameComparators.releaseDateComparator(); break;
+                    default: throw new IndexterException("Invalid sort value: %s", newValue);
                 }
-            };
-            return cell;
+
+                // FIXME: This sucks a lot.
+                FXCollections.sort(dataService.itemsProperty().get(), comparator);
+                gameWall.itemsProperty().unbind();
+                gameWall.setItems(FXCollections.emptyObservableList());
+                gameWall.itemsProperty().bind(dataService.itemsProperty());
+            }
         });
 
-        gameWall.itemsProperty().bind(dataService.itemsProperty());
-        gamesList.itemsProperty().bind(dataService.itemsProperty());
+        gamesTable.itemsProperty().bind(dataService.itemsProperty());
+        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getName()));
+        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getGamePlatform().toString()));
+        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getReleaseDate().map(LocalDate::toString).orElse("Unavailable")));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(String.valueOf(e.getValue().getGameInfo().getCriticScore())));
+        gameCriticScoreVisualColumn.setCellValueFactory(e -> {
+            final FixedRating rating = new FixedRating(5);
+            rating.setPartialRating(true);
+            rating.setRating(e.getValue().getGameInfo().getCriticScore() / 100 * 5);
+            return new SimpleObjectProperty<>(rating);
+        });
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(String.valueOf(e.getValue().getGameInfo().getUserScore())));
+        gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
+
+        libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
+        libraryPlatform.setCellValueFactory(new PropertyValueFactory<Library, String>("platform"));
+        libraryPath.setCellValueFactory(new PropertyValueFactory<Library, String>("path"));
+        libraries.setItems(FXCollections.observableArrayList(config.getLibraries().values()));
+
     }
 
     private void displayGameInfo(LocalGameInfo localInfo) {

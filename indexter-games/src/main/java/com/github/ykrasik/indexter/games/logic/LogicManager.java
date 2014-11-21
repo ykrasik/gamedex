@@ -31,6 +31,7 @@ public class LogicManager {
     private final GameInfoService infoService;
     private final GameDataService dataService;
 
+    // FIXME: All these cannot be accessed from here, but through Platform.runLater.
     private final StringProperty currentLibrary;
     private final StringProperty currentPath;
     private final StringProperty message;
@@ -74,13 +75,15 @@ public class LogicManager {
     public void refreshLibraries(ChoiceProvider choiceProvider) throws Exception {
         info("Refreshing libraries...");
 
-        refreshLibrariesProgress.setValue(0);
+        Platform.runLater(() -> refreshLibrariesProgress.setValue(0));
         final List<Library> libraries = libraryManager.getLibraries();
         final int total = libraries.size();
         for (int i = 0; i < total; i++) {
             final Library library = libraries.get(i);
             refreshLibrary(library, choiceProvider);
-            refreshLibrariesProgress.setValue((double)i / total);
+            // FIXME: Why do I need to call platform.later?
+            final double current = i;
+            Platform.runLater(() -> refreshLibrariesProgress.setValue(current / total));
         }
 
         info("Finished refreshing libraries.");
@@ -96,7 +99,9 @@ public class LogicManager {
         for (int i = 0; i < total; i++) {
             final Path path = directories.get(i);
             processPath(path, library.getPlatform(), choiceProvider);
-            refreshLibraryProgress.setValue((double)i / total);
+            // FIXME: Why do I need to call platform.later?
+            final double current = i;
+            Platform.runLater(() -> refreshLibraryProgress.setValue(current / total));
         }
 
         info("Finished refreshing library: '%s'", library);
