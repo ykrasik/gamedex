@@ -31,16 +31,16 @@ public class GiantBombDebugCommands implements DebugCommands {
     public void search(OutputPrinter outputPrinter,
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        service.searchGames(name, gamePlatform).forEach(result -> outputPrinter.println(result.toString()));
+        final GamePlatform platform = GamePlatform.valueOf(platformStr);
+        service.searchGames(name, platform).forEach(result -> outputPrinter.println(String.format("%s - %s", result.getName(), result.getGiantBombApiDetailUrl().orElse("None"))));
     }
 
     @Command
     public void get(OutputPrinter outputPrinter,
                     @StringParam("name") String name,
                     @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        outputPrinter.println(service.getGameInfo(name, gamePlatform).toString());
+        final GamePlatform platform = GamePlatform.valueOf(platformStr);
+        outputPrinter.println(service.getGameInfo(name, platform).toString());
     }
 
     @ShellPath("client")
@@ -64,10 +64,10 @@ public class GiantBombDebugCommands implements DebugCommands {
     }
 
     private String[] platformValues() {
-        final GamePlatform[] gamePlatforms = GamePlatform.values();
-        final String[] values = new String[gamePlatforms.length];
-        for (int i = 0; i < gamePlatforms.length; i++) {
-            values[i] = gamePlatforms[i].name();
+        final GamePlatform[] platforms = GamePlatform.values();
+        final String[] values = new String[platforms.length];
+        for (int i = 0; i < platforms.length; i++) {
+            values[i] = platforms[i].name();
         }
         return values;
     }

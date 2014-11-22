@@ -16,66 +16,74 @@ import java.util.Optional;
  */
 public class GameInfo {
     private final String name;
+    private final GamePlatform platform;
+
     private final Optional<String> description;
-    private final GamePlatform gamePlatform;
     private final Optional<LocalDate> releaseDate;
-    private final double criticScore;
-    private final double userScore;
+    private final Optional<Double> criticScore;
+    private final Optional<Double> userScore;
+
     private final List<String> genres;
-    private final List<String> publishers;
-    private final List<String> developers;
-    private final Optional<String> url;
+
+    private final Optional<String> giantBombApiDetailsUrl;
+
     private final Optional<byte[]> thumbnailData;
     private final Optional<Image> thumbnail;
 
-    public GameInfo(String name,
-                    Optional<String> description,
-                    GamePlatform gamePlatform,
-                    Optional<LocalDate> releaseDate,
-                    double criticScore,
-                    double userScore,
-                    List<String> genres,
-                    List<String> publishers,
-                    List<String> developers,
-                    Optional<String> url,
-                    Optional<byte[]> thumbnailData) {
-        this.name = Objects.requireNonNull(name);
-        this.description = Objects.requireNonNull(description);
-        this.gamePlatform = Objects.requireNonNull(gamePlatform);
-        this.releaseDate = Objects.requireNonNull(releaseDate);
-        this.criticScore = criticScore;
-        this.userScore = userScore;
-        this.genres = Objects.requireNonNull(genres);
-        this.publishers = Objects.requireNonNull(publishers);
-        this.developers = Objects.requireNonNull(developers);
-        this.url = Objects.requireNonNull(url);
-        this.thumbnailData = Objects.requireNonNull(thumbnailData);
+    private final Optional<byte[]> posterData;
+    private final Optional<Image> poster;
 
+    public GameInfo(String name,
+                    GamePlatform platform,
+                    Optional<String> description,
+                    Optional<LocalDate> releaseDate,
+                    Optional<Double> criticScore,
+                    Optional<Double> userScore,
+                    List<String> genres,
+                    Optional<String> giantBombApiDetailsUrl,
+                    Optional<byte[]> thumbnailData,
+                    Optional<byte[]> posterData) {
+        this.name = Objects.requireNonNull(name);
+        this.platform = Objects.requireNonNull(platform);
+        this.description = Objects.requireNonNull(description);
+        this.releaseDate = Objects.requireNonNull(releaseDate);
+        this.criticScore = Objects.requireNonNull(criticScore);
+        this.userScore = Objects.requireNonNull(userScore);
+        this.genres = Objects.requireNonNull(genres);
+        this.giantBombApiDetailsUrl = Objects.requireNonNull(giantBombApiDetailsUrl);
+        this.thumbnailData = Objects.requireNonNull(thumbnailData);
+        this.posterData = Objects.requireNonNull(posterData);
+
+        this.thumbnail = createImage(thumbnailData);
+        this.poster = createImage(posterData);
+    }
+
+    private Optional<Image> createImage(Optional<byte[]> bytes) {
         // There is no need to close byte array input streams.
-        this.thumbnail = thumbnailData.map(data -> new Image(new ByteArrayInputStream(data)));
+        return bytes.map(data -> new Image(new ByteArrayInputStream(data)));
     }
 
     public String getName() {
         return name;
     }
 
-    public Optional<String> getDescription() {
-        return description;
+    public GamePlatform getPlatform() {
+        return platform;
     }
 
-    public GamePlatform getGamePlatform() {
-        return gamePlatform;
+    public Optional<String> getDescription() {
+        return description;
     }
 
     public Optional<LocalDate> getReleaseDate() {
         return releaseDate;
     }
 
-    public double getCriticScore() {
+    public Optional<Double> getCriticScore() {
         return criticScore;
     }
 
-    public double getUserScore() {
+    public Optional<Double> getUserScore() {
         return userScore;
     }
 
@@ -83,16 +91,8 @@ public class GameInfo {
         return genres;
     }
 
-    public List<String> getPublishers() {
-        return publishers;
-    }
-
-    public List<String> getDevelopers() {
-        return developers;
-    }
-
-    public Optional<String> getUrl() {
-        return url;
+    public Optional<String> getGiantBombApiDetailsUrl() {
+        return giantBombApiDetailsUrl;
     }
 
     public Optional<byte[]> getThumbnailData() {
@@ -103,35 +103,46 @@ public class GameInfo {
         return thumbnail;
     }
 
+    public Optional<byte[]> getPosterData() {
+        return posterData;
+    }
+
+    public Optional<Image> getPoster() {
+        return poster;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
             .add("name", name)
-            .add("gamePlatform", gamePlatform)
+            .add("platform", platform)
             .toString();
     }
 
     public static GameInfo from(String name,
+                                GamePlatform platform,
                                 Optional<String> description,
-                                GamePlatform gamePlatform,
                                 Optional<LocalDate> releaseDate,
-                                double criticScore,
-                                double userScore,
+                                Optional<Double> criticScore,
+                                Optional<Double> userScore,
                                 List<String> genres,
-                                List<String> publishers,
-                                List<String> developers,
-                                Optional<String> url,
-                                Optional<String> thumbnailUrl) throws IOException {
-        final Optional<byte[]> thumbnailData;
-        if (thumbnailUrl.isPresent()) {
-            thumbnailData = Optional.of(UrlUtils.fetchData(thumbnailUrl.get()));
-        } else {
-            thumbnailData = Optional.empty();
-        }
+                                Optional<String> giantBombApiDetailsUrl,
+                                Optional<String> thumbnailUrl,
+                                Optional<String> posterUrl) throws IOException {
+        final Optional<byte[]> thumbnailData = fetchUrl(thumbnailUrl);
+        final Optional<byte[]> posterData = fetchUrl(posterUrl);
 
         return new GameInfo(
-            name, description, gamePlatform, releaseDate, criticScore, userScore,
-            genres, publishers, developers, url, thumbnailData
+            name, platform, description, releaseDate, criticScore, userScore, genres, giantBombApiDetailsUrl,
+            thumbnailData, posterData
         );
+    }
+
+    private static Optional<byte[]> fetchUrl(Optional<String> url) throws IOException {
+        if (url.isPresent()) {
+            return Optional.of(UrlUtils.fetchData(url.get()));
+        } else {
+            return Optional.empty();
+        }
     }
 }

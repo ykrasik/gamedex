@@ -18,6 +18,7 @@ import java.util.Optional;
 /**
  * @author Yevgeny Krasik
  */
+// FIXME: This style sucks, move this code back into the service
 public class MetacriticTranslator extends AbstractJsonTranslator {
     private final JsonNode root;
     private final GamePlatform platform;
@@ -35,16 +36,15 @@ public class MetacriticTranslator extends AbstractJsonTranslator {
     private GameRawBriefInfo translateGameBriefInfo(JsonNode node) {
         final String name = extractName(node);
         final Optional<LocalDate> releaseDate = extractReleaseDate(node);
-        final double score = extractDouble(node, "score").orElse(0.0);
+        final Optional<Double> score = extractDouble(node, "score");
 
-        // Metacritic API doesn't provide a thumbnail or tinyImage on brief.
-        final Optional<String> thumbnailUrl = Optional.<String>empty();
+        // Metacritic API doesn't provide a tinyImage on brief.
         final Optional<String> tinyImageUrl = Optional.<String>empty();
 
         // Metacritic API fetches more details by name.
-        final String moreDetailsId = name;
+        final Optional<String> giantBombApiDetailUrl = Optional.empty();
 
-        return new GameRawBriefInfo(name, platform, releaseDate, score, thumbnailUrl, tinyImageUrl, moreDetailsId);
+        return new GameRawBriefInfo(name, releaseDate, score, tinyImageUrl, giantBombApiDetailUrl);
     }
 
     public Optional<GameInfo> translateGameInfo() throws IOException {
@@ -55,29 +55,37 @@ public class MetacriticTranslator extends AbstractJsonTranslator {
 
         final String name = extractName(node);
 
-        // Metacritic API does not provide description.
-        final Optional<String> description = Optional.empty();
+        Optional<String> description = extractString(node, "summary").map(this::removeLastExpand);
+        description = description.filter(desc -> !desc.isEmpty());
 
         final Optional<LocalDate> releaseDate = extractReleaseDate(node);
-        final double criticScore = extractDouble(node, "score").orElse(0.0);
-        final double userscore = extractDouble(node, "userscore").orElse(0.0);
+        Optional<Double> criticScore = extractDouble(node, "score");
+        criticScore = criticScore.filter(score -> score != 0.0);
+
+        // userScore is on a scale of 1-10, while for some reason criticScore is on a scale of 1-100.
+        Optional<Double> userScore = extractDouble(node, "userscore").map(score -> score * 10);
+        userScore = userScore.filter(score -> score != 0.0);
 
         // Only 1 genre from Metacritic API.
         final List<String> genres = toList(extractString(node, "genre"));
+        final Optional<String> giantBombApiDetailUrl = Optional.empty();
 
-        // Only 1 publisher from Metacritic API
-        final List<String> publishers = toList(extractString(node, "publisher"));
+        Optional<String> thumbnailUrl = extractString(node, "thumbnail");
+        thumbnailUrl = thumbnailUrl.filter(url -> !"http://static.metacritic.com/images/products/games/98w-game.jpg".equals(url));
 
-        // Only 1 developer from Metacritic API
-        final List<String> developers = toList(extractString(node, "developer"));
-
-        final Optional<String> url = extractString(node, "url");
-        final Optional<String> thumbnailUrl = extractString(node, "thumbnail");
+        // No poster from Metacritic API.
+        final Optional<String> posterUrl = Optional.empty();
 
         return Optional.of(GameInfo.from(
-            name, description, platform, releaseDate, criticScore, userscore,
-            genres, publishers, developers, url, thumbnailUrl
+            name, platform, description, releaseDate, criticScore, userScore, genres, giantBombApiDetailUrl,
+            thumbnailUrl, posterUrl
         ));
+    }
+
+    private String removeLastExpand(String str) {
+        // Remove the last "expand" word that Metacritic API adds to the description
+        final int index = str.lastIndexOf("… Expand");
+        return index != -1 ? str.substring(0, index).trim() : str;
     }
 
     private String extractName(JsonNode node) {

@@ -33,7 +33,7 @@ public class DialogChoiceProvider implements ChoiceProvider {
     }
 
     @Override
-    public NoSearchResultsChoice getNoSearchResultsChoice(Path path, String name, GamePlatform platform) throws Exception {
+    public NoSearchResultsChoice getNoMetacriticSearchResultsChoice(Path path, String name, GamePlatform platform) throws Exception {
         final DialogAction newName = new DialogAction("New name");
         newName.setLongText("Retry with a new name");
 
@@ -42,12 +42,12 @@ public class DialogChoiceProvider implements ChoiceProvider {
 
         final Dialogs dialog = Dialogs.create()
             .owner(stage)
-            .title("No search results found!")
+            .title("No Metacritic search results found!")
             .masthead(path.toString())
-            .message(String.format("No search results found: '%s'", name));
+            .message(String.format("No Metacritic search results found: '%s'", name));
 
         // Dialog must be displayed on JavaFx thread.
-        LOG.debug("Showing no search results dialog...");
+        LOG.debug("Showing no metacritic search results dialog...");
         final FutureTask<Action> futureChoice = new FutureTask<>(() -> dialog.showCommandLinks(newName, exclude));
         Platform.runLater(futureChoice);
         final Action choice = futureChoice.get();
@@ -68,10 +68,10 @@ public class DialogChoiceProvider implements ChoiceProvider {
     }
 
     @Override
-    public MultipleSearchResultsChoice getMultipleSearchResultsChoice(Path path,
-                                                                      String name,
-                                                                      GamePlatform platform,
-                                                                      List<GameRawBriefInfo> briefInfos) throws Exception {
+    public MultipleSearchResultsChoice getMultipleMetacriticSearchResultsChoice(Path path,
+                                                                                String name,
+                                                                                GamePlatform platform,
+                                                                                List<GameRawBriefInfo> briefInfos) throws Exception {
         final DialogAction chooseOne = new DialogAction("Choose");
         chooseOne.setLongText("Choose from the search results");
 
@@ -94,9 +94,9 @@ public class DialogChoiceProvider implements ChoiceProvider {
 
         final Dialogs dialog = Dialogs.create()
             .owner(stage)
-            .title("Too many search results!")
+            .title("Too many Metacritic search results!")
             .masthead(path.toString())
-            .message(String.format("Found %d search results for '%s':", briefInfos.size(), name));
+            .message(String.format("Found %d Metacritic search results for '%s':", briefInfos.size(), name));
 
         // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing multiple search result dialog...");
@@ -123,6 +123,48 @@ public class DialogChoiceProvider implements ChoiceProvider {
         if (choice == designateSubLibrary) {
             LOG.debug("Designate sub-library requested.");
             return MultipleSearchResultsChoice.SUB_LIBRARY;
+        }
+        throw new IndexterException("Invalid choice: %s", choice);
+    }
+
+    @Override
+    public MultipleSearchResultsChoice getMultipleGiantBombSearchResultsChoice(Path path,
+                                                                               String name,
+                                                                               GamePlatform platform,
+                                                                               List<GameRawBriefInfo> briefInfos) throws Exception {
+        final DialogAction chooseOne = new DialogAction("Choose");
+        chooseOne.setLongText("Choose from the search results");
+
+        final DialogAction newName = new DialogAction("New name");
+        newName.setLongText("Retry with a new name");
+
+        final List<DialogAction> choices = new ArrayList<>();
+        choices.add(chooseOne);
+        choices.add(newName);
+
+        final Dialogs dialog = Dialogs.create()
+            .owner(stage)
+            .title("Too many GiantBomb search results!")
+            .masthead(path.toString())
+            .message(String.format("Found %d GiantBomb search results for '%s':", briefInfos.size(), name));
+
+        // Dialog must be displayed on JavaFx thread.
+        LOG.debug("Showing multiple search result dialog...");
+        final FutureTask<Action> futureChoice = new FutureTask<>(() -> dialog.showCommandLinks(choices));
+        Platform.runLater(futureChoice);
+        final Action choice = futureChoice.get();
+
+        if (choice == Dialog.ACTION_CANCEL) {
+            LOG.debug("Dialog cancelled.");
+            return MultipleSearchResultsChoice.SKIP;
+        }
+        if (choice == chooseOne) {
+            LOG.debug("Choose one result requested.");
+            return MultipleSearchResultsChoice.CHOOSE;
+        }
+        if (choice == newName) {
+            LOG.debug("New name requested.");
+            return MultipleSearchResultsChoice.NEW_NAME;
         }
         throw new IndexterException("Invalid choice: %s", choice);
     }
@@ -175,7 +217,7 @@ public class DialogChoiceProvider implements ChoiceProvider {
     public Optional<String> getSubLibraryName(Path path, String name, GamePlatform platform) throws Exception {
         final Dialogs dialog = Dialogs.create()
             .owner(stage)
-            .title("Enter library name")
+            .title("Enter sub-library name")
             .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform));
 
         // Dialog must be displayed on JavaFx thread.

@@ -30,7 +30,7 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
     @Override
     public String fetchDetails(String apiDetailUrl) throws Exception {
         final GetRequest request = get(apiDetailUrl)
-            .field("field_list", "id,name,deck,genres,image,original_release_date,publishers,developers,site_detail_url,reviews");
+            .field("field_list", "name,deck,genres,image,original_release_date");
         return get(request);
     }
 

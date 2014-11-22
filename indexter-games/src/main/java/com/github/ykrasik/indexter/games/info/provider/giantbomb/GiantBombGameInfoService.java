@@ -61,25 +61,24 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         }
 
         final JsonNode results = getResults(root);
-        final List<GameRawBriefInfo> infos = mapList(results, node -> translateGameBriefInfo(node, platform));
+        final List<GameRawBriefInfo> infos = mapList(results, this::translateGameBriefInfo);
         LOG.info("Found {} results.", infos.size());
         return infos;
     }
 
-    private GameRawBriefInfo translateGameBriefInfo(JsonNode node, GamePlatform platform) {
+    private GameRawBriefInfo translateGameBriefInfo(JsonNode node) {
         final String name = getName(node);
         final Optional<LocalDate> releaseDate = getReleaseDate(node);
 
         // GiantBomb API doesn't provide score for brief.
-        final double score = 0.0;
+        final Optional<Double> score = Optional.empty();
 
-        final Optional<String> thumbnailUrl = getThumbnailUrl(node);
         final Optional<String> tinyImageUrl = getTinyImageUrl(node);
 
         // The GiantBomb API fetches more details by an api_detail_url field.
-        final String moreDetailsId = getApiDetailUrl(node);
+        final Optional<String> giantBombApiDetailUrl = Optional.of(getApiDetailUrl(node));
 
-        return new GameRawBriefInfo(name, platform, releaseDate, score, thumbnailUrl, tinyImageUrl, moreDetailsId);
+        return new GameRawBriefInfo(name, releaseDate, score, tinyImageUrl, giantBombApiDetailUrl);
     }
 
     @Override
@@ -102,28 +101,26 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
         }
 
         final JsonNode results = getResults(root);
-        final GameInfo info = translateGameInfo(results, platform);
+        final GameInfo info = translateGameInfo(results, platform, apiDetailUrl);
         LOG.info("Found: {}", info);
         return Optional.of(info);
     }
 
-    private GameInfo translateGameInfo(JsonNode node, GamePlatform platform) throws Exception {
+    private GameInfo translateGameInfo(JsonNode node, GamePlatform platform, String apiDetailUrl) throws Exception {
         final String name = getName(node);
         final Optional<String> description = getDescription(node);
         final Optional<LocalDate> releaseDate = getReleaseDate(node);
 
-        final double criticScore = getCriticScore(node);
-        final double userScore = getUserScore(node);
+        final Optional<Double> criticScore = Optional.empty();
+        final Optional<Double> userScore = Optional.empty();
 
         final List<String> genres = getListOfStrings(node.get("genres"), "name");
-        final List<String> publishers = getListOfStrings(node.get("publishers"), "name");
-        final List<String> developers = getListOfStrings(node.get("developers"), "name");
-        final Optional<String> url = getString(node, "site_detail_url");
         final Optional<String> thumbnailUrl = getThumbnailUrl(node);
+        final Optional<String> posterUrl = getPosterUrl(node);
 
         return GameInfo.from(
-            name, description, platform, releaseDate, criticScore, userScore,
-            genres, publishers, developers, url, thumbnailUrl
+            name, platform, description, releaseDate, criticScore, userScore, genres, Optional.of(apiDetailUrl),
+            thumbnailUrl, posterUrl
         );
     }
 
@@ -170,6 +167,10 @@ public class GiantBombGameInfoService extends AbstractService implements GameInf
 
     private Optional<String> getTinyImageUrl(JsonNode node) {
         return getImageUrl(node, "tiny_url");
+    }
+
+    private Optional<String> getPosterUrl(JsonNode node) {
+        return getImageUrl(node, "super_url");
     }
 
     private Optional<String> getImageUrl(JsonNode node, String imageName) {

@@ -14,38 +14,45 @@ import java.util.Objects;
  */
 @DatabaseTable(tableName = "game_infos")
 public class GameInfoEntity {
-    @DatabaseField(id = true)
+    @DatabaseField(generatedId = true)
+    private int id;
+
+    @DatabaseField(unique = true, canBeNull = false)
     private String path;
 
-    @DatabaseField(canBeNull = false, width = 1000)
+    @DatabaseField(canBeNull = false)
     private String name;
 
-    @DatabaseField
+    @DatabaseField(width = 4000)
     private String description;
 
     @DatabaseField(canBeNull = false)
-    private GamePlatform gamePlatform;
+    private GamePlatform platform;
 
     @DatabaseField
     private Date releaseDate;
 
-    @DatabaseField(throwIfNull = true)
-    private double criticScore;
+    @DatabaseField
+    private Double criticScore;
 
-    @DatabaseField(throwIfNull = true)
-    private double userScore;
+    @DatabaseField
+    private Double userScore;
 
-//    private List<String> genres;
+    @DatabaseField
+    private String genres;
 //
 //    private List<String> publishers;
 //
 //    private List<String> developers;
 
     @DatabaseField
-    private String url;
+    private String giantBombApiDetailUrl;
 
     @DatabaseField(dataType = DataType.BYTE_ARRAY)
     private byte[] thumbnailData;
+
+    @DatabaseField(dataType = DataType.BYTE_ARRAY)
+    private byte[] posterData;
 
     GameInfoEntity() {
         // For ORM.
@@ -54,21 +61,29 @@ public class GameInfoEntity {
     public GameInfoEntity(String path,
                           String name,
                           String description,
-                          GamePlatform gamePlatform,
+                          GamePlatform platform,
                           Date releaseDate,
-                          double criticScore,
-                          double userScore,
-                          String url,
-                          byte[] thumbnailData) {
+                          Double criticScore,
+                          Double userScore,
+                          String genres,
+                          String giantBombApiDetailUrl,
+                          byte[] thumbnailData,
+                          byte[] posterData) {
         this.path = Objects.requireNonNull(path);
         this.name = Objects.requireNonNull(name);
         this.description = description;
-        this.gamePlatform = Objects.requireNonNull(gamePlatform);
+        this.platform = Objects.requireNonNull(platform);
         this.releaseDate = releaseDate;
         this.criticScore = criticScore;
         this.userScore = userScore;
-        this.url = url;
+        this.genres = genres;
+        this.giantBombApiDetailUrl = giantBombApiDetailUrl;
         this.thumbnailData = thumbnailData;
+        this.posterData = posterData;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getPath() {
@@ -83,33 +98,42 @@ public class GameInfoEntity {
         return description;
     }
 
-    public GamePlatform getGamePlatform() {
-        return gamePlatform;
+    public GamePlatform getPlatform() {
+        return platform;
     }
 
     public Date getReleaseDate() {
         return releaseDate;
     }
 
-    public double getCriticScore() {
+    public Double getCriticScore() {
         return criticScore;
     }
 
-    public double getUserScore() {
+    public Double getUserScore() {
         return userScore;
     }
 
-    public String getUrl() {
-        return url;
+    public String getGenres() {
+        return genres;
+    }
+
+    public String getGiantBombApiDetailUrl() {
+        return giantBombApiDetailUrl;
     }
 
     public byte[] getThumbnailData() {
         return thumbnailData;
     }
 
+    public byte[] getPosterData() {
+        return posterData;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+            .add("id", id)
             .add("path", path)
             .add("name", name)
             .toString();

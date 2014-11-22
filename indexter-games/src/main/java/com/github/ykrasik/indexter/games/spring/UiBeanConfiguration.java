@@ -52,9 +52,10 @@ public class UiBeanConfiguration {
     public GameCollectionController gameCollectionController(Stage stage,
                                                              GameCollectionConfig config,
                                                              LibraryManager libraryManager,
-                                                             GameInfoService infoService,
+                                                             @Qualifier("metacriticInfoService") GameInfoService metacriticInfoService,
+                                                             @Qualifier("giantBombInfoService") GameInfoService giantBombInfoService,
                                                              GameDataService dataService) {
         preloader.setMessage("Creating controller...");
-        return new GameCollectionController(stage, config, libraryManager, infoService, dataService);
+        return new GameCollectionController(stage, config, libraryManager, metacriticInfoService, giantBombInfoService, dataService);
     }
 }

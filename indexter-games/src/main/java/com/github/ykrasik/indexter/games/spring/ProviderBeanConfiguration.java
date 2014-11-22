@@ -14,9 +14,9 @@ import com.github.ykrasik.indexter.games.info.provider.metacritic.config.Metacri
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 /**
  * @author Yevgeny Krasik
@@ -26,8 +26,7 @@ public class ProviderBeanConfiguration {
     @Autowired
     private IndexterPreloader preloader;
 
-    // FIXME: Find a solution to this.
-//    @Primary
+    @Qualifier("metacriticInfoService")
     @Bean
     public MetacriticGameInfoService metacriticGameInfoService(MetacriticGameInfoClient client,
                                                                MetacriticProperties properties,
@@ -48,7 +47,7 @@ public class ProviderBeanConfiguration {
         return new MetacriticPropertiesImpl();
     }
 
-    @Primary
+    @Qualifier("giantBombInfoService")
     @Bean
     public GiantBombGameInfoService giantBombGameInfoService(GiantBombGameInfoClient client,
                                                              GiantBombProperties properties,

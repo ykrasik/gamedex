@@ -5,6 +5,8 @@ import com.github.ykrasik.indexter.exception.DataException;
 import com.github.ykrasik.indexter.games.data.config.PersistenceProperties;
 import com.github.ykrasik.indexter.games.data.entity.GameInfoEntity;
 import com.github.ykrasik.indexter.games.data.translator.GameEntityTranslator;
+import com.github.ykrasik.indexter.games.datamodel.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
 import com.github.ykrasik.indexter.util.ListUtils;
 import com.j256.ormlite.dao.Dao;
@@ -19,6 +21,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -30,7 +33,7 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
     private final GameEntityTranslator translator;
 
     private volatile ObservableList<LocalGameInfo> cache = FXCollections.emptyObservableList();
-    private volatile Map<Path, LocalGameInfo> cacheMap = Collections.emptyMap();
+    private volatile Map<Path, LocalGameInfo> pathMap = Collections.emptyMap();
     private ObjectProperty<ObservableList<LocalGameInfo>> itemsProperty;
 
     private JdbcPooledConnectionSource connectionSource;
@@ -57,7 +60,7 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
         LOG.info("Fetching data...");
         final List<LocalGameInfo> infos = fetchData();
         this.cache = FXCollections.observableArrayList(infos);
-        this.cacheMap = ListUtils.toMap(infos, LocalGameInfo::getPath);
+        this.pathMap = ListUtils.toMap(infos, LocalGameInfo::getPath);
         this.itemsProperty = new SimpleObjectProperty<>(cache);
     }
 
@@ -86,14 +89,38 @@ public class GameDataServiceImpl extends AbstractService implements GameDataServ
         insert(info);
 
         // Update cache.
-        cacheMap.put(info.getPath(), info);
+        pathMap.put(info.getPath(), info);
         // FIXME: This possibly means that this list shouldn't be sitting here.
         Platform.runLater(() -> cache.add(info));
     }
 
     @Override
+    public void delete(int id) throws DataException {
+        LOG.debug("Deleting gameInfo of id {}...", id);
+        try {
+            if (gameInfoEntityDao.deleteById(String.valueOf(id)) != 1) {
+                throw new DataException("Error deleting entity by id: %s", id);
+            }
+        } catch (SQLException e) {
+            throw new DataException(e);
+        }
+
+        // FIXME: THis is horrible.
+        final LocalGameInfo tempInfo = new LocalGameInfo(id, Paths.get("."), new GameInfo("", GamePlatform.PC, Optional.empty(),
+            Optional.empty(), Optional.empty(), Optional.empty(), Collections.emptyList(), Optional.empty(),
+            Optional.empty(), Optional.empty()));
+
+        // FIXME: RunLater doesn't belong here.
+        // FIXME: Doesn't delete the correct cell.
+        Platform.runLater(() -> {
+            cache.remove(tempInfo);
+            itemsProperty.set(cache);
+        });
+    }
+
+    @Override
     public synchronized Optional<LocalGameInfo> get(Path path) throws DataException {
-        return Optional.ofNullable(cacheMap.get(path));
+        return Optional.ofNullable(pathMap.get(path));
     }
 
     @Override

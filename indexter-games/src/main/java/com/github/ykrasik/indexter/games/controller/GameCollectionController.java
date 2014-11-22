@@ -10,6 +10,7 @@ import com.github.ykrasik.indexter.games.library.LibraryManager;
 import com.github.ykrasik.indexter.games.logic.LogicManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import com.github.ykrasik.indexter.ui.FixedRating;
+import com.github.ykrasik.indexter.util.Optionals;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -20,7 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.GridView;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +58,6 @@ public class GameCollectionController extends AbstractService {
     @FXML private TextField releaseDate;
     @FXML private TextField criticScore;
     @FXML private TextField userScore;
-    @FXML private TextField url;
 
     @FXML private TableView<LocalGameInfo> gamesTable;
     @FXML private TableColumn<LocalGameInfo, String> gameNameColumn;
@@ -78,7 +77,6 @@ public class GameCollectionController extends AbstractService {
     private final Stage stage;
     private final GameCollectionConfig config;
     private final LibraryManager libraryManager;
-    private final GameInfoService infoService;
     private final GameDataService dataService;
 
     private final StatusBar statusBar;
@@ -89,19 +87,19 @@ public class GameCollectionController extends AbstractService {
     public GameCollectionController(Stage stage,
                                     GameCollectionConfig config,
                                     LibraryManager libraryManager,
-                                    GameInfoService infoService,
+                                    GameInfoService metacriticInfoService,
+                                    GameInfoService giantBombInfoService,
                                     GameDataService dataService) {
         this.stage = Objects.requireNonNull(stage);
         this.config = Objects.requireNonNull(config);
         this.libraryManager = Objects.requireNonNull(libraryManager);
-        this.infoService = Objects.requireNonNull(infoService);
         this.dataService = Objects.requireNonNull(dataService);
 
         this.statusBar = new StatusBar();
         statusBar.setText("Welcome to inDexter!");
 
         // FIXME: Create with Spring.
-        final LogicManager logicManager = new LogicManager(libraryManager, infoService, dataService);
+        final LogicManager logicManager = new LogicManager(libraryManager, metacriticInfoService, giantBombInfoService, dataService);
         this.searchController = new GameSearchController(stage, statusBar, logicManager);
 
         prevDirectory = config.getPrevDirectory().orElse(null);
@@ -128,8 +126,28 @@ public class GameCollectionController extends AbstractService {
             cell.setOnMouseClicked(event -> {
                 final LocalGameInfo info = cell.getItem();
                 displayGameInfo(info);
+
+                // FIXME: Do this properly
+                final Optional<Image> poster = info.getGameInfo().getPoster();
+                if (poster.isPresent()) {
+                    final Background background = new Background(new BackgroundImage(poster.get(), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
+                    gameWall.backgroundProperty().set(background);
+                } else {
+                    gameWall.backgroundProperty().set(Background.EMPTY);
+                }
+
                 event.consume();
             });
+
+            final ContextMenu contextMenu = new ContextMenu();
+            final MenuItem deleteItem = new MenuItem("Delete");
+            deleteItem.setOnAction(e -> {
+                final LocalGameInfo gameInfo = cell.getItem();
+                dataService.delete(gameInfo.getId());
+            });
+            contextMenu.getItems().addAll(deleteItem);
+            cell.setContextMenu(contextMenu);
             return cell;
         });
 
@@ -157,16 +175,16 @@ public class GameCollectionController extends AbstractService {
 
         gamesTable.itemsProperty().bind(dataService.itemsProperty());
         gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getName()));
-        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getGamePlatform().toString()));
-        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getReleaseDate().map(LocalDate::toString).orElse("Unavailable")));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(String.valueOf(e.getValue().getGameInfo().getCriticScore())));
+        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getPlatform().toString()));
+        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getReleaseDate())));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getCriticScore())));
         gameCriticScoreVisualColumn.setCellValueFactory(e -> {
             final FixedRating rating = new FixedRating(5);
             rating.setPartialRating(true);
-            rating.setRating(e.getValue().getGameInfo().getCriticScore() / 100 * 5);
+            rating.setRating(e.getValue().getGameInfo().getCriticScore().orElse(0.0) / 100 * 5);
             return new SimpleObjectProperty<>(rating);
         });
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(String.valueOf(e.getValue().getGameInfo().getUserScore())));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getUserScore())));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
 
         libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
@@ -181,14 +199,17 @@ public class GameCollectionController extends AbstractService {
         this.path.setText(path.toString());
 
         final GameInfo gameInfo = localInfo.getGameInfo();
-        thumbnail.setImage(gameInfo.getThumbnail().orElse(NOT_AVAILABLE));
+        thumbnail.setImage(Optionals.or(gameInfo.getPoster(), gameInfo.getThumbnail()).orElse(NOT_AVAILABLE));
         name.setText(gameInfo.getName());
-        description.setText(gameInfo.getDescription().orElse("No description available."));
-        platform.setText(gameInfo.getGamePlatform().name());
-        releaseDate.setText(gameInfo.getReleaseDate().map(Object::toString).orElse("Unavailable."));
-        criticScore.setText(String.valueOf(gameInfo.getCriticScore()));
-        userScore.setText(String.valueOf(gameInfo.getUserScore()));
-        url.setText(gameInfo.getUrl().orElse("Unavailable."));
+        description.setText(toString(gameInfo.getDescription()));
+        platform.setText(gameInfo.getPlatform().name());
+        releaseDate.setText(toString(gameInfo.getReleaseDate()));
+        criticScore.setText(toString(gameInfo.getCriticScore()));
+        userScore.setText(toString(gameInfo.getUserScore()));
+    }
+
+    private <T> String toString(Optional<T> optional) {
+        return optional.map(Object::toString).orElse("Unavailable");
     }
 
     @FXML

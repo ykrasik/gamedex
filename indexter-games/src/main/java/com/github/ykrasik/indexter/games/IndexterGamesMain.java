@@ -54,7 +54,9 @@ public class IndexterGamesMain extends Application {
 
     @Override
     public void stop() throws Exception {
-        context.stop();
+        if (context != null) {
+            context.stop();
+        }
     }
 
     private void doStart(final Stage mainStage) throws IOException {

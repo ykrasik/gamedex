@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface GameDataService {
     void add(LocalGameInfo info) throws DataException;
 
+    void delete(int id) throws DataException;
+
     Optional<LocalGameInfo> get(Path path) throws DataException;
 
     ObservableList<LocalGameInfo> getAll() throws DataException;

@@ -1,26 +1,25 @@
 package com.github.ykrasik.indexter.exception;
 
-import java.util.function.Consumer;
+import java.util.concurrent.Callable;
 
 /**
  * @author Yevgeny Krasik
  */
 public class ExceptionWrappers {
-    public static <T> Consumer<T> rethrow(ConsumerWithException<T> c) {
-        return elem -> {
-            try {
-                c.accept(elem);
-            } catch (Exception ex) {
-                /**
-                 * within sneakyThrow() we cast to the parameterized type T.
-                 * In this case that type is RuntimeException.
-                 * At runtime, however, the generic types have been erased, so
-                 * that there is no T type anymore to cast to, so the cast
-                 * disappears.
-                 */
-                ExceptionWrappers.<RuntimeException>sneakyThrow(ex);
-            }
-        };
+    public static <T> T rethrow(Callable<T> c) {
+        try {
+            return c.call();
+        } catch (Exception ex) {
+            /**
+             * within sneakyThrow() we cast to the parameterized type T.
+             * In this case that type is RuntimeException.
+             * At runtime, however, the generic types have been erased, so
+             * that there is no T type anymore to cast to, so the cast
+             * disappears.
+             */
+            ExceptionWrappers.<RuntimeException>sneakyThrow(ex);
+        }
+        return null;
     }
 
     /**

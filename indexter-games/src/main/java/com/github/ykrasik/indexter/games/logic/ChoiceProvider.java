@@ -11,12 +11,17 @@ import java.util.Optional;
  * @author Yevgeny Krasik
  */
 public interface ChoiceProvider {
-    NoSearchResultsChoice getNoSearchResultsChoice(Path path, String name, GamePlatform platform) throws Exception;
+    NoSearchResultsChoice getNoMetacriticSearchResultsChoice(Path path, String name, GamePlatform platform) throws Exception;
 
-    MultipleSearchResultsChoice getMultipleSearchResultsChoice(Path path,
-                                                               String name,
-                                                               GamePlatform platform,
-                                                               List<GameRawBriefInfo> briefInfos) throws Exception;
+    MultipleSearchResultsChoice getMultipleMetacriticSearchResultsChoice(Path path,
+                                                                         String name,
+                                                                         GamePlatform platform,
+                                                                         List<GameRawBriefInfo> briefInfos) throws Exception;
+
+    MultipleSearchResultsChoice getMultipleGiantBombSearchResultsChoice(Path path,
+                                                                        String name,
+                                                                        GamePlatform platform,
+                                                                        List<GameRawBriefInfo> briefInfos) throws Exception;
 
     Optional<GameRawBriefInfo> chooseFromMultipleResults(Path path,
                                                          String name,
@@ -26,4 +31,5 @@ public interface ChoiceProvider {
     Optional<String> selectNewName(Path path, String name, GamePlatform platform) throws Exception;
 
     Optional<String> getSubLibraryName(Path path, String name, GamePlatform platform) throws Exception;
+
 }

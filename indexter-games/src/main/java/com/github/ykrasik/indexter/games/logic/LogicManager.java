@@ -10,12 +10,14 @@ import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
 import com.github.ykrasik.indexter.games.library.LibraryManager;
 import com.github.ykrasik.indexter.util.FileUtils;
+import com.github.ykrasik.indexter.util.Optionals;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +30,8 @@ public class LogicManager {
     private static final Logger LOG = LoggerFactory.getLogger(LogicManager.class);
 
     private final LibraryManager libraryManager;
-    private final GameInfoService infoService;
+    private final GameInfoService metacriticInfoService;
+    private final GameInfoService giantBombInfoService;
     private final GameDataService dataService;
 
     // FIXME: All these cannot be accessed from here, but through Platform.runLater.
@@ -39,10 +42,12 @@ public class LogicManager {
     private final DoubleProperty refreshLibraryProgress;
 
     public LogicManager(LibraryManager libraryManager,
-                        GameInfoService infoService,
+                        GameInfoService metacriticInfoService,
+                        GameInfoService giantBombInfoService,
                         GameDataService dataService) {
         this.libraryManager = Objects.requireNonNull(libraryManager);
-        this.infoService = Objects.requireNonNull(infoService);
+        this.metacriticInfoService = Objects.requireNonNull(metacriticInfoService);
+        this.giantBombInfoService = Objects.requireNonNull(giantBombInfoService);
         this.dataService = Objects.requireNonNull(dataService);
 
         this.currentLibrary = new SimpleStringProperty();
@@ -91,9 +96,9 @@ public class LogicManager {
 
     public void refreshLibrary(Library library, ChoiceProvider choiceProvider) throws Exception {
         info("Refreshing library: '%s'", library);
-        currentLibrary.setValue(library.getName());
+        Platform.runLater(() -> currentLibrary.setValue(library.getName()));
 
-        refreshLibraryProgress.setValue(0);
+        Platform.runLater(() -> refreshLibraryProgress.setValue(0));
         final List<Path> directories = FileUtils.listChildDirectories(library.getPath());
         final int total = directories.size();
         for (int i = 0; i < total; i++) {
@@ -109,7 +114,7 @@ public class LogicManager {
 
     public void processPath(Path path, GamePlatform platform, ChoiceProvider choiceProvider) throws Exception {
         LOG.debug("Processing path: {}...", path);
-        currentPath.setValue(path.toString());
+        Platform.runLater(() -> currentPath.setValue(path.toString()));
 
         if (libraryManager.isLibrary(path)) {
             LOG.debug("{} is a library, skipping...", path);
@@ -136,29 +141,70 @@ public class LogicManager {
     private void addPath(Path path, String name, GamePlatform platform, ChoiceProvider choiceProvider) throws Exception {
         LOG.debug("addPath: path={}, name='{}', platform={}", path, name, platform);
 
-        debug("Searching for '%s' with platform=%s...", name, platform);
-        final List<GameRawBriefInfo> briefInfos = infoService.searchGames(name, platform);
-        debug("Search: name='%s', platform=%s found %d results.", name, platform, briefInfos.size());
+        final Optional<GameInfo> metacriticGameInfo = getMetacriticGameInfo(path, name, platform, choiceProvider);
+        if (metacriticGameInfo.isPresent()) {
+            LOG.debug("Metacritic gameInfo: {}", metacriticGameInfo);
+            final Optional<GameInfo> giantBombGameInfo = getGiantBombGameInfo(path, metacriticGameInfo.get().getName(), platform, choiceProvider);
+            final GameInfo gameInfo;
+            if (giantBombGameInfo.isPresent()) {
+                LOG.debug("GiantBomb gameInfo: {}", giantBombGameInfo);
+                gameInfo = mergeGameInfo(metacriticGameInfo.get(), giantBombGameInfo.get());
+            } else {
+                LOG.debug("GiantBomb gameInfo not found.");
+                gameInfo = metacriticGameInfo.get();
+            }
 
-        if (briefInfos.isEmpty()) {
-            handleNoSearchResults(path, name, platform, choiceProvider);
-            return;
+            // FIXME: Find a better solution other then assigning 0 to id.
+            final LocalGameInfo info = new LocalGameInfo(0, path, gameInfo);
+            dataService.add(info);
         }
-
-        if (briefInfos.size() == 1) {
-            doAddGame(path, briefInfos.get(0), platform);
-            return;
-        }
-
-        handleMultipleSearchResults(path, name, platform, briefInfos, choiceProvider);
     }
 
-    private void handleNoSearchResults(Path path, String name, GamePlatform platform, ChoiceProvider choiceProvider) throws Exception {
-        final NoSearchResultsChoice choice = choiceProvider.getNoSearchResultsChoice(path, name, platform);
+    private Optional<GameInfo> getMetacriticGameInfo(Path path, String name, GamePlatform platform, ChoiceProvider choiceProvider) throws Exception {
+        debug("Searching Metacritic for '%s'[%s]...", name, platform);
+        final List<GameRawBriefInfo> briefInfos = metacriticInfoService.searchGames(name, platform);
+        debug("Metacritic Search: '%s'[%s] found %d results.", name, platform, briefInfos.size());
+
+        if (briefInfos.isEmpty()) {
+            return handleNoMetacriticSearchResults(path, name, platform, choiceProvider);
+        }
+
+        if (briefInfos.size() > 1) {
+            return handleMultipleMetacriticSearchResults(path, name, platform, briefInfos, choiceProvider);
+        }
+
+        final GameRawBriefInfo briefInfo = briefInfos.get(0);
+        return fetchMetacriticGameInfo(briefInfo, platform);
+    }
+
+    private Optional<GameInfo> getGiantBombGameInfo(Path path,
+                                                    String name,
+                                                    GamePlatform platform,
+                                                    ChoiceProvider choiceProvider) throws Exception {
+        debug("Searching GiantBomb for '%s'[%s]...", name, platform);
+        final List<GameRawBriefInfo> briefInfos = giantBombInfoService.searchGames(name, platform);
+        debug("GiantBomb Search: '%s'[%s] found %d results.", name, platform, briefInfos.size());
+
+        if (briefInfos.isEmpty()) {
+            return selectNewGiantBombName(path, name, platform, choiceProvider);
+        }
+
+        if (briefInfos.size() > 1) {
+            return handleMultipleGiantBombSearchResults(path, name, platform, briefInfos, choiceProvider);
+        }
+
+        final GameRawBriefInfo briefInfo = briefInfos.get(0);
+        return fetchGiantBombGameInfo(briefInfo, platform);
+    }
+
+    private Optional<GameInfo> handleNoMetacriticSearchResults(Path path,
+                                                               String name,
+                                                               GamePlatform platform,
+                                                               ChoiceProvider choiceProvider) throws Exception {
+        final NoSearchResultsChoice choice = choiceProvider.getNoMetacriticSearchResultsChoice(path, name, platform);
         switch (choice) {
             case NEW_NAME:
-                selectNewName(path, name, platform, choiceProvider);
-                break;
+                return selectNewMetacriticName(path, name, platform, choiceProvider);
 
             case EXCLUDE:
                 excludePath(path);
@@ -167,22 +213,45 @@ public class LogicManager {
             case SKIP:
                 break;
         }
+        return Optional.empty();
     }
 
-    private void handleMultipleSearchResults(Path path,
-                                             String name,
-                                             GamePlatform platform,
-                                             List<GameRawBriefInfo> briefInfos,
-                                             ChoiceProvider choiceProvider) throws Exception {
-        final MultipleSearchResultsChoice choice = choiceProvider.getMultipleSearchResultsChoice(path, name, platform, briefInfos);
+    private Optional<GameInfo> selectNewMetacriticName(Path path,
+                                                       String name,
+                                                       GamePlatform platform,
+                                                       ChoiceProvider choiceProvider) throws Exception {
+        final Optional<String> newName = choiceProvider.selectNewName(path, name, platform);
+        if (newName.isPresent()) {
+            return getMetacriticGameInfo(path, newName.get(), platform, choiceProvider);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<GameInfo> selectNewGiantBombName(Path path,
+                                                      String name,
+                                                      GamePlatform platform,
+                                                      ChoiceProvider choiceProvider) throws Exception {
+        final Optional<String> newName = choiceProvider.selectNewName(path, name, platform);
+        if (newName.isPresent()) {
+            return getGiantBombGameInfo(path, newName.get(), platform, choiceProvider);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<GameInfo> handleMultipleMetacriticSearchResults(Path path,
+                                                                     String name,
+                                                                     GamePlatform platform,
+                                                                     List<GameRawBriefInfo> briefInfos,
+                                                                     ChoiceProvider choiceProvider) throws Exception {
+        final MultipleSearchResultsChoice choice = choiceProvider.getMultipleMetacriticSearchResultsChoice(path, name, platform, briefInfos);
         switch (choice) {
             case CHOOSE:
-                chooseFromMultipleSearchResults(path, name, platform, briefInfos, choiceProvider);
-                break;
+                return chooseFromMultipleMetacriticSearchResults(path, name, platform, briefInfos, choiceProvider);
 
             case NEW_NAME:
-                selectNewName(path, name, platform, choiceProvider);
-                break;
+                return selectNewMetacriticName(path, name, platform, choiceProvider);
 
             case EXCLUDE:
                 excludePath(path);
@@ -195,23 +264,51 @@ public class LogicManager {
             case SKIP:
                 break;
         }
+        return Optional.empty();
     }
 
-    private void chooseFromMultipleSearchResults(Path path,
-                                                 String name,
-                                                 GamePlatform platform,
-                                                 List<GameRawBriefInfo> briefInfos,
-                                                 ChoiceProvider choiceProvider) throws Exception {
+    private Optional<GameInfo> chooseFromMultipleMetacriticSearchResults(Path path,
+                                                                         String name,
+                                                                         GamePlatform platform,
+                                                                         List<GameRawBriefInfo> briefInfos,
+                                                                         ChoiceProvider choiceProvider) throws Exception {
         final Optional<GameRawBriefInfo> choice = choiceProvider.chooseFromMultipleResults(path, name, platform, briefInfos);
         if (choice.isPresent()) {
-            doAddGame(path, choice.get(), platform);
+            return fetchMetacriticGameInfo(choice.get(), platform);
+        } else {
+            return Optional.empty();
         }
     }
 
-    private void selectNewName(Path path, String name, GamePlatform platform, ChoiceProvider choiceProvider) throws Exception {
-        final Optional<String> newName = choiceProvider.selectNewName(path, name, platform);
-        if (newName.isPresent()) {
-            addPath(path, newName.get(), platform, choiceProvider);
+    private Optional<GameInfo> handleMultipleGiantBombSearchResults(Path path,
+                                                                    String name,
+                                                                    GamePlatform platform,
+                                                                    List<GameRawBriefInfo> briefInfos,
+                                                                    ChoiceProvider choiceProvider) throws Exception {
+        final MultipleSearchResultsChoice choice = choiceProvider.getMultipleGiantBombSearchResultsChoice(path, name, platform, briefInfos);
+        switch (choice) {
+            case CHOOSE:
+                return chooseFromMultipleGiantBombSearchResults(path, name, platform, briefInfos, choiceProvider);
+
+            case NEW_NAME:
+                return selectNewGiantBombName(path, name, platform, choiceProvider);
+
+            case SKIP:
+                break;
+        }
+        return Optional.empty();
+    }
+
+    private Optional<GameInfo> chooseFromMultipleGiantBombSearchResults(Path path,
+                                                                        String name,
+                                                                        GamePlatform platform,
+                                                                        List<GameRawBriefInfo> briefInfos,
+                                                                        ChoiceProvider choiceProvider) throws Exception {
+        final Optional<GameRawBriefInfo> choice = choiceProvider.chooseFromMultipleResults(path, name, platform, briefInfos);
+        if (choice.isPresent()) {
+            return fetchGiantBombGameInfo(choice.get(), platform);
+        } else {
+            return Optional.empty();
         }
     }
 
@@ -225,20 +322,49 @@ public class LogicManager {
         }
     }
 
-    private void doAddGame(Path path, GameRawBriefInfo briefInfo, GamePlatform gamePlatform) throws Exception {
-        LOG.debug("Getting gameInfo from brief: {}", briefInfo);
-        message.setValue(String.format("Fetching game info: '%s'...", briefInfo.getName()));
+    // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
+    private Optional<GameInfo> fetchMetacriticGameInfo(GameRawBriefInfo briefInfo, GamePlatform platform) throws Exception {
+        LOG.debug("Getting Metacritic gameInfo from brief: {}", briefInfo);
+        Platform.runLater(() -> message.setValue(String.format("Fetching game info: '%s'...", briefInfo.getName())));
 
-        final GameInfo gameInfo = infoService.getGameInfo(briefInfo.getMoreDetailsId(), gamePlatform).orElseThrow(
-            () -> new IndexterException("Specific search found nothing: %s", briefInfo)
+        final GameInfo gameInfo = metacriticInfoService.getGameInfo(briefInfo.getName(), platform).orElseThrow(
+            () -> new IndexterException("Specific Metacritic search found nothing: %s", briefInfo)
         );
-        final LocalGameInfo info = new LocalGameInfo(path, gameInfo);
-        dataService.add(info);
+        return Optional.of(gameInfo);
+    }
+
+    // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
+    private Optional<GameInfo> fetchGiantBombGameInfo(GameRawBriefInfo briefInfo, GamePlatform platform) throws Exception {
+        LOG.debug("Getting GiantBomb gameInfo from brief: {}", briefInfo);
+        Platform.runLater(() -> message.setValue(String.format("Fetching game info: '%s'...", briefInfo.getName())));
+
+        final GameInfo gameInfo = giantBombInfoService.getGameInfo(briefInfo.getGiantBombApiDetailUrl().get(), platform).orElseThrow(
+            () -> new IndexterException("Specific GiantBomb search found nothing: %s", briefInfo)
+        );
+        return Optional.of(gameInfo);
     }
 
     private void excludePath(Path path) {
         info("Excluding: %s", path);
         libraryManager.setExcluded(path);
+    }
+
+    private GameInfo mergeGameInfo(GameInfo metacriticGameInfo, GameInfo giantBombGameInfo) {
+        final List<String> genres = new ArrayList<>(giantBombGameInfo.getGenres());
+        genres.addAll(metacriticGameInfo.getGenres());
+
+        return new GameInfo(
+            metacriticGameInfo.getName(),
+            metacriticGameInfo.getPlatform(),
+            Optionals.or(metacriticGameInfo.getDescription(), giantBombGameInfo.getDescription()),
+            Optionals.or(metacriticGameInfo.getReleaseDate(), giantBombGameInfo.getReleaseDate()),
+            metacriticGameInfo.getCriticScore(),
+            metacriticGameInfo.getUserScore(),
+            genres,
+            giantBombGameInfo.getGiantBombApiDetailsUrl(),
+            Optionals.or(giantBombGameInfo.getThumbnailData(), metacriticGameInfo.getThumbnailData()),
+            Optionals.or(giantBombGameInfo.getPosterData(), metacriticGameInfo.getPosterData())
+        );
     }
 
     private void info(String format, Object... args) {
