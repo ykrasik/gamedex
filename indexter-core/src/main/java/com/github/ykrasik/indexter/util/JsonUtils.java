@@ -9,7 +9,10 @@ import java.util.function.Function;
 /**
  * @author Yevgeny Krasik
  */
-public class JsonUtils {
+public final class JsonUtils {
+    private JsonUtils() {
+    }
+
     public static boolean exists(JsonNode node) {
         return node != null && !node.isNull();
     }
@@ -53,8 +56,8 @@ public class JsonUtils {
         return mapField(node, fieldName, JsonNode::asDouble);
     }
 
-    private static <T> Optional<T> mapField(JsonNode node, String fieldName, Function<JsonNode, T> f) {
-        return getField(node, fieldName).map(f);
+    private static <T> Optional<T> mapField(JsonNode node, String fieldName, Function<JsonNode, T> function) {
+        return getField(node, fieldName).map(function);
     }
 
     public static <T> List<T> mapList(JsonNode root, Function<JsonNode, T> f) {

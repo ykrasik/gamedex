@@ -27,7 +27,7 @@
 package com.github.ykrasik.indexter.games.ui;
 
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
-import com.github.ykrasik.indexter.games.datamodel.LocalGameInfo;
+import com.github.ykrasik.indexter.games.datamodel.LocalGame;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -40,7 +40,7 @@ import org.controlsfx.control.GridView;
  *
  * @see GridView
  */
-public class GameInfoCell extends GridCell<LocalGameInfo> {
+public class GameInfoCell extends GridCell<LocalGame> {
 
     private final ImageView imageView;
 
@@ -74,13 +74,13 @@ public class GameInfoCell extends GridCell<LocalGameInfo> {
     /**
      * {@inheritDoc}
      */
-    @Override protected void updateItem(LocalGameInfo item, boolean empty) {
+    @Override protected void updateItem(LocalGame item, boolean empty) {
         super.updateItem(item, empty);
 
         if (empty) {
             setGraphic(null);
         } else {
-            final Image image = item.getGameInfo().getThumbnail().orElse(GameCollectionController.NOT_AVAILABLE);
+            final Image image = item.getGame().getThumbnail().orElse(GameCollectionController.NOT_AVAILABLE);
             if (preserveImageProperties) {
                 imageView.setPreserveRatio(image.isPreserveRatio());
                 imageView.setSmooth(image.isSmooth());

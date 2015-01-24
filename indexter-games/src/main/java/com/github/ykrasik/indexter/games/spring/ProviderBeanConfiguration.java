@@ -1,19 +1,17 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.IndexterPreloader;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.GiantBombGameInfoService;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.client.GiantBombGameInfoClient;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.client.GiantBombGameInfoClientImpl;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.config.GiantBombProperties;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.config.GiantBombPropertiesImpl;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.MetacriticGameInfoService;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.client.MetacriticGameInfoClient;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.client.MetacriticGameInfoClientImpl;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.config.MetacriticProperties;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.config.MetacriticPropertiesImpl;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
+import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClientImpl;
+import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
+import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombPropertiesImpl;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClientImpl;
+import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
+import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticPropertiesImpl;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,10 +20,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Yevgeny Krasik
  */
 @Configuration
-public class ProviderBeanConfiguration {
-    @Autowired
-    private IndexterPreloader preloader;
-
+public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
     @Qualifier("metacriticInfoService")
     @Bean
     public MetacriticGameInfoService metacriticGameInfoService(MetacriticGameInfoClient client,

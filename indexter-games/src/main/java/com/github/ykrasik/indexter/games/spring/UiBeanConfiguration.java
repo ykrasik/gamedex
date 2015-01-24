@@ -1,18 +1,16 @@
 package com.github.ykrasik.indexter.games.spring;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
-import com.github.ykrasik.indexter.games.IndexterPreloader;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
-import com.github.ykrasik.indexter.games.data.GameDataService;
-import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.library.LibraryManager;
+import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
+import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +24,7 @@ import java.util.Objects;
  * @author Yevgeny Krasik
  */
 @Configuration
-public class UiBeanConfiguration {
-    @Autowired
-    private IndexterPreloader preloader;
-
+public class UiBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public Parent debugConsole(List<DebugCommands> debugCommands) throws IOException {
         preloader.setMessage("Instantiating debug console...");
@@ -51,11 +46,10 @@ public class UiBeanConfiguration {
     @Bean
     public GameCollectionController gameCollectionController(Stage stage,
                                                              GameCollectionConfig config,
-                                                             LibraryManager libraryManager,
-                                                             @Qualifier("metacriticInfoService") GameInfoService metacriticInfoService,
-                                                             @Qualifier("giantBombInfoService") GameInfoService giantBombInfoService,
-                                                             GameDataService dataService) {
+                                                             ScanManager scanManager,
+                                                             GameManager gameManager,
+                                                             LibraryManager libraryManager) {
         preloader.setMessage("Creating controller...");
-        return new GameCollectionController(stage, config, libraryManager, metacriticInfoService, giantBombInfoService, dataService);
+        return new GameCollectionController(stage, config, scanManager, gameManager, libraryManager);
     }
 }

@@ -1,16 +1,15 @@
 package com.github.ykrasik.indexter.games.controller;
 
-import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
-import com.github.ykrasik.indexter.games.data.GameDataService;
 import com.github.ykrasik.indexter.games.datamodel.*;
-import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.library.LibraryManager;
-import com.github.ykrasik.indexter.games.logic.LogicManager;
+import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
+import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import com.github.ykrasik.indexter.ui.FixedRating;
 import com.github.ykrasik.indexter.util.Optionals;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -18,14 +17,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.controlsfx.control.GridView;
-import org.controlsfx.control.StatusBar;
 import org.controlsfx.dialog.Dialogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,25 +30,24 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
-public class GameCollectionController extends AbstractService {
+public class GameCollectionController {
     private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
     public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
     @FXML private BorderPane mainBorderPane;
 
-    @FXML private GridView<LocalGameInfo> gameWall;
+    @FXML private GridView<LocalGame> gameWall;
 
     @FXML private ComboBox<GameSort> gameWallSort;
 
     @FXML private ImageView thumbnail;
-    @FXML private TextField path;
+    @FXML private TextField gamePath;
     @FXML private TextField name;
     @FXML private TextArea description;
     @FXML private TextField platform;
@@ -59,196 +55,137 @@ public class GameCollectionController extends AbstractService {
     @FXML private TextField criticScore;
     @FXML private TextField userScore;
 
-    @FXML private TableView<LocalGameInfo> gamesTable;
-    @FXML private TableColumn<LocalGameInfo, String> gameNameColumn;
-    @FXML private TableColumn<LocalGameInfo, String> gamePlatformColumn;
-    @FXML private TableColumn<LocalGameInfo, String> gameReleaseDateColumn;
-    @FXML private TableColumn<LocalGameInfo, String> gameCriticScoreColumn;
-    @FXML private TableColumn<LocalGameInfo, FixedRating> gameCriticScoreVisualColumn;
-    @FXML private TableColumn<LocalGameInfo, String> gameUserScoreColumn;
-    @FXML private TableColumn<LocalGameInfo, FixedRating> gameUserScoreVisualColumn;
-    @FXML private TableColumn<LocalGameInfo, String> gamePathColumn;
+    @FXML private TableView<LocalGame> gamesTable;
+    @FXML private TableColumn<LocalGame, String> gameNameColumn;
+    @FXML private TableColumn<LocalGame, String> gamePlatformColumn;
+    @FXML private TableColumn<LocalGame, String> gameReleaseDateColumn;
+    @FXML private TableColumn<LocalGame, Number> gameCriticScoreColumn;
+    @FXML private TableColumn<LocalGame, FixedRating> gameCriticScoreVisualColumn;
+    @FXML private TableColumn<LocalGame, Number> gameUserScoreColumn;
+    @FXML private TableColumn<LocalGame, FixedRating> gameUserScoreVisualColumn;
+    @FXML private TableColumn<LocalGame, String> gamePathColumn;
 
-    @FXML private TableView libraries;
-    @FXML private TableColumn libraryName;
-    @FXML private TableColumn libraryPlatform;
-    @FXML private TableColumn libraryPath;
+    @FXML private TableView<LocalLibrary> libraries;
+    @FXML private TableColumn<LocalLibrary, String> libraryName;
+    @FXML private TableColumn<LocalLibrary, String> libraryPlatform;
+    @FXML private TableColumn<LocalLibrary, String> libraryPath;
 
     private final Stage stage;
     private final GameCollectionConfig config;
+    private final ScanManager scanManager;
+    private final GameManager gameManager;
     private final LibraryManager libraryManager;
-    private final GameDataService dataService;
-
-    private final StatusBar statusBar;
-    private final GameSearchController searchController;
 
     private File prevDirectory;
 
     public GameCollectionController(Stage stage,
                                     GameCollectionConfig config,
-                                    LibraryManager libraryManager,
-                                    GameInfoService metacriticInfoService,
-                                    GameInfoService giantBombInfoService,
-                                    GameDataService dataService) {
+                                    ScanManager scanManager,
+                                    GameManager gameManager,
+                                    LibraryManager libraryManager) {
         this.stage = Objects.requireNonNull(stage);
         this.config = Objects.requireNonNull(config);
+        this.scanManager = Objects.requireNonNull(scanManager);
+        this.gameManager = Objects.requireNonNull(gameManager);
         this.libraryManager = Objects.requireNonNull(libraryManager);
-        this.dataService = Objects.requireNonNull(dataService);
-
-        this.statusBar = new StatusBar();
-        statusBar.setText("Welcome to inDexter!");
-
-        // FIXME: Create with Spring.
-        final LogicManager logicManager = new LogicManager(libraryManager, metacriticInfoService, giantBombInfoService, dataService);
-        this.searchController = new GameSearchController(stage, statusBar, logicManager);
 
         prevDirectory = config.getPrevDirectory().orElse(null);
     }
 
-    @Override
-    protected void doStart() throws Exception {
-        searchController.start();
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        searchController.stop();
-    }
-
     // Called by JavaFx
     public void initialize() {
-        mainBorderPane.setBottom(statusBar);
+        mainBorderPane.setBottom(scanManager.getStatusBar());
 
-        gameWall.itemsProperty().bind(dataService.itemsProperty());
         gameWall.setCellFactory(param -> {
             final GameInfoCell cell = new GameInfoCell();
             cell.getStyleClass().add("gameTile");
             cell.setOnMouseClicked(event -> {
-                final LocalGameInfo info = cell.getItem();
+                final LocalGame info = cell.getItem();
                 displayGameInfo(info);
-
-                // FIXME: Do this properly
-                final Optional<Image> poster = info.getGameInfo().getPoster();
-                if (poster.isPresent()) {
-                    final Background background = new Background(new BackgroundImage(poster.get(), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
-                        BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
-                    gameWall.backgroundProperty().set(background);
-                } else {
-                    gameWall.backgroundProperty().set(Background.EMPTY);
-                }
-
                 event.consume();
             });
 
             final ContextMenu contextMenu = new ContextMenu();
             final MenuItem deleteItem = new MenuItem("Delete");
             deleteItem.setOnAction(e -> {
-                final LocalGameInfo gameInfo = cell.getItem();
-                dataService.delete(gameInfo.getId());
+                final LocalGame game = cell.getItem();
+                gameManager.deleteGame(game);
             });
             contextMenu.getItems().addAll(deleteItem);
             cell.setContextMenu(contextMenu);
             return cell;
         });
 
+//        gameWall.setItems(gameManager.getAllGames());
+        gameWall.itemsProperty().bind(gameManager.itemsProperty());
+
         gameWallSort.setItems(FXCollections.observableArrayList(GameSort.values()));
         gameWallSort.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GameSort>() {
             @Override
             public void changed(ObservableValue<? extends GameSort> observable, GameSort oldValue, GameSort newValue) {
-                final Comparator<LocalGameInfo> comparator;
-                switch (newValue) {
-                    case DATE_ADDED: comparator = GameComparators.dateAddedComparator(); break;
-                    case NAME: comparator = GameComparators.nameComparator(); break;
-                    case CRITIC_SCORE: comparator = GameComparators.criticScoreComparator(); break;
-                    case USER_SCORE: comparator = GameComparators.userScoreComparator(); break;
-                    case RELEASE_DATE: comparator = GameComparators.releaseDateComparator(); break;
-                    default: throw new IndexterException("Invalid sort value: %s", newValue);
-                }
-
-                // FIXME: This sucks a lot.
-                FXCollections.sort(dataService.itemsProperty().get(), comparator);
-                gameWall.itemsProperty().unbind();
-                gameWall.setItems(FXCollections.emptyObservableList());
-                gameWall.itemsProperty().bind(dataService.itemsProperty());
+                gameManager.sort(newValue);
+//                gameWall.itemsProperty().unbind();
+//                gameWall.setItems(FXCollections.emptyObservableList());
+//                gameWall.itemsProperty().bind(dataService.itemsProperty());
             }
         });
 
-        gamesTable.itemsProperty().bind(dataService.itemsProperty());
-        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getName()));
-        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGameInfo().getPlatform().toString()));
-        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getReleaseDate())));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getCriticScore())));
+        gamesTable.itemsProperty().bind(gameManager.itemsProperty());
+        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getName()));
+        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getPlatform().toString()));
+        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGame().getReleaseDate())));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getCriticScore().orElse(0.0)));
         gameCriticScoreVisualColumn.setCellValueFactory(e -> {
             final FixedRating rating = new FixedRating(5);
             rating.setPartialRating(true);
-            rating.setRating(e.getValue().getGameInfo().getCriticScore().orElse(0.0) / 100 * 5);
+            rating.setRating(e.getValue().getGame().getCriticScore().orElse(0.0) / 100 * 5);
             return new SimpleObjectProperty<>(rating);
         });
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGameInfo().getUserScore())));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getUserScore().orElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
 
-        libraryName.setCellValueFactory(new PropertyValueFactory<Library, String>("name"));
-        libraryPlatform.setCellValueFactory(new PropertyValueFactory<Library, String>("platform"));
-        libraryPath.setCellValueFactory(new PropertyValueFactory<Library, String>("path"));
-        libraries.setItems(FXCollections.observableArrayList(config.getLibraries().values()));
-
+        libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getName()));
+        libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPlatform().toString()));
+        libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPath().toString()));
+        libraries.itemsProperty().bind(libraryManager.itemsProperty());
     }
 
-    private void displayGameInfo(LocalGameInfo localInfo) {
-        final Path path = localInfo.getPath();
-        this.path.setText(path.toString());
+    private void displayGameInfo(LocalGame localGame) {
+        final Path path = localGame.getPath();
+        this.gamePath.setText(path.toString());
 
-        final GameInfo gameInfo = localInfo.getGameInfo();
-        thumbnail.setImage(Optionals.or(gameInfo.getPoster(), gameInfo.getThumbnail()).orElse(NOT_AVAILABLE));
-        name.setText(gameInfo.getName());
-        description.setText(toString(gameInfo.getDescription()));
-        platform.setText(gameInfo.getPlatform().name());
-        releaseDate.setText(toString(gameInfo.getReleaseDate()));
-        criticScore.setText(toString(gameInfo.getCriticScore()));
-        userScore.setText(toString(gameInfo.getUserScore()));
+        final Game game = localGame.getGame();
+        thumbnail.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).orElse(NOT_AVAILABLE));
+        name.setText(game.getName());
+        description.setText(toString(game.getDescription()));
+        platform.setText(game.getPlatform().name());
+        releaseDate.setText(toString(game.getReleaseDate()));
+        criticScore.setText(toString(game.getCriticScore()));
+        userScore.setText(toString(game.getUserScore()));
     }
 
     private <T> String toString(Optional<T> optional) {
-        return optional.map(Object::toString).orElse("Unavailable");
+        return Optionals.toString(optional, "Unavailable");
     }
 
-    @FXML
-    public void showAddGameDialog() {
-        final DirectoryChooser directoryChooser = createDirectoryChooser("Add Game");
-        final File selectedDirectory = directoryChooser.showDialog(stage);
-        if (selectedDirectory != null) {
-            prevDirectory = selectedDirectory;
-            config.setPrevDirectory(prevDirectory);
-            final Path path = Paths.get(selectedDirectory.toURI());
-            try {
-                // FIXME: Do this in background thread.
-                // FIXME: Platform should be a param
-                searchController.processPath(path, GamePlatform.PC);
-            } catch (Exception e) {
-                LOG.warn("Error adding game: " + path, e);
-                Dialogs.create().owner(stage).showException(e);
-            }
-        }
-    }
-
-    @FXML
-    public void showScanDirectoryDialog() {
-        final DirectoryChooser directoryChooser = createDirectoryChooser("Scan Directory");
-        final File selectedDirectory = directoryChooser.showDialog(stage);
-        if (selectedDirectory != null) {
-            prevDirectory = selectedDirectory;
-            config.setPrevDirectory(prevDirectory);
-            final Path root = Paths.get(selectedDirectory.toURI());
-            try {
-                // FIXME: Do this in background thread.
-                // FIXME: Platform should be a param
-                searchController.scanDirectory(root, GamePlatform.PC);
-            } catch (Exception e) {
-                LOG.warn("Error scanning directory: " + root, e);
-                Dialogs.create().owner(stage).showException(e);
-            }
-        }
-    }
+//    @FXML
+//    public void showAddGameDialog() {
+//        final DirectoryChooser directoryChooser = createDirectoryChooser("Add Game");
+//        final File selectedDirectory = directoryChooser.showDialog(stage);
+//        if (selectedDirectory != null) {
+//            prevDirectory = selectedDirectory;
+//            config.setPrevDirectory(prevDirectory);
+//            final Path path = Paths.get(selectedDirectory.toURI());
+//            try {
+//                // FIXME: Do this in background thread.
+//                // FIXME: Platform should be a param
+//                scanManager.processPath(path, GamePlatform.PC);
+//            } catch (Exception e) {
+//                LOG.warn("Error adding game: " + path, e);
+//                createDialog().showException(e);
+//            }
+//        }
+//    }
 
     @FXML
     public void showAddLibraryDialog() {
@@ -264,8 +201,7 @@ public class GameCollectionController extends AbstractService {
                 }
 
                 // FIXME: Show a select name dialog too.
-                final Optional<GamePlatform> platform = Dialogs.create()
-                    .owner(stage)
+                final Optional<GamePlatform> platform = createDialog()
                     .title("Choose library platform")
                     .masthead(path.toString())
                     .message("Choose library platform:")
@@ -273,19 +209,17 @@ public class GameCollectionController extends AbstractService {
                 platform.ifPresent(p -> libraryManager.addLibrary(new Library(path.getFileName().toString(), path, p)));
             } catch (Exception e) {
                 LOG.warn("Error adding library: " + path, e);
-                Dialogs.create().owner(stage).showException(e);
+                createDialog().showException(e);
             }
         }
     }
 
     @FXML
     public void refreshLibraries() {
-        try {
-            searchController.refreshLibraries();
-        } catch (Exception e) {
-            LOG.warn("Error refreshing libraries:", e);
-            Dialogs.create().owner(stage).showException(e);
-        }
+        scanManager.refreshLibraries(t -> {
+            LOG.warn("Error refreshing libraries:", t);
+            createDialog().title("Error refreshing libraries!").showException(t) ;
+        });
     }
 
     private DirectoryChooser createDirectoryChooser(String title) {
@@ -293,5 +227,9 @@ public class GameCollectionController extends AbstractService {
         directoryChooser.setTitle(title);
         directoryChooser.setInitialDirectory(prevDirectory);
         return directoryChooser;
+    }
+
+    private Dialogs createDialog() {
+        return Dialogs.create().owner(stage);
     }
 }

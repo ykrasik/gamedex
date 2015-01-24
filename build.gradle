@@ -1,10 +1,19 @@
 buildscript {
     ext {
         controlsFxVersion = '8.20.8'
+        springVersion = '4.1.1.RELEASE'
         gsCollectionsVersion = '5.1.0'
         guavaVersion = '18.0'
+
+        slf4jVersion = '1.7.6'
+        logbackVersion = '1.1.2'
+
         jerminalVersion = '0.1.1'
+
         boonVersion = '0.29'
+
+        ormLiteVersion = '4.48'
+        h2Version = '1.4.182'
 
         junitVersion = '4.11'
         mockitoVersion = '1.9.5'
@@ -28,25 +37,28 @@ project("indexter-core") {
 
     dependencies {
         compile "org.controlsfx:controlsfx:$controlsFxVersion"
-        compile 'org.springframework:spring-context:4.1.1.RELEASE'
-        compile "com.google.guava:guava:$guavaVersion"
-        compile 'org.apache.httpcomponents:httpclient:4.3.5'
-        compile 'com.mashape.unirest:unirest-java:1.3.22'
-        compile "io.fastjson:boon:$boonVersion"
-        compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-        compile 'org.slf4j:slf4j-api:1.7.6'
-        compile 'ch.qos.logback:logback-classic:1.1.2'
-        compile 'commons-io:commons-io:2.4'
-        compile 'com.j256.ormlite:ormlite-core:4.48'
-        compile 'com.j256.ormlite:ormlite-jdbc:4.48'
-        compile 'com.h2database:h2:1.4.182'
+        compile "org.springframework:spring-context:$springVersion"
 
+        compile "org.slf4j:slf4j-api:$slf4jVersion"
+        compile "ch.qos.logback:logback-classic:$logbackVersion"
+
+        compile "com.google.guava:guava:$guavaVersion"
         compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
+        compile "io.fastjson:boon:$boonVersion"
 
         compile 'com.thoughtworks.xstream:xstream:1.4.7'
+        compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+        compile 'commons-io:commons-io:2.4'
+
+        compile "com.j256.ormlite:ormlite-core:$ormLiteVersion"
+        compile "com.j256.ormlite:ormlite-jdbc:$ormLiteVersion"
+        compile "com.h2database:h2:$ormLiteVersion"
 
         compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
         compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"
+
+        compile 'org.apache.httpcomponents:httpclient:4.3.5'
+        compile 'com.mashape.unirest:unirest-java:1.3.22'
 
         testCompile "junit:junit:$junitVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"

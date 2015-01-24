@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.info;
 
-import com.github.ykrasik.indexter.games.datamodel.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.Game;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 
 import java.util.List;
@@ -15,6 +15,6 @@ public interface GameInfoService {
 
     // FIXME: Add type-safety, for metacritic this is name, for giantbomb this is a url.
     // FIXME: Return a future
-    Optional<GameInfo> getGameInfo(String moreDetailsId, GamePlatform platform) throws Exception;
+    Optional<Game> getGameInfo(String moreDetailsId, GamePlatform platform) throws Exception;
 }
 

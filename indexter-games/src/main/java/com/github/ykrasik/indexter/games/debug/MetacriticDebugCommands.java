@@ -2,8 +2,8 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.MetacriticGameInfoService;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
 import org.codehaus.jackson.map.ObjectMapper;

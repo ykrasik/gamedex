@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2014 Yevgeny Krasik
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.github.ykrasik.indexter.games;
 
 import com.github.ykrasik.jerminal.javafx.SceneToggler;
@@ -67,8 +51,8 @@ public class IndexterGamesMain extends Application {
             }
         };
 
-        preloader.start(loadContextTask, v -> {
-            context = v;
+        preloader.start(loadContextTask, context -> {
+            this.context = context;
             final Scene mainScene = new Scene(context.getBean("gameCollection", Parent.class));
             final Parent debugConsole = context.getBean("debugConsole", Parent.class);
             initStage(mainStage, mainScene, debugConsole);
@@ -82,6 +66,7 @@ public class IndexterGamesMain extends Application {
         // FIXME: Should be done in spring, inject configurations with a properties object.
         stage.setWidth(1280);
         stage.setHeight(720);
+        stage.setMaximized(true);
         stage.setTitle("inDexter");
         stage.setScene(mainScene);
 
@@ -93,12 +78,6 @@ public class IndexterGamesMain extends Application {
         context.getBeanFactory().registerSingleton("stage", stage);
         context.getBeanFactory().registerSingleton("preloader", preloader);
         context.scan("com.github.ykrasik.indexter");
-//        context.register(
-//            DataBeanConfiguration.class,
-//            ProviderBeanConfiguration.class,
-//            UiBeanConfiguration.class,
-//            DebugBeanConfiguration.class
-//        );
         context.refresh();
         return context;
     }

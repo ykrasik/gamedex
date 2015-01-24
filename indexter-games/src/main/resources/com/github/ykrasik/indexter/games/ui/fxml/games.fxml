@@ -18,9 +18,6 @@
                      <top>
                         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                           <items>
-                            <Button fx:id="addGameButton" mnemonicParsing="false" onAction="#showAddGameDialog" text="Add game" />
-                              <Button fx:id="scanDirectory" mnemonicParsing="false" onAction="#showScanDirectoryDialog" text="Scan Directory" />
-                              <Region prefWidth="36.0" />
                               <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
                               <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
                               <Region prefWidth="36.0" />
@@ -63,7 +60,7 @@
                                       </rowConstraints>
                                        <children>
                                           <Label text="Path" />
-                                          <TextField fx:id="path" editable="false" GridPane.columnIndex="1" />
+                                          <TextField fx:id="gamePath" editable="false" GridPane.columnIndex="1" />
                                           <Label text="Name" GridPane.rowIndex="1" />
                                           <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label text="Description" GridPane.rowIndex="2" />

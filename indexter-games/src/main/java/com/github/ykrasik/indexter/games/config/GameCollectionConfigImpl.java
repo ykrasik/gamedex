@@ -4,8 +4,6 @@ import com.github.ykrasik.indexter.games.datamodel.Library;
 import com.google.common.annotations.VisibleForTesting;
 import com.thoughtworks.xstream.XStream;
 import org.boon.IO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Yevgeny Krasik
  */
 public class GameCollectionConfigImpl implements GameCollectionConfig {
-    private static final Logger LOG = LoggerFactory.getLogger(GameCollectionConfigImpl.class);
     private static final String NAME = "config.xml";
     private static final XStream XSTREAM = new XStream();
 
@@ -56,34 +53,6 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
     @Override
     public void setPrevDirectory(File prevDirectory) {
         config = config.withPrevDirectory(prevDirectory);
-        onConfigUpdated();
-    }
-
-    @Override
-    public Map<Path, Library> getLibraries() {
-        return Collections.unmodifiableMap(config.libraries);
-    }
-
-    @Override
-    public void addLibrary(Library library) {
-        final Config config = this.config;
-        final Map<Path, Library> newLibraries = new HashMap<>(config.libraries);
-        newLibraries.put(library.getPath(), library);
-        this.config = config.withLibraries(newLibraries);
-        onConfigUpdated();
-    }
-
-    @Override
-    public Map<Path, Library> getSubLibraries() {
-        return Collections.unmodifiableMap(config.subLibraries);
-    }
-
-    @Override
-    public void addSubLibrary(Library subLibrary) {
-        final Config config = this.config;
-        final Map<Path, Library> newSubLibraries = new HashMap<>(config.subLibraries);
-        newSubLibraries.put(subLibrary.getPath(), subLibrary);
-        this.config = config.withSubLibraries(newSubLibraries);
         onConfigUpdated();
     }
 

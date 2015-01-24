@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.config.preferences;
 
-import com.github.ykrasik.indexter.util.OptionalUtils;
+import com.github.ykrasik.indexter.util.Optionals;
 import com.github.ykrasik.indexter.util.StringUtils;
 
 import java.io.File;
@@ -35,7 +35,7 @@ public class PreferencesManager {
 
     public <T> List<T> getList(String name, Function<String, T> deserializer) {
         final Optional<String> optionalValue = get(name);
-        return OptionalUtils.flatMapToList(optionalValue, value -> StringUtils.parseList(value, deserializer));
+        return Optionals.flatMapToList(optionalValue, value -> StringUtils.parseList(value, deserializer));
     }
 
     public <T> void putList(String name, List<T> list, Function<T, String> serializer) {
@@ -45,7 +45,7 @@ public class PreferencesManager {
 
     public <K, V> Map<K, V> getMap(String name, Function<String, K> keyDeserializer, Function<String, V> valueDeserializer) {
         final Optional<String> optionalValue = get(name);
-        return OptionalUtils.flatMapToMap(optionalValue, value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer));
+        return Optionals.flatMapToMap(optionalValue, value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer));
     }
 
     public <K, V> void putMap(String name, Map<K, V> map, Function<K, String> keySerializer, Function<V, String> valueSerializer) {

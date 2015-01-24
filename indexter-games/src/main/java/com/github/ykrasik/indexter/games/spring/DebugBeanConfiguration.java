@@ -1,18 +1,15 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.IndexterPreloader;
-import com.github.ykrasik.indexter.games.config.GameCollectionConfigImpl;
-import com.github.ykrasik.indexter.games.data.GameDataService;
-import com.github.ykrasik.indexter.games.debug.DataServiceDebugCommands;
-import com.github.ykrasik.indexter.games.debug.GiantBombDebugCommands;
-import com.github.ykrasik.indexter.games.debug.MetacriticDebugCommands;
-import com.github.ykrasik.indexter.games.debug.ConfigDebugCommands;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.GiantBombGameInfoService;
-import com.github.ykrasik.indexter.games.info.provider.giantbomb.client.GiantBombGameInfoClient;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.MetacriticGameInfoService;
-import com.github.ykrasik.indexter.games.info.provider.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
+import com.github.ykrasik.indexter.games.debug.*;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
+import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,10 +17,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Yevgeny Krasik
  */
 @Configuration
-public class DebugBeanConfiguration {
-    @Autowired
-    private IndexterPreloader preloader;
-
+public class DebugBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public MetacriticDebugCommands metacriticDebugCommands(MetacriticGameInfoService service,
                                                            MetacriticGameInfoClient client,
@@ -41,15 +35,26 @@ public class DebugBeanConfiguration {
     }
 
     @Bean
-    public DataServiceDebugCommands dataServiceDebugCommands(GameDataService dataService,
-                                                             MetacriticGameInfoService infoService) {
-        preloader.setMessage("Instantiating data service debug commands...");
-        return new DataServiceDebugCommands(dataService, infoService);
+    public GameManagerDebugCommands gameManagerDebugCommands(GameManager gameManager) {
+        preloader.setMessage("Instantiating GameManager debug commands...");
+        return new GameManagerDebugCommands(gameManager);
     }
 
     @Bean
-    public ConfigDebugCommands preferencesDebugCommands(GameCollectionConfigImpl preferences) {
+    public LibraryManagerDebugCommands libraryManagerDebugCommands(LibraryManager libraryManager) {
+        preloader.setMessage("Instantiating LibraryManager debug commands...");
+        return new LibraryManagerDebugCommands(libraryManager);
+    }
+
+    @Bean
+    public ScanManagerDebugCommands scanManagerDebugCommands(ScanManager scanManager, LibraryManager libraryManager) {
+        preloader.setMessage("Instantiating ScanManager debug commands...");
+        return new ScanManagerDebugCommands(scanManager, libraryManager);
+    }
+
+    @Bean
+    public ConfigDebugCommands configDebugCommands(GameCollectionConfig config) {
         preloader.setMessage("Instantiating config debug commands...");
-        return new ConfigDebugCommands(preferences);
+        return new ConfigDebugCommands(config);
     }
 }
