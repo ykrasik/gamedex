@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author Yevgeny Krasik
@@ -23,7 +24,11 @@ public interface GameManager {
     boolean isGameMapped(Path path);
 
     ObservableList<LocalGame> getAllGames();
+
     void sort(GameSort sort);
+
+    void filter(Predicate<LocalGame> filter);
+    void unFilter();
 
     ReadOnlyObjectProperty<ObservableList<LocalGame>> itemsProperty();
 }

@@ -2,18 +2,19 @@ buildscript {
     ext {
         controlsFxVersion = '8.20.8'
         springVersion = '4.1.1.RELEASE'
-        gsCollectionsVersion = '5.1.0'
-        guavaVersion = '18.0'
 
         slf4jVersion = '1.7.6'
         logbackVersion = '1.1.2'
 
-        jerminalVersion = '0.1.1'
-
+        gsCollectionsVersion = '5.1.0'
+        guavaVersion = '18.0'
+        commonsLang3Version = '3.3.2'
         boonVersion = '0.29'
 
         ormLiteVersion = '4.48'
         h2Version = '1.4.182'
+
+        jerminalVersion = '0.1.1'
 
         junitVersion = '4.11'
         mockitoVersion = '1.9.5'
@@ -44,6 +45,7 @@ project("indexter-core") {
 
         compile "com.google.guava:guava:$guavaVersion"
         compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
+        compile "org.apache.commons:commons-lang3:$commonsLang3Version"
         compile "io.fastjson:boon:$boonVersion"
 
         compile 'com.thoughtworks.xstream:xstream:1.4.7'

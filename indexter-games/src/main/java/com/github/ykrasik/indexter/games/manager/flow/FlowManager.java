@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.scan;
+package com.github.ykrasik.indexter.games.manager.flow;
 
 import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
 import org.controlsfx.control.StatusBar;
@@ -8,8 +8,10 @@ import java.nio.file.Path;
 /**
  * @author Yevgeny Krasik
  */
-public interface ScanManager {
+public interface FlowManager {
     void refreshLibraries(ExceptionHandler exceptionHandler);
+
+    void cleanupGames(ExceptionHandler exceptionHandler);
 
     void processPath(LocalLibrary library, Path path, ExceptionHandler exceptionHandler);
 

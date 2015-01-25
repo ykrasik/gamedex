@@ -3,9 +3,9 @@ package com.github.ykrasik.indexter.games.controller;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.datamodel.*;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import com.github.ykrasik.indexter.ui.FixedRating;
 import com.github.ykrasik.indexter.util.Optionals;
@@ -22,6 +22,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.GridView;
 import org.controlsfx.dialog.Dialogs;
 import org.slf4j.Logger;
@@ -46,6 +47,9 @@ public class GameCollectionController {
 
     @FXML private ComboBox<GameSort> gameWallSort;
 
+    @FXML private TextField searchBox;
+
+    // FIXME: Keep each tab in it's own FXML.
     @FXML private ImageView thumbnail;
     @FXML private TextField gamePath;
     @FXML private TextField name;
@@ -62,7 +66,6 @@ public class GameCollectionController {
     @FXML private TableColumn<LocalGame, Number> gameCriticScoreColumn;
     @FXML private TableColumn<LocalGame, FixedRating> gameCriticScoreVisualColumn;
     @FXML private TableColumn<LocalGame, Number> gameUserScoreColumn;
-    @FXML private TableColumn<LocalGame, FixedRating> gameUserScoreVisualColumn;
     @FXML private TableColumn<LocalGame, String> gamePathColumn;
 
     @FXML private TableView<LocalLibrary> libraries;
@@ -72,7 +75,7 @@ public class GameCollectionController {
 
     private final Stage stage;
     private final GameCollectionConfig config;
-    private final ScanManager scanManager;
+    private final FlowManager flowManager;
     private final GameManager gameManager;
     private final LibraryManager libraryManager;
 
@@ -80,12 +83,12 @@ public class GameCollectionController {
 
     public GameCollectionController(Stage stage,
                                     GameCollectionConfig config,
-                                    ScanManager scanManager,
+                                    FlowManager flowManager,
                                     GameManager gameManager,
                                     LibraryManager libraryManager) {
         this.stage = Objects.requireNonNull(stage);
         this.config = Objects.requireNonNull(config);
-        this.scanManager = Objects.requireNonNull(scanManager);
+        this.flowManager = Objects.requireNonNull(flowManager);
         this.gameManager = Objects.requireNonNull(gameManager);
         this.libraryManager = Objects.requireNonNull(libraryManager);
 
@@ -94,17 +97,18 @@ public class GameCollectionController {
 
     // Called by JavaFx
     public void initialize() {
-        mainBorderPane.setBottom(scanManager.getStatusBar());
+        mainBorderPane.setBottom(flowManager.getStatusBar());
 
         gameWall.setCellFactory(param -> {
             final GameInfoCell cell = new GameInfoCell();
             cell.getStyleClass().add("gameTile");
             cell.setOnMouseClicked(event -> {
-                final LocalGame info = cell.getItem();
-                displayGameInfo(info);
+                final LocalGame game = cell.getItem();
+                displayGameOnSidePanel(game);
                 event.consume();
             });
 
+            // FIXME: Do this through FXML.
             final ContextMenu contextMenu = new ContextMenu();
             final MenuItem deleteItem = new MenuItem("Delete");
             deleteItem.setOnAction(e -> {
@@ -116,7 +120,6 @@ public class GameCollectionController {
             return cell;
         });
 
-//        gameWall.setItems(gameManager.getAllGames());
         gameWall.itemsProperty().bind(gameManager.itemsProperty());
 
         gameWallSort.setItems(FXCollections.observableArrayList(GameSort.values()));
@@ -124,9 +127,17 @@ public class GameCollectionController {
             @Override
             public void changed(ObservableValue<? extends GameSort> observable, GameSort oldValue, GameSort newValue) {
                 gameManager.sort(newValue);
-//                gameWall.itemsProperty().unbind();
-//                gameWall.setItems(FXCollections.emptyObservableList());
-//                gameWall.itemsProperty().bind(dataService.itemsProperty());
+            }
+        });
+
+        searchBox.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (newValue.isEmpty()) {
+                    gameManager.unFilter();
+                } else {
+                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getGame().getName(), newValue));
+                }
             }
         });
 
@@ -144,15 +155,24 @@ public class GameCollectionController {
         gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getUserScore().orElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
 
+        gamesTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LocalGame>() {
+            @Override
+            public void changed(ObservableValue<? extends LocalGame> observable, LocalGame oldValue, LocalGame newValue) {
+                if (newValue != null) {
+                    displayGameOnSidePanel(newValue);
+                }
+            }
+        });
+
         libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getName()));
         libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPlatform().toString()));
         libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPath().toString()));
         libraries.itemsProperty().bind(libraryManager.itemsProperty());
     }
 
-    private void displayGameInfo(LocalGame localGame) {
+    private void displayGameOnSidePanel(LocalGame localGame) {
         final Path path = localGame.getPath();
-        this.gamePath.setText(path.toString());
+        gamePath.setText(path.toString());
 
         final Game game = localGame.getGame();
         thumbnail.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).orElse(NOT_AVAILABLE));
@@ -167,25 +187,6 @@ public class GameCollectionController {
     private <T> String toString(Optional<T> optional) {
         return Optionals.toString(optional, "Unavailable");
     }
-
-//    @FXML
-//    public void showAddGameDialog() {
-//        final DirectoryChooser directoryChooser = createDirectoryChooser("Add Game");
-//        final File selectedDirectory = directoryChooser.showDialog(stage);
-//        if (selectedDirectory != null) {
-//            prevDirectory = selectedDirectory;
-//            config.setPrevDirectory(prevDirectory);
-//            final Path path = Paths.get(selectedDirectory.toURI());
-//            try {
-//                // FIXME: Do this in background thread.
-//                // FIXME: Platform should be a param
-//                scanManager.processPath(path, GamePlatform.PC);
-//            } catch (Exception e) {
-//                LOG.warn("Error adding game: " + path, e);
-//                createDialog().showException(e);
-//            }
-//        }
-//    }
 
     @FXML
     public void showAddLibraryDialog() {
@@ -216,9 +217,17 @@ public class GameCollectionController {
 
     @FXML
     public void refreshLibraries() {
-        scanManager.refreshLibraries(t -> {
+        flowManager.refreshLibraries(t -> {
             LOG.warn("Error refreshing libraries:", t);
             createDialog().title("Error refreshing libraries!").showException(t) ;
+        });
+    }
+
+    @FXML
+    public void cleanupGames() {
+        flowManager.cleanupGames(t -> {
+            LOG.warn("Error cleaning up games:", t);
+            createDialog().title("Error cleaning up games!").showException(t) ;
         });
     }
 

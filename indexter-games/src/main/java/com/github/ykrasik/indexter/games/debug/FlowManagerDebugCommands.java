@@ -3,7 +3,7 @@ package com.github.ykrasik.indexter.games.debug;
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.IntParam;
@@ -17,19 +17,19 @@ import java.util.Objects;
 /**
  * @author Yevgeny Krasik
  */
-@ShellPath("scan")
-public class ScanManagerDebugCommands implements DebugCommands {
-    private final ScanManager scanManager;
+@ShellPath("flow")
+public class FlowManagerDebugCommands implements DebugCommands {
+    private final FlowManager flowManager;
     private final LibraryManager libraryManager;
 
-    public ScanManagerDebugCommands(ScanManager scanManager, LibraryManager libraryManager) {
-        this.scanManager = Objects.requireNonNull(scanManager);
+    public FlowManagerDebugCommands(FlowManager flowManager, LibraryManager libraryManager) {
+        this.flowManager = Objects.requireNonNull(flowManager);
         this.libraryManager = Objects.requireNonNull(libraryManager);
     }
 
     @Command
     public void refreshLibraries(OutputPrinter outputPrinter) throws Exception {
-        scanManager.refreshLibraries(t -> outputPrinter.println("Error refreshing libraries: %s", t.getMessage()));
+        flowManager.refreshLibraries(t -> outputPrinter.println("Error refreshing libraries: %s", t.getMessage()));
         outputPrinter.println("Finished refreshing libraries!");
     }
 
@@ -38,7 +38,7 @@ public class ScanManagerDebugCommands implements DebugCommands {
                             @IntParam("libraryId") int id,
                             @StringParam("path") String path) throws Exception {
         final LocalLibrary library = libraryManager.getLibraryById(new Id<>(id));
-        scanManager.processPath(library, Paths.get(path), t -> outputPrinter.println("Error processing path: %s", t.getMessage()));
+        flowManager.processPath(library, Paths.get(path), t -> outputPrinter.println("Error processing path: %s", t.getMessage()));
         outputPrinter.println("Finished processing path: %s", path);
     }
 }

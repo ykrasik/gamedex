@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.scan.choice;
+package com.github.ykrasik.indexter.games.manager.flow.choice;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;

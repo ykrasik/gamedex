@@ -5,7 +5,7 @@ import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
@@ -46,10 +46,10 @@ public class UiBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public GameCollectionController gameCollectionController(Stage stage,
                                                              GameCollectionConfig config,
-                                                             ScanManager scanManager,
+                                                             FlowManager flowManager,
                                                              GameManager gameManager,
                                                              LibraryManager libraryManager) {
         preloader.setMessage("Creating controller...");
-        return new GameCollectionController(stage, config, scanManager, gameManager, libraryManager);
+        return new GameCollectionController(stage, config, flowManager, gameManager, libraryManager);
     }
 }

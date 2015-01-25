@@ -1,15 +1,15 @@
-package com.github.ykrasik.indexter.games.manager.scan;
+package com.github.ykrasik.indexter.games.manager.flow;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.datamodel.*;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
+import com.github.ykrasik.indexter.games.manager.flow.choice.ChoiceProvider;
+import com.github.ykrasik.indexter.games.manager.flow.choice.MultipleSearchResultsChoice;
+import com.github.ykrasik.indexter.games.manager.flow.choice.NoSearchResultsChoice;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.scan.choice.ChoiceProvider;
-import com.github.ykrasik.indexter.games.manager.scan.choice.MultipleSearchResultsChoice;
-import com.github.ykrasik.indexter.games.manager.scan.choice.NoSearchResultsChoice;
 import com.github.ykrasik.indexter.util.FileUtils;
 import com.github.ykrasik.indexter.util.Optionals;
 import com.github.ykrasik.indexter.util.PlatformUtils;
@@ -17,22 +17,21 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Button;
 import org.controlsfx.control.StatusBar;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * @author Yevgeny Krasik
  */
-public class ScanManagerImpl extends AbstractService implements ScanManager {
+public class FlowManagerImpl extends AbstractService implements FlowManager {
     // FIXME: Log everything to a textual logger.
 
     private final LibraryManager libraryManager;
@@ -47,13 +46,12 @@ public class ScanManagerImpl extends AbstractService implements ScanManager {
     private final DoubleProperty refreshLibrariesProgress = new SimpleDoubleProperty();
     private final DoubleProperty refreshLibraryProgress = new SimpleDoubleProperty();
 
-
     private final Button stopRefreshButton = new Button("Stop");
     private final StatusBar statusBar = new StatusBar();
 
     private ExecutorService executorService;
 
-    public ScanManagerImpl(LibraryManager libraryManager,
+    public FlowManagerImpl(LibraryManager libraryManager,
                            GameManager gameManager,
                            GameInfoService metacriticInfoService,
                            GameInfoService giantBombInfoService,
@@ -94,22 +92,6 @@ public class ScanManagerImpl extends AbstractService implements ScanManager {
         }, exceptionHandler);
     }
 
-    @Override
-    public void processPath(LocalLibrary library, Path path, ExceptionHandler exceptionHandler) {
-        submit(new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                doProcessPath(library, path);
-                return null;
-            }
-        }, exceptionHandler);
-    }
-
-    @Override
-    public StatusBar getStatusBar() {
-        return statusBar;
-    }
-
     private void doRefreshLibraries() throws Exception {
         info("Refreshing libraries...");
 
@@ -124,6 +106,53 @@ public class ScanManagerImpl extends AbstractService implements ScanManager {
         }
 
         info("Finished refreshing libraries.");
+    }
+
+    @Override
+    public void cleanupGames(ExceptionHandler exceptionHandler) {
+        submit(new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                doCleanupGames();
+                return null;
+            }
+        }, exceptionHandler);
+    }
+
+    private void doCleanupGames() {
+        info("Cleaning up games...");
+
+        final List<LocalGame> obsoleteGames = new ArrayList<>();
+        final ObservableList<LocalGame> games = gameManager.getAllGames();
+        for (int i = 0; i < games.size(); i++) {
+            setProgress(i, games.size());
+            final LocalGame game = games.get(i);
+            final Path path = game.getPath();
+            if (!Files.exists(path)) {
+                info("Obsolete path detected: %s", path);
+                obsoleteGames.add(game);
+            }
+        }
+
+        info("Detected %d obsolete games.", obsoleteGames.size());
+        obsoleteGames.forEach(gameManager::deleteGame);
+        info("Removed %d obsolete games.", obsoleteGames.size());
+    }
+
+    @Override
+    public void processPath(LocalLibrary library, Path path, ExceptionHandler exceptionHandler) {
+        submit(new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                doProcessPath(library, path);
+                return null;
+            }
+        }, exceptionHandler);
+    }
+
+    @Override
+    public StatusBar getStatusBar() {
+        return statusBar;
     }
 
     private void refreshLibrary(LocalLibrary localLibrary) throws Exception {
@@ -391,5 +420,9 @@ public class ScanManagerImpl extends AbstractService implements ScanManager {
             task.cancel();
             message.set("Cancelled");
         });
+    }
+
+    private void setProgress(int current, int total) {
+        PlatformUtils.runLater(() -> refreshLibraryProgress.setValue((double) current / total));
     }
 }

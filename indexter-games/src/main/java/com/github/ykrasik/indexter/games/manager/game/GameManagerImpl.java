@@ -17,6 +17,7 @@ import javafx.collections.ObservableList;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author Yevgeny Krasik
@@ -93,6 +94,17 @@ public class GameManagerImpl extends AbstractService implements GameManager {
             FXCollections.sort(games, comparator);
             refreshItemsProperty();
         });
+    }
+
+    @Override
+    public void filter(Predicate<LocalGame> filter) {
+        final ObservableList<LocalGame> filteredGames = games.filtered(filter);
+        PlatformUtils.runLater(() -> itemsProperty.setValue(filteredGames));
+    }
+
+    @Override
+    public void unFilter() {
+        PlatformUtils.runLater(this::refreshItemsProperty);
     }
 
     private Comparator<LocalGame> getComparator(GameSort sort) {

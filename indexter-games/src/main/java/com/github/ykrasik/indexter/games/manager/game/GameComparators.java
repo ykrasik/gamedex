@@ -10,7 +10,9 @@ import java.util.function.Function;
 /**
  * @author Yevgeny Krasik
  */
-public class GameComparators {
+public final class GameComparators {
+    private GameComparators() { }
+
     private static final Comparator<LocalGame> NAME_COMPARATOR = (o1, o2) ->
         o1.getGame().getName().compareTo(o2.getGame().getName());
 
@@ -21,15 +23,15 @@ public class GameComparators {
         compareWithNameFallback(o1, o2, info -> info.getGame().getUserScore());
 
     private static final Comparator<LocalGame> CRITIC_SCORE_COMPARATOR = (o1, o2) ->
-        compareWithFallback(o1, o2, info -> info.getGame().getCriticScore(), USER_SCORE_COMPARATOR);
+        compareWithFallback(o2, o1, info -> info.getGame().getCriticScore(), USER_SCORE_COMPARATOR);
 
     private static final Comparator<LocalGame> RELEASE_DATE_COMPARATOR = (o1, o2) -> {
         final Optional<LocalDate> releaseDate1 = o1.getGame().getReleaseDate();
         final Optional<LocalDate> releaseDate2 = o2.getGame().getReleaseDate();
 
-        if (releaseDate1.isPresent()) {
-            if (releaseDate2.isPresent()) {
-                return releaseDate1.get().compareTo(releaseDate2.get());
+        if (releaseDate2.isPresent()) {
+            if (releaseDate1.isPresent()) {
+                return releaseDate2.get().compareTo(releaseDate1.get());
             } else {
                 return 1;
             }
@@ -37,7 +39,6 @@ public class GameComparators {
             return -1;
         }
     };
-
 
     public static Comparator<LocalGame> nameComparator() {
         return NAME_COMPARATOR;
@@ -60,7 +61,7 @@ public class GameComparators {
     }
 
     private static <T extends Comparable<T>> int compareWithNameFallback(LocalGame o1, LocalGame o2, Function<LocalGame, Optional<T>> fieldExtractor) {
-        return compareWithFallback(o1, o2, fieldExtractor, NAME_COMPARATOR);
+        return compareWithFallback(o2, o1, fieldExtractor, NAME_COMPARATOR);
     }
 
     private static <T extends Comparable<T>> int compareWithFallback(LocalGame o1,

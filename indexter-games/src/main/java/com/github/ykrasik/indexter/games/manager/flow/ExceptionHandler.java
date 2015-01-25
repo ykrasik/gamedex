@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.scan;
+package com.github.ykrasik.indexter.games.manager.flow;
 
 /**
  * @author Yevgeny Krasik

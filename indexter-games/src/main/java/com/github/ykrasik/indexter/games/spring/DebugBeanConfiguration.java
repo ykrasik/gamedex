@@ -8,7 +8,7 @@ import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoServi
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,9 +47,9 @@ public class DebugBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ScanManagerDebugCommands scanManagerDebugCommands(ScanManager scanManager, LibraryManager libraryManager) {
-        preloader.setMessage("Instantiating ScanManager debug commands...");
-        return new ScanManagerDebugCommands(scanManager, libraryManager);
+    public FlowManagerDebugCommands flowManagerDebugCommands(FlowManager flowManager, LibraryManager libraryManager) {
+        preloader.setMessage("Instantiating FlowManager debug commands...");
+        return new FlowManagerDebugCommands(flowManager, libraryManager);
     }
 
     @Bean

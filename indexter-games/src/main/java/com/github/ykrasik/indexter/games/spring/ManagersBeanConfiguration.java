@@ -7,10 +7,10 @@ import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManagerImpl;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManagerImpl;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManager;
-import com.github.ykrasik.indexter.games.manager.scan.ScanManagerImpl;
-import com.github.ykrasik.indexter.games.manager.scan.choice.ChoiceProvider;
-import com.github.ykrasik.indexter.games.manager.scan.choice.DialogChoiceProvider;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManagerImpl;
+import com.github.ykrasik.indexter.games.manager.flow.choice.ChoiceProvider;
+import com.github.ykrasik.indexter.games.manager.flow.choice.DialogChoiceProvider;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,12 +36,12 @@ public class ManagersBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ScanManager scanManager(LibraryManager libraryManager,
+    public FlowManager flowManager(LibraryManager libraryManager,
                                    GameManager gameManager,
                                    @Qualifier("metacriticInfoService") GameInfoService metacriticInfoService,
                                    @Qualifier("giantBombInfoService") GameInfoService giantBombInfoService,
                                    ChoiceProvider choiceProvider) {
-        return new ScanManagerImpl(libraryManager, gameManager, metacriticInfoService, giantBombInfoService, choiceProvider);
+        return new FlowManagerImpl(libraryManager, gameManager, metacriticInfoService, giantBombInfoService, choiceProvider);
     }
 
     @Bean

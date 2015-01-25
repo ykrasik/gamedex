@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.scan.choice;
+package com.github.ykrasik.indexter.games.manager.flow.choice;
 
 /**
  * @author Yevgeny Krasik

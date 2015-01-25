@@ -10,32 +10,60 @@
 
 <BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <center>
-      <TabPane BorderPane.alignment="CENTER">
+      <TabPane>
          <tabs>
-            <Tab closable="false" text="Wall">
+            <Tab closable="false" text="Games">
                <content>
-                  <BorderPane fx:id="gamesBorderPane" prefHeight="200.0" prefWidth="200.0">
-                     <top>
-                        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                  <VBox>
+                     <children>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
                           <items>
+                              <Label text="Search:" />
+                              <TextField fx:id="searchBox" />
+                              <Region prefWidth="36.0" />
                               <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
                               <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
+                              <Button fx:id="cleanupGames" mnemonicParsing="false" onAction="#cleanupGames" text="Cleanup Games" />
+                              <Button fx:id="refetchGames" mnemonicParsing="false" onAction="#refreshLibraries" text="Re-Fetch Games" />
                               <Region prefWidth="36.0" />
                               <Label text="Sort:" />
                               <ComboBox fx:id="gameWallSort" prefWidth="150.0" />
                           </items>
                         </ToolBar>
-                     </top>
-                     <center>
-                        <GridView fx:id="gameWall" cellHeight="128.0" cellWidth="96.0" horizontalCellSpacing="3.0" verticalCellSpacing="3.0" />
-                     </center>
-                     <right>
-                        <HBox>
+                        <HBox VBox.vgrow="ALWAYS">
                            <children>
+                              <TabPane BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
+                                 <tabs>
+                                    <Tab closable="false" text="Wall">
+                                       <content>
+                                          <BorderPane fx:id="gamesBorderPane" prefHeight="200.0" prefWidth="200.0">
+                                             <center>
+                                                <GridView fx:id="gameWall" cellHeight="128.0" cellWidth="96.0" horizontalCellSpacing="3.0" verticalCellSpacing="3.0" />
+                                             </center>
+                                          </BorderPane>
+                                       </content>
+                                    </Tab>
+                                    <Tab closable="false" text="List">
+                                       <content>
+                                          <TableView fx:id="gamesTable">
+                                            <columns>
+                                              <TableColumn fx:id="gameNameColumn" prefWidth="250.0" text="Name" />
+                                              <TableColumn fx:id="gamePlatformColumn" minWidth="0.0" prefWidth="57.0" text="Platform" />
+                                                <TableColumn fx:id="gameReleaseDateColumn" text="Release Date" />
+                                                <TableColumn fx:id="gameCriticScoreColumn" prefWidth="76.0" text="Critic Score" />
+                                                <TableColumn fx:id="gameCriticScoreVisualColumn" prefWidth="110.0" text="Critic Score Visual" />
+                                                <TableColumn fx:id="gameUserScoreColumn" prefWidth="71.0" text="User Score" />
+                                                <TableColumn fx:id="gamePathColumn" prefWidth="424.0" text="Path" />
+                                            </columns>
+                                          </TableView>
+                                       </content>
+                                    </Tab>
+                                 </tabs>
+                              </TabPane>
                               <Separator orientation="VERTICAL" prefHeight="200.0" />
-                              <VBox>
+                              <VBox HBox.hgrow="ALWAYS">
                                  <children>
-                                    <HBox>
+                                    <HBox VBox.vgrow="ALWAYS">
                                        <children>
                                           <Region HBox.hgrow="ALWAYS" />
                                           <ImageView fx:id="thumbnail" fitHeight="300.0" fitWidth="290.0" pickOnBounds="true" preserveRatio="true" />
@@ -85,24 +113,8 @@
                               </VBox>
                            </children>
                         </HBox>
-                     </right>
-                  </BorderPane>
-               </content>
-            </Tab>
-            <Tab closable="false" text="List">
-               <content>
-                  <TableView fx:id="gamesTable">
-                    <columns>
-                      <TableColumn fx:id="gameNameColumn" prefWidth="250.0" text="Name" />
-                      <TableColumn fx:id="gamePlatformColumn" minWidth="0.0" prefWidth="57.0" text="Platform" />
-                        <TableColumn fx:id="gameReleaseDateColumn" text="Release Date" />
-                        <TableColumn fx:id="gameCriticScoreColumn" prefWidth="76.0" text="Critic Score" />
-                        <TableColumn fx:id="gameCriticScoreVisualColumn" prefWidth="110.0" text="Critic Score Visual" />
-                        <TableColumn fx:id="gameUserScoreColumn" prefWidth="71.0" text="User Score" />
-                        <TableColumn fx:id="gameUserScoreVisualColumn" prefWidth="110.0" text="User Score Visual" />
-                        <TableColumn fx:id="gamePathColumn" prefWidth="424.0" text="Path" />
-                    </columns>
-                  </TableView>
+                     </children>
+                  </VBox>
                </content>
             </Tab>
             <Tab closable="false" text="Libraries">
