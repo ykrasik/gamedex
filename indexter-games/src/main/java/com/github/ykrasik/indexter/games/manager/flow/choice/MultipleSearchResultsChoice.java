@@ -7,6 +7,5 @@ public enum MultipleSearchResultsChoice {
     CHOOSE,
     NEW_NAME,
     EXCLUDE,
-    LIBRARY,
     SKIP
 }

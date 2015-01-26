@@ -78,7 +78,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public boolean isGameMapped(Path path) {
+    public boolean isPathMapped(Path path) {
         return getGameByPath(path).isPresent();
     }
 

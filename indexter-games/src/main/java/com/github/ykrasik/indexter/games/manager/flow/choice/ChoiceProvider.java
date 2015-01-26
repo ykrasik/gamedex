@@ -30,6 +30,7 @@ public interface ChoiceProvider {
 
     Optional<String> selectNewName(Path path, String name, GamePlatform platform) throws Exception;
 
-    Optional<String> getLibraryName(Path path, String name, GamePlatform platform) throws Exception;
+    boolean shouldCreateLibrary(Path path) throws Exception;
 
+    Optional<String> getLibraryName(Path path, GamePlatform platform) throws Exception;
 }

@@ -27,12 +27,15 @@
 package com.github.ykrasik.indexter.games.ui;
 
 import com.github.ykrasik.indexter.games.controller.GameCollectionController;
+import com.github.ykrasik.indexter.games.datamodel.Game;
 import com.github.ykrasik.indexter.games.datamodel.LocalGame;
+import com.github.ykrasik.indexter.util.Optionals;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
 import org.controlsfx.control.GridCell;
 import org.controlsfx.control.GridView;
+
+import java.util.Optional;
 
 /**
  * A {@link GridCell} that can be used to show images inside the 
@@ -74,16 +77,19 @@ public class GameInfoCell extends GridCell<LocalGame> {
     /**
      * {@inheritDoc}
      */
-    @Override protected void updateItem(LocalGame item, boolean empty) {
+    @Override
+    protected void updateItem(LocalGame item, boolean empty) {
         super.updateItem(item, empty);
 
         if (empty) {
             setGraphic(null);
         } else {
-            final Image image = item.getGame().getThumbnail().orElse(GameCollectionController.NOT_AVAILABLE);
+            final Game game = item.getGame();
+            final Optional<Image> thumbnail = Optionals.or(game.getThumbnail(), game.getPoster());
+            final Image image = thumbnail.orElse(GameCollectionController.NOT_AVAILABLE);
             if (preserveImageProperties) {
-                imageView.setPreserveRatio(image.isPreserveRatio());
-                imageView.setSmooth(image.isSmooth());
+                imageView.setPreserveRatio(true);
+                imageView.setSmooth(true);
             }
             imageView.setImage(image);
             setGraphic(imageView);

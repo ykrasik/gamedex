@@ -27,11 +27,14 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * @author Yevgeny Krasik
  */
 public class FlowManagerImpl extends AbstractService implements FlowManager {
+    private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
+
     // FIXME: Log everything to a textual logger.
 
     private final LibraryManager libraryManager;
@@ -188,14 +191,46 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return;
         }
 
-        if (gameManager.isGameMapped(path)) {
+        if (gameManager.isPathMapped(path)) {
             LOG.debug("{} is already mapped, skipping...", path);
             return;
         }
 
-        final String name = path.getFileName().toString();
+        if (tryCreateLibrary(path, library.getLibrary().getPlatform())) {
+            return;
+        }
+
+        final String name = getName(path);
         addPath(library, path, name);
         LOG.debug("Finished Processing {}.", path);
+    }
+
+    private boolean tryCreateLibrary(Path path, GamePlatform platform) throws Exception {
+        if (!FileUtils.hasChildDirectories(path)) {
+            // Only directories that have sub-directories can be libraries.
+            return false;
+        }
+
+        if (!choiceProvider.shouldCreateLibrary(path)) {
+            return false;
+        }
+
+        final Optional<String> libraryName = choiceProvider.getLibraryName(path, platform);
+        if (!libraryName.isPresent()) {
+            return false;
+        }
+
+        final Library newLibrary = new Library(libraryName.get(), path, platform);
+        final LocalLibrary localLibrary = libraryManager.addLibrary(newLibrary);
+        info("New library created: %s", newLibrary);
+        refreshLibrary(localLibrary);
+        return true;
+    }
+
+    private String getName(Path path) {
+        // Remove all metaData enclosed with '[]' from the game name.
+        final String rawName = path.getFileName().toString();
+        return META_DATA_PATTERN.matcher(rawName).replaceAll("");
     }
 
     // FIXME: There should be an explicit "skip" button. Any other form of cancellation should show the prev screen.
@@ -299,10 +334,6 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                 excludePath(path);
                 break;
 
-            case LIBRARY:
-                designateLibrary(path, name, platform);
-                break;
-
             case SKIP:
                 break;
         }
@@ -341,16 +372,6 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                                                                     List<GameRawBriefInfo> briefInfos) throws Exception {
         final Optional<GameRawBriefInfo> choice = choiceProvider.chooseFromMultipleResults(path, name, platform, briefInfos);
         return Optionals.map(choice, chosen -> fetchGiantBombGameInfo(chosen, platform));
-    }
-
-    private void designateLibrary(Path path, String name, GamePlatform platform) throws Exception {
-        final Optional<String> libraryName = choiceProvider.getLibraryName(path, name, platform);
-        if (libraryName.isPresent()) {
-            final Library library = new Library(libraryName.get(), path, platform);
-            final LocalLibrary localLibrary = libraryManager.addLibrary(library);
-            info("New library created: %s", library);
-            refreshLibrary(localLibrary);
-        }
     }
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.

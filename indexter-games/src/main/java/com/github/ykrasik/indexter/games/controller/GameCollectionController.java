@@ -49,8 +49,19 @@ public class GameCollectionController {
 
     @FXML private TextField searchBox;
 
+    // TODO: Display total number of games somewhere.
+    // TODO: Allow changing thumbnail & poster via right-click.
+    // TODO: Disable sort on list view, and set default sort to name based.
+    // TODO: Add detail view on double click
+    // TODO: Side bar should be hideable
+    // TODO: Add hideable bottom text logger
+    // TODO: Add metacritic Url
+    // TODO: Save Genres properly.
+    // TODO: Allow filtering by genre type.
+    // TODO: Add right-click menus to library list.
+
     // FIXME: Keep each tab in it's own FXML.
-    @FXML private ImageView thumbnail;
+    @FXML private ImageView poster;
     @FXML private TextField gamePath;
     @FXML private TextField name;
     @FXML private TextArea description;
@@ -175,7 +186,7 @@ public class GameCollectionController {
         gamePath.setText(path.toString());
 
         final Game game = localGame.getGame();
-        thumbnail.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).orElse(NOT_AVAILABLE));
+        poster.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).orElse(NOT_AVAILABLE));
         name.setText(game.getName());
         description.setText(toString(game.getDescription()));
         platform.setText(game.getPlatform().name());

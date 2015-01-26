@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 /**
@@ -45,11 +46,8 @@ public class DialogChoiceProvider implements ChoiceProvider {
             .masthead(path.toString())
             .message(String.format("No Metacritic search results found: '%s'", name));
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing no metacritic search results dialog...");
-        final FutureTask<Action> futureChoice = new FutureTask<>(() -> dialog.showCommandLinks(newName, exclude));
-        PlatformUtils.runLater(futureChoice);
-        final Action choice = futureChoice.get();
+        final Action choice = getUserResponse(() -> dialog.showCommandLinks(newName, exclude));
 
         if (choice == Dialog.ACTION_CANCEL) {
             LOG.debug("Dialog cancelled.");
@@ -80,27 +78,18 @@ public class DialogChoiceProvider implements ChoiceProvider {
         final DialogAction exclude = new DialogAction("Exclude");
         exclude.setLongText("Exclude directory from further processing");
 
-        final DialogAction designateLibrary = new DialogAction("Designate as library");
-        designateLibrary.setLongText("Scan this directory's children");
-
         final List<DialogAction> choices = new ArrayList<>();
         choices.add(chooseOne);
         choices.add(newName);
         choices.add(exclude);
-        if (FileUtils.hasChildDirectories(path)) {
-            choices.add(designateLibrary);
-        }
 
         final Dialogs dialog = createDialog()
             .title("Too many Metacritic search results!")
             .masthead(path.toString())
             .message(String.format("Found %d Metacritic search results for '%s':", briefInfos.size(), name));
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing multiple search result dialog...");
-        final FutureTask<Action> futureChoice = new FutureTask<>(() -> dialog.showCommandLinks(choices));
-        PlatformUtils.runLater(futureChoice);
-        final Action choice = futureChoice.get();
+        final Action choice = getUserResponse(() -> dialog.showCommandLinks(choices));
 
         if (choice == Dialog.ACTION_CANCEL) {
             LOG.debug("Dialog cancelled.");
@@ -117,10 +106,6 @@ public class DialogChoiceProvider implements ChoiceProvider {
         if (choice == exclude) {
             LOG.debug("Exclude requested.");
             return MultipleSearchResultsChoice.EXCLUDE;
-        }
-        if (choice == designateLibrary) {
-            LOG.debug("Designate library requested.");
-            return MultipleSearchResultsChoice.LIBRARY;
         }
         throw new IndexterException("Invalid choice: %s", choice);
     }
@@ -145,11 +130,8 @@ public class DialogChoiceProvider implements ChoiceProvider {
             .masthead(path.toString())
             .message(String.format("Found %d GiantBomb search results for '%s':", briefInfos.size(), name));
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing multiple search result dialog...");
-        final FutureTask<Action> futureChoice = new FutureTask<>(() -> dialog.showCommandLinks(choices));
-        PlatformUtils.runLater(futureChoice);
-        final Action choice = futureChoice.get();
+        final Action choice = getUserResponse(() -> dialog.showCommandLinks(choices));
 
         if (choice == Dialog.ACTION_CANCEL) {
             LOG.debug("Dialog cancelled.");
@@ -175,12 +157,8 @@ public class DialogChoiceProvider implements ChoiceProvider {
             .title(String.format("Search results for: '%s'", name))
             .masthead(path.toString());
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing all search results...");
-        final FutureTask<Optional<GameRawBriefInfo>> futureChoice = new FutureTask<>(() -> dialog.showChoices(briefInfos));
-        PlatformUtils.runLater(futureChoice);
-
-        final Optional<GameRawBriefInfo> choice = futureChoice.get();
+        final Optional<GameRawBriefInfo> choice = getUserResponse(() -> dialog.showChoices(briefInfos));
         if (choice.isPresent()) {
             LOG.info("Choice from multiple results: '{}'", choice.get());
         } else {
@@ -195,11 +173,8 @@ public class DialogChoiceProvider implements ChoiceProvider {
             .title(String.format("Select new name for: '%s'", name))
             .masthead(path.toString());
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing new name dialog...");
-        final FutureTask<Optional<String>> futureChoice = new FutureTask<>(() -> dialog.showTextInput(name));
-        PlatformUtils.runLater(futureChoice);
-        final Optional<String> newName = futureChoice.get();
+        final Optional<String> newName = getUserResponse(() -> dialog.showTextInput(name));
         if (newName.isPresent()) {
             LOG.info("New name chosen: '{}'", newName.get());
         } else {
@@ -209,16 +184,40 @@ public class DialogChoiceProvider implements ChoiceProvider {
     }
 
     @Override
-    public Optional<String> getLibraryName(Path path, String name, GamePlatform platform) throws Exception {
+    public boolean shouldCreateLibrary(Path path) throws Exception {
+        final StringBuilder sb = new StringBuilder("This path has sub-directories. Would you like to create a library out of it?\n");
+        final List<Path> childDirectories = FileUtils.listChildDirectories(path);
+        for (Path childDirectory : childDirectories) {
+            sb.append('\t');
+            sb.append(childDirectory.toString());
+            sb.append('\n');
+        }
+
+        final Dialogs dialog = createDialog()
+            .title("Create library?")
+            .masthead(path.toString())
+            .message(sb.toString());
+
+        LOG.debug("Showing create library confirmation dialog...");
+        final Action response = getUserResponse(dialog::showConfirm);
+        final boolean yes = response == Dialog.ACTION_YES;
+        if (yes) {
+            LOG.info("Library creation requested: '{}'", path);
+        } else {
+            LOG.debug("Dialog cancelled.");
+        }
+        return yes;
+    }
+
+    @Override
+    public Optional<String> getLibraryName(Path path, GamePlatform platform) throws Exception {
         final Dialogs dialog = createDialog()
             .title("Enter library name")
             .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform));
 
-        // Dialog must be displayed on JavaFx thread.
         LOG.debug("Showing library name dialog...");
-        final FutureTask<Optional<String>> futureChoice = new FutureTask<>(() -> dialog.showTextInput(name));
-        PlatformUtils.runLater(futureChoice);
-        final Optional<String> libraryName = futureChoice.get();
+        final String defaultName = path.getFileName().toString();
+        final Optional<String> libraryName = getUserResponse(() -> dialog.showTextInput(defaultName));
 
         if (libraryName.isPresent()) {
             LOG.info("Library name: '{}'", libraryName.get());
@@ -230,5 +229,12 @@ public class DialogChoiceProvider implements ChoiceProvider {
 
     private Dialogs createDialog() {
         return Dialogs.create().owner(stage);
+    }
+
+    private <V> V getUserResponse(Callable<V> callable) throws Exception {
+        // Dialog must be displayed on JavaFx thread.
+        final FutureTask<V> futureTask = new FutureTask<>(callable);
+        PlatformUtils.runLater(futureTask);
+        return futureTask.get();
     }
 }

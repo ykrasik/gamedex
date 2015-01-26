@@ -21,7 +21,7 @@ public interface GameManager {
 
     LocalGame getGameById(Id<LocalGame> id);
     Optional<LocalGame> getGameByPath(Path path);
-    boolean isGameMapped(Path path);
+    boolean isPathMapped(Path path);
 
     ObservableList<LocalGame> getAllGames();
 
