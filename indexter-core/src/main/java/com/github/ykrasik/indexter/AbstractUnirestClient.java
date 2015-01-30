@@ -21,7 +21,7 @@ public class AbstractUnirestClient extends AbstractService {
 
     protected <T> T assertOkAndGet(HttpResponse<T> httpResponse) {
         if (httpResponse.getCode() != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("Error: " + httpResponse.getCode());
+            throw new RuntimeException("HTTP response is not OK, code: " + httpResponse.getCode());
         }
         return httpResponse.getBody();
     }

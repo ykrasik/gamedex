@@ -7,6 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.collections.*?>
 
 <BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <center>
@@ -27,7 +28,7 @@
                               <Button fx:id="refetchGames" mnemonicParsing="false" onAction="#refreshLibraries" text="Re-Fetch Games" />
                               <Region prefWidth="36.0" />
                               <Label text="Sort:" />
-                              <ComboBox fx:id="gameWallSort" prefWidth="150.0" />
+                              <ComboBox fx:id="gameSort" />
                           </items>
                         </ToolBar>
                         <HBox VBox.vgrow="ALWAYS">
@@ -47,13 +48,13 @@
                                        <content>
                                           <TableView fx:id="gamesTable">
                                             <columns>
-                                              <TableColumn fx:id="gameNameColumn" prefWidth="250.0" text="Name" />
-                                              <TableColumn fx:id="gamePlatformColumn" minWidth="0.0" prefWidth="57.0" text="Platform" />
-                                                <TableColumn fx:id="gameReleaseDateColumn" text="Release Date" />
-                                                <TableColumn fx:id="gameCriticScoreColumn" prefWidth="76.0" text="Critic Score" />
-                                                <TableColumn fx:id="gameCriticScoreVisualColumn" prefWidth="110.0" text="Critic Score Visual" />
-                                                <TableColumn fx:id="gameUserScoreColumn" prefWidth="71.0" text="User Score" />
-                                                <TableColumn fx:id="gamePathColumn" prefWidth="424.0" text="Path" />
+                                              <TableColumn fx:id="gameNameColumn" editable="false" prefWidth="260.0" sortable="false" text="Name" />
+                                              <TableColumn fx:id="gamePlatformColumn" editable="false" minWidth="0.0" prefWidth="57.0" sortable="false" text="Platform" />
+                                                <TableColumn fx:id="gameReleaseDateColumn" editable="false" prefWidth="77.0" sortable="false" text="Release Date" />
+                                                <TableColumn fx:id="gameCriticScoreColumn" editable="false" prefWidth="68.0" sortable="false" text="Critic Score" />
+                                                <TableColumn fx:id="gameUserScoreColumn" editable="false" prefWidth="64.0" sortable="false" text="User Score" />
+                                                <TableColumn fx:id="gamePathColumn" editable="false" prefWidth="478.0" sortable="false" text="Path" />
+                                                <TableColumn fx:id="gameDateAddedColumn" editable="false" prefWidth="75.0" sortable="false" text="Date Added" />
                                             </columns>
                                           </TableView>
                                        </content>

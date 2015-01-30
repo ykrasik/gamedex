@@ -185,7 +185,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return;
         }
 
-        // TODO: Excludes should belong to the containig library, not the libraryManager.
+        // TODO: Excludes should belong to their own manager.
         if (libraryManager.isExcluded(path)) {
             LOG.debug("{} is excluded, skipping...", path);
             return;

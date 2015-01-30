@@ -15,6 +15,8 @@ import java.util.function.Predicate;
 /**
  * @author Yevgeny Krasik
  */
+// TODO: This class doesn't do much, either move more logic here or get rid of it
+// TODO: Should probably be in charge of fetching games too, and not flowManager.
 public interface GameManager {
     LocalGame addGame(Game game, Path path) throws DataException;
     void deleteGame(LocalGame game) throws DataException;

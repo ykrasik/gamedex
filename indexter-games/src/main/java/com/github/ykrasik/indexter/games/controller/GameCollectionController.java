@@ -7,10 +7,8 @@ import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
-import com.github.ykrasik.indexter.ui.FixedRating;
 import com.github.ykrasik.indexter.util.Optionals;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -45,7 +43,7 @@ public class GameCollectionController {
 
     @FXML private GridView<LocalGame> gameWall;
 
-    @FXML private ComboBox<GameSort> gameWallSort;
+    @FXML private ComboBox<String> gameSort;
 
     @FXML private TextField searchBox;
 
@@ -59,6 +57,7 @@ public class GameCollectionController {
     // TODO: Save Genres properly.
     // TODO: Allow filtering by genre type.
     // TODO: Add right-click menus to library list.
+    // TODO: Add logback.
 
     // FIXME: Keep each tab in it's own FXML.
     @FXML private ImageView poster;
@@ -75,9 +74,9 @@ public class GameCollectionController {
     @FXML private TableColumn<LocalGame, String> gamePlatformColumn;
     @FXML private TableColumn<LocalGame, String> gameReleaseDateColumn;
     @FXML private TableColumn<LocalGame, Number> gameCriticScoreColumn;
-    @FXML private TableColumn<LocalGame, FixedRating> gameCriticScoreVisualColumn;
     @FXML private TableColumn<LocalGame, Number> gameUserScoreColumn;
     @FXML private TableColumn<LocalGame, String> gamePathColumn;
+    @FXML private TableColumn<LocalGame, String> gameDateAddedColumn;
 
     @FXML private TableView<LocalLibrary> libraries;
     @FXML private TableColumn<LocalLibrary, String> libraryName;
@@ -110,61 +109,18 @@ public class GameCollectionController {
     public void initialize() {
         mainBorderPane.setBottom(flowManager.getStatusBar());
 
-        gameWall.setCellFactory(param -> {
-            final GameInfoCell cell = new GameInfoCell();
-            cell.getStyleClass().add("gameTile");
-            cell.setOnMouseClicked(event -> {
-                final LocalGame game = cell.getItem();
-                displayGameOnSidePanel(game);
-                event.consume();
-            });
-
-            // FIXME: Do this through FXML.
-            final ContextMenu contextMenu = new ContextMenu();
-            final MenuItem deleteItem = new MenuItem("Delete");
-            deleteItem.setOnAction(e -> {
-                final LocalGame game = cell.getItem();
-                gameManager.deleteGame(game);
-            });
-            contextMenu.getItems().addAll(deleteItem);
-            cell.setContextMenu(contextMenu);
-            return cell;
-        });
-
-        gameWall.itemsProperty().bind(gameManager.itemsProperty());
-
-        gameWallSort.setItems(FXCollections.observableArrayList(GameSort.values()));
-        gameWallSort.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<GameSort>() {
-            @Override
-            public void changed(ObservableValue<? extends GameSort> observable, GameSort oldValue, GameSort newValue) {
-                gameManager.sort(newValue);
-            }
-        });
-
-        searchBox.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue.isEmpty()) {
-                    gameManager.unFilter();
-                } else {
-                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getGame().getName(), newValue));
-                }
-            }
-        });
+        initGameWall();
+        initGameSearchBox();
+        initGameSortBox();
 
         gamesTable.itemsProperty().bind(gameManager.itemsProperty());
         gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getName()));
         gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getPlatform().toString()));
         gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGame().getReleaseDate())));
         gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getCriticScore().orElse(0.0)));
-        gameCriticScoreVisualColumn.setCellValueFactory(e -> {
-            final FixedRating rating = new FixedRating(5);
-            rating.setPartialRating(true);
-            rating.setRating(e.getValue().getGame().getCriticScore().orElse(0.0) / 100 * 5);
-            return new SimpleObjectProperty<>(rating);
-        });
         gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getUserScore().orElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
+        gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
 
         gamesTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LocalGame>() {
             @Override
@@ -179,6 +135,52 @@ public class GameCollectionController {
         libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPlatform().toString()));
         libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPath().toString()));
         libraries.itemsProperty().bind(libraryManager.itemsProperty());
+
+//        libraries.setContextMenu(createLibraryContextMenu());
+    }
+
+    private void initGameWall() {
+        gameWall.setCellFactory(param -> {
+            final GameInfoCell cell = new GameInfoCell();
+            cell.getStyleClass().add("gameTile");
+            cell.setOnMouseClicked(event -> {
+                final LocalGame game = cell.getItem();
+                displayGameOnSidePanel(game);
+                event.consume();
+            });
+
+            addGameInfoCellContextMenu(cell);
+            return cell;
+        });
+        gameWall.itemsProperty().bind(gameManager.itemsProperty());
+    }
+
+    private void initGameSearchBox() {
+        searchBox.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (newValue.isEmpty()) {
+                    gameManager.unFilter();
+                } else {
+                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getGame().getName(), newValue));
+                }
+            }
+        });
+    }
+
+    private void initGameSortBox() {
+        gameSort.setItems(FXCollections.observableArrayList(GameSort.getKeys()));
+        gameSort.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                final GameSort sort = GameSort.fromString(newValue);
+                if (sort == null) {
+                    throw new IllegalArgumentException("Invalid sort: " + newValue);
+                }
+                gameManager.sort(sort);
+            }
+        });
+        gameSort.setValue(GameSort.DATE_ADDED.getKey());
     }
 
     private void displayGameOnSidePanel(LocalGame localGame) {
@@ -194,6 +196,34 @@ public class GameCollectionController {
         criticScore.setText(toString(game.getCriticScore()));
         userScore.setText(toString(game.getUserScore()));
     }
+
+    private void addGameInfoCellContextMenu(GameInfoCell cell) {
+        final ContextMenu contextMenu = new ContextMenu();
+
+        final MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setOnAction(e -> {
+            final LocalGame game = cell.getItem();
+            gameManager.deleteGame(game);
+        });
+
+        contextMenu.getItems().addAll(deleteItem);
+        cell.setContextMenu(contextMenu);
+    }
+
+//    private ContextMenu createLibraryContextMenu() {
+//        final ContextMenu contextMenu = new ContextMenu();
+//
+//        final MenuItem deleteItem = new MenuItem("Delete");
+//        deleteItem.setOnAction(e -> {
+//            final Object source = e.getSource();
+//            final EventTarget target = e.getTarget();
+////            final LocalGame game = cell.getItem();
+////            libraryManager.deleteLibrary(game);
+//        });
+//
+//        contextMenu.getItems().addAll(deleteItem);
+//        return contextMenu;
+//    }
 
     private <T> String toString(Optional<T> optional) {
         return Optionals.toString(optional, "Unavailable");

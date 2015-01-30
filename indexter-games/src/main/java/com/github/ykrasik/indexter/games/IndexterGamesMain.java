@@ -51,6 +51,7 @@ public class IndexterGamesMain extends Application {
             }
         };
 
+        // FIXME: Should create a new stage on the background thread, while the preloader is loading.
         preloader.start(loadContextTask, context -> {
             this.context = context;
             final Scene mainScene = new Scene(context.getBean("gameCollection", Parent.class));
