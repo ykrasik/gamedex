@@ -1,5 +1,7 @@
 package com.github.ykrasik.indexter.util;
 
+import com.github.ykrasik.indexter.util.exception.FunctionThrows;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,10 @@ public final class Optionals {
 
     public static <T> String toString(Optional<T> optional, String absent) {
         return optional.map(Object::toString).orElse(absent);
+    }
+
+    public static <T> String toStringOrUnavailable(Optional<T> optional) {
+        return toString(optional, "Unavailable");
     }
 
     public static <T> Optional<T> or(Optional<T> that, Optional<T> other) {

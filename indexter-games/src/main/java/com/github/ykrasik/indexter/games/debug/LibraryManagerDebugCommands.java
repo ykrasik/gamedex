@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
-import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.jerminal.api.annotation.Command;
@@ -30,31 +30,31 @@ public class LibraryManagerDebugCommands implements DebugCommands {
 
     @Command
     public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final LocalLibrary library = libraryManager.getLibraryById(new Id<>(id));
+        final Library library = libraryManager.getLibraryById(new Id<>(id));
         outputPrinter.println(library.toString());
     }
 
     @Command
     public void getByPath(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        final Optional<LocalLibrary> library = libraryManager.getLibraryByPath(Paths.get(path));
+        final Optional<Library> library = libraryManager.getLibraryByPath(Paths.get(path));
         outputPrinter.println(library.map(Object::toString).orElse("Not found!"));
     }
 
     @Command
     public void all(OutputPrinter outputPrinter) throws Exception {
-        final ObservableList<LocalLibrary> libraries = libraryManager.getAllLibraries();
+        final ObservableList<Library> libraries = libraryManager.getAllLibraries();
         libraries.forEach(library -> outputPrinter.println(library.toString()));
     }
 
     @Command
     public void delete(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final LocalLibrary library = libraryManager.getLibraryById(new Id<>(id));
+        final Library library = libraryManager.getLibraryById(new Id<>(id));
         libraryManager.deleteLibrary(library);
     }
 
     @Command
     public void clear(OutputPrinter outputPrinter) throws Exception {
-        final List<LocalLibrary> libraries = new ArrayList<>(libraryManager.getAllLibraries());
+        final List<Library> libraries = new ArrayList<>(libraryManager.getAllLibraries());
         libraries.forEach(libraryManager::deleteLibrary);
     }
 }

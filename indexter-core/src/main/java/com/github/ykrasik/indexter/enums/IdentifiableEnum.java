@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter;
+package com.github.ykrasik.indexter.enums;
 
 /**
  * @author Yevgeny Krasik

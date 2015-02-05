@@ -2,9 +2,9 @@ package com.github.ykrasik.indexter.games.manager.library;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
-import com.github.ykrasik.indexter.games.datamodel.Library;
-import com.github.ykrasik.indexter.games.datamodel.LocalGame;
-import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.PlatformUtils;
@@ -25,8 +25,8 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     private final GameCollectionConfig config;
     private final PersistenceService persistenceService;
 
-    private ObservableList<LocalLibrary> libraries = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<LocalLibrary>> itemsProperty = new SimpleObjectProperty<>();
+    private ObservableList<Library> libraries = FXCollections.emptyObservableList();
+    private ObjectProperty<ObservableList<Library>> itemsProperty = new SimpleObjectProperty<>();
 
     public LibraryManagerImpl(PersistenceService persistenceService, GameCollectionConfig config) {
         this.persistenceService = Objects.requireNonNull(persistenceService);
@@ -45,17 +45,17 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public LocalLibrary addLibrary(Library library) {
-        final LocalLibrary localLibrary = persistenceService.addLibrary(library);
+    public Library createLibrary(String name, Path path, GamePlatform platform) {
+        final Library library = persistenceService.addLibrary(name, path, platform);
 
         // Update cache.
-        PlatformUtils.runLater(() -> libraries.add(localLibrary));
+        PlatformUtils.runLater(() -> libraries.add(library));
 
-        return localLibrary;
+        return library;
     }
 
     @Override
-    public void deleteLibrary(LocalLibrary library) {
+    public void deleteLibrary(Library library) {
         // Delete from db.
         persistenceService.deleteLibrary(library.getId());
 
@@ -64,12 +64,12 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public LocalLibrary getLibraryById(Id<LocalLibrary> id) {
+    public Library getLibraryById(Id<Library> id) {
         return persistenceService.getLibraryById(id);
     }
 
     @Override
-    public Optional<LocalLibrary> getLibraryByPath(Path path) {
+    public Optional<Library> getLibraryByPath(Path path) {
         return persistenceService.getLibraryByPath(path);
     }
 
@@ -79,17 +79,17 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public ObservableList<LocalLibrary> getAllLibraries() {
+    public ObservableList<Library> getAllLibraries() {
         return libraries;
     }
 
     @Override
-    public void addGameToLibrary(LocalGame game, LocalLibrary library) {
+    public void addGameToLibrary(Game game, Library library) {
         persistenceService.addGameToLibrary(game, library);
     }
 
     @Override
-    public ReadOnlyObjectProperty<ObservableList<LocalLibrary>> itemsProperty() {
+    public ReadOnlyObjectProperty<ObservableList<Library>> itemsProperty() {
         return itemsProperty;
     }
 

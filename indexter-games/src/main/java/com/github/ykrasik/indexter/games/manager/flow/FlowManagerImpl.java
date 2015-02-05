@@ -2,21 +2,23 @@ package com.github.ykrasik.indexter.games.manager.flow;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
-import com.github.ykrasik.indexter.games.datamodel.*;
-import com.github.ykrasik.indexter.games.info.GameInfoService;
-import com.github.ykrasik.indexter.games.info.GameRawBriefInfo;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombGameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearchResult;
+import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticGameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSearchResult;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
 import com.github.ykrasik.indexter.games.manager.flow.choice.ChoiceProvider;
-import com.github.ykrasik.indexter.games.manager.flow.choice.MultipleSearchResultsChoice;
-import com.github.ykrasik.indexter.games.manager.flow.choice.NoSearchResultsChoice;
+import com.github.ykrasik.indexter.games.manager.flow.choice.type.Choice;
+import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceData;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.util.FileUtils;
-import com.github.ykrasik.indexter.util.Optionals;
 import com.github.ykrasik.indexter.util.PlatformUtils;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Button;
@@ -24,7 +26,10 @@ import org.controlsfx.control.StatusBar;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -39,15 +44,9 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     private final LibraryManager libraryManager;
     private final GameManager gameManager;
-    private final GameInfoService metacriticInfoService;
-    private final GameInfoService giantBombInfoService;
+    private final MetacriticGameInfoService metacriticInfoService;
+    private final GiantBombGameInfoService giantBombInfoService;
     private final ChoiceProvider choiceProvider;
-
-    private final StringProperty currentLibrary = new SimpleStringProperty();
-    private final StringProperty currentPath = new SimpleStringProperty();
-    private final StringProperty message = new SimpleStringProperty();
-    private final DoubleProperty refreshLibrariesProgress = new SimpleDoubleProperty();
-    private final DoubleProperty refreshLibraryProgress = new SimpleDoubleProperty();
 
     private final Button stopRefreshButton = new Button("Stop");
     private final StatusBar statusBar = new StatusBar();
@@ -56,8 +55,8 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     public FlowManagerImpl(LibraryManager libraryManager,
                            GameManager gameManager,
-                           GameInfoService metacriticInfoService,
-                           GameInfoService giantBombInfoService,
+                           MetacriticGameInfoService metacriticInfoService,
+                           GiantBombGameInfoService giantBombInfoService,
                            ChoiceProvider choiceProvider) {
         this.libraryManager = Objects.requireNonNull(libraryManager);
         this.gameManager = Objects.requireNonNull(gameManager);
@@ -66,8 +65,6 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         this.choiceProvider = Objects.requireNonNull(choiceProvider);
 
         statusBar.setText("Welcome to inDexter!");
-        statusBar.textProperty().bind(message);
-        statusBar.progressProperty().bind(refreshLibraryProgress);
         statusBar.getRightItems().add(stopRefreshButton);
 
         stopRefreshButton.setDisable(true);
@@ -98,14 +95,12 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private void doRefreshLibraries() throws Exception {
         info("Refreshing libraries...");
 
-        PlatformUtils.runLater(() -> refreshLibrariesProgress.setValue(0));
-        final List<LocalLibrary> libraries = libraryManager.getAllLibraries();
+        final List<Library> libraries = libraryManager.getAllLibraries();
         final int total = libraries.size();
         for (int i = 0; i < total; i++) {
-            final LocalLibrary library = libraries.get(i);
+            setProgress(i, total);
+            final Library library = libraries.get(i);
             refreshLibrary(library);
-            final double current = i;
-            PlatformUtils.runLater(() -> refreshLibrariesProgress.setValue(current / total));
         }
 
         info("Finished refreshing libraries.");
@@ -125,11 +120,11 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private void doCleanupGames() {
         info("Cleaning up games...");
 
-        final List<LocalGame> obsoleteGames = new ArrayList<>();
-        final ObservableList<LocalGame> games = gameManager.getAllGames();
+        final List<Game> obsoleteGames = new ArrayList<>();
+        final ObservableList<Game> games = gameManager.getAllGames();
         for (int i = 0; i < games.size(); i++) {
             setProgress(i, games.size());
-            final LocalGame game = games.get(i);
+            final Game game = games.get(i);
             final Path path = game.getPath();
             if (!Files.exists(path)) {
                 info("Obsolete path detected: %s", path);
@@ -143,7 +138,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     @Override
-    public void processPath(LocalLibrary library, Path path, ExceptionHandler exceptionHandler) {
+    public void processPath(Library library, Path path, ExceptionHandler exceptionHandler) {
         submit(new Task<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -158,45 +153,40 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return statusBar;
     }
 
-    private void refreshLibrary(LocalLibrary localLibrary) throws Exception {
-        final Library library = localLibrary.getLibrary();
+    private void refreshLibrary(Library library) throws Exception {
         info("Refreshing library: '%s'", library);
-        PlatformUtils.runLater(() -> currentLibrary.setValue(library.getName()));
 
-        PlatformUtils.runLater(() -> refreshLibraryProgress.setValue(0));
         final List<Path> directories = FileUtils.listChildDirectories(library.getPath());
         final int total = directories.size();
         for (int i = 0; i < total; i++) {
+            setProgress(i, total);
             final Path path = directories.get(i);
-            doProcessPath(localLibrary, path);
-            final double current = i;
-            PlatformUtils.runLater(() -> refreshLibraryProgress.setValue(current / total));
+            doProcessPath(library, path);
         }
 
-        info("Finished refreshing library: '%s'", localLibrary);
+        info("Finished refreshing library: '%s'", library);
     }
 
-    private void doProcessPath(LocalLibrary library, Path path) throws Exception {
-        LOG.debug("Processing path: {}...", path);
-        PlatformUtils.runLater(() -> currentPath.setValue(path.toString()));
+    private void doProcessPath(Library library, Path path) throws Exception {
+        info("Processing path: {}...", path);
 
         if (libraryManager.isLibrary(path)) {
-            LOG.debug("{} is a library, skipping...", path);
+            info("{} is a library, skipping...", path);
             return;
         }
 
         // TODO: Excludes should belong to their own manager.
         if (libraryManager.isExcluded(path)) {
-            LOG.debug("{} is excluded, skipping...", path);
+            info("{} is excluded, skipping...", path);
             return;
         }
 
         if (gameManager.isPathMapped(path)) {
-            LOG.debug("{} is already mapped, skipping...", path);
+            info("{} is already mapped, skipping...", path);
             return;
         }
 
-        if (tryCreateLibrary(path, library.getLibrary().getPlatform())) {
+        if (tryCreateLibrary(path, library.getPlatform())) {
             return;
         }
 
@@ -220,10 +210,9 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
-        final Library newLibrary = new Library(libraryName.get(), path, platform);
-        final LocalLibrary localLibrary = libraryManager.addLibrary(newLibrary);
-        info("New library created: %s", newLibrary);
-        refreshLibrary(localLibrary);
+        final Library library = libraryManager.createLibrary(libraryName.get(), path, platform);
+        info("New library created: %s", library);
+        refreshLibrary(library);
         return true;
     }
 
@@ -234,163 +223,143 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     // FIXME: There should be an explicit "skip" button. Any other form of cancellation should show the prev screen.
-    private void addPath(LocalLibrary library, Path path, String name) throws Exception {
-        final GamePlatform platform = library.getLibrary().getPlatform();
+    private void addPath(Library library, Path path, String name) throws Exception {
+        final GamePlatform platform = library.getPlatform();
         LOG.debug("addPath: path={}, name='{}', platform={}", path, name, platform);
 
-        final Optional<Game> metacriticGameOptional = getMetacriticGame(path, name, platform);
+        final Optional<MetacriticGameInfo> metacriticGameOptional = getMetacriticGame(path, name, platform);
         if (metacriticGameOptional.isPresent()) {
-            final Game metacriticGame = metacriticGameOptional.get();
-            LOG.debug("Metacritic gameInfo: {}", metacriticGame);
-            final Optional<Game> giantBombGameOptional = getGiantBombGame(path, metacriticGame.getName(), platform);
-            final Game game;
+            final MetacriticGameInfo metacriticGameInfo = metacriticGameOptional.get();
+            LOG.debug("Metacritic gameInfo: {}", metacriticGameInfo);
+
+            // FIXME: This is not good enough, giantbomb should be able to cancel the process too.
+            // FIXME: Use exceptions?
+            final Optional<GiantBombGameInfo> giantBombGameOptional = getGiantBombGame(path, metacriticGameInfo.getName(), platform);
+            final GameInfo gameInfo;
             if (giantBombGameOptional.isPresent()) {
-                final Game giantBombGame = giantBombGameOptional.get();
-                LOG.debug("GiantBomb gameInfo: {}", giantBombGame);
-                game = mergeGameInfo(metacriticGame, giantBombGame);
+                final GiantBombGameInfo giantBombGameInfo = giantBombGameOptional.get();
+                LOG.debug("GiantBomb gameInfo: {}", giantBombGameInfo);
+                gameInfo = GameInfo.merge(metacriticGameInfo, giantBombGameInfo);
             } else {
                 LOG.debug("GiantBomb gameInfo not found.");
-                game = metacriticGame;
+                gameInfo = GameInfo.from(metacriticGameInfo);
             }
 
-            final LocalGame localGame = gameManager.addGame(game, path);
-            libraryManager.addGameToLibrary(localGame, library);
+            final Game game = gameManager.addGame(gameInfo, path, platform);
+            libraryManager.addGameToLibrary(game, library);
         }
     }
 
-    private Optional<Game> getMetacriticGame(Path path, String name, GamePlatform platform) throws Exception {
-        debug("Searching Metacritic for '%s'[%s]...", name, platform);
-        final List<GameRawBriefInfo> briefInfos = metacriticInfoService.searchGames(name, platform);
-        debug("Metacritic Search: '%s'[%s] found %d results.", name, platform, briefInfos.size());
+    private Optional<MetacriticGameInfo> getMetacriticGame(Path path, String name, GamePlatform platform) throws Exception {
+        info("Searching Metacritic for '%s'[%s]...", name, platform);
+        final List<MetacriticSearchResult> searchResults = metacriticInfoService.searchGames(name, platform);
+        info("Metacritic Search: '%s'[%s] found %d results.", name, platform, searchResults.size());
 
-        if (briefInfos.isEmpty()) {
+        if (searchResults.isEmpty()) {
             return handleNoMetacriticSearchResults(path, name, platform);
         }
 
-        if (briefInfos.size() > 1) {
-            return handleMultipleMetacriticSearchResults(path, name, platform, briefInfos);
+        if (searchResults.size() > 1) {
+            return handleMultipleMetacriticSearchResults(path, name, platform, searchResults);
         }
 
-        final GameRawBriefInfo briefInfo = briefInfos.get(0);
-        return Optional.of(fetchMetacriticGameInfo(briefInfo, platform));
+        final MetacriticSearchResult singleSearchResult = searchResults.get(0);
+        return Optional.of(fetchMetacriticGameInfo(singleSearchResult, platform));
     }
 
-    private Optional<Game> getGiantBombGame(Path path, String name, GamePlatform platform) throws Exception {
-        debug("Searching GiantBomb for '%s'[%s]...", name, platform);
-        final List<GameRawBriefInfo> briefInfos = giantBombInfoService.searchGames(name, platform);
-        debug("GiantBomb Search: '%s'[%s] found %d results.", name, platform, briefInfos.size());
+    private Optional<GiantBombGameInfo> getGiantBombGame(Path path, String name, GamePlatform platform) throws Exception {
+        info("Searching GiantBomb for '%s'[%s]...", name, platform);
+        final List<GiantBombSearchResult> searchResults = giantBombInfoService.searchGames(name, platform);
+        info("GiantBomb Search: '%s'[%s] found %d results.", name, platform, searchResults.size());
 
-        if (briefInfos.isEmpty()) {
-            return selectNewGiantBombName(path, name, platform);
+        if (searchResults.isEmpty()) {
+            return handleNoGiantBombSearchResults(path, name, platform);
         }
 
-        if (briefInfos.size() > 1) {
-            return handleMultipleGiantBombSearchResults(path, name, platform, briefInfos);
+        if (searchResults.size() > 1) {
+            return handleMultipleGiantBombSearchResults(path, name, platform, searchResults);
         }
 
-        final GameRawBriefInfo briefInfo = briefInfos.get(0);
-        return Optional.of(fetchGiantBombGameInfo(briefInfo, platform));
+        final GiantBombSearchResult singleSearchResult = searchResults.get(0);
+        return Optional.of(fetchGiantBombGameInfo(singleSearchResult, platform));
     }
 
-    private Optional<Game> handleNoMetacriticSearchResults(Path path, String name, GamePlatform platform) throws Exception {
-        final NoSearchResultsChoice choice = choiceProvider.getNoMetacriticSearchResultsChoice(path, name, platform);
-        switch (choice) {
+    private Optional<MetacriticGameInfo> handleNoMetacriticSearchResults(Path path, String name, GamePlatform platform) throws Exception {
+        final Choice choice = choiceProvider.onNoMetacriticSearchResults(name, platform, path);
+        switch (choice.getType()) {
             case NEW_NAME:
-                return selectNewMetacriticName(path, name, platform);
-
-            case EXCLUDE:
-                excludePath(path);
-                break;
-
-            case SKIP:
-                break;
+                final String newName = (String) ((ChoiceData) choice).getChoice();
+                return getMetacriticGame(path, newName, platform);
+            case EXCLUDE: excludePath(path); break;
+            default: break;
         }
         return Optional.empty();
     }
 
-    private Optional<Game> selectNewMetacriticName(Path path, String name, GamePlatform platform) throws Exception {
-        final Optional<String> newName = choiceProvider.selectNewName(path, name, platform);
-        return Optionals.flatMap(newName, nameChoice -> getMetacriticGame(path, nameChoice, platform));
+    private Optional<GiantBombGameInfo> handleNoGiantBombSearchResults(Path path, String name, GamePlatform platform) throws Exception {
+        final Choice choice = choiceProvider.onNoGiantBombSearchResults(name, platform, path);
+        switch (choice.getType()) {
+            case NEW_NAME:
+                final String newName = (String) ((ChoiceData) choice).getChoice();
+                return getGiantBombGame(path, newName, platform);
+            case EXCLUDE: excludePath(path); break;
+            default: break;
+        }
+        return Optional.empty();
     }
 
-    private Optional<Game> selectNewGiantBombName(Path path, String name, GamePlatform platform) throws Exception {
-        final Optional<String> newName = choiceProvider.selectNewName(path, name, platform);
-        return Optionals.flatMap(newName, nameChoice -> getGiantBombGame(path, nameChoice, platform));
-    }
-
-    private Optional<Game> handleMultipleMetacriticSearchResults(Path path,
-                                                                 String name,
-                                                                 GamePlatform platform,
-                                                                 List<GameRawBriefInfo> briefInfos) throws Exception {
-        final MultipleSearchResultsChoice choice = choiceProvider.getMultipleMetacriticSearchResultsChoice(path, name, platform, briefInfos);
-        switch (choice) {
+    private Optional<MetacriticGameInfo> handleMultipleMetacriticSearchResults(Path path,
+                                                                               String name,
+                                                                               GamePlatform platform,
+                                                                               List<MetacriticSearchResult> searchResults) throws Exception {
+        final Choice choice = choiceProvider.onMultipleMetacriticSearchResults(name, platform, path, searchResults);
+        switch (choice.getType()) {
             case CHOOSE:
-                return chooseFromMultipleMetacriticSearchResults(path, name, platform, briefInfos);
+                final MetacriticSearchResult searchResult = (MetacriticSearchResult) ((ChoiceData) choice).getChoice();
+                return Optional.of(fetchMetacriticGameInfo(searchResult, platform));
 
             case NEW_NAME:
-                return selectNewMetacriticName(path, name, platform);
+                final String newName = (String) ((ChoiceData) choice).getChoice();
+                return getMetacriticGame(path, newName, platform);
 
-            case EXCLUDE:
-                excludePath(path);
-                break;
-
-            case SKIP:
-                break;
+            case EXCLUDE: excludePath(path); break;
+            default: break;
         }
         return Optional.empty();
     }
 
-    private Optional<Game> chooseFromMultipleMetacriticSearchResults(Path path,
-                                                                     String name,
-                                                                     GamePlatform platform,
-                                                                     List<GameRawBriefInfo> briefInfos) throws Exception {
-        final Optional<GameRawBriefInfo> choice = choiceProvider.chooseFromMultipleResults(path, name, platform, briefInfos);
-        return Optionals.map(choice, chosen -> fetchMetacriticGameInfo(chosen, platform));
-    }
-
-    private Optional<Game> handleMultipleGiantBombSearchResults(Path path,
-                                                                String name,
-                                                                GamePlatform platform,
-                                                                List<GameRawBriefInfo> briefInfos) throws Exception {
-        final MultipleSearchResultsChoice choice = choiceProvider.getMultipleGiantBombSearchResultsChoice(path, name, platform, briefInfos);
-        switch (choice) {
+    private Optional<GiantBombGameInfo> handleMultipleGiantBombSearchResults(Path path,
+                                                                             String name,
+                                                                             GamePlatform platform,
+                                                                             List<GiantBombSearchResult> searchResults) throws Exception {
+        final Choice choice = choiceProvider.onMultipleGiantBombSearchResults(name, platform, path, searchResults);
+        switch (choice.getType()) {
             case CHOOSE:
-                return chooseFromMultipleGiantBombSearchResults(path, name, platform, briefInfos);
+                final GiantBombSearchResult searchResult = (GiantBombSearchResult) ((ChoiceData) choice).getChoice();
+                return Optional.of(fetchGiantBombGameInfo(searchResult, platform));
 
             case NEW_NAME:
-                return selectNewGiantBombName(path, name, platform);
+                final String newName = (String) ((ChoiceData) choice).getChoice();
+                return getGiantBombGame(path, newName, platform);
 
-            default:
-                break;
+            default: break;
         }
         return Optional.empty();
-    }
-
-    private Optional<Game> chooseFromMultipleGiantBombSearchResults(Path path,
-                                                                    String name,
-                                                                    GamePlatform platform,
-                                                                    List<GameRawBriefInfo> briefInfos) throws Exception {
-        final Optional<GameRawBriefInfo> choice = choiceProvider.chooseFromMultipleResults(path, name, platform, briefInfos);
-        return Optionals.map(choice, chosen -> fetchGiantBombGameInfo(chosen, platform));
     }
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
-    private Game fetchMetacriticGameInfo(GameRawBriefInfo briefInfo, GamePlatform platform) throws Exception {
-        LOG.debug("Getting Metacritic gameInfo from brief: {}", briefInfo);
-        PlatformUtils.runLater(() -> message.setValue(String.format("Fetching game info: '%s'...", briefInfo.getName())));
-
-        return metacriticInfoService.getGameInfo(briefInfo.getName(), platform).orElseThrow(
-            () -> new IndexterException("Specific Metacritic search found nothing: %s", briefInfo)
+    private MetacriticGameInfo fetchMetacriticGameInfo(MetacriticSearchResult searchResult, GamePlatform platform) throws Exception {
+        info("Fetching game from Metacritic: '%s'[%s]", searchResult.getName(), platform);
+        return metacriticInfoService.getGameInfo(searchResult.getName(), platform).orElseThrow(
+            () -> new IndexterException("Specific Metacritic search found nothing: %s", searchResult)
         );
     }
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
-    private Game fetchGiantBombGameInfo(GameRawBriefInfo briefInfo, GamePlatform platform) throws Exception {
-        LOG.debug("Getting GiantBomb gameInfo from brief: {}", briefInfo);
-        PlatformUtils.runLater(() -> message.setValue(String.format("Fetching game info: '%s'...", briefInfo.getName())));
-
-        return giantBombInfoService.getGameInfo(briefInfo.getGiantBombApiDetailUrl().get(), platform).orElseThrow(
-            () -> new IndexterException("Specific GiantBomb search found nothing: %s", briefInfo)
+    private GiantBombGameInfo fetchGiantBombGameInfo(GiantBombSearchResult searchResult, GamePlatform platform) throws Exception {
+        info("Fetching game from GiantBomb: '%s'[%s]", searchResult.getName(), platform);
+        return giantBombInfoService.getGameInfo(searchResult.getApiDetailUrl()).orElseThrow(
+            () -> new IndexterException("Specific GiantBomb search found nothing: %s", searchResult)
         );
     }
 
@@ -399,34 +368,10 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         libraryManager.setExcluded(path);
     }
 
-    private Game mergeGameInfo(Game metacriticGame, Game giantBombGame) {
-        final List<String> genres = new ArrayList<>(giantBombGame.getGenres());
-        genres.addAll(metacriticGame.getGenres());
-
-        return new Game(
-            metacriticGame.getName(),
-            metacriticGame.getPlatform(),
-            Optionals.or(giantBombGame.getDescription(), metacriticGame.getDescription()),
-            Optionals.or(metacriticGame.getReleaseDate(), giantBombGame.getReleaseDate()),
-            metacriticGame.getCriticScore(),
-            metacriticGame.getUserScore(),
-            genres,
-            giantBombGame.getGiantBombApiDetailsUrl(),
-            Optionals.or(giantBombGame.getThumbnailData(), metacriticGame.getThumbnailData()),
-            Optionals.or(giantBombGame.getPosterData(), metacriticGame.getPosterData())
-        );
-    }
-
     private void info(String format, Object... args) {
         final String message = String.format(format, args);
         LOG.info(message);
-        PlatformUtils.runLater(() -> this.message.setValue(message));
-    }
-
-    private void debug(String format, Object... args) {
-        final String message = String.format(format, args);
-        LOG.debug(message);
-        PlatformUtils.runLater(() -> this.message.setValue(message));
+        setMessage(message);
     }
 
     private void submit(Task<?> task, ExceptionHandler exceptionHandler) {
@@ -439,11 +384,16 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         stopRefreshButton.disableProperty().bind(task.runningProperty().not());
         stopRefreshButton.setOnAction(e -> {
             task.cancel();
-            message.set("Cancelled");
+            info("Cancelled");
         });
     }
 
     private void setProgress(int current, int total) {
-        PlatformUtils.runLater(() -> refreshLibraryProgress.setValue((double) current / total));
+        final double progress = (double) current / total;
+        PlatformUtils.runLater(() -> statusBar.setProgress(progress));
+    }
+
+    private void setMessage(String message) {
+        PlatformUtils.runLater(() -> statusBar.setText(message));
     }
 }

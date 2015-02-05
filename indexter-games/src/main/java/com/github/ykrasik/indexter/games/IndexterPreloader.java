@@ -1,8 +1,8 @@
 package com.github.ykrasik.indexter.games;
 
-import com.github.ykrasik.indexter.exception.ConsumerWithException;
+import com.github.ykrasik.indexter.util.exception.ConsumerThrows;
+import com.github.ykrasik.indexter.util.PlatformUtils;
 import javafx.animation.FadeTransition;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
@@ -24,6 +24,7 @@ import javafx.util.Duration;
 /**
  * @author Yevgeny Krasik
  */
+// TODO: Needs refactoring... fxml?
 public class IndexterPreloader {
     private static final int SPLASH_WIDTH = 676;
     private static final int SPLASH_HEIGHT = 227;
@@ -54,14 +55,10 @@ public class IndexterPreloader {
     }
 
     public void setMessage(String message) {
-        if (Platform.isFxApplicationThread()) {
-            this.message.setValue(message);
-        } else {
-            Platform.runLater(() -> this.message.setValue(message));
-        }
+        PlatformUtils.runLater(() -> this.message.setValue(message));
     }
 
-    public <T> void start(Task<T> task, ConsumerWithException<T> consumer) {
+    public <T> void start(Task<T> task, ConsumerThrows<T> consumer) {
         progressBar.setProgress(-1);
         setMessage("Loading inDexter...");
 

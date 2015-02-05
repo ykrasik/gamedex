@@ -2,6 +2,7 @@ buildscript {
     ext {
         controlsFxVersion = '8.20.8'
         springVersion = '4.1.1.RELEASE'
+        lombokVersion = '1.16.0'
 
         slf4jVersion = '1.7.6'
         logbackVersion = '1.1.2'
@@ -39,6 +40,7 @@ project("indexter-core") {
     dependencies {
         compile "org.controlsfx:controlsfx:$controlsFxVersion"
         compile "org.springframework:spring-context:$springVersion"
+        compile "org.projectlombok:lombok:$lombokVersion"
 
         compile "org.slf4j:slf4j-api:$slf4jVersion"
         compile "ch.qos.logback:logback-classic:$logbackVersion"

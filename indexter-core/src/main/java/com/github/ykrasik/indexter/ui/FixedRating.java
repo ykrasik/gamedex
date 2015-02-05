@@ -22,6 +22,4 @@ public class FixedRating extends Rating {
     protected Skin<?> createDefaultSkin() {
         return new FixedRatingSkin(this);
     }
-
-
 }

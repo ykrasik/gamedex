@@ -2,12 +2,19 @@ package com.github.ykrasik.indexter.games.controller;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
-import com.github.ykrasik.indexter.games.datamodel.*;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.ImageData;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.game.GameSort;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
+import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.Optionals;
+import com.google.common.base.Joiner;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -32,16 +39,19 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.github.ykrasik.indexter.util.Optionals.toStringOrUnavailable;
+
 /**
  * @author Yevgeny Krasik
  */
 public class GameCollectionController {
     private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
+    private static final Joiner JOINER = Joiner.on(", ").skipNulls();
     public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
     @FXML private BorderPane mainBorderPane;
 
-    @FXML private GridView<LocalGame> gameWall;
+    @FXML private GridView<Game> gameWall;
 
     @FXML private ComboBox<String> gameSort;
 
@@ -68,20 +78,22 @@ public class GameCollectionController {
     @FXML private TextField releaseDate;
     @FXML private TextField criticScore;
     @FXML private TextField userScore;
+    @FXML private TextField genres;
+    @FXML private Hyperlink url;
 
-    @FXML private TableView<LocalGame> gamesTable;
-    @FXML private TableColumn<LocalGame, String> gameNameColumn;
-    @FXML private TableColumn<LocalGame, String> gamePlatformColumn;
-    @FXML private TableColumn<LocalGame, String> gameReleaseDateColumn;
-    @FXML private TableColumn<LocalGame, Number> gameCriticScoreColumn;
-    @FXML private TableColumn<LocalGame, Number> gameUserScoreColumn;
-    @FXML private TableColumn<LocalGame, String> gamePathColumn;
-    @FXML private TableColumn<LocalGame, String> gameDateAddedColumn;
+    @FXML private TableView<Game> gamesTable;
+    @FXML private TableColumn<Game, String> gameNameColumn;
+    @FXML private TableColumn<Game, String> gamePlatformColumn;
+    @FXML private TableColumn<Game, String> gameReleaseDateColumn;
+    @FXML private TableColumn<Game, Number> gameCriticScoreColumn;
+    @FXML private TableColumn<Game, Number> gameUserScoreColumn;
+    @FXML private TableColumn<Game, String> gamePathColumn;
+    @FXML private TableColumn<Game, String> gameDateAddedColumn;
 
-    @FXML private TableView<LocalLibrary> libraries;
-    @FXML private TableColumn<LocalLibrary, String> libraryName;
-    @FXML private TableColumn<LocalLibrary, String> libraryPlatform;
-    @FXML private TableColumn<LocalLibrary, String> libraryPath;
+    @FXML private TableView<Library> libraries;
+    @FXML private TableColumn<Library, String> libraryName;
+    @FXML private TableColumn<Library, String> libraryPlatform;
+    @FXML private TableColumn<Library, String> libraryPath;
 
     private final Stage stage;
     private final GameCollectionConfig config;
@@ -114,26 +126,26 @@ public class GameCollectionController {
         initGameSortBox();
 
         gamesTable.itemsProperty().bind(gameManager.itemsProperty());
-        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getName()));
-        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getGame().getPlatform().toString()));
-        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toString(e.getValue().getGame().getReleaseDate())));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getCriticScore().orElse(0.0)));
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getGame().getUserScore().orElse(0.0)));
+        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
+        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
+        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().orElse(0.0)));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().orElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
         gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
 
-        gamesTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<LocalGame>() {
+        gamesTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Game>() {
             @Override
-            public void changed(ObservableValue<? extends LocalGame> observable, LocalGame oldValue, LocalGame newValue) {
+            public void changed(ObservableValue<? extends Game> observable, Game oldValue, Game newValue) {
                 if (newValue != null) {
                     displayGameOnSidePanel(newValue);
                 }
             }
         });
 
-        libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getName()));
-        libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPlatform().toString()));
-        libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLibrary().getPath().toString()));
+        libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
+        libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
+        libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
         libraries.itemsProperty().bind(libraryManager.itemsProperty());
 
 //        libraries.setContextMenu(createLibraryContextMenu());
@@ -144,7 +156,7 @@ public class GameCollectionController {
             final GameInfoCell cell = new GameInfoCell();
             cell.getStyleClass().add("gameTile");
             cell.setOnMouseClicked(event -> {
-                final LocalGame game = cell.getItem();
+                final Game game = cell.getItem();
                 displayGameOnSidePanel(game);
                 event.consume();
             });
@@ -162,7 +174,7 @@ public class GameCollectionController {
                 if (newValue.isEmpty()) {
                     gameManager.unFilter();
                 } else {
-                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getGame().getName(), newValue));
+                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getName(), newValue));
                 }
             }
         });
@@ -183,18 +195,18 @@ public class GameCollectionController {
         gameSort.setValue(GameSort.DATE_ADDED.getKey());
     }
 
-    private void displayGameOnSidePanel(LocalGame localGame) {
-        final Path path = localGame.getPath();
-        gamePath.setText(path.toString());
+    private void displayGameOnSidePanel(Game game) {
+        gamePath.setText(game.getPath().toString());
 
-        final Game game = localGame.getGame();
-        poster.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).orElse(NOT_AVAILABLE));
+        poster.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).map(ImageData::getImage).orElse(NOT_AVAILABLE));
         name.setText(game.getName());
-        description.setText(toString(game.getDescription()));
+        description.setText(toStringOrUnavailable(game.getDescription()));
         platform.setText(game.getPlatform().name());
-        releaseDate.setText(toString(game.getReleaseDate()));
-        criticScore.setText(toString(game.getCriticScore()));
-        userScore.setText(toString(game.getUserScore()));
+        releaseDate.setText(toStringOrUnavailable(game.getReleaseDate()));
+        criticScore.setText(toStringOrUnavailable(game.getCriticScore()));
+        userScore.setText(toStringOrUnavailable(game.getUserScore()));
+        genres.setText(JOINER.join(ListUtils.map(game.getGenres(), Genre::getName)));
+        url.setText(game.getUrl());
     }
 
     private void addGameInfoCellContextMenu(GameInfoCell cell) {
@@ -202,7 +214,7 @@ public class GameCollectionController {
 
         final MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setOnAction(e -> {
-            final LocalGame game = cell.getItem();
+            final Game game = cell.getItem();
             gameManager.deleteGame(game);
         });
 
@@ -225,10 +237,6 @@ public class GameCollectionController {
 //        return contextMenu;
 //    }
 
-    private <T> String toString(Optional<T> optional) {
-        return Optionals.toString(optional, "Unavailable");
-    }
-
     @FXML
     public void showAddLibraryDialog() {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
@@ -248,7 +256,7 @@ public class GameCollectionController {
                     .masthead(path.toString())
                     .message("Choose library platform:")
                     .showChoices(GamePlatform.values());
-                platform.ifPresent(p -> libraryManager.addLibrary(new Library(path.getFileName().toString(), path, p)));
+                platform.ifPresent(p -> libraryManager.createLibrary(path.getFileName().toString(), path, p));
             } catch (Exception e) {
                 LOG.warn("Error adding library: " + path, e);
                 createDialog().showException(e);

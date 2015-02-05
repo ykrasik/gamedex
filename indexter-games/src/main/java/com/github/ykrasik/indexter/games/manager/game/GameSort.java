@@ -1,7 +1,7 @@
-package com.github.ykrasik.indexter.games.datamodel;
+package com.github.ykrasik.indexter.games.manager.game;
 
-import com.github.ykrasik.indexter.EnumIdConverter;
-import com.github.ykrasik.indexter.IdentifiableEnum;
+import com.github.ykrasik.indexter.enums.EnumIdConverter;
+import com.github.ykrasik.indexter.enums.IdentifiableEnum;
 import com.github.ykrasik.indexter.util.ListUtils;
 
 import java.util.Arrays;

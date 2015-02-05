@@ -20,7 +20,7 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
 
     @Override
     public String searchGames(String name, int platformId) throws Exception {
-        final GetRequest request = getRequest("http://www.giantbomb.com/api/games")
+        final GetRequest request = createGetRequest("http://www.giantbomb.com/api/games")
             .field("filter", String.format("name:%s,platforms:%d", name, platformId))
             .field("field_list", "name,api_detail_url,image,original_release_date")
             .field("sort", "original_release_date:desc");
@@ -28,29 +28,29 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
     }
 
     @Override
-    public String fetchDetails(String apiDetailUrl) throws Exception {
-        final GetRequest request = getRequest(apiDetailUrl)
+    public String fetchGameInfo(String apiDetailUrl) throws Exception {
+        final GetRequest request = createGetRequest(apiDetailUrl)
             .field("field_list", "name,deck,genres,image,original_release_date");
         return get(request);
     }
 
     @Override
     public String fetchCriticReview(String apiDetailUrl) throws Exception {
-        final GetRequest request = getRequest(apiDetailUrl)
+        final GetRequest request = createGetRequest(apiDetailUrl)
             .field("field_list", "deck,publish_date,reviewer,score,site_detail_url");
         return get(request);
     }
 
     @Override
     public String fetchUserReviews(String gameId) throws Exception {
-        final GetRequest request = getRequest("http://www.giantbomb.com/api/user_reviews")
+        final GetRequest request = createGetRequest("http://www.giantbomb.com/api/user_reviews")
             .field("game", gameId)
             .field("field_list", "deck,date_added,reviewer,score,site_detail_url")
             .field("sort", "date_added:desc");
         return get(request);
     }
 
-    private GetRequest getRequest(String url) {
+    private GetRequest createGetRequest(String url) {
         return Unirest.get(url)
             .field("api_key", properties.getApplicationKey())
             .field("format", "json");

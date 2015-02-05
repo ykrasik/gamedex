@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
-import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.id.Id;
@@ -37,7 +37,7 @@ public class FlowManagerDebugCommands implements DebugCommands {
     public void processPath(OutputPrinter outputPrinter,
                             @IntParam("libraryId") int id,
                             @StringParam("path") String path) throws Exception {
-        final LocalLibrary library = libraryManager.getLibraryById(new Id<>(id));
+        final Library library = libraryManager.getLibraryById(new Id<>(id));
         flowManager.processPath(library, Paths.get(path), t -> outputPrinter.println("Error processing path: %s", t.getMessage()));
         outputPrinter.println("Finished processing path: %s", path);
     }

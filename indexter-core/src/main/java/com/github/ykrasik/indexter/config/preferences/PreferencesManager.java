@@ -2,6 +2,7 @@ package com.github.ykrasik.indexter.config.preferences;
 
 import com.github.ykrasik.indexter.util.Optionals;
 import com.github.ykrasik.indexter.util.StringUtils;
+import com.github.ykrasik.indexter.util.exception.FunctionThrows;
 
 import java.io.File;
 import java.util.List;
@@ -33,12 +34,12 @@ public class PreferencesManager {
         preferences.put(name, value);
     }
 
-    public <T> List<T> getList(String name, Function<String, T> deserializer) {
+    public <T> List<T> getList(String name, FunctionThrows<String, T> deserializer) {
         final Optional<String> optionalValue = get(name);
         return Optionals.flatMapToList(optionalValue, value -> StringUtils.parseList(value, deserializer));
     }
 
-    public <T> void putList(String name, List<T> list, Function<T, String> serializer) {
+    public <T> void putList(String name, List<T> list, FunctionThrows<T, String> serializer) {
         final String value = StringUtils.toString(list, serializer);
         preferences.put(name, value);
     }

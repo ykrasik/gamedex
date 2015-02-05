@@ -2,7 +2,7 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
@@ -15,11 +15,11 @@ import java.util.Objects;
  */
 @ShellPath("giantbomb")
 public class GiantBombDebugCommands implements DebugCommands {
-    private final GiantBombGameInfoService service;
+    private final GiantBombGameInfoServiceImpl service;
     private final GiantBombGameInfoClient client;
     private final ObjectMapper objectMapper;
 
-    public GiantBombDebugCommands(GiantBombGameInfoService service,
+    public GiantBombDebugCommands(GiantBombGameInfoServiceImpl service,
                                   GiantBombGameInfoClient client,
                                   ObjectMapper objectMapper) {
         this.service = Objects.requireNonNull(service);
@@ -32,15 +32,13 @@ public class GiantBombDebugCommands implements DebugCommands {
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform platform = GamePlatform.valueOf(platformStr);
-        service.searchGames(name, platform).forEach(result -> outputPrinter.println(String.format("%s - %s", result.getName(), result.getGiantBombApiDetailUrl().orElse("None"))));
+        service.searchGames(name, platform).forEach(result -> outputPrinter.println(String.format("%s - %s", result.getName(), result.getApiDetailUrl())));
     }
 
     @Command
     public void get(OutputPrinter outputPrinter,
-                    @StringParam("name") String name,
-                    @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final GamePlatform platform = GamePlatform.valueOf(platformStr);
-        outputPrinter.println(service.getGameInfo(name, platform).toString());
+                    @StringParam("name") String name) throws Exception {
+        outputPrinter.println(service.getGameInfo(name).toString());
     }
 
     @ShellPath("client")
@@ -57,7 +55,7 @@ public class GiantBombDebugCommands implements DebugCommands {
     @ShellPath("client")
     @Command("get")
     public void clientGet(OutputPrinter outputPrinter, @StringParam("apiDetailUrl") String apiDetailUrl) throws Exception {
-        final String rawJson = client.fetchDetails(apiDetailUrl);
+        final String rawJson = client.fetchGameInfo(apiDetailUrl);
         final Object json = objectMapper.readValue(rawJson, Object.class);
         final String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
         outputPrinter.println(prettyJson);

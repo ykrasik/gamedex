@@ -2,9 +2,9 @@ package com.github.ykrasik.indexter.games.spring;
 
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.debug.*;
-import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
-import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DebugBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
-    public MetacriticDebugCommands metacriticDebugCommands(MetacriticGameInfoService service,
+    public MetacriticDebugCommands metacriticDebugCommands(MetacriticGameInfoServiceImpl service,
                                                            MetacriticGameInfoClient client,
                                                            ObjectMapper objectMapper) {
         preloader.setMessage("Instantiating Metacritic debug commands...");
@@ -27,7 +27,7 @@ public class DebugBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public GiantBombDebugCommands giantBombDebugCommands(GiantBombGameInfoService service,
+    public GiantBombDebugCommands giantBombDebugCommands(GiantBombGameInfoServiceImpl service,
                                                          GiantBombGameInfoClient client,
                                                          ObjectMapper objectMapper) {
         preloader.setMessage("Instantiating GiantBomb debug commands...");

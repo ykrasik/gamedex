@@ -2,6 +2,7 @@ package com.github.ykrasik.indexter.config.properties;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.util.StringUtils;
+import com.github.ykrasik.indexter.util.exception.FunctionThrows;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -56,7 +57,7 @@ public class PropertiesParser {
         return Duration.ofMinutes(getLong(name));
     }
 
-    public <T> List<T> parseList(String name, Function<String, T> f) {
+    public <T> List<T> parseList(String name, FunctionThrows<String, T> f) {
         return StringUtils.parseList(getString(name), f);
     }
 

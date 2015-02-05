@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter;
+package com.github.ykrasik.indexter.enums;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -16,7 +16,7 @@ import java.sql.SQLException;
 public class GameDaoImpl extends BaseDaoImpl<GameEntity, Integer> implements GameDao {
     private final SelectArg pathArg = new SelectArg();
     private final PreparedQuery<GameEntity> pathQuery = queryBuilder().where()
-        .eq(GameEntity.PATH_COLUMN_NAME, pathArg)
+        .eq(GameEntity.PATH_COLUMN, pathArg)
         .prepare();
 
     public GameDaoImpl(Class<GameEntity> dataClass) throws SQLException {

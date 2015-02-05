@@ -2,7 +2,7 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
@@ -15,11 +15,11 @@ import java.util.Objects;
  */
 @ShellPath("metacritic")
 public class MetacriticDebugCommands implements DebugCommands {
-    private final MetacriticGameInfoService service;
+    private final MetacriticGameInfoServiceImpl service;
     private final MetacriticGameInfoClient client;
     private final ObjectMapper objectMapper;
 
-    public MetacriticDebugCommands(MetacriticGameInfoService service,
+    public MetacriticDebugCommands(MetacriticGameInfoServiceImpl service,
                                    MetacriticGameInfoClient client,
                                    ObjectMapper objectMapper) {
         this.service = Objects.requireNonNull(service);

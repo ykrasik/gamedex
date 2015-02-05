@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games.manager.flow;
 
-import com.github.ykrasik.indexter.games.datamodel.LocalLibrary;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import org.controlsfx.control.StatusBar;
 
 import java.nio.file.Path;
@@ -13,7 +13,7 @@ public interface FlowManager {
 
     void cleanupGames(ExceptionHandler exceptionHandler);
 
-    void processPath(LocalLibrary library, Path path, ExceptionHandler exceptionHandler);
+    void processPath(Library library, Path path, ExceptionHandler exceptionHandler);
 
     // FIXME: UGH! This is not where it belongs. Do this through fxml.
     StatusBar getStatusBar();

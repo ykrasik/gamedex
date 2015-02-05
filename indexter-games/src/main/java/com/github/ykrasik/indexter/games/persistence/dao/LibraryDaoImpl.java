@@ -16,7 +16,7 @@ import java.sql.SQLException;
 public class LibraryDaoImpl extends BaseDaoImpl<LibraryEntity, Integer> implements LibraryDao {
     private final SelectArg pathArg = new SelectArg();
     private final PreparedQuery<LibraryEntity> pathQuery = queryBuilder().where()
-        .eq(LibraryEntity.PATH_COLUMN_NAME, pathArg)
+        .eq(LibraryEntity.PATH_COLUMN, pathArg)
         .prepare();
 
     public LibraryDaoImpl(Class<LibraryEntity> dataClass) throws SQLException {

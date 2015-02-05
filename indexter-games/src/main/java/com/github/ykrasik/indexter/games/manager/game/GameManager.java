@@ -1,15 +1,14 @@
 package com.github.ykrasik.indexter.games.manager.game;
 
 import com.github.ykrasik.indexter.exception.DataException;
-import com.github.ykrasik.indexter.games.datamodel.Game;
-import com.github.ykrasik.indexter.games.datamodel.GameSort;
-import com.github.ykrasik.indexter.games.datamodel.LocalGame;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.id.Id;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -18,19 +17,18 @@ import java.util.function.Predicate;
 // TODO: This class doesn't do much, either move more logic here or get rid of it
 // TODO: Should probably be in charge of fetching games too, and not flowManager.
 public interface GameManager {
-    LocalGame addGame(Game game, Path path) throws DataException;
-    void deleteGame(LocalGame game) throws DataException;
+    Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) throws DataException;
+    void deleteGame(Game game) throws DataException;
 
-    LocalGame getGameById(Id<LocalGame> id);
-    Optional<LocalGame> getGameByPath(Path path);
+    Game getGameById(Id<Game> id);
     boolean isPathMapped(Path path);
 
-    ObservableList<LocalGame> getAllGames();
+    ObservableList<Game> getAllGames();
 
     void sort(GameSort sort);
 
-    void filter(Predicate<LocalGame> filter);
+    void filter(Predicate<Game> filter);
     void unFilter();
 
-    ReadOnlyObjectProperty<ObservableList<LocalGame>> itemsProperty();
+    ReadOnlyObjectProperty<ObservableList<Game>> itemsProperty();
 }

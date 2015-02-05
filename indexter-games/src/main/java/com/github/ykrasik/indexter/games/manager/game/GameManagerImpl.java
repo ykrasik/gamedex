@@ -2,9 +2,9 @@ package com.github.ykrasik.indexter.games.manager.game;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
-import com.github.ykrasik.indexter.games.datamodel.Game;
-import com.github.ykrasik.indexter.games.datamodel.GameSort;
-import com.github.ykrasik.indexter.games.datamodel.LocalGame;
+import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.PlatformUtils;
@@ -16,7 +16,6 @@ import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -25,8 +24,8 @@ import java.util.function.Predicate;
 public class GameManagerImpl extends AbstractService implements GameManager {
     private final PersistenceService persistenceService;
 
-    private ObservableList<LocalGame> games = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<LocalGame>> itemsProperty = new SimpleObjectProperty<>();
+    private ObservableList<Game> games = FXCollections.emptyObservableList();
+    private ObjectProperty<ObservableList<Game>> itemsProperty = new SimpleObjectProperty<>();
 
     public GameManagerImpl(PersistenceService persistenceService) {
         this.persistenceService = persistenceService;
@@ -44,17 +43,17 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public LocalGame addGame(Game game, Path path) {
-        final LocalGame localGame = persistenceService.addGame(game, path);
+    public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
+        final Game game = persistenceService.addGame(gameInfo, path, platform);
 
         // Update cache.
-        PlatformUtils.runLater(() -> games.add(localGame));
+        PlatformUtils.runLater(() -> games.add(game));
 
-        return localGame;
+        return game;
     }
 
     @Override
-    public void deleteGame(LocalGame game) {
+    public void deleteGame(Game game) {
         LOG.info("Deleting game: {}...", game);
 
         // Delete from db.
@@ -68,28 +67,23 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public LocalGame getGameById(Id<LocalGame> id) {
+    public Game getGameById(Id<Game> id) {
         return persistenceService.getGameById(id);
     }
 
     @Override
-    public Optional<LocalGame> getGameByPath(Path path) {
-        return persistenceService.getGameByPath(path);
-    }
-
-    @Override
     public boolean isPathMapped(Path path) {
-        return getGameByPath(path).isPresent();
+        return persistenceService.hasGameForPath(path);
     }
 
     @Override
-    public ObservableList<LocalGame> getAllGames() {
+    public ObservableList<Game> getAllGames() {
         return games;
     }
 
     @Override
     public void sort(GameSort sort) {
-        final Comparator<LocalGame> comparator = getComparator(sort);
+        final Comparator<Game> comparator = getComparator(sort);
         PlatformUtils.runLater(() -> {
             FXCollections.sort(games, comparator);
             refreshItemsProperty();
@@ -97,8 +91,8 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public void filter(Predicate<LocalGame> filter) {
-        final ObservableList<LocalGame> filteredGames = games.filtered(filter);
+    public void filter(Predicate<Game> filter) {
+        final ObservableList<Game> filteredGames = games.filtered(filter);
         PlatformUtils.runLater(() -> itemsProperty.setValue(filteredGames));
     }
 
@@ -107,7 +101,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
         PlatformUtils.runLater(this::refreshItemsProperty);
     }
 
-    private Comparator<LocalGame> getComparator(GameSort sort) {
+    private Comparator<Game> getComparator(GameSort sort) {
         switch (sort) {
             case DATE_ADDED: return GameComparators.dateAddedComparator();
             case NAME: return GameComparators.nameComparator();
@@ -119,7 +113,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public ReadOnlyObjectProperty<ObservableList<LocalGame>> itemsProperty() {
+    public ReadOnlyObjectProperty<ObservableList<Game>> itemsProperty() {
         return itemsProperty;
     }
 

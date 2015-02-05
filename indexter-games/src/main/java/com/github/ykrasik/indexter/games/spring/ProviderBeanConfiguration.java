@@ -1,11 +1,11 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClientImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombPropertiesImpl;
-import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClientImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
@@ -23,11 +23,11 @@ import org.springframework.context.annotation.Configuration;
 public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
     @Qualifier("metacriticInfoService")
     @Bean
-    public MetacriticGameInfoService metacriticGameInfoService(MetacriticGameInfoClient client,
+    public MetacriticGameInfoServiceImpl metacriticGameInfoService(MetacriticGameInfoClient client,
                                                                MetacriticProperties properties,
                                                                ObjectMapper objectMapper) {
         preloader.setMessage("Instantiating Metacritic game info service...");
-        return new MetacriticGameInfoService(client, properties, objectMapper);
+        return new MetacriticGameInfoServiceImpl(client, properties, objectMapper);
     }
 
     @Bean
@@ -44,11 +44,11 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Qualifier("giantBombInfoService")
     @Bean
-    public GiantBombGameInfoService giantBombGameInfoService(GiantBombGameInfoClient client,
+    public GiantBombGameInfoServiceImpl giantBombGameInfoService(GiantBombGameInfoClient client,
                                                              GiantBombProperties properties,
                                                              ObjectMapper objectMapper) {
         preloader.setMessage("Instantiating GiantBomb game info service...");
-        return new GiantBombGameInfoService(client, properties, objectMapper);
+        return new GiantBombGameInfoServiceImpl(client, properties, objectMapper);
     }
 
     @Bean

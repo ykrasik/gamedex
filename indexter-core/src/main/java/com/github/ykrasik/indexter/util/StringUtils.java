@@ -1,6 +1,7 @@
 package com.github.ykrasik.indexter.util;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
+import com.github.ykrasik.indexter.util.exception.FunctionThrows;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -25,7 +26,7 @@ public final class StringUtils {
     private StringUtils() {
     }
 
-    public static <T> List<T> parseList(String str, Function<String, T> deserializer) {
+    public static <T> List<T> parseList(String str, FunctionThrows<String, T> deserializer) {
         final List<String> splitList = LIST_SPLITTER.splitToList(str);
         return ListUtils.map(splitList, deserializer);
     }
@@ -45,7 +46,7 @@ public final class StringUtils {
         return map;
     }
 
-    public static <T> String toString(List<T> list, Function<T, String> serializer) {
+    public static <T> String toString(List<T> list, FunctionThrows<T, String> serializer) {
         final List<String> stringList = ListUtils.map(list, serializer);
         return LIST_JOINER.join(stringList);
     }
