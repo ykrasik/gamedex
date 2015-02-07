@@ -1,6 +1,6 @@
-package com.github.ykrasik.indexter.util;
+package com.github.ykrasik.indexter.optional;
 
-import com.github.ykrasik.indexter.util.exception.FunctionThrows;
+import com.github.ykrasik.indexter.exception.FunctionThrows;
 
 import java.util.Collections;
 import java.util.List;

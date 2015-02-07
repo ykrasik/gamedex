@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.util.exception;
+package com.github.ykrasik.indexter.exception;
 
 /**
  * @author Yevgeny Krasik

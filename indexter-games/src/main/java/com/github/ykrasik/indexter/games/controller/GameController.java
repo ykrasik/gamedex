@@ -12,8 +12,10 @@ import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.game.GameSort;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.ui.GameInfoCell;
+import com.github.ykrasik.indexter.games.ui.SearchableCheckListViewDialog;
+import com.github.ykrasik.indexter.optional.Optionals;
 import com.github.ykrasik.indexter.util.ListUtils;
-import com.github.ykrasik.indexter.util.Optionals;
+import com.github.ykrasik.indexter.util.PlatformUtils;
 import com.google.common.base.Joiner;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -24,11 +26,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.StringUtils;
+import lombok.NonNull;
 import org.controlsfx.control.GridView;
+import org.controlsfx.control.StatusBar;
 import org.controlsfx.dialog.Dialogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,40 +40,45 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-import static com.github.ykrasik.indexter.util.Optionals.toStringOrUnavailable;
+import static com.github.ykrasik.indexter.optional.Optionals.toStringOrUnavailable;
 
 /**
  * @author Yevgeny Krasik
  */
-public class GameCollectionController {
-    private static final Logger LOG = LoggerFactory.getLogger(GameCollectionController.class);
+// TODO: Display total number of games somewhere.
+// TODO: Allow changing thumbnail & poster via right-click.
+// TODO: Add detail view on double click
+// TODO: Add right-click menus to library list.
+// TODO: Add logback.
+public class GameController implements UIManager {
+    private static final Logger LOG = LoggerFactory.getLogger(GameController.class);
     private static final Joiner JOINER = Joiner.on(", ").skipNulls();
-    public static final Image NOT_AVAILABLE = new Image(GameCollectionController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
+    public static final Image NOT_AVAILABLE = new Image(GameController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
-    @FXML private BorderPane mainBorderPane;
-
-    @FXML private GridView<Game> gameWall;
-
-    @FXML private ComboBox<String> gameSort;
+    @FXML private CheckMenuItem showLog;
+    @FXML private CheckMenuItem showSideBar;
 
     @FXML private TextField searchBox;
+    @FXML private ComboBox<String> gameSort;
 
-    // TODO: Display total number of games somewhere.
-    // TODO: Allow changing thumbnail & poster via right-click.
-    // TODO: Disable sort on list view, and set default sort to name based.
-    // TODO: Add detail view on double click
-    // TODO: Side bar should be hideable
-    // TODO: Add hideable bottom text logger
-    // TODO: Add metacritic Url
-    // TODO: Save Genres properly.
-    // TODO: Allow filtering by genre type.
-    // TODO: Add right-click menus to library list.
-    // TODO: Add logback.
+    @FXML private HBox contentScreen;
+    @FXML private GridView<Game> gameWall;
+
+    @FXML private TableView<Game> gamesTable;
+    @FXML private TableColumn<Game, String> gameNameColumn;
+    @FXML private TableColumn<Game, String> gamePlatformColumn;
+    @FXML private TableColumn<Game, String> gameReleaseDateColumn;
+    @FXML private TableColumn<Game, Number> gameCriticScoreColumn;
+    @FXML private TableColumn<Game, Number> gameUserScoreColumn;
+    @FXML private TableColumn<Game, String> gamePathColumn;
+    @FXML private TableColumn<Game, String> gameDateAddedColumn;
 
     // FIXME: Keep each tab in it's own FXML.
+    @FXML private VBox sideBar;
     @FXML private ImageView poster;
     @FXML private TextField gamePath;
     @FXML private TextField name;
@@ -81,51 +90,50 @@ public class GameCollectionController {
     @FXML private TextField genres;
     @FXML private Hyperlink url;
 
-    @FXML private TableView<Game> gamesTable;
-    @FXML private TableColumn<Game, String> gameNameColumn;
-    @FXML private TableColumn<Game, String> gamePlatformColumn;
-    @FXML private TableColumn<Game, String> gameReleaseDateColumn;
-    @FXML private TableColumn<Game, Number> gameCriticScoreColumn;
-    @FXML private TableColumn<Game, Number> gameUserScoreColumn;
-    @FXML private TableColumn<Game, String> gamePathColumn;
-    @FXML private TableColumn<Game, String> gameDateAddedColumn;
+    @FXML private VBox bottomContainer;
+    @FXML private StatusBar statusBar;
+    @FXML private Button statusBarStopButton;
+    @FXML private TextArea logTextArea;
 
     @FXML private TableView<Library> libraries;
     @FXML private TableColumn<Library, String> libraryName;
     @FXML private TableColumn<Library, String> libraryPlatform;
     @FXML private TableColumn<Library, String> libraryPath;
 
-    private final Stage stage;
-    private final GameCollectionConfig config;
-    private final FlowManager flowManager;
-    private final GameManager gameManager;
-    private final LibraryManager libraryManager;
+    private Stage stage;
+    private GameCollectionConfig config;
+    private FlowManager flowManager;
+    private GameManager gameManager;
+    private LibraryManager libraryManager;
 
     private File prevDirectory;
 
-    public GameCollectionController(Stage stage,
-                                    GameCollectionConfig config,
-                                    FlowManager flowManager,
-                                    GameManager gameManager,
-                                    LibraryManager libraryManager) {
-        this.stage = Objects.requireNonNull(stage);
-        this.config = Objects.requireNonNull(config);
-        this.flowManager = Objects.requireNonNull(flowManager);
-        this.gameManager = Objects.requireNonNull(gameManager);
-        this.libraryManager = Objects.requireNonNull(libraryManager);
+    public void setDependencies(@NonNull Stage stage,
+                                @NonNull GameCollectionConfig config,
+                                @NonNull FlowManager flowManager,
+                                @NonNull GameManager gameManager,
+                                @NonNull LibraryManager libraryManager) {
+        this.stage = stage;
+        this.config = config;
+        this.flowManager = flowManager;
+        this.gameManager = gameManager;
+        this.libraryManager = libraryManager;
 
         prevDirectory = config.getPrevDirectory().orElse(null);
+
+        gameWall.itemsProperty().bind(gameManager.gamesProperty());
+        gamesTable.itemsProperty().bind(gameManager.gamesProperty());
+        libraries.itemsProperty().bind(libraryManager.librariesProperty());
+
+        gameSort.setValue(GameSort.NAME.getKey());
     }
 
     // Called by JavaFx
     public void initialize() {
-        mainBorderPane.setBottom(flowManager.getStatusBar());
-
         initGameWall();
         initGameSearchBox();
         initGameSortBox();
 
-        gamesTable.itemsProperty().bind(gameManager.itemsProperty());
         gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
         gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
         gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
@@ -146,9 +154,24 @@ public class GameCollectionController {
         libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
         libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
         libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
-        libraries.itemsProperty().bind(libraryManager.itemsProperty());
 
 //        libraries.setContextMenu(createLibraryContextMenu());
+
+        showLog.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                bottomContainer.getChildren().add(0, logTextArea);
+            } else {
+                bottomContainer.getChildren().remove(logTextArea);
+            }
+        });
+
+        showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                contentScreen.getChildren().add(sideBar);
+            } else {
+                contentScreen.getChildren().remove(sideBar);
+            }
+        });
     }
 
     private void initGameWall() {
@@ -164,7 +187,6 @@ public class GameCollectionController {
             addGameInfoCellContextMenu(cell);
             return cell;
         });
-        gameWall.itemsProperty().bind(gameManager.itemsProperty());
     }
 
     private void initGameSearchBox() {
@@ -172,9 +194,9 @@ public class GameCollectionController {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (newValue.isEmpty()) {
-                    gameManager.unFilter();
+                    gameManager.noNameFilter();
                 } else {
-                    gameManager.filter(localGame -> StringUtils.containsIgnoreCase(localGame.getName(), newValue));
+                    gameManager.nameFilter(newValue);
                 }
             }
         });
@@ -192,7 +214,6 @@ public class GameCollectionController {
                 gameManager.sort(sort);
             }
         });
-        gameSort.setValue(GameSort.DATE_ADDED.getKey());
     }
 
     private void displayGameOnSidePanel(Game game) {
@@ -237,8 +258,33 @@ public class GameCollectionController {
 //        return contextMenu;
 //    }
 
+    @Override
+    public void updateProgress(int current, int total) {
+        PlatformUtils.runLaterIfNecessary(() -> statusBar.setProgress((double) current / total));
+    }
+
+    @Override
+    public void printMessage(String message) {
+        PlatformUtils.runLaterIfNecessary(() -> {
+            statusBar.setText(message);
+            logTextArea.appendText(message);
+            logTextArea.appendText("\n");
+        });
+        LOG.info(message);
+    }
+
+    @Override
+    public void printMessage(String format, Object... args) {
+        printMessage(String.format(format, args));
+    }
+
+    @Override
+    public void configureStatusBarStopButton(Consumer<Button> statusBarStopButtonConfigurator) {
+        statusBarStopButtonConfigurator.accept(statusBarStopButton);
+    }
+
     @FXML
-    public void showAddLibraryDialog() {
+    public void addLibrary() {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
@@ -277,6 +323,22 @@ public class GameCollectionController {
         flowManager.cleanupGames(t -> {
             LOG.warn("Error cleaning up games:", t);
             createDialog().title("Error cleaning up games!").showException(t) ;
+        });
+    }
+
+    @FXML
+    public void filterGenres() {
+        final Optional<List<Genre>> selectedGenres = new SearchableCheckListViewDialog<Genre>()
+            .owner(stage)
+            .title("Select Genres:")
+            .show(gameManager.getAllGenres());
+
+        selectedGenres.ifPresent(genres -> {
+            if (genres.isEmpty()) {
+                gameManager.noGenreFilter();
+            } else {
+                gameManager.genreFilter(genres);
+            }
         });
     }
 

@@ -12,6 +12,7 @@ import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManagerImpl;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManagerImpl;
+import com.github.ykrasik.indexter.games.controller.UIManager;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import javafx.stage.Stage;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +41,9 @@ public class ManagersBeanConfiguration extends AbstractBeanConfiguration {
                                    GameManager gameManager,
                                    MetacriticGameInfoService metacriticInfoService,
                                    GiantBombGameInfoService giantBombInfoService,
-                                   ChoiceProvider choiceProvider) {
-        return new FlowManagerImpl(libraryManager, gameManager, metacriticInfoService, giantBombInfoService, choiceProvider);
+                                   ChoiceProvider choiceProvider,
+                                   UIManager uiManager) {
+        return new FlowManagerImpl(libraryManager, gameManager, metacriticInfoService, giantBombInfoService, choiceProvider, uiManager);
     }
 
     @Bean
@@ -51,8 +53,8 @@ public class ManagersBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public LibraryManager libraryManager(PersistenceService persistenceService, GameCollectionConfig config) {
+    public LibraryManager libraryManager(GameCollectionConfig config, PersistenceService persistenceService) {
         preloader.setMessage("Instantiating library manager...");
-        return new LibraryManagerImpl(persistenceService, config);
+        return new LibraryManagerImpl(config, persistenceService);
     }
 }

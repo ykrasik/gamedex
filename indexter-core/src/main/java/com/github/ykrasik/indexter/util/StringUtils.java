@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.util;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
-import com.github.ykrasik.indexter.util.exception.FunctionThrows;
+import com.github.ykrasik.indexter.exception.FunctionThrows;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 

@@ -9,7 +9,7 @@ public final class PlatformUtils {
     private PlatformUtils() {
     }
 
-    public static void runLater(Runnable runnable) {
+    public static void runLaterIfNecessary(Runnable runnable) {
         if (Platform.isFxApplicationThread()) {
             runnable.run();
         } else {

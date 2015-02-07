@@ -7,10 +7,12 @@ import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSea
 import com.github.ykrasik.indexter.games.manager.flow.choice.type.Choice;
 import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceData;
 import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceType;
+import com.github.ykrasik.indexter.games.ui.SearchResultDialog;
 import com.github.ykrasik.indexter.util.FileUtils;
 import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
-import com.github.ykrasik.indexter.util.exception.SupplierThrows;
+import com.github.ykrasik.indexter.exception.SupplierThrows;
+import javafx.collections.FXCollections;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
@@ -285,17 +287,16 @@ public class DialogChoiceProvider implements ChoiceProvider {
                                                                            Path path,
                                                                            GamePlatform platform,
                                                                            List<MetacriticSearchResult> searchResults) throws Exception {
-        final Dialogs dialog = createDialog()
-            .title(String.format("Metacritic search results for: '%s'[%s]", name, platform))
-            .masthead(path.toString());
+        final SearchResultDialog<MetacriticSearchResult> dialog = new SearchResultDialog<MetacriticSearchResult>()
+            .owner(stage)
+            .title(String.format("Metacritic search results for: '%s'[%s]", name, platform));
 
-        final List<MetacriticSearchResultChoice> choices = ListUtils.map(searchResults, MetacriticSearchResultChoice::new);
 
         LOG.debug("Showing all search results...");
-        final Optional<MetacriticSearchResultChoice> choice = getUserResponse(() -> dialog.showChoices(choices));
+        final Optional<MetacriticSearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
             LOG.debug("Choice from multiple results: '{}'", choice.get());
-            return Optional.of(new ChoiceData(ChoiceType.CHOOSE, choice.get().getSearchResult()));
+            return Optional.of(new ChoiceData(ChoiceType.CHOOSE, choice.get()));
         } else {
             LOG.debug("Dialog cancelled.");
             return Optional.empty();
@@ -330,7 +331,7 @@ public class DialogChoiceProvider implements ChoiceProvider {
     private <V> V getUserResponse(Callable<V> callable) throws Exception {
         // Dialog must be displayed on JavaFx thread.
         final FutureTask<V> futureTask = new FutureTask<>(callable);
-        PlatformUtils.runLater(futureTask);
+        PlatformUtils.runLaterIfNecessary(futureTask);
         return futureTask.get();
     }
 }

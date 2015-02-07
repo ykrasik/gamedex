@@ -9,9 +9,9 @@ import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
-import javafx.collections.ObservableList;
 
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,13 +32,13 @@ public class GameManagerDebugCommands implements DebugCommands {
     }
 
     @Command
-    public void isPathMapped(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        outputPrinter.println(String.valueOf(gameManager.isPathMapped(Paths.get(path))));
+    public void isGame(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
+        outputPrinter.println(String.valueOf(gameManager.isGame(Paths.get(path))));
     }
 
     @Command
     public void all(OutputPrinter outputPrinter) throws Exception {
-        final ObservableList<Game> games = gameManager.getAllGames();
+        final List<Game> games = gameManager.getAllGames();
         games.forEach(game -> outputPrinter.println(game.toString()));
     }
 

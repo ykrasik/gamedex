@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.manager.flow.choice;
 
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearchResult;
-import com.github.ykrasik.indexter.util.Optionals;
+import com.github.ykrasik.indexter.optional.Optionals;
 
 import java.util.Objects;
 

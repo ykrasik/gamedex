@@ -3,7 +3,7 @@ package com.github.ykrasik.indexter.games.datamodel.info;
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombGameInfo;
 import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticGameInfo;
-import com.github.ykrasik.indexter.util.Optionals;
+import com.github.ykrasik.indexter.optional.Optionals;
 import lombok.*;
 
 import java.time.LocalDate;

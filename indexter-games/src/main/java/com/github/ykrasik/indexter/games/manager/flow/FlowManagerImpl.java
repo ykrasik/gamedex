@@ -2,6 +2,7 @@ package com.github.ykrasik.indexter.games.manager.flow;
 
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
+import com.github.ykrasik.indexter.games.controller.UIManager;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombGameInfo;
@@ -18,17 +19,15 @@ import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceData;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.util.FileUtils;
-import com.github.ykrasik.indexter.util.PlatformUtils;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.scene.control.Button;
-import org.controlsfx.control.StatusBar;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,42 +36,21 @@ import java.util.regex.Pattern;
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 public class FlowManagerImpl extends AbstractService implements FlowManager {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
 
-    // FIXME: Log everything to a textual logger.
-
-    private final LibraryManager libraryManager;
-    private final GameManager gameManager;
-    private final MetacriticGameInfoService metacriticInfoService;
-    private final GiantBombGameInfoService giantBombInfoService;
-    private final ChoiceProvider choiceProvider;
-
-    private final Button stopRefreshButton = new Button("Stop");
-    private final StatusBar statusBar = new StatusBar();
+    @NonNull private final LibraryManager libraryManager;
+    @NonNull private final GameManager gameManager;
+    @NonNull private final MetacriticGameInfoService metacriticInfoService;
+    @NonNull private final GiantBombGameInfoService giantBombInfoService;
+    @NonNull private final ChoiceProvider choiceProvider;
+    @NonNull private final UIManager uiManager;
 
     private ExecutorService executorService;
 
-    public FlowManagerImpl(LibraryManager libraryManager,
-                           GameManager gameManager,
-                           MetacriticGameInfoService metacriticInfoService,
-                           GiantBombGameInfoService giantBombInfoService,
-                           ChoiceProvider choiceProvider) {
-        this.libraryManager = Objects.requireNonNull(libraryManager);
-        this.gameManager = Objects.requireNonNull(gameManager);
-        this.metacriticInfoService = Objects.requireNonNull(metacriticInfoService);
-        this.giantBombInfoService = Objects.requireNonNull(giantBombInfoService);
-        this.choiceProvider = Objects.requireNonNull(choiceProvider);
-
-        statusBar.setText("Welcome to inDexter!");
-        statusBar.getRightItems().add(stopRefreshButton);
-
-        stopRefreshButton.setDisable(true);
-        stopRefreshButton.setCancelButton(true);
-    }
-
     @Override
-    protected void doStart() throws Exception {
+    protected void doStart() {
         executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -96,10 +74,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         info("Refreshing libraries...");
 
         final List<Library> libraries = libraryManager.getAllLibraries();
-        final int total = libraries.size();
-        for (int i = 0; i < total; i++) {
-            setProgress(i, total);
-            final Library library = libraries.get(i);
+        for (Library library : libraries) {
             refreshLibrary(library);
         }
 
@@ -121,7 +96,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         info("Cleaning up games...");
 
         final List<Game> obsoleteGames = new ArrayList<>();
-        final ObservableList<Game> games = gameManager.getAllGames();
+        final List<Game> games = gameManager.getAllGames();
         for (int i = 0; i < games.size(); i++) {
             setProgress(i, games.size());
             final Game game = games.get(i);
@@ -133,7 +108,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         info("Detected %d obsolete games.", obsoleteGames.size());
-        obsoleteGames.forEach(gameManager::deleteGame);
+        gameManager.deleteGames(obsoleteGames);
         info("Removed %d obsolete games.", obsoleteGames.size());
     }
 
@@ -148,51 +123,50 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }, exceptionHandler);
     }
 
-    @Override
-    public StatusBar getStatusBar() {
-        return statusBar;
-    }
-
     private void refreshLibrary(Library library) throws Exception {
-        info("Refreshing library: '%s'", library);
+        info("Refreshing library: '%s'[%s]\n", library.getName(), library.getPlatform());
 
         final List<Path> directories = FileUtils.listChildDirectories(library.getPath());
         final int total = directories.size();
         for (int i = 0; i < total; i++) {
             setProgress(i, total);
             final Path path = directories.get(i);
-            doProcessPath(library, path);
+            if (doProcessPath(library, path)) {
+                info("");
+            }
         }
 
-        info("Finished refreshing library: '%s'", library);
+        info("Finished refreshing library: '%s'[%s]", library.getName(), library.getPlatform());
+        setProgress(0, 1);
     }
 
-    private void doProcessPath(Library library, Path path) throws Exception {
-        info("Processing path: {}...", path);
-
+    private boolean doProcessPath(Library library, Path path) throws Exception {
         if (libraryManager.isLibrary(path)) {
-            info("{} is a library, skipping...", path);
-            return;
+            LOG.info("{} is a library, skipping...", path);
+            return false;
         }
 
         // TODO: Excludes should belong to their own manager.
         if (libraryManager.isExcluded(path)) {
-            info("{} is excluded, skipping...", path);
-            return;
+            LOG.info("{} is excluded, skipping...", path);
+            return false;
         }
 
-        if (gameManager.isPathMapped(path)) {
-            info("{} is already mapped, skipping...", path);
-            return;
+        if (gameManager.isGame(path)) {
+            LOG.info("{} is already mapped, skipping...", path);
+            return false;
         }
 
         if (tryCreateLibrary(path, library.getPlatform())) {
-            return;
+            return true;
         }
 
+        info("Processing path: %s...", path);
+        setProgress(-1, 1);
         final String name = getName(path);
         addPath(library, path, name);
-        LOG.debug("Finished Processing {}.", path);
+        info("Finished Processing %s.", path);
+        return true;
     }
 
     private boolean tryCreateLibrary(Path path, GamePlatform platform) throws Exception {
@@ -211,7 +185,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         final Library library = libraryManager.createLibrary(libraryName.get(), path, platform);
-        info("New library created: %s", library);
+        info("New library created: '%s'", library.getName());
         refreshLibrary(library);
         return true;
     }
@@ -225,7 +199,6 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     // FIXME: There should be an explicit "skip" button. Any other form of cancellation should show the prev screen.
     private void addPath(Library library, Path path, String name) throws Exception {
         final GamePlatform platform = library.getPlatform();
-        LOG.debug("addPath: path={}, name='{}', platform={}", path, name, platform);
 
         final Optional<MetacriticGameInfo> metacriticGameOptional = getMetacriticGame(path, name, platform);
         if (metacriticGameOptional.isPresent()) {
@@ -241,7 +214,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                 LOG.debug("GiantBomb gameInfo: {}", giantBombGameInfo);
                 gameInfo = GameInfo.merge(metacriticGameInfo, giantBombGameInfo);
             } else {
-                LOG.debug("GiantBomb gameInfo not found.");
+                info("Game not found on GiantBomb.");
                 gameInfo = GameInfo.from(metacriticGameInfo);
             }
 
@@ -253,7 +226,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private Optional<MetacriticGameInfo> getMetacriticGame(Path path, String name, GamePlatform platform) throws Exception {
         info("Searching Metacritic for '%s'[%s]...", name, platform);
         final List<MetacriticSearchResult> searchResults = metacriticInfoService.searchGames(name, platform);
-        info("Metacritic Search: '%s'[%s] found %d results.", name, platform, searchResults.size());
+        info("Found %d results.", searchResults.size());
 
         if (searchResults.isEmpty()) {
             return handleNoMetacriticSearchResults(path, name, platform);
@@ -270,7 +243,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private Optional<GiantBombGameInfo> getGiantBombGame(Path path, String name, GamePlatform platform) throws Exception {
         info("Searching GiantBomb for '%s'[%s]...", name, platform);
         final List<GiantBombSearchResult> searchResults = giantBombInfoService.searchGames(name, platform);
-        info("GiantBomb Search: '%s'[%s] found %d results.", name, platform, searchResults.size());
+        info("Found %d results.", searchResults.size());
 
         if (searchResults.isEmpty()) {
             return handleNoGiantBombSearchResults(path, name, platform);
@@ -312,7 +285,10 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                                                                                String name,
                                                                                GamePlatform platform,
                                                                                List<MetacriticSearchResult> searchResults) throws Exception {
-        final Choice choice = choiceProvider.onMultipleMetacriticSearchResults(name, platform, path, searchResults);
+        final List<MetacriticSearchResult> sortedSearchResults = new ArrayList<>(searchResults);
+        Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateComparator());
+
+        final Choice choice = choiceProvider.onMultipleMetacriticSearchResults(name, platform, path, sortedSearchResults);
         switch (choice.getType()) {
             case CHOOSE:
                 final MetacriticSearchResult searchResult = (MetacriticSearchResult) ((ChoiceData) choice).getChoice();
@@ -332,7 +308,10 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                                                                              String name,
                                                                              GamePlatform platform,
                                                                              List<GiantBombSearchResult> searchResults) throws Exception {
-        final Choice choice = choiceProvider.onMultipleGiantBombSearchResults(name, platform, path, searchResults);
+        final List<GiantBombSearchResult> sortedSearchResults = new ArrayList<>(searchResults);
+        Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateComparator());
+
+        final Choice choice = choiceProvider.onMultipleGiantBombSearchResults(name, platform, path, sortedSearchResults);
         switch (choice.getType()) {
             case CHOOSE:
                 final GiantBombSearchResult searchResult = (GiantBombSearchResult) ((ChoiceData) choice).getChoice();
@@ -349,51 +328,48 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
     private MetacriticGameInfo fetchMetacriticGameInfo(MetacriticSearchResult searchResult, GamePlatform platform) throws Exception {
-        info("Fetching game from Metacritic: '%s'[%s]", searchResult.getName(), platform);
-        return metacriticInfoService.getGameInfo(searchResult.getName(), platform).orElseThrow(
+        info("Fetching from Metacritic....");
+        final MetacriticGameInfo gameInfo = metacriticInfoService.getGameInfo(searchResult.getName(), platform).orElseThrow(
             () -> new IndexterException("Specific Metacritic search found nothing: %s", searchResult)
         );
+        info("Fetched.");
+        return gameInfo;
     }
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
     private GiantBombGameInfo fetchGiantBombGameInfo(GiantBombSearchResult searchResult, GamePlatform platform) throws Exception {
-        info("Fetching game from GiantBomb: '%s'[%s]", searchResult.getName(), platform);
-        return giantBombInfoService.getGameInfo(searchResult.getApiDetailUrl()).orElseThrow(
+        info("Fetching from GiantBomb...");
+        final GiantBombGameInfo gameInfo = giantBombInfoService.getGameInfo(searchResult.getApiDetailUrl()).orElseThrow(
             () -> new IndexterException("Specific GiantBomb search found nothing: %s", searchResult)
         );
+        info("Fetched.");
+        return gameInfo;
     }
 
     private void excludePath(Path path) {
-        info("Excluding: %s", path);
+        info("Excluded %s", path);
         libraryManager.setExcluded(path);
     }
 
     private void info(String format, Object... args) {
-        final String message = String.format(format, args);
-        LOG.info(message);
-        setMessage(message);
+        uiManager.printMessage(format, args);
     }
 
     private void submit(Task<?> task, ExceptionHandler exceptionHandler) {
         task.setOnFailed(event -> exceptionHandler.handle(task.getException()));
-        linkStopButton(task);
+        uiManager.configureStatusBarStopButton(button -> {
+            button.disableProperty().bind(task.runningProperty().not());
+            button.visibleProperty().bind(task.runningProperty());
+            button.setOnAction(e -> {
+                info("Cancelled.");
+                uiManager.updateProgress(0, 1);
+                task.cancel();
+            });
+        });
         executorService.submit(task);
     }
 
-    private void linkStopButton(Task<?> task) {
-        stopRefreshButton.disableProperty().bind(task.runningProperty().not());
-        stopRefreshButton.setOnAction(e -> {
-            task.cancel();
-            info("Cancelled");
-        });
-    }
-
     private void setProgress(int current, int total) {
-        final double progress = (double) current / total;
-        PlatformUtils.runLater(() -> statusBar.setProgress(progress));
-    }
-
-    private void setMessage(String message) {
-        PlatformUtils.runLater(() -> statusBar.setText(message));
+        uiManager.updateProgress(current, total);
     }
 }

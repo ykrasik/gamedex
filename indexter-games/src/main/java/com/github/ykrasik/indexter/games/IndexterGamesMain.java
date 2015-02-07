@@ -1,5 +1,10 @@
 package com.github.ykrasik.indexter.games;
 
+import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
+import com.github.ykrasik.indexter.games.controller.GameController;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
+import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.jerminal.javafx.SceneToggler;
 import javafx.application.Application;
 import javafx.concurrent.Task;
@@ -47,7 +52,18 @@ public class IndexterGamesMain extends Application {
         final Task<AbstractApplicationContext> loadContextTask = new Task<AbstractApplicationContext>() {
             @Override
             protected AbstractApplicationContext call() throws InterruptedException {
-                return createContext(mainStage, preloader);
+                final AbstractApplicationContext context = createContext(mainStage, preloader);
+                final GameController controller = context.getBean(GameController.class);
+
+                // TODO: what a hack... This is me performing work that should be done by spring :/
+                controller.setDependencies(
+                    context.getBean(Stage.class),
+                    context.getBean(GameCollectionConfig.class),
+                    context.getBean(FlowManager.class),
+                    context.getBean(GameManager.class),
+                    context.getBean(LibraryManager.class)
+                );
+                return context;
             }
         };
 

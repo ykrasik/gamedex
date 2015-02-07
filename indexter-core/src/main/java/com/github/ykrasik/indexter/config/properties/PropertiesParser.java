@@ -2,7 +2,7 @@ package com.github.ykrasik.indexter.config.properties;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.util.StringUtils;
-import com.github.ykrasik.indexter.util.exception.FunctionThrows;
+import com.github.ykrasik.indexter.exception.FunctionThrows;
 
 import java.io.InputStream;
 import java.time.Duration;

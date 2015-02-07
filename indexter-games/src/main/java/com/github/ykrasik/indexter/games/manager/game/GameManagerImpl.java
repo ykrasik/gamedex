@@ -5,36 +5,49 @@ import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
+import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
+import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
+@RequiredArgsConstructor
 public class GameManagerImpl extends AbstractService implements GameManager {
-    private final PersistenceService persistenceService;
+    private static final Predicate<Game> NO_FILTER = any -> true;
+
+    @NonNull private final PersistenceService persistenceService;
 
     private ObservableList<Game> games = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<Game>> itemsProperty = new SimpleObjectProperty<>();
+    private ObjectProperty<ObservableList<Game>> gamesProperty = new SimpleObjectProperty<>();
 
-    public GameManagerImpl(PersistenceService persistenceService) {
-        this.persistenceService = persistenceService;
-    }
+    private GameSort sort = GameSort.NAME;
+    private Predicate<Game> nameFilter = NO_FILTER;
+    private Predicate<Game> genreFilter = NO_FILTER;
 
     @Override
     protected void doStart() throws Exception {
         this.games = FXCollections.observableArrayList(persistenceService.getAllGames());
-        this.itemsProperty = new SimpleObjectProperty<>(games);
+        this.gamesProperty = new SimpleObjectProperty<>(games);
+        doRefreshGames();
     }
 
     @Override
@@ -45,25 +58,44 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     @Override
     public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
         final Game game = persistenceService.addGame(gameInfo, path, platform);
+        log.info("Added game: {}", game);
 
         // Update cache.
-        PlatformUtils.runLater(() -> games.add(game));
-
+        PlatformUtils.runLaterIfNecessary(() -> {
+            games.add(game);
+            doRefreshGames();
+        });
         return game;
     }
 
     @Override
     public void deleteGame(Game game) {
-        LOG.info("Deleting game: {}...", game);
-
-        // Delete from db.
         persistenceService.deleteGame(game.getId());
+        log.info("Deleted game: {}...", game);
 
         // Delete from cache.
-        PlatformUtils.runLater(() -> {
+        PlatformUtils.runLaterIfNecessary(() -> {
             games.remove(game);
-            refreshItemsProperty();
+            doRefreshGames();
         });
+    }
+
+    @Override
+    public void deleteGames(Collection<Game> games) {
+        for (Game game : games) {
+            persistenceService.deleteGame(game.getId());
+        }
+
+        // Delete from cache.
+        PlatformUtils.runLaterIfNecessary(() -> {
+            this.games.removeAll(games);
+            doRefreshGames();
+        });
+    }
+
+    @Override
+    public List<Game> getAllGames() {
+        return games;
     }
 
     @Override
@@ -72,33 +104,75 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public boolean isPathMapped(Path path) {
+    public boolean isGame(Path path) {
         return persistenceService.hasGameForPath(path);
     }
 
     @Override
-    public ObservableList<Game> getAllGames() {
-        return games;
+    public ObservableList<Genre> getAllGenres() {
+        final ObservableList<Genre> genres = FXCollections.observableArrayList(persistenceService.getAllGenres());
+        FXCollections.sort(genres);
+        return genres;
+    }
+
+    @Override
+    public ReadOnlyProperty<ObservableList<Game>> gamesProperty() {
+        return gamesProperty;
     }
 
     @Override
     public void sort(GameSort sort) {
-        final Comparator<Game> comparator = getComparator(sort);
-        PlatformUtils.runLater(() -> {
-            FXCollections.sort(games, comparator);
-            refreshItemsProperty();
-        });
+        this.sort = sort;
+        refershGames();
     }
 
     @Override
-    public void filter(Predicate<Game> filter) {
-        final ObservableList<Game> filteredGames = games.filtered(filter);
-        PlatformUtils.runLater(() -> itemsProperty.setValue(filteredGames));
+    public void nameFilter(String name) {
+        nameFilter = game -> StringUtils.containsIgnoreCase(game.getName(), name);
+        refershGames();
     }
 
     @Override
-    public void unFilter() {
-        PlatformUtils.runLater(this::refreshItemsProperty);
+    public void noNameFilter() {
+        nameFilter = NO_FILTER;
+        refershGames();
+    }
+
+    @Override
+    public void genreFilter(List<Genre> genres) {
+        genreFilter = game -> ListUtils.containsAny(game.getGenres(), genres);
+        refershGames();
+    }
+
+    @Override
+    public void noGenreFilter() {
+        genreFilter = NO_FILTER;
+        refershGames();
+    }
+
+    private void refershGames() {
+        PlatformUtils.runLaterIfNecessary(this::doRefreshGames);
+    }
+
+    private void doRefreshGames() {
+        // Filter
+        final Predicate<Game> filter = mergeFilters();
+        final ObservableList<Game> filtered = (filter != NO_FILTER) ? FXCollections.observableArrayList(games.filtered(filter)) : games;
+
+        // Sort
+        FXCollections.sort(filtered, getComparator(sort));
+
+        // It seems there is a bug with GridView - the list doesn't update unless the reference is re-set.
+        gamesProperty.setValue(FXCollections.emptyObservableList());
+        gamesProperty.setValue(filtered);
+    }
+
+    private Predicate<Game> mergeFilters() {
+        if (nameFilter == NO_FILTER && genreFilter == NO_FILTER) {
+            return NO_FILTER;
+        } else {
+           return nameFilter.and(genreFilter);
+        }
     }
 
     private Comparator<Game> getComparator(GameSort sort) {
@@ -110,16 +184,5 @@ public class GameManagerImpl extends AbstractService implements GameManager {
             case RELEASE_DATE: return GameComparators.releaseDateComparator();
             default: throw new IndexterException("Invalid sort value: %s", sort);
         }
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<ObservableList<Game>> itemsProperty() {
-        return itemsProperty;
-    }
-
-    // This is a hack... it seems that the gridView that is bound to this doesn't know how to refresh itself properly.
-    private void refreshItemsProperty() {
-        itemsProperty.setValue(FXCollections.emptyObservableList());
-        itemsProperty.setValue(games);
     }
 }

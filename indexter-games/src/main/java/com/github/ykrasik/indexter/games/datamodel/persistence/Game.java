@@ -4,6 +4,7 @@ import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.id.Id;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
@@ -20,6 +21,7 @@ import java.util.Optional;
  */
 @Value
 @Builder
+@EqualsAndHashCode(of = "id")
 @ToString(of = {"id", "name", "path"})
 public class Game {
     @NonNull private final Id<Game> id;

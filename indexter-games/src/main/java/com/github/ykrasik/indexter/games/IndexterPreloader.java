@@ -1,6 +1,6 @@
 package com.github.ykrasik.indexter.games;
 
-import com.github.ykrasik.indexter.util.exception.ConsumerThrows;
+import com.github.ykrasik.indexter.exception.ConsumerThrows;
 import com.github.ykrasik.indexter.util.PlatformUtils;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleStringProperty;
@@ -55,7 +55,7 @@ public class IndexterPreloader {
     }
 
     public void setMessage(String message) {
-        PlatformUtils.runLater(() -> this.message.setValue(message));
+        PlatformUtils.runLaterIfNecessary(() -> this.message.setValue(message));
     }
 
     public <T> void start(Task<T> task, ConsumerThrows<T> consumer) {

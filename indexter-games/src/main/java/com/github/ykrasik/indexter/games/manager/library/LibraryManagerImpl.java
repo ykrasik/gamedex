@@ -9,34 +9,33 @@ import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.PlatformUtils;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.List;
 
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
+@RequiredArgsConstructor
 public class LibraryManagerImpl extends AbstractService implements LibraryManager {
-    private final GameCollectionConfig config;
-    private final PersistenceService persistenceService;
+    @NonNull private final GameCollectionConfig config;
+    @NonNull private final PersistenceService persistenceService;
 
     private ObservableList<Library> libraries = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<Library>> itemsProperty = new SimpleObjectProperty<>();
-
-    public LibraryManagerImpl(PersistenceService persistenceService, GameCollectionConfig config) {
-        this.persistenceService = Objects.requireNonNull(persistenceService);
-        this.config = Objects.requireNonNull(config);
-    }
+    private ObjectProperty<ObservableList<Library>> librariesProperty = new SimpleObjectProperty<>();
 
     @Override
     protected void doStart() throws Exception {
         this.libraries = FXCollections.observableArrayList(persistenceService.getAllLibraries());
-        this.itemsProperty = new SimpleObjectProperty<>(libraries);
+        this.librariesProperty = new SimpleObjectProperty<>(libraries);
     }
 
     @Override
@@ -47,20 +46,31 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     @Override
     public Library createLibrary(String name, Path path, GamePlatform platform) {
         final Library library = persistenceService.addLibrary(name, path, platform);
+        log.info("Added library: {}", library);
 
         // Update cache.
-        PlatformUtils.runLater(() -> libraries.add(library));
-
+        PlatformUtils.runLaterIfNecessary(() -> {
+            libraries.add(library);
+            refreshLibraries();
+        });
         return library;
     }
 
     @Override
     public void deleteLibrary(Library library) {
-        // Delete from db.
         persistenceService.deleteLibrary(library.getId());
+        log.info("Deleted library: {}", library);
 
         // Delete from cache.
-        PlatformUtils.runLater(() -> libraries.remove(library));
+        PlatformUtils.runLaterIfNecessary(() -> {
+            libraries.remove(library);
+            refreshLibraries();
+        });
+    }
+
+    @Override
+    public List<Library> getAllLibraries() {
+        return libraries;
     }
 
     @Override
@@ -69,18 +79,8 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public Optional<Library> getLibraryByPath(Path path) {
-        return persistenceService.getLibraryByPath(path);
-    }
-
-    @Override
     public boolean isLibrary(Path path) {
-        return getLibraryByPath(path).isPresent();
-    }
-
-    @Override
-    public ObservableList<Library> getAllLibraries() {
-        return libraries;
+        return persistenceService.hasLibraryForPath(path);
     }
 
     @Override
@@ -89,8 +89,8 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public ReadOnlyObjectProperty<ObservableList<Library>> itemsProperty() {
-        return itemsProperty;
+    public ReadOnlyProperty<ObservableList<Library>> librariesProperty() {
+        return librariesProperty;
     }
 
     @Override
@@ -103,9 +103,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
         return config.getExcludedPaths().contains(path);
     }
 
-    // This is a hack... it seems that the gridView that is bound to this doesn't know how to refresh itself properly.
-    private void refreshItemsProperty() {
-        itemsProperty.setValue(FXCollections.emptyObservableList());
-        itemsProperty.setValue(libraries);
+    private void refreshLibraries() {
+        librariesProperty.setValue(libraries);
     }
 }

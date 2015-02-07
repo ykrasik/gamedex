@@ -19,22 +19,23 @@ import com.github.ykrasik.indexter.util.ListUtils;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 public class PersistenceServiceImpl extends AbstractService implements PersistenceService {
-    private final PersistenceProperties properties;
-    private final GameEntityTranslator gameTranslator;
-    private final GenreEntityTranslator genreTranslator;
-    private final LibraryEntityTranslator libraryTranslator;
+    @NonNull private final PersistenceProperties properties;
+    @NonNull private final GameEntityTranslator gameTranslator;
+    @NonNull private final GenreEntityTranslator genreTranslator;
+    @NonNull private final LibraryEntityTranslator libraryTranslator;
 
     private JdbcPooledConnectionSource connectionSource;
     private GameDao gameDao;
@@ -42,16 +43,6 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     private GenreGameLinkDao genreGameLinkDao;
     private LibraryDao libraryDao;
     private LibraryGameLinkDao libraryGameLinkDao;
-
-    public PersistenceServiceImpl(PersistenceProperties properties,
-                                  GameEntityTranslator gameTranslator,
-                                  GenreEntityTranslator genreTranslator,
-                                  LibraryEntityTranslator libraryTranslator) {
-        this.properties = Objects.requireNonNull(properties);
-        this.gameTranslator = Objects.requireNonNull(gameTranslator);
-        this.genreTranslator = Objects.requireNonNull(genreTranslator);
-        this.libraryTranslator = Objects.requireNonNull(libraryTranslator);
-    }
 
     @Override
     protected void doStart() throws Exception {
@@ -125,7 +116,9 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         if (gameDao.deleteById(gameId) != 1) {
             throw new DataException("Error deleting game: %d. Entry doesn't exist?", gameId);
         }
+
         genreGameLinkDao.deleteByGameId(gameId);
+        // TODO: Delete the genre if this was the last game with that genre.
         libraryGameLinkDao.deleteByGameId(gameId);
     }
 
@@ -150,7 +143,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @Override
     @SneakyThrows
     public boolean hasGameForPath(Path path) {
-        return Optional.ofNullable(gameDao.queryByPath(path)).isPresent();
+        return gameDao.queryByPath(path) != null;
     }
 
     private Game translateGame(GameEntity entity) {
@@ -211,9 +204,8 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public Optional<Library> getLibraryByPath(Path path) {
-        final LibraryEntity library = libraryDao.queryByPath(path);
-        return Optional.ofNullable(library).map(this::translateLibrary);
+    public boolean hasLibraryForPath(Path path) {
+        return libraryDao.queryByPath(path)  != null;
     }
 
     @Override
@@ -228,6 +220,13 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         if (libraryGameLinkDao.create(linkEntity) != 1) {
             throw new DataException("Error adding game to library! Game=%s, Library=%s", game, library);
         }
+    }
+
+    @Override
+    @SneakyThrows
+    public List<Genre> getAllGenres() {
+        final List<GenreEntity> entities = genreDao.queryForAll();
+        return translateGenres(entities);
     }
 
     private List<Genre> translateGenres(List<GenreEntity> entities) {

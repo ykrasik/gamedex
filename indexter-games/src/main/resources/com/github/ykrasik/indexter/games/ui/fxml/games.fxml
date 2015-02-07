@@ -8,6 +8,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.collections.*?>
+<?import org.controlsfx.control.StatusBar?>
 
 <BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <center>
@@ -22,16 +23,15 @@
                               <Label text="Search:" />
                               <TextField fx:id="searchBox" />
                               <Region prefWidth="36.0" />
-                              <Button fx:id="addLibrary" mnemonicParsing="false" onAction="#showAddLibraryDialog" text="Add Library" />
-                              <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
-                              <Button fx:id="cleanupGames" mnemonicParsing="false" onAction="#cleanupGames" text="Cleanup Games" />
-                              <Button fx:id="refetchGames" mnemonicParsing="false" onAction="#refreshLibraries" text="Re-Fetch Games" />
-                              <Region prefWidth="36.0" />
                               <Label text="Sort:" />
                               <ComboBox fx:id="gameSort" />
+                              <Region prefWidth="36.0" />
+                              <Button fx:id="genreFilterButton" text="Genre Filter" onAction="#filterGenres" />
+                              <Region prefWidth="36.0" />
+                              <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
                           </items>
                         </ToolBar>
-                        <HBox VBox.vgrow="ALWAYS">
+                        <HBox fx:id="contentScreen" VBox.vgrow="ALWAYS">
                            <children>
                               <TabPane BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
                                  <tabs>
@@ -62,7 +62,7 @@
                                  </tabs>
                               </TabPane>
                               <Separator orientation="VERTICAL" />
-                              <VBox maxWidth="330.0" HBox.hgrow="ALWAYS">
+                              <VBox fx:id="sideBar" maxWidth="330.0" HBox.hgrow="ALWAYS">
                                  <children>
                                     <HBox VBox.vgrow="ALWAYS">
                                        <children>
@@ -156,17 +156,35 @@
               <MenuItem mnemonicParsing="false" text="Close" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Edit">
+          <Menu mnemonicParsing="false" text="Library">
             <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
+              <MenuItem mnemonicParsing="false" text="Add Library" onAction="#addLibrary" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Help">
+          <Menu mnemonicParsing="false" text="Game">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+              <MenuItem mnemonicParsing="false" text="Cleanup Games" onAction="#cleanupGames"/>
+              <SeparatorMenuItem />
+              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" onAction="#cleanupGames"/>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="View">
+            <items>
+              <CheckMenuItem fx:id="showLog" mnemonicParsing="false" text="Log" selected="true" />
+              <CheckMenuItem fx:id="showSideBar" mnemonicParsing="false" text="Side Bar" selected="true" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
    </top>
+    <bottom>
+        <VBox fx:id="bottomContainer">
+            <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
+            <StatusBar fx:id="statusBar" text="Welcome to inDexter!">
+                <rightItems>
+                    <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
+                </rightItems>
+            </StatusBar>
+        </VBox>
+    </bottom>
 </BorderPane>

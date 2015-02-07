@@ -26,10 +26,10 @@
  */
 package com.github.ykrasik.indexter.games.ui;
 
-import com.github.ykrasik.indexter.games.controller.GameCollectionController;
+import com.github.ykrasik.indexter.games.controller.GameController;
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
-import com.github.ykrasik.indexter.util.Optionals;
+import com.github.ykrasik.indexter.optional.Optionals;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.controlsfx.control.GridCell;
@@ -85,7 +85,7 @@ public class GameInfoCell extends GridCell<Game> {
             setGraphic(null);
         } else {
             final Optional<Image> thumbnail = Optionals.or(item.getThumbnail(), item.getPoster()).map(ImageData::getImage);
-            final Image image = thumbnail.orElse(GameCollectionController.NOT_AVAILABLE);
+            final Image image = thumbnail.orElse(GameController.NOT_AVAILABLE);
             if (preserveImageProperties) {
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);

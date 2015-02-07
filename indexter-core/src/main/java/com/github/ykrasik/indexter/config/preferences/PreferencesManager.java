@@ -1,8 +1,8 @@
 package com.github.ykrasik.indexter.config.preferences;
 
-import com.github.ykrasik.indexter.util.Optionals;
+import com.github.ykrasik.indexter.optional.Optionals;
 import com.github.ykrasik.indexter.util.StringUtils;
-import com.github.ykrasik.indexter.util.exception.FunctionThrows;
+import com.github.ykrasik.indexter.exception.FunctionThrows;
 
 import java.io.File;
 import java.util.List;

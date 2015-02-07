@@ -9,13 +9,11 @@ import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
-import javafx.collections.ObservableList;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -35,14 +33,13 @@ public class LibraryManagerDebugCommands implements DebugCommands {
     }
 
     @Command
-    public void getByPath(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        final Optional<Library> library = libraryManager.getLibraryByPath(Paths.get(path));
-        outputPrinter.println(library.map(Object::toString).orElse("Not found!"));
+    public void isLibrary(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
+        outputPrinter.println(String.valueOf(libraryManager.isLibrary(Paths.get(path))));
     }
 
     @Command
     public void all(OutputPrinter outputPrinter) throws Exception {
-        final ObservableList<Library> libraries = libraryManager.getAllLibraries();
+        final List<Library> libraries = libraryManager.getAllLibraries();
         libraries.forEach(library -> outputPrinter.println(library.toString()));
     }
 

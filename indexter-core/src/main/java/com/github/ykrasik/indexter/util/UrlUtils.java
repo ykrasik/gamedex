@@ -1,5 +1,6 @@
 package com.github.ykrasik.indexter.util;
 
+import com.github.ykrasik.indexter.optional.Optionals;
 import org.apache.commons.io.IOUtils;
 
 import java.io.FileNotFoundException;
