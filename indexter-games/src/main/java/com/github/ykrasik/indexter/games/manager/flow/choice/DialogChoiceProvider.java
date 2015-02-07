@@ -1,7 +1,9 @@
 package com.github.ykrasik.indexter.games.manager.flow.choice;
 
 import com.github.ykrasik.indexter.exception.IndexterException;
+import com.github.ykrasik.indexter.exception.SupplierThrows;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.info.SearchResult;
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearchResult;
 import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSearchResult;
 import com.github.ykrasik.indexter.games.manager.flow.choice.type.Choice;
@@ -9,9 +11,7 @@ import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceData;
 import com.github.ykrasik.indexter.games.manager.flow.choice.type.ChoiceType;
 import com.github.ykrasik.indexter.games.ui.SearchResultDialog;
 import com.github.ykrasik.indexter.util.FileUtils;
-import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
-import com.github.ykrasik.indexter.exception.SupplierThrows;
 import javafx.collections.FXCollections;
 import javafx.stage.Stage;
 import org.controlsfx.control.action.Action;
@@ -132,7 +132,7 @@ public class DialogChoiceProvider implements ChoiceProvider {
         exclude.setLongText("Exclude directory from further processing");
 
         final DialogAction proceedAnyway = new DialogAction("Proceed Anyway");
-        exclude.setLongText("Proceed anyway");
+        proceedAnyway.setLongText("Proceed anyway");
 
         final List<DialogAction> choices = new LinkedList<>();
         choices.add(newName);
@@ -184,9 +184,10 @@ public class DialogChoiceProvider implements ChoiceProvider {
         return onMultipleSearchResults(
             "Metacritic",
             name,
+            platform,
             path,
-            () -> getMultipleSearchResultsChoice("Metacritic", name, platform, path, searchResults.size(), false),
-            () -> chooseFromMultipleMetacriticSearchResults(name, path, platform, searchResults)
+            searchResults,
+            false
         );
     }
 
@@ -195,27 +196,29 @@ public class DialogChoiceProvider implements ChoiceProvider {
         return onMultipleSearchResults(
             "GiantBomb",
             name,
+            platform,
             path,
-            () -> getMultipleSearchResultsChoice("GiantBomb", name, platform, path, searchResults.size(), true),
-            () -> chooseFromMultipleGiantBombSearchResults(name, path, platform, searchResults)
+            searchResults,
+            true
         );
     }
 
     private Choice onMultipleSearchResults(String gameInfoServiceName,
                                            String name,
+                                           GamePlatform platform,
                                            Path path,
-                                           SupplierThrows<ChoiceType> choiceSupplier,
-                                           SupplierThrows<Optional<ChoiceData>> multipleChoiceSupplier) throws Exception {
+                                           List<? extends SearchResult> searchResults,
+                                           boolean canProceedAnyway) throws Exception {
         Optional<? extends Choice> choice = Optional.empty();
         while (!choice.isPresent()) {
-            final ChoiceType choiceType = choiceSupplier.get();
+            final ChoiceType choiceType = getMultipleSearchResultsChoice(gameInfoServiceName, name, platform, path, searchResults.size(), canProceedAnyway);
             switch (choiceType) {
                 case NEW_NAME:
                     choice = selectNewName(gameInfoServiceName, name, path);
                     break;
 
                 case CHOOSE:
-                    choice = multipleChoiceSupplier.get();
+                    choice = chooseFromMultipleSearchResults(gameInfoServiceName, name, platform, searchResults);
                     break;
 
                 case EXCLUDE: choice = Optional.of(Choice.EXCLUDE); break;
@@ -283,41 +286,20 @@ public class DialogChoiceProvider implements ChoiceProvider {
         throw new IndexterException("Invalid choice: %s", choice);
     }
 
-    private Optional<ChoiceData> chooseFromMultipleMetacriticSearchResults(String name,
-                                                                           Path path,
-                                                                           GamePlatform platform,
-                                                                           List<MetacriticSearchResult> searchResults) throws Exception {
-        final SearchResultDialog<MetacriticSearchResult> dialog = new SearchResultDialog<MetacriticSearchResult>()
+    private Optional<ChoiceData> chooseFromMultipleSearchResults(String gameInfoServiceName,
+                                                                 String name,
+                                                                 GamePlatform platform,
+                                                                 List<? extends SearchResult> searchResults) throws Exception {
+        final SearchResultDialog<SearchResult> dialog = new SearchResultDialog<>()
             .owner(stage)
-            .title(String.format("Metacritic search results for: '%s'[%s]", name, platform));
+            .title(String.format("%s search results for: '%s'[%s]", gameInfoServiceName, name, platform));
 
 
         LOG.debug("Showing all search results...");
-        final Optional<MetacriticSearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
+        final Optional<SearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
             LOG.debug("Choice from multiple results: '{}'", choice.get());
             return Optional.of(new ChoiceData(ChoiceType.CHOOSE, choice.get()));
-        } else {
-            LOG.debug("Dialog cancelled.");
-            return Optional.empty();
-        }
-    }
-
-    private Optional<ChoiceData> chooseFromMultipleGiantBombSearchResults(String name,
-                                                                          Path path,
-                                                                          GamePlatform platform,
-                                                                          List<GiantBombSearchResult> searchResults) throws Exception {
-        final Dialogs dialog = createDialog()
-            .title(String.format("GiantBomb search results for: '%s'[%s]", name, platform))
-            .masthead(path.toString());
-
-        final List<GiantBombSearchResultChoice> choices = ListUtils.map(searchResults, GiantBombSearchResultChoice::new);
-
-        LOG.debug("Showing all search results...");
-        final Optional<GiantBombSearchResultChoice> choice = getUserResponse(() -> dialog.showChoices(choices));
-        if (choice.isPresent()) {
-            LOG.debug("Choice from multiple results: '{}'", choice.get());
-            return Optional.of(new ChoiceData(ChoiceType.CHOOSE, choice.get().getSearchResult()));
         } else {
             LOG.debug("Dialog cancelled.");
             return Optional.empty();

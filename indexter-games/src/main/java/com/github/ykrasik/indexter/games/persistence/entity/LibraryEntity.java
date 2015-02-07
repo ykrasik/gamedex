@@ -20,7 +20,7 @@ public class LibraryEntity {
     @DatabaseField(canBeNull = false)
     private String name;
 
-    @DatabaseField(unique = true, canBeNull = false, columnName = PATH_COLUMN)
+    @DatabaseField(columnName = PATH_COLUMN, unique = true, canBeNull = false)
     private String path;
 
     @DatabaseField(canBeNull = false)

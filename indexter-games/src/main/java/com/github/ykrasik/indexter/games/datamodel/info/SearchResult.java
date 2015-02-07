@@ -10,4 +10,6 @@ public interface SearchResult {
     String getName();
 
     Optional<LocalDate> getReleaseDate();
+
+    Optional<Double> getScore();
 }

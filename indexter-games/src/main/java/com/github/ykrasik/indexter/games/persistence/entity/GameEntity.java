@@ -6,8 +6,6 @@ import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
@@ -23,7 +21,6 @@ public class GameEntity {
     public static final String PATH_COLUMN = "path";
 
     @DatabaseField(columnName = ID_COLUMN, generatedId = true)
-    @Getter @Setter
     private int id;
 
     @DatabaseField(columnName = PATH_COLUMN, unique = true, canBeNull = false)

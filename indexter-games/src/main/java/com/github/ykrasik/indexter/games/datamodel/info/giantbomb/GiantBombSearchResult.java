@@ -16,4 +16,9 @@ public class GiantBombSearchResult implements SearchResult {
     @NonNull private final Optional<LocalDate> releaseDate;
     @NonNull private final String apiDetailUrl;
 //    private final Optional<ImageData> thumbnail;
+
+    @Override
+    public Optional<Double> getScore() {
+        return Optional.empty();
+    }
 }

@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -117,8 +118,22 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
             throw new DataException("Error deleting game: %d. Entry doesn't exist?", gameId);
         }
 
+        final List<GenreEntity> genres = genreGameLinkDao.getGenresByGameId(gameId);
         genreGameLinkDao.deleteByGameId(gameId);
-        // TODO: Delete the genre if this was the last game with that genre.
+
+        // Delete any genres which were only linked to this game.
+        final List<GenreEntity> genresToDelete = new LinkedList<>();
+        for (GenreEntity genre : genres) {
+            final List<GenreGameLinkEntity> genreLinks = genreGameLinkDao.getByGenreId(genre.getId());
+            if (genreLinks.isEmpty()) {
+                LOG.debug("Genre={} was only linked to gameId={}, deleting...", genre, gameId);
+                genresToDelete.add(genre);
+            }
+        }
+        if (!genresToDelete.isEmpty()) {
+            genreDao.deleteIds(ListUtils.map(genresToDelete, GenreEntity::getId));
+        }
+
         libraryGameLinkDao.deleteByGameId(gameId);
     }
 
@@ -153,7 +168,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @SneakyThrows
     private List<Genre> getGenresByGame(GameEntity game) {
-        final List<GenreEntity> genreEntities = genreGameLinkDao.getGenresByGame(game);
+        final List<GenreEntity> genreEntities = genreGameLinkDao.getGenresByGameId(game.getId());
         return translateGenres(genreEntities);
     }
 

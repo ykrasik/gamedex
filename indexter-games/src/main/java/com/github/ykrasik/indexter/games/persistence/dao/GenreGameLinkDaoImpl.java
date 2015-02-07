@@ -1,6 +1,5 @@
 package com.github.ykrasik.indexter.games.persistence.dao;
 
-import com.github.ykrasik.indexter.games.persistence.entity.GameEntity;
 import com.github.ykrasik.indexter.games.persistence.entity.GenreEntity;
 import com.github.ykrasik.indexter.games.persistence.entity.GenreGameLinkEntity;
 import com.j256.ormlite.dao.BaseDaoImpl;
@@ -17,10 +16,13 @@ import java.util.List;
  */
 public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integer> implements GenreGameLinkDao {
     private final SelectArg gameArg = new SelectArg();
+    private final SelectArg genreArg = new SelectArg();
 
     private GameDao gameDao;
     private GenreDao genreDao;
+
     private PreparedQuery<GenreEntity> fetchGenresByGameQuery;
+    private PreparedQuery<GenreGameLinkEntity> fetchByGenreIdQuery;
     private PreparedDelete<GenreGameLinkEntity> deleteByGameIdQuery;
 
     public GenreGameLinkDaoImpl(Class<GenreGameLinkEntity> dataClass) throws SQLException {
@@ -40,6 +42,7 @@ public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integ
         this.genreDao = genreDao;
 
         this.fetchGenresByGameQuery = prepareFetchGenresByGameQuery();
+        this.fetchByGenreIdQuery = prepareFetchByGenreIdQuery();
         this.deleteByGameIdQuery = prepareDeleteByGameIdQuery();
     }
 
@@ -55,6 +58,10 @@ public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integ
         return genreEntityQueryBuilder.prepare();
     }
 
+    private PreparedQuery<GenreGameLinkEntity> prepareFetchByGenreIdQuery() throws SQLException {
+        return queryBuilder().where().eq(GenreGameLinkEntity.GENRE_COLUMN, genreArg).prepare();
+    }
+
     private PreparedDelete<GenreGameLinkEntity> prepareDeleteByGameIdQuery() throws SQLException {
         final DeleteBuilder<GenreGameLinkEntity, Integer> builder = deleteBuilder();
         builder.where().eq(GenreGameLinkEntity.GAME_COLUMN, gameArg);
@@ -62,8 +69,14 @@ public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integ
     }
 
     @Override
-    public List<GenreEntity> getGenresByGame(GameEntity game) throws SQLException {
-        gameArg.setValue(game);
+    public List<GenreGameLinkEntity> getByGenreId(int genreId) throws SQLException {
+        genreArg.setValue(genreId);
+        return query(fetchByGenreIdQuery);
+    }
+
+    @Override
+    public List<GenreEntity> getGenresByGameId(int gameId) throws SQLException {
+        gameArg.setValue(gameId);
         return genreDao.query(fetchGenresByGameQuery);
     }
 

@@ -30,10 +30,12 @@ public class SearchResultDialog<T extends SearchResult> {
     public SearchResultDialog() {
         final TableColumn<T, String> nameColumn = new TableColumn<>("Name");
         final TableColumn<T, String> releaseDateColumn = new TableColumn<>("Release Date");
-        tableView.getColumns().addAll(nameColumn, releaseDateColumn);
+        final TableColumn<T, String> scoreColumn = new TableColumn<>("Score");
+        tableView.getColumns().addAll(nameColumn, releaseDateColumn, scoreColumn);
 
         nameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
         releaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
+        scoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getScore())));
     }
 
     public SearchResultDialog<T> owner(Stage stage) {
