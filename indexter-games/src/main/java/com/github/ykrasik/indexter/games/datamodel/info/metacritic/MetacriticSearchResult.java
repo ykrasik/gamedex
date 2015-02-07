@@ -15,4 +15,5 @@ public class MetacriticSearchResult implements SearchResult {
     @NonNull private final String name;
     @NonNull private final Optional<LocalDate> releaseDate;
     @NonNull private final Optional<Double> score;
+    @NonNull private final String detailUrl;
 }

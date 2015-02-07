@@ -2,7 +2,7 @@ package com.github.ykrasik.indexter.games.datamodel.persistence;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
-import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
 import com.github.ykrasik.indexter.id.Id;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -47,7 +47,7 @@ public class Game {
                             Path path,
                             GamePlatform platform,
                             LocalDateTime lastModified,
-                            GameInfo info,
+                            GameInfo2 info,
                             List<Genre> genres) {
         return builder()
             .id(id)

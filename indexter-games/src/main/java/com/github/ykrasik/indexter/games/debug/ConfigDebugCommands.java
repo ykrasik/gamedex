@@ -5,19 +5,18 @@ import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 @ShellPath("config")
 public class ConfigDebugCommands implements DebugCommands {
-    private final GameCollectionConfig config;
-
-    public ConfigDebugCommands(GameCollectionConfig config) {
-        this.config = Objects.requireNonNull(config);
-    }
+    @NonNull private final GameCollectionConfig config;
 
     @Command
     public void excludedPaths(OutputPrinter outputPrinter) {

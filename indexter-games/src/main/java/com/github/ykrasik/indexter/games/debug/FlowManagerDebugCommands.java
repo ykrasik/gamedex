@@ -2,30 +2,27 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
-import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.jerminal.api.annotation.Command;
 import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Paths;
-import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 @ShellPath("flow")
 public class FlowManagerDebugCommands implements DebugCommands {
-    private final FlowManager flowManager;
-    private final LibraryManager libraryManager;
-
-    public FlowManagerDebugCommands(FlowManager flowManager, LibraryManager libraryManager) {
-        this.flowManager = Objects.requireNonNull(flowManager);
-        this.libraryManager = Objects.requireNonNull(libraryManager);
-    }
+    @NonNull private final FlowManager flowManager;
+    @NonNull private final LibraryManager libraryManager;
 
     @Command
     public void refreshLibraries(OutputPrinter outputPrinter) throws Exception {

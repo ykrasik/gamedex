@@ -5,18 +5,15 @@ import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperti
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
-
-import java.util.Objects;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implements GiantBombGameInfoClient {
-    private final GiantBombProperties properties;
-
-    public GiantBombGameInfoClientImpl(GiantBombProperties properties) {
-        this.properties = Objects.requireNonNull(properties);
-    }
+    @NonNull private final GiantBombProperties properties;
 
     @Override
     public String searchGames(String name, int platformId) throws Exception {
@@ -28,8 +25,8 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
     }
 
     @Override
-    public String fetchGameInfo(String apiDetailUrl) throws Exception {
-        final GetRequest request = createGetRequest(apiDetailUrl)
+    public String fetchDetails(String detailUrl) throws Exception {
+        final GetRequest request = createGetRequest(detailUrl)
             .field("field_list", "name,deck,genres,image,original_release_date");
         return get(request);
     }

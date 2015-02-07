@@ -9,6 +9,8 @@ import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -18,13 +20,10 @@ import java.util.Objects;
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 @ShellPath("library")
 public class LibraryManagerDebugCommands implements DebugCommands {
-    private final LibraryManager libraryManager;
-
-    public LibraryManagerDebugCommands(LibraryManager libraryManager) {
-        this.libraryManager = Objects.requireNonNull(libraryManager);
-    }
+    @NonNull private final LibraryManager libraryManager;
 
     @Command
     public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {

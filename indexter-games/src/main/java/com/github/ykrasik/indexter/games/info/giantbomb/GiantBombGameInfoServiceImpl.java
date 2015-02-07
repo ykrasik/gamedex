@@ -8,16 +8,16 @@ import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearc
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
 import com.github.ykrasik.indexter.util.UrlUtils;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.ykrasik.indexter.util.JsonUtils.*;
@@ -25,25 +25,19 @@ import static com.github.ykrasik.indexter.util.JsonUtils.*;
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
+@RequiredArgsConstructor
 public class GiantBombGameInfoServiceImpl implements GiantBombGameInfoService {
-    private static final Logger LOG = LoggerFactory.getLogger(GiantBombGameInfoServiceImpl.class);
-
-    private final GiantBombGameInfoClient client;
-    private final GiantBombProperties properties;
-    private final ObjectMapper mapper;
-
-    public GiantBombGameInfoServiceImpl(GiantBombGameInfoClient client, GiantBombProperties properties, ObjectMapper mapper) {
-        this.client = Objects.requireNonNull(client);
-        this.properties = Objects.requireNonNull(properties);
-        this.mapper = Objects.requireNonNull(mapper);
-    }
+    @NonNull private final GiantBombGameInfoClient client;
+    @NonNull private final GiantBombProperties properties;
+    @NonNull private final ObjectMapper mapper;
 
     @Override
     public List<GiantBombSearchResult> searchGames(String name, GamePlatform platform) throws Exception {
-        LOG.info("Searching for name='{}', platform={}...", name, platform);
+        log.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
-        LOG.debug("reply = {}", reply);
+        log.debug("reply = {}", reply);
 
         final JsonNode root = mapper.readTree(reply);
 
@@ -54,8 +48,33 @@ public class GiantBombGameInfoServiceImpl implements GiantBombGameInfoService {
 
         final JsonNode results = getResults(root);
         final List<GiantBombSearchResult> searchResults = mapList(results, this::translateSearchResult);
-        LOG.info("Found {} results.", searchResults.size());
+        log.info("Found {} results.", searchResults.size());
         return searchResults;
+    }
+
+    @Override
+    public Optional<GiantBombGameInfo> getGameInfo(GiantBombSearchResult searchResult) throws Exception {
+        log.info("Getting info for searchResult={}...", searchResult);
+        final String detailUrl = searchResult.getDetailUrl();
+        final String reply = client.fetchDetails(detailUrl);
+        log.debug("reply = {}", reply);
+
+        final JsonNode root = mapper.readTree(reply);
+
+        final int statusCode = getStatusCode(root);
+        if (statusCode != 1) {
+            if (statusCode == 101) {
+                log.info("Not found.");
+                return Optional.empty();
+            } else {
+                throw new IndexterException("GetGameInfo: Invalid status code. detailUrl=%s, statusCode=%d", detailUrl, statusCode);
+            }
+        }
+
+        final JsonNode results = getResults(root);
+        final GiantBombGameInfo gameInfo = translateGame(results, detailUrl);
+        log.info("Found: {}", gameInfo);
+        return Optional.of(gameInfo);
     }
 
     private GiantBombSearchResult translateSearchResult(JsonNode node) {
@@ -67,31 +86,7 @@ public class GiantBombGameInfoServiceImpl implements GiantBombGameInfoService {
         return new GiantBombSearchResult(name, releaseDate, apiDetailUrl);
     }
 
-    @Override
-    public Optional<GiantBombGameInfo> getGameInfo(String apiDetailUrl) throws Exception {
-        LOG.info("Getting info for apiDetailUrl={}...", apiDetailUrl);
-        final String reply = client.fetchGameInfo(apiDetailUrl);
-        LOG.debug("reply = {}", reply);
-
-        final JsonNode root = mapper.readTree(reply);
-
-        final int statusCode = getStatusCode(root);
-        if (statusCode != 1) {
-            if (statusCode == 101) {
-                LOG.info("Not found.");
-                return Optional.empty();
-            } else {
-                throw new IndexterException("GetGameInfo: Invalid status code. apiDetailUrl=%s, statusCode=%d", apiDetailUrl, statusCode);
-            }
-        }
-
-        final JsonNode results = getResults(root);
-        final GiantBombGameInfo gameInfo = translateGame(results, apiDetailUrl);
-        LOG.info("Found: {}", gameInfo);
-        return Optional.of(gameInfo);
-    }
-
-    private GiantBombGameInfo translateGame(JsonNode node, String apiDetailUrl) throws Exception {
+    private GiantBombGameInfo translateGame(JsonNode node, String detailUrl) throws Exception {
         final String name = getName(node);
         final Optional<String> description = getDescription(node);
         final Optional<LocalDate> releaseDate = getReleaseDate(node);
@@ -100,7 +95,7 @@ public class GiantBombGameInfoServiceImpl implements GiantBombGameInfoService {
         final List<String> genres = getGenres(node);
 
         return new GiantBombGameInfo(
-            name, description, releaseDate, apiDetailUrl, thumbnail, poster, genres
+            name, description, releaseDate, detailUrl, thumbnail, poster, genres
         );
     }
 

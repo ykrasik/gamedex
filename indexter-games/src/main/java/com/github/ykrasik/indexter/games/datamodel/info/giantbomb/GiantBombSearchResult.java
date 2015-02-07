@@ -14,7 +14,7 @@ import java.util.Optional;
 public class GiantBombSearchResult implements SearchResult {
     @NonNull private final String name;
     @NonNull private final Optional<LocalDate> releaseDate;
-    @NonNull private final String apiDetailUrl;
+    @NonNull private final String detailUrl;
 //    private final Optional<ImageData> thumbnail;
 
     @Override

@@ -3,7 +3,7 @@ package com.github.ykrasik.indexter.games.persistence;
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.DataException;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
@@ -84,7 +84,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
+    public Game addGame(GameInfo2 gameInfo, Path path, GamePlatform platform) {
         // Insert game.
         final GameEntity game = gameTranslator.translate(gameInfo);
         game.setPath(path.toString());

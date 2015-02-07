@@ -9,6 +9,8 @@ import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -17,13 +19,10 @@ import java.util.Objects;
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 @ShellPath("game")
 public class GameManagerDebugCommands implements DebugCommands {
-    private final GameManager gameManager;
-
-    public GameManagerDebugCommands(GameManager gameManager) {
-        this.gameManager = Objects.requireNonNull(gameManager);
-    }
+    @NonNull private final GameManager gameManager;
 
     @Command
     public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {

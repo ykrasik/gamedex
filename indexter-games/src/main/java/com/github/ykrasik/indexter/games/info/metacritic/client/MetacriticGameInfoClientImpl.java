@@ -7,25 +7,15 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import com.mashape.unirest.request.body.MultipartBody;
-
-import java.util.Objects;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 public class MetacriticGameInfoClientImpl extends AbstractUnirestClient implements MetacriticGameInfoClient {
-    private final MetacriticProperties properties;
-
-    public MetacriticGameInfoClientImpl(MetacriticProperties properties) {
-        this.properties = Objects.requireNonNull(properties);
-    }
-
-    @Override
-    public String fetchPlatforms() throws Exception {
-        final HttpResponse<String> httpResponse = get("https://byroredux-metacritic.p.mashape.com/type-description/game")
-            .asString();
-        return assertOkAndGet(httpResponse);
-    }
+    @NonNull private final MetacriticProperties properties;
 
     @Override
     public String searchGames(String name, int platformId) throws Exception {
@@ -39,13 +29,19 @@ public class MetacriticGameInfoClientImpl extends AbstractUnirestClient implemen
     }
 
     @Override
-    public String fetchDetails(String name, int platformId) throws Exception {
-        final MultipartBody request = post("https://byroredux-metacritic.p.mashape.com/find/game")
-            .field("platform", platformId)
-            .field("title", name);
+    public String fetchDetails(String detailUrl) throws Exception {
+        final GetRequest request = get("https://byroredux-metacritic.p.mashape.com/details")
+            .field("url", detailUrl);
         LOG.debug("Request: {}", request.getHttpRequest().getUrl());
 
         final HttpResponse<String> httpResponse = request.asString();
+        return assertOkAndGet(httpResponse);
+    }
+
+    @Override
+    public String fetchPlatforms() throws Exception {
+        final HttpResponse<String> httpResponse = get("https://byroredux-metacritic.p.mashape.com/type-description/game")
+            .asString();
         return assertOkAndGet(httpResponse);
     }
 

@@ -7,16 +7,16 @@ import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSea
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.indexter.games.info.metacritic.config.MetacriticProperties;
 import com.github.ykrasik.indexter.util.UrlUtils;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.github.ykrasik.indexter.util.JsonUtils.*;
@@ -24,34 +24,27 @@ import static com.github.ykrasik.indexter.util.JsonUtils.*;
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
+@RequiredArgsConstructor
 public class MetacriticGameInfoServiceImpl implements MetacriticGameInfoService {
-    private static final Logger LOG = LoggerFactory.getLogger(MetacriticGameInfoServiceImpl.class);
     private static final String NO_THUMBNAIL_URL = "http://static.metacritic.com/images/products/games/98w-game.jpg";
 
-    private final MetacriticGameInfoClient client;
-    private final MetacriticProperties properties;
-    private final ObjectMapper mapper;
-
-    public MetacriticGameInfoServiceImpl(MetacriticGameInfoClient client,
-                                         MetacriticProperties properties,
-                                         ObjectMapper mapper) {
-        this.client = Objects.requireNonNull(client);
-        this.properties = Objects.requireNonNull(properties);
-        this.mapper = Objects.requireNonNull(mapper);
-    }
+    @NonNull private final MetacriticGameInfoClient client;
+    @NonNull private final MetacriticProperties properties;
+    @NonNull private final ObjectMapper mapper;
 
     @Override
     public List<MetacriticSearchResult> searchGames(String name, GamePlatform platform) throws Exception {
-        LOG.info("Searching for name={}, platform={}...", name, platform);
+        log.info("Searching for name={}, platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
-        LOG.debug("reply = {}", reply);
+        log.debug("reply = {}", reply);
 
         final JsonNode root = mapper.readTree(reply);
 
         final JsonNode results = getResults(root);
         final List<MetacriticSearchResult> searchResults = mapList(results, this::translateSearchResult);
-        LOG.info("Found {} results.", searchResults.size());
+        log.info("Found {} results.", searchResults.size());
         return searchResults;
     }
 
@@ -59,27 +52,27 @@ public class MetacriticGameInfoServiceImpl implements MetacriticGameInfoService 
         final String name = getName(node);
         final Optional<LocalDate> releaseDate = getReleaseDate(node);
         final Optional<Double> score = getScore(node);
+        final String detailUrl = getDetailUrl(node);
 
-        return new MetacriticSearchResult(name, releaseDate, score);
+        return new MetacriticSearchResult(name, releaseDate, score, detailUrl);
     }
 
     @Override
-    public Optional<MetacriticGameInfo> getGameInfo(String moreDetailsId, GamePlatform platform) throws Exception {
-        LOG.info("Getting info for name={}, platform={}...", moreDetailsId, platform);
-        final int platformId = properties.getPlatformId(platform);
-        final String reply = client.fetchDetails(moreDetailsId, platformId);
-        LOG.debug("reply = {}", reply);
+    public Optional<MetacriticGameInfo> getGameInfo(MetacriticSearchResult searchResult) throws Exception {
+        log.info("Getting info for searchResult={}...", searchResult);
+        final String reply = client.fetchDetails(searchResult.getDetailUrl());
+        log.debug("reply = {}", reply);
 
         final JsonNode root = mapper.readTree(reply);
 
         final JsonNode result = getMandatoryField(root, "result");
         if (result.isBoolean() && !result.asBoolean()) {
-            LOG.info("Not found.");
+            log.info("Not found.");
             return Optional.empty();
         }
 
         final MetacriticGameInfo gameInfo = translateGame(result);
-        LOG.info("Found: {}", gameInfo);
+        log.info("Found: {}", gameInfo);
         return Optional.of(gameInfo);
     }
 
@@ -112,6 +105,10 @@ public class MetacriticGameInfoServiceImpl implements MetacriticGameInfoService 
 
     private Optional<Double> getScore(JsonNode node) {
         return getDouble(node, "score");
+    }
+
+    private String getDetailUrl(JsonNode node) {
+        return getMandatoryString(node, "url");
     }
 
     private Optional<String> getDescription(JsonNode node) {

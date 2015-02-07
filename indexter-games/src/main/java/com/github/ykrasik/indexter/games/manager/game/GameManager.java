@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.manager.game;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.id.Id;
@@ -16,7 +16,7 @@ import java.util.List;
  * @author Yevgeny Krasik
  */
 public interface GameManager {
-    Game addGame(GameInfo gameInfo, Path path, GamePlatform platform);
+    Game addGame(GameInfo2 gameInfo, Path path, GamePlatform platform);
 
     void deleteGame(Game game);
     void deleteGames(Collection<Game> games);

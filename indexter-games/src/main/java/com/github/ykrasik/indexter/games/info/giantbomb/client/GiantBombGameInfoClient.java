@@ -6,7 +6,7 @@ package com.github.ykrasik.indexter.games.info.giantbomb.client;
 public interface GiantBombGameInfoClient {
     String searchGames(String name, int platformId) throws Exception;
 
-    String fetchGameInfo(String apiDetailUrl) throws Exception;
+    String fetchDetails(String detailUrl) throws Exception;
 
     String fetchCriticReview(String apiDetailUrl) throws Exception;
 

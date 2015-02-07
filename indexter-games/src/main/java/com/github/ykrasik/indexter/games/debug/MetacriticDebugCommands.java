@@ -2,30 +2,27 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
+import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSearchResult;
 import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoServiceImpl;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.util.Objects;
+import java.time.LocalDate;
+import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 @ShellPath("metacritic")
 public class MetacriticDebugCommands implements DebugCommands {
-    private final MetacriticGameInfoServiceImpl service;
-    private final MetacriticGameInfoClient client;
-    private final ObjectMapper objectMapper;
-
-    public MetacriticDebugCommands(MetacriticGameInfoServiceImpl service,
-                                   MetacriticGameInfoClient client,
-                                   ObjectMapper objectMapper) {
-        this.service = Objects.requireNonNull(service);
-        this.client = Objects.requireNonNull(client);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-    }
+    @NonNull private final MetacriticGameInfoServiceImpl service;
+    @NonNull private final MetacriticGameInfoClient client;
+    @NonNull private final ObjectMapper objectMapper;
 
     @Command
     public void search(OutputPrinter outputPrinter,
@@ -37,16 +34,9 @@ public class MetacriticDebugCommands implements DebugCommands {
 
     @Command
     public void get(OutputPrinter outputPrinter,
-                    @StringParam("name") String name,
-                    @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
-        final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        outputPrinter.println(service.getGameInfo(name, gamePlatform).toString());
-    }
-
-    @ShellPath("client")
-    @Command("platforms")
-    public void clientFetchPlatforms(OutputPrinter outputPrinter) throws Exception {
-        outputPrinter.println(client.fetchPlatforms());
+                    @StringParam("url") String url) throws Exception {
+        final MetacriticSearchResult searchResult = new MetacriticSearchResult("", Optional.<LocalDate>empty(), Optional.<Double>empty(), url);
+        outputPrinter.println(service.getGameInfo(searchResult).toString());
     }
 
     @ShellPath("client")
@@ -62,10 +52,8 @@ public class MetacriticDebugCommands implements DebugCommands {
 
     @ShellPath("client")
     @Command("get")
-    public void clientGet(OutputPrinter outputPrinter,
-                          @StringParam("name") String name,
-                          @IntParam(value = "platformId", optional = true, defaultValue = 3) int platformId) throws Exception {
-        final String rawJson = client.fetchDetails(name, platformId);
+    public void clientGet(OutputPrinter outputPrinter, @StringParam("detailUrl") String detailUrl) throws Exception {
+        final String rawJson = client.fetchDetails(detailUrl);
         final Object json = objectMapper.readValue(rawJson, Object.class);
         final String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
         outputPrinter.println(prettyJson);

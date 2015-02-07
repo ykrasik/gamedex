@@ -5,12 +5,15 @@ import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.controller.UIManager;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
+import com.github.ykrasik.indexter.games.datamodel.info.SearchResult;
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombGameInfo;
 import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearchResult;
 import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticGameInfo;
 import com.github.ykrasik.indexter.games.datamodel.info.metacritic.MetacriticSearchResult;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
+import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
 import com.github.ykrasik.indexter.games.manager.flow.choice.ChoiceProvider;
@@ -208,14 +211,14 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             // FIXME: This is not good enough, giantbomb should be able to cancel the process too.
             // FIXME: Use exceptions?
             final Optional<GiantBombGameInfo> giantBombGameOptional = getGiantBombGame(path, metacriticGameInfo.getName(), platform);
-            final GameInfo gameInfo;
+            final GameInfo2 gameInfo;
             if (giantBombGameOptional.isPresent()) {
                 final GiantBombGameInfo giantBombGameInfo = giantBombGameOptional.get();
                 LOG.debug("GiantBomb gameInfo: {}", giantBombGameInfo);
-                gameInfo = GameInfo.merge(metacriticGameInfo, giantBombGameInfo);
+                gameInfo = GameInfo2.merge(metacriticGameInfo, giantBombGameInfo);
             } else {
                 info("Game not found on GiantBomb.");
-                gameInfo = GameInfo.from(metacriticGameInfo);
+                gameInfo = GameInfo2.from(metacriticGameInfo);
             }
 
             final Game game = gameManager.addGame(gameInfo, path, platform);
@@ -237,7 +240,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         final MetacriticSearchResult singleSearchResult = searchResults.get(0);
-        return Optional.of(fetchMetacriticGameInfo(singleSearchResult, platform));
+        return Optional.of(fetchMetacriticGameInfo(singleSearchResult));
     }
 
     private Optional<GiantBombGameInfo> getGiantBombGame(Path path, String name, GamePlatform platform) throws Exception {
@@ -254,7 +257,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         final GiantBombSearchResult singleSearchResult = searchResults.get(0);
-        return Optional.of(fetchGiantBombGameInfo(singleSearchResult, platform));
+        return Optional.of(fetchGiantBombGameInfo(singleSearchResult));
     }
 
     private Optional<MetacriticGameInfo> handleNoMetacriticSearchResults(Path path, String name, GamePlatform platform) throws Exception {
@@ -292,7 +295,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         switch (choice.getType()) {
             case CHOOSE:
                 final MetacriticSearchResult searchResult = (MetacriticSearchResult) ((ChoiceData) choice).getChoice();
-                return Optional.of(fetchMetacriticGameInfo(searchResult, platform));
+                return Optional.of(fetchMetacriticGameInfo(searchResult));
 
             case NEW_NAME:
                 final String newName = (String) ((ChoiceData) choice).getChoice();
@@ -315,7 +318,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         switch (choice.getType()) {
             case CHOOSE:
                 final GiantBombSearchResult searchResult = (GiantBombSearchResult) ((ChoiceData) choice).getChoice();
-                return Optional.of(fetchGiantBombGameInfo(searchResult, platform));
+                return Optional.of(fetchGiantBombGameInfo(searchResult));
 
             case NEW_NAME:
                 final String newName = (String) ((ChoiceData) choice).getChoice();
@@ -326,21 +329,20 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return Optional.empty();
     }
 
-    // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
-    private MetacriticGameInfo fetchMetacriticGameInfo(MetacriticSearchResult searchResult, GamePlatform platform) throws Exception {
-        info("Fetching from Metacritic....");
-        final MetacriticGameInfo gameInfo = metacriticInfoService.getGameInfo(searchResult.getName(), platform).orElseThrow(
-            () -> new IndexterException("Specific Metacritic search found nothing: %s", searchResult)
-        );
-        info("Fetched.");
-        return gameInfo;
+
+    private MetacriticGameInfo fetchMetacriticGameInfo(MetacriticSearchResult searchResult) throws Exception {
+        return doFetchGameInfo(metacriticInfoService, searchResult, "Metacritic");
+    }
+
+    private GiantBombGameInfo fetchGiantBombGameInfo(GiantBombSearchResult searchResult) throws Exception {
+        return doFetchGameInfo(giantBombInfoService, searchResult, "GiantBomb");
     }
 
     // FIXME: While fetching, set a boolean flag to true and display an indeterminate loading progress indicator.
-    private GiantBombGameInfo fetchGiantBombGameInfo(GiantBombSearchResult searchResult, GamePlatform platform) throws Exception {
-        info("Fetching from GiantBomb...");
-        final GiantBombGameInfo gameInfo = giantBombInfoService.getGameInfo(searchResult.getApiDetailUrl()).orElseThrow(
-            () -> new IndexterException("Specific GiantBomb search found nothing: %s", searchResult)
+    private <T extends SearchResult, E extends GameInfo> E doFetchGameInfo(GameInfoService<T, E> infoService, T searchResult, String gameInfoServiceName) throws Exception {
+        info("Fetching from %s...", gameInfoServiceName);
+        final E gameInfo = infoService.getGameInfo(searchResult).orElseThrow(
+            () -> new IndexterException("Specific %s search found nothing: %s", gameInfoServiceName, searchResult)
         );
         info("Fetched.");
         return gameInfo;
