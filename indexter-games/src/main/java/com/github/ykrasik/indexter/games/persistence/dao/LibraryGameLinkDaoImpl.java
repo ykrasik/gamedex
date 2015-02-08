@@ -44,14 +44,14 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
     }
 
     @Override
-    public void deleteByGameId(int id) throws SQLException {
-        gameArg.setValue(id);
+    public void deleteByGameId(int gameId) throws SQLException {
+        gameArg.setValue(gameId);
         delete(deleteByGameIdQuery);
     }
 
     @Override
-    public void deleteByLibraryId(int id) throws SQLException {
-        libraryArg.setValue(id);
+    public void deleteByLibraryId(int libraryId) throws SQLException {
+        libraryArg.setValue(libraryId);
         delete(deleteByLibraryIdQuery);
     }
 }

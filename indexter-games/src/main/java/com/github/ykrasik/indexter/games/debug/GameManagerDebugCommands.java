@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
@@ -22,28 +21,28 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @ShellPath("game")
 public class GameManagerDebugCommands implements DebugCommands {
-    @NonNull private final GameManager gameManager;
+    @NonNull private final GameManager manager;
 
     @Command
     public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final Game game = gameManager.getGameById(new Id<>(id));
+        final Game game = manager.getGameById(new Id<>(id));
         outputPrinter.println(game.toString());
     }
 
     @Command
     public void isGame(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        outputPrinter.println(String.valueOf(gameManager.isGame(Paths.get(path))));
+        outputPrinter.println(String.valueOf(manager.isGame(Paths.get(path))));
     }
 
     @Command
     public void all(OutputPrinter outputPrinter) throws Exception {
-        final List<Game> games = gameManager.getAllGames();
+        final List<Game> games = manager.getAllGames();
         games.forEach(game -> outputPrinter.println(game.toString()));
     }
 
     @Command
     public void delete(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final Game game = gameManager.getGameById(new Id<>(id));
-        gameManager.deleteGame(game);
+        final Game game = manager.getGameById(new Id<>(id));
+        manager.deleteGame(game);
     }
 }

@@ -4,6 +4,8 @@ import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfigImpl;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManagerImpl;
 import com.github.ykrasik.indexter.games.manager.flow.dialog.DialogManager;
@@ -37,11 +39,19 @@ public class ManagersBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public FlowManager flowManager(LibraryManager libraryManager,
+                                   ExcludedPathManager excludedPathManager,
                                    GameManager gameManager,
                                    MetacriticGameInfoService metacriticInfoService,
                                    GiantBombGameInfoService giantBombInfoService,
                                    DialogManager dialogManager) {
-        return new FlowManagerImpl(libraryManager, gameManager, metacriticInfoService, giantBombInfoService, dialogManager);
+        return new FlowManagerImpl(
+            libraryManager,
+            excludedPathManager,
+            gameManager,
+            metacriticInfoService,
+            giantBombInfoService,
+            dialogManager
+        );
     }
 
     @Bean
@@ -51,8 +61,14 @@ public class ManagersBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public LibraryManager libraryManager(GameCollectionConfig config, PersistenceService persistenceService) {
+    public LibraryManager libraryManager(PersistenceService persistenceService) {
         preloader.setMessage("Loading library manager...");
-        return new LibraryManagerImpl(config, persistenceService);
+        return new LibraryManagerImpl(persistenceService);
+    }
+
+    @Bean
+    public ExcludedPathManager excludedPathManager(PersistenceService persistenceService) {
+        preloader.setMessage("Loading excluded path manager...");
+        return new ExcludedPathManagerImpl(persistenceService);
     }
 }

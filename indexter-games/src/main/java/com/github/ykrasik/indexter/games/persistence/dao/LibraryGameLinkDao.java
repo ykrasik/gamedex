@@ -9,7 +9,7 @@ import java.sql.SQLException;
  * @author Yevgeny Krasik
  */
 public interface LibraryGameLinkDao extends Dao<LibraryGameLinkEntity, Integer> {
-    void deleteByGameId(int id) throws SQLException;
+    void deleteByGameId(int gameId) throws SQLException;
 
-    void deleteByLibraryId(int id) throws SQLException;
+    void deleteByLibraryId(int libraryId) throws SQLException;
 }

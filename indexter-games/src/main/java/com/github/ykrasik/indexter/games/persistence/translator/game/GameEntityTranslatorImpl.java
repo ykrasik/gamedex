@@ -1,10 +1,11 @@
-package com.github.ykrasik.indexter.games.persistence.translator;
+package com.github.ykrasik.indexter.games.persistence.translator.game;
 
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.persistence.entity.GameEntity;
+import com.github.ykrasik.indexter.games.persistence.translator.AbstractEntityTranslator;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.DateUtils;
 

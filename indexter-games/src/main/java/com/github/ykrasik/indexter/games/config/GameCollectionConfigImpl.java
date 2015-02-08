@@ -1,6 +1,5 @@
 package com.github.ykrasik.indexter.games.config;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.thoughtworks.xstream.XStream;
 import org.boon.IO;
 
@@ -9,7 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -52,26 +52,6 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
         onConfigUpdated();
     }
 
-    @Override
-    public Set<Path> getExcludedPaths() {
-        return Collections.unmodifiableSet(config.excludedPaths);
-    }
-
-    @Override
-    public void addExcludedPath(Path path) {
-        final Config config = this.config;
-        final Set<Path> newExcludedPaths = new HashSet<>(config.excludedPaths);
-        newExcludedPaths.add(path);
-        this.config = config.withExcludedPaths(newExcludedPaths);
-        onConfigUpdated();
-    }
-
-    @VisibleForTesting
-    public void clearLibraries() {
-        config = Config.empty();
-        onConfigUpdated();
-    }
-
     private void onConfigUpdated() {
         final Config config = this.config;
         final String xml = XSTREAM.toXML(config);
@@ -80,24 +60,17 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
 
     private static class Config {
         private final Optional<File> prevDirectory;
-        private final Set<Path> excludedPaths;
 
-        private Config(Optional<File> prevDirectory,
-                       Set<Path> excludedPaths) {
+        private Config(Optional<File> prevDirectory) {
             this.prevDirectory = Objects.requireNonNull(prevDirectory);
-            this.excludedPaths = Objects.requireNonNull(excludedPaths);
         }
 
         public Config withPrevDirectory(File prevDirectory) {
-            return new Config(Optional.of(prevDirectory), excludedPaths);
-        }
-
-        public Config withExcludedPaths(Set<Path> excludedPaths) {
-            return new Config(prevDirectory, excludedPaths);
+            return new Config(Optional.of(prevDirectory));
         }
 
         public static Config empty() {
-            return new Config(Optional.empty(), Collections.emptySet());
+            return new Config(Optional.empty());
         }
     }
 }

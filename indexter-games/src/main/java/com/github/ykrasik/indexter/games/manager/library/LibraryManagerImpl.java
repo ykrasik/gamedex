@@ -1,7 +1,6 @@
 package com.github.ykrasik.indexter.games.manager.library;
 
 import com.github.ykrasik.indexter.AbstractService;
-import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
@@ -26,16 +25,15 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class LibraryManagerImpl extends AbstractService implements LibraryManager {
-    @NonNull private final GameCollectionConfig config;
     @NonNull private final PersistenceService persistenceService;
 
+    private final ObjectProperty<ObservableList<Library>> librariesProperty = new SimpleObjectProperty<>();
     private ObservableList<Library> libraries = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<Library>> librariesProperty = new SimpleObjectProperty<>();
 
     @Override
     protected void doStart() throws Exception {
-        this.libraries = FXCollections.observableArrayList(persistenceService.getAllLibraries());
-        this.librariesProperty = new SimpleObjectProperty<>(libraries);
+        libraries = FXCollections.observableArrayList(persistenceService.getAllLibraries());
+        librariesProperty.setValue(libraries);
     }
 
     @Override
@@ -49,10 +47,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
         log.info("Added library: {}", library);
 
         // Update cache.
-        PlatformUtils.runLaterIfNecessary(() -> {
-            libraries.add(library);
-            refreshLibraries();
-        });
+        PlatformUtils.runLaterIfNecessary(() -> libraries.add(library));
         return library;
     }
 
@@ -62,10 +57,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
         log.info("Deleted library: {}", library);
 
         // Delete from cache.
-        PlatformUtils.runLaterIfNecessary(() -> {
-            libraries.remove(library);
-            refreshLibraries();
-        });
+        PlatformUtils.runLaterIfNecessary(() -> libraries.remove(library));
     }
 
     @Override
@@ -91,19 +83,5 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     @Override
     public ReadOnlyProperty<ObservableList<Library>> librariesProperty() {
         return librariesProperty;
-    }
-
-    @Override
-    public void setExcluded(Path path) {
-        config.addExcludedPath(path);
-    }
-
-    @Override
-    public boolean isExcluded(Path path) {
-        return config.getExcludedPaths().contains(path);
-    }
-
-    private void refreshLibraries() {
-        librariesProperty.setValue(libraries);
     }
 }

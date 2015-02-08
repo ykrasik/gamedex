@@ -17,9 +17,9 @@ public class LibraryGameLinkEntity {
     @DatabaseField(generatedId = true)
     private int id;
 
-    @DatabaseField(columnName = LIBRARY_COLUMN, foreign = true, canBeNull = false)
-    LibraryEntity library;
+    @DatabaseField(columnName = LIBRARY_COLUMN, foreign = true, canBeNull = false, index = true)
+    private LibraryEntity library;
 
-    @DatabaseField(columnName = GAME_COLUMN, foreign = true, canBeNull = false)
-    GameEntity game;
+    @DatabaseField(columnName = GAME_COLUMN, foreign = true, canBeNull = false, index = true)
+    private GameEntity game;
 }

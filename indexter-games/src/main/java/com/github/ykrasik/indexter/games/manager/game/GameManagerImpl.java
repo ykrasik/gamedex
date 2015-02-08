@@ -36,8 +36,8 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
     @NonNull private final PersistenceService persistenceService;
 
+    private final ObjectProperty<ObservableList<Game>> gamesProperty = new SimpleObjectProperty<>();
     private ObservableList<Game> games = FXCollections.emptyObservableList();
-    private ObjectProperty<ObservableList<Game>> gamesProperty = new SimpleObjectProperty<>();
 
     private GameSort sort = GameSort.NAME;
     private Predicate<Game> nameFilter = NO_FILTER;
@@ -45,8 +45,8 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
     @Override
     protected void doStart() throws Exception {
-        this.games = FXCollections.observableArrayList(persistenceService.getAllGames());
-        this.gamesProperty = new SimpleObjectProperty<>(games);
+        games = FXCollections.observableArrayList(persistenceService.getAllGames());
+        gamesProperty.set(games);
         doRefreshGames();
     }
 

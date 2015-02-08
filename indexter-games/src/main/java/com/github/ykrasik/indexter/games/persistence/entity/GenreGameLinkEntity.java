@@ -17,9 +17,9 @@ public class GenreGameLinkEntity {
     @DatabaseField(generatedId = true)
     private int id;
 
-    @DatabaseField(columnName = GENRE_COLUMN, foreign = true, canBeNull = false)
-    GenreEntity genre;
+    @DatabaseField(columnName = GENRE_COLUMN, foreign = true, canBeNull = false, index = true)
+    private GenreEntity genre;
 
-    @DatabaseField(columnName = GAME_COLUMN, foreign = true, canBeNull = false)
-    GameEntity game;
+    @DatabaseField(columnName = GAME_COLUMN, foreign = true, canBeNull = false, index = true)
+    private GameEntity game;
 }

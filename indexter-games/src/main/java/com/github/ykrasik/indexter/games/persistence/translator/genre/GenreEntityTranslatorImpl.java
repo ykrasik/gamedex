@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.persistence.translator;
+package com.github.ykrasik.indexter.games.persistence.translator.genre;
 
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.persistence.entity.GenreEntity;

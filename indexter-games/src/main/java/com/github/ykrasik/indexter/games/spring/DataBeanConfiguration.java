@@ -4,7 +4,14 @@ import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.games.persistence.PersistenceServiceImpl;
 import com.github.ykrasik.indexter.games.persistence.config.PersistenceProperties;
 import com.github.ykrasik.indexter.games.persistence.config.PersistencePropertiesImpl;
-import com.github.ykrasik.indexter.games.persistence.translator.*;
+import com.github.ykrasik.indexter.games.persistence.translator.exclude.ExcludedPathEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.exclude.ExcludedPathEntityTranslatorImpl;
+import com.github.ykrasik.indexter.games.persistence.translator.game.GameEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.game.GameEntityTranslatorImpl;
+import com.github.ykrasik.indexter.games.persistence.translator.genre.GenreEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.genre.GenreEntityTranslatorImpl;
+import com.github.ykrasik.indexter.games.persistence.translator.library.LibraryEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.library.LibraryEntityTranslatorImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,9 +24,10 @@ public class DataBeanConfiguration extends AbstractBeanConfiguration {
     public PersistenceService persistenceService(PersistenceProperties properties,
                                                  GameEntityTranslator gameTranslator,
                                                  GenreEntityTranslator genreTranslator,
-                                                 LibraryEntityTranslator libraryTranslator) {
+                                                 LibraryEntityTranslator libraryTranslator,
+                                                 ExcludedPathEntityTranslator excludedPathTranslator) {
         preloader.setMessage("Loading persistence service...");
-        return new PersistenceServiceImpl(properties, gameTranslator, genreTranslator, libraryTranslator);
+        return new PersistenceServiceImpl(properties, gameTranslator, genreTranslator, libraryTranslator, excludedPathTranslator);
     }
 
     @Bean
@@ -41,5 +49,10 @@ public class DataBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public LibraryEntityTranslator libraryEntityTranslator() {
         return new LibraryEntityTranslatorImpl();
+    }
+
+    @Bean
+    public ExcludedPathEntityTranslator excludedPathEntityTranslator() {
+        return new ExcludedPathEntityTranslatorImpl();
     }
 }

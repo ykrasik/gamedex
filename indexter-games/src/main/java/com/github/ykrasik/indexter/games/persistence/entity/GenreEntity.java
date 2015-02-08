@@ -17,6 +17,6 @@ public class GenreEntity {
     @DatabaseField(columnName = ID_COLUMN, generatedId = true)
     private int id;
 
-    @DatabaseField(columnName = NAME_COLUMN, canBeNull = false)
+    @DatabaseField(columnName = NAME_COLUMN, canBeNull = false, index = true)
     private String name;
 }

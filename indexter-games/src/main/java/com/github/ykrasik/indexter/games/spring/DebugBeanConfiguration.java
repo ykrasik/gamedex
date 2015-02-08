@@ -1,14 +1,14 @@
 package com.github.ykrasik.indexter.games.spring;
 
-import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.debug.*;
 import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.indexter.games.info.metacritic.MetacriticGameInfoService;
 import com.github.ykrasik.indexter.games.info.metacritic.client.MetacriticGameInfoClient;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
-import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +48,7 @@ public class DebugBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ConfigDebugCommands configDebugCommands(GameCollectionConfig config) {
-        return new ConfigDebugCommands(config);
+    public ExcludedPathDebugCommands excludedPathDebugCommands(ExcludedPathManager excludedPathManager) {
+        return new ExcludedPathDebugCommands(excludedPathManager);
     }
 }

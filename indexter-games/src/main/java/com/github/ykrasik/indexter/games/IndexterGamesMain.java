@@ -2,6 +2,7 @@ package com.github.ykrasik.indexter.games;
 
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.controller.GameController;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
@@ -61,7 +62,8 @@ public class IndexterGamesMain extends Application {
                     context.getBean(GameCollectionConfig.class),
                     context.getBean(FlowManager.class),
                     context.getBean(GameManager.class),
-                    context.getBean(LibraryManager.class)
+                    context.getBean(LibraryManager.class),
+                    context.getBean(ExcludedPathManager.class)
                 );
                 return context;
             }

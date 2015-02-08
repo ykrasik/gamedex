@@ -4,9 +4,11 @@ import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
+import com.github.ykrasik.indexter.games.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.game.GameSort;
@@ -100,11 +102,14 @@ public class GameController {
     @FXML private TableColumn<Library, String> libraryPlatform;
     @FXML private TableColumn<Library, String> libraryPath;
 
+    @FXML private ListView<ExcludedPath> excludedPaths;
+
     private Stage stage;
     private GameCollectionConfig config;
     private FlowManager flowManager;
     private GameManager gameManager;
     private LibraryManager libraryManager;
+    private ExcludedPathManager excludedPathManager;
 
     private File prevDirectory;
 
@@ -112,18 +117,21 @@ public class GameController {
                                 @NonNull GameCollectionConfig config,
                                 @NonNull FlowManager flowManager,
                                 @NonNull GameManager gameManager,
-                                @NonNull LibraryManager libraryManager) {
+                                @NonNull LibraryManager libraryManager,
+                                @NonNull ExcludedPathManager excludedPathManager) {
         this.stage = stage;
         this.config = config;
         this.flowManager = flowManager;
         this.gameManager = gameManager;
         this.libraryManager = libraryManager;
+        this.excludedPathManager = excludedPathManager;
 
         prevDirectory = config.getPrevDirectory().orElse(null);
 
         gameWall.itemsProperty().bind(gameManager.gamesProperty());
         gamesTable.itemsProperty().bind(gameManager.gamesProperty());
         libraries.itemsProperty().bind(libraryManager.librariesProperty());
+        excludedPaths.itemsProperty().bind(excludedPathManager.excludedPathsProperty());
 
         gameSort.setValue(GameSort.NAME.getKey());
 

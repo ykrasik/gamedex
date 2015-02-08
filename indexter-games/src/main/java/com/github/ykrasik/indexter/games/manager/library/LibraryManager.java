@@ -24,8 +24,4 @@ public interface LibraryManager {
     void addGameToLibrary(Game game, Library library);
 
     ReadOnlyProperty<ObservableList<Library>> librariesProperty();
-
-    // FIXME: This should be in it's own manager.
-    void setExcluded(Path path);
-    boolean isExcluded(Path path);
 }

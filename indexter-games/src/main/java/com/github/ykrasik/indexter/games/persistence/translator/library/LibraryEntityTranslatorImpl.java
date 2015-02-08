@@ -1,8 +1,9 @@
-package com.github.ykrasik.indexter.games.persistence.translator;
+package com.github.ykrasik.indexter.games.persistence.translator.library;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.persistence.entity.LibraryEntity;
+import com.github.ykrasik.indexter.games.persistence.translator.AbstractEntityTranslator;
 import com.github.ykrasik.indexter.id.Id;
 
 import java.nio.file.Path;

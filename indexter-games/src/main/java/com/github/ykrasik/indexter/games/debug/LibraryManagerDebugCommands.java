@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
@@ -23,34 +22,34 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @ShellPath("library")
 public class LibraryManagerDebugCommands implements DebugCommands {
-    @NonNull private final LibraryManager libraryManager;
+    @NonNull private final LibraryManager manager;
 
     @Command
     public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final Library library = libraryManager.getLibraryById(new Id<>(id));
+        final Library library = manager.getLibraryById(new Id<>(id));
         outputPrinter.println(library.toString());
     }
 
     @Command
     public void isLibrary(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        outputPrinter.println(String.valueOf(libraryManager.isLibrary(Paths.get(path))));
+        outputPrinter.println(String.valueOf(manager.isLibrary(Paths.get(path))));
     }
 
     @Command
     public void all(OutputPrinter outputPrinter) throws Exception {
-        final List<Library> libraries = libraryManager.getAllLibraries();
+        final List<Library> libraries = manager.getAllLibraries();
         libraries.forEach(library -> outputPrinter.println(library.toString()));
     }
 
     @Command
     public void delete(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
-        final Library library = libraryManager.getLibraryById(new Id<>(id));
-        libraryManager.deleteLibrary(library);
+        final Library library = manager.getLibraryById(new Id<>(id));
+        manager.deleteLibrary(library);
     }
 
     @Command
     public void clear(OutputPrinter outputPrinter) throws Exception {
-        final List<Library> libraries = new ArrayList<>(libraryManager.getAllLibraries());
-        libraries.forEach(libraryManager::deleteLibrary);
+        final List<Library> libraries = new ArrayList<>(manager.getAllLibraries());
+        libraries.forEach(manager::deleteLibrary);
     }
 }

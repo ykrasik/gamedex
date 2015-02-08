@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.persistence.translator;
+package com.github.ykrasik.indexter.games.persistence.translator.game;
 
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;

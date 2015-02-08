@@ -11,6 +11,7 @@ import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.info.GameInfoProvider;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.indexter.games.manager.flow.dialog.DialogManager;
 import com.github.ykrasik.indexter.games.manager.flow.dialog.MultipleSearchResultsDialogParams;
 import com.github.ykrasik.indexter.games.manager.flow.dialog.NoSearchResultsDialogParams;
@@ -41,6 +42,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
 
     @NonNull private final LibraryManager libraryManager;
+    @NonNull private final ExcludedPathManager excludedPathManager;
     @NonNull private final GameManager gameManager;
     @NonNull private final GameInfoService metacriticInfoService;
     @NonNull private final GameInfoService giantBombInfoService;
@@ -147,8 +149,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
-        // TODO: Excludes should belong to their own manager.
-        if (libraryManager.isExcluded(path)) {
+        if (excludedPathManager.isExcluded(path)) {
             LOG.info("{} is excluded, skipping...", path);
             return false;
         }
@@ -170,7 +171,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             info("Skipping...");
         } catch (ExcludeException e) {
             info("Excluding...");
-            libraryManager.setExcluded(path);
+            excludedPathManager.addExcludedPath(path);
         }
         info("Finished Processing %s.", path);
         return true;

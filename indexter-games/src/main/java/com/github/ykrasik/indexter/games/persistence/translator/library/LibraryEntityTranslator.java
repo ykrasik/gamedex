@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.persistence.translator;
+package com.github.ykrasik.indexter.games.persistence.translator.library;
 
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.persistence.entity.LibraryEntity;

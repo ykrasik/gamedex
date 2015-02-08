@@ -4,15 +4,17 @@ import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.DataException;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
+import com.github.ykrasik.indexter.games.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.persistence.config.PersistenceProperties;
 import com.github.ykrasik.indexter.games.persistence.dao.*;
 import com.github.ykrasik.indexter.games.persistence.entity.*;
-import com.github.ykrasik.indexter.games.persistence.translator.GameEntityTranslator;
-import com.github.ykrasik.indexter.games.persistence.translator.GenreEntityTranslator;
-import com.github.ykrasik.indexter.games.persistence.translator.LibraryEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.exclude.ExcludedPathEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.game.GameEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.genre.GenreEntityTranslator;
+import com.github.ykrasik.indexter.games.persistence.translator.library.LibraryEntityTranslator;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.DateUtils;
 import com.github.ykrasik.indexter.util.ListUtils;
@@ -39,6 +41,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @NonNull private final GameEntityTranslator gameTranslator;
     @NonNull private final GenreEntityTranslator genreTranslator;
     @NonNull private final LibraryEntityTranslator libraryTranslator;
+    @NonNull private final ExcludedPathEntityTranslator excludedPathTranslator;
 
     private JdbcPooledConnectionSource connectionSource;
     private GameDao gameDao;
@@ -46,6 +49,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     private GenreGameLinkDao genreGameLinkDao;
     private LibraryDao libraryDao;
     private LibraryGameLinkDao libraryGameLinkDao;
+    private ExcludePathDao excludedPathDao;
 
     @Override
     protected void doStart() throws Exception {
@@ -67,6 +71,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         TableUtils.createTableIfNotExists(connectionSource, GenreGameLinkEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, LibraryEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, LibraryGameLinkEntity.class);
+        TableUtils.createTableIfNotExists(connectionSource, ExcludedPathEntity.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -77,6 +82,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         ((GenreGameLinkDaoImpl)genreGameLinkDao).setDaos(gameDao, genreDao);
         libraryDao = DaoManager.createDao(connectionSource, LibraryEntity.class);
         libraryGameLinkDao = DaoManager.createDao(connectionSource, LibraryGameLinkEntity.class);
+        excludedPathDao = DaoManager.createDao(connectionSource, ExcludedPathEntity.class);
     }
 
     @Override
@@ -191,17 +197,16 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @Override
     @SneakyThrows
     public Library addLibrary(String name, Path path, GamePlatform platform) {
-        final LibraryEntity library = new LibraryEntity();
-        library.setName(name);
-        library.setPath(path.toString());
-        library.setPlatform(platform);
+        final LibraryEntity entity = new LibraryEntity();
+        entity.setName(name);
+        entity.setPath(path.toString());
+        entity.setPlatform(platform);
 
-        LOG.debug("Inserting {}...", library);
-        if (libraryDao.create(library) != 1) {
-            throw new DataException("Error inserting library: %s", library);
+        LOG.debug("Inserting {}...", entity);
+        if (libraryDao.create(entity) != 1) {
+            throw new DataException("Error inserting library: %s", entity);
         }
-
-        return new Library(new Id<>(library.getId()), name, path, platform);
+        return translateLibrary(entity);
     }
 
     @Override
@@ -258,6 +263,42 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     public List<Genre> getAllGenres() {
         final List<GenreEntity> entities = genreDao.queryForAll();
         return translateGenres(entities);
+    }
+
+    @Override
+    @SneakyThrows
+    public List<ExcludedPath> getAllExcludedPaths() {
+        final List<ExcludedPathEntity> entities = excludedPathDao.queryForAll();
+        return ListUtils.map(entities, excludedPathTranslator::translate);
+    }
+
+    @Override
+    @SneakyThrows
+    public boolean isPathExcluded(Path path) {
+        return excludedPathDao.queryByPath(path) != null;
+    }
+
+    @Override
+    @SneakyThrows
+    public ExcludedPath addExcludedPath(Path path) {
+        final ExcludedPathEntity entity = new ExcludedPathEntity();
+        entity.setPath(path.toString());
+
+        LOG.debug("Inserting {}...", entity);
+        if (excludedPathDao.create(entity) != 1) {
+            throw new DataException("Error inserting excluded path: %s", entity);
+        }
+        return excludedPathTranslator.translate(entity);
+    }
+
+    @Override
+    @SneakyThrows
+    public void deleteExcludedPath(Id<ExcludedPath> id) {
+        final int excludedPathId = id.getId();
+        LOG.debug("Deleting excluded path of id {}...", excludedPathId);
+        if (excludedPathDao.deleteById(excludedPathId) != 1) {
+            throw new DataException("Error deleting excluded path by id: %s. Entry doesn't exist?", excludedPathId);
+        }
     }
 
     private List<Genre> translateGenres(List<GenreEntity> entities) {
