@@ -1,7 +1,7 @@
 package com.github.ykrasik.indexter.games.persistence.translator;
 
 import com.github.ykrasik.indexter.games.datamodel.ImageData;
-import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.persistence.entity.GameEntity;
@@ -17,14 +17,14 @@ import java.util.Optional;
  */
 public class GameEntityTranslatorImpl extends AbstractEntityTranslator implements GameEntityTranslator {
     @Override
-    public GameEntity translate(GameInfo2 gameInfo) {
+    public GameEntity translate(GameInfo gameInfo) {
         final GameEntity entity = new GameEntity();
         entity.setName(gameInfo.getName());
         entity.setDescription(gameInfo.getDescription().orElse(null));
         entity.setReleaseDate(gameInfo.getReleaseDate().map(DateUtils::fromLocalDate).orElse(null));
         entity.setCriticScore(gameInfo.getCriticScore().orElse(null));
         entity.setUserScore(gameInfo.getUserScore().orElse(null));
-        entity.setGiantBombApiDetailUrl(gameInfo.getGiantBombApiDetailsUrl().orElse(null));
+        entity.setGiantBombApiDetailUrl(gameInfo.getDetailUrl());
         entity.setUrl(gameInfo.getUrl());
         entity.setThumbnailData(gameInfo.getThumbnail().map(ImageData::getRawData).orElse(null));
         entity.setPosterData(gameInfo.getPoster().map(ImageData::getRawData).orElse(null));

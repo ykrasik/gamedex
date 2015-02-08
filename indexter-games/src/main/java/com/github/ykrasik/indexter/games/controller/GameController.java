@@ -15,13 +15,13 @@ import com.github.ykrasik.indexter.games.ui.GameInfoCell;
 import com.github.ykrasik.indexter.games.ui.SearchableCheckListViewDialog;
 import com.github.ykrasik.indexter.optional.Optionals;
 import com.github.ykrasik.indexter.util.ListUtils;
-import com.github.ykrasik.indexter.util.PlatformUtils;
 import com.google.common.base.Joiner;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -42,7 +42,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static com.github.ykrasik.indexter.optional.Optionals.toStringOrUnavailable;
 
@@ -54,7 +53,7 @@ import static com.github.ykrasik.indexter.optional.Optionals.toStringOrUnavailab
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
 // TODO: Add logback.
-public class GameController implements UIManager {
+public class GameController {
     private static final Logger LOG = LoggerFactory.getLogger(GameController.class);
     private static final Joiner JOINER = Joiner.on(", ").skipNulls();
     public static final Image NOT_AVAILABLE = new Image(GameController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
@@ -92,6 +91,7 @@ public class GameController implements UIManager {
 
     @FXML private VBox bottomContainer;
     @FXML private StatusBar statusBar;
+    @FXML private ProgressIndicator progressIndicator;
     @FXML private Button statusBarStopButton;
     @FXML private TextArea logTextArea;
 
@@ -126,6 +126,15 @@ public class GameController implements UIManager {
         libraries.itemsProperty().bind(libraryManager.librariesProperty());
 
         gameSort.setValue(GameSort.NAME.getKey());
+
+        // Bind to flow manager.
+        progressIndicator.progressProperty().bind(flowManager.fetchProgressProperty());
+        statusBar.progressProperty().bind(flowManager.progressProperty());
+        statusBar.textProperty().bind(flowManager.messageProperty());
+        flowManager.messageProperty().addListener((observable, oldValue, newValue) -> {
+            logTextArea.appendText(newValue);
+            logTextArea.appendText("\n");
+        });
     }
 
     // Called by JavaFx
@@ -258,31 +267,6 @@ public class GameController implements UIManager {
 //        return contextMenu;
 //    }
 
-    @Override
-    public void updateProgress(int current, int total) {
-        PlatformUtils.runLaterIfNecessary(() -> statusBar.setProgress((double) current / total));
-    }
-
-    @Override
-    public void printMessage(String message) {
-        PlatformUtils.runLaterIfNecessary(() -> {
-            statusBar.setText(message);
-            logTextArea.appendText(message);
-            logTextArea.appendText("\n");
-        });
-        LOG.info(message);
-    }
-
-    @Override
-    public void printMessage(String format, Object... args) {
-        printMessage(String.format(format, args));
-    }
-
-    @Override
-    public void configureStatusBarStopButton(Consumer<Button> statusBarStopButtonConfigurator) {
-        statusBarStopButtonConfigurator.accept(statusBarStopButton);
-    }
-
     @FXML
     public void addLibrary() {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
@@ -312,18 +296,12 @@ public class GameController implements UIManager {
 
     @FXML
     public void refreshLibraries() {
-        flowManager.refreshLibraries(t -> {
-            LOG.warn("Error refreshing libraries:", t);
-            createDialog().title("Error refreshing libraries!").showException(t) ;
-        });
+        prepareTask(flowManager.refreshLibraries());
     }
 
     @FXML
     public void cleanupGames() {
-        flowManager.cleanupGames(t -> {
-            LOG.warn("Error cleaning up games:", t);
-            createDialog().title("Error cleaning up games!").showException(t) ;
-        });
+        prepareTask(flowManager.cleanupGames());
     }
 
     @FXML
@@ -340,6 +318,19 @@ public class GameController implements UIManager {
                 gameManager.genreFilter(genres);
             }
         });
+    }
+
+    private void prepareTask(Task<Void> task) {
+        task.setOnFailed(event -> {
+            final Throwable t = task.getException();
+            LOG.warn("Error cleaning up games:", t);
+            createDialog().title("Error:").message(t.getMessage()).showException(t) ;
+        });
+
+        statusBarStopButton.disableProperty().bind(task.runningProperty().not());
+        progressIndicator.visibleProperty().bind(task.runningProperty());
+        statusBarStopButton.visibleProperty().bind(task.runningProperty());
+        statusBarStopButton.setOnAction(e -> task.cancel());
     }
 
     private DirectoryChooser createDirectoryChooser(String title) {

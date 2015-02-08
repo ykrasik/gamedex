@@ -10,8 +10,10 @@ import java.util.Optional;
 /**
  * @author Yevgeny Krasik
  */
-public interface GameInfoService<T extends SearchResult, E extends GameInfo> {
-    List<T> searchGames(String name, GamePlatform platform) throws Exception;
+public interface GameInfoService {
+    GameInfoProvider getProvider();
 
-    Optional<E> getGameInfo(T searchResult) throws Exception;
+    List<SearchResult> searchGames(String name, GamePlatform platform) throws Exception;
+
+    Optional<GameInfo> getGameInfo(SearchResult searchResult) throws Exception;
 }

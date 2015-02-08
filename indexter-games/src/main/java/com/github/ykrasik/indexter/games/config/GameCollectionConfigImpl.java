@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Yevgeny Krasik
@@ -22,12 +21,9 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
 
     private final Path file;
 
-    private final AtomicInteger modificationCounter;
     private volatile Config config;
 
     public GameCollectionConfigImpl() throws IOException {
-        this.modificationCounter = new AtomicInteger(0);
-
         this.file = getFile();
         final String fileContent = IO.read(file);
         if (!fileContent.isEmpty()) {

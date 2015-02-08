@@ -1,6 +1,9 @@
 package com.github.ykrasik.indexter.games.manager.flow;
 
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.concurrent.Task;
 
 import java.nio.file.Path;
 
@@ -8,9 +11,13 @@ import java.nio.file.Path;
  * @author Yevgeny Krasik
  */
 public interface FlowManager {
-    void refreshLibraries(ExceptionHandler exceptionHandler);
+    ReadOnlyStringProperty messageProperty();
+    ReadOnlyDoubleProperty progressProperty();
+    ReadOnlyDoubleProperty fetchProgressProperty();
 
-    void cleanupGames(ExceptionHandler exceptionHandler);
+    Task<Void> refreshLibraries();
 
-    void processPath(Library library, Path path, ExceptionHandler exceptionHandler);
+    Task<Void> cleanupGames();
+
+    Task<Void> processPath(Library library, Path path);
 }

@@ -10,6 +10,7 @@ import com.github.ykrasik.jerminal.api.annotation.IntParam;
 import com.github.ykrasik.jerminal.api.annotation.ShellPath;
 import com.github.ykrasik.jerminal.api.annotation.StringParam;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import javafx.concurrent.Task;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,8 @@ public class FlowManagerDebugCommands implements DebugCommands {
 
     @Command
     public void refreshLibraries(OutputPrinter outputPrinter) throws Exception {
-        flowManager.refreshLibraries(t -> outputPrinter.println("Error refreshing libraries: %s", t.getMessage()));
+        final Task<Void> task = flowManager.refreshLibraries();
+        printFailureToOutput(task, outputPrinter);
         outputPrinter.println("Finished refreshing libraries!");
     }
 
@@ -35,7 +37,12 @@ public class FlowManagerDebugCommands implements DebugCommands {
                             @IntParam("libraryId") int id,
                             @StringParam("path") String path) throws Exception {
         final Library library = libraryManager.getLibraryById(new Id<>(id));
-        flowManager.processPath(library, Paths.get(path), t -> outputPrinter.println("Error processing path: %s", t.getMessage()));
+        final Task<Void> task = flowManager.processPath(library, Paths.get(path));
+        printFailureToOutput(task, outputPrinter);
         outputPrinter.println("Finished processing path: %s", path);
+    }
+
+    private void printFailureToOutput(Task<Void> task, OutputPrinter outputPrinter) {
+        task.setOnFailed(event -> outputPrinter.println("Error : %s", task.getException().getMessage()));
     }
 }

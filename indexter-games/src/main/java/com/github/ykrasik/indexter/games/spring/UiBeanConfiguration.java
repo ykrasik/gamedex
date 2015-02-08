@@ -22,7 +22,7 @@ import java.util.Objects;
 public class UiBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public Parent debugConsole(List<DebugCommands> debugCommands) throws IOException {
-        preloader.setMessage("Instantiating debug console...");
+        preloader.setMessage("Loading debug console...");
         final ShellFileSystem fileSystem = new ShellFileSystem();
         debugCommands.forEach(fileSystem::processAnnotationsOfObject);
         return new ConsoleBuilder(fileSystem).build();
@@ -40,7 +40,6 @@ public class UiBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public GameController gameCollectionController() {
-        preloader.setMessage("Creating controller...");
         return new GameController();
     }
 }

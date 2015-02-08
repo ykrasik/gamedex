@@ -49,6 +49,20 @@ public final class ListUtils {
         return map;
     }
 
+    public static <T, K> Map<K, List<T>> toMultiMap(Collection<T> collection, Function<T, K> idFunction) {
+        final Map<K, List<T>> map = new HashMap<>(collection.size());
+        for (T element : collection) {
+            final K id = idFunction.apply(element);
+            List<T> list = map.get(id);
+            if (list == null) {
+                list = new ArrayList<>();
+                map.put(id, list);
+            }
+            list.add(element);
+        }
+        return map;
+    }
+
     public static <T> List<T> filter(List<T> list, Predicate<? super T> predicate) {
         return list.stream().filter(predicate).collect(Collectors.toList());
     }

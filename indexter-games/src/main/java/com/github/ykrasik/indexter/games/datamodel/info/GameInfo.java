@@ -1,15 +1,28 @@
 package com.github.ykrasik.indexter.games.datamodel.info;
 
+import com.github.ykrasik.indexter.games.datamodel.ImageData;
+import lombok.NonNull;
+import lombok.Value;
+import lombok.experimental.Builder;
+
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
-public interface GameInfo {
-    String getName();
-    Optional<String> getDescription();
-    Optional<LocalDate> getReleaseDate();
-    Optional<Double> getCriticScore();
-    Optional<Double> getUserScore();
+@Value
+@Builder
+public class GameInfo {
+    @NonNull private final String detailUrl;
+    @NonNull private final String name;
+    @NonNull private final Optional<String> description;
+    @NonNull private final Optional<LocalDate> releaseDate;
+    @NonNull private final Optional<Double> criticScore;
+    @NonNull private final Optional<Double> userScore;
+    @NonNull private final String url;
+    @NonNull private final Optional<ImageData> thumbnail;
+    @NonNull private final Optional<ImageData> poster;
+    @NonNull private final List<String> genres;
 }

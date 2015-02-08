@@ -60,7 +60,7 @@ public class IndexterPreloader {
 
     public <T> void start(Task<T> task, ConsumerThrows<T> consumer) {
         progressBar.setProgress(-1);
-        setMessage("Loading inDexter...");
+        setMessage("Loading gameDex...");
 
         final Stage initStage = new Stage(StageStyle.UNDECORATED);
         final Scene splashScene = new Scene(splashLayout);

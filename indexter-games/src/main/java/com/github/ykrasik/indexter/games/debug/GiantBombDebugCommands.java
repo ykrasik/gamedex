@@ -2,8 +2,8 @@ package com.github.ykrasik.indexter.games.debug;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.datamodel.info.giantbomb.GiantBombSearchResult;
-import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoServiceImpl;
+import com.github.ykrasik.indexter.games.datamodel.info.SearchResult;
+import com.github.ykrasik.indexter.games.info.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.indexter.games.info.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
@@ -11,7 +11,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 /**
@@ -20,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @ShellPath("giantbomb")
 public class GiantBombDebugCommands implements DebugCommands {
-    @NonNull private final GiantBombGameInfoServiceImpl service;
+    @NonNull private final GiantBombGameInfoService service;
     @NonNull private final GiantBombGameInfoClient client;
     @NonNull private final ObjectMapper objectMapper;
 
@@ -33,9 +32,13 @@ public class GiantBombDebugCommands implements DebugCommands {
     }
 
     @Command
-    public void get(OutputPrinter outputPrinter,
-                    @StringParam("url") String url) throws Exception {
-        final GiantBombSearchResult searchResult = new GiantBombSearchResult("", Optional.<LocalDate>empty(), url);
+    public void get(OutputPrinter outputPrinter, @StringParam("url") String url) throws Exception {
+        final SearchResult searchResult = SearchResult.builder()
+            .detailUrl(url)
+            .name("")
+            .releaseDate(Optional.empty())
+            .score(Optional.empty())
+            .build();
         outputPrinter.println(service.getGameInfo(searchResult).toString());
     }
 

@@ -3,7 +3,7 @@ package com.github.ykrasik.indexter.games.manager.game;
 import com.github.ykrasik.indexter.AbstractService;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.datamodel.info.GameInfo2;
+import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
@@ -56,7 +56,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public Game addGame(GameInfo2 gameInfo, Path path, GamePlatform platform) {
+    public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
         final Game game = persistenceService.addGame(gameInfo, path, platform);
         log.info("Added game: {}", game);
 

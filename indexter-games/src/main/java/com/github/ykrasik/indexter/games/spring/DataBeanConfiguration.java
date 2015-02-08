@@ -18,31 +18,28 @@ public class DataBeanConfiguration extends AbstractBeanConfiguration {
                                                  GameEntityTranslator gameTranslator,
                                                  GenreEntityTranslator genreTranslator,
                                                  LibraryEntityTranslator libraryTranslator) {
-        preloader.setMessage("Instantiating data service...");
+        preloader.setMessage("Loading persistence service...");
         return new PersistenceServiceImpl(properties, gameTranslator, genreTranslator, libraryTranslator);
     }
 
     @Bean
     public PersistenceProperties persistenceProperties() {
-        preloader.setMessage("Instantiating persistence service...");
+        preloader.setMessage("Loading persistence properties...");
         return new PersistencePropertiesImpl();
     }
 
     @Bean
     public GameEntityTranslator gameEntityTranslator() {
-        preloader.setMessage("Instantiating game entity translator...");
         return new GameEntityTranslatorImpl();
     }
 
     @Bean
     public GenreEntityTranslator genreEntityTranslator() {
-        preloader.setMessage("Instantiating genre entity translator...");
         return new GenreEntityTranslatorImpl();
     }
 
     @Bean
     public LibraryEntityTranslator libraryEntityTranslator() {
-        preloader.setMessage("Instantiating library entity translator...");
         return new LibraryEntityTranslatorImpl();
     }
 }

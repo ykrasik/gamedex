@@ -182,6 +182,7 @@
             <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
             <StatusBar fx:id="statusBar" text="Welcome to inDexter!">
                 <rightItems>
+                    <ProgressIndicator fx:id="progressIndicator" visible="false" />
                     <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
                 </rightItems>
             </StatusBar>

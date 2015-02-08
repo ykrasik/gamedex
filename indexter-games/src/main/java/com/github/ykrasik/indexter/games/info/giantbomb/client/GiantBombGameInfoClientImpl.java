@@ -2,32 +2,38 @@ package com.github.ykrasik.indexter.games.info.giantbomb.client;
 
 import com.github.ykrasik.indexter.AbstractUnirestClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
+import com.google.common.base.Joiner;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import static com.github.ykrasik.indexter.games.info.giantbomb.GiantBombApi.*;
+
 /**
  * @author Yevgeny Krasik
  */
 @RequiredArgsConstructor
 public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implements GiantBombGameInfoClient {
+    private static final Joiner JOINER = Joiner.on(',');
+    private static final String SEARCH_FIELDS = JOINER.join(new String[]{DETAIL_URL, NAME, RELEASE_DATE, IMAGE});
+    private static final String FETCH_DETAILS_FIELDS = JOINER.join(new String[]{NAME, DESCRIPTION, RELEASE_DATE, URL, IMAGE, GENRES});
+
     @NonNull private final GiantBombProperties properties;
 
     @Override
     public String searchGames(String name, int platformId) throws Exception {
         final GetRequest request = createGetRequest("http://www.giantbomb.com/api/games")
             .field("filter", String.format("name:%s,platforms:%d", name, platformId))
-            .field("field_list", "name,api_detail_url,image,original_release_date")
-            .field("sort", "original_release_date:desc");
+            .field("field_list", SEARCH_FIELDS);
         return get(request);
     }
 
     @Override
     public String fetchDetails(String detailUrl) throws Exception {
         final GetRequest request = createGetRequest(detailUrl)
-            .field("field_list", "name,deck,genres,image,original_release_date");
+            .field("field_list", FETCH_DETAILS_FIELDS);
         return get(request);
     }
 
