@@ -128,6 +128,7 @@ public class GameController {
 
         prevDirectory = config.getPrevDirectory().orElse(null);
 
+        // TODO: gameWall has a problem refreshing... so instead of binding, add a listener and clear the wall before setting the value.
         gameWall.itemsProperty().bind(gameManager.gamesProperty());
         gamesTable.itemsProperty().bind(gameManager.gamesProperty());
         libraries.itemsProperty().bind(libraryManager.librariesProperty());

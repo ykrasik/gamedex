@@ -21,6 +21,7 @@ import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.optional.Optionals;
 import com.github.ykrasik.indexter.util.FileUtils;
+import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class FlowManagerImpl extends AbstractService implements FlowManager {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
     @NonNull private final LibraryManager libraryManager;
     @NonNull private final ExcludedPathManager excludedPathManager;
@@ -201,18 +203,25 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private String getName(Path path) {
         // Remove all metaData enclosed with '[]' from the game name.
         final String rawName = path.getFileName().toString();
-        return META_DATA_PATTERN.matcher(rawName).replaceAll("");
+        final String nameWithoutMetadata = META_DATA_PATTERN.matcher(rawName).replaceAll("");
+        return SPACE_PATTERN.matcher(nameWithoutMetadata.trim()).replaceAll(" ");
     }
 
     private void addPath(Library library, Path path, String name) throws Exception {
         final GamePlatform platform = library.getPlatform();
 
-        final Optional<GameInfo> metacriticGameOptional = fetchGameInfo(metacriticInfoService, path, name, platform);
+        final SearchContext metacriticSearchContext = new SearchContext(metacriticInfoService, path, platform);
+        final Optional<GameInfo> metacriticGameOptional = fetchGameInfo(metacriticSearchContext, name);
         if (metacriticGameOptional.isPresent()) {
             final GameInfo metacriticGame = metacriticGameOptional.get();
             LOG.debug("Metacritic gameInfo: {}", metacriticGame);
 
-            final Optional<GameInfo> giantBombGameOptional = fetchGameInfo(giantBombInfoService, path, metacriticGame.getName(), platform);
+            // Transfer excluded searches from metacritic search, and use Metacritic's name - more likely to be accurate.
+            final SearchContext giantBombSearchContext = new SearchContext(giantBombInfoService, path, platform);
+            giantBombSearchContext.addExcludedNames(metacriticSearchContext.getExcludedNames());
+            final String metacriticName = metacriticGame.getName();
+
+            final Optional<GameInfo> giantBombGameOptional = fetchGameInfo(giantBombSearchContext, metacriticName);
             final GameInfo mergedGame;
             if (giantBombGameOptional.isPresent()) {
                 final GameInfo giantBombGame = giantBombGameOptional.get();
@@ -228,60 +237,75 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
     }
 
-    private Optional<GameInfo> fetchGameInfo(GameInfoService gameInfoService, Path path, String name, GamePlatform platform) throws Exception {
-        info("Searching %s for '%s'[%s]...", gameInfoService.getProvider().getName(), name, platform);
-        startFetching();
-        final List<SearchResult> searchResults = gameInfoService.searchGames(name, platform);
-        finishFetching();
-        info("Found %d results.", searchResults.size());
+    private Optional<GameInfo> fetchGameInfo(SearchContext searchContext, String name) throws Exception {
+        final List<SearchResult> searchResults = searchGames(searchContext, name);
 
         if (searchResults.isEmpty()) {
-            return handleNoSearchResults(gameInfoService, path, name, platform);
+            return handleNoSearchResults(searchContext, name);
         }
 
         if (searchResults.size() > 1) {
-            return handleMultipleSearchResults(gameInfoService, path, name, platform, searchResults);
+            return handleMultipleSearchResults(searchContext, name, searchResults);
         }
 
         final SearchResult singleSearchResult = searchResults.get(0);
-        return Optional.of(fetchGameInfoFromSearchResult(gameInfoService, singleSearchResult));
+        return Optional.of(fetchGameInfoFromSearchResult(searchContext, singleSearchResult));
     }
 
-    private Optional<GameInfo> handleNoSearchResults(GameInfoService gameInfoService,
-                                                     Path path,
-                                                     String name,
-                                                     GamePlatform platform) throws Exception {
-        final GameInfoProvider provider = gameInfoService.getProvider();
+    private List<SearchResult> searchGames(SearchContext searchContext, String name) throws Exception {
+        final GameInfoService gameInfoService = searchContext.getGameInfoService();
+        final GamePlatform platform = searchContext.getPlatform();
+
+        info("%s: Searching '%s'...", gameInfoService.getProvider().getName(), name);
+        startFetching();
+        final List<SearchResult> searchResults = gameInfoService.searchGames(name, platform);
+        finishFetching();
+        info("Results: %d", searchResults.size());
+
+        final Collection<String> excludedNames = searchContext.getExcludedNames();
+        if (searchResults.size() <= 1 || !searchContext.isCanExclude() || excludedNames.isEmpty()) {
+            return searchResults;
+        }
+
+        info("Filtering previously encountered search results...");
+        final List<SearchResult> filteredSearchResults = ListUtils.filter(searchResults, result -> !excludedNames.contains(result.getName()));
+        if (!filteredSearchResults.isEmpty()) {
+            info("Results: %d", filteredSearchResults.size());
+            return filteredSearchResults;
+        } else {
+            info("No search results after filtering, reverting...");
+            return searchResults;
+        }
+    }
+
+    private Optional<GameInfo> handleNoSearchResults(SearchContext searchContext, String name) throws Exception {
+        final GameInfoProvider provider = searchContext.getGameInfoService().getProvider();
         final NoSearchResultsDialogParams params = NoSearchResultsDialogParams.builder()
             .providerName(provider.getName())
             .name(name)
-            .platform(platform)
-            .path(path)
+            .platform(searchContext.getPlatform())
+            .path(searchContext.getPath())
             .canProceedWithout(provider != GameInfoProvider.METACRITIC)
             .build();
         final DialogChoice choice = dialogManager.noSearchResultsDialog(params);
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
             public Optional<GameInfo> newName(String newName) throws Exception {
-                return fetchGameInfo(gameInfoService, path, newName, platform);
+                return fetchGameInfo(searchContext, newName);
             }
         });
     }
 
-    private Optional<GameInfo> handleMultipleSearchResults(GameInfoService gameInfoService,
-                                                           Path path,
-                                                           String name,
-                                                           GamePlatform platform,
-                                                           List<SearchResult> searchResults) throws Exception {
+    private Optional<GameInfo> handleMultipleSearchResults(SearchContext searchContext, String name, List<SearchResult> searchResults) throws Exception {
         final List<SearchResult> sortedSearchResults = new ArrayList<>(searchResults);
         Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateComparator());
 
-        final GameInfoProvider provider = gameInfoService.getProvider();
+        final GameInfoProvider provider = searchContext.getGameInfoService().getProvider();
         final MultipleSearchResultsDialogParams params = MultipleSearchResultsDialogParams.builder()
             .providerName(provider.getName())
             .name(name)
-            .platform(platform)
-            .path(path)
+            .platform(searchContext.getPlatform())
+            .path(searchContext.getPath())
             .searchResults(sortedSearchResults)
             .canProceedWithout(provider != GameInfoProvider.METACRITIC)
             .build();
@@ -289,25 +313,39 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
             public Optional<GameInfo> newName(String newName) throws Exception {
-                return fetchGameInfo(gameInfoService, path, newName, platform);
+                // Add all current search results to excluded list.
+                final List<String> searchResultNames = getSearchResultNames(searchResults);
+                searchContext.addExcludedNames(searchResultNames);
+                return fetchGameInfo(searchContext, newName);
             }
 
             @Override
             public Optional<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
-                return Optional.of(fetchGameInfoFromSearchResult(gameInfoService, chosenSearchResult));
+                // Add all other search results to excluded list.
+                final List<String> searchResultNames = getSearchResultNames(searchResults);
+                final List<String> excludedNames = ListUtils.takeAllExcept(searchResultNames, chosenSearchResult.getName());
+                searchContext.addExcludedNames(excludedNames);
+                return Optional.of(fetchGameInfoFromSearchResult(searchContext, chosenSearchResult));
             }
         });
     }
 
-    private GameInfo fetchGameInfoFromSearchResult(GameInfoService gameInfoService, SearchResult searchResult) throws Exception {
+    private List<String> getSearchResultNames(List<SearchResult> searchResults) {
+        return ListUtils.map(searchResults, SearchResult::getName);
+    }
+
+    private GameInfo fetchGameInfoFromSearchResult(SearchContext searchContext, SearchResult searchResult) throws Exception {
+        final GameInfoService gameInfoService = searchContext.getGameInfoService();
         final String providerName = gameInfoService.getProvider().getName();
-        info("Fetching from %s...", providerName);
+
+        info("%s: Fetching '%s'...", providerName, searchResult.getName());
         startFetching();
         final GameInfo gameInfo = gameInfoService.getGameInfo(searchResult).orElseThrow(
             () -> new IndexterException("Specific %s search found nothing: %s", providerName, searchResult)
         );
         finishFetching();
         info("Done.");
+
         return gameInfo;
     }
 

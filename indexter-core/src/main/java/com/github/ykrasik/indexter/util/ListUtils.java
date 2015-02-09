@@ -75,4 +75,8 @@ public final class ListUtils {
         }
         return false;
     }
+
+    public static <T> List<T> takeAllExcept(List<T> list, T excluded) {
+        return list.stream().filter(element -> !element.equals(excluded)).collect(Collectors.toList());
+    }
 }
