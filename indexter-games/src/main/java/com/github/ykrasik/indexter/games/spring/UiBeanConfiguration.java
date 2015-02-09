@@ -1,11 +1,17 @@
 package com.github.ykrasik.indexter.games.spring;
 
 import com.github.ykrasik.indexter.debug.DebugCommands;
+import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.controller.GameController;
+import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
+import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
+import com.github.ykrasik.indexter.games.manager.game.GameManager;
+import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +45,12 @@ public class UiBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public GameController gameCollectionController() {
-        return new GameController();
+    public GameController gameCollectionController(Stage stage,
+                                                   GameCollectionConfig config,
+                                                   FlowManager flowManager,
+                                                   GameManager gameManager,
+                                                   LibraryManager libraryManager,
+                                                   ExcludedPathManager excludedPathManager) {
+        return new GameController(stage, config, flowManager, gameManager, libraryManager, excludedPathManager);
     }
 }

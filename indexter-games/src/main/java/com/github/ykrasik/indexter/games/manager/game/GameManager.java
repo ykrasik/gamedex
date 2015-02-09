@@ -5,7 +5,7 @@ import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Genre;
 import com.github.ykrasik.indexter.id.Id;
-import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.property.ReadOnlyListProperty;
 import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
@@ -21,13 +21,13 @@ public interface GameManager {
     void deleteGame(Game game);
     void deleteGames(Collection<Game> games);
 
-    List<Game> getAllGames();
+    ObservableList<Game> getAllGames();
     Game getGameById(Id<Game> id);
     boolean isGame(Path path);
 
     ObservableList<Genre> getAllGenres();
 
-    ReadOnlyProperty<ObservableList<Game>> gamesProperty();
+    ReadOnlyListProperty<Game> gamesProperty();
 
     void sort(GameSort sort);
 

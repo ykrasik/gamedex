@@ -20,11 +20,13 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Yevgeny Krasik
  */
 // TODO: Needs refactoring... fxml?
+@Slf4j
 public class IndexterPreloader {
     private static final int SPLASH_WIDTH = 676;
     private static final int SPLASH_HEIGHT = 227;
@@ -85,6 +87,7 @@ public class IndexterPreloader {
             }
         });
         task.setOnFailed(v -> {
+            log.warn("Error: ", task.getException());
             initStage.close();
             throw new RuntimeException(task.getException());
         });

@@ -1,8 +1,7 @@
 package com.github.ykrasik.indexter.games.manager.exclude;
 
 import com.github.ykrasik.indexter.games.datamodel.persistence.ExcludedPath;
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.collections.ObservableList;
+import javafx.beans.property.ReadOnlyListProperty;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -17,5 +16,5 @@ public interface ExcludedPathManager {
     void deleteExcludedPath(ExcludedPath excludedPath);
     boolean isExcluded(Path path);
 
-    ReadOnlyProperty<ObservableList<ExcludedPath>> excludedPathsProperty();
+    ReadOnlyListProperty<ExcludedPath> excludedPathsProperty();
 }

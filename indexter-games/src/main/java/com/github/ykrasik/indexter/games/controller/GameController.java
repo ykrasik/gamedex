@@ -1,5 +1,6 @@
 package com.github.ykrasik.indexter.games.controller;
 
+import com.github.ykrasik.indexter.exception.ExceptionWrappers;
 import com.github.ykrasik.indexter.exception.IndexterException;
 import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
@@ -25,7 +26,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -33,12 +39,17 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.GridView;
 import org.controlsfx.control.StatusBar;
 import org.controlsfx.dialog.Dialogs;
 
+import java.awt.*;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -49,11 +60,11 @@ import static com.github.ykrasik.indexter.optional.Optionals.toStringOrUnavailab
 /**
  * @author Yevgeny Krasik
  */
-// TODO: Display total number of games somewhere. (label bound to items property)
 // TODO: Allow changing thumbnail & poster via right-click.
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
 @Slf4j
+@RequiredArgsConstructor
 public class GameController {
     private static final Joiner JOINER = Joiner.on(", ").skipNulls();
     public static final Image NOT_AVAILABLE = new Image(GameController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
@@ -61,13 +72,14 @@ public class GameController {
     @FXML private CheckMenuItem showLog;
     @FXML private CheckMenuItem showSideBar;
 
-    @FXML private TextField searchBox;
+    @FXML private TextField gameSearch;
+    @FXML private Button clearGameSearch;
     @FXML private ComboBox<String> gameSort;
 
     @FXML private HBox contentScreen;
     @FXML private GridView<Game> gameWall;
 
-    @FXML private TableView<Game> gamesTable;
+    @FXML private TableView<Game> gameList;
     @FXML private TableColumn<Game, String> gameNameColumn;
     @FXML private TableColumn<Game, String> gamePlatformColumn;
     @FXML private TableColumn<Game, String> gameReleaseDateColumn;
@@ -91,104 +103,37 @@ public class GameController {
 
     @FXML private VBox bottomContainer;
     @FXML private StatusBar statusBar;
+    @FXML private Label gameCount;
+    @FXML private Label libraryCount;
+    @FXML private ToggleButton toggleLog;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Button statusBarStopButton;
     @FXML private TextArea logTextArea;
 
-    @FXML private TableView<Library> libraries;
+    @FXML private TableView<Library> libraryList;
     @FXML private TableColumn<Library, String> libraryName;
     @FXML private TableColumn<Library, String> libraryPlatform;
     @FXML private TableColumn<Library, String> libraryPath;
 
-    @FXML private ListView<ExcludedPath> excludedPaths;
+    @FXML private ListView<ExcludedPath> excludedPathsList;
 
-    private Stage stage;
-    private GameCollectionConfig config;
-    private FlowManager flowManager;
-    private GameManager gameManager;
-    private LibraryManager libraryManager;
-    private ExcludedPathManager excludedPathManager;
-
-    private File prevDirectory;
-
-    public void setDependencies(@NonNull Stage stage,
-                                @NonNull GameCollectionConfig config,
-                                @NonNull FlowManager flowManager,
-                                @NonNull GameManager gameManager,
-                                @NonNull LibraryManager libraryManager,
-                                @NonNull ExcludedPathManager excludedPathManager) {
-        this.stage = stage;
-        this.config = config;
-        this.flowManager = flowManager;
-        this.gameManager = gameManager;
-        this.libraryManager = libraryManager;
-        this.excludedPathManager = excludedPathManager;
-
-        prevDirectory = config.getPrevDirectory().orElse(null);
-
-        // TODO: gameWall has a problem refreshing... so instead of binding, add a listener and clear the wall before setting the value.
-        gameWall.itemsProperty().bind(gameManager.gamesProperty());
-        gamesTable.itemsProperty().bind(gameManager.gamesProperty());
-        libraries.itemsProperty().bind(libraryManager.librariesProperty());
-        excludedPaths.itemsProperty().bind(excludedPathManager.excludedPathsProperty());
-
-        gameSort.setValue(GameSort.NAME.getKey());
-
-        // Bind to flow manager.
-        progressIndicator.progressProperty().bind(flowManager.fetchProgressProperty());
-        statusBar.progressProperty().bind(flowManager.progressProperty());
-        statusBar.textProperty().bind(flowManager.messageProperty());
-        flowManager.messageProperty().addListener((observable, oldValue, newValue) -> {
-            info(newValue);
-        });
-
-        info("Games: " + gameManager.getAllGames().size());
-        info("Libraries: " + libraryManager.getAllLibraries().size());
-        info("");
-    }
-
-    private void info(String newValue) {
-        logTextArea.appendText(newValue);
-        logTextArea.appendText("\n");
-    }
+    @NonNull private final Stage stage;
+    @NonNull private final GameCollectionConfig config;
+    @NonNull private final FlowManager flowManager;
+    @NonNull private final GameManager gameManager;
+    @NonNull private final LibraryManager libraryManager;
+    @NonNull private final ExcludedPathManager excludedPathManager;
 
     // Called by JavaFx
     public void initialize() {
-        initGameWall();
-        initGameSearchBox();
-        initGameSortBox();
+        initMenu();
+        initGamesTab();
+        initLibrariesTab();
+        initExcludedTab();
+        initBottom();
+    }
 
-        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
-        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
-        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().orElse(0.0)));
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().orElse(0.0)));
-        gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
-        gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
-
-        gamesTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Game>() {
-            @Override
-            public void changed(ObservableValue<? extends Game> observable, Game oldValue, Game newValue) {
-                if (newValue != null) {
-                    displayGameOnSidePanel(newValue);
-                }
-            }
-        });
-
-        libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
-        libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
-        libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
-
-//        libraries.setContextMenu(createLibraryContextMenu());
-
-        showLog.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                bottomContainer.getChildren().add(0, logTextArea);
-            } else {
-                bottomContainer.getChildren().remove(logTextArea);
-            }
-        });
-
+    private void initMenu() {
         showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 contentScreen.getChildren().add(sideBar);
@@ -196,6 +141,14 @@ public class GameController {
                 contentScreen.getChildren().remove(sideBar);
             }
         });
+    }
+
+    // TODO: This should be it's own fxml.
+    private void initGamesTab() {
+        initGameWall();
+        initGameList();
+        initGameSearch();
+        initGameSort();
     }
 
     private void initGameWall() {
@@ -211,10 +164,48 @@ public class GameController {
             addGameInfoCellContextMenu(cell);
             return cell;
         });
+
+        // TODO: gameWall has a problem refreshing... so instead of binding, add a listener and clear the wall before setting the value.
+        gameWall.itemsProperty().bind(gameManager.gamesProperty());
     }
 
-    private void initGameSearchBox() {
-        searchBox.textProperty().addListener(new ChangeListener<String>() {
+    private void addGameInfoCellContextMenu(GameInfoCell cell) {
+        final ContextMenu contextMenu = new ContextMenu();
+
+        final MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setOnAction(e -> {
+            final Game game = cell.getItem();
+            // TODO: Confirmation menu. And go through flowManager.
+            gameManager.deleteGame(game);
+        });
+
+        contextMenu.getItems().addAll(deleteItem);
+        cell.setContextMenu(contextMenu);
+    }
+
+    private void initGameList() {
+        gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
+        gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
+        gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().orElse(0.0)));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().orElse(0.0)));
+        gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
+        gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
+
+        gameList.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Game>() {
+            @Override
+            public void changed(ObservableValue<? extends Game> observable, Game oldValue, Game newValue) {
+                if (newValue != null) {
+                    displayGameOnSidePanel(newValue);
+                }
+            }
+        });
+
+        gameList.itemsProperty().bind(gameManager.gamesProperty());
+    }
+
+    private void initGameSearch() {
+        gameSearch.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (newValue.isEmpty()) {
@@ -224,9 +215,15 @@ public class GameController {
                 }
             }
         });
+
+        // TODO: This is a bit patchy, could probably use a dedicated class that reads resources.
+        final InputStream resource = getClass().getResourceAsStream("/com/github/ykrasik/indexter/games/ui/x_small_icon.png");
+        final Image image = new Image(resource);
+        clearGameSearch.setGraphic(new ImageView(image));
+        clearGameSearch.setOnAction(e -> gameSearch.clear());
     }
 
-    private void initGameSortBox() {
+    private void initGameSort() {
         gameSort.setItems(FXCollections.observableArrayList(GameSort.getKeys()));
         gameSort.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -238,12 +235,52 @@ public class GameController {
                 gameManager.sort(sort);
             }
         });
+        gameSort.setValue(GameSort.NAME.getKey());
     }
 
-    private void displayGameOnSidePanel(Game game) {
-        gamePath.setText(game.getPath().toString());
+    // TODO: This should be it's own fxml.
+    private void initLibrariesTab() {
+        libraryName.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
+        libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
+        libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
 
+        libraryList.itemsProperty().bind(libraryManager.librariesProperty());
+
+//        libraryList.setContextMenu(createLibraryContextMenu());
+    }
+
+    // TODO: This should be it's own fxml.
+    private void initExcludedTab() {
+        excludedPathsList.itemsProperty().bind(excludedPathManager.excludedPathsProperty());
+    }
+
+    private void initBottom() {
+        progressIndicator.progressProperty().bind(flowManager.fetchProgressProperty());
+        statusBar.progressProperty().bind(flowManager.progressProperty());
+        statusBar.textProperty().bind(flowManager.messageProperty());
+        flowManager.messageProperty().addListener((observable, oldValue, newValue) -> {
+            logTextArea.appendText(newValue);
+            logTextArea.appendText("\n");
+        });
+
+        toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
+
+        gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
+        libraryCount.textProperty().bind(libraryManager.librariesProperty().sizeProperty().asString("Libraries: %d"));
+    }
+
+    private void toggleLogTextArea(boolean newValue) {
+        if (newValue) {
+            bottomContainer.getChildren().add(0, logTextArea);
+        } else {
+            bottomContainer.getChildren().remove(logTextArea);
+        }
+    }
+
+    @SneakyThrows
+    private void displayGameOnSidePanel(Game game) {
         poster.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).map(ImageData::getImage).orElse(NOT_AVAILABLE));
+        gamePath.setText(game.getPath().toString());
         name.setText(game.getName());
         description.setText(toStringOrUnavailable(game.getDescription()));
         platform.setText(game.getPlatform().name());
@@ -251,20 +288,10 @@ public class GameController {
         criticScore.setText(toStringOrUnavailable(game.getCriticScore()));
         userScore.setText(toStringOrUnavailable(game.getUserScore()));
         genres.setText(JOINER.join(ListUtils.map(game.getGenres(), Genre::getName)));
+
         url.setText(game.getUrl());
-    }
-
-    private void addGameInfoCellContextMenu(GameInfoCell cell) {
-        final ContextMenu contextMenu = new ContextMenu();
-
-        final MenuItem deleteItem = new MenuItem("Delete");
-        deleteItem.setOnAction(e -> {
-            final Game game = cell.getItem();
-            gameManager.deleteGame(game);
-        });
-
-        contextMenu.getItems().addAll(deleteItem);
-        cell.setContextMenu(contextMenu);
+        url.setVisited(false);
+        url.setOnAction(e -> ExceptionWrappers.rethrow(() -> Desktop.getDesktop().browse(new URI(game.getUrl()))));
     }
 
 //    private ContextMenu createLibraryContextMenu() {
@@ -288,8 +315,7 @@ public class GameController {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {
-            prevDirectory = selectedDirectory;
-            config.setPrevDirectory(prevDirectory);
+            config.setPrevDirectory(selectedDirectory);
             final Path path = Paths.get(selectedDirectory.toURI());
             try {
                 if (libraryManager.isLibrary(path)) {
@@ -339,10 +365,13 @@ public class GameController {
         task.setOnFailed(event -> handleException(task.getException()));
         task.setOnCancelled(event -> flowManager.stopTask(task));
 
-        statusBarStopButton.disableProperty().bind(task.runningProperty().not());
         progressIndicator.visibleProperty().bind(task.runningProperty());
+
+        statusBarStopButton.disableProperty().bind(task.runningProperty().not());
         statusBarStopButton.visibleProperty().bind(task.runningProperty());
         statusBarStopButton.setOnAction(e -> task.cancel());
+
+        // TODO: Disable all other buttons while task is running.
     }
 
     private void handleException(Throwable t) {
@@ -353,7 +382,7 @@ public class GameController {
     private DirectoryChooser createDirectoryChooser(String title) {
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle(title);
-        directoryChooser.setInitialDirectory(prevDirectory);
+        directoryChooser.setInitialDirectory(config.getPrevDirectory().orElse(null));
         return directoryChooser;
     }
 

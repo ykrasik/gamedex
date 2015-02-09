@@ -4,8 +4,7 @@ import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Game;
 import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.id.Id;
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.collections.ObservableList;
+import javafx.beans.property.ReadOnlyListProperty;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -23,5 +22,5 @@ public interface LibraryManager {
 
     void addGameToLibrary(Game game, Library library);
 
-    ReadOnlyProperty<ObservableList<Library>> librariesProperty();
+    ReadOnlyListProperty<Library> librariesProperty();
 }

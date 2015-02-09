@@ -109,6 +109,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return submit(this::doCleanupGames);
     }
 
+    // TODO: Make this a total cleanup? libraries, excluded, evertyhing?
     private void doCleanupGames() {
         info("Cleaning up games...");
 
@@ -124,7 +125,6 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             }
         }
 
-        info("Detected %d obsolete games.", obsoleteGames.size());
         gameManager.deleteGames(obsoleteGames);
         info("Removed %d obsolete games.", obsoleteGames.size());
         setProgress(0, 1);
@@ -172,7 +172,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return true;
         }
 
-        info("Processing path: %s...", path);
+        info("Processing: %s...", path);
         final String name = getName(path);
         try {
             addPath(library, path, name);
@@ -182,7 +182,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             info("Excluding...");
             excludedPathManager.addExcludedPath(path);
         }
-        info("Finished Processing %s.", path);
+        info("Finished processing %s.", path);
         return true;
     }
 

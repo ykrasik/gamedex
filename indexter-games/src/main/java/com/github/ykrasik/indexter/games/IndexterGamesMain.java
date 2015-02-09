@@ -1,17 +1,12 @@
 package com.github.ykrasik.indexter.games;
 
-import com.github.ykrasik.indexter.games.config.GameCollectionConfig;
-import com.github.ykrasik.indexter.games.controller.GameController;
-import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
-import com.github.ykrasik.indexter.games.manager.flow.FlowManager;
-import com.github.ykrasik.indexter.games.manager.game.GameManager;
-import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.jerminal.javafx.SceneToggler;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
@@ -20,6 +15,7 @@ import java.io.IOException;
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
 public class IndexterGamesMain extends Application {
     private IndexterPreloader preloader;
     private AbstractApplicationContext context;
@@ -50,27 +46,15 @@ public class IndexterGamesMain extends Application {
     }
 
     private void doStart(final Stage mainStage) throws IOException {
-        final Task<AbstractApplicationContext> loadContextTask = new Task<AbstractApplicationContext>() {
+        final Task<AbstractApplicationContext> task = new Task<AbstractApplicationContext>() {
             @Override
             protected AbstractApplicationContext call() throws InterruptedException {
-                final AbstractApplicationContext context = createContext(mainStage, preloader);
-                final GameController controller = context.getBean(GameController.class);
-
-                // TODO: what a hack... This is me performing work that should be done by spring :/
-                controller.setDependencies(
-                    context.getBean(Stage.class),
-                    context.getBean(GameCollectionConfig.class),
-                    context.getBean(FlowManager.class),
-                    context.getBean(GameManager.class),
-                    context.getBean(LibraryManager.class),
-                    context.getBean(ExcludedPathManager.class)
-                );
-                return context;
+                return createContext(mainStage, preloader);
             }
         };
 
         // FIXME: Should create a new stage on the background thread, while the preloader is loading.
-        preloader.start(loadContextTask, context -> {
+        preloader.start(task, context -> {
             this.context = context;
             final Scene mainScene = new Scene(context.getBean("gameCollection", Parent.class));
             final Parent debugConsole = context.getBean("debugConsole", Parent.class);

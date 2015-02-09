@@ -10,9 +10,7 @@ import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.ListUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.NonNull;
@@ -34,7 +32,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
     @NonNull private final PersistenceService persistenceService;
 
-    private final ObjectProperty<ObservableList<Game>> gamesProperty = new SimpleObjectProperty<>();
+    private final ListProperty<Game> gamesProperty = new SimpleListProperty<>();
     private ObservableList<Game> games = FXCollections.emptyObservableList();
 
     private GameSort sort = GameSort.NAME;
@@ -44,6 +42,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     // FIXME: This is too slow. Need to find a way to stream the images from the db.
     @Override
     protected void doStart() throws Exception {
+        LOG.info("Loading games...");
         games = FXCollections.observableArrayList(persistenceService.getAllGames());
         gamesProperty.set(games);
         doRefreshGames();
@@ -94,7 +93,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public List<Game> getAllGames() {
+    public ObservableList<Game> getAllGames() {
         return games;
     }
 
@@ -116,41 +115,41 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public ReadOnlyProperty<ObservableList<Game>> gamesProperty() {
+    public ReadOnlyListProperty<Game> gamesProperty() {
         return gamesProperty;
     }
 
     @Override
     public void sort(GameSort sort) {
         this.sort = sort;
-        refershGames();
+        refreshGames();
     }
 
     @Override
     public void nameFilter(String name) {
         nameFilter = game -> StringUtils.containsIgnoreCase(game.getName(), name);
-        refershGames();
+        refreshGames();
     }
 
     @Override
     public void noNameFilter() {
         nameFilter = NO_FILTER;
-        refershGames();
+        refreshGames();
     }
 
     @Override
     public void genreFilter(List<Genre> genres) {
         genreFilter = game -> ListUtils.containsAny(game.getGenres(), genres);
-        refershGames();
+        refreshGames();
     }
 
     @Override
     public void noGenreFilter() {
         genreFilter = NO_FILTER;
-        refershGames();
+        refreshGames();
     }
 
-    private void refershGames() {
+    private void refreshGames() {
         PlatformUtils.runLaterIfNecessary(this::doRefreshGames);
     }
 
@@ -162,7 +161,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
         // Sort
         FXCollections.sort(filtered, getComparator(sort));
 
-        // It seems there is a bug with GridView - the list doesn't update unless the reference is re-set.
+        // It seems there is a bug with GridView - the list doesn't update when deleting unless the reference is re-set.
         gamesProperty.setValue(FXCollections.emptyObservableList());
         gamesProperty.setValue(filtered);
     }

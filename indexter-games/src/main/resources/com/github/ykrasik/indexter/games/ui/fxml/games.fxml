@@ -21,7 +21,8 @@
                         <ToolBar prefHeight="40.0" prefWidth="200.0">
                           <items>
                               <Label text="Search:" />
-                              <TextField fx:id="searchBox" />
+                              <TextField fx:id="gameSearch" />
+                              <Button fx:id="clearGameSearch" />
                               <Region prefWidth="36.0" />
                               <Label text="Sort:" />
                               <ComboBox fx:id="gameSort" />
@@ -46,7 +47,7 @@
                                     </Tab>
                                     <Tab closable="false" text="List">
                                        <content>
-                                          <TableView fx:id="gamesTable">
+                                          <TableView fx:id="gameList">
                                             <columns>
                                               <TableColumn fx:id="gameNameColumn" editable="false" prefWidth="260.0" sortable="false" text="Name" />
                                               <TableColumn fx:id="gamePlatformColumn" editable="false" minWidth="0.0" prefWidth="57.0" sortable="false" text="Platform" />
@@ -134,7 +135,7 @@
                <content>
                   <BorderPane>
                      <center>
-                        <TableView fx:id="libraries" BorderPane.alignment="CENTER">
+                        <TableView fx:id="libraryList" BorderPane.alignment="CENTER">
                           <columns>
                             <TableColumn fx:id="libraryName" editable="false" prefWidth="174.0" text="Name" />
                               <TableColumn fx:id="libraryPlatform" editable="false" minWidth="7.0" prefWidth="58.0" text="Platform" />
@@ -149,7 +150,7 @@
                  <content>
                      <BorderPane>
                          <center>
-                             <ListView fx:id="excludedPaths" />
+                             <ListView fx:id="excludedPathsList" />
                          </center>
                      </BorderPane>
                  </content>
@@ -179,7 +180,6 @@
           </Menu>
           <Menu mnemonicParsing="false" text="View">
             <items>
-              <CheckMenuItem fx:id="showLog" mnemonicParsing="false" text="Log" selected="true" />
               <CheckMenuItem fx:id="showSideBar" mnemonicParsing="false" text="Side Bar" selected="true" />
             </items>
           </Menu>
@@ -190,6 +190,22 @@
         <VBox fx:id="bottomContainer">
             <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
             <StatusBar fx:id="statusBar" text="Welcome to inDexter!">
+                <leftItems>
+                    <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="gameCount" text="Games: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="libraryCount" text="Libraries: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                </leftItems>
                 <rightItems>
                     <ProgressIndicator fx:id="progressIndicator" visible="false" />
                     <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>

@@ -146,7 +146,7 @@ public class DialogManagerImpl implements DialogManager {
                 return choice.get();
             }
 
-            choice = tryChooseFromSearchResultsDialogAction(action, providerName, params.getName(), params.getPlatform(), params.getSearchResults());
+            choice = tryChooseFromSearchResultsDialogAction(action, providerName, params.getName(), params.getPath(), params.getPlatform(), params.getSearchResults());
             if (choice.isPresent()) {
                 return choice.get();
             }
@@ -183,11 +183,12 @@ public class DialogManagerImpl implements DialogManager {
     private Optional<DialogChoice> tryChooseFromSearchResultsDialogAction(Action action,
                                                                           String providerName,
                                                                           String name,
+                                                                          Path path,
                                                                           GamePlatform platform,
                                                                           List<SearchResult> searchResults) throws Exception {
         if (action == CHOOSE_FROM_SEARCH_RESULTS_ACTION) {
             log.info("Choose from search results requested.");
-            final Optional<SearchResult> searchResult = chooseFromSearchResults(providerName, name, platform, searchResults);
+            final Optional<SearchResult> searchResult = chooseFromSearchResults(providerName, name, path, platform, searchResults);
             return searchResult.map(ChooseFromSearchResultsChoice::new);
         }
         return Optional.empty();
@@ -210,6 +211,7 @@ public class DialogManagerImpl implements DialogManager {
 
     private Optional<SearchResult> chooseFromSearchResults(String providerName,
                                                            String name,
+                                                           Path path,
                                                            GamePlatform platform,
                                                            List<SearchResult> searchResults) throws Exception {
         final SearchResultDialog<SearchResult> dialog = new SearchResultDialog<>()
@@ -217,7 +219,7 @@ public class DialogManagerImpl implements DialogManager {
             .title(String.format("%s search results for: '%s'[%s]", providerName, name, platform));
 
         log.info("Showing all search results...");
-        final Optional<SearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
+        final Optional<SearchResult> choice = getUserResponse(() -> dialog.show(path, FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
             log.info("Choice from multiple results: '{}'", choice.get());
         } else {

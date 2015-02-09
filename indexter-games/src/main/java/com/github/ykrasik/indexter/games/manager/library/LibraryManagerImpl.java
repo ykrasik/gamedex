@@ -7,14 +7,13 @@ import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.persistence.PersistenceService;
 import com.github.ykrasik.indexter.id.Id;
 import com.github.ykrasik.indexter.util.PlatformUtils;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -22,16 +21,16 @@ import java.util.List;
 /**
  * @author Yevgeny Krasik
  */
-@Slf4j
 @RequiredArgsConstructor
 public class LibraryManagerImpl extends AbstractService implements LibraryManager {
     @NonNull private final PersistenceService persistenceService;
 
-    private final ObjectProperty<ObservableList<Library>> librariesProperty = new SimpleObjectProperty<>();
+    private final ListProperty<Library> librariesProperty = new SimpleListProperty<>();
     private ObservableList<Library> libraries = FXCollections.emptyObservableList();
 
     @Override
     protected void doStart() throws Exception {
+        LOG.info("Loading libraries...");
         libraries = FXCollections.observableArrayList(persistenceService.getAllLibraries());
         librariesProperty.setValue(libraries);
         LOG.info("Libraries: {}", libraries.size());
@@ -45,7 +44,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     @Override
     public Library createLibrary(String name, Path path, GamePlatform platform) {
         final Library library = persistenceService.addLibrary(name, path, platform);
-        log.info("Added library: {}", library);
+        LOG.info("Added library: {}", library);
 
         // Update cache.
         PlatformUtils.runLaterIfNecessary(() -> libraries.add(library));
@@ -55,7 +54,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     @Override
     public void deleteLibrary(Library library) {
         persistenceService.deleteLibrary(library.getId());
-        log.info("Deleted library: {}", library);
+        LOG.info("Deleted library: {}", library);
 
         // Delete from cache.
         PlatformUtils.runLaterIfNecessary(() -> libraries.remove(library));
@@ -82,7 +81,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public ReadOnlyProperty<ObservableList<Library>> librariesProperty() {
+    public ReadOnlyListProperty<Library> librariesProperty() {
         return librariesProperty;
     }
 }
