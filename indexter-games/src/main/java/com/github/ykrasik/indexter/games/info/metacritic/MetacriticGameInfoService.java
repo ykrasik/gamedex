@@ -42,11 +42,9 @@ public class MetacriticGameInfoService implements GameInfoService {
 
     @Override
     public List<SearchResult> searchGames(String name, GamePlatform platform) throws Exception {
-        log.info("Searching for name={}, platform={}...", name, platform);
+        log.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
-        log.debug("reply = {}", reply);
-
         final JsonNode root = mapper.readTree(reply);
 
         final JsonNode results = getSearchResults(root);
@@ -69,8 +67,6 @@ public class MetacriticGameInfoService implements GameInfoService {
         log.info("Getting info for searchResult={}...", searchResult);
         final String detailUrl = searchResult.getDetailUrl();
         final String reply = client.fetchDetails(detailUrl);
-        log.debug("reply = {}", reply);
-
         final JsonNode root = mapper.readTree(reply);
 
         final JsonNode result = getMandatoryField(root, FETCH_DETAILS_RESULT);

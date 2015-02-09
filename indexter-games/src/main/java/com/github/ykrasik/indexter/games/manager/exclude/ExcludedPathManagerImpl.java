@@ -31,6 +31,7 @@ public class ExcludedPathManagerImpl extends AbstractService implements Excluded
     protected void doStart() throws Exception {
         excludedPaths = FXCollections.observableArrayList(persistenceService.getAllExcludedPaths());
         excludedPathsProperty.setValue(excludedPaths);
+        LOG.info("Excluded Paths: {}", excludedPaths.size());
     }
 
     @Override

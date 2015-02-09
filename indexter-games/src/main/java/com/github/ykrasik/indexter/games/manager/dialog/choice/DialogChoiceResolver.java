@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.flow.dialog.choice;
+package com.github.ykrasik.indexter.games.manager.dialog.choice;
 
 import com.github.ykrasik.indexter.games.datamodel.info.GameInfo;
 import com.github.ykrasik.indexter.games.datamodel.info.SearchResult;

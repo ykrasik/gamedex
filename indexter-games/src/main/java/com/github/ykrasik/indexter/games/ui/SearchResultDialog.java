@@ -27,6 +27,7 @@ public class SearchResultDialog<T extends SearchResult> {
     private Stage stage;
     private String title = "Search Results:";
 
+    // TODO: Should display path as well.
     public SearchResultDialog() {
         final TableColumn<T, String> nameColumn = new TableColumn<>("Name");
         final TableColumn<T, String> releaseDateColumn = new TableColumn<>("Release Date");

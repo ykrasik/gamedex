@@ -3,7 +3,6 @@ package com.github.ykrasik.indexter.games.info.giantbomb.client;
 import com.github.ykrasik.indexter.AbstractUnirestClient;
 import com.github.ykrasik.indexter.games.info.giantbomb.config.GiantBombProperties;
 import com.google.common.base.Joiner;
-import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
 import lombok.NonNull;
@@ -27,21 +26,21 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
         final GetRequest request = createGetRequest("http://www.giantbomb.com/api/games")
             .field("filter", String.format("name:%s,platforms:%d", name, platformId))
             .field("field_list", SEARCH_FIELDS);
-        return get(request);
+        return send(request);
     }
 
     @Override
     public String fetchDetails(String detailUrl) throws Exception {
         final GetRequest request = createGetRequest(detailUrl)
             .field("field_list", FETCH_DETAILS_FIELDS);
-        return get(request);
+        return send(request);
     }
 
     @Override
     public String fetchCriticReview(String apiDetailUrl) throws Exception {
         final GetRequest request = createGetRequest(apiDetailUrl)
             .field("field_list", "deck,publish_date,reviewer,score,site_detail_url");
-        return get(request);
+        return send(request);
     }
 
     @Override
@@ -50,18 +49,12 @@ public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implement
             .field("game", gameId)
             .field("field_list", "deck,date_added,reviewer,score,site_detail_url")
             .field("sort", "date_added:desc");
-        return get(request);
+        return send(request);
     }
 
     private GetRequest createGetRequest(String url) {
         return Unirest.get(url)
             .field("api_key", properties.getApplicationKey())
             .field("format", "json");
-    }
-
-    private String get(GetRequest request) throws Exception {
-        LOG.debug("Request: {}", request.getUrl());
-        final HttpResponse<String> httpResponse = request.asString();
-        return assertOkAndGet(httpResponse);
     }
 }

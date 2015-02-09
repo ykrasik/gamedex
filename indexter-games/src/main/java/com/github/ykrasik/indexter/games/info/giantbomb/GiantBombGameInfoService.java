@@ -45,8 +45,6 @@ public class GiantBombGameInfoService implements GameInfoService {
         log.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
-        log.debug("reply = {}", reply);
-
         final JsonNode root = mapper.readTree(reply);
 
         final int statusCode = getStatusCode(root);
@@ -74,8 +72,6 @@ public class GiantBombGameInfoService implements GameInfoService {
         log.info("Getting info for searchResult={}...", searchResult);
         final String detailUrl = searchResult.getDetailUrl();
         final String reply = client.fetchDetails(detailUrl);
-        log.debug("reply = {}", reply);
-
         final JsonNode root = mapper.readTree(reply);
 
         final int statusCode = getStatusCode(root);

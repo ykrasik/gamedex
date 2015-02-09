@@ -1,7 +1,7 @@
-package com.github.ykrasik.indexter.games.manager.flow.dialog;
+package com.github.ykrasik.indexter.games.manager.dialog;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.choice.DialogChoice;
+import com.github.ykrasik.indexter.games.manager.dialog.choice.DialogChoice;
 
 import java.nio.file.Path;
 import java.util.Optional;

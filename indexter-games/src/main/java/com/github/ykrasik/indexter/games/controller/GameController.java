@@ -33,11 +33,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.GridView;
 import org.controlsfx.control.StatusBar;
 import org.controlsfx.dialog.Dialogs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -50,13 +49,12 @@ import static com.github.ykrasik.indexter.optional.Optionals.toStringOrUnavailab
 /**
  * @author Yevgeny Krasik
  */
-// TODO: Display total number of games somewhere.
+// TODO: Display total number of games somewhere. (label bound to items property)
 // TODO: Allow changing thumbnail & poster via right-click.
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
-// TODO: Add logback.
+@Slf4j
 public class GameController {
-    private static final Logger LOG = LoggerFactory.getLogger(GameController.class);
     private static final Joiner JOINER = Joiner.on(", ").skipNulls();
     public static final Image NOT_AVAILABLE = new Image(GameController.class.getResourceAsStream("/com/github/ykrasik/indexter/games/ui/not_available.png"));
 
@@ -141,9 +139,17 @@ public class GameController {
         statusBar.progressProperty().bind(flowManager.progressProperty());
         statusBar.textProperty().bind(flowManager.messageProperty());
         flowManager.messageProperty().addListener((observable, oldValue, newValue) -> {
-            logTextArea.appendText(newValue);
-            logTextArea.appendText("\n");
+            info(newValue);
         });
+
+        info("Games: " + gameManager.getAllGames().size());
+        info("Libraries: " + libraryManager.getAllLibraries().size());
+        info("");
+    }
+
+    private void info(String newValue) {
+        logTextArea.appendText(newValue);
+        logTextArea.appendText("\n");
     }
 
     // Called by JavaFx
@@ -277,6 +283,7 @@ public class GameController {
 //    }
 
     @FXML
+    // FIXME: Move this into FlowManager.
     public void addLibrary() {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
         final File selectedDirectory = directoryChooser.showDialog(stage);
@@ -297,8 +304,7 @@ public class GameController {
                     .showChoices(GamePlatform.values());
                 platform.ifPresent(p -> libraryManager.createLibrary(path.getFileName().toString(), path, p));
             } catch (Exception e) {
-                LOG.warn("Error adding library: " + path, e);
-                createDialog().showException(e);
+                handleException(e);
             }
         }
     }
@@ -330,16 +336,18 @@ public class GameController {
     }
 
     private void prepareTask(Task<Void> task) {
-        task.setOnFailed(event -> {
-            final Throwable t = task.getException();
-            LOG.warn("Error cleaning up games:", t);
-            createDialog().title("Error:").message(t.getMessage()).showException(t) ;
-        });
+        task.setOnFailed(event -> handleException(task.getException()));
+        task.setOnCancelled(event -> flowManager.stopTask(task));
 
         statusBarStopButton.disableProperty().bind(task.runningProperty().not());
         progressIndicator.visibleProperty().bind(task.runningProperty());
         statusBarStopButton.visibleProperty().bind(task.runningProperty());
         statusBarStopButton.setOnAction(e -> task.cancel());
+    }
+
+    private void handleException(Throwable t) {
+        log.warn("Error cleaning up games:", t);
+        createDialog().title("Error:").message(t.getMessage()).showException(t);
     }
 
     private DirectoryChooser createDirectoryChooser(String title) {

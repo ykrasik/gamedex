@@ -34,6 +34,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     protected void doStart() throws Exception {
         libraries = FXCollections.observableArrayList(persistenceService.getAllLibraries());
         librariesProperty.setValue(libraries);
+        LOG.info("Libraries: {}", libraries.size());
     }
 
     @Override

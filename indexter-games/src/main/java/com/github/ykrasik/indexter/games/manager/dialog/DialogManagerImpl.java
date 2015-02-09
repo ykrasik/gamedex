@@ -1,8 +1,8 @@
-package com.github.ykrasik.indexter.games.manager.flow.dialog;
+package com.github.ykrasik.indexter.games.manager.dialog;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import com.github.ykrasik.indexter.games.datamodel.info.SearchResult;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.choice.*;
+import com.github.ykrasik.indexter.games.manager.dialog.choice.*;
 import com.github.ykrasik.indexter.games.ui.SearchResultDialog;
 import com.github.ykrasik.indexter.util.FileUtils;
 import com.github.ykrasik.indexter.util.PlatformUtils;
@@ -52,13 +52,13 @@ public class DialogManagerImpl implements DialogManager {
             .masthead(path.toString())
             .message(sb.toString());
 
-        log.debug("Showing create library confirmation dialog...");
+        log.info("Showing create library confirmation dialog...");
         final Action action = getUserResponse(dialog::showConfirm);
         final boolean yes = action == Dialog.ACTION_YES;
         if (yes) {
             log.info("Library creation requested: '{}'", path);
         } else {
-            log.debug("Dialog cancelled.");
+            log.info("Dialog cancelled.");
         }
         return yes;
     }
@@ -69,14 +69,14 @@ public class DialogManagerImpl implements DialogManager {
             .title("Enter library name")
             .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform));
 
-        log.debug("Showing library name dialog...");
+        log.info("Showing library name dialog...");
         final String defaultName = path.getFileName().toString();
         final Optional<String> libraryName = getUserResponse(() -> dialog.showTextInput(defaultName));
 
         if (libraryName.isPresent()) {
             log.info("Library name: '{}'", libraryName.get());
         } else {
-            log.debug("Dialog cancelled.");
+            log.info("Dialog cancelled.");
         }
         return libraryName;
     }
@@ -99,7 +99,7 @@ public class DialogManagerImpl implements DialogManager {
         }
 
         while (true) {
-            log.debug("Showing no {} search results dialog...", providerName);
+            log.info("Showing no {} search results dialog...", providerName);
             final Action action = getUserResponse(() -> dialog.showCommandLinks(choices));
 
             Optional<DialogChoice> choice = tryCommonDialogAction(action);
@@ -133,7 +133,7 @@ public class DialogManagerImpl implements DialogManager {
         }
 
         while (true) {
-            log.debug("Showing multiple search result dialog...");
+            log.info("Showing multiple {} search result dialog...", providerName);
             final Action action = getUserResponse(() -> dialog.showCommandLinks(choices));
 
             Optional<DialogChoice> choice = tryCommonDialogAction(action);
@@ -155,15 +155,15 @@ public class DialogManagerImpl implements DialogManager {
 
     private Optional<DialogChoice> tryCommonDialogAction(Action action) {
         if (action == Dialog.ACTION_CANCEL) {
-            log.debug("Dialog cancelled.");
+            log.info("Dialog cancelled.");
             return Optional.of(SkipDialogChoice.instance());
         }
         if (action == EXCLUDE_ACTION) {
-            log.debug("Exclude requested.");
+            log.info("Exclude requested.");
             return Optional.of(ExcludeDialogChoice.instance());
         }
         if (action == PROCEED_ANYWAY_ACTION) {
-            log.debug("Proceed anyway requested.");
+            log.info("Proceed anyway requested.");
             return Optional.of(ProceedAnywayDialogChoice.instance());
         }
         return Optional.empty();
@@ -171,7 +171,7 @@ public class DialogManagerImpl implements DialogManager {
 
     private Optional<DialogChoice> tryNewNameDialogAction(Action action, String providerName, String prevName, Path path) throws Exception {
         if (action == NEW_NAME_ACTION) {
-            log.debug("New name requested.");
+            log.info("New name requested.");
             final Optional<String> chosenName = newNameDialog(providerName, prevName, path);
             if (chosenName.isPresent()) {
                 return Optional.of(new NewNameDialogChoice(chosenName.get()));
@@ -186,7 +186,7 @@ public class DialogManagerImpl implements DialogManager {
                                                                           GamePlatform platform,
                                                                           List<SearchResult> searchResults) throws Exception {
         if (action == CHOOSE_FROM_SEARCH_RESULTS_ACTION) {
-            log.debug("Choose from search results requested.");
+            log.info("Choose from search results requested.");
             final Optional<SearchResult> searchResult = chooseFromSearchResults(providerName, name, platform, searchResults);
             return searchResult.map(ChooseFromSearchResultsChoice::new);
         }
@@ -198,12 +198,12 @@ public class DialogManagerImpl implements DialogManager {
             .title(String.format("%s: Select new name instead of '%s'", gameInfoServiceName, prevName))
             .masthead(path.toString());
 
-        log.debug("Showing new name dialog...");
+        log.info("Showing new name dialog...");
         final Optional<String> newName = getUserResponse(() -> dialog.showTextInput(prevName));
         if (newName.isPresent()) {
-            log.debug("New name chosen: '{}'", newName.get());
+            log.info("New name chosen: '{}'", newName.get());
         } else {
-            log.debug("Dialog cancelled.");
+            log.info("Dialog cancelled.");
         }
         return newName;
     }
@@ -216,12 +216,12 @@ public class DialogManagerImpl implements DialogManager {
             .owner(stage)
             .title(String.format("%s search results for: '%s'[%s]", providerName, name, platform));
 
-        log.debug("Showing all search results...");
+        log.info("Showing all search results...");
         final Optional<SearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
-            log.debug("Choice from multiple results: '{}'", choice.get());
+            log.info("Choice from multiple results: '{}'", choice.get());
         } else {
-            log.debug("Dialog cancelled.");
+            log.info("Dialog cancelled.");
         }
         return choice;
     }

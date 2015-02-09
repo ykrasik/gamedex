@@ -1,4 +1,4 @@
-package com.github.ykrasik.indexter.games.manager.flow.dialog;
+package com.github.ykrasik.indexter.games.manager.dialog;
 
 import com.github.ykrasik.indexter.games.datamodel.GamePlatform;
 import lombok.NonNull;

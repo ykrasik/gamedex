@@ -10,10 +10,13 @@ import java.nio.file.Path;
 /**
  * @author Yevgeny Krasik
  */
+// TODO: Everything should be done in this class, the controller should simply delegate here.
 public interface FlowManager {
     ReadOnlyStringProperty messageProperty();
     ReadOnlyDoubleProperty progressProperty();
     ReadOnlyDoubleProperty fetchProgressProperty();
+
+    void stopTask(Task<Void> task);
 
     Task<Void> refreshLibraries();
 

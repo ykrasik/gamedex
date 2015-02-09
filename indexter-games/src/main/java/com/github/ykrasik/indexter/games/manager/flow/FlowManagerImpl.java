@@ -12,11 +12,11 @@ import com.github.ykrasik.indexter.games.datamodel.persistence.Library;
 import com.github.ykrasik.indexter.games.info.GameInfoProvider;
 import com.github.ykrasik.indexter.games.info.GameInfoService;
 import com.github.ykrasik.indexter.games.manager.exclude.ExcludedPathManager;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.DialogManager;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.MultipleSearchResultsDialogParams;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.NoSearchResultsDialogParams;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.choice.DialogChoice;
-import com.github.ykrasik.indexter.games.manager.flow.dialog.choice.DialogChoiceResolverAdapter;
+import com.github.ykrasik.indexter.games.manager.dialog.DialogManager;
+import com.github.ykrasik.indexter.games.manager.dialog.MultipleSearchResultsDialogParams;
+import com.github.ykrasik.indexter.games.manager.dialog.NoSearchResultsDialogParams;
+import com.github.ykrasik.indexter.games.manager.dialog.choice.DialogChoice;
+import com.github.ykrasik.indexter.games.manager.dialog.choice.DialogChoiceResolverAdapter;
 import com.github.ykrasik.indexter.games.manager.game.GameManager;
 import com.github.ykrasik.indexter.games.manager.library.LibraryManager;
 import com.github.ykrasik.indexter.optional.Optionals;
@@ -79,6 +79,13 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     @Override
     public ReadOnlyDoubleProperty fetchProgressProperty() {
         return fetchProgressProperty;
+    }
+
+    @Override
+    public void stopTask(Task<Void> task) {
+        info("Cancelled.");
+        progressProperty.setValue(0.0);
+        fetchProgressProperty.setValue(0.0);
     }
 
     @Override
@@ -204,14 +211,14 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         // Remove all metaData enclosed with '[]' from the game name.
         final String rawName = path.getFileName().toString();
         final String nameWithoutMetadata = META_DATA_PATTERN.matcher(rawName).replaceAll("");
-        return SPACE_PATTERN.matcher(nameWithoutMetadata.trim()).replaceAll(" ");
+        return SPACE_PATTERN.matcher(nameWithoutMetadata).replaceAll(" ");
     }
 
     private void addPath(Library library, Path path, String name) throws Exception {
         final GamePlatform platform = library.getPlatform();
 
         final SearchContext metacriticSearchContext = new SearchContext(metacriticInfoService, path, platform);
-        final Optional<GameInfo> metacriticGameOptional = fetchGameInfo(metacriticSearchContext, name);
+        final Optional<GameInfo> metacriticGameOptional = fetchGameInfo(metacriticSearchContext, name.trim());
         if (metacriticGameOptional.isPresent()) {
             final GameInfo metacriticGame = metacriticGameOptional.get();
             LOG.debug("Metacritic gameInfo: {}", metacriticGame);
@@ -238,14 +245,15 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     private Optional<GameInfo> fetchGameInfo(SearchContext searchContext, String name) throws Exception {
-        final List<SearchResult> searchResults = searchGames(searchContext, name);
+        final String trimmedName = name.trim();
+        final List<SearchResult> searchResults = searchGames(searchContext, trimmedName);
 
         if (searchResults.isEmpty()) {
-            return handleNoSearchResults(searchContext, name);
+            return handleNoSearchResults(searchContext, trimmedName);
         }
 
         if (searchResults.size() > 1) {
-            return handleMultipleSearchResults(searchContext, name, searchResults);
+            return handleMultipleSearchResults(searchContext, trimmedName, searchResults);
         }
 
         final SearchResult singleSearchResult = searchResults.get(0);
@@ -374,7 +382,9 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     // TODO: I don't like that platformUtils.runLater is called from here.
     private void info(String format, Object... args) {
-        PlatformUtils.runLaterIfNecessary(() -> messageProperty.setValue(String.format(format, args)));
+        final String message = String.format(format, args);
+        LOG.info(message);
+        PlatformUtils.runLaterIfNecessary(() -> messageProperty.setValue(message));
     }
 
     private void setProgress(int current, int total) {

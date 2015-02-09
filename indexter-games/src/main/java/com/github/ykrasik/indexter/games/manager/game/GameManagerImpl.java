@@ -17,7 +17,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
@@ -29,7 +28,6 @@ import java.util.function.Predicate;
 /**
  * @author Yevgeny Krasik
  */
-@Slf4j
 @RequiredArgsConstructor
 public class GameManagerImpl extends AbstractService implements GameManager {
     private static final Predicate<Game> NO_FILTER = any -> true;
@@ -43,11 +41,13 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     private Predicate<Game> nameFilter = NO_FILTER;
     private Predicate<Game> genreFilter = NO_FILTER;
 
+    // FIXME: This is too slow. Need to find a way to stream the images from the db.
     @Override
     protected void doStart() throws Exception {
         games = FXCollections.observableArrayList(persistenceService.getAllGames());
         gamesProperty.set(games);
         doRefreshGames();
+        LOG.info("Games: {}", games.size());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     @Override
     public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
         final Game game = persistenceService.addGame(gameInfo, path, platform);
-        log.info("Added game: {}", game);
+        LOG.info("Added game: {}", game);
 
         // Update cache.
         PlatformUtils.runLaterIfNecessary(() -> {
@@ -71,7 +71,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     @Override
     public void deleteGame(Game game) {
         persistenceService.deleteGame(game.getId());
-        log.info("Deleted game: {}...", game);
+        LOG.info("Deleted game: {}...", game);
 
         // Delete from cache.
         PlatformUtils.runLaterIfNecessary(() -> {
