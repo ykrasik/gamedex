@@ -1,4 +1,8 @@
-rootProject.name = 'indexter'
+rootProject.name = 'gamedex'
 
-include "indexter-core"
-include "indexter-games"
+include "gamedex-common"
+include "gamedex-datamodel"
+include "gamedex-info-provider"
+include "gamedex-persistence"
+include "gamedex-ui"
+include "gamedex-core"

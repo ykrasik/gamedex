@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.controlsfx.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.*?>
+<?import org.controlsfx.control.StatusBar?>
+
+<BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <center>
+      <TabPane>
+         <tabs>
+            <Tab closable="false" text="Games">
+               <content>
+                  <VBox>
+                     <children>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
+                          <items>
+                              <Label text="Search:" />
+                              <TextField fx:id="gameSearch" />
+                              <Button fx:id="clearGameSearch" />
+                              <Region prefWidth="36.0" />
+                              <Label text="Sort:" />
+                              <ComboBox fx:id="gameSort" />
+                              <Region prefWidth="36.0" />
+                              <Button fx:id="genreFilterButton" text="Genre Filter" onAction="#filterGenres" />
+                              <Region prefWidth="36.0" />
+                              <Button fx:id="refreshLibraries" mnemonicParsing="false" onAction="#refreshLibraries" text="Refresh Libraries" />
+                          </items>
+                        </ToolBar>
+                        <HBox fx:id="contentScreen" VBox.vgrow="ALWAYS">
+                           <children>
+                              <TabPane BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
+                                 <tabs>
+                                    <Tab closable="false" text="Wall">
+                                       <content>
+                                          <BorderPane fx:id="gamesBorderPane" prefHeight="200.0" prefWidth="200.0">
+                                             <center>
+                                                <GridView fx:id="gameWall" cellHeight="192.0" cellWidth="128.0" horizontalCellSpacing="3.0" verticalCellSpacing="3.0" />
+                                             </center>
+                                          </BorderPane>
+                                       </content>
+                                    </Tab>
+                                    <Tab closable="false" text="List">
+                                       <content>
+                                          <TableView fx:id="gameList">
+                                            <columns>
+                                              <TableColumn fx:id="gameNameColumn" editable="false" prefWidth="260.0" sortable="false" text="Name" />
+                                              <TableColumn fx:id="gamePlatformColumn" editable="false" minWidth="0.0" prefWidth="57.0" sortable="false" text="Platform" />
+                                                <TableColumn fx:id="gameReleaseDateColumn" editable="false" prefWidth="77.0" sortable="false" text="Release Date" />
+                                                <TableColumn fx:id="gameCriticScoreColumn" editable="false" prefWidth="68.0" sortable="false" text="Critic Score" />
+                                                <TableColumn fx:id="gameUserScoreColumn" editable="false" prefWidth="64.0" sortable="false" text="User Score" />
+                                                <TableColumn fx:id="gamePathColumn" editable="false" prefWidth="478.0" sortable="false" text="Path" />
+                                                <TableColumn fx:id="gameDateAddedColumn" editable="false" prefWidth="75.0" sortable="false" text="Date Added" />
+                                            </columns>
+                                          </TableView>
+                                       </content>
+                                    </Tab>
+                                 </tabs>
+                              </TabPane>
+                              <Separator orientation="VERTICAL" />
+                              <VBox fx:id="sideBar" maxWidth="330.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <HBox VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <ImageView fx:id="poster" fitHeight="320.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+                                          <Region HBox.hgrow="ALWAYS" />
+                                       </children>
+                                    </HBox>
+                                    <Region VBox.vgrow="ALWAYS" />
+                                    <HBox>
+                                       <children>
+                                          <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                                          <GridPane hgap="3.0" minWidth="310.0" vgap="3.0" HBox.hgrow="ALWAYS">
+                                            <columnConstraints>
+                                              <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" maxWidth="88.0" minWidth="67.0" prefWidth="78.0" />
+                                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="250.0" minWidth="229.0" prefWidth="239.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                              <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                              <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                             <children>
+                                                <Label text="Path" />
+                                                <TextField fx:id="gamePath" editable="false" GridPane.columnIndex="1" />
+                                                <Label text="Name" GridPane.rowIndex="1" />
+                                                <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                <Label text="Description" GridPane.rowIndex="2" />
+                                                <TextArea fx:id="description" editable="false" prefHeight="120.0" prefWidth="200.0" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                <Label text="Platform" GridPane.rowIndex="3" />
+                                                <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                <Label text="Release Date" GridPane.rowIndex="4" />
+                                                <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                <Label text="Critic Score" GridPane.rowIndex="5" />
+                                                <TextField fx:id="criticScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                                <Label text="User Score" GridPane.rowIndex="6" />
+                                                <TextField fx:id="userScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                                <TextField fx:id="genres" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                                <Label text="Genres" GridPane.rowIndex="7" />
+                                                <Label text="URL" GridPane.rowIndex="8" />
+                                                <Hyperlink fx:id="url" prefHeight="23.0" prefWidth="234.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                                             </children>
+                                             <padding>
+                                                <Insets top="5.0" />
+                                             </padding>
+                                          </GridPane>
+                                          <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                 </padding>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+            <Tab closable="false" text="Libraries">
+               <content>
+                  <BorderPane>
+                     <center>
+                        <TableView fx:id="libraryList" BorderPane.alignment="CENTER">
+                          <columns>
+                            <TableColumn fx:id="libraryName" editable="false" prefWidth="174.0" text="Name" />
+                              <TableColumn fx:id="libraryPlatform" editable="false" minWidth="7.0" prefWidth="58.0" text="Platform" />
+                            <TableColumn fx:id="libraryPath" editable="false" prefWidth="383.0" text="Path" />
+                          </columns>
+                        </TableView>
+                     </center>
+                  </BorderPane>
+               </content>
+            </Tab>
+             <Tab closable="false" text="Excluded Paths">
+                 <content>
+                     <BorderPane>
+                         <center>
+                             <ListView fx:id="excludedPathsList" />
+                         </center>
+                     </BorderPane>
+                 </content>
+             </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Library">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Add Library" onAction="#addLibrary" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Game">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Cleanup Games" onAction="#cleanupGames"/>
+              <SeparatorMenuItem />
+              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" onAction="#cleanupGames"/>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="View">
+            <items>
+              <CheckMenuItem fx:id="showSideBar" mnemonicParsing="false" text="Side Bar" selected="true" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+    <bottom>
+        <VBox fx:id="bottomContainer">
+            <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
+            <StatusBar fx:id="statusBar" text="Welcome to GameDex!">
+                <leftItems>
+                    <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="gameCount" text="Games: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="libraryCount" text="Libraries: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                </leftItems>
+                <rightItems>
+                    <ProgressIndicator fx:id="progressIndicator" visible="false" />
+                    <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
+                </rightItems>
+            </StatusBar>
+        </VBox>
+    </bottom>
+</BorderPane>

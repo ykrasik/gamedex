@@ -3,6 +3,7 @@ buildscript {
         controlsFxVersion = '8.20.8'
         springVersion = '4.1.1.RELEASE'
         lombokVersion = '1.16.0'
+        groovyVersion = '2.3.6'
 
         slf4jVersion = '1.7.6'
         logbackVersion = '1.1.2'
@@ -11,13 +12,14 @@ buildscript {
         guavaVersion = '18.0'
         commonsLang3Version = '3.3.2'
         boonVersion = '0.29'
+        optVersion = '0.1.1'
+        jerminalVersion = '0.1.1'
+
+        unirestVersion = '1.3.22'
+        jacksonVersion = '1.9.13'
 
         ormLiteVersion = '4.48'
         h2Version = '1.4.182'
-
-        jerminalVersion = '0.1.1'
-
-        groovyVersion = '2.3.6'
 
         junitVersion = '4.11'
         mockitoVersion = '1.9.5'
@@ -36,12 +38,8 @@ allprojects {
     }
 }
 
-project("indexter-core") {
-    description "inDexter core module"
-
+subprojects {
     dependencies {
-        compile "org.controlsfx:controlsfx:$controlsFxVersion"
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.projectlombok:lombok:$lombokVersion"
 
         compile "org.slf4j:slf4j-api:$slf4jVersion"
@@ -52,33 +50,70 @@ project("indexter-core") {
         compile "org.apache.commons:commons-lang3:$commonsLang3Version"
         compile "io.fastjson:boon:$boonVersion"
 
-        compile 'com.thoughtworks.xstream:xstream:1.4.7'
-        compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-        compile 'commons-io:commons-io:2.4'
-
-        compile "com.j256.ormlite:ormlite-core:$ormLiteVersion"
-        compile "com.j256.ormlite:ormlite-jdbc:$ormLiteVersion"
-        compile "com.h2database:h2:$ormLiteVersion"
-
-        compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
-        compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"
-
-        compile 'org.apache.httpcomponents:httpclient:4.3.5'
-        compile 'com.mashape.unirest:unirest-java:1.3.22'
-
-        runtime "org.codehaus.groovy:groovy-all:$groovyVersion"
-
         testCompile "junit:junit:$junitVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
     }
 }
 
-project("indexter-games") {
-    description "inDexter games module"
+project("gamedex-common") {
+    dependencies {
+        compile "org.controlsfx:controlsfx:$controlsFxVersion"
+        compile "org.springframework:spring-context:$springVersion"
+
+        compile 'com.thoughtworks.xstream:xstream:1.4.7'
+        compile 'commons-io:commons-io:2.4'
+
+        compile "com.github.ykrasik:opt:$optVersion"
+        compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
+        compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"
+
+        runtime "org.codehaus.groovy:groovy-all:$groovyVersion"
+    }
+}
+
+project("gamedex-datamodel") {
+
+}
+
+project("gamedex-info-provider") {
+    dependencies {
+        compile project(":gamedex-common")
+        compile project(":gamedex-datamodel")
+
+        compile "com.mashape.unirest:unirest-java:$unirestVersion"
+        compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+    }
+}
+
+project("gamedex-persistence") {
+    dependencies {
+        compile project(":gamedex-common")
+        compile project(":gamedex-datamodel")
+
+        compile "com.j256.ormlite:ormlite-core:$ormLiteVersion"
+        compile "com.j256.ormlite:ormlite-jdbc:$ormLiteVersion"
+
+        compile "com.h2database:h2:$h2Version"
+    }
+}
+
+project("gamedex-ui") {
+    dependencies {
+        compile project(":gamedex-common")
+        compile project(":gamedex-datamodel")
+
+        compile "org.controlsfx:controlsfx:$controlsFxVersion"
+    }
+}
+
+project("gamedex-core") {
+    apply plugin: "application"
 
     dependencies {
-        compile project(":indexter-core")
-
-        testCompile "junit:junit:$junitVersion"
+        compile project(":gamedex-common")
+        compile project(":gamedex-datamodel")
+        compile project(":gamedex-info-provider")
+        compile project(":gamedex-persistence")
+        compile project(":gamedex-ui")
     }
 }
