@@ -3,56 +3,68 @@
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameSideBarController">
+<GridPane fx:id="container" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameSideBarController">
+    <columnConstraints>
+        <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" minWidth="10.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints fillHeight="false" minHeight="10.0" valignment="CENTER" vgrow="ALWAYS" />
+        <RowConstraints fillHeight="false" minHeight="10.0" valignment="BOTTOM" vgrow="ALWAYS" />
+    </rowConstraints>
     <children>
-      <StackPane>
-         <children>
-                <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true" StackPane.alignment="TOP_CENTER" />
-         </children>
-      </StackPane>
-          <GridPane alignment="BOTTOM_CENTER" hgap="3.0" vgap="3.0" HBox.hgrow="ALWAYS">
-              <columnConstraints>
-                  <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
-                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
-              </columnConstraints>
-              <rowConstraints>
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-              </rowConstraints>
-              <children>
-                  <Label text="Path:" />
-                  <TextField fx:id="gamePath" editable="false" GridPane.columnIndex="1" />
-                  <Label text="Name:" GridPane.rowIndex="1" />
-                  <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <Label text="Description:" GridPane.rowIndex="2" />
-                  <TextArea fx:id="description" editable="false" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Label text="Platform:" GridPane.rowIndex="3" />
-                  <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                  <Label text="Release Date:" GridPane.rowIndex="4" />
-                  <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                  <Label text="Critic Score:" GridPane.rowIndex="5" />
-                  <TextField fx:id="criticScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                  <Label text="User Score:" GridPane.rowIndex="6" />
-                  <TextField fx:id="userScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-                  <TextField fx:id="genres" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="7" />
-                  <Label text="Genres:" GridPane.rowIndex="7" />
-                  <Label text="URL:" GridPane.rowIndex="8" />
-                  <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-              </children>
-          </GridPane>
+        <GridPane fx:id="attributes" alignment="BOTTOM_CENTER" hgap="3.0" vgap="3.0" GridPane.rowIndex="1">
+            <columnConstraints>
+                <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
+                <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints fillHeight="false" maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="ALWAYS" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="60.0" minHeight="-Infinity" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Label text="Path:" GridPane.rowIndex="1" />
+                <TextField fx:id="gamePath" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Name:" GridPane.rowIndex="2" />
+                <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Description:" GridPane.rowIndex="3" />
+                <TextArea fx:id="description" editable="false" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Platform:" GridPane.rowIndex="4" />
+                <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label text="Release Date:" GridPane.rowIndex="5" />
+                <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <Label text="Critic Score:" GridPane.rowIndex="6" />
+                <TextField fx:id="criticScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                <Label text="User Score:" GridPane.rowIndex="7" />
+                <TextField fx:id="userScore" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                <TextField fx:id="genres" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                <Label text="Genres:" GridPane.rowIndex="8" />
+                <Label text="URL:" GridPane.rowIndex="9" />
+                <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="9">
+               <GridPane.margin>
+                  <Insets />
+               </GridPane.margin></Hyperlink>
+            </children>
+        </GridPane>
+        <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true">
+         <GridPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" />
+         </GridPane.margin></ImageView>
     </children>
     <padding>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
     </padding>
-</VBox>
+</GridPane>

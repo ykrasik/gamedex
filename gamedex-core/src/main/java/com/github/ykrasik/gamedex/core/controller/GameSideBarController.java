@@ -11,7 +11,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.GridPane;
 import lombok.SneakyThrows;
 
 import java.awt.*;
@@ -25,8 +25,9 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
 public class GameSideBarController implements Controller {
     private static final Joiner JOINER = Joiner.on(", ").skipNulls();
 
-    @FXML private VBox sideBar;
+    @FXML private GridPane container;
     @FXML private ImageView poster;
+    @FXML private GridPane attributes;
     @FXML private TextField gamePath;
     @FXML private TextField name;
     @FXML private TextArea description;
@@ -39,7 +40,9 @@ public class GameSideBarController implements Controller {
 
     // Called by JavaFX
     public void initialize() {
-
+        // Make the poster resize dynamically according to how much space is available, minus margins.
+        poster.fitWidthProperty().bind(container.widthProperty().subtract(10));
+        poster.fitHeightProperty().bind(container.heightProperty().subtract(attributes.heightProperty()).subtract(13));
     }
 
     public void displayGame(Game game) {
