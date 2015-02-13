@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameController">
+    <top>
+        <ToolBar prefHeight="40.0">
+            <items>
+                <GridPane>
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                   <children>
+                          <Label text="Search:" />
+                          <TextField fx:id="gameSearch" GridPane.columnIndex="1">
+                         <GridPane.margin>
+                            <Insets left="3.0" />
+                         </GridPane.margin>
+                      </TextField>
+                          <Button fx:id="clearGameSearch" GridPane.columnIndex="2">
+                              <graphic>
+                                  <ImageView preserveRatio="true">
+                                      <image>
+                                          <Image url="@../x_small_icon.png" />
+                                      </image>
+                                  </ImageView>
+                              </graphic>
+                         <GridPane.margin>
+                            <Insets left="3.0" />
+                         </GridPane.margin>
+                          </Button>
+                   </children>
+                </GridPane>
+                <Region prefWidth="36.0" />
+                <GridPane>
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                  </rowConstraints>
+                   <children>
+                      <Label text="Sort:" />
+                      <ComboBox fx:id="gameSort" GridPane.columnIndex="1">
+                        <GridPane.margin>
+                          <Insets left="3.0" />
+                        </GridPane.margin>
+                      </ComboBox>
+                   </children>
+                </GridPane>
+                <Region prefWidth="36.0" />
+                <Button fx:id="filterGenreButton" text="Genre Filter" />
+                <Region prefWidth="36.0" />
+                <Button fx:id="refreshLibraries" mnemonicParsing="false" text="Refresh Libraries" />
+            </items>
+        </ToolBar>
+    </top>
+    <center>
+        <HBox fx:id="contentScreen" VBox.vgrow="ALWAYS">
+            <children>
+                <TabPane BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <tabs>
+                        <Tab closable="false" text="Wall">
+                            <content>
+                                <fx:include source="gameWall.fxml" fx:id="gameWall" />
+                            </content>
+                        </Tab>
+                        <Tab closable="false" text="List">
+                            <content>
+                                <fx:include source="gameList.fxml" fx:id="gameList" />
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+                <Separator orientation="VERTICAL" />
+                <VBox fx:id="sideBar" maxWidth="330.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <fx:include source="gameSideBar.fxml" fx:id="gameSideBar" />
+                    </children>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
+</BorderPane>

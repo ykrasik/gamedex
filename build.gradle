@@ -99,15 +99,6 @@ project("gamedex-persistence") {
     }
 }
 
-project("gamedex-ui") {
-    dependencies {
-        compile project(":gamedex-common")
-        compile project(":gamedex-datamodel")
-
-        compile "org.controlsfx:controlsfx:$controlsFxVersion"
-    }
-}
-
 project("gamedex-core") {
     apply plugin: "application"
 
@@ -116,6 +107,7 @@ project("gamedex-core") {
         compile project(":gamedex-datamodel")
         compile project(":gamedex-info-provider")
         compile project(":gamedex-persistence")
-        compile project(":gamedex-ui")
+
+        compile "org.controlsfx:controlsfx:$controlsFxVersion"
     }
 }

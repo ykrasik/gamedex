@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfigImpl;
-import com.github.ykrasik.gamedex.core.controller.GameController;
+import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
 import com.github.ykrasik.gamedex.core.dialog.DialogManager;
 import com.github.ykrasik.gamedex.core.dialog.DialogManagerImpl;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
@@ -19,16 +19,15 @@ import com.github.ykrasik.gamedex.core.game.debug.GameManagerDebugCommands;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManagerImpl;
 import com.github.ykrasik.gamedex.core.library.debug.LibraryManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.ui.UIResources;
+import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.gamedex.provider.metacritic.MetacriticGameInfoService;
-import com.github.ykrasik.gamedex.persistence.PersistenceService;
-import com.github.ykrasik.gamedex.ui.UIResources;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,30 +40,19 @@ import java.util.List;
 @Configuration
 public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
+    public Parent mainScene(ControllerProvider controllerProvider) throws IOException {
+        preloader.info("Loading FXML...");
+        final FXMLLoader loader = new FXMLLoader(UIResources.getMainFxml());
+        loader.setControllerFactory(controllerProvider::getController);
+        return loader.load();
+    }
+
+    @Bean
     public Parent debugConsole(List<DebugCommands> debugCommands) throws IOException {
         preloader.info("Loading debug console...");
         final ShellFileSystem fileSystem = new ShellFileSystem();
         debugCommands.forEach(fileSystem::processAnnotationsOfObject);
         return new ConsoleBuilder(fileSystem).build();
-    }
-
-    @Qualifier("gameCollection")
-    @Bean
-    public Parent gameCollection(GameController controller) throws IOException {
-        preloader.info("Loading FXML...");
-        final FXMLLoader loader = new FXMLLoader(UIResources.getMainFxml());
-        loader.setController(controller);
-        return loader.load();
-    }
-
-    @Bean
-    public GameController gameCollectionController(Stage stage,
-                                                   GameCollectionConfig config,
-                                                   FlowManager flowManager,
-                                                   GameManager gameManager,
-                                                   LibraryManager libraryManager,
-                                                   ExcludedPathManager excludedPathManager) {
-        return new GameController(stage, config, flowManager, gameManager, libraryManager, excludedPathManager);
     }
 
     @Bean

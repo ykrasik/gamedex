@@ -1,7 +1,8 @@
 package com.github.ykrasik.gamedex.core;
 
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
-import com.github.ykrasik.gamedex.ui.preloader.PreloaderImpl;
+import com.github.ykrasik.gamedex.core.preloader.PreloaderImpl;
+import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.jerminal.javafx.SceneToggler;
 import javafx.application.Application;
 import javafx.concurrent.Task;
@@ -58,7 +59,7 @@ public class Main extends Application {
         // FIXME: Should create a new stage on the background thread, while the preloader is loading.
         preloader.start(task, context -> {
             this.context = context;
-            final Scene mainScene = new Scene(context.getBean("gameCollection", Parent.class));
+            final Scene mainScene = new Scene(context.getBean("mainScene", Parent.class));
             final Parent debugConsole = context.getBean("debugConsole", Parent.class);
             initStage(mainStage, mainScene, debugConsole);
             mainStage.show();
@@ -66,7 +67,7 @@ public class Main extends Application {
     }
 
     private void initStage(Stage stage, Scene mainScene, Parent debugConsole) {
-        mainScene.getStylesheets().add("com/github/ykrasik/gamedex/ui/css/main.css");
+        mainScene.getStylesheets().add(UIResources.getMainCss());
 
         // FIXME: Should be done in spring, inject configurations with a properties object.
         stage.setWidth(1280);

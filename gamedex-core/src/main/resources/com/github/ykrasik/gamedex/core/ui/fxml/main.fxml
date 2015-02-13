@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.controlsfx.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.*?>
+<?import org.controlsfx.control.StatusBar?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.MainController">
+   <center>
+      <TabPane>
+         <tabs>
+            <Tab closable="false" text="Games">
+               <content>
+                   <fx:include source="games.fxml" fx:id="games" />
+               </content>
+            </Tab>
+            <Tab closable="false" text="Libraries">
+               <content>
+                   <fx:include source="libraries.fxml" fx:id="libraries" />
+               </content>
+            </Tab>
+             <Tab closable="false" text="Excluded Paths">
+                 <content>
+                     <fx:include source="excludedPaths.fxml" fx:id="excludedPaths" />
+                 </content>
+             </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Library">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Add Library" onAction="#addLibrary" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Game">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Cleanup Games" onAction="#cleanupGames"/>
+              <SeparatorMenuItem />
+              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" onAction="#cleanupGames"/>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="View">
+            <items>
+              <CheckMenuItem fx:id="showSideBar" mnemonicParsing="false" text="Side Bar" selected="true" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+    <bottom>
+        <VBox fx:id="bottomContainer">
+            <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
+            <StatusBar fx:id="statusBar" text="Welcome to GameDex!">
+                <leftItems>
+                    <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="gameCount" text="Games: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                    <Label fx:id="libraryCount" text="Libraries: 0">
+                        <padding>
+                            <Insets left="5.0" right="5.0" top="4.0"/>
+                        </padding>
+                    </Label>
+                    <Separator orientation="VERTICAL" />
+                </leftItems>
+                <rightItems>
+                    <ProgressIndicator fx:id="progressIndicator" visible="false" />
+                    <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
+                </rightItems>
+            </StatusBar>
+        </VBox>
+    </bottom>
+</BorderPane>

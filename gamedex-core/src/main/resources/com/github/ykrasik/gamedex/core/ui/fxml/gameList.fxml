@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import org.controlsfx.control.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameListController">
+    <center>
+        <TableView fx:id="gameList">
+            <columns>
+                <TableColumn fx:id="gameNameColumn" editable="false" minWidth="260.0" prefWidth="-1.0" sortable="false" text="Name" />
+                <TableColumn fx:id="gamePlatformColumn" editable="false" minWidth="55.0" prefWidth="-1.0" sortable="false" text="Platform" />
+                <TableColumn fx:id="gameReleaseDateColumn" editable="false" minWidth="77.0" prefWidth="-1.0" sortable="false" text="Release Date" />
+                <TableColumn fx:id="gameCriticScoreColumn" editable="false" minWidth="68.0" prefWidth="-1.0" sortable="false" text="Critic Score" />
+                <TableColumn fx:id="gameUserScoreColumn" editable="false" minWidth="64.0" prefWidth="-1.0" sortable="false" text="User Score" />
+                <TableColumn fx:id="gamePathColumn" editable="false" minWidth="400.0" prefWidth="-1.0" sortable="false" text="Path" />
+                <TableColumn fx:id="gameDateAddedColumn" editable="false" minWidth="75.0" prefWidth="-1.0" sortable="false" text="Date Added" />
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>

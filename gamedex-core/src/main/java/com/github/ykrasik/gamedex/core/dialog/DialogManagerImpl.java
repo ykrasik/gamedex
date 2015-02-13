@@ -5,7 +5,7 @@ import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.ui.dialog.SearchResultDialog;
+import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultDialog;
 import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
 import javafx.stage.Stage;
