@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.flow;
 
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
 import com.github.ykrasik.gamedex.common.optional.OptionalComparators;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.opt.Opt;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -27,7 +27,9 @@ public final class SearchResultComparators {
         return RELEASE_DATE_COMPARATOR;
     }
 
-    private static <T extends Comparable<? super T>> int compareWithNameFallback(SearchResult o1, SearchResult o2, Function<SearchResult, Optional<T>> fieldExtractor) {
+    private static <T extends Comparable<? super T>> int compareWithNameFallback(SearchResult o1,
+                                                                                 SearchResult o2,
+                                                                                 Function<SearchResult, Opt<T>> fieldExtractor) {
         return OptionalComparators.compareWithFallback(o2, o1, fieldExtractor, NAME_COMPARATOR);
     }
 }

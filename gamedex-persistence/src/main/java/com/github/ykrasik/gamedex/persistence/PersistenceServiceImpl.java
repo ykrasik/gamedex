@@ -1,11 +1,10 @@
 package com.github.ykrasik.gamedex.persistence;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.DateUtils;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.persistence.*;
+import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.config.PersistenceProperties;
 import com.github.ykrasik.gamedex.persistence.dao.*;
 import com.github.ykrasik.gamedex.persistence.entity.*;
@@ -88,7 +87,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
+    public Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform) {
         // Insert game.
         final GameEntity game = gameTranslator.translate(gameInfo);
         game.setPath(path.toString());
@@ -99,7 +98,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         }
 
         // Insert all new genres.
-        final List<GenreEntity> genresEntities = ListUtils.map(gameInfo.getGenres(), genreDao::getOrCreateByName);
+        final List<GenreEntity> genresEntities = ListUtils.mapX(gameInfo.getGenres(), genreDao::getOrCreateByName);
 
         // Link genres to game.
         for (GenreEntity genre : genresEntities) {
@@ -109,8 +108,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
             genreGameLinkDao.create(genreGameLinkEntity);
         }
 
-        final List<Genre> genres = translateGenres(genresEntities);
-        return Game.from(new Id<>(game.getId()), path, platform, DateUtils.toLocalDateTime(game.getLastModified()), gameInfo, genres);
+        return getGameById(new Id<>(game.getId()));
     }
 
     @Override

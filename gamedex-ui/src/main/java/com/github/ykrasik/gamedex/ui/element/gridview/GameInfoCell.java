@@ -26,16 +26,14 @@
  */
 package com.github.ykrasik.gamedex.ui.element.gridview;
 
-import com.github.ykrasik.gamedex.common.optional.Optionals;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.ui.UIResources;
+import com.github.ykrasik.opt.Opt;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.controlsfx.control.GridCell;
 import org.controlsfx.control.GridView;
-
-import java.util.Optional;
 
 /**
  * A {@link GridCell} that can be used to show images inside the 
@@ -84,8 +82,8 @@ public class GameInfoCell extends GridCell<Game> {
         if (empty) {
             setGraphic(null);
         } else {
-            final Optional<Image> thumbnail = Optionals.or(item.getThumbnail(), item.getPoster()).map(ImageData::getImage);
-            final Image image = thumbnail.orElse(UIResources.getNotAvailable());
+            final Opt<Image> thumbnail = item.getThumbnail().orElse(item.getPoster()).map(ImageData::getImage);
+            final Image image = thumbnail.getOrElse(UIResources.getNotAvailable());
             if (preserveImageProperties) {
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);

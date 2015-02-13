@@ -1,13 +1,15 @@
 package com.github.ykrasik.gamedex.common.util;
 
-import com.github.ykrasik.gamedex.common.exception.FunctionThrows;
+import com.github.ykrasik.opt.util.FunctionThrows;
+import lombok.SneakyThrows;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.github.ykrasik.gamedex.common.exception.ExceptionWrappers.rethrow;
 
 /**
  * @author Yevgeny Krasik
@@ -16,30 +18,22 @@ public final class ListUtils {
     private ListUtils() {
     }
 
-    public static <T, A> List<A> map(Collection<T> collection, FunctionThrows<T, A> f) {
-        return rethrow(() -> {
-            final List<A> retList = new ArrayList<>(collection.size());
-            for (T element : collection) {
-                retList.add(f.apply(element));
-            }
-            return retList;
-        });
+    public static <T, A> List<A> map(List<T> collection, Function<T, A> f) {
+        return collection.stream().map(f).collect(Collectors.toList());
     }
 
-    public static <T, A> List<A> mapToOption(Collection<T> collection, FunctionThrows<T, Optional<A>> f) {
-        return rethrow(() -> {
-            final List<A> retList = new ArrayList<>(collection.size());
-            for (T element : collection) {
-                final Optional<A> option = f.apply(element);
-                option.ifPresent(retList::add);
-            }
-            return retList;
-        });
-    }
-
-    public static <T, K> Map<K, T> toMap(Collection<T> collection, Function<T, K> idFunction) {
-        final Map<K, T> map = new HashMap<>(collection.size());
+    @SneakyThrows
+    public static <T, A> List<A> mapX(List<T> collection, FunctionThrows<T, A> f) {
+        final List<A> retList = new ArrayList<>(collection.size());
         for (T element : collection) {
+            retList.add(f.apply(element));
+        }
+        return retList;
+    }
+
+    public static <T, K> Map<K, T> toMap(List<T> list, Function<T, K> idFunction) {
+        final Map<K, T> map = new HashMap<>(list.size());
+        for (T element : list) {
             final K id = idFunction.apply(element);
             if (map.containsKey(id)) {
                 throw new IllegalArgumentException("Map already contains an entry for: " + id);
@@ -49,16 +43,16 @@ public final class ListUtils {
         return map;
     }
 
-    public static <T, K> Map<K, List<T>> toMultiMap(Collection<T> collection, Function<T, K> idFunction) {
-        final Map<K, List<T>> map = new HashMap<>(collection.size());
-        for (T element : collection) {
+    public static <T, K> Map<K, List<T>> toMultiMap(List<T> list, Function<T, K> idFunction) {
+        final Map<K, List<T>> map = new HashMap<>(list.size());
+        for (T element : list) {
             final K id = idFunction.apply(element);
-            List<T> list = map.get(id);
-            if (list == null) {
-                list = new ArrayList<>();
-                map.put(id, list);
+            List<T> existingList = map.get(id);
+            if (existingList == null) {
+                existingList = new ArrayList<>();
+                map.put(id, existingList);
             }
-            list.add(element);
+            existingList.add(element);
         }
         return map;
     }

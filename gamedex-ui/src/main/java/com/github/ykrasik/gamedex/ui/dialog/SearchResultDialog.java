@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.ui.dialog;
 
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,9 +19,8 @@ import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.DialogAction;
 
 import java.nio.file.Path;
-import java.util.Optional;
 
-import static com.github.ykrasik.gamedex.common.optional.Optionals.toStringOrUnavailable;
+import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnavailable;
 
 /**
  * @author Yevgeny Krasik
@@ -64,7 +64,7 @@ public class SearchResultDialog {
         return this;
     }
 
-    public Optional<SearchResult> show(Path path, ObservableList<SearchResult> items) {
+    public Opt<SearchResult> show(Path path, ObservableList<SearchResult> items) {
         final Dialog dialog = new Dialog(stage, title);
         final DialogAction actionOk = new DialogAction("OK", ButtonType.OK_DONE);
 
@@ -87,9 +87,9 @@ public class SearchResultDialog {
 
         final Action response = dialog.show();
         if (response == actionOk) {
-            return Optional.of(getSelectedItem());
+            return Opt.of(getSelectedItem());
         } else {
-            return Optional.empty();
+            return Opt.absent();
         }
     }
 

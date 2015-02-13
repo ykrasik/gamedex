@@ -2,37 +2,36 @@ package com.github.ykrasik.gamedex.core.dialog.choice;
 
 import com.github.ykrasik.gamedex.core.flow.ExcludeException;
 import com.github.ykrasik.gamedex.core.flow.SkipException;
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
-
-import java.util.Optional;
+import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.opt.Opt;
 
 /**
  * @author Yevgeny Krasik
  */
 public class DialogChoiceResolverAdapter implements DialogChoiceResolver {
     @Override
-    public Optional<GameInfo> skip() {
+    public Opt<GameInfo> skip() {
         throw new SkipException();
     }
 
     @Override
-    public Optional<GameInfo> exclude() {
+    public Opt<GameInfo> exclude() {
         throw new ExcludeException();
     }
 
     @Override
-    public Optional<GameInfo> proceedAnyway() {
-        return Optional.empty();
+    public Opt<GameInfo> proceedAnyway() {
+        return Opt.absent();
     }
 
     @Override
-    public Optional<GameInfo> newName(String newName) throws Exception {
+    public Opt<GameInfo> newName(String newName) throws Exception {
         throw unsupported("Retry with new name");
     }
 
     @Override
-    public Optional<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
+    public Opt<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
         throw unsupported("Choose from search results");
     }
 

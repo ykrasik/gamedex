@@ -1,21 +1,20 @@
 package com.github.ykrasik.gamedex.core.dialog.choice;
 
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
-
-import java.util.Optional;
+import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.opt.Opt;
 
 /**
  * @author Yevgeny Krasik
  */
 public interface DialogChoiceResolver {
-    Optional<GameInfo> skip();
+    Opt<GameInfo> skip();
 
-    Optional<GameInfo> exclude();
+    Opt<GameInfo> exclude();
 
-    Optional<GameInfo> proceedAnyway();
+    Opt<GameInfo> proceedAnyway();
 
-    Optional<GameInfo> newName(String newName) throws Exception;
+    Opt<GameInfo> newName(String newName) throws Exception;
 
-    Optional<GameInfo> choose(SearchResult chosenSearchResult) throws Exception;
+    Opt<GameInfo> choose(SearchResult chosenSearchResult) throws Exception;
 }

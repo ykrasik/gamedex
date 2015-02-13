@@ -1,14 +1,13 @@
 package com.github.ykrasik.gamedex.common.config.preferences;
 
-import com.github.ykrasik.gamedex.common.exception.FunctionThrows;
-import com.github.ykrasik.gamedex.common.optional.Optionals;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
+import com.github.ykrasik.opt.Opt;
 import lombok.NonNull;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.prefs.Preferences;
 
@@ -26,27 +25,27 @@ public class PreferencesManager {
         preferences.remove(name);
     }
 
-    public Optional<String> get(String name) {
-        return Optional.ofNullable(preferences.get(name, null));
+    public Opt<String> get(String name) {
+        return Opt.ofNullable(preferences.get(name, null));
     }
 
     public void put(String name, String value) {
         preferences.put(name, value);
     }
 
-    public <T> List<T> getList(String name, FunctionThrows<String, T> deserializer) {
-        final Optional<String> optionalValue = get(name);
-        return Optionals.flatMapToList(optionalValue, value -> StringUtils.parseList(value, deserializer));
+    public <T> List<T> getList(String name, Function<String, T> deserializer) throws Exception  {
+        final Opt<String> valueOpt = get(name);
+        return valueOpt.map(value -> StringUtils.parseList(value, deserializer)).getOrElse(Collections.emptyList());
     }
 
-    public <T> void putList(String name, List<T> list, FunctionThrows<T, String> serializer) {
+    public <T> void putList(String name, List<T> list, Function<T, String> serializer) {
         final String value = StringUtils.toString(list, serializer);
         preferences.put(name, value);
     }
 
     public <K, V> Map<K, V> getMap(String name, Function<String, K> keyDeserializer, Function<String, V> valueDeserializer) {
-        final Optional<String> optionalValue = get(name);
-        return Optionals.flatMapToMap(optionalValue, value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer));
+        final Opt<String> valueOpt = get(name);
+        return valueOpt.map(value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer)).getOrElse(Collections.emptyMap());
     }
 
     public <K, V> void putMap(String name, Map<K, V> map, Function<K, String> keySerializer, Function<V, String> valueSerializer) {
@@ -54,7 +53,7 @@ public class PreferencesManager {
         preferences.put(name, value);
     }
 
-    public Optional<File> getFile(String name) {
+    public Opt<File> getFile(String name) {
         return get(name).map(File::new);
     }
 

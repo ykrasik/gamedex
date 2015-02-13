@@ -13,7 +13,6 @@ public final class GiantBombApi {
     public static final String NAME = "name";
     public static final String RELEASE_DATE = "original_release_date";
     public static final String DESCRIPTION = "deck";
-    public static final String URL = "site_detail_url";
 
     public static final String IMAGE = "image";
     public static final String IMAGE_THUMBNAIL = "thumb_url";

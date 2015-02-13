@@ -2,16 +2,15 @@ package com.github.ykrasik.gamedex.provider.giantbomb.debug;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoService;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import com.github.ykrasik.opt.Opt;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -36,8 +35,8 @@ public class GiantBombDebugCommands implements DebugCommands {
         final SearchResult searchResult = SearchResult.builder()
             .detailUrl(url)
             .name("")
-            .releaseDate(Optional.empty())
-            .score(Optional.empty())
+            .releaseDate(Opt.absent())
+            .score(Opt.absent())
             .build();
         outputPrinter.println(service.getGameInfo(searchResult).toString());
     }

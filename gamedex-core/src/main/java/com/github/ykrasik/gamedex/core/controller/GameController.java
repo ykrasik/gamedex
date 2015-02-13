@@ -2,7 +2,6 @@ package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.exception.ExceptionWrappers;
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
-import com.github.ykrasik.gamedex.common.optional.Optionals;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
@@ -54,7 +53,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.ykrasik.gamedex.common.optional.Optionals.toStringOrUnavailable;
+import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnavailable;
 
 /**
  * @author Yevgeny Krasik
@@ -185,8 +184,8 @@ public class GameController {
         gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
         gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
         gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().orElse(0.0)));
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().orElse(0.0)));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().getOrElse(0.0)));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().getOrElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
         gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
 
@@ -274,7 +273,7 @@ public class GameController {
 
     @SneakyThrows
     private void displayGameOnSidePanel(Game game) {
-        poster.setImage(Optionals.or(game.getPoster(), game.getThumbnail()).map(ImageData::getImage).orElse(UIResources.getNotAvailable()));
+        poster.setImage(game.getPoster().orElse(game.getThumbnail()).map(ImageData::getImage).getOrElse(UIResources.getNotAvailable()));
         gamePath.setText(game.getPath().toString());
         name.setText(game.getName());
         description.setText(toStringOrUnavailable(game.getDescription()));
@@ -284,9 +283,9 @@ public class GameController {
         userScore.setText(toStringOrUnavailable(game.getUserScore()));
         genres.setText(JOINER.join(ListUtils.map(game.getGenres(), Genre::getName)));
 
-        url.setText(game.getUrl());
+        url.setText(game.getMetacriticDetailUrl());
         url.setVisited(false);
-        url.setOnAction(e -> ExceptionWrappers.rethrow(() -> Desktop.getDesktop().browse(new URI(game.getUrl()))));
+        url.setOnAction(e -> ExceptionWrappers.rethrow(() -> Desktop.getDesktop().browse(new URI(game.getMetacriticDetailUrl()))));
     }
 
 //    private ContextMenu createLibraryContextMenu() {
@@ -377,7 +376,7 @@ public class GameController {
     private DirectoryChooser createDirectoryChooser(String title) {
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle(title);
-        directoryChooser.setInitialDirectory(config.getPrevDirectory().orElse(null));
+        directoryChooser.setInitialDirectory(config.getPrevDirectory().getOrElseNull());
         return directoryChooser;
     }
 

@@ -4,8 +4,9 @@ import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.ui.dialog.SearchResultDialog;
+import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
 import javafx.stage.Stage;
 import lombok.NonNull;
@@ -64,7 +65,7 @@ public class DialogManagerImpl implements DialogManager {
     }
 
     @Override
-    public Optional<String> libraryNameDialog(Path path, GamePlatform platform) throws Exception {
+    public Opt<String> libraryNameDialog(Path path, GamePlatform platform) throws Exception {
         final Dialogs dialog = createDialog()
             .title("Enter library name")
             .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform));
@@ -72,13 +73,12 @@ public class DialogManagerImpl implements DialogManager {
         log.info("Showing library name dialog...");
         final String defaultName = path.getFileName().toString();
         final Optional<String> libraryName = getUserResponse(() -> dialog.showTextInput(defaultName));
-
         if (libraryName.isPresent()) {
             log.info("Library name: '{}'", libraryName.get());
         } else {
             log.info("Dialog cancelled.");
         }
-        return libraryName;
+        return Opt.fromOptional(libraryName);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class DialogManagerImpl implements DialogManager {
             log.info("Showing no {} search results dialog...", providerName);
             final Action action = getUserResponse(() -> dialog.showCommandLinks(choices));
 
-            Optional<DialogChoice> choice = tryCommonDialogAction(action);
+            Opt<DialogChoice> choice = tryCommonDialogAction(action);
             if (choice.isPresent()) {
                 return choice.get();
             }
@@ -136,7 +136,7 @@ public class DialogManagerImpl implements DialogManager {
             log.info("Showing multiple {} search result dialog...", providerName);
             final Action action = getUserResponse(() -> dialog.showCommandLinks(choices));
 
-            Optional<DialogChoice> choice = tryCommonDialogAction(action);
+            Opt<DialogChoice> choice = tryCommonDialogAction(action);
             if (choice.isPresent()) {
                 return choice.get();
             }
@@ -153,48 +153,48 @@ public class DialogManagerImpl implements DialogManager {
         }
     }
 
-    private Optional<DialogChoice> tryCommonDialogAction(Action action) {
+    private Opt<DialogChoice> tryCommonDialogAction(Action action) {
         if (action == Dialog.ACTION_CANCEL) {
             log.info("Dialog cancelled.");
-            return Optional.of(SkipDialogChoice.instance());
+            return Opt.of(SkipDialogChoice.instance());
         }
         if (action == EXCLUDE_ACTION) {
             log.info("Exclude requested.");
-            return Optional.of(ExcludeDialogChoice.instance());
+            return Opt.of(ExcludeDialogChoice.instance());
         }
         if (action == PROCEED_ANYWAY_ACTION) {
             log.info("Proceed anyway requested.");
-            return Optional.of(ProceedAnywayDialogChoice.instance());
+            return Opt.of(ProceedAnywayDialogChoice.instance());
         }
-        return Optional.empty();
+        return Opt.absent();
     }
 
-    private Optional<DialogChoice> tryNewNameDialogAction(Action action, String providerName, String prevName, Path path) throws Exception {
+    private Opt<DialogChoice> tryNewNameDialogAction(Action action, String providerName, String prevName, Path path) throws Exception {
         if (action == NEW_NAME_ACTION) {
             log.info("New name requested.");
-            final Optional<String> chosenName = newNameDialog(providerName, prevName, path);
+            final Opt<String> chosenName = newNameDialog(providerName, prevName, path);
             if (chosenName.isPresent()) {
-                return Optional.of(new NewNameDialogChoice(chosenName.get()));
+                return Opt.of(new NewNameDialogChoice(chosenName.get()));
             }
         }
-        return Optional.empty();
+        return Opt.absent();
     }
 
-    private Optional<DialogChoice> tryChooseFromSearchResultsDialogAction(Action action,
-                                                                          String providerName,
-                                                                          String name,
-                                                                          Path path,
-                                                                          GamePlatform platform,
-                                                                          List<SearchResult> searchResults) throws Exception {
+    private Opt<DialogChoice> tryChooseFromSearchResultsDialogAction(Action action,
+                                                                     String providerName,
+                                                                     String name,
+                                                                     Path path,
+                                                                     GamePlatform platform,
+                                                                     List<SearchResult> searchResults) throws Exception {
         if (action == CHOOSE_FROM_SEARCH_RESULTS_ACTION) {
             log.info("Choose from search results requested.");
-            final Optional<SearchResult> searchResult = chooseFromSearchResults(providerName, name, path, platform, searchResults);
+            final Opt<SearchResult> searchResult = chooseFromSearchResults(providerName, name, path, platform, searchResults);
             return searchResult.map(ChooseFromSearchResultsChoice::new);
         }
-        return Optional.empty();
+        return Opt.absent();
     }
 
-    private Optional<String> newNameDialog(String gameInfoServiceName, String prevName, Path path) throws Exception {
+    private Opt<String> newNameDialog(String gameInfoServiceName, String prevName, Path path) throws Exception {
         final Dialogs dialog = createDialog()
             .title(String.format("%s: Select new name instead of '%s'", gameInfoServiceName, prevName))
             .masthead(path.toString());
@@ -206,20 +206,20 @@ public class DialogManagerImpl implements DialogManager {
         } else {
             log.info("Dialog cancelled.");
         }
-        return newName;
+        return Opt.fromOptional(newName);
     }
 
-    private Optional<SearchResult> chooseFromSearchResults(String providerName,
-                                                           String name,
-                                                           Path path,
-                                                           GamePlatform platform,
-                                                           List<SearchResult> searchResults) throws Exception {
+    private Opt<SearchResult> chooseFromSearchResults(String providerName,
+                                                      String name,
+                                                      Path path,
+                                                      GamePlatform platform,
+                                                      List<SearchResult> searchResults) throws Exception {
         final SearchResultDialog dialog = new SearchResultDialog()
             .owner(stage)
             .title(String.format("%s search results for: '%s'[%s]", providerName, name, platform));
 
         log.info("Showing all search results...");
-        final Optional<SearchResult> choice = getUserResponse(() -> dialog.show(path, FXCollections.observableArrayList(searchResults)));
+        final Opt<SearchResult> choice = getUserResponse(() -> dialog.show(path, FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
             log.info("Choice from multiple results: '{}'", choice.get());
         } else {

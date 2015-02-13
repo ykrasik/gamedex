@@ -1,11 +1,10 @@
 package com.github.ykrasik.gamedex.core.dialog.choice;
 
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
+import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.opt.Opt;
 import lombok.NonNull;
 import lombok.Value;
-
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -15,7 +14,7 @@ public class ChooseFromSearchResultsChoice implements DialogChoice {
     @NonNull private final SearchResult searchResult;
 
     @Override
-    public Optional<GameInfo> resolve(DialogChoiceResolver resolver) throws Exception {
+    public Opt<GameInfo> resolve(DialogChoiceResolver resolver) throws Exception {
         return resolver.choose(searchResult);
     }
 }

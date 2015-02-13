@@ -5,10 +5,10 @@ import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
+import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -57,7 +57,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public Game addGame(GameInfo gameInfo, Path path, GamePlatform platform) {
+    public Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform) {
         final Game game = persistenceService.addGame(gameInfo, path, platform);
         LOG.info("Added game: {}", game);
 

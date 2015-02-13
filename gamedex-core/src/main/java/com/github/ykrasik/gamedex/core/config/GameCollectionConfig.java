@@ -1,12 +1,13 @@
 package com.github.ykrasik.gamedex.core.config;
 
+import com.github.ykrasik.opt.Opt;
+
 import java.io.File;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
 public interface GameCollectionConfig {
-    Optional<File> getPrevDirectory();
+    Opt<File> getPrevDirectory();
     void setPrevDirectory(File prevDirectory);
 }

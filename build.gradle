@@ -72,7 +72,9 @@ project("gamedex-common") {
 }
 
 project("gamedex-datamodel") {
-
+    dependencies {
+        compile project(":gamedex-common")
+    }
 }
 
 project("gamedex-info-provider") {

@@ -2,7 +2,6 @@ package com.github.ykrasik.gamedex.core.flow;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
-import com.github.ykrasik.gamedex.common.optional.Optionals;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
@@ -16,13 +15,14 @@ import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.ImageData;
-import com.github.ykrasik.gamedex.datamodel.info.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.info.SearchResult;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
+import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
+import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import lombok.NonNull;
@@ -30,7 +30,10 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -196,7 +199,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
-        final Optional<String> libraryName = dialogManager.libraryNameDialog(path, platform);
+        final Opt<String> libraryName = dialogManager.libraryNameDialog(path, platform);
         if (!libraryName.isPresent()) {
             return false;
         }
@@ -218,9 +221,9 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         final GamePlatform platform = library.getPlatform();
 
         final SearchContext metacriticSearchContext = new SearchContext(metacriticInfoService, path, platform);
-        final Optional<GameInfo> metacriticGameOptional = fetchGameInfo(metacriticSearchContext, name.trim());
-        if (metacriticGameOptional.isPresent()) {
-            final GameInfo metacriticGame = metacriticGameOptional.get();
+        final Opt<GameInfo> metacriticGameOpt = fetchGameInfo(metacriticSearchContext, name.trim());
+        if (metacriticGameOpt.isPresent()) {
+            final GameInfo metacriticGame = metacriticGameOpt.get();
             LOG.debug("Metacritic gameInfo: {}", metacriticGame);
 
             // Transfer excluded searches from metacritic search, and use Metacritic's name - more likely to be accurate.
@@ -228,23 +231,18 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             giantBombSearchContext.addExcludedNames(metacriticSearchContext.getExcludedNames());
             final String metacriticName = metacriticGame.getName();
 
-            final Optional<GameInfo> giantBombGameOptional = fetchGameInfo(giantBombSearchContext, metacriticName);
-            final GameInfo mergedGame;
-            if (giantBombGameOptional.isPresent()) {
-                final GameInfo giantBombGame = giantBombGameOptional.get();
-                LOG.debug("GiantBomb gameInfo: {}", giantBombGame);
-                mergedGame = mergeGameInfos(metacriticGame, giantBombGame);
-            } else {
+            final Opt<GameInfo> giantBombGameOpt = fetchGameInfo(giantBombSearchContext, metacriticName);
+            if (!giantBombGameOpt.isPresent()) {
                 info("Game not found on GiantBomb.");
-                mergedGame = metacriticGame;
             }
 
-            final Game game = gameManager.addGame(mergedGame, path, platform);
+            final UnifiedGameInfo gameInfo = UnifiedGameInfo.from(metacriticGame, giantBombGameOpt);
+            final Game game = gameManager.addGame(gameInfo, path, platform);
             libraryManager.addGameToLibrary(game, library);
         }
     }
 
-    private Optional<GameInfo> fetchGameInfo(SearchContext searchContext, String name) throws Exception {
+    private Opt<GameInfo> fetchGameInfo(SearchContext searchContext, String name) throws Exception {
         final String trimmedName = name.trim();
         final List<SearchResult> searchResults = searchGames(searchContext, trimmedName);
 
@@ -257,7 +255,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         final SearchResult singleSearchResult = searchResults.get(0);
-        return Optional.of(fetchGameInfoFromSearchResult(searchContext, singleSearchResult));
+        return Opt.of(fetchGameInfoFromSearchResult(searchContext, singleSearchResult));
     }
 
     private List<SearchResult> searchGames(SearchContext searchContext, String name) throws Exception {
@@ -286,7 +284,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
     }
 
-    private Optional<GameInfo> handleNoSearchResults(SearchContext searchContext, String name) throws Exception {
+    private Opt<GameInfo> handleNoSearchResults(SearchContext searchContext, String name) throws Exception {
         final GameInfoProviderType providerType = searchContext.getGameInfoProvider().getProviderType();
         final NoSearchResultsDialogParams params = NoSearchResultsDialogParams.builder()
             .providerName(providerType.getName())
@@ -298,13 +296,13 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         final DialogChoice choice = dialogManager.noSearchResultsDialog(params);
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
-            public Optional<GameInfo> newName(String newName) throws Exception {
+            public Opt<GameInfo> newName(String newName) throws Exception {
                 return fetchGameInfo(searchContext, newName);
             }
         });
     }
 
-    private Optional<GameInfo> handleMultipleSearchResults(SearchContext searchContext, String name, List<SearchResult> searchResults) throws Exception {
+    private Opt<GameInfo> handleMultipleSearchResults(SearchContext searchContext, String name, List<SearchResult> searchResults) throws Exception {
         final List<SearchResult> sortedSearchResults = new ArrayList<>(searchResults);
         Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateComparator());
 
@@ -320,7 +318,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         final DialogChoice choice = dialogManager.multipleSearchResultsDialog(params);
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
-            public Optional<GameInfo> newName(String newName) throws Exception {
+            public Opt<GameInfo> newName(String newName) throws Exception {
                 // Add all current search results to excluded list.
                 final List<String> searchResultNames = getSearchResultNames(searchResults);
                 searchContext.addExcludedNames(searchResultNames);
@@ -328,12 +326,12 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             }
 
             @Override
-            public Optional<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
+            public Opt<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
                 // Add all other search results to excluded list.
                 final List<String> searchResultNames = getSearchResultNames(searchResults);
                 final List<String> excludedNames = ListUtils.takeAllExcept(searchResultNames, chosenSearchResult.getName());
                 searchContext.addExcludedNames(excludedNames);
-                return Optional.of(fetchGameInfoFromSearchResult(searchContext, chosenSearchResult));
+                return Opt.of(fetchGameInfoFromSearchResult(searchContext, chosenSearchResult));
             }
         });
     }
@@ -348,36 +346,14 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
         info("%s: Fetching '%s'...", providerName, searchResult.getName());
         startFetching();
-        final GameInfo gameInfo = gameInfoProvider.getGameInfo(searchResult).orElseThrow(
+        final GameInfo gameInfo = gameInfoProvider.getGameInfo(searchResult).getOrElseThrow(
             () -> new GameDexException("Specific %s search found nothing: %s", providerName, searchResult)
         );
         finishFetching();
         info("Done.");
+        LOG.debug("GameInfo: {}", gameInfo);
 
         return gameInfo;
-    }
-
-    private GameInfo mergeGameInfos(GameInfo metacriticGame, GameInfo giantBombGame) {
-        // TODO: Consider only using giantBomb genre if present.
-        final Set<String> genres = new HashSet<>();
-        genres.addAll(metacriticGame.getGenres());
-        genres.addAll(giantBombGame.getGenres());
-
-        final Optional<ImageData> thumbnail = Optionals.or(giantBombGame.getThumbnail(), metacriticGame.getThumbnail());
-
-        // TODO: For now, only save the giantBomb detailUrl
-        return GameInfo.builder()
-            .detailUrl(giantBombGame.getDetailUrl())
-            .name(metacriticGame.getName())
-            .description(Optionals.or(giantBombGame.getDescription(), metacriticGame.getDescription()))
-            .releaseDate(Optionals.or(metacriticGame.getReleaseDate(), giantBombGame.getReleaseDate()))
-            .criticScore(metacriticGame.getCriticScore())
-            .userScore(metacriticGame.getUserScore())
-            .url(metacriticGame.getUrl())
-            .thumbnail(thumbnail)
-            .poster(Optionals.or(giantBombGame.getPoster(), thumbnail))
-            .genres(new ArrayList<>(genres))
-            .build();
     }
 
     // TODO: I don't like that platformUtils.runLater is called from here.

@@ -1,11 +1,11 @@
-package com.github.ykrasik.gamedex.datamodel.info;
+package com.github.ykrasik.gamedex.datamodel.provider;
 
+import com.github.ykrasik.opt.Opt;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import lombok.experimental.Builder;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -15,6 +15,6 @@ import java.util.Optional;
 public class SearchResult {
     @NonNull private final String detailUrl;
     @NonNull private final String name;
-    @NonNull private final Optional<LocalDate> releaseDate;
-    @NonNull private final Optional<Double> score;
+    @NonNull private final Opt<LocalDate> releaseDate;
+    @NonNull private final Opt<Double> score;
 }

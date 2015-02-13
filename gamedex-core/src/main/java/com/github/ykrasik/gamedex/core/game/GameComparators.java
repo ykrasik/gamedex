@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.game;
 
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.common.optional.OptionalComparators;
+import com.github.ykrasik.gamedex.datamodel.persistence.Game;
+import com.github.ykrasik.opt.Opt;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -47,7 +47,7 @@ public final class GameComparators {
         return RELEASE_DATE_COMPARATOR;
     }
 
-    private static <T extends Comparable<? super T>> int compareWithNameFallback(Game o1, Game o2, Function<Game, Optional<T>> fieldExtractor) {
+    private static <T extends Comparable<? super T>> int compareWithNameFallback(Game o1, Game o2, Function<Game, Opt<T>> fieldExtractor) {
         return OptionalComparators.compareWithFallback(o2, o1, fieldExtractor, NAME_COMPARATOR);
     }
 }

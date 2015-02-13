@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.ui.preloader;
 
-import com.github.ykrasik.gamedex.common.exception.ConsumerThrows;
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.ui.UIResources;
@@ -23,6 +22,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.function.Consumer;
 
 /**
  * @author Yevgeny Krasik
@@ -63,7 +64,7 @@ public class PreloaderImpl implements Preloader {
     }
 
     @Override
-    public <T> void start(Task<T> task, ConsumerThrows<T> consumer) {
+    public <T> void start(Task<T> task, Consumer<T> consumer) {
         info("Loading GameDex...");
 
         final Stage initStage = new Stage(StageStyle.UNDECORATED);

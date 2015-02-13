@@ -1,7 +1,9 @@
 package com.github.ykrasik.gamedex.core.config;
 
+import com.github.ykrasik.opt.Opt;
 import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.boon.IO;
 
 import java.io.File;
@@ -9,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -42,7 +43,7 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
     }
 
     @Override
-    public Optional<File> getPrevDirectory() {
+    public Opt<File> getPrevDirectory() {
         return config.prevDirectory;
     }
 
@@ -58,19 +59,16 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
         IO.write(file, xml);
     }
 
+    @RequiredArgsConstructor
     private static class Config {
-        private final Optional<File> prevDirectory;
-
-        private Config(@NonNull Optional<File> prevDirectory) {
-            this.prevDirectory = prevDirectory;
-        }
+        @NonNull private final Opt<File> prevDirectory;
 
         public Config withPrevDirectory(File prevDirectory) {
-            return new Config(Optional.of(prevDirectory));
+            return new Config(Opt.of(prevDirectory));
         }
 
         public static Config empty() {
-            return new Config(Optional.empty());
+            return new Config(Opt.absent());
         }
     }
 }

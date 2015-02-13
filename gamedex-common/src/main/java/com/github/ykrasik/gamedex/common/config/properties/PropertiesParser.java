@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.common.config.properties;
 
-import com.github.ykrasik.gamedex.common.exception.FunctionThrows;
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import lombok.NonNull;
@@ -58,7 +57,7 @@ public class PropertiesParser {
         return Duration.ofMinutes(getLong(name));
     }
 
-    public <T> List<T> parseList(String name, FunctionThrows<String, T> f) {
+    public <T> List<T> parseList(String name, Function<String, T> f) {
         return StringUtils.parseList(getString(name), f);
     }
 

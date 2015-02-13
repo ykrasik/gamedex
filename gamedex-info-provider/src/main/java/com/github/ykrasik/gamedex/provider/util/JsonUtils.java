@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.provider.util;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
+import com.github.ykrasik.opt.Opt;
 import org.codehaus.jackson.JsonNode;
 
 import java.util.*;
@@ -17,21 +18,21 @@ public final class JsonUtils {
         return node != null && !node.isNull();
     }
 
-    public static Optional<JsonNode> getField(JsonNode node, String fieldName) {
+    public static Opt<JsonNode> getField(JsonNode node, String fieldName) {
         if (!exists(node)) {
-            return Optional.empty();
+            return Opt.absent();
         }
 
         final JsonNode field = node.get(fieldName);
         if (exists(field)) {
-            return Optional.of(field);
+            return Opt.of(field);
         } else {
-            return Optional.empty();
+            return Opt.absent();
         }
     }
 
     public static JsonNode getMandatoryField(JsonNode node, String fieldName) {
-        return getField(node, fieldName).orElseThrow(
+        return getField(node, fieldName).getOrElseThrow(
             () -> new GameDexException("Json has no '%s' field!", fieldName)
         );
     }
@@ -44,19 +45,19 @@ public final class JsonUtils {
         return getMandatoryField(node, fieldName).asText();
     }
 
-    public static Optional<String> getString(JsonNode node, String fieldName) {
+    public static Opt<String> getString(JsonNode node, String fieldName) {
         return mapField(node, fieldName, JsonNode::asText);
     }
 
-    public static Optional<Integer> getInt(JsonNode node, String fieldName) {
+    public static Opt<Integer> getInt(JsonNode node, String fieldName) {
         return mapField(node, fieldName, JsonNode::asInt);
     }
 
-    public static Optional<Double> getDouble(JsonNode node, String fieldName) {
+    public static Opt<Double> getDouble(JsonNode node, String fieldName) {
         return mapField(node, fieldName, JsonNode::asDouble);
     }
 
-    private static <T> Optional<T> mapField(JsonNode node, String fieldName, Function<JsonNode, T> function) {
+    private static <T> Opt<T> mapField(JsonNode node, String fieldName, Function<JsonNode, T> function) {
         return getField(node, fieldName).map(function);
     }
 
@@ -76,7 +77,7 @@ public final class JsonUtils {
         return list;
     }
 
-    public static <T> List<T> flatMapList(JsonNode root, Function<JsonNode, Optional<T>> f) {
+    public static <T> List<T> flatMapList(JsonNode root, Function<JsonNode, Opt<T>> f) {
         if (!exists(root)) {
             return Collections.emptyList();
         }
@@ -86,7 +87,7 @@ public final class JsonUtils {
         while (iterator.hasNext()) {
             final JsonNode node = iterator.next();
             if (exists(node)) {
-                final Optional<T> result = f.apply(node);
+                final Opt<T> result = f.apply(node);
                 result.ifPresent(list::add);
             }
         }

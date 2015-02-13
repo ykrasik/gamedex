@@ -1,7 +1,8 @@
 package com.github.ykrasik.gamedex.common.optional;
 
+import com.github.ykrasik.opt.Opt;
+
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -10,7 +11,7 @@ import java.util.function.Function;
 public final class OptionalComparators {
     private OptionalComparators() { }
 
-    public static <T extends Comparable<? super T>> Result compare(Optional<T> o1, Optional<T> o2) {
+    public static <T extends Comparable<? super T>> Result compare(Opt<T> o1, Opt<T> o2) {
         if (o1.isPresent()) {
             if (o2.isPresent()) {
                 return fromCompareResult(o1.get().compareTo(o2.get()));
@@ -28,7 +29,7 @@ public final class OptionalComparators {
 
     public static <O, T extends Comparable<? super T>> int compareWithFallback(O o1,
                                                                                O o2,
-                                                                               Function<O, Optional<T>> fieldExtractor,
+                                                                               Function<O, Opt<T>> fieldExtractor,
                                                                                Comparator<O> fallback) {
         final Result result = compare(fieldExtractor.apply(o1), fieldExtractor.apply(o2));
         if (result != Result.INDETERMINABLE) {

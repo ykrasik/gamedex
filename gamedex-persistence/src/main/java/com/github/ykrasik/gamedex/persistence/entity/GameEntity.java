@@ -44,11 +44,11 @@ public class GameEntity {
     @DatabaseField
     private Double userScore;
 
-    @DatabaseField
-    private String giantBombApiDetailUrl;
-
     @DatabaseField(canBeNull = false)
-    private String url;
+    private String metacriticDetailUrl;
+
+    @DatabaseField
+    private String giantBombDetailUrl;
 
     @DatabaseField(dataType = DataType.BYTE_ARRAY)
     private byte[] thumbnailData;
