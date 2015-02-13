@@ -41,6 +41,7 @@ public class GameSideBarController implements Controller {
     // Called by JavaFX
     public void initialize() {
         // Make the poster resize dynamically according to how much space is available, minus margins.
+        // TODO: If image is small, have the description take up that space.
         poster.fitWidthProperty().bind(container.widthProperty().subtract(10));
         poster.fitHeightProperty().bind(container.heightProperty().subtract(attributes.heightProperty()).subtract(13));
     }

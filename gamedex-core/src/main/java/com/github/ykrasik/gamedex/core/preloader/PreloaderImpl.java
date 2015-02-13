@@ -34,14 +34,19 @@ public class PreloaderImpl implements Preloader {
     private final Image logo;
     private final Pane splashLayout;
 
-    private final StringProperty message;
+    private final StringProperty messageProperty;
+    private final ProgressBar progressBar;
 
-    public PreloaderImpl() {
+    private final int max;
+    private int current;
+
+    public PreloaderImpl(int max) {
+        this.max = max;
         logo = UIResources.getLogo();
 
-        final ProgressBar progressBar = new ProgressBar();
+        progressBar = new ProgressBar();
         progressBar.setPrefWidth(logo.getWidth());
-        progressBar.setProgress(-1);
+        progressBar.setProgress(0);
         final Label progressText = new Label();
 
         splashLayout = new VBox();
@@ -50,22 +55,27 @@ public class PreloaderImpl implements Preloader {
         splashLayout.setStyle("-fx-padding: 5; -fx-background-color: cornsilk; -fx-border-width:5; -fx-border-color: linear-gradient(to bottom, chocolate, derive(chocolate, 50%));");
         splashLayout.setEffect(new DropShadow());
 
-        message = new SimpleStringProperty();
-        progressText.textProperty().bind(message);
+        messageProperty = new SimpleStringProperty();
+        progressText.textProperty().bind(messageProperty);
     }
 
     public StringProperty messageProperty() {
-        return message;
+        return messageProperty;
     }
 
     @Override
     public void info(String message) {
-        PlatformUtils.runLaterIfNecessary(() -> this.message.setValue(message));
+        current++;
+        final double progress = (double) current / max;
+        PlatformUtils.runLaterIfNecessary(() -> {
+            messageProperty.setValue(message);
+            progressBar.setProgress(progress);
+        });
     }
 
     @Override
     public <T> void start(Task<T> task, Consumer<T> consumer) {
-        info("Loading GameDex...");
+        messageProperty.set("Loading GameDex...");
 
         final Stage initStage = new Stage(StageStyle.UNDECORATED);
         final Scene splashScene = new Scene(splashLayout);

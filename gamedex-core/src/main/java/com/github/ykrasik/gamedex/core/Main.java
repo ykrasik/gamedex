@@ -20,16 +20,12 @@ import java.io.IOException;
  */
 @Slf4j
 public class Main extends Application {
-    private Preloader preloader;
+    private static final int ELEMENTS_TO_LOAD = 10;
+
     private AbstractApplicationContext context;
 
     public static void main(String[] args) {
         launch(args);
-    }
-
-    @Override
-    public void init() {
-        preloader = new PreloaderImpl();
     }
 
     @Override
@@ -49,6 +45,8 @@ public class Main extends Application {
     }
 
     private void doStart(final Stage mainStage) throws IOException {
+        final Preloader preloader = new PreloaderImpl(ELEMENTS_TO_LOAD);
+
         final Task<AbstractApplicationContext> task = new Task<AbstractApplicationContext>() {
             @Override
             protected AbstractApplicationContext call() throws InterruptedException {

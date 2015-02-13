@@ -33,13 +33,11 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public MetacriticGameInfoClient metacriticGameInfoClient(MetacriticProperties properties) {
-        preloader.info("Loading Metacritic client...");
         return new MetacriticGameInfoClientImpl(properties);
     }
 
     @Bean
     public MetacriticProperties metacriticProperties() {
-        preloader.info("Loading Metacritic properties...");
         return new MetacriticPropertiesImpl();
     }
 
@@ -60,13 +58,11 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public GiantBombGameInfoClient giantBombGameInfoClient(GiantBombProperties properties) {
-        preloader.info("Loading GiantBomb client...");
         return new GiantBombGameInfoClientImpl(properties);
     }
 
     @Bean
     public GiantBombProperties giantBombProperties() {
-        preloader.info("Loading GiantBomb properties...");
         return new GiantBombPropertiesImpl();
     }
 

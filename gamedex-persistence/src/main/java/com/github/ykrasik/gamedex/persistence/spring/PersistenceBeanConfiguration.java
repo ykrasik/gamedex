@@ -33,7 +33,6 @@ public class PersistenceBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public PersistenceProperties persistenceProperties() {
-        preloader.info("Loading persistence properties...");
         return new PersistencePropertiesImpl();
     }
 
