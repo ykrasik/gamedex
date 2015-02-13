@@ -66,32 +66,33 @@
         </ToolBar>
     </top>
     <center>
-        <HBox fx:id="contentScreen" VBox.vgrow="ALWAYS">
-            <children>
-                <TabPane BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
-                    <tabs>
-                        <Tab closable="false" text="Wall">
-                            <content>
-                                <fx:include source="gameWall.fxml" fx:id="gameWall" />
-                            </content>
-                        </Tab>
-                        <Tab closable="false" text="List">
-                            <content>
-                                <fx:include source="gameList.fxml" fx:id="gameList" />
-                            </content>
-                        </Tab>
-                    </tabs>
-                </TabPane>
-                <Separator orientation="VERTICAL" />
-                <VBox fx:id="sideBar" maxWidth="330.0" HBox.hgrow="ALWAYS">
-                    <children>
-                        <fx:include source="gameSideBar.fxml" fx:id="gameSideBar" />
-                    </children>
-                    <padding>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                    </padding>
-                </VBox>
-            </children>
-        </HBox>
+            <GridPane>
+              <columnConstraints>
+                <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" minWidth="10.0" />
+                <ColumnConstraints hgrow="SOMETIMES" />
+                <ColumnConstraints halignment="RIGHT" hgrow="NEVER" maxWidth="-Infinity" minWidth="10.0" percentWidth="30.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <TabPane GridPane.columnIndex="0">
+                      <tabs>
+                          <Tab closable="false" text="Wall">
+                              <content>
+                                  <fx:include fx:id="gameWall" source="gameWall.fxml" />
+                              </content>
+                          </Tab>
+                          <Tab closable="false" text="List">
+                              <content>
+                                  <fx:include fx:id="gameList" source="gameList.fxml" />
+                              </content>
+                          </Tab>
+                      </tabs>
+                  </TabPane>
+                  <Separator orientation="VERTICAL" GridPane.columnIndex="1" />
+                  <fx:include GridPane.columnIndex="2" fx:id="gameSideBar" source="gameSideBar.fxml" />
+               </children>
+            </GridPane>
     </center>
 </BorderPane>

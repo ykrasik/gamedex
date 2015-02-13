@@ -72,7 +72,7 @@ public class PreloaderImpl implements Preloader {
         final Rectangle2D bounds = Screen.getPrimary().getBounds();
         initStage.setScene(splashScene);
         initStage.setX(bounds.getMinX() + bounds.getWidth() / 2 - logo.getWidth() / 2);
-        initStage.setY(bounds.getMinY() + bounds.getHeight() / 2 - logo.getHeight() / 2);
+        initStage.setY(bounds.getMinY() + bounds.getHeight() / 3 - logo.getHeight() / 2);
         initStage.show();
 
         final FadeTransition fadeSplash = new FadeTransition(Duration.seconds(0.5), splashLayout);

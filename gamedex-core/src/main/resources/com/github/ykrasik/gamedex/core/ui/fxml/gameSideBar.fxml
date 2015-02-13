@@ -6,17 +6,17 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameSideBarController">
+<VBox alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.GameSideBarController">
     <children>
       <StackPane>
          <children>
-                <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true" StackPane.alignment="TOP_CENTER" VBox.vgrow="ALWAYS" />
+                <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true" StackPane.alignment="TOP_CENTER" />
          </children>
       </StackPane>
           <GridPane alignment="BOTTOM_CENTER" hgap="3.0" vgap="3.0" HBox.hgrow="ALWAYS">
               <columnConstraints>
                   <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
-                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
               </columnConstraints>
               <rowConstraints>
                   <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
