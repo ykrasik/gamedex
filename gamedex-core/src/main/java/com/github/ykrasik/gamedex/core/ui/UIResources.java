@@ -14,7 +14,6 @@ public final class UIResources {
     private UIResources() { }
 
     @Getter private static final Image notAvailable = new Image(getResourceAsStream("not_available.png"));
-    @Getter private static final Image smallX = new Image(getResourceAsStream("x_small_icon.png"));
 
     @Getter private static final URL mainFxml = getResource("fxml/main.fxml");
     @Getter private static final String mainCss = "/com/github/ykrasik/gamedex/core/ui/css/main.css";

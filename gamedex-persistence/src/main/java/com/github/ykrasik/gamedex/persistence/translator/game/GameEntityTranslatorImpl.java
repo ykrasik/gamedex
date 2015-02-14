@@ -5,6 +5,7 @@ import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
+import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.entity.GameEntity;
 import com.github.ykrasik.gamedex.persistence.translator.AbstractEntityTranslator;
@@ -52,7 +53,7 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
     }
 
     @Override
-    public Game translate(GameEntity entity, List<Genre> genres) {
+    public Game translate(GameEntity entity, List<Genre> genres, List<Library> libraries) {
         return Game.builder()
             .id(new Id<>(entity.getId()))
             .path(Paths.get(entity.getPath()))
@@ -68,6 +69,7 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
             .poster(Opt.ofNullable(entity.getPosterData()).map(ImageData::of))
             .lastModified(DateUtils.toLocalDateTime(entity.getLastModified()))
             .genres(genres)
+            .libraries(libraries)
             .build();
     }
 }

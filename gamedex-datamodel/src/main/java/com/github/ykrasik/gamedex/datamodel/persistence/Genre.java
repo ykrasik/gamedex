@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.persistence;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 
@@ -7,6 +8,7 @@ import lombok.Value;
  * @author Yevgeny Krasik
  */
 @Value
+@EqualsAndHashCode(of = "id")
 public class Genre implements Comparable<Genre> {
     @NonNull private final Id<Genre> id;
     @NonNull private final String name;

@@ -5,9 +5,7 @@ import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.flow.FlowManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
-import com.github.ykrasik.gamedex.core.ui.dialog.SearchableCheckListViewDialog;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -23,7 +21,6 @@ import org.controlsfx.dialog.Dialogs;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,6 +29,7 @@ import java.util.Optional;
 // TODO: Allow changing thumbnail & poster via right-click.
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
+// TODO: Add library filter.
 // TODO: Photos should be streamed, and only fetched from DB when accessed. Especially posters.
 @Slf4j
 @RequiredArgsConstructor
@@ -139,22 +137,6 @@ public class MainController implements Controller {
     @FXML
     public void cleanupGames() {
         prepareTask(flowManager.cleanupGames());
-    }
-
-    @FXML
-    public void filterGenres() {
-        final Optional<List<Genre>> selectedGenres = new SearchableCheckListViewDialog<Genre>()
-            .owner(stage)
-            .title("Select Genres:")
-            .show(gameManager.getAllGenres());
-
-        selectedGenres.ifPresent(genres -> {
-            if (genres.isEmpty()) {
-                gameManager.noGenreFilter();
-            } else {
-                gameManager.genreFilter(genres);
-            }
-        });
     }
 
     private void prepareTask(Task<Void> task) {

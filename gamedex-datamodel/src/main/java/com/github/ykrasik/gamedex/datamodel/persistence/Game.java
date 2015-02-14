@@ -37,4 +37,6 @@ public class Game {
     @NonNull private final LocalDateTime lastModified;
 
     @NonNull private final List<Genre> genres;
+
+    @NonNull private final List<Library> libraries;
 }

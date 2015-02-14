@@ -17,13 +17,12 @@ import java.util.List;
 public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integer> implements GenreGameLinkDao {
     private final SelectArg gameArg = new SelectArg();
     private final SelectArg genreArg = new SelectArg();
-
-    private GameDao gameDao;
-    private GenreDao genreDao;
-
     private PreparedQuery<GenreEntity> fetchGenresByGameQuery;
     private PreparedQuery<GenreGameLinkEntity> fetchByGenreIdQuery;
     private PreparedDelete<GenreGameLinkEntity> deleteByGameIdQuery;
+
+    private GameDao gameDao;
+    private GenreDao genreDao;
 
     public GenreGameLinkDaoImpl(Class<GenreGameLinkEntity> dataClass) throws SQLException {
         super(dataClass);

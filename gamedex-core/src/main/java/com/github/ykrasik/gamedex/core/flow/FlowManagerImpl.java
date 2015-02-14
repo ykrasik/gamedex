@@ -15,6 +15,7 @@ import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.datamodel.library.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
@@ -101,7 +102,8 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
         final List<Library> libraries = libraryManager.getAllLibraries();
         for (Library library : libraries) {
-            refreshLibrary(library);
+            final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
+            refreshCurrentLibrary(libraryHierarchy);
         }
 
         info("Finished refreshing libraries.");
@@ -135,10 +137,12 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     @Override
     public Task<Void> processPath(Library library, Path path) {
-        return submit(() -> doProcessPath(library, path));
+        final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
+        return submit(() -> doProcessPath(libraryHierarchy, path));
     }
 
-    private void refreshLibrary(Library library) throws Exception {
+    private void refreshCurrentLibrary(LibraryHierarchy libraryHierarchy) throws Exception {
+        final Library library = libraryHierarchy.getCurrentLibrary();
         info("Refreshing library: '%s'[%s]\n", library.getName(), library.getPlatform());
 
         final List<Path> directories = FileUtils.listChildDirectories(library.getPath());
@@ -146,7 +150,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         for (int i = 0; i < total; i++) {
             setProgress(i, total);
             final Path path = directories.get(i);
-            if (doProcessPath(library, path)) {
+            if (doProcessPath(libraryHierarchy, path)) {
                 info("");
             }
         }
@@ -155,7 +159,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         setProgress(0, 1);
     }
 
-    private boolean doProcessPath(Library library, Path path) throws Exception {
+    private boolean doProcessPath(LibraryHierarchy libraryHierarchy, Path path) throws Exception {
         if (libraryManager.isLibrary(path)) {
             LOG.info("{} is a library, skipping...", path);
             return false;
@@ -171,14 +175,14 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
-        if (tryCreateLibrary(path, library.getPlatform())) {
+        if (tryCreateLibrary(path, libraryHierarchy)) {
             return true;
         }
 
         info("Processing: %s...", path);
         final String name = getName(path);
         try {
-            addPath(library, path, name);
+            addPath(libraryHierarchy, path, name);
         } catch (SkipException e) {
             info("Skipping...");
         } catch (ExcludeException e) {
@@ -189,7 +193,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return true;
     }
 
-    private boolean tryCreateLibrary(Path path, GamePlatform platform) throws Exception {
+    private boolean tryCreateLibrary(Path path, LibraryHierarchy libraryHierarchy) throws Exception {
         if (!FileUtils.hasChildDirectories(path)) {
             // Only directories that have sub-directories can be libraries.
             return false;
@@ -199,6 +203,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
+        final GamePlatform platform = libraryHierarchy.getPlatform();
         final Opt<String> libraryName = dialogManager.libraryNameDialog(path, platform);
         if (!libraryName.isPresent()) {
             return false;
@@ -206,7 +211,10 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
         final Library library = libraryManager.createLibrary(libraryName.get(), path, platform);
         info("New library created: '%s'", library.getName());
-        refreshLibrary(library);
+
+        libraryHierarchy.pushLibrary(library);
+        refreshCurrentLibrary(libraryHierarchy);
+        libraryHierarchy.popLibrary();
         return true;
     }
 
@@ -217,8 +225,8 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         return SPACE_PATTERN.matcher(nameWithoutMetadata).replaceAll(" ");
     }
 
-    private void addPath(Library library, Path path, String name) throws Exception {
-        final GamePlatform platform = library.getPlatform();
+    private void addPath(LibraryHierarchy libraryHierarchy, Path path, String name) throws Exception {
+        final GamePlatform platform = libraryHierarchy.getPlatform();
 
         final SearchContext metacriticSearchContext = new SearchContext(metacriticInfoService, path, platform);
         final Opt<GameInfo> metacriticGameOpt = fetchGameInfo(metacriticSearchContext, name.trim());
@@ -238,7 +246,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
             final UnifiedGameInfo gameInfo = UnifiedGameInfo.from(metacriticGame, giantBombGameOpt);
             final Game game = gameManager.addGame(gameInfo, path, platform);
-            libraryManager.addGameToLibrary(game, library);
+            libraryManager.addGameToLibraryHierarchy(game, libraryHierarchy);
         }
     }
 

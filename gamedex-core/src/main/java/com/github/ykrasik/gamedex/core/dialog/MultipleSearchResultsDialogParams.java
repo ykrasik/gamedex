@@ -2,9 +2,9 @@ package com.github.ykrasik.gamedex.core.dialog;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
-import lombok.experimental.Builder;
 
 import java.nio.file.Path;
 import java.util.List;

@@ -8,8 +8,10 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
+import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
+import com.gs.collections.impl.map.mutable.MutableMapFactoryImpl;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -23,6 +25,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -37,9 +40,13 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     private final ListProperty<Game> gamesProperty = new SimpleListProperty<>();
     private ObservableList<Game> games = FXCollections.emptyObservableList();
 
+    private final Map<FilterType, Predicate<Game>> filters = new MutableMapFactoryImpl().of(
+        FilterType.NAME, NO_FILTER,
+        FilterType.GENRE, NO_FILTER,
+        FilterType.LIBRARY, NO_FILTER
+    );
+
     private GameSort sort = GameSort.NAME;
-    private Predicate<Game> nameFilter = NO_FILTER;
-    private Predicate<Game> genreFilter = NO_FILTER;
 
     // FIXME: This is too slow. Need to find a way to stream the images from the db.
     @Override
@@ -111,9 +118,8 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
     @Override
     public ObservableList<Genre> getAllGenres() {
-        final ObservableList<Genre> genres = FXCollections.observableArrayList(persistenceService.getAllGenres());
-        FXCollections.sort(genres);
-        return genres;
+        final List<Genre> genres = persistenceService.getAllGenres();
+        return FXCollections.observableArrayList(genres);
     }
 
     @Override
@@ -122,32 +128,47 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public void sort(GameSort sort) {
-        this.sort = sort;
-        refreshGames();
-    }
-
-    @Override
     public void nameFilter(String name) {
-        nameFilter = game -> StringUtils.containsIgnoreCase(game.getName(), name);
-        refreshGames();
+        setFilter(FilterType.NAME, game -> StringUtils.containsIgnoreCase(game.getName(), name));
     }
 
     @Override
     public void noNameFilter() {
-        nameFilter = NO_FILTER;
-        refreshGames();
+        clearFilter(FilterType.NAME);
     }
 
     @Override
     public void genreFilter(List<Genre> genres) {
-        genreFilter = game -> ListUtils.containsAny(game.getGenres(), genres);
-        refreshGames();
+        setFilter(FilterType.GENRE, game -> ListUtils.containsAny(game.getGenres(), genres));
     }
 
     @Override
     public void noGenreFilter() {
-        genreFilter = NO_FILTER;
+        clearFilter(FilterType.GENRE);
+    }
+
+    @Override
+    public void libraryFilter(Library library) {
+        setFilter(FilterType.LIBRARY, game -> game.getLibraries().contains(library));
+    }
+
+    @Override
+    public void noLibraryFilter() {
+        clearFilter(FilterType.LIBRARY);
+    }
+
+    private void clearFilter(FilterType filterType) {
+        setFilter(filterType, NO_FILTER);
+    }
+
+    private void setFilter(FilterType filterType, Predicate<Game> filter) {
+        filters.put(filterType, filter);
+        refreshGames();
+    }
+
+    @Override
+    public void sort(GameSort sort) {
+        this.sort = sort;
         refreshGames();
     }
 
@@ -169,10 +190,19 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     private Predicate<Game> mergeFilters() {
-        if (nameFilter == NO_FILTER && genreFilter == NO_FILTER) {
+        Predicate<Game> mergedFilter = NO_FILTER;
+        boolean noFilter = true;
+        for (Predicate<Game> filter : filters.values()) {
+            if (filter != NO_FILTER) {
+                noFilter = false;
+                mergedFilter = mergedFilter.and(filter);
+            }
+        }
+
+        if (noFilter) {
             return NO_FILTER;
         } else {
-           return nameFilter.and(genreFilter);
+            return mergedFilter;
         }
     }
 
@@ -185,5 +215,11 @@ public class GameManagerImpl extends AbstractService implements GameManager {
             case RELEASE_DATE: return GameComparators.releaseDateComparator();
             default: throw new GameDexException("Invalid sort value: %s", sort);
         }
+    }
+
+    private enum FilterType {
+        NAME,
+        GENRE,
+        LIBRARY
     }
 }

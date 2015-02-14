@@ -16,6 +16,7 @@ LOG_LEVELS = [
     ROOT: INFO,
     CONSOLE: INFO,
     GAME_INFO_SERVICE: INFO,
+    PERSISTENCE: DEBUG,
     SQL: INFO,
 ]
 
@@ -114,16 +115,17 @@ createLogger(
 
 // Game info service
 createLogger(
-    "gameInfo",
+    "provider",
     [
-        "com.github.ykrasik.gamedex.info": LOG_LEVELS.GAME_INFO_SERVICE,
+        "com.github.ykrasik.gamedex.provider": LOG_LEVELS.GAME_INFO_SERVICE,
     ]
 )
 
 // SQL
 createLogger(
-    "sql",
+    "persistence",
     [
+        "com.github.ykrasik.gamedex.persistence": LOG_LEVELS.PERSISTENCE,
         "com.j256.ormlite": LOG_LEVELS.SQL,
     ],
     [

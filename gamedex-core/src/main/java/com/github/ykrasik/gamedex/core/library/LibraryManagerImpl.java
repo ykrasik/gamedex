@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core.library;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.datamodel.library.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
@@ -16,7 +17,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -61,8 +61,8 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public List<Library> getAllLibraries() {
-        return libraries;
+    public ObservableList<Library> getAllLibraries() {
+        return FXCollections.unmodifiableObservableList(libraries);
     }
 
     @Override
@@ -76,8 +76,8 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public void addGameToLibrary(Game game, Library library) {
-        persistenceService.addGameToLibrary(game, library);
+    public void addGameToLibraryHierarchy(Game game, LibraryHierarchy libraryHierarchy) {
+        persistenceService.addGameToLibraries(game, libraryHierarchy.getLibraries());
     }
 
     @Override

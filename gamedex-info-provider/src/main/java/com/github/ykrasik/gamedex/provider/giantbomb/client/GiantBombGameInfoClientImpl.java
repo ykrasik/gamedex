@@ -1,12 +1,14 @@
 package com.github.ykrasik.gamedex.provider.giantbomb.client;
 
+import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.provider.AbstractUnirestClient;
 import com.github.ykrasik.gamedex.provider.giantbomb.config.GiantBombProperties;
-import com.google.common.base.Joiner;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Arrays;
 
 import static com.github.ykrasik.gamedex.provider.giantbomb.GiantBombApi.*;
 
@@ -15,9 +17,8 @@ import static com.github.ykrasik.gamedex.provider.giantbomb.GiantBombApi.*;
  */
 @RequiredArgsConstructor
 public class GiantBombGameInfoClientImpl extends AbstractUnirestClient implements GiantBombGameInfoClient {
-    private static final Joiner JOINER = Joiner.on(',');
-    private static final String SEARCH_FIELDS = JOINER.join(new String[]{DETAIL_URL, NAME, RELEASE_DATE, IMAGE});
-    private static final String FETCH_DETAILS_FIELDS = JOINER.join(new String[]{NAME, DESCRIPTION, RELEASE_DATE, IMAGE, GENRES});
+    private static final String SEARCH_FIELDS = StringUtils.toCsv(Arrays.asList(DETAIL_URL, NAME, RELEASE_DATE, IMAGE));
+    private static final String FETCH_DETAILS_FIELDS = StringUtils.toCsv(Arrays.asList(NAME, DESCRIPTION, RELEASE_DATE, IMAGE, GENRES));
 
     @NonNull private final GiantBombProperties properties;
 

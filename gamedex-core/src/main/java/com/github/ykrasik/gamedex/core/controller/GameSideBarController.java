@@ -1,11 +1,11 @@
 package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.util.ListUtils;
+import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
-import com.google.common.base.Joiner;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextArea;
@@ -23,8 +23,6 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
  * @author Yevgeny Krasik
  */
 public class GameSideBarController implements Controller {
-    private static final Joiner JOINER = Joiner.on(", ").skipNulls();
-
     @FXML private GridPane container;
     @FXML private ImageView poster;
     @FXML private GridPane attributes;
@@ -55,7 +53,7 @@ public class GameSideBarController implements Controller {
         releaseDate.setText(toStringOrUnavailable(game.getReleaseDate()));
         criticScore.setText(toStringOrUnavailable(game.getCriticScore()));
         userScore.setText(toStringOrUnavailable(game.getUserScore()));
-        genres.setText(JOINER.join(ListUtils.map(game.getGenres(), Genre::getName)));
+        genres.setText(StringUtils.toPrettyCsv(ListUtils.map(game.getGenres(), Genre::getName)));
 
         url.setText(game.getMetacriticDetailUrl());
         url.setVisited(false);

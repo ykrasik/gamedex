@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
+import com.github.ykrasik.opt.Opt;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -8,26 +9,31 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.StringUtils;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.controlsfx.control.CheckListView;
+import org.controlsfx.control.IndexedCheckModel;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.dialog.Dialog;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
  */
-public class SearchableCheckListViewDialog<T> {
+@Accessors(fluent = true)
+public abstract class AbstractSearchableCheckListViewDialog<T> {
     private final TextField searchTextField = new TextField();
     private final CheckListView<T> checkListView = new CheckListView<>();
     private final GridPane content = new GridPane();
 
-    private Stage stage;
-    private String title = "Search Results:";
+    @Setter private Stage owner;
+    @Setter @NonNull private String title = "";
+    @Setter @NonNull private List<T> previouslyCheckedItems = Collections.emptyList();
 
-    public SearchableCheckListViewDialog() {
+    protected AbstractSearchableCheckListViewDialog() {
         content.setHgap(10);
         content.setVgap(10);
         content.add(new Label("Search:"), 0, 0);
@@ -37,34 +43,24 @@ public class SearchableCheckListViewDialog<T> {
         GridPane.setVgrow(checkListView, Priority.ALWAYS);
     }
 
-    public SearchableCheckListViewDialog<T> owner(Stage stage) {
-        this.stage = stage;
-        return this;
-    }
-
-    public SearchableCheckListViewDialog<T> title(String title) {
-        this.title = title;
-        return this;
-    }
-
-    public Optional<List<T>> show(ObservableList<T> items) {
-        final Dialog dialog = new Dialog(stage, title);
+    public Opt<List<T>> show(ObservableList<T> items) {
+        final Dialog dialog = new Dialog(owner, title);
 
         checkListView.setItems(items);
+        final IndexedCheckModel<T> checkModel = checkListView.checkModelProperty().get();
+        previouslyCheckedItems.forEach(checkModel::check);
 
         searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            final ObservableList<T> checkedItems = checkListView.checkModelProperty().get().getCheckedItems();
+            final ObservableList<T> checkedItems = checkModel.getCheckedItems();
             final ObservableList<T> mergedItems;
             if (newValue.isEmpty()) {
                 mergedItems = items;
             } else {
                 mergedItems = FXCollections.observableArrayList(checkedItems);
-                mergedItems.addAll(items.filtered(item -> StringUtils.containsIgnoreCase(item.toString(), newValue)));
+                mergedItems.addAll(items.filtered(item -> doesMatchSearch(item, newValue)));
             }
             checkListView.setItems(mergedItems);
-            for (T checkedItem : checkedItems) {
-                checkListView.checkModelProperty().get().check(checkedItem);
-            }
+            checkedItems.forEach(checkModel::check);
         });
 
         dialog.setContent(content);
@@ -75,9 +71,16 @@ public class SearchableCheckListViewDialog<T> {
 
         final Action response = dialog.show();
         if (response == Dialog.ACTION_OK) {
-            return Optional.of(checkListView.checkModelProperty().get().getCheckedItems());
+            final ObservableList<T> checkedItems = checkListView.checkModelProperty().get().getCheckedItems();
+            if (checkedItems.isEmpty()) {
+                return Opt.absent();
+            } else {
+                return Opt.of(checkedItems);
+            }
         } else {
-            return Optional.empty();
+            return Opt.absent();
         }
     }
+
+    protected abstract boolean doesMatchSearch(T item, String search);
 }

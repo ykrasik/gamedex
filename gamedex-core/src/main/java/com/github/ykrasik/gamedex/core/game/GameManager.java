@@ -4,6 +4,7 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
+import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.collections.ObservableList;
@@ -29,11 +30,14 @@ public interface GameManager {
 
     ReadOnlyListProperty<Game> gamesProperty();
 
-    void sort(GameSort sort);
-
     void nameFilter(String name);
     void noNameFilter();
 
     void genreFilter(List<Genre> genres);
     void noGenreFilter();
+
+    void libraryFilter(Library library);
+    void noLibraryFilter();
+
+    void sort(GameSort sort);
 }

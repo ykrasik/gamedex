@@ -35,8 +35,10 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public GameController gameController(GameManager gameManager) {
-        return new GameController(gameManager);
+    public GameController gameController(FlowManager flowManager,
+                                         GameManager gameManager,
+                                         LibraryManager libraryManager) {
+        return new GameController(flowManager, gameManager, libraryManager);
     }
 
     @Bean

@@ -5,10 +5,7 @@ import com.github.ykrasik.opt.Opt;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
@@ -19,6 +16,7 @@ public final class StringUtils {
     private static final char LIST_DELIMITER = ',';
     private static final Splitter LIST_SPLITTER = Splitter.on(LIST_DELIMITER).trimResults().omitEmptyStrings();
     private static final Joiner LIST_JOINER = Joiner.on(LIST_DELIMITER).skipNulls();
+    private static final Joiner LIST_PRETTY_JOINER = Joiner.on(", ").skipNulls();
 
     private static final String KEY_VALUE_DELIMITER = "::";
     private static final Splitter KEY_VALUE_SPLITTER = Splitter.on(KEY_VALUE_DELIMITER).trimResults().omitEmptyStrings();
@@ -67,5 +65,17 @@ public final class StringUtils {
 
     public static <T> String toStringOrUnavailable(Opt<T> optional) {
         return toString(optional, "Unavailable");
+    }
+
+    public static String toCsv(Iterable<? extends Object> parts) {
+        return LIST_JOINER.join(parts);
+    }
+
+    public static String toPrettyCsv(Iterable<? extends Object> parts) {
+        return LIST_PRETTY_JOINER.join(parts);
+    }
+
+    public static List<String> splitCsv(String str) {
+        return LIST_SPLITTER.splitToList(str);
     }
 }

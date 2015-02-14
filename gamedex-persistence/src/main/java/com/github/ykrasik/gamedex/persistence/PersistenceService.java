@@ -10,6 +10,8 @@ import java.util.List;
 /**
  * @author Yevgeny Krasik
  */
+// TODO: Inconsistent responsibility between the service and the managers - sometimes managers return from cache,
+// TODO: sometimes they query the service. Should be Either Or.
 public interface PersistenceService {
     Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform);
     void deleteGame(Id<Game> id);
@@ -23,7 +25,7 @@ public interface PersistenceService {
     Library getLibraryById(Id<Library> id);
     boolean hasLibraryForPath(Path path);
 
-    void addGameToLibrary(Game game, Library library);
+    void addGameToLibraries(Game game, Iterable<Library> libraries);
 
     List<Genre> getAllGenres();
 

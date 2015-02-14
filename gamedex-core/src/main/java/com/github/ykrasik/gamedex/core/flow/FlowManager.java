@@ -11,6 +11,8 @@ import java.nio.file.Path;
  * @author Yevgeny Krasik
  */
 // TODO: Everything should be done in this class, the controller should simply delegate here.
+// TODO: This class should sub-divide responsibilities among the rest of the classes.
+// TODO: Rename this to ActionManager? Each flow returns a Result class with properties?
 public interface FlowManager {
     ReadOnlyStringProperty messageProperty();
     ReadOnlyDoubleProperty progressProperty();
