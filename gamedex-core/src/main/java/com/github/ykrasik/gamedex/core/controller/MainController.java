@@ -29,8 +29,8 @@ import java.util.Optional;
 // TODO: Allow changing thumbnail & poster via right-click.
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
-// TODO: Add library filter.
 // TODO: Photos should be streamed, and only fetched from DB when accessed. Especially posters.
+// TODO: Log should be a splitPane.
 @Slf4j
 @RequiredArgsConstructor
 public class MainController implements Controller {

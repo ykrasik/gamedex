@@ -44,28 +44,7 @@ public abstract class AbstractSearchableCheckListViewDialog<T> {
     }
 
     public Opt<List<T>> show(ObservableList<T> items) {
-        final Dialog dialog = new Dialog(owner, title);
-
-        checkListView.setItems(items);
-        final IndexedCheckModel<T> checkModel = checkListView.checkModelProperty().get();
-        previouslyCheckedItems.forEach(checkModel::check);
-
-        searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            final ObservableList<T> checkedItems = checkModel.getCheckedItems();
-            final ObservableList<T> mergedItems;
-            if (newValue.isEmpty()) {
-                mergedItems = items;
-            } else {
-                mergedItems = FXCollections.observableArrayList(checkedItems);
-                mergedItems.addAll(items.filtered(item -> doesMatchSearch(item, newValue)));
-            }
-            checkListView.setItems(mergedItems);
-            checkedItems.forEach(checkModel::check);
-        });
-
-        dialog.setContent(content);
-        dialog.setResizable(false);
-        dialog.getActions().addAll(Dialog.ACTION_OK, Dialog.ACTION_CANCEL);
+        final Dialog dialog = createDialog(items);
 
         Platform.runLater(searchTextField::requestFocus);
 
@@ -82,5 +61,31 @@ public abstract class AbstractSearchableCheckListViewDialog<T> {
         }
     }
 
-    protected abstract boolean doesMatchSearch(T item, String search);
+    protected Dialog createDialog(ObservableList<T> items) {
+        final Dialog dialog = new Dialog(owner, title);
+
+        checkListView.setItems(items);
+        final IndexedCheckModel<T> checkModel = checkListView.checkModelProperty().get();
+        previouslyCheckedItems.forEach(checkModel::check);
+
+        searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            final ObservableList<T> checkedItems = checkModel.getCheckedItems();
+            final ObservableList<T> mergedItems;
+            if (newValue.isEmpty()) {
+                mergedItems = items;
+            } else {
+                mergedItems = FXCollections.observableArrayList(checkedItems);
+                mergedItems.addAll(items.filtered(item -> doesItemMatchSearch(item, newValue)));
+            }
+            checkListView.setItems(mergedItems);
+            checkedItems.forEach(checkModel::check);
+        });
+
+        dialog.setContent(content);
+        dialog.setResizable(false);
+        dialog.getActions().addAll(Dialog.ACTION_OK, Dialog.ACTION_CANCEL);
+        return dialog;
+    }
+
+    protected abstract boolean doesItemMatchSearch(T item, String search);
 }

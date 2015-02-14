@@ -31,6 +31,7 @@ public abstract class AbstractSearchableTableViewDialog<T> {
     private final TextField searchTextField = new TextField();
     private final GridPane content = new GridPane();
     private final TableView<T> tableView = new TableView<>();
+    private final DialogAction actionOk = new DialogAction("OK", ButtonType.OK_DONE);
 
     @Setter private Stage owner;
     @Setter @NonNull private String title = "";
@@ -52,8 +53,21 @@ public abstract class AbstractSearchableTableViewDialog<T> {
     protected abstract Collection<? extends TableColumn<T, ?>> getColumns();
 
     public Opt<T> show(ObservableList<T> items) {
+        final Dialog dialog = createDialog(items);
+
+        Platform.runLater(searchTextField::requestFocus);
+
+        final Action response = dialog.show();
+        if (response == actionOk) {
+            // It is possible to press "OK" without selecting anything.
+            return Opt.ofNullable(tableView.selectionModelProperty().get().getSelectedItem());
+        } else {
+            return Opt.absent();
+        }
+    }
+
+    protected Dialog createDialog(ObservableList<T> items) {
         final Dialog dialog = new Dialog(owner, title);
-        final DialogAction actionOk = new DialogAction("OK", ButtonType.OK_DONE);
 
         tableView.setItems(items);
         if (previouslySelectedItem != null) {
@@ -75,7 +89,7 @@ public abstract class AbstractSearchableTableViewDialog<T> {
             if (newValue.isEmpty()) {
                 filtered = items;
             } else {
-                filtered = items.filtered(item -> doesMatchSearch(item, newValue));
+                filtered = items.filtered(item -> doesItemMatchSearch(item, newValue));
             }
             tableView.setItems(filtered);
         });
@@ -83,17 +97,8 @@ public abstract class AbstractSearchableTableViewDialog<T> {
         dialog.setContent(content);
         dialog.setResizable(true);
         dialog.getActions().addAll(actionOk, Dialog.ACTION_CANCEL);
-
-        Platform.runLater(searchTextField::requestFocus);
-
-        final Action response = dialog.show();
-        if (response == actionOk) {
-            // It is possible to press "OK" without selecting anything.
-            return Opt.ofNullable(tableView.selectionModelProperty().get().getSelectedItem());
-        } else {
-            return Opt.absent();
-        }
+        return dialog;
     }
 
-    protected abstract boolean doesMatchSearch(T item, String search);
+    protected abstract boolean doesItemMatchSearch(T item, String search);
 }

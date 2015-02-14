@@ -3,9 +3,9 @@ package com.github.ykrasik.gamedex.core.dialog;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
+import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultsDialog;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultDialog;
 import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
 import javafx.stage.Stage;
@@ -86,10 +86,11 @@ public class DialogManagerImpl implements DialogManager {
     public DialogChoice noSearchResultsDialog(NoSearchResultsDialogParams params) {
         final String providerName = params.getProviderName();
 
+        final String message = String.format("%s: No search results found for '%s'", providerName, params.getName());
         final Dialogs dialog = createDialog()
-            .title(String.format("No %s search results found!", providerName))
+            .title(message)
             .masthead(params.getPath().toString())
-            .message(String.format("No %s search results found: '%s'[%s]", providerName, params.getName(), params.getPlatform()));
+            .message(message);
 
         final List<DialogAction> choices = new LinkedList<>();
         choices.add(NEW_NAME_ACTION);
@@ -119,10 +120,11 @@ public class DialogManagerImpl implements DialogManager {
     public DialogChoice multipleSearchResultsDialog(MultipleSearchResultsDialogParams params) {
         final String providerName = params.getProviderName();
 
+        final String message = String.format("%s: Found %d search results for '%s'", providerName, params.getSearchResults().size(), params.getName());
         final Dialogs dialog = createDialog()
-            .title(String.format("Too many %s search results!", providerName))
+            .title(message)
             .masthead(params.getPath().toString())
-            .message(String.format("Found %d %s search results for '%s'[%s]:", params.getSearchResults().size(), providerName, params.getName(), params.getPlatform()));
+            .message(message);
 
         final List<DialogAction> choices = new LinkedList<>();
         choices.add(CHOOSE_FROM_SEARCH_RESULTS_ACTION);
@@ -146,7 +148,7 @@ public class DialogManagerImpl implements DialogManager {
                 return choice.get();
             }
 
-            choice = tryChooseFromSearchResultsDialogAction(action, providerName, params.getName(), params.getPath(), params.getPlatform(), params.getSearchResults());
+            choice = tryChooseFromSearchResultsDialogAction(action, providerName, params.getName(), params.getPath(), params.getSearchResults());
             if (choice.isPresent()) {
                 return choice.get();
             }
@@ -184,11 +186,10 @@ public class DialogManagerImpl implements DialogManager {
                                                                      String providerName,
                                                                      String name,
                                                                      Path path,
-                                                                     GamePlatform platform,
                                                                      List<SearchResult> searchResults) throws Exception {
         if (action == CHOOSE_FROM_SEARCH_RESULTS_ACTION) {
             log.info("Choose from search results requested.");
-            final Opt<SearchResult> searchResult = chooseFromSearchResults(providerName, name, path, platform, searchResults);
+            final Opt<SearchResult> searchResult = chooseFromSearchResults(providerName, name, path, searchResults);
             return searchResult.map(ChooseFromSearchResultsChoice::new);
         }
         return Opt.absent();
@@ -212,14 +213,11 @@ public class DialogManagerImpl implements DialogManager {
     private Opt<SearchResult> chooseFromSearchResults(String providerName,
                                                       String name,
                                                       Path path,
-                                                      GamePlatform platform,
                                                       List<SearchResult> searchResults) throws Exception {
-        final SearchResultDialog dialog = new SearchResultDialog()
-            .owner(stage)
-            .title(String.format("%s search results for: '%s'[%s]", providerName, name, platform));
+        final SearchResultsDialog dialog = new SearchResultsDialog(providerName, name, path);
 
         log.info("Showing all search results...");
-        final Opt<SearchResult> choice = getUserResponse(() -> dialog.show(path, FXCollections.observableArrayList(searchResults)));
+        final Opt<SearchResult> choice = getUserResponse(() -> dialog.show(FXCollections.observableArrayList(searchResults)));
         if (choice.isPresent()) {
             log.info("Choice from multiple results: '{}'", choice.get());
         } else {

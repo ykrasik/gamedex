@@ -12,7 +12,7 @@ public class GenreFilterDialog extends AbstractSearchableCheckListViewDialog<Gen
     }
 
     @Override
-    protected boolean doesMatchSearch(Genre item, String search) {
+    protected boolean doesItemMatchSearch(Genre item, String search) {
         return StringUtils.containsIgnoreCase(item.getName(), search);
     }
 }

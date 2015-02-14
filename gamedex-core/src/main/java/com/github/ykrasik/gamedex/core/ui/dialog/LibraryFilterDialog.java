@@ -31,7 +31,7 @@ public class LibraryFilterDialog extends AbstractSearchableTableViewDialog<Libra
     }
 
     @Override
-    protected boolean doesMatchSearch(Library item, String search) {
+    protected boolean doesItemMatchSearch(Library item, String search) {
         return StringUtils.containsIgnoreCase(item.getName(), search);
     }
 }
