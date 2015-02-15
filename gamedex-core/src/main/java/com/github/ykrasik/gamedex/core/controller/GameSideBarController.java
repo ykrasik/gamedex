@@ -45,7 +45,7 @@ public class GameSideBarController implements Controller {
     }
 
     public void displayGame(Game game) {
-        poster.setImage(game.getPoster().orElse(game.getThumbnail()).map(ImageData::getImage).getOrElse(UIResources.getNotAvailable()));
+        poster.setImage(game.getPoster().orElse(game.getThumbnail()).map(ImageData::getImage).getOrElse(UIResources.notAvailable()));
         gamePath.setText(game.getPath().toString());
         name.setText(game.getName());
         description.setText(toStringOrUnavailable(game.getDescription()));

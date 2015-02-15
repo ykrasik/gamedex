@@ -53,10 +53,7 @@
                 <TextField fx:id="genres" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                 <Label text="Genres:" GridPane.rowIndex="8" />
                 <Label text="URL:" GridPane.rowIndex="9" />
-                <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="9">
-               <GridPane.margin>
-                  <Insets />
-               </GridPane.margin></Hyperlink>
+                <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="9" />
             </children>
         </GridPane>
         <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true">

@@ -12,25 +12,30 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.MainController">
    <center>
-      <TabPane>
-         <tabs>
-            <Tab closable="false" text="Games">
-               <content>
-                   <fx:include source="games.fxml" fx:id="games" />
-               </content>
-            </Tab>
-            <Tab closable="false" text="Libraries">
-               <content>
-                   <fx:include source="libraries.fxml" fx:id="libraries" />
-               </content>
-            </Tab>
-             <Tab closable="false" text="Excluded Paths">
-                 <content>
-                     <fx:include source="excludedPaths.fxml" fx:id="excludedPaths" />
-                 </content>
-             </Tab>
-         </tabs>
-      </TabPane>
+       <SplitPane fx:id="content" dividerPositions="0.95" orientation="VERTICAL">
+           <items>
+              <TabPane>
+                 <tabs>
+                    <Tab closable="false" text="Games">
+                       <content>
+                           <fx:include fx:id="games" source="games.fxml" />
+                       </content>
+                    </Tab>
+                    <Tab closable="false" text="Libraries">
+                       <content>
+                           <fx:include fx:id="libraries" source="libraries.fxml" />
+                       </content>
+                    </Tab>
+                     <Tab closable="false" text="Excluded Paths">
+                         <content>
+                             <fx:include fx:id="excludedPaths" source="excludedPaths.fxml" />
+                         </content>
+                     </Tab>
+                 </tabs>
+              </TabPane>
+              <TextArea fx:id="logTextArea" editable="false" wrapText="true" />
+           </items>
+       </SplitPane>
    </center>
    <top>
       <MenuBar BorderPane.alignment="CENTER">
@@ -42,49 +47,41 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Library">
             <items>
-              <MenuItem mnemonicParsing="false" text="Add Library" onAction="#addLibrary" />
+              <MenuItem mnemonicParsing="false" text="Add Library" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Game">
             <items>
-              <MenuItem mnemonicParsing="false" text="Cleanup Games" onAction="#cleanupGames"/>
+              <MenuItem mnemonicParsing="false" text="Cleanup Games" />
               <SeparatorMenuItem />
-              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" onAction="#cleanupGames"/>
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="View">
-            <items>
-              <CheckMenuItem fx:id="showSideBar" mnemonicParsing="false" text="Side Bar" selected="true" />
+              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
    </top>
     <bottom>
-        <VBox fx:id="bottomContainer">
-            <TextArea fx:id="logTextArea" editable="false" prefHeight="120.0" wrapText="true" />
-            <StatusBar fx:id="statusBar" text="Welcome to GameDex!">
-                <leftItems>
-                    <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
-                    <Separator orientation="VERTICAL" />
-                    <Label fx:id="gameCount" text="Games: 0">
-                        <padding>
-                            <Insets left="5.0" right="5.0" top="4.0"/>
-                        </padding>
-                    </Label>
-                    <Separator orientation="VERTICAL" />
-                    <Label fx:id="libraryCount" text="Libraries: 0">
-                        <padding>
-                            <Insets left="5.0" right="5.0" top="4.0"/>
-                        </padding>
-                    </Label>
-                    <Separator orientation="VERTICAL" />
-                </leftItems>
-                <rightItems>
-                    <ProgressIndicator fx:id="progressIndicator" visible="false" />
-                    <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
-                </rightItems>
-            </StatusBar>
-        </VBox>
+        <StatusBar fx:id="statusBar" text="Welcome to GameDex!">
+            <leftItems>
+                <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
+                <Separator orientation="VERTICAL" />
+                <Label fx:id="gameCount" text="Games: 0">
+                    <padding>
+                        <Insets left="5.0" right="5.0" top="4.0"/>
+                    </padding>
+                </Label>
+                <Separator orientation="VERTICAL" />
+                <Label fx:id="libraryCount" text="Libraries: 0">
+                    <padding>
+                        <Insets left="5.0" right="5.0" top="4.0"/>
+                    </padding>
+                </Label>
+                <Separator orientation="VERTICAL" />
+            </leftItems>
+            <rightItems>
+                <ProgressIndicator fx:id="progressIndicator" visible="false" />
+                <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
+            </rightItems>
+        </StatusBar>
     </bottom>
 </BorderPane>

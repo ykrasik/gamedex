@@ -131,9 +131,6 @@
                 </TabPane>
                 <fx:include fx:id="gameSideBar" source="gameSideBar.fxml" />
             </items>
-            <opaqueInsets>
-                <Insets />
-            </opaqueInsets>
         </SplitPane>
     </center>
 </BorderPane>

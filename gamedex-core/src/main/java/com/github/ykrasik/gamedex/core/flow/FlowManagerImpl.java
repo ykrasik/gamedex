@@ -15,12 +15,13 @@ import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.library.LibraryHierarchy;
+import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
 import com.github.ykrasik.opt.Opt;
@@ -194,22 +195,19 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     private boolean tryCreateLibrary(Path path, LibraryHierarchy libraryHierarchy) throws Exception {
-        if (!FileUtils.hasChildDirectories(path)) {
-            // Only directories that have sub-directories can be libraries.
+        if (!FileUtils.hasChildDirectories(path) || FileUtils.hasChildFiles(path)) {
+            // Only directories that have sub-directories and no files can be libraries.
             return false;
         }
 
-        if (!dialogManager.shouldCreateLibraryDialog(path)) {
+        final List<Path> children = FileUtils.listChildDirectories(path);
+        final Opt<LibraryDef> libraryDefOpt = dialogManager.createLibraryDialog(path, children, libraryHierarchy.getPlatform());
+        if (libraryDefOpt.isEmpty()) {
             return false;
         }
 
-        final GamePlatform platform = libraryHierarchy.getPlatform();
-        final Opt<String> libraryName = dialogManager.libraryNameDialog(path, platform);
-        if (!libraryName.isPresent()) {
-            return false;
-        }
-
-        final Library library = libraryManager.createLibrary(libraryName.get(), path, platform);
+        final LibraryDef libraryDef = libraryDefOpt.get();
+        final Library library = libraryManager.createLibrary(libraryDef.getName(), path, libraryDef.getPlatform());
         info("New library created: '%s'", library.getName());
 
         libraryHierarchy.pushLibrary(library);
@@ -268,13 +266,14 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
 
     private List<SearchResult> searchGames(SearchContext searchContext, String name) throws Exception {
         final GameInfoProvider gameInfoProvider = searchContext.getGameInfoProvider();
+        final String providerName = gameInfoProvider.getProviderType().getName();
         final GamePlatform platform = searchContext.getPlatform();
 
-        info("%s: Searching '%s'...", gameInfoProvider.getProviderType().getName(), name);
+        info("%s: Searching '%s'...", providerName, name);
         startFetching();
         final List<SearchResult> searchResults = gameInfoProvider.searchGames(name, platform);
         finishFetching();
-        info("Results: %d", searchResults.size());
+        info("%s: %d results for '%s'.", providerName, searchResults.size(), name);
 
         final Collection<String> excludedNames = searchContext.getExcludedNames();
         if (searchResults.size() <= 1 || !searchContext.isCanExclude() || excludedNames.isEmpty()) {
@@ -284,10 +283,10 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         info("Filtering previously encountered search results...");
         final List<SearchResult> filteredSearchResults = ListUtils.filter(searchResults, result -> !excludedNames.contains(result.getName()));
         if (!filteredSearchResults.isEmpty()) {
-            info("Results: %d", filteredSearchResults.size());
+            info("%s: %d remaining results.", providerName, filteredSearchResults.size());
             return filteredSearchResults;
         } else {
-            info("No search results after filtering, reverting...");
+            info("%s: No search results after filtering, reverting...", providerName);
             return searchResults;
         }
     }
@@ -358,7 +357,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             () -> new GameDexException("Specific %s search found nothing: %s", providerName, searchResult)
         );
         finishFetching();
-        info("Done.");
+        info("%s: Done.", providerName);
         LOG.debug("GameInfo: {}", gameInfo);
 
         return gameInfo;

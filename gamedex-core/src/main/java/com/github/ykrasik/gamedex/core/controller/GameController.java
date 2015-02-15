@@ -6,7 +6,7 @@ import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.game.GameSort;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
-import com.github.ykrasik.gamedex.core.ui.dialog.LibraryFilterDialog;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.opt.Opt;
@@ -42,7 +42,7 @@ public class GameController implements Controller {
     @FXML private Button clearLibraryFilterButton;
     private final ObjectProperty<Library> currentlyFilteredLibrary = new SimpleObjectProperty<>();
 
-    @FXML private ComboBox<String> gameSort;
+    @FXML private ComboBox<GameSort> gameSort;
 
     @FXML private Button refreshLibrariesButton;
 
@@ -158,15 +158,11 @@ public class GameController implements Controller {
     }
 
     private void initGameSort() {
-        gameSort.setItems(FXCollections.observableArrayList(GameSort.getKeys()));
+        gameSort.setItems(FXCollections.observableArrayList(GameSort.values()));
         gameSort.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            final GameSort sort = GameSort.fromString(newValue);
-            if (sort == null) {
-                throw new IllegalArgumentException("Invalid sort: " + newValue);
-            }
-            gameManager.sort(sort);
+            gameManager.sort(newValue);
         });
-        gameSort.setValue(GameSort.NAME.getKey());
+        gameSort.setValue(GameSort.NAME);
     }
 
     private void initRefreshLibraries() {

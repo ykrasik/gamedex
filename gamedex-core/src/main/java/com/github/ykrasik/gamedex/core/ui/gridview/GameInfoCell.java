@@ -72,9 +72,6 @@ public class GameInfoCell extends GridCell<Game> {
         return imageView;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void updateItem(Game item, boolean empty) {
         super.updateItem(item, empty);
@@ -83,7 +80,7 @@ public class GameInfoCell extends GridCell<Game> {
             setGraphic(null);
         } else {
             final Opt<Image> thumbnail = item.getThumbnail().orElse(item.getPoster()).map(ImageData::getImage);
-            final Image image = thumbnail.getOrElse(UIResources.getNotAvailable());
+            final Image image = thumbnail.getOrElse(UIResources.notAvailable());
             if (preserveImageProperties) {
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);

@@ -2,10 +2,6 @@ package com.github.ykrasik.gamedex.core.game;
 
 import com.github.ykrasik.gamedex.common.enums.EnumIdConverter;
 import com.github.ykrasik.gamedex.common.enums.IdentifiableEnum;
-import com.github.ykrasik.gamedex.common.util.ListUtils;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -34,7 +30,8 @@ public enum GameSort implements IdentifiableEnum<String> {
         return VALUES.get(name);
     }
 
-    public static List<String> getKeys() {
-        return ListUtils.map(Arrays.asList(values()), GameSort::getKey);
+    @Override
+    public String toString() {
+        return key;
     }
 }

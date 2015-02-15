@@ -13,6 +13,7 @@ import java.util.List;
  */
 public final class FileUtils {
     private static final Filter<Path> DIRECTORY_FILTER = Files::isDirectory;
+    private static final Filter<Path> FILE_FILTER = Files::isRegularFile;
 
     private FileUtils() {
     }
@@ -30,4 +31,11 @@ public final class FileUtils {
             return stream.iterator().hasNext();
         }
     }
+
+    public static boolean hasChildFiles(Path root) throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(root, FILE_FILTER)) {
+            return stream.iterator().hasNext();
+        }
+    }
 }
+

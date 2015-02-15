@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.datamodel.library;
+package com.github.ykrasik.gamedex.datamodel.flow;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;

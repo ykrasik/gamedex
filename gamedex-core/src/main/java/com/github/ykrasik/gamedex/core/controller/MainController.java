@@ -31,9 +31,13 @@ import java.util.Optional;
 // TODO: Add right-click menus to library list.
 // TODO: Photos should be streamed, and only fetched from DB when accessed. Especially posters.
 // TODO: Log should be a splitPane.
+// TODO: Add ability to have gamePacks.
 @Slf4j
 @RequiredArgsConstructor
 public class MainController implements Controller {
+    @FXML private SplitPane content;
+    private double dividerPosition;
+
     @FXML private VBox bottomContainer;
     @FXML private StatusBar statusBar;
     @FXML private Label gameCount;
@@ -74,6 +78,7 @@ public class MainController implements Controller {
             logTextArea.appendText("\n");
         });
 
+        dividerPosition = content.getDividerPositions()[0];
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
 
         gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
@@ -82,9 +87,11 @@ public class MainController implements Controller {
 
     private void toggleLogTextArea(boolean newValue) {
         if (newValue) {
-            bottomContainer.getChildren().add(0, logTextArea);
+            content.getItems().add(logTextArea);
+            content.setDividerPositions(dividerPosition);
         } else {
-            bottomContainer.getChildren().remove(logTextArea);
+            dividerPosition = content.getDividerPositions()[0];
+            content.getItems().remove(logTextArea);
         }
     }
 

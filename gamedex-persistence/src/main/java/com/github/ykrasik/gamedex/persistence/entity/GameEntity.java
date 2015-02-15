@@ -23,7 +23,7 @@ public class GameEntity {
     @DatabaseField(columnName = ID_COLUMN, generatedId = true)
     private int id;
 
-    @DatabaseField(columnName = PATH_COLUMN, unique = true, canBeNull = false, index = true)
+    @DatabaseField(columnName = PATH_COLUMN, canBeNull = false, index = true)
     private String path;
 
     @DatabaseField(canBeNull = false)

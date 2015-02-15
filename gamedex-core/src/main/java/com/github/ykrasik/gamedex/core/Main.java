@@ -65,7 +65,7 @@ public class Main extends Application {
     }
 
     private void initStage(Stage stage, Scene mainScene, Parent debugConsole) {
-        mainScene.getStylesheets().add(UIResources.getMainCss());
+        mainScene.getStylesheets().add(UIResources.mainCss());
 
         // FIXME: Should be done in spring, inject configurations with a properties object.
         stage.setWidth(1280);

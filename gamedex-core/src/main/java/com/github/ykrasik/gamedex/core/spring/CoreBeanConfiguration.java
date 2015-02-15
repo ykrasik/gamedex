@@ -42,7 +42,7 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public Parent mainScene(ControllerProvider controllerProvider) throws IOException {
         preloader.info("Loading FXML...");
-        final FXMLLoader loader = new FXMLLoader(UIResources.getMainFxml());
+        final FXMLLoader loader = new FXMLLoader(UIResources.mainFxml());
         loader.setControllerFactory(controllerProvider::getController);
         return loader.load();
     }

@@ -1,13 +1,16 @@
 package com.github.ykrasik.gamedex.core.dialog;
 
-import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
+import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
 import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultsDialog;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
+import javafx.scene.Parent;
+import javafx.scene.effect.GaussianBlur;
 import javafx.stage.Stage;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -39,46 +42,16 @@ public class DialogManagerImpl implements DialogManager {
     @NonNull private final Stage stage;
 
     @Override
-    public boolean shouldCreateLibraryDialog(Path path) throws Exception {
-        final StringBuilder sb = new StringBuilder("This path has sub-directories. Would you like to create a library out of it?\n");
-        final List<Path> childDirectories = FileUtils.listChildDirectories(path);
-        for (Path childDirectory : childDirectories) {
-            sb.append('\t');
-            sb.append(childDirectory.toString());
-            sb.append('\n');
-        }
-
-        final Dialogs dialog = createDialog()
-            .title("Create library?")
-            .masthead(path.toString())
-            .message(sb.toString());
-
-        log.info("Showing create library confirmation dialog...");
-        final Action action = getUserResponse(dialog::showConfirm);
-        final boolean yes = action == Dialog.ACTION_YES;
-        if (yes) {
-            log.info("Library creation requested: '{}'", path);
+    @SneakyThrows
+    public Opt<LibraryDef> createLibraryDialog(Path path, List<Path> children, GamePlatform defaultPlatform) {
+        log.info("Showing create library dialog...");
+        final Opt<LibraryDef> libraryDef = getUserResponse(() -> CreateLibraryDialog.create().show(path, children, defaultPlatform));
+        if (libraryDef.isPresent()) {
+            log.info("Library: {}", libraryDef.get());
         } else {
             log.info("Dialog cancelled.");
         }
-        return yes;
-    }
-
-    @Override
-    public Opt<String> libraryNameDialog(Path path, GamePlatform platform) throws Exception {
-        final Dialogs dialog = createDialog()
-            .title("Enter library name")
-            .masthead(String.format("%s\nPlatform: %s\n", path.toString(), platform));
-
-        log.info("Showing library name dialog...");
-        final String defaultName = path.getFileName().toString();
-        final Optional<String> libraryName = getUserResponse(() -> dialog.showTextInput(defaultName));
-        if (libraryName.isPresent()) {
-            log.info("Library name: '{}'", libraryName.get());
-        } else {
-            log.info("Dialog cancelled.");
-        }
-        return Opt.fromOptional(libraryName);
+        return libraryDef;
     }
 
     @Override
@@ -232,7 +205,13 @@ public class DialogManagerImpl implements DialogManager {
 
     private <V> V getUserResponse(Callable<V> callable) throws Exception {
         // Dialog must be displayed on JavaFx thread.
-        final FutureTask<V> futureTask = new FutureTask<>(callable);
+        final FutureTask<V> futureTask = new FutureTask<>(() -> {
+            final Parent root = stage.getScene().getRoot();
+            root.setEffect(new GaussianBlur());
+            final V result = callable.call();
+            root.setEffect(null);
+            return result;
+        });
         PlatformUtils.runLaterIfNecessary(futureTask);
         return futureTask.get();
     }
