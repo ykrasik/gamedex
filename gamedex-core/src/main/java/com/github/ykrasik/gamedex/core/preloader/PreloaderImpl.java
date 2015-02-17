@@ -105,6 +105,6 @@ public class PreloaderImpl implements Preloader {
             throw new RuntimeException(task.getException());
         });
 
-        new Thread(task).start();
+        new Thread(task, "Preloader").start();
     }
 }

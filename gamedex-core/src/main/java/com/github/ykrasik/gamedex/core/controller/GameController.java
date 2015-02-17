@@ -15,10 +15,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +41,7 @@ public class GameController implements Controller {
 
     @FXML private ComboBox<GameSort> gameSort;
 
+    @FXML private CheckBox autoSkipCheckBox;
     @FXML private Button refreshLibrariesButton;
 
     @FXML private SplitPane content;
@@ -82,7 +80,9 @@ public class GameController implements Controller {
     private void initGameList() {
         gameListController.itemsProperty().bind(gameManager.gamesProperty());
         gameListController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
-            gameSideBarController.displayGame(newValue);
+            if (newValue != null) {
+                gameSideBarController.displayGame(newValue);
+            }
         });
         gameListController.deletedGameProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.deleteGame(newValue);
@@ -162,10 +162,11 @@ public class GameController implements Controller {
         gameSort.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.sort(newValue);
         });
-        gameSort.setValue(GameSort.NAME);
+        gameSort.setValue(GameSort.NAME_ASC);
     }
 
     private void initRefreshLibraries() {
+        autoSkipCheckBox.selectedProperty().addListener(e -> flowManager.setAutoSkip(autoSkipCheckBox.isSelected()));
         refreshLibrariesButton.setOnAction(e -> flowManager.refreshLibraries());
     }
 }

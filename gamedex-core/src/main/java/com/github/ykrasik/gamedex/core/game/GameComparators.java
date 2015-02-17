@@ -1,53 +1,37 @@
 package com.github.ykrasik.gamedex.core.game;
 
-import com.github.ykrasik.gamedex.common.optional.OptionalComparators;
+import com.github.ykrasik.gamedex.common.comparator.FieldComparator;
+import com.github.ykrasik.gamedex.common.comparator.OptionalComparator;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
-import com.github.ykrasik.opt.Opt;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
+import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.function.Function;
 
 /**
  * @author Yevgeny Krasik
  */
+@Accessors(fluent = true)
 public final class GameComparators {
     private GameComparators() { }
 
-    private static final Comparator<Game> NAME_COMPARATOR = (o1, o2) -> o1.getName().compareTo(o2.getName());
+    private static final OptionalComparator<Game, Double> rawUserScoreAsc = OptionalComparator.of(Game::getUserScore);
+    private static final OptionalComparator<Game, Double> rawCriticScoreAsc = OptionalComparator.of(Game::getCriticScore);
+    private static final OptionalComparator<Game, LocalDate> rawReleaseDateAsc = OptionalComparator.of(Game::getReleaseDate);
 
-    private static final Comparator<Game> LAST_MODIFIED_COMPARATOR = (o1, o2) ->
-        o1.getLastModified().compareTo(o2.getLastModified());
+    @Getter private static final Comparator<Game> nameAsc = FieldComparator.of(Game::getName);
+    @Getter private static final Comparator<Game> nameDesc = nameAsc.reversed();
 
-    private static final Comparator<Game> USER_SCORE_COMPARATOR = (o1, o2) ->
-        compareWithNameFallback(o1, o2, Game::getUserScore);
+    @Getter private static final Comparator<Game> lastModifiedAsc = FieldComparator.of(Game::getLastModified);
+    @Getter private static final Comparator<Game> lastModifiedDesc = lastModifiedAsc.reversed();
 
-    private static final Comparator<Game> CRITIC_SCORE_COMPARATOR = (o1, o2) ->
-        OptionalComparators.compareWithFallback(o2, o1, Game::getCriticScore, USER_SCORE_COMPARATOR);
+    @Getter private static final Comparator<Game> userScoreAsc = rawUserScoreAsc.or(rawCriticScoreAsc).or(nameAsc);
+    @Getter private static final Comparator<Game> userScoreDesc = userScoreAsc.reversed();
 
-    private static final Comparator<Game> RELEASE_DATE_COMPARATOR = (o1, o2) ->
-        compareWithNameFallback(o2, o1, Game::getReleaseDate);
+    @Getter private static final Comparator<Game> criticScoreAsc = rawCriticScoreAsc.or(rawUserScoreAsc).or(nameAsc);
+    @Getter private static final Comparator<Game> criticScoreDesc = criticScoreAsc.reversed();
 
-    public static Comparator<Game> nameComparator() {
-        return NAME_COMPARATOR;
-    }
-
-    public static Comparator<Game> dateAddedComparator() {
-        return LAST_MODIFIED_COMPARATOR;
-    }
-
-    public static Comparator<Game> criticScoreComparator() {
-        return CRITIC_SCORE_COMPARATOR;
-    }
-
-    public static Comparator<Game> userScoreComparator() {
-        return USER_SCORE_COMPARATOR;
-    }
-
-    public static Comparator<Game> releaseDateComparator() {
-        return RELEASE_DATE_COMPARATOR;
-    }
-
-    private static <T extends Comparable<? super T>> int compareWithNameFallback(Game o1, Game o2, Function<Game, Opt<T>> fieldExtractor) {
-        return OptionalComparators.compareWithFallback(o2, o1, fieldExtractor, NAME_COMPARATOR);
-    }
+    @Getter private static final Comparator<Game> releaseDateAsc = rawReleaseDateAsc.or(nameAsc);
+    @Getter private static final Comparator<Game> releaseDateDesc = releaseDateAsc.reversed();
 }

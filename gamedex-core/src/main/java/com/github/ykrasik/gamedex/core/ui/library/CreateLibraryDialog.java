@@ -55,6 +55,12 @@ public class CreateLibraryDialog {
         stage.setScene(scene);
 
         platformComboBox.setItems(FXCollections.observableArrayList(GamePlatform.values()));
+
+        yesButton.setOnAction(e -> {
+            result = Opt.of(createFromInput());
+            stage.hide();
+        });
+        noButton.setOnAction(e -> stage.hide());
     }
 
     public Opt<LibraryDef> show(Path path, List<Path> children, GamePlatform defaultPlatform) {
@@ -69,18 +75,12 @@ public class CreateLibraryDialog {
         childrenTreeView.setRoot(root);
 
         result = Opt.absent();
-        yesButton.setOnAction(e -> {
-            result = Opt.of(createFromInput(path));
-            stage.hide();
-        });
-        noButton.setOnAction(e -> stage.hide());
-
         stage.showAndWait();
         return result;
     }
 
-    private LibraryDef createFromInput(Path path) {
-        return new LibraryDef(libraryNameTextField.getText(), path, platformComboBox.getValue());
+    private LibraryDef createFromInput() {
+        return new LibraryDef(libraryNameTextField.getText(), platformComboBox.getValue());
     }
 
     public static CreateLibraryDialog create() {

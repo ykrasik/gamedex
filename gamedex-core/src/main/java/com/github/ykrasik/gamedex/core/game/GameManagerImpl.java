@@ -46,7 +46,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
         FilterType.LIBRARY, NO_FILTER
     );
 
-    private GameSort sort = GameSort.NAME;
+    private GameSort sort = GameSort.NAME_ASC;
 
     // FIXME: This is too slow. Need to find a way to stream the images from the db.
     @Override
@@ -208,11 +208,21 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
     private Comparator<Game> getComparator(GameSort sort) {
         switch (sort) {
-            case DATE_ADDED: return GameComparators.dateAddedComparator();
-            case NAME: return GameComparators.nameComparator();
-            case CRITIC_SCORE: return GameComparators.criticScoreComparator();
-            case USER_SCORE: return GameComparators.userScoreComparator();
-            case RELEASE_DATE: return GameComparators.releaseDateComparator();
+            case NAME_ASC: return GameComparators.nameAsc();
+            case NAME_DESC: return GameComparators.nameDesc();
+
+            case CRITIC_SCORE_ASC: return GameComparators.criticScoreAsc();
+            case CRITIC_SCORE_DESC: return GameComparators.criticScoreDesc();
+
+            case USER_SCORE_ASC: return GameComparators.userScoreAsc();
+            case USER_SCORE_DESC: return GameComparators.userScoreDesc();
+
+            case RELEASE_DATE_ASC: return GameComparators.releaseDateAsc();
+            case RELEASE_DATE_DESC: return GameComparators.releaseDateDesc();
+
+            case DATE_ADDED_ASC: return GameComparators.lastModifiedAsc();
+            case DATE_ADDED_DESC: return GameComparators.lastModifiedDesc();
+
             default: throw new GameDexException("Invalid sort value: %s", sort);
         }
     }

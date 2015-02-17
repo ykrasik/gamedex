@@ -35,6 +35,8 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class MainController implements Controller {
+    @FXML private MenuItem addLibraryMenuItem;
+
     @FXML private SplitPane content;
     private double dividerPosition;
 
@@ -55,11 +57,12 @@ public class MainController implements Controller {
 
     // Called by JavaFx
     public void initialize() {
-//        initMenu();
+        initMenu();
         initBottom();
     }
 
-//    private void initMenu() {
+    private void initMenu() {
+        addLibraryMenuItem.setOnAction(e -> addLibrary());
 //        showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
 //            if (newValue) {
 //                contentScreen.getChildren().add(sideBar);
@@ -67,7 +70,7 @@ public class MainController implements Controller {
 //                contentScreen.getChildren().remove(sideBar);
 //            }
 //        });
-//    }
+    }
 
     private void initBottom() {
         progressIndicator.progressProperty().bind(flowManager.fetchProgressProperty());
@@ -110,9 +113,8 @@ public class MainController implements Controller {
 //        return contextMenu;
 //    }
 
-    @FXML
     // FIXME: Move this into FlowManager.
-    public void addLibrary() {
+    private void addLibrary() {
         final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
         final File selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null) {

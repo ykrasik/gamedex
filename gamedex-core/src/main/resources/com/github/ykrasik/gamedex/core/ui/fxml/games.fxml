@@ -108,6 +108,8 @@
             <Region prefWidth="10.0" />
             <Separator orientation="VERTICAL" />
             <Region prefWidth="10.0" />
+            <CheckBox fx:id="autoSkipCheckBox" mnemonicParsing="false" text="Don't bother me" />
+            <Separator orientation="VERTICAL" />
                 <Button fx:id="refreshLibrariesButton" defaultButton="true" mnemonicParsing="false" text="Refresh Libraries" />
             </items>
         </ToolBar>

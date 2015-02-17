@@ -64,7 +64,7 @@ public final class StringUtils {
     }
 
     public static <T> String toStringOrUnavailable(Opt<T> optional) {
-        return toString(optional, "Unavailable");
+        return toString(optional, "NA");
     }
 
     public static String toCsv(Iterable<? extends Object> parts) {

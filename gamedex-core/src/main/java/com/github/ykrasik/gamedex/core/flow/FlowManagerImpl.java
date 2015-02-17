@@ -29,6 +29,7 @@ import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,6 +61,9 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     private final DoubleProperty fetchProgressProperty = new SimpleDoubleProperty();
 
     private ExecutorService executorService;
+
+    @Setter
+    private boolean autoSkip;
 
     @Override
     protected void doStart() {
@@ -176,7 +180,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
             return false;
         }
 
-        if (tryCreateLibrary(path, libraryHierarchy)) {
+        if (!autoSkip && tryCreateLibrary(path, libraryHierarchy)) {
             return true;
         }
 
@@ -224,6 +228,11 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     private void addPath(LibraryHierarchy libraryHierarchy, Path path, String name) throws Exception {
+        if (name.isEmpty()) {
+            info("Empty name provided.");
+            throw new SkipException();
+        }
+
         final GamePlatform platform = libraryHierarchy.getPlatform();
 
         final SearchContext metacriticSearchContext = new SearchContext(metacriticInfoService, path, platform);
@@ -292,6 +301,11 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     private Opt<GameInfo> handleNoSearchResults(SearchContext searchContext, String name) throws Exception {
+        if (autoSkip) {
+            info("Autoskipping...");
+            throw new SkipException();
+        }
+
         final GameInfoProviderType providerType = searchContext.getGameInfoProvider().getProviderType();
         final NoSearchResultsDialogParams params = NoSearchResultsDialogParams.builder()
             .providerName(providerType.getName())
@@ -310,8 +324,13 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
     }
 
     private Opt<GameInfo> handleMultipleSearchResults(SearchContext searchContext, String name, List<SearchResult> searchResults) throws Exception {
+        if (autoSkip) {
+            info("Autoskipping...");
+            throw new SkipException();
+        }
+
         final List<SearchResult> sortedSearchResults = new ArrayList<>(searchResults);
-        Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateComparator());
+        Collections.sort(sortedSearchResults, SearchResultComparators.releaseDateDesc());
 
         final GameInfoProviderType providerType = searchContext.getGameInfoProvider().getProviderType();
         final MultipleSearchResultsDialogParams params = MultipleSearchResultsDialogParams.builder()
