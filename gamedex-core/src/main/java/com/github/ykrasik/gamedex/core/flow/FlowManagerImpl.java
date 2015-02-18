@@ -14,6 +14,7 @@ import com.github.ykrasik.gamedex.core.dialog.choice.DialogChoiceResolverAdapter
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
@@ -21,7 +22,6 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
-import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
 import com.github.ykrasik.opt.Opt;
@@ -413,6 +413,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
                 return null;
             }
         };
+        task.setOnFailed(e -> dialogManager.showException(task.getException()));
         executorService.submit(task);
         return task;
     }

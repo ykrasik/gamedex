@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core.spring;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.controller.*;
+import com.github.ykrasik.gamedex.core.dialog.DialogManager;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.flow.FlowManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
@@ -28,10 +29,11 @@ public class ControllerBeanConfiguration {
     @Bean
     public MainController mainController(Stage stage,
                                          GameCollectionConfig config,
+                                         DialogManager dialogManager,
                                          FlowManager flowManager,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new MainController(stage, config, flowManager, gameManager, libraryManager);
+        return new MainController(stage, config, dialogManager, flowManager, gameManager, libraryManager);
     }
 
     @Bean

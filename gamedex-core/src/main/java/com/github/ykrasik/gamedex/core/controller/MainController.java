@@ -2,6 +2,7 @@ package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
+import com.github.ykrasik.gamedex.core.dialog.DialogManager;
 import com.github.ykrasik.gamedex.core.flow.FlowManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
@@ -51,6 +52,8 @@ public class MainController implements Controller {
 
     @NonNull private final Stage stage;
     @NonNull private final GameCollectionConfig config;
+
+    @NonNull private final DialogManager dialogManager;
     @NonNull private final FlowManager flowManager;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
@@ -149,7 +152,6 @@ public class MainController implements Controller {
     }
 
     private void prepareTask(Task<Void> task) {
-        task.setOnFailed(event -> handleException(task.getException()));
         task.setOnCancelled(event -> flowManager.stopTask(task));
 
         progressIndicator.visibleProperty().bind(task.runningProperty());
@@ -163,7 +165,7 @@ public class MainController implements Controller {
 
     private void handleException(Throwable t) {
         log.warn("Error cleaning up games:", t);
-        createDialog().title("Error:").message(t.getMessage()).showException(t);
+        dialogManager.showException(t);
     }
 
     private DirectoryChooser createDirectoryChooser(String title) {

@@ -2,11 +2,11 @@ package com.github.ykrasik.gamedex.core.dialog;
 
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
-import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
 import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultsDialog;
+import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
 import javafx.scene.Parent;
@@ -40,6 +40,17 @@ public class DialogManagerImpl implements DialogManager {
     private static final DialogAction CHOOSE_FROM_SEARCH_RESULTS_ACTION = createChooseFromSearchResultsAction();
 
     @NonNull private final Stage stage;
+
+    @Override
+    @SneakyThrows
+    public void showException(Throwable t) {
+        log.warn("Error:", t);
+        final Dialogs dialog = Dialogs.create()
+            .owner(stage)
+            .title("Error!")
+            .message(t.getMessage());
+        getUserResponse(() -> dialog.showException(t));
+    }
 
     @Override
     @SneakyThrows
