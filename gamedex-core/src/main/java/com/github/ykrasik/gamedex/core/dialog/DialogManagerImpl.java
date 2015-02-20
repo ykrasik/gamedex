@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.dialog;
 
+import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.dialog.choice.*;
 import com.github.ykrasik.gamedex.core.ui.dialog.SearchResultsDialog;
@@ -11,6 +12,7 @@ import com.github.ykrasik.opt.Opt;
 import javafx.collections.FXCollections;
 import javafx.scene.Parent;
 import javafx.scene.effect.GaussianBlur;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,10 @@ import org.controlsfx.dialog.Dialog;
 import org.controlsfx.dialog.DialogAction;
 import org.controlsfx.dialog.Dialogs;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +55,23 @@ public class DialogManagerImpl implements DialogManager {
             .title("Error!")
             .message(t.getMessage());
         getUserResponse(() -> dialog.showException(t));
+    }
+
+    @Override
+    @SneakyThrows
+    public Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory) {
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Add Library");
+        directoryChooser.setInitialDirectory(initialDirectory.map(Path::toFile).getOrElseNull());
+        final File selectedDirectory = getUserResponse(() -> directoryChooser.showDialog(stage));
+        return Opt.ofNullable(selectedDirectory).flatMapX(this::createLibraryFromFile);
+    }
+
+    private Opt<LibraryDef> createLibraryFromFile(File file) throws IOException {
+        final Path path = Paths.get(file.toURI());
+        final List<Path> children = FileUtils.listFirstChildDirectories(path, 10);
+        children.add(Paths.get("..."));
+        return createLibraryDialog(path, children, GamePlatform.PC);
     }
 
     @Override

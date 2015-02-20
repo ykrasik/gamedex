@@ -57,7 +57,7 @@ public class GameWallController implements Controller {
         final MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setOnAction(e -> {
             final Game game = cell.getItem();
-            // TODO: Confirmation menu. And go through flowManager.
+            // TODO: Confirmation menu. And go through actionManager.
             deletedGameProperty.set(game);
         });
 

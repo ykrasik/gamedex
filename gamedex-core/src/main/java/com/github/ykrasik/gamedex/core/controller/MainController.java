@@ -1,28 +1,16 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.common.exception.GameDexException;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
-import com.github.ykrasik.gamedex.core.dialog.DialogManager;
-import com.github.ykrasik.gamedex.core.flow.FlowManager;
+import com.github.ykrasik.gamedex.core.action.ActionManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
-import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.StatusBar;
-import org.controlsfx.dialog.Dialogs;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
 
 /**
  * @author Yevgeny Krasik
@@ -50,11 +38,7 @@ public class MainController implements Controller {
     @FXML private Button statusBarStopButton;
     @FXML private TextArea logTextArea;
 
-    @NonNull private final Stage stage;
-    @NonNull private final GameCollectionConfig config;
-
-    @NonNull private final DialogManager dialogManager;
-    @NonNull private final FlowManager flowManager;
+    @NonNull private final ActionManager actionManager;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
 
@@ -65,7 +49,7 @@ public class MainController implements Controller {
     }
 
     private void initMenu() {
-        addLibraryMenuItem.setOnAction(e -> addLibrary());
+        addLibraryMenuItem.setOnAction(e -> actionManager.addNewLibrary());
 //        showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
 //            if (newValue) {
 //                contentScreen.getChildren().add(sideBar);
@@ -76,10 +60,10 @@ public class MainController implements Controller {
     }
 
     private void initBottom() {
-        progressIndicator.progressProperty().bind(flowManager.fetchProgressProperty());
-        statusBar.progressProperty().bind(flowManager.progressProperty());
-        statusBar.textProperty().bind(flowManager.messageProperty());
-        flowManager.messageProperty().addListener((observable, oldValue, newValue) -> {
+        progressIndicator.progressProperty().bind(actionManager.fetchProgressProperty());
+        statusBar.progressProperty().bind(actionManager.progressProperty());
+        statusBar.textProperty().bind(actionManager.messageProperty());
+        actionManager.messageProperty().addListener((observable, oldValue, newValue) -> {
             logTextArea.appendText(newValue);
             logTextArea.appendText("\n");
         });
@@ -101,58 +85,8 @@ public class MainController implements Controller {
         }
     }
 
-//    private ContextMenu createLibraryContextMenu() {
-//        final ContextMenu contextMenu = new ContextMenu();
-//
-//        final MenuItem deleteItem = new MenuItem("Delete");
-//        deleteItem.setOnAction(e -> {
-//            final Object source = e.getSource();
-//            final EventTarget target = e.getTarget();
-////            final LocalGame game = cell.getItem();
-////            libraryManager.deleteLibrary(game);
-//        });
-//
-//        contextMenu.getItems().addAll(deleteItem);
-//        return contextMenu;
-//    }
-
-    // FIXME: Move this into FlowManager.
-    private void addLibrary() {
-        final DirectoryChooser directoryChooser = createDirectoryChooser("Add Library");
-        final File selectedDirectory = directoryChooser.showDialog(stage);
-        if (selectedDirectory != null) {
-            config.setPrevDirectory(selectedDirectory);
-            final Path path = Paths.get(selectedDirectory.toURI());
-            try {
-                if (libraryManager.isLibrary(path)) {
-                    throw new GameDexException("Already have a library defined for '%s'", path);
-                }
-
-                // FIXME: Show a select name dialog too.
-                final Optional<GamePlatform> platform = createDialog()
-                    .title("Choose library platform")
-                    .masthead(path.toString())
-                    .message("Choose library platform:")
-                    .showChoices(GamePlatform.values());
-                platform.ifPresent(p -> libraryManager.createLibrary(path.getFileName().toString(), path, p));
-            } catch (Exception e) {
-                handleException(e);
-            }
-        }
-    }
-
-    @FXML
-    public void refreshLibraries() {
-        prepareTask(flowManager.refreshLibraries());
-    }
-
-    @FXML
-    public void cleanupGames() {
-        prepareTask(flowManager.cleanupGames());
-    }
-
     private void prepareTask(Task<Void> task) {
-        task.setOnCancelled(event -> flowManager.stopTask(task));
+        task.setOnCancelled(event -> actionManager.stopTask(task));
 
         progressIndicator.visibleProperty().bind(task.runningProperty());
 
@@ -161,21 +95,5 @@ public class MainController implements Controller {
         statusBarStopButton.setOnAction(e -> task.cancel());
 
         // TODO: Disable all other buttons while task is running.
-    }
-
-    private void handleException(Throwable t) {
-        log.warn("Error cleaning up games:", t);
-        dialogManager.showException(t);
-    }
-
-    private DirectoryChooser createDirectoryChooser(String title) {
-        final DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle(title);
-        directoryChooser.setInitialDirectory(config.getPrevDirectory().getOrElseNull());
-        return directoryChooser;
-    }
-
-    private Dialogs createDialog() {
-        return Dialogs.create().owner(stage);
     }
 }

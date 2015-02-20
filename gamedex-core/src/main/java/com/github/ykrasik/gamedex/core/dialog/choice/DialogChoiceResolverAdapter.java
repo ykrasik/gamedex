@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.dialog.choice;
 
-import com.github.ykrasik.gamedex.core.flow.ExcludeException;
-import com.github.ykrasik.gamedex.core.flow.SkipException;
+import com.github.ykrasik.gamedex.core.action.ExcludeException;
+import com.github.ykrasik.gamedex.core.action.SkipException;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.opt.Opt;

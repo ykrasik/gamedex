@@ -14,7 +14,7 @@ import java.nio.file.Path;
  * @author Yevgeny Krasik
  */
 public interface LibraryManager {
-    Library createLibrary(String name, Path path, GamePlatform platform);
+    Library createLibrary(Path path, GamePlatform platform, String name);
     void deleteLibrary(Library library);
 
     ObservableList<Library> getAllLibraries();

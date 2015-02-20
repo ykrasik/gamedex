@@ -17,12 +17,12 @@ public class LibraryEntity {
     @DatabaseField(generatedId = true)
     private int id;
 
-    @DatabaseField(canBeNull = false)
-    private String name;
-
     @DatabaseField(columnName = PATH_COLUMN, unique = true, canBeNull = false, index = true)
     private String path;
 
     @DatabaseField(canBeNull = false)
     private GamePlatform platform;
+
+    @DatabaseField(canBeNull = false)
+    private String name;
 }

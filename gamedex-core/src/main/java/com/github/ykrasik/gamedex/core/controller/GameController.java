@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
-import com.github.ykrasik.gamedex.core.flow.FlowManager;
+import com.github.ykrasik.gamedex.core.action.ActionManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.game.GameSort;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
@@ -50,7 +50,7 @@ public class GameController implements Controller {
     @FXML private GameListController gameListController;
     @FXML private GameSideBarController gameSideBarController;
 
-    @NonNull private FlowManager flowManager;
+    @NonNull private ActionManager actionManager;
     @NonNull private GameManager gameManager;
     @NonNull private LibraryManager libraryManager;
 
@@ -166,7 +166,7 @@ public class GameController implements Controller {
     }
 
     private void initRefreshLibraries() {
-        autoSkipCheckBox.selectedProperty().addListener(e -> flowManager.setAutoSkip(autoSkipCheckBox.isSelected()));
-        refreshLibrariesButton.setOnAction(e -> flowManager.refreshLibraries());
+        autoSkipCheckBox.selectedProperty().addListener(e -> actionManager.setAutoSkip(autoSkipCheckBox.isSelected()));
+        refreshLibrariesButton.setOnAction(e -> actionManager.refreshLibraries());
     }
 }

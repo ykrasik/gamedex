@@ -207,11 +207,11 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public Library addLibrary(String name, Path path, GamePlatform platform) {
+    public Library addLibrary(Path path, GamePlatform platform, String name) {
         final LibraryEntity entity = new LibraryEntity();
-        entity.setName(name);
         entity.setPath(path.toString());
         entity.setPlatform(platform);
+        entity.setName(name);
 
         LOG.debug("Inserting {}...", entity);
         if (libraryDao.create(entity) != 1) {

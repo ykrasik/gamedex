@@ -1,12 +1,10 @@
 package com.github.ykrasik.gamedex.core.config;
 
 import com.github.ykrasik.opt.Opt;
-import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.boon.IO;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +16,6 @@ import java.nio.file.Paths;
 // FIXME: This class should probably disappear.
 public class GameCollectionConfigImpl implements GameCollectionConfig {
     private static final String NAME = "config.xml";
-    private static final XStream XSTREAM = new XStream();
 
     private final Path file;
 
@@ -28,7 +25,7 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
         this.file = getFile();
         final String fileContent = IO.read(file);
         if (!fileContent.isEmpty()) {
-            this.config = (Config) XSTREAM.fromXML(fileContent);
+            this.config = new Config(Opt.of(Paths.get(fileContent)));
         } else {
             this.config = Config.empty();
         }
@@ -43,27 +40,26 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
     }
 
     @Override
-    public Opt<File> getPrevDirectory() {
+    public Opt<Path> getPrevDirectory() {
         return config.prevDirectory;
     }
 
     @Override
-    public void setPrevDirectory(File prevDirectory) {
+    public void setPrevDirectory(Path prevDirectory) {
         config = config.withPrevDirectory(prevDirectory);
         onConfigUpdated();
     }
 
     private void onConfigUpdated() {
         final Config config = this.config;
-        final String xml = XSTREAM.toXML(config);
-        IO.write(file, xml);
+        IO.write(file, config.prevDirectory.get().toString());
     }
 
     @RequiredArgsConstructor
     private static class Config {
-        @NonNull private final Opt<File> prevDirectory;
+        @NonNull private final Opt<Path> prevDirectory;
 
-        public Config withPrevDirectory(File prevDirectory) {
+        public Config withPrevDirectory(Path prevDirectory) {
             return new Config(Opt.of(prevDirectory));
         }
 

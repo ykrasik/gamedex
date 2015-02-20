@@ -6,6 +6,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -22,6 +23,19 @@ public final class FileUtils {
         final List<Path> childDirectories = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(root, DIRECTORY_FILTER)) {
             stream.forEach(childDirectories::add);
+        }
+        return childDirectories;
+    }
+
+    public static List<Path> listFirstChildDirectories(Path root, int amount) throws IOException {
+        final List<Path> childDirectories = new ArrayList<>(amount);
+        int current = 0;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(root, DIRECTORY_FILTER)) {
+            final Iterator<Path> iterator = stream.iterator();
+            while (iterator.hasNext() && current < amount) {
+                childDirectories.add(iterator.next());
+                current++;
+            }
         }
         return childDirectories;
     }

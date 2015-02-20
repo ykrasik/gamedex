@@ -1,14 +1,11 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.util.ListUtils;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
+import com.github.ykrasik.gamedex.core.action.ActionManager;
 import com.github.ykrasik.gamedex.core.controller.*;
-import com.github.ykrasik.gamedex.core.dialog.DialogManager;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
-import com.github.ykrasik.gamedex.core.flow.FlowManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
-import javafx.stage.Stage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,20 +24,17 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public MainController mainController(Stage stage,
-                                         GameCollectionConfig config,
-                                         DialogManager dialogManager,
-                                         FlowManager flowManager,
+    public MainController mainController(ActionManager actionManager,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new MainController(stage, config, dialogManager, flowManager, gameManager, libraryManager);
+        return new MainController(actionManager, gameManager, libraryManager);
     }
 
     @Bean
-    public GameController gameController(FlowManager flowManager,
+    public GameController gameController(ActionManager actionManager,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new GameController(flowManager, gameManager, libraryManager);
+        return new GameController(actionManager, gameManager, libraryManager);
     }
 
     @Bean

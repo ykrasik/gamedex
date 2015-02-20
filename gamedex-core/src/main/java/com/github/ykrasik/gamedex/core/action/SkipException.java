@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.flow;
+package com.github.ykrasik.gamedex.core.action;
 
 /**
  * @author Yevgeny Krasik

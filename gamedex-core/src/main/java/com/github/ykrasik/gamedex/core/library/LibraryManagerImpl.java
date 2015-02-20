@@ -8,6 +8,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
+import com.github.ykrasik.gamedex.persistence.exception.DataException;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -42,8 +43,12 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public Library createLibrary(String name, Path path, GamePlatform platform) {
-        final Library library = persistenceService.addLibrary(name, path, platform);
+    public Library createLibrary(Path path, GamePlatform platform, String name) {
+        if (persistenceService.hasLibraryForPath(path)) {
+            throw new DataException("Library already exists for path: " + path);
+        }
+
+        final Library library = persistenceService.addLibrary(path, platform, name);
         LOG.info("Added library: {}", library);
 
         // Update cache.

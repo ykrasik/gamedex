@@ -14,6 +14,7 @@ import java.util.List;
 public interface DialogManager {
     void showException(Throwable t);
 
+    Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory);
     Opt<LibraryDef> createLibraryDialog(Path path, List<Path> children, GamePlatform defaultPlatform);
 
     DialogChoice noSearchResultsDialog(NoSearchResultsDialogParams params);

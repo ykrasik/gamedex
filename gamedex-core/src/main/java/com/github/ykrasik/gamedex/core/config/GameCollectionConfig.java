@@ -2,12 +2,13 @@ package com.github.ykrasik.gamedex.core.config;
 
 import com.github.ykrasik.opt.Opt;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * @author Yevgeny Krasik
  */
+// TODO: Rename this class.
 public interface GameCollectionConfig {
-    Opt<File> getPrevDirectory();
-    void setPrevDirectory(File prevDirectory);
+    Opt<Path> getPrevDirectory();
+    void setPrevDirectory(Path prevDirectory);
 }

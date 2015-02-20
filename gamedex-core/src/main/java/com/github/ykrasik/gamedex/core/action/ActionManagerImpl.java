@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.flow;
+package com.github.ykrasik.gamedex.core.action;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
@@ -6,6 +6,7 @@ import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.dialog.DialogManager;
 import com.github.ykrasik.gamedex.core.dialog.MultipleSearchResultsDialogParams;
 import com.github.ykrasik.gamedex.core.dialog.NoSearchResultsDialogParams;
@@ -45,16 +46,17 @@ import java.util.regex.Pattern;
  * @author Yevgeny Krasik
  */
 @RequiredArgsConstructor
-public class FlowManagerImpl extends AbstractService implements FlowManager {
+public class ActionManagerImpl extends AbstractService implements ActionManager {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
+    @NonNull private final GameCollectionConfig config;
+    @NonNull private final DialogManager dialogManager;
+    @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
     @NonNull private final ExcludedPathManager excludedPathManager;
-    @NonNull private final GameManager gameManager;
     @NonNull private final GameInfoProvider metacriticInfoService;
     @NonNull private final GameInfoProvider giantBombInfoService;
-    @NonNull private final DialogManager dialogManager;
 
     private final StringProperty messageProperty = new SimpleStringProperty();
     private final DoubleProperty progressProperty = new SimpleDoubleProperty();
@@ -95,6 +97,21 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         info("Cancelled.");
         progressProperty.setValue(0.0);
         fetchProgressProperty.setValue(0.0);
+    }
+
+    // TODO: Do this on the background thread and return a task?
+    @Override
+    public void addNewLibrary() {
+        try {
+            final Opt<LibraryDef> libraryDefOpt = dialogManager.addLibraryDialog(config.getPrevDirectory());
+            if (libraryDefOpt.isPresent()) {
+                final LibraryDef libraryDef = libraryDefOpt.get();
+                config.setPrevDirectory(libraryDef.getPath());
+                createLibraryFromDef(libraryDef);
+            }
+        } catch (Exception e) {
+            dialogManager.showException(e);
+        }
     }
 
     @Override
@@ -211,13 +228,17 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         }
 
         final LibraryDef libraryDef = libraryDefOpt.get();
-        final Library library = libraryManager.createLibrary(libraryDef.getName(), path, libraryDef.getPlatform());
-        info("New library created: '%s'", library.getName());
-
+        final Library library = createLibraryFromDef(libraryDef);
         libraryHierarchy.pushLibrary(library);
         refreshCurrentLibrary(libraryHierarchy);
         libraryHierarchy.popLibrary();
         return true;
+    }
+
+    private Library createLibraryFromDef(LibraryDef libraryDef) {
+        final Library library = libraryManager.createLibrary(libraryDef.getPath(), libraryDef.getPlatform(), libraryDef.getName());
+        info("New library created: '%s'", library.getName());
+        return library;
     }
 
     private String getName(Path path) {
@@ -285,7 +306,7 @@ public class FlowManagerImpl extends AbstractService implements FlowManager {
         info("%s: %d results for '%s'.", providerName, searchResults.size(), name);
 
         final Collection<String> excludedNames = searchContext.getExcludedNames();
-        if (searchResults.size() <= 1 || !searchContext.isCanExclude() || excludedNames.isEmpty()) {
+        if (searchResults.size() <= 1 || excludedNames.isEmpty()) {
             return searchResults;
         }
 

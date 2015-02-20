@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.flow;
+package com.github.ykrasik.gamedex.core.action;
 
 import com.github.ykrasik.gamedex.common.comparator.FieldComparator;
 import com.github.ykrasik.gamedex.common.comparator.OptionalComparator;

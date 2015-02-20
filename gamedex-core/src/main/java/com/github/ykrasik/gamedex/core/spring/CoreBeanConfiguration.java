@@ -10,9 +10,9 @@ import com.github.ykrasik.gamedex.core.dialog.DialogManagerImpl;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.exclude.debug.ExcludedPathDebugCommands;
-import com.github.ykrasik.gamedex.core.flow.FlowManager;
-import com.github.ykrasik.gamedex.core.flow.FlowManagerImpl;
-import com.github.ykrasik.gamedex.core.flow.debug.FlowManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.action.ActionManager;
+import com.github.ykrasik.gamedex.core.action.ActionManagerImpl;
+import com.github.ykrasik.gamedex.core.action.debug.ActionManagerDebugCommands;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.game.GameManagerImpl;
 import com.github.ykrasik.gamedex.core.game.debug.GameManagerDebugCommands;
@@ -39,6 +39,7 @@ import java.util.List;
  */
 @Configuration
 public class CoreBeanConfiguration extends AbstractBeanConfiguration {
+    // FIXME: This should be done outside of spring, to allow adding context menus through fxml.
     @Bean
     public Parent mainScene(ControllerProvider controllerProvider) throws IOException {
         preloader.info("Loading FXML...");
@@ -67,25 +68,27 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public FlowManager flowManager(LibraryManager libraryManager,
-                                   ExcludedPathManager excludedPathManager,
-                                   GameManager gameManager,
-                                   MetacriticGameInfoService metacriticInfoService,
-                                   GiantBombGameInfoService giantBombInfoService,
-                                   DialogManager dialogManager) {
-        return new FlowManagerImpl(
+    public ActionManager actionManager(GameCollectionConfig config,
+                                       DialogManager dialogManager,
+                                       GameManager gameManager,
+                                       LibraryManager libraryManager,
+                                       ExcludedPathManager excludedPathManager,
+                                       MetacriticGameInfoService metacriticInfoService,
+                                       GiantBombGameInfoService giantBombInfoService) {
+        return new ActionManagerImpl(
+            config,
+            dialogManager,
+            gameManager,
             libraryManager,
             excludedPathManager,
-            gameManager,
             metacriticInfoService,
-            giantBombInfoService,
-            dialogManager
+            giantBombInfoService
         );
     }
 
     @Bean
-    public FlowManagerDebugCommands flowManagerDebugCommands(FlowManager flowManager, LibraryManager libraryManager) {
-        return new FlowManagerDebugCommands(flowManager, libraryManager);
+    public ActionManagerDebugCommands flowManagerDebugCommands(ActionManager actionManager, LibraryManager libraryManager) {
+        return new ActionManagerDebugCommands(actionManager, libraryManager);
     }
 
     @Bean

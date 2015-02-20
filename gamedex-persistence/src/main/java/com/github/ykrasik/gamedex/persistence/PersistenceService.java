@@ -19,7 +19,7 @@ public interface PersistenceService {
     Game getGameById(Id<Game> id);
     boolean hasGameForPath(Path path);
 
-    Library addLibrary(String name, Path path, GamePlatform platform);
+    Library addLibrary(Path path, GamePlatform platform, String name);
     void deleteLibrary(Id<Library> id);
     List<Library> getAllLibraries();
     Library getLibraryById(Id<Library> id);

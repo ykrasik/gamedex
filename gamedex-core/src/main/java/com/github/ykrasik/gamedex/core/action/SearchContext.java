@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.flow;
+package com.github.ykrasik.gamedex.core.action;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
@@ -23,9 +23,6 @@ public class SearchContext {
 
     @NonNull @Getter
     private final GamePlatform platform;
-
-    @Getter @Setter
-    private boolean canExclude = true;
 
     private final Set<String> excludedNames = new HashSet<>();
 
