@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author Yevgeny Krasik
  */
-public interface DialogManager {
+public interface DialogService {
     void showException(Throwable t);
 
     Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory);

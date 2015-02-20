@@ -30,6 +30,8 @@ import static com.github.ykrasik.gamedex.provider.util.JsonUtils.*;
 @Slf4j
 @RequiredArgsConstructor
 public class MetacriticGameInfoService implements GameInfoProvider {
+    private static final LocalDate MIN_DATE = LocalDate.of(1980, 1, 1);
+
     @NonNull private final MetacriticGameInfoClient client;
     @NonNull private final MetacriticProperties properties;
     @NonNull private final ObjectMapper mapper;
@@ -106,7 +108,9 @@ public class MetacriticGameInfoService implements GameInfoProvider {
     }
 
     private Opt<LocalDate> getReleaseDate(JsonNode node) {
-        return getString(node, RELEASE_DATE).flatMap(this::translateDate);
+        return getString(node, RELEASE_DATE)
+            .flatMap(this::translateDate)
+            .filter(date -> date.isAfter(MIN_DATE));
     }
 
     private Opt<String> getDescription(JsonNode node) {

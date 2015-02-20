@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.util.ListUtils;
-import com.github.ykrasik.gamedex.core.action.ActionManager;
+import com.github.ykrasik.gamedex.core.action.ActionService;
 import com.github.ykrasik.gamedex.core.controller.*;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.game.GameManager;
@@ -24,17 +24,17 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public MainController mainController(ActionManager actionManager,
+    public MainController mainController(ActionService actionService,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new MainController(actionManager, gameManager, libraryManager);
+        return new MainController(actionService, gameManager, libraryManager);
     }
 
     @Bean
-    public GameController gameController(ActionManager actionManager,
+    public GameController gameController(ActionService actionService,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new GameController(actionManager, gameManager, libraryManager);
+        return new GameController(actionService, gameManager, libraryManager);
     }
 
     @Bean

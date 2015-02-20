@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.action.debug;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
-import com.github.ykrasik.gamedex.core.action.ActionManager;
+import com.github.ykrasik.gamedex.core.action.ActionService;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
@@ -22,14 +22,14 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 @ShellPath("action")
 public class ActionManagerDebugCommands implements DebugCommands {
-    @NonNull private final ActionManager actionManager;
+    @NonNull private final ActionService actionService;
     @NonNull private final LibraryManager libraryManager;
 
     @Command
     public void refreshLibraries(OutputPrinter outputPrinter) throws Exception {
-        final Task<Void> task = actionManager.refreshLibraries();
+        final Task<Void> task = actionService.refreshLibraries();
         printFailureToOutput(task, outputPrinter);
-        outputPrinter.println("Finished refreshing libraries!");
+        task.setOnSucceeded(e -> outputPrinter.println("Finished refreshing libraries!"));
     }
 
     @Command
@@ -37,9 +37,9 @@ public class ActionManagerDebugCommands implements DebugCommands {
                             @IntParam("libraryId") int id,
                             @StringParam("path") String path) throws Exception {
         final Library library = libraryManager.getLibraryById(new Id<>(id));
-        final Task<Void> task = actionManager.processPath(library, Paths.get(path));
+        final Task<Void> task = actionService.processPath(library, Paths.get(path));
         printFailureToOutput(task, outputPrinter);
-        outputPrinter.println("Finished processing path: %s", path);
+        task.setOnSucceeded(e -> outputPrinter.println("Finished processing path: %s", path));
     }
 
     private void printFailureToOutput(Task<Void> task, OutputPrinter outputPrinter) {

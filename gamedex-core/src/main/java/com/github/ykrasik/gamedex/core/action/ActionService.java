@@ -14,7 +14,7 @@ import java.nio.file.Path;
 // TODO: This class should sub-divide responsibilities among the rest of the classes.
 // TODO: Rename this to ActionManager? Each flow returns a Result class with properties?
 // TODO: Need 2 threads - one to search and fetch games, one to fetch thumbnails & posters.
-public interface ActionManager {
+public interface ActionService {
     ReadOnlyStringProperty messageProperty();
     ReadOnlyDoubleProperty progressProperty();
     ReadOnlyDoubleProperty fetchProgressProperty();

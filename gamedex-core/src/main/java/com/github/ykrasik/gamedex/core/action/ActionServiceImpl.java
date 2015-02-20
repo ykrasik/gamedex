@@ -7,7 +7,7 @@ import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
-import com.github.ykrasik.gamedex.core.dialog.DialogManager;
+import com.github.ykrasik.gamedex.core.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.dialog.MultipleSearchResultsDialogParams;
 import com.github.ykrasik.gamedex.core.dialog.NoSearchResultsDialogParams;
 import com.github.ykrasik.gamedex.core.dialog.choice.DialogChoice;
@@ -46,12 +46,12 @@ import java.util.regex.Pattern;
  * @author Yevgeny Krasik
  */
 @RequiredArgsConstructor
-public class ActionManagerImpl extends AbstractService implements ActionManager {
+public class ActionServiceImpl extends AbstractService implements ActionService {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
     @NonNull private final GameCollectionConfig config;
-    @NonNull private final DialogManager dialogManager;
+    @NonNull private final DialogService dialogService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
     @NonNull private final ExcludedPathManager excludedPathManager;
@@ -103,14 +103,14 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
     @Override
     public void addNewLibrary() {
         try {
-            final Opt<LibraryDef> libraryDefOpt = dialogManager.addLibraryDialog(config.getPrevDirectory());
+            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(config.getPrevDirectory());
             if (libraryDefOpt.isPresent()) {
                 final LibraryDef libraryDef = libraryDefOpt.get();
                 config.setPrevDirectory(libraryDef.getPath());
                 createLibraryFromDef(libraryDef);
             }
         } catch (Exception e) {
-            dialogManager.showException(e);
+            dialogService.showException(e);
         }
     }
 
@@ -182,6 +182,11 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
     }
 
     private boolean doProcessPath(LibraryHierarchy libraryHierarchy, Path path) throws Exception {
+        if (gameManager.isGame(path)) {
+            LOG.info("{} is already mapped, skipping...", path);
+            return false;
+        }
+
         if (libraryManager.isLibrary(path)) {
             LOG.info("{} is a library, skipping...", path);
             return false;
@@ -189,11 +194,6 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
 
         if (excludedPathManager.isExcluded(path)) {
             LOG.info("{} is excluded, skipping...", path);
-            return false;
-        }
-
-        if (gameManager.isGame(path)) {
-            LOG.info("{} is already mapped, skipping...", path);
             return false;
         }
 
@@ -222,7 +222,7 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
         }
 
         final List<Path> children = FileUtils.listChildDirectories(path);
-        final Opt<LibraryDef> libraryDefOpt = dialogManager.createLibraryDialog(path, children, libraryHierarchy.getPlatform());
+        final Opt<LibraryDef> libraryDefOpt = dialogService.createLibraryDialog(path, children, libraryHierarchy.getPlatform());
         if (libraryDefOpt.isEmpty()) {
             return false;
         }
@@ -335,7 +335,7 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
             .path(searchContext.getPath())
             .canProceedWithout(providerType != GameInfoProviderType.METACRITIC)
             .build();
-        final DialogChoice choice = dialogManager.noSearchResultsDialog(params);
+        final DialogChoice choice = dialogService.noSearchResultsDialog(params);
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
             public Opt<GameInfo> newName(String newName) throws Exception {
@@ -362,7 +362,7 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
             .searchResults(sortedSearchResults)
             .canProceedWithout(providerType != GameInfoProviderType.METACRITIC)
             .build();
-        final DialogChoice choice = dialogManager.multipleSearchResultsDialog(params);
+        final DialogChoice choice = dialogService.multipleSearchResultsDialog(params);
         return choice.resolve(new DialogChoiceResolverAdapter() {
             @Override
             public Opt<GameInfo> newName(String newName) throws Exception {
@@ -434,7 +434,7 @@ public class ActionManagerImpl extends AbstractService implements ActionManager 
                 return null;
             }
         };
-        task.setOnFailed(e -> dialogManager.showException(task.getException()));
+        task.setOnFailed(e -> dialogService.showException(task.getException()));
         executorService.submit(task);
         return task;
     }

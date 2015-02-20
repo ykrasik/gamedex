@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.core.action.ActionManager;
+import com.github.ykrasik.gamedex.core.action.ActionService;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.library.LibraryManager;
 import javafx.concurrent.Task;
@@ -38,7 +38,7 @@ public class MainController implements Controller {
     @FXML private Button statusBarStopButton;
     @FXML private TextArea logTextArea;
 
-    @NonNull private final ActionManager actionManager;
+    @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
 
@@ -49,7 +49,7 @@ public class MainController implements Controller {
     }
 
     private void initMenu() {
-        addLibraryMenuItem.setOnAction(e -> actionManager.addNewLibrary());
+        addLibraryMenuItem.setOnAction(e -> actionService.addNewLibrary());
 //        showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
 //            if (newValue) {
 //                contentScreen.getChildren().add(sideBar);
@@ -60,10 +60,10 @@ public class MainController implements Controller {
     }
 
     private void initBottom() {
-        progressIndicator.progressProperty().bind(actionManager.fetchProgressProperty());
-        statusBar.progressProperty().bind(actionManager.progressProperty());
-        statusBar.textProperty().bind(actionManager.messageProperty());
-        actionManager.messageProperty().addListener((observable, oldValue, newValue) -> {
+        progressIndicator.progressProperty().bind(actionService.fetchProgressProperty());
+        statusBar.progressProperty().bind(actionService.progressProperty());
+        statusBar.textProperty().bind(actionService.messageProperty());
+        actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
             logTextArea.appendText(newValue);
             logTextArea.appendText("\n");
         });
@@ -86,7 +86,7 @@ public class MainController implements Controller {
     }
 
     private void prepareTask(Task<Void> task) {
-        task.setOnCancelled(event -> actionManager.stopTask(task));
+        task.setOnCancelled(event -> actionService.stopTask(task));
 
         progressIndicator.visibleProperty().bind(task.runningProperty());
 

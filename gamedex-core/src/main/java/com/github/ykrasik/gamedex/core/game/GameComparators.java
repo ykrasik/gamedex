@@ -26,10 +26,10 @@ public final class GameComparators {
     @Getter private static final Comparator<Game> lastModifiedAsc = FieldComparator.of(Game::getLastModified);
     @Getter private static final Comparator<Game> lastModifiedDesc = lastModifiedAsc.reversed();
 
-    @Getter private static final Comparator<Game> userScoreAsc = rawUserScoreAsc.or(rawCriticScoreAsc).or(nameAsc);
+    @Getter private static final Comparator<Game> userScoreAsc = rawUserScoreAsc.or(rawCriticScoreAsc).or(rawReleaseDateAsc).or(nameAsc);
     @Getter private static final Comparator<Game> userScoreDesc = userScoreAsc.reversed();
 
-    @Getter private static final Comparator<Game> criticScoreAsc = rawCriticScoreAsc.or(rawUserScoreAsc).or(nameAsc);
+    @Getter private static final Comparator<Game> criticScoreAsc = rawCriticScoreAsc.or(rawUserScoreAsc).or(rawReleaseDateAsc).or(nameAsc);
     @Getter private static final Comparator<Game> criticScoreDesc = criticScoreAsc.reversed();
 
     @Getter private static final Comparator<Game> releaseDateAsc = rawReleaseDateAsc.or(nameAsc);

@@ -38,7 +38,7 @@ import java.util.concurrent.FutureTask;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class DialogManagerImpl implements DialogManager {
+public class DialogServiceImpl implements DialogService {
     private static final DialogAction EXCLUDE_ACTION = createExcludeAction();
     private static final DialogAction PROCEED_ANYWAY_ACTION = createProceedAnywayAction();
     private static final DialogAction NEW_NAME_ACTION = createNewNameAction();

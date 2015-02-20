@@ -5,13 +5,13 @@ import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfigImpl;
 import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
-import com.github.ykrasik.gamedex.core.dialog.DialogManager;
-import com.github.ykrasik.gamedex.core.dialog.DialogManagerImpl;
+import com.github.ykrasik.gamedex.core.dialog.DialogService;
+import com.github.ykrasik.gamedex.core.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.exclude.debug.ExcludedPathDebugCommands;
-import com.github.ykrasik.gamedex.core.action.ActionManager;
-import com.github.ykrasik.gamedex.core.action.ActionManagerImpl;
+import com.github.ykrasik.gamedex.core.action.ActionService;
+import com.github.ykrasik.gamedex.core.action.ActionServiceImpl;
 import com.github.ykrasik.gamedex.core.action.debug.ActionManagerDebugCommands;
 import com.github.ykrasik.gamedex.core.game.GameManager;
 import com.github.ykrasik.gamedex.core.game.GameManagerImpl;
@@ -63,21 +63,21 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public DialogManager choiceProvider(Stage stage) {
-        return new DialogManagerImpl(stage);
+    public DialogService choiceProvider(Stage stage) {
+        return new DialogServiceImpl(stage);
     }
 
     @Bean
-    public ActionManager actionManager(GameCollectionConfig config,
-                                       DialogManager dialogManager,
+    public ActionService actionManager(GameCollectionConfig config,
+                                       DialogService dialogService,
                                        GameManager gameManager,
                                        LibraryManager libraryManager,
                                        ExcludedPathManager excludedPathManager,
                                        MetacriticGameInfoService metacriticInfoService,
                                        GiantBombGameInfoService giantBombInfoService) {
-        return new ActionManagerImpl(
+        return new ActionServiceImpl(
             config,
-            dialogManager,
+            dialogService,
             gameManager,
             libraryManager,
             excludedPathManager,
@@ -87,8 +87,8 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ActionManagerDebugCommands flowManagerDebugCommands(ActionManager actionManager, LibraryManager libraryManager) {
-        return new ActionManagerDebugCommands(actionManager, libraryManager);
+    public ActionManagerDebugCommands flowManagerDebugCommands(ActionService actionService, LibraryManager libraryManager) {
+        return new ActionManagerDebugCommands(actionService, libraryManager);
     }
 
     @Bean
