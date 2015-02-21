@@ -1,7 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.persistence;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import lombok.*;
@@ -30,9 +29,6 @@ public class Game {
     @NonNull private final Opt<LocalDate> releaseDate;
     @NonNull private final Opt<Double> criticScore;
     @NonNull private final Opt<Double> userScore;
-
-    @NonNull private final Opt<ImageData> thumbnail;
-    @NonNull private final Opt<ImageData> poster;
 
     @NonNull private final LocalDateTime lastModified;
 

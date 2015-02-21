@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.library;
 
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.gs.collections.api.list.ImmutableList;
@@ -16,11 +16,6 @@ import java.sql.SQLException;
  * @author Yevgeny Krasik
  */
 public class LibraryDaoImpl extends BaseDaoImpl<LibraryEntity, Integer> implements LibraryDao {
-    private final SelectArg pathArg = new SelectArg();
-    private final PreparedQuery<LibraryEntity> pathQuery = queryBuilder().where()
-        .eq(LibraryEntity.PATH_COLUMN, pathArg)
-        .prepare();
-
     public LibraryDaoImpl(Class<LibraryEntity> dataClass) throws SQLException {
         super(dataClass);
     }
@@ -32,6 +27,11 @@ public class LibraryDaoImpl extends BaseDaoImpl<LibraryEntity, Integer> implemen
     public LibraryDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<LibraryEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
     }
+
+    private final SelectArg pathArg = new SelectArg();
+    private final PreparedQuery<LibraryEntity> pathQuery = queryBuilder().where()
+        .eq(LibraryEntity.PATH_COLUMN, pathArg)
+        .prepare();
 
     @Override
     public ImmutableList<LibraryEntity> getAll() throws SQLException {

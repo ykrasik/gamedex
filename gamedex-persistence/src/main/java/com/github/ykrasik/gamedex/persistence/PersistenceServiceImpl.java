@@ -2,10 +2,19 @@ package com.github.ykrasik.gamedex.persistence;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.*;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.config.PersistenceProperties;
-import com.github.ykrasik.gamedex.persistence.dao.*;
+import com.github.ykrasik.gamedex.persistence.dao.exclude.ExcludePathDao;
+import com.github.ykrasik.gamedex.persistence.dao.game.GameDao;
+import com.github.ykrasik.gamedex.persistence.dao.game.GameImageDao;
+import com.github.ykrasik.gamedex.persistence.dao.genre.GenreDao;
+import com.github.ykrasik.gamedex.persistence.dao.genre.GenreGameLinkDao;
+import com.github.ykrasik.gamedex.persistence.dao.genre.GenreGameLinkDaoImpl;
+import com.github.ykrasik.gamedex.persistence.dao.library.LibraryDao;
+import com.github.ykrasik.gamedex.persistence.dao.library.LibraryGameLinkDao;
+import com.github.ykrasik.gamedex.persistence.dao.library.LibraryGameLinkDaoImpl;
 import com.github.ykrasik.gamedex.persistence.entity.*;
 import com.github.ykrasik.gamedex.persistence.exception.DataException;
 import com.github.ykrasik.gamedex.persistence.extractor.GenreExtractor;
@@ -14,10 +23,9 @@ import com.github.ykrasik.gamedex.persistence.translator.exclude.ExcludedPathEnt
 import com.github.ykrasik.gamedex.persistence.translator.game.GameEntityTranslator;
 import com.github.ykrasik.gamedex.persistence.translator.genre.GenreEntityTranslator;
 import com.github.ykrasik.gamedex.persistence.translator.library.LibraryEntityTranslator;
+import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.api.list.MutableList;
-import com.gs.collections.api.map.ImmutableMap;
-import com.gs.collections.api.multimap.list.ImmutableListMultimap;
 import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
@@ -28,6 +36,7 @@ import lombok.SneakyThrows;
 
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -42,6 +51,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     private JdbcPooledConnectionSource connectionSource;
     private GameDao gameDao;
+    private GameImageDao gameImageDao;
     private GenreDao genreDao;
     private GenreGameLinkDao genreGameLinkDao;
     private LibraryDao libraryDao;
@@ -64,6 +74,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     private void prepareSchema() throws SQLException {
         TableUtils.createTableIfNotExists(connectionSource, GameEntity.class);
+        TableUtils.createTableIfNotExists(connectionSource, GameImageEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, GenreEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, GenreGameLinkEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, LibraryEntity.class);
@@ -74,6 +85,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @SuppressWarnings("unchecked")
     private void instantiateDaos() throws SQLException {
         gameDao = DaoManager.createDao(connectionSource, GameEntity.class);
+        gameImageDao = DaoManager.createDao(connectionSource, GameImageEntity.class);
         genreDao = DaoManager.createDao(connectionSource, GenreEntity.class);
         genreGameLinkDao = DaoManager.createDao(connectionSource, GenreGameLinkEntity.class);
         ((GenreGameLinkDaoImpl)genreGameLinkDao).setDaos(gameDao, genreDao);
@@ -92,26 +104,32 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @SneakyThrows
     public Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform) {
         // Insert game.
-        final GameEntity game = gameTranslator.translate(gameInfo);
-        game.setPath(path.toString());
-        game.setPlatform(platform);
+        final GameEntity game = gameTranslator.translate(gameInfo).path(path.toString()).platform(platform);
         LOG.debug("Inserting {}...", game);
         if (gameDao.create(game) != 1) {
             throw new DataException("Error inserting game: %s", gameInfo);
         }
 
+        // Insert thumbnail & poster.
+        gameInfo.getThumbnail().ifPresent(thumbnail -> insertImage(game, GameImageEntityType.THUMBNAIL, thumbnail));
+        gameInfo.getPoster().ifPresent(poster -> insertImage(game, GameImageEntityType.POSTER, poster));
+
         // Insert all new genres.
-        final ImmutableList<GenreEntity> genresEntities = gameInfo.getGenres().collect(this::getOrCreateGenreByName);
+        final ImmutableList<GenreEntity> genreEntities = gameInfo.getGenres().collect(this::getOrCreateGenreByName);
 
         // Link genres to game.
-        for (GenreEntity genre : genresEntities) {
-            final GenreGameLinkEntity genreGameLinkEntity = new GenreGameLinkEntity();
-            genreGameLinkEntity.setGame(game);
-            genreGameLinkEntity.setGenre(genre);
-            genreGameLinkDao.create(genreGameLinkEntity);
+        for (GenreEntity genre : genreEntities) {
+            final GenreGameLinkEntity linkEntity = new GenreGameLinkEntity().game(game).genre(genre);
+            genreGameLinkDao.create(linkEntity);
         }
 
-        return getGameById(new Id<>(game.getId()));
+        return getGameById(new Id<>(game.id()));
+    }
+
+    @SneakyThrows
+    private void insertImage(GameEntity game, GameImageEntityType type, ImageData thumbnail) {
+        final GameImageEntity imageEntity = new GameImageEntity().game(game).type(type).data(thumbnail.getRawData());
+        gameImageDao.create(imageEntity);
     }
 
     @SneakyThrows
@@ -128,20 +146,24 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
             throw new DataException("Error deleting game: %d. Entry doesn't exist?", gameId);
         }
 
+        // Delete thumbnail & poster
+        gameImageDao.deleteByGameId(gameId);
+
         final ImmutableList<GenreEntity> genres = genreGameLinkDao.getGenresByGameId(gameId);
         genreGameLinkDao.deleteByGameId(gameId);
 
         // Delete any genres which were only linked to this game.
         final MutableList<GenreEntity> genresToDelete = Lists.mutable.of();
         for (GenreEntity genre : genres) {
-            final ImmutableList<GenreGameLinkEntity> genreLinks = genreGameLinkDao.getByGenreId(genre.getId());
+            final ImmutableList<GenreGameLinkEntity> genreLinks = genreGameLinkDao.getByGenreId(genre.id());
             if (genreLinks.isEmpty()) {
                 LOG.debug("Genre={} was only linked to gameId={}, deleting...", genre, gameId);
                 genresToDelete.add(genre);
             }
         }
         if (!genresToDelete.isEmpty()) {
-            genreDao.deleteIds(genresToDelete.collect(GenreEntity::getId));
+            final List<Integer> genreIds = genresToDelete.collect(GenreEntity::id);
+            genreDao.deleteIds(genreIds);
         }
 
         libraryGameLinkDao.deleteByGameId(gameId);
@@ -151,7 +173,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @SneakyThrows
     public ImmutableList<Game> getAllGames() {
         LOG.debug("Fetching all games...");
-        final ImmutableList<GameEntity> games = Lists.immutable.ofAll(gameDao.queryForAll());
+        final ImmutableList<GameEntity> games = gameDao.getAll();
 
         // This is required due to lack of support for intelligent joins in OrmLite... :/
         final GenreExtractor genreExtractor = createGenreExtractor();
@@ -161,27 +183,19 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     private GenreExtractor createGenreExtractor() throws SQLException {
         final ImmutableList<Genre> genres = getAllGenres();
-        final ImmutableMap<Id<Genre>, Genre> genreMap = genres.groupByUniqueKey(Genre::getId);
-
         final ImmutableList<GenreGameLinkEntity> genreGames = genreGameLinkDao.getAll();
-        final ImmutableListMultimap<Integer, GenreGameLinkEntity> genreGameMap = genreGames.groupBy(entity -> entity.getGame().getId());
-
-        return new GenreExtractor(genreMap, genreGameMap);
+        return GenreExtractor.from(genres, genreGames);
     }
 
     private LibraryExtractor createLibraryExtractor() throws SQLException {
         final ImmutableList<Library> libraries = getAllLibraries();
-        final ImmutableMap<Id<Library>, Library> libraryMap = libraries.groupByUniqueKey(Library::getId);
-
         final ImmutableList<LibraryGameLinkEntity> libraryGames = libraryGameLinkDao.getAll();
-        final ImmutableListMultimap<Integer, LibraryGameLinkEntity> libraryGameMap = libraryGames.groupBy(entity -> entity.getGame().getId());
-
-        return new LibraryExtractor(libraryMap, libraryGameMap);
+        return LibraryExtractor.from(libraries, libraryGames);
     }
 
     private Game translateGame(GameEntity entity, GenreExtractor genreExtractor, LibraryExtractor libraryExtractor) {
-        final ImmutableList<Genre> genres = genreExtractor.getData(entity.getId()).toList().toImmutable();
-        final ImmutableList<Library> libraries = libraryExtractor.getData(entity.getId()).toList().toImmutable();
+        final ImmutableList<Genre> genres = genreExtractor.getData(entity.id()).toList().toImmutable();
+        final ImmutableList<Library> libraries = libraryExtractor.getData(entity.id()).toList().toImmutable();
         return gameTranslator.translate(entity, genres, libraries);
     }
 
@@ -198,12 +212,12 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     }
 
     private ImmutableList<Genre> getGenresByGame(GameEntity game) throws SQLException {
-        final ImmutableList<GenreEntity> entities = genreGameLinkDao.getGenresByGameId(game.getId());
+        final ImmutableList<GenreEntity> entities = genreGameLinkDao.getGenresByGameId(game.id());
         return entities.collect(genreTranslator::translate);
     }
 
     private ImmutableList<Library> getLibrariesByGame(GameEntity entity) throws SQLException {
-        final ImmutableList<LibraryEntity> entities = libraryGameLinkDao.getLibrariesByGameId(entity.getId());
+        final ImmutableList<LibraryEntity> entities = libraryGameLinkDao.getLibrariesByGameId(entity.id());
         return entities.collect(libraryTranslator::translate);
     }
 
@@ -215,12 +229,25 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public Library addLibrary(Path path, GamePlatform platform, String name) {
-        final LibraryEntity entity = new LibraryEntity();
-        entity.setPath(path.toString());
-        entity.setPlatform(platform);
-        entity.setName(name);
+    public Opt<ImageData> getThumbnail(Id<Game> id) {
+        return fetchImageData(id, GameImageEntityType.THUMBNAIL);
+    }
 
+    @Override
+    @SneakyThrows
+    public Opt<ImageData> getPoster(Id<Game> id) {
+        return fetchImageData(id, GameImageEntityType.POSTER);
+    }
+
+    private Opt<ImageData> fetchImageData(Id<Game> id, GameImageEntityType type) throws SQLException {
+        final Opt<GameImageEntity> entity = gameImageDao.queryByGameId(id.getId(), type);
+        return entity.map(poster -> ImageData.of(poster.data()));
+    }
+
+    @Override
+    @SneakyThrows
+    public Library addLibrary(Path path, GamePlatform platform, String name) {
+        final LibraryEntity entity = new LibraryEntity().path(path.toString()).platform(platform).name(name);
         LOG.debug("Inserting {}...", entity);
         if (libraryDao.create(entity) != 1) {
             throw new DataException("Error inserting library: %s", entity);
@@ -275,9 +302,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         LOG.debug("Adding game {} to library {}...", game, library);
         final GameEntity gameEntity = gameTranslator.translate(game);
         final LibraryEntity libraryEntity = libraryTranslator.translate(library);
-        final LibraryGameLinkEntity linkEntity = new LibraryGameLinkEntity();
-        linkEntity.setGame(gameEntity);
-        linkEntity.setLibrary(libraryEntity);
+        final LibraryGameLinkEntity linkEntity = new LibraryGameLinkEntity().game(gameEntity).library(libraryEntity);
         if (libraryGameLinkDao.create(linkEntity) != 1) {
             throw new DataException("Error adding game to library! Game=%s, Library=%s", game, library);
         }
@@ -307,8 +332,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     @Override
     @SneakyThrows
     public ExcludedPath addExcludedPath(Path path) {
-        final ExcludedPathEntity entity = new ExcludedPathEntity();
-        entity.setPath(path.toString());
+        final ExcludedPathEntity entity = new ExcludedPathEntity().path(path.toString());
 
         LOG.debug("Inserting {}...", entity);
         if (excludedPathDao.create(entity) != 1) {

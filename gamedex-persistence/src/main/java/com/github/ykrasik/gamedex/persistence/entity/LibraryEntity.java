@@ -1,15 +1,17 @@
 package com.github.ykrasik.gamedex.persistence.entity;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.persistence.dao.LibraryDaoImpl;
+import com.github.ykrasik.gamedex.persistence.dao.library.LibraryDaoImpl;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * @author Yevgeny Krasik
  */
 @Data
+@Accessors(fluent = true)
 @DatabaseTable(tableName = "libraries", daoClass = LibraryDaoImpl.class)
 public class LibraryEntity {
     public static final String PATH_COLUMN = "path";

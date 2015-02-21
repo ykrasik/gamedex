@@ -1,5 +1,6 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.library;
 
+import com.github.ykrasik.gamedex.persistence.dao.game.GameDao;
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryGameLinkEntity;
@@ -17,15 +18,6 @@ import java.sql.SQLException;
  * @author Yevgeny Krasik
  */
 public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, Integer> implements LibraryGameLinkDao {
-    private final SelectArg gameArg = new SelectArg();
-    private final SelectArg libraryArg = new SelectArg();
-    private PreparedQuery<LibraryEntity> fetchLibrariesByGameQuery;
-    private PreparedDelete<LibraryGameLinkEntity> deleteByGameIdQuery;
-    private PreparedDelete<LibraryGameLinkEntity> deleteByLibraryIdQuery;
-
-    private GameDao gameDao;
-    private LibraryDao libraryDao;
-
     public LibraryGameLinkDaoImpl(Class<LibraryGameLinkEntity> dataClass) throws SQLException {
         super(dataClass);
     }
@@ -37,6 +29,15 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
     public LibraryGameLinkDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<LibraryGameLinkEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
     }
+
+    private final SelectArg gameArg = new SelectArg();
+    private final SelectArg libraryArg = new SelectArg();
+    private PreparedQuery<LibraryEntity> fetchLibrariesByGameQuery;
+    private PreparedDelete<LibraryGameLinkEntity> deleteByGameIdQuery;
+    private PreparedDelete<LibraryGameLinkEntity> deleteByLibraryIdQuery;
+
+    private GameDao gameDao;
+    private LibraryDao libraryDao;
 
     public void setDaos(@NonNull GameDao gameDao, @NonNull LibraryDao libraryDao) throws SQLException {
         this.gameDao = gameDao;

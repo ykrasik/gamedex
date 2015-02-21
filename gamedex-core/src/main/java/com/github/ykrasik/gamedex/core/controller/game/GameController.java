@@ -2,10 +2,10 @@ package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.controller.Controller;
-import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
+import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
@@ -51,9 +51,9 @@ public class GameController implements Controller {
     @FXML private GameListController gameListController;
     @FXML private GameSideBarController gameSideBarController;
 
-    @NonNull private ActionService actionService;
-    @NonNull private GameManager gameManager;
-    @NonNull private LibraryManager libraryManager;
+    @NonNull private final ActionService actionService;
+    @NonNull private final GameManager gameManager;
+    @NonNull private final LibraryManager libraryManager;
 
     // Called by JavaFX
     public void initialize() {

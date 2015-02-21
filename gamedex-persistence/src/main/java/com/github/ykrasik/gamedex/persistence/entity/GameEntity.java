@@ -1,12 +1,13 @@
 package com.github.ykrasik.gamedex.persistence.entity;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.persistence.dao.GameDaoImpl;
+import com.github.ykrasik.gamedex.persistence.dao.game.GameDaoImpl;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import java.util.Date;
 
@@ -14,6 +15,7 @@ import java.util.Date;
  * @author Yevgeny Krasik
  */
 @Data
+@Accessors(fluent = true)
 @ToString(of = {"id", "path", "name"})
 @DatabaseTable(tableName = "games", daoClass = GameDaoImpl.class)
 public class GameEntity {
@@ -49,12 +51,6 @@ public class GameEntity {
 
     @DatabaseField
     private String giantBombDetailUrl;
-
-    @DatabaseField(dataType = DataType.BYTE_ARRAY)
-    private byte[] thumbnailData;
-
-    @DatabaseField(dataType = DataType.BYTE_ARRAY)
-    private byte[] posterData;
 
     @DatabaseField(dataType = DataType.DATE_LONG, version = true)
     private Date lastModified;

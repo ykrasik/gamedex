@@ -1,8 +1,10 @@
 package com.github.ykrasik.gamedex.persistence;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.*;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
+import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 
 import java.nio.file.Path;
@@ -18,6 +20,9 @@ public interface PersistenceService {
     ImmutableList<Game> getAllGames();
     Game getGameById(Id<Game> id);
     boolean hasGameForPath(Path path);
+
+    Opt<ImageData> getThumbnail(Id<Game> id);
+    Opt<ImageData> getPoster(Id<Game> id);
 
     Library addLibrary(Path path, GamePlatform platform, String name);
     void deleteLibrary(Id<Library> id);

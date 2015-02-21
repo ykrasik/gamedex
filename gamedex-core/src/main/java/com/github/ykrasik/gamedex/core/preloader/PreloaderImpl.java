@@ -85,13 +85,13 @@ public class PreloaderImpl implements Preloader {
         initStage.setY(bounds.getMinY() + bounds.getHeight() / 3 - logo.getHeight() / 2);
         initStage.show();
 
-        final FadeTransition fadeSplash = new FadeTransition(Duration.seconds(0.5), splashLayout);
-        fadeSplash.setFromValue(1.0);
-        fadeSplash.setToValue(0.0);
-        fadeSplash.setOnFinished(e -> initStage.hide());
+        final FadeTransition fade = new FadeTransition(Duration.seconds(0.5), splashLayout);
+        fade.setFromValue(1.0);
+        fade.setToValue(0.0);
+        fade.setOnFinished(e -> initStage.hide());
 
         task.setOnSucceeded(v -> {
-            fadeSplash.play();
+            fade.play();
             try {
                 final T t = task.get();
                 consumer.accept(t);

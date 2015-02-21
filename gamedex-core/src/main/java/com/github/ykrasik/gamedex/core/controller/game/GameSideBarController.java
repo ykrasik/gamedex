@@ -2,8 +2,7 @@ package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.controller.Controller;
-import com.github.ykrasik.gamedex.core.ui.UIResources;
-import com.github.ykrasik.gamedex.datamodel.ImageData;
+import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import javafx.fxml.FXML;
@@ -12,6 +11,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.awt.*;
@@ -22,6 +23,7 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
 /**
  * @author Yevgeny Krasik
  */
+@RequiredArgsConstructor
 public class GameSideBarController implements Controller {
     @FXML private GridPane container;
     @FXML private ImageView poster;
@@ -36,6 +38,8 @@ public class GameSideBarController implements Controller {
     @FXML private TextField genres;
     @FXML private Hyperlink url;
 
+    @NonNull private final ImageService imageService;
+
     // Called by JavaFX
     public void initialize() {
         // Make the poster resize dynamically according to how much space is available, minus margins.
@@ -45,7 +49,8 @@ public class GameSideBarController implements Controller {
     }
 
     public void displayGame(Game game) {
-        poster.setImage(game.getPoster().orElse(game.getThumbnail()).map(ImageData::getImage).getOrElse(UIResources.notAvailable()));
+        imageService.fetchPoster(game.getId(), poster);
+
         gamePath.setText(game.getPath().toString());
         name.setText(game.getName());
         description.setText(toStringOrUnavailable(game.getDescription()));

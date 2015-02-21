@@ -16,11 +16,7 @@ import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.debug.LibraryManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.service.action.ActionService;
-import com.github.ykrasik.gamedex.core.service.action.ActionServiceImpl;
-import com.github.ykrasik.gamedex.core.service.action.debug.ActionManagerDebugCommands;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
-import com.github.ykrasik.gamedex.core.service.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
@@ -28,7 +24,6 @@ import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,35 +57,6 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     public GameCollectionConfig gameCollectionConfig() throws IOException {
         preloader.info("Loading config...");
         return new GameCollectionConfigImpl();
-    }
-
-    @Bean
-    public DialogService choiceProvider(Stage stage) {
-        return new DialogServiceImpl(stage);
-    }
-
-    @Bean
-    public ActionService actionManager(GameCollectionConfig config,
-                                       DialogService dialogService,
-                                       GameManager gameManager,
-                                       LibraryManager libraryManager,
-                                       ExcludedPathManager excludedPathManager,
-                                       GameInfoProviderManager metacriticManager,
-                                       GameInfoProviderManager giantBombManager) {
-        return new ActionServiceImpl(
-            config,
-            dialogService,
-            gameManager,
-            libraryManager,
-            excludedPathManager,
-            metacriticManager,
-            giantBombManager
-        );
-    }
-
-    @Bean
-    public ActionManagerDebugCommands flowManagerDebugCommands(ActionService actionService, LibraryManager libraryManager) {
-        return new ActionManagerDebugCommands(actionService, libraryManager);
     }
 
     @Bean

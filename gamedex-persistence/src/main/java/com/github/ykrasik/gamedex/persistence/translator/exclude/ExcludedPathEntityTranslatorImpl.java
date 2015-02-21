@@ -12,14 +12,13 @@ import java.nio.file.Paths;
 public class ExcludedPathEntityTranslatorImpl implements ExcludedPathEntityTranslator {
     @Override
     public ExcludedPath translate(ExcludedPathEntity entity) {
-        return new ExcludedPath(new Id<>(entity.getId()), Paths.get(entity.getPath()));
+        return new ExcludedPath(new Id<>(entity.id()), Paths.get(entity.path()));
     }
 
     @Override
     public ExcludedPathEntity translate(ExcludedPath excludedPath) {
-        final ExcludedPathEntity entity = new ExcludedPathEntity();
-        entity.setId(excludedPath.getId().getId());
-        entity.setPath(excludedPath.getPath().toString());
-        return entity;
+        return new ExcludedPathEntity()
+            .id(excludedPath.getId().getId())
+            .path(excludedPath.getPath().toString());
     }
 }

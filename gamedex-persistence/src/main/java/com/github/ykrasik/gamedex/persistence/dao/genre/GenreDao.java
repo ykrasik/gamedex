@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.genre;
 
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.gs.collections.api.list.ImmutableList;

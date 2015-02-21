@@ -10,14 +10,13 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 public class GenreEntityTranslatorImpl implements GenreEntityTranslator {
     @Override
     public Genre translate(GenreEntity entity) {
-        return new Genre(new Id<>(entity.getId()), entity.getName());
+        return new Genre(new Id<>(entity.id()), entity.name());
     }
 
     @Override
     public GenreEntity translate(Genre genre) {
-        final GenreEntity entity = new GenreEntity();
-        entity.setId(genre.getId().getId());
-        entity.setName(genre.getName());
-        return entity;
+        return new GenreEntity()
+            .id(genre.getId().getId())
+            .name(genre.getName());
     }
 }

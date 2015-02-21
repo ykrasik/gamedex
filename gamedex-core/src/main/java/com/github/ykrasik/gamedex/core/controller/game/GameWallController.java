@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.core.controller.Controller;
+import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameInfoCell;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import javafx.beans.property.ObjectProperty;
@@ -10,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.controlsfx.control.GridView;
 
@@ -19,6 +21,8 @@ import org.controlsfx.control.GridView;
 @RequiredArgsConstructor
 public class GameWallController implements Controller {
     @FXML private GridView<Game> gameWall;
+
+    @NonNull private final ImageService imageService;
 
     private final ObjectProperty<Game> selectedGameProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<Game> deletedGameProperty = new SimpleObjectProperty<>();
@@ -38,7 +42,7 @@ public class GameWallController implements Controller {
     // Called by JavaFX
     public void initialize() {
         gameWall.setCellFactory(param -> {
-            final GameInfoCell cell = new GameInfoCell();
+            final GameInfoCell cell = new GameInfoCell(imageService);
             cell.getStyleClass().add("gameTile");
             cell.setOnMouseClicked(event -> {
                 final Game game = cell.getItem();

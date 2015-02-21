@@ -1,5 +1,6 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.genre;
 
+import com.github.ykrasik.gamedex.persistence.dao.game.GameDao;
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.github.ykrasik.gamedex.persistence.entity.GenreGameLinkEntity;
 import com.gs.collections.api.list.ImmutableList;
@@ -16,15 +17,6 @@ import java.sql.SQLException;
  * @author Yevgeny Krasik
  */
 public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integer> implements GenreGameLinkDao {
-    private final SelectArg gameArg = new SelectArg();
-    private final SelectArg genreArg = new SelectArg();
-    private PreparedQuery<GenreEntity> fetchGenresByGameQuery;
-    private PreparedQuery<GenreGameLinkEntity> fetchByGenreIdQuery;
-    private PreparedDelete<GenreGameLinkEntity> deleteByGameIdQuery;
-
-    private GameDao gameDao;
-    private GenreDao genreDao;
-
     public GenreGameLinkDaoImpl(Class<GenreGameLinkEntity> dataClass) throws SQLException {
         super(dataClass);
     }
@@ -36,6 +28,15 @@ public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integ
     public GenreGameLinkDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<GenreGameLinkEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
     }
+
+    private final SelectArg gameArg = new SelectArg();
+    private final SelectArg genreArg = new SelectArg();
+    private PreparedQuery<GenreEntity> fetchGenresByGameQuery;
+    private PreparedQuery<GenreGameLinkEntity> fetchByGenreIdQuery;
+    private PreparedDelete<GenreGameLinkEntity> deleteByGameIdQuery;
+
+    private GameDao gameDao;
+    private GenreDao genreDao;
 
     public void setDaos(@NonNull GameDao gameDao, @NonNull GenreDao genreDao) throws SQLException {
         this.gameDao = gameDao;

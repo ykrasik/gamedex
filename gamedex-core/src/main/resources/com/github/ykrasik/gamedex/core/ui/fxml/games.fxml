@@ -14,20 +14,18 @@
                     <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
-                        <Label text="Search:" />
-                        <TextField fx:id="gameSearchTextField" promptText="Search Games" GridPane.columnIndex="1">
+                        <TextField fx:id="gameSearchTextField" promptText="Search">
                         </TextField>
-                        <Button fx:id="clearGameSearchButton" GridPane.columnIndex="2">
+                        <Button fx:id="clearGameSearchButton" GridPane.columnIndex="1">
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
-                                        <Image url="@../x_small_icon.png" />
+                                        <Image url="@../image/x_small_icon.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -46,7 +44,7 @@
                      <graphic>
                         <ImageView preserveRatio="true">
                            <image>
-                              <Image url="@../x_small_icon.png" />
+                              <Image url="@../image/x_small_icon.png" />
                            </image>
                         </ImageView>
                      </graphic>
@@ -73,7 +71,7 @@
                      <graphic>
                         <ImageView preserveRatio="true">
                            <image>
-                              <Image url="@../x_small_icon.png" />
+                              <Image url="@../image/x_small_icon.png" />
                            </image>
                         </ImageView>
                      </graphic>
@@ -110,7 +108,7 @@
             <Region prefWidth="10.0" />
             <CheckBox fx:id="autoSkipCheckBox" mnemonicParsing="false" text="Don't bother me" />
             <Separator orientation="VERTICAL" />
-                <Button fx:id="refreshLibrariesButton" defaultButton="true" mnemonicParsing="false" text="Refresh Libraries" />
+                <Button fx:id="refreshLibrariesButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" text="Refresh Libraries" />
             </items>
         </ToolBar>
     </top>

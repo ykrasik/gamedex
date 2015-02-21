@@ -21,7 +21,7 @@ import java.nio.file.Paths;
  */
 @RequiredArgsConstructor
 @ShellPath("action")
-public class ActionManagerDebugCommands implements DebugCommands {
+public class ActionServiceDebugCommands implements DebugCommands {
     @NonNull private final ActionService actionService;
     @NonNull private final LibraryManager libraryManager;
 

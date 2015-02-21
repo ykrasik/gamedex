@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel.persistence;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
@@ -11,6 +12,7 @@ import java.nio.file.Path;
  * @author Yevgeny Krasik
  */
 @Value
+@Builder
 @EqualsAndHashCode(of = "id")
 public class Library implements Comparable<Library> {
     @NonNull private final Id<Library> id;

@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.service.action;
 
+import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
@@ -132,6 +133,8 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
         final List<Library> libraries = libraryManager.getAllLibraries();
         for (Library library : libraries) {
+            checkStopped();
+
             final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
             refreshCurrentLibrary(libraryHierarchy);
         }
@@ -151,6 +154,8 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
         final List<Game> obsoleteGames = new ArrayList<>();
         final List<Game> games = gameManager.getAllGames();
         for (int i = 0; i < games.size(); i++) {
+            checkStopped();
+
             setProgress(i, games.size());
             final Game game = games.get(i);
             final Path path = game.getPath();
@@ -178,12 +183,14 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
         final ImmutableList<Path> directories = FileUtils.listChildDirectories(library.getPath());
         final int total = directories.size();
         for (int i = 0; i < total; i++) {
+            checkStopped();
+
             setProgress(i, total);
             final Path path = directories.get(i);
             processPath(libraryHierarchy, path);
         }
 
-        message("%s: Finished refreshing library: '%s'\n", library.getPlatform(), library.getName());
+        message("Finished refreshing library: '%s'[%s]\n", library.getName(), library.getPlatform());
         setProgress(0, 1);
     }
 
@@ -222,6 +229,8 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     }
 
     private boolean tryCreateLibrary(Path path, LibraryHierarchy libraryHierarchy) throws Exception {
+        checkStopped();
+
         if (!FileUtils.hasChildDirectories(path) || FileUtils.hasChildFiles(path)) {
             // Only directories that have sub-directories and no files can be libraries.
             return false;
@@ -281,6 +290,8 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     }
 
     private Opt<GameInfo> fetchGameInfo(GameInfoProviderManager manager, String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
+        checkStopped();
+
         messageProperty.bind(manager.messageProperty());
         fetchProgressProperty.bind(manager.progressProperty());
         try {
@@ -318,5 +329,12 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
         task.setOnFailed(e -> dialogService.showException(task.getException()));
         executorService.submit(task);
         return task;
+    }
+
+    private void checkStopped() {
+        if (Thread.interrupted()) {
+            message("Stopping...");
+            throw new GameDexException("Stopped.");
+        }
     }
 }

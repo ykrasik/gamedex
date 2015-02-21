@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.library;
 
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryGameLinkEntity;

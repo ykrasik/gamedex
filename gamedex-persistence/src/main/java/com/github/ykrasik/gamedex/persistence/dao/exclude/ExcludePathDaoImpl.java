@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.exclude;
 
 import com.github.ykrasik.gamedex.persistence.entity.ExcludedPathEntity;
 import com.gs.collections.api.list.ImmutableList;
@@ -16,11 +16,6 @@ import java.sql.SQLException;
  * @author Yevgeny Krasik
  */
 public class ExcludePathDaoImpl extends BaseDaoImpl<ExcludedPathEntity, Integer> implements ExcludePathDao {
-    private final SelectArg pathArg = new SelectArg();
-    private final PreparedQuery<ExcludedPathEntity> pathQuery = queryBuilder().where()
-        .eq(ExcludedPathEntity.PATH_COLUMN, pathArg)
-        .prepare();
-
     public ExcludePathDaoImpl(Class<ExcludedPathEntity> dataClass) throws SQLException {
         super(dataClass);
     }
@@ -32,6 +27,11 @@ public class ExcludePathDaoImpl extends BaseDaoImpl<ExcludedPathEntity, Integer>
     public ExcludePathDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<ExcludedPathEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
     }
+
+    private final SelectArg pathArg = new SelectArg();
+    private final PreparedQuery<ExcludedPathEntity> pathQuery = queryBuilder().where()
+        .eq(ExcludedPathEntity.PATH_COLUMN, pathArg)
+        .prepare();
 
     @Override
     public ImmutableList<ExcludedPathEntity> getAll() throws SQLException {

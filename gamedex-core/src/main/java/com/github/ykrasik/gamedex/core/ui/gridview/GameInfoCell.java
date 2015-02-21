@@ -26,12 +26,14 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
-import com.github.ykrasik.gamedex.core.ui.UIResources;
-import com.github.ykrasik.gamedex.datamodel.ImageData;
+import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.NonNull;
 import org.controlsfx.control.GridCell;
 import org.controlsfx.control.GridView;
 
@@ -42,51 +44,72 @@ import org.controlsfx.control.GridView;
  * @see GridView
  */
 public class GameInfoCell extends GridCell<Game> {
+    private final ImageService imageService;
+    private final boolean preserveImageProperties;
 
     private final ImageView imageView;
 
-    private final boolean preserveImageProperties;
-
+    private Opt<Task<Image>> loadingTask = Opt.absent();
 
     /**
      * Creates a default ImageGridCell instance, which will preserve image properties
      */
-    public GameInfoCell() {
-        this(true);
+    public GameInfoCell(ImageService imageService) {
+        this(imageService, true);
     }
 
     /**
      * Create ImageGridCell instance
      * @param preserveImageProperties if set to true will preserve image aspect ratio and smoothness
      */
-    public GameInfoCell(boolean preserveImageProperties) {
+    public GameInfoCell(@NonNull ImageService imageService, boolean preserveImageProperties) {
         getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
 
+        this.imageService = imageService;
         this.preserveImageProperties = preserveImageProperties;
+
         imageView = new ImageView();
         imageView.fitHeightProperty().bind(heightProperty());
         imageView.fitWidthProperty().bind(widthProperty());
-    }
 
-    public ImageView getImageView() {
-        return imageView;
-    }
-
-    @Override
-    protected void updateItem(Game item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty) {
-            setGraphic(null);
-        } else {
-            final Opt<Image> thumbnail = item.getThumbnail().orElse(item.getPoster()).map(ImageData::getImage);
-            final Image image = thumbnail.getOrElse(UIResources.notAvailable());
-            if (preserveImageProperties) {
-                imageView.setPreserveRatio(true);
-                imageView.setSmooth(true);
+        emptyProperty().addListener((obs, wasEmpty, isEmpty) -> {
+            if (isEmpty) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                setGraphic(imageView);
             }
-            imageView.setImage(image);
-            setGraphic(imageView);
+        });
+
+        itemProperty().addListener((obs, oldItem, newItem) -> {
+//            cancelPrevTask();
+
+            if (newItem != null) {
+                if (preserveImageProperties) {
+                    imageView.setPreserveRatio(true);
+                    imageView.setSmooth(true);
+                }
+                fetchImage(newItem);
+                setGraphic(imageView);
+            } else {
+                setGraphic(null);
+                setText(null);
+            }
+        });
+    }
+
+    private void fetchImage(Game game) {
+        loadingTask = Opt.of(imageService.fetchThumbnail(game.getId(), imageView));
+    }
+
+    private void cancelPrevTask() {
+        if (loadingTask.isPresent()) {
+            final Task<Image> task = loadingTask.get();
+            if (task.getState() != Worker.State.SUCCEEDED &&
+                task.getState() != Worker.State.FAILED) {
+                task.cancel();
+            }
         }
+        loadingTask = Opt.absent();
     }
 }

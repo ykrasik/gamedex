@@ -13,6 +13,7 @@ import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
+import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.gs.collections.api.map.ImmutableMap;
 import com.gs.collections.impl.factory.Lists;
 import org.springframework.context.annotation.Bean;
@@ -46,8 +47,8 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public GameWallController gameWallController() {
-        return new GameWallController();
+    public GameWallController gameWallController(ImageService imageService) {
+        return new GameWallController(imageService);
     }
 
     @Bean
@@ -56,8 +57,8 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public GameSideBarController gameSideBarController() {
-        return new GameSideBarController();
+    public GameSideBarController gameSideBarController(ImageService imageService) {
+        return new GameSideBarController(imageService);
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.dao;
+package com.github.ykrasik.gamedex.persistence.dao.exclude;
 
 import com.github.ykrasik.gamedex.persistence.entity.ExcludedPathEntity;
 import com.gs.collections.api.list.ImmutableList;
