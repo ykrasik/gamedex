@@ -1,8 +1,9 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.core.action.ActionService;
-import com.github.ykrasik.gamedex.core.game.GameManager;
-import com.github.ykrasik.gamedex.core.library.LibraryManager;
+import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.core.manager.game.GameManager;
+import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
+import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -60,12 +61,24 @@ public class MainController implements Controller {
     }
 
     private void initBottom() {
-        progressIndicator.progressProperty().bind(actionService.fetchProgressProperty());
-        statusBar.progressProperty().bind(actionService.progressProperty());
-        statusBar.textProperty().bind(actionService.messageProperty());
+        actionService.fetchProgressProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                PlatformUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(newValue.doubleValue()));
+            }
+        });
+        actionService.progressProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                PlatformUtils.runLaterIfNecessary(() -> statusBar.setProgress(newValue.doubleValue()));
+            }
+        });
         actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
-            logTextArea.appendText(newValue);
-            logTextArea.appendText("\n");
+            if (newValue != null) {
+                PlatformUtils.runLaterIfNecessary(() -> {
+                    statusBar.setText(newValue);
+                    logTextArea.appendText(newValue);
+                    logTextArea.appendText("\n");
+                });
+            }
         });
 
         dividerPosition = content.getDividerPositions()[0];

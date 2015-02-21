@@ -2,10 +2,10 @@ package com.github.ykrasik.gamedex.datamodel.provider;
 
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -27,7 +27,7 @@ public class UnifiedGameInfo {
     @NonNull private final Opt<ImageData> thumbnail;
     @NonNull private final Opt<ImageData> poster;
 
-    @NonNull private final List<String> genres;
+    @NonNull private final ImmutableList<String> genres;
 
     public static UnifiedGameInfo from(GameInfo metacriticGameInfo, Opt<GameInfo> giantBombGameInfo) {
         final Opt<ImageData> thumbnail = giantBombGameInfo.flatMap(GameInfo::getThumbnail).orElse(metacriticGameInfo.getThumbnail());

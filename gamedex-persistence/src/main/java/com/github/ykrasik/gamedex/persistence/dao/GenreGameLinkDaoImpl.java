@@ -2,6 +2,8 @@ package com.github.ykrasik.gamedex.persistence.dao;
 
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.github.ykrasik.gamedex.persistence.entity.GenreGameLinkEntity;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.*;
 import com.j256.ormlite.support.ConnectionSource;
@@ -9,7 +11,6 @@ import com.j256.ormlite.table.DatabaseTableConfig;
 import lombok.NonNull;
 
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -68,15 +69,20 @@ public class GenreGameLinkDaoImpl extends BaseDaoImpl<GenreGameLinkEntity, Integ
     }
 
     @Override
-    public List<GenreGameLinkEntity> getByGenreId(int genreId) throws SQLException {
-        genreArg.setValue(genreId);
-        return query(fetchByGenreIdQuery);
+    public ImmutableList<GenreGameLinkEntity> getAll() throws SQLException {
+        return Lists.immutable.ofAll(queryForAll());
     }
 
     @Override
-    public List<GenreEntity> getGenresByGameId(int gameId) throws SQLException {
+    public ImmutableList<GenreGameLinkEntity> getByGenreId(int genreId) throws SQLException {
+        genreArg.setValue(genreId);
+        return Lists.immutable.ofAll(query(fetchByGenreIdQuery));
+    }
+
+    @Override
+    public ImmutableList<GenreEntity> getGenresByGameId(int gameId) throws SQLException {
         gameArg.setValue(gameId);
-        return genreDao.query(fetchGenresByGameQuery);
+        return Lists.immutable.ofAll(genreDao.query(fetchGenresByGameQuery));
     }
 
     @Override

@@ -19,4 +19,7 @@ public final class GiantBombApi {
     public static final String IMAGE_POSTER = "super_url";
 
     public static final String GENRES = "genres";
+
+    public static final int STATUS_CODE_OK = 1;
+    public static final int STATUS_CODE_NOT_FOUND = 101;
 }

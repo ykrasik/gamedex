@@ -68,9 +68,9 @@ public class Main extends Application {
         mainScene.getStylesheets().add(UIResources.mainCss());
 
         // FIXME: Should be done in spring, inject configurations with a properties object.
-        stage.setWidth(1280);
+        stage.setWidth(1340);
         stage.setHeight(720);
-        stage.setMaximized(true);
+//        stage.setMaximized(true);
         stage.setTitle("GameDex");
         stage.setScene(mainScene);
 

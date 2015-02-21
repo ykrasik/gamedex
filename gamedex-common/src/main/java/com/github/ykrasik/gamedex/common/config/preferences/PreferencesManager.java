@@ -2,13 +2,15 @@ package com.github.ykrasik.gamedex.common.config.preferences;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.api.map.ImmutableMap;
+import com.gs.collections.impl.factory.Lists;
+import com.gs.collections.impl.factory.Maps;
 import lombok.NonNull;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.prefs.Preferences;
 
 /**
@@ -33,19 +35,19 @@ public class PreferencesManager {
         preferences.put(name, value);
     }
 
-    public <T> List<T> getList(String name, Function<String, T> deserializer) throws Exception  {
+    public <T> ImmutableList<T> getList(String name, Function<String, T> deserializer) throws Exception  {
         final Opt<String> valueOpt = get(name);
-        return valueOpt.map(value -> StringUtils.parseList(value, deserializer)).getOrElse(Collections.emptyList());
+        return valueOpt.map(value -> StringUtils.parseList(value, deserializer)).getOrElse(Lists.immutable.of());
     }
 
-    public <T> void putList(String name, List<T> list, Function<T, String> serializer) {
+    public <T> void putList(String name, ImmutableList<T> list, Function<T, String> serializer) {
         final String value = StringUtils.toString(list, serializer);
         preferences.put(name, value);
     }
 
-    public <K, V> Map<K, V> getMap(String name, Function<String, K> keyDeserializer, Function<String, V> valueDeserializer) {
+    public <K, V> ImmutableMap<K, V> getMap(String name, Function<String, K> keyDeserializer, Function<String, V> valueDeserializer) {
         final Opt<String> valueOpt = get(name);
-        return valueOpt.map(value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer)).getOrElse(Collections.emptyMap());
+        return valueOpt.map(value -> StringUtils.parseMap(value, keyDeserializer, valueDeserializer)).getOrElse(Maps.immutable.of());
     }
 
     public <K, V> void putMap(String name, Map<K, V> map, Function<K, String> keySerializer, Function<V, String> valueSerializer) {

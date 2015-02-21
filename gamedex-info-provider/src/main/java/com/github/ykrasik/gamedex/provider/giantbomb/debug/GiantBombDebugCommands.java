@@ -3,11 +3,12 @@ package com.github.ykrasik.gamedex.provider.giantbomb.debug;
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoService;
+import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoProvider;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -18,7 +19,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 @RequiredArgsConstructor
 @ShellPath("giantbomb")
 public class GiantBombDebugCommands implements DebugCommands {
-    @NonNull private final GiantBombGameInfoService service;
+    @NonNull private final GiantBombGameInfoProvider service;
     @NonNull private final GiantBombGameInfoClient client;
     @NonNull private final ObjectMapper objectMapper;
 
@@ -27,7 +28,10 @@ public class GiantBombDebugCommands implements DebugCommands {
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform platform = GamePlatform.valueOf(platformStr);
-        service.searchGames(name, platform).forEach(result -> outputPrinter.println(String.format("%s - %s", result.getName(), result.getDetailUrl())));
+        final ImmutableList<SearchResult> searchResults = service.searchGames(name, platform);
+        for (SearchResult searchResult : searchResults) {
+            outputPrinter.println(searchResult.toString());
+        }
     }
 
     @Command

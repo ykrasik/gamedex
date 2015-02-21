@@ -3,9 +3,9 @@ package com.github.ykrasik.gamedex.persistence;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.*;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
+import com.gs.collections.api.list.ImmutableList;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -15,21 +15,21 @@ import java.util.List;
 public interface PersistenceService {
     Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform);
     void deleteGame(Id<Game> id);
-    List<Game> getAllGames();
+    ImmutableList<Game> getAllGames();
     Game getGameById(Id<Game> id);
     boolean hasGameForPath(Path path);
 
     Library addLibrary(Path path, GamePlatform platform, String name);
     void deleteLibrary(Id<Library> id);
-    List<Library> getAllLibraries();
+    ImmutableList<Library> getAllLibraries();
     Library getLibraryById(Id<Library> id);
     boolean hasLibraryForPath(Path path);
 
     void addGameToLibraries(Game game, Iterable<Library> libraries);
 
-    List<Genre> getAllGenres();
+    ImmutableList<Genre> getAllGenres();
 
-    List<ExcludedPath> getAllExcludedPaths();
+    ImmutableList<ExcludedPath> getAllExcludedPaths();
     boolean isPathExcluded(Path path);
     ExcludedPath addExcludedPath(Path path);
     void deleteExcludedPath(Id<ExcludedPath> id);

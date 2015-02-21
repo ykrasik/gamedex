@@ -1,6 +1,8 @@
 package com.github.ykrasik.gamedex.persistence.dao;
 
 import com.github.ykrasik.gamedex.persistence.entity.ExcludedPathEntity;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.SelectArg;
@@ -29,6 +31,11 @@ public class ExcludePathDaoImpl extends BaseDaoImpl<ExcludedPathEntity, Integer>
 
     public ExcludePathDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<ExcludedPathEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
+    }
+
+    @Override
+    public ImmutableList<ExcludedPathEntity> getAll() throws SQLException {
+        return Lists.immutable.ofAll(queryForAll());
     }
 
     @Override

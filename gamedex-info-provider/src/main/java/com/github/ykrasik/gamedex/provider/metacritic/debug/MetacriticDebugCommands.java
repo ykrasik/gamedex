@@ -3,11 +3,12 @@ package com.github.ykrasik.gamedex.provider.metacritic.debug;
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.provider.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.gamedex.provider.metacritic.MetacriticGameInfoProvider;
 import com.github.ykrasik.gamedex.provider.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.jerminal.api.annotation.*;
 import com.github.ykrasik.jerminal.api.command.OutputPrinter;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -18,7 +19,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 @RequiredArgsConstructor
 @ShellPath("metacritic")
 public class MetacriticDebugCommands implements DebugCommands {
-    @NonNull private final MetacriticGameInfoService service;
+    @NonNull private final MetacriticGameInfoProvider service;
     @NonNull private final MetacriticGameInfoClient client;
     @NonNull private final ObjectMapper objectMapper;
 
@@ -27,7 +28,10 @@ public class MetacriticDebugCommands implements DebugCommands {
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform gamePlatform = GamePlatform.valueOf(platformStr);
-        service.searchGames(name, gamePlatform).forEach(result -> outputPrinter.println(result.toString()));
+        final ImmutableList<SearchResult> searchResults = service.searchGames(name, gamePlatform);
+        for (SearchResult searchResult : searchResults) {
+            outputPrinter.println(searchResult.toString());
+        }
     }
 
     @Command

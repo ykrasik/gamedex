@@ -10,9 +10,9 @@ import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.entity.GameEntity;
 import com.github.ykrasik.gamedex.persistence.translator.AbstractEntityTranslator;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 
 import java.nio.file.Paths;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -53,7 +53,7 @@ public class GameEntityTranslatorImpl extends AbstractEntityTranslator implement
     }
 
     @Override
-    public Game translate(GameEntity entity, List<Genre> genres, List<Library> libraries) {
+    public Game translate(GameEntity entity, ImmutableList<Genre> genres, ImmutableList<Library> libraries) {
         return Game.builder()
             .id(new Id<>(entity.getId()))
             .path(Paths.get(entity.getPath()))

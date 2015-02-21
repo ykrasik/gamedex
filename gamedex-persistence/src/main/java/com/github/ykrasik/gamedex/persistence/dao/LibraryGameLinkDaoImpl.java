@@ -3,6 +3,8 @@ package com.github.ykrasik.gamedex.persistence.dao;
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryGameLinkEntity;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.*;
 import com.j256.ormlite.support.ConnectionSource;
@@ -10,7 +12,6 @@ import com.j256.ormlite.table.DatabaseTableConfig;
 import lombok.NonNull;
 
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -71,9 +72,14 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
     }
 
     @Override
-    public List<LibraryEntity> getLibrariesByGameId(int gameId) throws SQLException {
+    public ImmutableList<LibraryGameLinkEntity> getAll() throws SQLException {
+        return Lists.immutable.ofAll(queryForAll());
+    }
+
+    @Override
+    public ImmutableList<LibraryEntity> getLibrariesByGameId(int gameId) throws SQLException {
         gameArg.setValue(gameId);
-        return libraryDao.query(fetchLibrariesByGameQuery);
+        return Lists.immutable.ofAll(libraryDao.query(fetchLibrariesByGameQuery));
     }
 
     @Override

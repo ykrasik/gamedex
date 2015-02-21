@@ -2,15 +2,15 @@ package com.github.ykrasik.gamedex.common.config.properties;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.api.map.ImmutableMap;
 import lombok.NonNull;
 
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.function.Function;
 
 /**
  * @author Yevgeny Krasik
@@ -57,11 +57,11 @@ public class PropertiesParser {
         return Duration.ofMinutes(getLong(name));
     }
 
-    public <T> List<T> parseList(String name, Function<String, T> f) {
+    public <T> ImmutableList<T> parseList(String name, Function<String, T> f) {
         return StringUtils.parseList(getString(name), f);
     }
 
-    public <K, V> Map<K, V> parseMap(String name, Function<String, K> keyFunction, Function<String, V> valueFunction) {
+    public <K, V> ImmutableMap<K, V> parseMap(String name, Function<String, K> keyFunction, Function<String, V> valueFunction) {
         return StringUtils.parseMap(getString(name), keyFunction, valueFunction);
     }
 }

@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.ui.library;
 
-import com.github.ykrasik.gamedex.common.util.ListUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.dialog.StageDragger;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +18,6 @@ import javafx.stage.StageStyle;
 import lombok.SneakyThrows;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -49,7 +48,7 @@ public class CreateLibraryDialog {
         // Make the stage draggable by clicking anywhere.
         StageDragger.create(stage, root);
 
-        stage.setWidth(500);
+        stage.setWidth(600);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
@@ -59,15 +58,15 @@ public class CreateLibraryDialog {
         noButton.setOnAction(e -> stage.hide());
     }
 
-    public Opt<LibraryDef> show(Path path, List<Path> children, GamePlatform defaultPlatform) {
+    public Opt<LibraryDef> show(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform) {
         pathLabel.setText(path.toString());
         libraryNameTextField.setText(path.getFileName().toString());
         platformComboBox.getSelectionModel().select(defaultPlatform);
 
         final TreeItem<Path> root = new TreeItem<>(path);
         root.setExpanded(true);
-        final List<TreeItem<Path>> childTreeItems = ListUtils.map(children, TreeItem::new);
-        root.getChildren().addAll(childTreeItems);
+        final ImmutableList<TreeItem<Path>> childTreeItems = children.collect(TreeItem::new);
+        root.getChildren().addAll(childTreeItems.castToList());
         childrenTreeView.setRoot(root);
 
         yesButton.setOnAction(e -> {

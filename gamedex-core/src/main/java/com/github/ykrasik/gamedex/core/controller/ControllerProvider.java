@@ -1,9 +1,9 @@
 package com.github.ykrasik.gamedex.core.controller;
 
+import com.gs.collections.api.map.ImmutableMap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 @RequiredArgsConstructor
 public class ControllerProvider {
-    @NonNull private final Map<Class<?>, Controller> controllerMap;
+    @NonNull private final ImmutableMap<Class<?>, Controller> controllerMap;
 
     public Controller getController(Class<?> clazz) {
         return Objects.requireNonNull(controllerMap.get(clazz), "Invalid controller class: " + clazz);

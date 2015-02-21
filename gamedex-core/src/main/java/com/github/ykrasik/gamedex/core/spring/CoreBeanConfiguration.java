@@ -5,29 +5,31 @@ import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
 import com.github.ykrasik.gamedex.core.config.GameCollectionConfigImpl;
 import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
-import com.github.ykrasik.gamedex.core.dialog.DialogService;
-import com.github.ykrasik.gamedex.core.dialog.DialogServiceImpl;
-import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManager;
-import com.github.ykrasik.gamedex.core.exclude.ExcludedPathManagerImpl;
-import com.github.ykrasik.gamedex.core.exclude.debug.ExcludedPathDebugCommands;
-import com.github.ykrasik.gamedex.core.action.ActionService;
-import com.github.ykrasik.gamedex.core.action.ActionServiceImpl;
-import com.github.ykrasik.gamedex.core.action.debug.ActionManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.game.GameManager;
-import com.github.ykrasik.gamedex.core.game.GameManagerImpl;
-import com.github.ykrasik.gamedex.core.game.debug.GameManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.library.LibraryManager;
-import com.github.ykrasik.gamedex.core.library.LibraryManagerImpl;
-import com.github.ykrasik.gamedex.core.library.debug.LibraryManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
+import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
+import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
+import com.github.ykrasik.gamedex.core.manager.game.GameManager;
+import com.github.ykrasik.gamedex.core.manager.game.GameManagerImpl;
+import com.github.ykrasik.gamedex.core.manager.game.debug.GameManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
+import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManagerImpl;
+import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
+import com.github.ykrasik.gamedex.core.manager.library.LibraryManagerImpl;
+import com.github.ykrasik.gamedex.core.manager.library.debug.LibraryManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.service.action.ActionService;
+import com.github.ykrasik.gamedex.core.service.action.ActionServiceImpl;
+import com.github.ykrasik.gamedex.core.service.action.debug.ActionManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
+import com.github.ykrasik.gamedex.core.service.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
-import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoService;
-import com.github.ykrasik.gamedex.provider.metacritic.MetacriticGameInfoService;
+import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -73,16 +75,16 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
                                        GameManager gameManager,
                                        LibraryManager libraryManager,
                                        ExcludedPathManager excludedPathManager,
-                                       MetacriticGameInfoService metacriticInfoService,
-                                       GiantBombGameInfoService giantBombInfoService) {
+                                       GameInfoProviderManager metacriticManager,
+                                       GameInfoProviderManager giantBombManager) {
         return new ActionServiceImpl(
             config,
             dialogService,
             gameManager,
             libraryManager,
             excludedPathManager,
-            metacriticInfoService,
-            giantBombInfoService
+            metacriticManager,
+            giantBombManager
         );
     }
 
@@ -122,5 +124,19 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public ExcludedPathDebugCommands excludedPathDebugCommands(ExcludedPathManager excludedPathManager) {
         return new ExcludedPathDebugCommands(excludedPathManager);
+    }
+
+    @Qualifier("metacriticManager")
+    @Bean
+    public GameInfoProviderManager metacriticManager(DialogService dialogService,
+                                                     @Qualifier("metacriticGameInfoProvider") GameInfoProvider metacriticGameInfoProvider) {
+        return new GameInfoProviderManagerImpl(dialogService, metacriticGameInfoProvider, false);
+    }
+
+    @Qualifier("giantBombManager")
+    @Bean
+    public GameInfoProviderManager giantBombManager(DialogService dialogService,
+                                                    @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
+        return new GameInfoProviderManagerImpl(dialogService, giantBombGameInfoProvider, true);
     }
 }

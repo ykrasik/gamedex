@@ -1,6 +1,8 @@
 package com.github.ykrasik.gamedex.persistence.dao;
 
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.SelectArg;
@@ -29,6 +31,11 @@ public class LibraryDaoImpl extends BaseDaoImpl<LibraryEntity, Integer> implemen
 
     public LibraryDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<LibraryEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
+    }
+
+    @Override
+    public ImmutableList<LibraryEntity> getAll() throws SQLException {
+        return Lists.immutable.ofAll(queryForAll());
     }
 
     @Override

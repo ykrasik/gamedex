@@ -2,9 +2,12 @@ package com.github.ykrasik.gamedex.provider.util;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.api.list.MutableList;
+import com.gs.collections.impl.factory.Lists;
 import org.codehaus.jackson.JsonNode;
 
-import java.util.*;
+import java.util.Iterator;
 import java.util.function.Function;
 
 /**
@@ -61,12 +64,12 @@ public final class JsonUtils {
         return getField(node, fieldName).map(function);
     }
 
-    public static <T> List<T> mapList(JsonNode root, Function<JsonNode, T> f) {
+    public static <T> ImmutableList<T> mapList(JsonNode root, Function<JsonNode, T> f) {
         if (!exists(root)) {
-            return Collections.emptyList();
+            return Lists.immutable.of();
         }
 
-        final List<T> list = new ArrayList<>();
+        final MutableList<T> list = Lists.mutable.of();
         final Iterator<JsonNode> iterator = root.getElements();
         while (iterator.hasNext()) {
             final JsonNode node = iterator.next();
@@ -74,15 +77,15 @@ public final class JsonUtils {
                 list.add(f.apply(node));
             }
         }
-        return list;
+        return list.toImmutable();
     }
 
-    public static <T> List<T> flatMapList(JsonNode root, Function<JsonNode, Opt<T>> f) {
+    public static <T> ImmutableList<T> flatMapList(JsonNode root, Function<JsonNode, Opt<T>> f) {
         if (!exists(root)) {
-            return Collections.emptyList();
+            return Lists.immutable.of();
         }
 
-        final List<T> list = new ArrayList<>();
+        final MutableList<T> list = Lists.mutable.of();
         final Iterator<JsonNode> iterator = root.getElements();
         while (iterator.hasNext()) {
             final JsonNode node = iterator.next();
@@ -91,6 +94,6 @@ public final class JsonUtils {
                 result.ifPresent(list::add);
             }
         }
-        return list;
+        return list.toImmutable();
     }
 }

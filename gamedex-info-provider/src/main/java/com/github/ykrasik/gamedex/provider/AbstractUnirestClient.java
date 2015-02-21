@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.provider;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
+import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.BaseRequest;
@@ -25,7 +26,7 @@ public class AbstractUnirestClient extends AbstractService {
         LOG.debug("Request: {}", request.getHttpRequest().getUrl());
         final HttpResponse<String> httpResponse = request.asString();
         if (httpResponse.getCode() != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("HTTP response is not OK, code: " + httpResponse.getCode());
+            throw new GameInfoProviderException("HTTP response is not OK, code: %d", httpResponse.getCode());
         }
         final String response = httpResponse.getBody();
         LOG.debug("Response: {}", response);

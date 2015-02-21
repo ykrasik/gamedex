@@ -2,6 +2,8 @@ package com.github.ykrasik.gamedex.persistence.dao;
 
 import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
 import com.github.ykrasik.gamedex.persistence.exception.DataException;
+import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.impl.factory.Lists;
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.SelectArg;
@@ -29,6 +31,11 @@ public class GenreDaoImpl extends BaseDaoImpl<GenreEntity, Integer> implements G
 
     public GenreDaoImpl(ConnectionSource connectionSource, DatabaseTableConfig<GenreEntity> tableConfig) throws SQLException {
         super(connectionSource, tableConfig);
+    }
+
+    @Override
+    public ImmutableList<GenreEntity> getAll() throws SQLException {
+        return Lists.immutable.ofAll(queryForAll());
     }
 
     @Override

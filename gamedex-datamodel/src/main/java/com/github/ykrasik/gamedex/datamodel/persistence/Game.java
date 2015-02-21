@@ -3,12 +3,12 @@ package com.github.ykrasik.gamedex.datamodel.persistence;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.list.ImmutableList;
 import lombok.*;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -36,7 +36,7 @@ public class Game {
 
     @NonNull private final LocalDateTime lastModified;
 
-    @NonNull private final List<Genre> genres;
+    @NonNull private final ImmutableList<Genre> genres;
 
-    @NonNull private final List<Library> libraries;
+    @NonNull private final ImmutableList<Library> libraries;
 }

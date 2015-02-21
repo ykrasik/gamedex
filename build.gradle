@@ -8,7 +8,7 @@ buildscript {
         slf4jVersion = '1.7.6'
         logbackVersion = '1.1.2'
 
-        gsCollectionsVersion = '5.1.0'
+        gsCollectionsVersion = '6.0.0'
         guavaVersion = '18.0'
         commonsLang3Version = '3.3.2'
         boonVersion = '0.29'
