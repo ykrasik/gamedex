@@ -2,6 +2,7 @@ package com.github.ykrasik.gamedex.core.service.action;
 
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
@@ -19,7 +20,7 @@ public interface ActionService {
     BooleanProperty autoSkipProperty();
     ReadOnlyStringProperty messageProperty();
     ReadOnlyDoubleProperty progressProperty();
-    ReadOnlyDoubleProperty fetchProgressProperty();
+    ReadOnlyBooleanProperty fetchProgressProperty();
 
     void stopTask(Task<Void> task);
 

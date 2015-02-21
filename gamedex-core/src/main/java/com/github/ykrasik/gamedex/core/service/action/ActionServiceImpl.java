@@ -45,7 +45,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     @Getter private final BooleanProperty autoSkipProperty = new SimpleBooleanProperty();
     private final StringProperty messageProperty = new SimpleStringProperty();
     private final DoubleProperty progressProperty = new SimpleDoubleProperty();
-    private final DoubleProperty fetchProgressProperty = new SimpleDoubleProperty();
+    private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     private final GameCollectionConfig config;
     private final DialogService dialogService;
@@ -97,15 +97,18 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     }
 
     @Override
-    public ReadOnlyDoubleProperty fetchProgressProperty() {
-        return fetchProgressProperty;
+    public ReadOnlyBooleanProperty fetchProgressProperty() {
+        return fetchingProperty;
     }
 
     @Override
     public void stopTask(Task<Void> task) {
+        LOG.info("Cancelled.");
+        messageProperty.unbind();
+        fetchingProperty.unbind();
         message("Cancelled.");
         progressProperty.setValue(0.0);
-        fetchProgressProperty.setValue(0.0);
+        fetchingProperty.setValue(false);
     }
 
     // TODO: Do this on the background thread and return a task?
@@ -293,12 +296,12 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
         checkStopped();
 
         messageProperty.bind(manager.messageProperty());
-        fetchProgressProperty.bind(manager.progressProperty());
+        fetchingProperty.bind(manager.fetchingProperty());
         try {
             return manager.fetchGameInfo(name, path, platform, context);
         } finally {
             messageProperty.unbind();
-            fetchProgressProperty.unbind();
+            fetchingProperty.unbind();
         }
     }
 

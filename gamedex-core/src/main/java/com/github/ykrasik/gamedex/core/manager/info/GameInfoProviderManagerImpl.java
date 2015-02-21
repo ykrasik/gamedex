@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.manager.info;
 
+import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.service.action.SkipException;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.dialog.MultipleSearchResultsDialogParams;
@@ -29,7 +30,7 @@ import java.util.Collection;
 public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     @Getter private final BooleanProperty autoSkipProperty = new SimpleBooleanProperty();
     private final StringProperty messageProperty = new SimpleStringProperty();
-    private final DoubleProperty progressProperty = new SimpleDoubleProperty();
+    private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     @NonNull private final DialogService dialogService;
     @NonNull private final GameInfoProvider gameInfoProvider;
@@ -41,8 +42,8 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     @Override
-    public ReadOnlyDoubleProperty progressProperty() {
-        return progressProperty;
+    public ReadOnlyBooleanProperty fetchingProperty() {
+        return fetchingProperty;
     }
 
     @Override
@@ -55,7 +56,9 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private Opt<GameInfo> doFetchGameInfo(String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
+        checkStopped();
         final ImmutableList<SearchResult> searchResults = searchGames(name, platform, context);
+        checkStopped();
 
         if (searchResults.isEmpty()) {
             return handleNoSearchResults(name, path, platform, context);
@@ -71,9 +74,13 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
     private ImmutableList<SearchResult> searchGames(String name, GamePlatform platform, SearchContext context) throws Exception {
         message("Searching '%s'...", name);
-        startFetchProgress();
-        final ImmutableList<SearchResult> searchResults = gameInfoProvider.searchGames(name, platform);
-        stopFetchProgress();
+        fetchingProperty.set(true);
+        final ImmutableList<SearchResult> searchResults;
+        try {
+            searchResults = gameInfoProvider.searchGames(name, platform);
+        } finally {
+            fetchingProperty.set(false);
+        }
         message("Found %d results for '%s'.", searchResults.size(), name);
 
         final Collection<String> excludedNames = context.getExcludedNames();
@@ -152,13 +159,15 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private GameInfo fetchGameInfoFromSearchResult(SearchResult searchResult) throws Exception {
-        message("Fetching '%s'...", searchResult.getName());
-        startFetchProgress();
-        final GameInfo gameInfo = gameInfoProvider.getGameInfo(searchResult);
-        stopFetchProgress();
-        message("Done.");
-
-        return gameInfo;
+        fetchingProperty.set(true);
+        try {
+            message("Fetching '%s'...", searchResult.getName());
+            final GameInfo gameInfo = gameInfoProvider.getGameInfo(searchResult);
+            message("Done.");
+            return gameInfo;
+        } finally {
+            fetchingProperty.set(false);
+        }
     }
 
     private void assertNotAutoSkip() {
@@ -181,15 +190,10 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         messageProperty.set(messageWithProvider);
     }
 
-    private void startFetchProgress() {
-        setFetchProgress(-1.0);
-    }
-
-    private void stopFetchProgress() {
-        setFetchProgress(0);
-    }
-
-    private void setFetchProgress(double value) {
-        progressProperty.set(value);
+    private void checkStopped() {
+        if (Thread.interrupted()) {
+            message("Stopping...");
+            throw new GameDexException("Stopped.");
+        }
     }
 }

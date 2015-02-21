@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import org.controlsfx.control.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.*?>
+<?import com.github.ykrasik.gamedex.core.ui.statusbar.WorkingStatusBar?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.collections.*?>
-<?import org.controlsfx.control.StatusBar?>
+<?import javafx.scene.layout.BorderPane?>
 
 <BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.MainController">
    <center>
-       <SplitPane fx:id="content" dividerPositions="0.95" orientation="VERTICAL">
+       <SplitPane fx:id="content" dividerPositions="0.98" orientation="VERTICAL">
            <items>
               <TabPane>
                  <tabs>
@@ -61,7 +56,7 @@
       </MenuBar>
    </top>
     <bottom>
-        <StatusBar fx:id="statusBar" text="Welcome to GameDex!">
+        <WorkingStatusBar fx:id="statusBar" text="Welcome to GameDex!">
             <leftItems>
                 <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
                 <Separator orientation="VERTICAL" />
@@ -82,6 +77,6 @@
                 <ProgressIndicator fx:id="progressIndicator" visible="false" />
                 <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
             </rightItems>
-        </StatusBar>
+        </WorkingStatusBar>
     </bottom>
 </BorderPane>

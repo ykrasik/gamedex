@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
@@ -19,8 +20,6 @@ import org.controlsfx.control.StatusBar;
 // TODO: Allow changing thumbnail & poster via right-click.
 // TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
-// TODO: Photos should be streamed, and only fetched from DB when accessed. Especially posters.
-// TODO: Log should be a splitPane.
 // TODO: Add ability to have gamePacks.
 @Slf4j
 @RequiredArgsConstructor
@@ -38,6 +37,8 @@ public class MainController implements Controller {
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Button statusBarStopButton;
     @FXML private TextArea logTextArea;
+
+    @FXML private GameController gamesController;
 
     @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
@@ -61,10 +62,9 @@ public class MainController implements Controller {
     }
 
     private void initBottom() {
-        actionService.fetchProgressProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                PlatformUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(newValue.doubleValue()));
-            }
+        actionService.fetchProgressProperty().addListener((observable, oldValue, fetching) -> {
+            final double progress = fetching ? -1 : 0;
+            PlatformUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(progress));
         });
         actionService.progressProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -86,6 +86,12 @@ public class MainController implements Controller {
 
         gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
         libraryCount.textProperty().bind(libraryManager.librariesProperty().sizeProperty().asString("Libraries: %d"));
+
+        gamesController.currentTaskProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                registerCurrentTask(newValue);
+            }
+        });
     }
 
     private void toggleLogTextArea(boolean newValue) {
@@ -98,7 +104,7 @@ public class MainController implements Controller {
         }
     }
 
-    private void prepareTask(Task<Void> task) {
+    private void registerCurrentTask(Task<Void> task) {
         task.setOnCancelled(event -> actionService.stopTask(task));
 
         progressIndicator.visibleProperty().bind(task.runningProperty());

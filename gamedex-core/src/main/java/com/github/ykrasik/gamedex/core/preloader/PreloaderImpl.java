@@ -21,9 +21,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import lombok.Lombok;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.function.Consumer;
 
 /**
  * @author Yevgeny Krasik
@@ -64,7 +63,7 @@ public class PreloaderImpl implements Preloader {
     }
 
     @Override
-    public void info(String message) {
+    public void message(String message) {
         current++;
         final double progress = (double) current / max;
         PlatformUtils.runLaterIfNecessary(() -> {
@@ -74,7 +73,7 @@ public class PreloaderImpl implements Preloader {
     }
 
     @Override
-    public <T> void start(Task<T> task, Consumer<T> consumer) {
+    public <T> void start(Task<T> task, Runnable runnable) {
         messageProperty.set("Loading GameDex...");
 
         final Stage initStage = new Stage(StageStyle.UNDECORATED);
@@ -91,20 +90,15 @@ public class PreloaderImpl implements Preloader {
         fade.setOnFinished(e -> initStage.hide());
 
         task.setOnSucceeded(v -> {
+            runnable.run();
             fade.play();
-            try {
-                final T t = task.get();
-                consumer.accept(t);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         });
         task.setOnFailed(v -> {
             log.warn("Error: ", task.getException());
             initStage.close();
-            throw new RuntimeException(task.getException());
+            throw Lombok.sneakyThrow(task.getException());
         });
 
-        new Thread(task, "Preloader").start();
+        new Thread(task, "preloader").start();
     }
 }

@@ -35,6 +35,7 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public MetacriticGameInfoClient metacriticGameInfoClient(MetacriticProperties properties) {
+        preloader.message("Loading Metacritic...");
         return new MetacriticGameInfoClientImpl(properties);
     }
 
@@ -60,6 +61,7 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public GiantBombGameInfoClient giantBombGameInfoClient(GiantBombProperties properties) {
+        preloader.message("Loading GiantBomb...");
         return new GiantBombGameInfoClientImpl(properties);
     }
 
@@ -77,7 +79,6 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Bean
     public ObjectMapper objectMapper() {
-        preloader.info("Loading JSON Object mapper...");
         return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
     }
 }

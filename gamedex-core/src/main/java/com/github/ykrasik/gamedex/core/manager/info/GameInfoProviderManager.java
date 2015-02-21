@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
 import java.nio.file.Path;
@@ -15,7 +15,7 @@ import java.nio.file.Path;
 public interface GameInfoProviderManager {
     BooleanProperty autoSkipProperty();
     ReadOnlyStringProperty messageProperty();
-    ReadOnlyDoubleProperty progressProperty();
+    ReadOnlyBooleanProperty fetchingProperty();
 
     Opt<GameInfo> fetchGameInfo(String name, Path path, GamePlatform platform, SearchContext context) throws Exception;
 }

@@ -12,9 +12,11 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.NonNull;
@@ -50,6 +52,8 @@ public class GameController implements Controller {
     @FXML private GameWallController gameWallController;
     @FXML private GameListController gameListController;
     @FXML private GameSideBarController gameSideBarController;
+
+    private final ObjectProperty<Task<Void>> currentTaskProperty = new SimpleObjectProperty<>();
 
     @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
@@ -168,6 +172,14 @@ public class GameController implements Controller {
 
     private void initRefreshLibraries() {
         actionService.autoSkipProperty().bind(autoSkipCheckBox.selectedProperty());
-        refreshLibrariesButton.setOnAction(e -> actionService.refreshLibraries());
+        refreshLibrariesButton.setOnAction(e -> registerCurrentTask(actionService.refreshLibraries()));
+    }
+
+    private void registerCurrentTask(Task<Void> task) {
+        currentTaskProperty.set(task);
+    }
+
+    public ReadOnlyObjectProperty<Task<Void>> currentTaskProperty() {
+        return currentTaskProperty;
     }
 }

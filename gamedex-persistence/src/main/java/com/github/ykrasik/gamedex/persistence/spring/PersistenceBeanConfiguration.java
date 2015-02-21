@@ -27,7 +27,7 @@ public class PersistenceBeanConfiguration extends AbstractBeanConfiguration {
                                                  GenreEntityTranslator genreTranslator,
                                                  LibraryEntityTranslator libraryTranslator,
                                                  ExcludedPathEntityTranslator excludedPathTranslator) {
-        preloader.info("Loading persistence service...");
+        preloader.message("Loading persistence service...");
         return new PersistenceServiceImpl(properties, gameTranslator, genreTranslator, libraryTranslator, excludedPathTranslator);
     }
 
