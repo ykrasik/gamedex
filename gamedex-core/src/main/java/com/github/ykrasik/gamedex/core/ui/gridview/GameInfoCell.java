@@ -33,6 +33,7 @@ import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import lombok.NonNull;
 import org.controlsfx.control.GridCell;
 import org.controlsfx.control.GridView;
@@ -44,10 +45,11 @@ import org.controlsfx.control.GridView;
  * @see GridView
  */
 public class GameInfoCell extends GridCell<Game> {
+    private final ImageView imageView = new ImageView();
+    private final StackPane stackPane = new StackPane(imageView);
+
     private final ImageService imageService;
     private final boolean preserveImageProperties;
-
-    private final ImageView imageView;
 
     private Opt<Task<Image>> loadingTask = Opt.absent();
 
@@ -68,16 +70,20 @@ public class GameInfoCell extends GridCell<Game> {
         this.imageService = imageService;
         this.preserveImageProperties = preserveImageProperties;
 
-        imageView = new ImageView();
-        imageView.fitHeightProperty().bind(heightProperty());
-        imageView.fitWidthProperty().bind(widthProperty());
+        imageView.fitHeightProperty().bind(heightProperty().subtract(4));
+        imageView.fitWidthProperty().bind(widthProperty().subtract(4));
+
+//        final Rectangle clip = new Rectangle(imageView.getFitWidth(), imageView.getFitHeight());
+//        clip.setArcWidth(10);
+//        clip.setArcHeight(10);
+//        imageView.setClip(clip);
 
         emptyProperty().addListener((obs, wasEmpty, isEmpty) -> {
             if (isEmpty) {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(imageView);
+                setGraphic(stackPane);
             }
         });
 
@@ -90,7 +96,7 @@ public class GameInfoCell extends GridCell<Game> {
                     imageView.setSmooth(true);
                 }
                 fetchImage(newItem);
-                setGraphic(imageView);
+                setGraphic(stackPane);
             } else {
                 setGraphic(null);
                 setText(null);

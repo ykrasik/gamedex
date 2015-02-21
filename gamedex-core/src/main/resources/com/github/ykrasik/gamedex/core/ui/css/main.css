@@ -7,3 +7,14 @@
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;*/
 }
+
+.toolbar {
+    -fx-background-color: lightgray;
+}
+
+.card {
+    -fx-border-color: gray;
+    -fx-background-color: lightgray;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}

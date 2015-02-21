@@ -2,8 +2,10 @@ package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
+import com.github.ykrasik.gamedex.core.ui.detailview.GameDetailView;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameInfoCell;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
+import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -43,10 +45,18 @@ public class GameWallController implements Controller {
     public void initialize() {
         gameWall.setCellFactory(param -> {
             final GameInfoCell cell = new GameInfoCell(imageService);
-            cell.getStyleClass().add("gameTile");
+            cell.getStyleClass().addAll("card", "gameTile");
             cell.setOnMouseClicked(event -> {
                 final Game game = cell.getItem();
                 selectedGameProperty.set(game);
+                if (event.getClickCount() == 2) {
+                    // FIXME: Handle exception while editing
+                    final Opt<Game> editedGame = GameDetailView.create().imageService(imageService).show(game);
+                    if (editedGame.isPresent()) {
+                        // TODO: Update in db
+                        System.out.println(editedGame);
+                    }
+                }
                 event.consume();
             });
 

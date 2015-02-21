@@ -2,11 +2,11 @@ package com.github.ykrasik.gamedex.core.ui;
 
 import javafx.scene.image.Image;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
@@ -28,17 +28,17 @@ public final class UIResources {
 
     @Getter private static final URL mainFxml = getResource("fxml/main.fxml");
     @Getter private static final URL libraryDialogFxml = getResource("fxml/libraryDialog.fxml");
+    @Getter private static final URL detailViewDialogFxml = getResource("fxml/gameDetailView.fxml");
 
     @Getter private static final String mainCss = CSS_PATH + "main.css";
     @Getter private static final String libraryDialogCss = CSS_PATH + "libraryDialog.css";
+    @Getter private static final String detailViewDialogCss = CSS_PATH + "gameDetailView.css";
 
     private static InputStream getResourceAsStream(String name) {
-        @NonNull final InputStream resource = UIResources.class.getResourceAsStream(name);
-        return resource;
+        return Objects.requireNonNull(UIResources.class.getResourceAsStream(name), "Can't find resource on classpath: " + name);
     }
 
     private static URL getResource(String name) {
-        @NonNull final URL resource = UIResources.class.getResource(name);
-        return resource;
+        return Objects.requireNonNull(UIResources.class.getResource(name), "Can't find resource on classpath: " + name);
     }
 }

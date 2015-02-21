@@ -20,6 +20,8 @@ import java.util.Map.Entry;
  * @author Yevgeny Krasik
  */
 public final class StringUtils {
+    private StringUtils() { }
+
     private static final char LIST_DELIMITER = ',';
     private static final Splitter LIST_SPLITTER = Splitter.on(LIST_DELIMITER).trimResults().omitEmptyStrings();
     private static final Joiner LIST_JOINER = Joiner.on(LIST_DELIMITER).skipNulls();
@@ -28,8 +30,7 @@ public final class StringUtils {
     private static final String KEY_VALUE_DELIMITER = "::";
     private static final Splitter KEY_VALUE_SPLITTER = Splitter.on(KEY_VALUE_DELIMITER).trimResults().omitEmptyStrings();
 
-    private StringUtils() {
-    }
+    private static final String NOT_AVAILABLE = "NA";
 
     public static <T> ImmutableList<T> parseList(String str, Function<String, T> deserializer) {
         final ImmutableList<String> list = Lists.immutable.ofAll(LIST_SPLITTER.split(str));
@@ -71,7 +72,11 @@ public final class StringUtils {
     }
 
     public static <T> String toStringOrUnavailable(Opt<T> optional) {
-        return toString(optional, "NA");
+        return toString(optional, NOT_AVAILABLE);
+    }
+
+    public static boolean isUnavailable(String string) {
+        return NOT_AVAILABLE.equals(string);
     }
 
     public static String toCsv(Iterable<? extends Object> parts) {

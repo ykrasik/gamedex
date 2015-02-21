@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import org.controlsfx.control.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="container" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <right>
+      <StackPane styleClass="card">
+         <children>
+            <GridPane fx:id="attributes" alignment="BOTTOM_CENTER" hgap="5.0" vgap="8.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label text="Path:" GridPane.rowIndex="1" />
+                  <TextField fx:id="gamePath" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label text="Name:" GridPane.rowIndex="2" />
+                  <TextField fx:id="name" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Label text="Description:" GridPane.rowIndex="3" />
+                  <TextArea fx:id="description" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <Label text="Platform:" GridPane.rowIndex="4" />
+                  <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                  <Label text="Release Date:" GridPane.rowIndex="5" />
+                  <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                  <Label text="Critic Score:" GridPane.rowIndex="6" />
+                  <TextField fx:id="criticScore" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                  <Label text="User Score:" GridPane.rowIndex="7" />
+                  <TextField fx:id="userScore" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                  <TextField fx:id="genres" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                  <Label text="Genres:" GridPane.rowIndex="8" />
+                  <Label text="URL:" GridPane.rowIndex="9" />
+                  <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints fillHeight="false" maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="ALWAYS" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                  <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <BorderPane.margin>
+                  <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+               </BorderPane.margin>
+            </GridPane>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </BorderPane.margin>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </StackPane>
+   </right>
+   <top>
+      <VBox>
+         <children>
+            <HBox styleClass="toolbar">
+               <children>
+                  <Button fx:id="okButton" defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" text="OK">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="cancelButton" cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" text="Cancel">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+               <BorderPane.margin>
+                  <Insets />
+               </BorderPane.margin>
+            </HBox>
+            <Separator />
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <StackPane styleClass="card">
+         <children>
+            <GridPane fx:id="posterContainer" alignment="CENTER" BorderPane.alignment="CENTER">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="0.0" valignment="CENTER" vgrow="ALWAYS" />
+               </rowConstraints>
+               <children>
+                  <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+               </children>
+               <BorderPane.margin>
+                  <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+               </BorderPane.margin>
+            </GridPane>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </BorderPane.margin>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </StackPane>
+   </center>
+</BorderPane>
