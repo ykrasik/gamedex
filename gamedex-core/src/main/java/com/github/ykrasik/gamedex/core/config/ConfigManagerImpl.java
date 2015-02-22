@@ -1,8 +1,11 @@
 package com.github.ykrasik.gamedex.core.config;
 
 import com.github.ykrasik.opt.Opt;
+import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Wither;
+import lombok.extern.slf4j.Slf4j;
 import org.boon.IO;
 
 import java.io.IOException;
@@ -13,19 +16,20 @@ import java.nio.file.Paths;
 /**
  * @author Yevgeny Krasik
  */
-// FIXME: This class should probably disappear.
-public class GameCollectionConfigImpl implements GameCollectionConfig {
+@Slf4j
+public class ConfigManagerImpl implements ConfigManager {
     private static final String NAME = "config.xml";
+    private static final XStream XSTREAM = new XStream();
 
     private final Path file;
 
-    private volatile Config config;
+    private Config config;
 
-    public GameCollectionConfigImpl() throws IOException {
+    public ConfigManagerImpl() throws IOException {
         this.file = getFile();
         final String fileContent = IO.read(file);
         if (!fileContent.isEmpty()) {
-            this.config = new Config(Opt.of(Paths.get(fileContent)));
+            this.config = (Config) XSTREAM.fromXML(fileContent);
         } else {
             this.config = Config.empty();
         }
@@ -46,25 +50,32 @@ public class GameCollectionConfigImpl implements GameCollectionConfig {
 
     @Override
     public void setPrevDirectory(Path prevDirectory) {
-        config = config.withPrevDirectory(prevDirectory);
-        onConfigUpdated();
+        config = config.withPrevDirectory(Opt.of(prevDirectory));
+        updateConfig();
     }
 
-    private void onConfigUpdated() {
-        final Config config = this.config;
-        IO.write(file, config.prevDirectory.get().toString());
+    @Override
+    public boolean isShowLog() {
+        return config.showLog;
+    }
+
+    @Override
+    public void setShowLog(boolean show) {
+        config = config.withShowLog(show);
+        updateConfig();
+    }
+
+    private void updateConfig() {
+        IO.write(file, XSTREAM.toXML(config));
     }
 
     @RequiredArgsConstructor
     private static class Config {
-        @NonNull private final Opt<Path> prevDirectory;
-
-        public Config withPrevDirectory(Path prevDirectory) {
-            return new Config(Opt.of(prevDirectory));
-        }
+        @Wither @NonNull private final Opt<Path> prevDirectory;
+        @Wither private final boolean showLog;
 
         public static Config empty() {
-            return new Config(Opt.absent());
+            return new Config(Opt.absent(), true);
         }
     }
 }

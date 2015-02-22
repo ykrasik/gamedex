@@ -20,8 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 
-import java.io.IOException;
-
 /**
  * @author Yevgeny Krasik
  */
@@ -36,22 +34,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage stage) {
-        try {
-            doStart(stage);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void stop() throws Exception {
-        if (context != null) {
-            context.stop();
-        }
-    }
-
-    private void doStart(final Stage stage) throws IOException {
+    public void start(final Stage stage) throws Exception {
         final Preloader preloader = new PreloaderImpl(ELEMENTS_TO_LOAD);
 
         final Task<AbstractApplicationContext> task = new Task<AbstractApplicationContext>() {
@@ -65,7 +48,14 @@ public class Main extends Application {
             }
         };
 
-        preloader.start(task, () -> initStage(task.getValue(), stage, preloader));
+        preloader.start(task, context -> initStage(context, stage));
+    }
+
+    @Override
+    public void stop() throws Exception {
+        if (context != null) {
+            context.stop();
+        }
     }
 
     private AbstractApplicationContext createContext(Stage stage, Preloader preloader) {
@@ -78,8 +68,8 @@ public class Main extends Application {
     }
 
     @SneakyThrows
-    private void initStage(AbstractApplicationContext context, Stage stage, Preloader preloader) {
-
+    private void initStage(AbstractApplicationContext context, Stage stage) {
+        this.context = context;
 
         final ControllerProvider controllerProvider = context.getBean(ControllerProvider.class);
         final FXMLLoader loader = new FXMLLoader(UIResources.mainFxml());

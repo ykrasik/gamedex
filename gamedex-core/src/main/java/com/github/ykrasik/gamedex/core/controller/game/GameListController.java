@@ -23,6 +23,8 @@ public class GameListController implements Controller {
     @FXML private TableColumn<Game, String> gamePathColumn;
     @FXML private TableColumn<Game, String> gameDateAddedColumn;
 
+    @FXML private GameSideBarController gameSideBarController;
+
     // TODO: Add support.
     private final ObjectProperty<Game> deletedGameProperty = new SimpleObjectProperty<>();
 
@@ -47,5 +49,15 @@ public class GameListController implements Controller {
         gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().getOrElse(0.0)));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
         gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
+
+        selectedGameProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                gameSideBarController.displayGame(newValue);
+            }
+        });
+    }
+
+    public void selectGame(Game game) {
+        gameList.getSelectionModel().select(game);
     }
 }

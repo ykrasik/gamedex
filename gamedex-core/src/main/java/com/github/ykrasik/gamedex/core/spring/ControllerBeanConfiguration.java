@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.spring;
 
+import com.github.ykrasik.gamedex.core.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
 import com.github.ykrasik.gamedex.core.controller.MainController;
@@ -33,10 +34,11 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public MainController mainController(ActionService actionService,
+    public MainController mainController(ConfigManager config,
+                                         ActionService actionService,
                                          GameManager gameManager,
                                          LibraryManager libraryManager) {
-        return new MainController(actionService, gameManager, libraryManager);
+        return new MainController(config, actionService, gameManager, libraryManager);
     }
 
     @Bean

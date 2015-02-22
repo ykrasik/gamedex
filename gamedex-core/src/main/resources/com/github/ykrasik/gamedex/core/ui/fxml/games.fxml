@@ -113,24 +113,19 @@
         </ToolBar>
     </top>
     <center>
-        <SplitPane fx:id="content" dividerPositions="0.74" BorderPane.alignment="CENTER">
-            <items>
-                <TabPane>
-                    <tabs>
-                        <Tab closable="false" text="Wall">
-                            <content>
-                                <fx:include fx:id="gameWall" source="gameWall.fxml" />
-                            </content>
-                        </Tab>
-                        <Tab closable="false" text="List">
-                            <content>
-                                <fx:include fx:id="gameList" source="gameList.fxml" />
-                            </content>
-                        </Tab>
-                    </tabs>
-                </TabPane>
-                <fx:include fx:id="gameSideBar" source="gameSideBar.fxml" />
-            </items>
-        </SplitPane>
+        <TabPane>
+            <tabs>
+                <Tab closable="false" text="Wall">
+                    <content>
+                        <fx:include fx:id="gameWall" source="gameWall.fxml" />
+                    </content>
+                </Tab>
+                <Tab closable="false" text="List">
+                    <content>
+                        <fx:include fx:id="gameList" source="gameList.fxml" />
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
     </center>
 </BorderPane>

@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.core.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
@@ -40,6 +41,7 @@ public class MainController implements Controller {
 
     @FXML private GameController gamesController;
 
+    @NonNull private final ConfigManager configManager;
     @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
@@ -82,7 +84,9 @@ public class MainController implements Controller {
         });
 
         dividerPosition = content.getDividerPositions()[0];
+
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
+        toggleLog.setSelected(configManager.isShowLog());
 
         gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
         libraryCount.textProperty().bind(libraryManager.librariesProperty().sizeProperty().asString("Libraries: %d"));
@@ -94,14 +98,15 @@ public class MainController implements Controller {
         });
     }
 
-    private void toggleLogTextArea(boolean newValue) {
-        if (newValue) {
+    private void toggleLogTextArea(boolean show) {
+        if (show) {
             content.getItems().add(logTextArea);
             content.setDividerPositions(dividerPosition);
         } else {
             dividerPosition = content.getDividerPositions()[0];
             content.getItems().remove(logTextArea);
         }
+        configManager.setShowLog(show);
     }
 
     private void registerCurrentTask(Task<Void> task) {

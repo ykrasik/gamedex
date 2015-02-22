@@ -51,7 +51,6 @@ public class GameController implements Controller {
 
     @FXML private GameWallController gameWallController;
     @FXML private GameListController gameListController;
-    @FXML private GameSideBarController gameSideBarController;
 
     private final ObjectProperty<Task<Void>> currentTaskProperty = new SimpleObjectProperty<>();
 
@@ -74,21 +73,16 @@ public class GameController implements Controller {
     private void initGameWall() {
         // TODO: gameWall has a problem refreshing... so instead of binding, add a listener and clear the wall before setting the value.
         gameWallController.itemsProperty().bind(gameManager.gamesProperty());
-        gameWallController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
-            gameSideBarController.displayGame(newValue);
-        });
         gameWallController.deletedGameProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.deleteGame(newValue);
+        });
+        gameWallController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
+            gameListController.selectGame(newValue);
         });
     }
 
     private void initGameList() {
         gameListController.itemsProperty().bind(gameManager.gamesProperty());
-        gameListController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                gameSideBarController.displayGame(newValue);
-            }
-        });
         gameListController.deletedGameProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.deleteGame(newValue);
         });

@@ -7,8 +7,10 @@ import java.nio.file.Path;
 /**
  * @author Yevgeny Krasik
  */
-// TODO: Rename this class.
-public interface GameCollectionConfig {
+public interface ConfigManager {
     Opt<Path> getPrevDirectory();
     void setPrevDirectory(Path prevDirectory);
+
+    boolean isShowLog();
+    void setShowLog(boolean show);
 }

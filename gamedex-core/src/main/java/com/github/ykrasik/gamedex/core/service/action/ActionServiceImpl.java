@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
+import com.github.ykrasik.gamedex.core.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
@@ -47,7 +47,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     private final DoubleProperty progressProperty = new SimpleDoubleProperty();
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
-    private final GameCollectionConfig config;
+    private final ConfigManager configManager;
     private final DialogService dialogService;
     private final GameManager gameManager;
     private final LibraryManager libraryManager;
@@ -57,14 +57,14 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     private ExecutorService executorService;
 
-    public ActionServiceImpl(@NonNull GameCollectionConfig config,
+    public ActionServiceImpl(@NonNull ConfigManager configManager,
                              @NonNull DialogService dialogService,
                              @NonNull GameManager gameManager,
                              @NonNull LibraryManager libraryManager,
                              @NonNull ExcludedPathManager excludedPathManager,
                              @NonNull GameInfoProviderManager metacriticManager,
                              @NonNull GameInfoProviderManager giantBombManager) {
-        this.config = config;
+        this.configManager = configManager;
         this.dialogService = dialogService;
         this.gameManager = gameManager;
         this.libraryManager = libraryManager;
@@ -115,10 +115,10 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     @Override
     public void addNewLibrary() {
         try {
-            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(config.getPrevDirectory());
+            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(configManager.getPrevDirectory());
             if (libraryDefOpt.isPresent()) {
                 final LibraryDef libraryDef = libraryDefOpt.get();
-                config.setPrevDirectory(libraryDef.getPath());
+                configManager.setPrevDirectory(libraryDef.getPath());
                 createLibraryFromDef(libraryDef);
             }
         } catch (Exception e) {

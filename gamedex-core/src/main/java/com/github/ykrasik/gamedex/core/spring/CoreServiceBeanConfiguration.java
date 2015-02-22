@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
+import com.github.ykrasik.gamedex.core.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
@@ -33,7 +33,7 @@ public class CoreServiceBeanConfiguration {
     }
 
     @Bean
-    public ActionService actionManager(GameCollectionConfig config,
+    public ActionService actionManager(ConfigManager config,
                                        DialogService dialogService,
                                        GameManager gameManager,
                                        LibraryManager libraryManager,

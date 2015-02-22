@@ -1,8 +1,8 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfig;
-import com.github.ykrasik.gamedex.core.config.GameCollectionConfigImpl;
+import com.github.ykrasik.gamedex.core.config.ConfigManager;
+import com.github.ykrasik.gamedex.core.config.ConfigManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
@@ -29,9 +29,9 @@ import java.io.IOException;
 @Configuration
 public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
-    public GameCollectionConfig gameCollectionConfig() throws IOException {
+    public ConfigManager gameCollectionConfig() throws IOException {
         preloader.message("Loading config...");
-        return new GameCollectionConfigImpl();
+        return new ConfigManagerImpl();
     }
 
     @Bean
