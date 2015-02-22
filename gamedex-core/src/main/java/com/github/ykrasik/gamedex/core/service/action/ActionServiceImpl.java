@@ -2,7 +2,6 @@ package com.github.ykrasik.gamedex.core.service.action;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
-import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
@@ -11,6 +10,7 @@ import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
 import com.github.ykrasik.gamedex.core.manager.info.SearchContext;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
+import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
@@ -25,20 +25,20 @@ import javafx.concurrent.Task;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
 @Accessors(fluent = true)
-public class ActionServiceImpl extends AbstractService implements ActionService {
+public class ActionServiceImpl implements ActionService {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
@@ -48,6 +48,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     private final ConfigManager configManager;
+    private final TaskService taskService;
     private final DialogService dialogService;
     private final GameManager gameManager;
     private final LibraryManager libraryManager;
@@ -55,9 +56,8 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     private final GameInfoProviderManager metacriticManager;
     private final GameInfoProviderManager giantBombManager;
 
-    private ExecutorService executorService;
-
     public ActionServiceImpl(@NonNull ConfigManager configManager,
+                             @NonNull TaskService taskService,
                              @NonNull DialogService dialogService,
                              @NonNull GameManager gameManager,
                              @NonNull LibraryManager libraryManager,
@@ -65,6 +65,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
                              @NonNull GameInfoProviderManager metacriticManager,
                              @NonNull GameInfoProviderManager giantBombManager) {
         this.configManager = configManager;
+        this.taskService = taskService;
         this.dialogService = dialogService;
         this.gameManager = gameManager;
         this.libraryManager = libraryManager;
@@ -74,16 +75,6 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
         metacriticManager.autoSkipProperty().bind(autoSkipProperty);
         giantBombManager.autoSkipProperty().bind(autoSkipProperty);
-    }
-
-    @Override
-    protected void doStart() {
-        executorService = Executors.newSingleThreadExecutor();
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        executorService.shutdownNow();
     }
 
     @Override
@@ -103,7 +94,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     @Override
     public void stopTask(Task<Void> task) {
-        LOG.info("Cancelled.");
+        log.info("Cancelled.");
         messageProperty.unbind();
         fetchingProperty.unbind();
         message("Cancelled.");
@@ -128,7 +119,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     @Override
     public Task<Void> refreshLibraries() {
-        return submit(this::doRefreshLibraries);
+        return taskService.submit(this::doRefreshLibraries);
     }
 
     private void doRefreshLibraries() throws Exception {
@@ -147,7 +138,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     @Override
     public Task<Void> cleanupGames() {
-        return submit(this::doCleanupGames);
+        return taskService.submit(this::doCleanupGames);
     }
 
     // TODO: Make this a total cleanup? libraries, excluded, evertyhing?
@@ -176,7 +167,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
     @Override
     public Task<Void> processPath(Library library, Path path) {
         final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
-        return submit(() -> processPath(libraryHierarchy, path));
+        return taskService.submit((RunnableThrows) () -> processPath(libraryHierarchy, path));
     }
 
     private void refreshCurrentLibrary(LibraryHierarchy libraryHierarchy) throws Exception {
@@ -199,17 +190,17 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     private boolean processPath(LibraryHierarchy libraryHierarchy, Path path) throws Exception {
         if (gameManager.isGame(path)) {
-            LOG.info("{} is already mapped, skipping...", path);
+            log.info("{} is already mapped, skipping...", path);
             return false;
         }
 
         if (libraryManager.isLibrary(path)) {
-            LOG.info("{} is a library, skipping...", path);
+            log.info("{} is a library, skipping...", path);
             return false;
         }
 
         if (excludedPathManager.isExcluded(path)) {
-            LOG.info("{} is excluded, skipping...", path);
+            log.info("{} is excluded, skipping...", path);
             return false;
         }
 
@@ -278,7 +269,7 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
         final Opt<GameInfo> metacriticGameOpt = fetchGameInfo(metacriticManager, name, path, platform, searchContext);
         if (metacriticGameOpt.isPresent()) {
             final GameInfo metacriticGame = metacriticGameOpt.get();
-            LOG.debug("Metacritic gameInfo: {}", metacriticGame);
+            log.debug("Metacritic gameInfo: {}", metacriticGame);
 
             final String metacriticName = metacriticGame.getName();
             final Opt<GameInfo> giantBombGameOpt = fetchGameInfo(giantBombManager, metacriticName, path, platform, searchContext);
@@ -319,19 +310,6 @@ public class ActionServiceImpl extends AbstractService implements ActionService 
 
     private void setProgress(int current, int total) {
         progressProperty.setValue((double) current / total);
-    }
-
-    private Task<Void> submit(RunnableThrows runnable) {
-        final Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                runnable.run();
-                return null;
-            }
-        };
-        task.setOnFailed(e -> dialogService.showException(task.getException()));
-        executorService.submit(task);
-        return task;
     }
 
     private void checkStopped() {

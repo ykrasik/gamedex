@@ -13,6 +13,8 @@ import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.image.ImageServiceImpl;
+import com.github.ykrasik.gamedex.core.service.task.TaskService;
+import com.github.ykrasik.gamedex.core.service.task.TaskServiceImpl;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import javafx.stage.Stage;
@@ -28,12 +30,18 @@ import java.util.List;
 @Configuration
 public class CoreServiceBeanConfiguration {
     @Bean
+    public TaskService taskService(DialogService dialogService) {
+        return new TaskServiceImpl(dialogService);
+    }
+
+    @Bean
     public DialogService dialogService(Stage stage) {
         return new DialogServiceImpl(stage);
     }
 
     @Bean
-    public ActionService actionManager(ConfigManager config,
+    public ActionService actionManager(ConfigManager configManager,
+                                       TaskService taskService,
                                        DialogService dialogService,
                                        GameManager gameManager,
                                        LibraryManager libraryManager,
@@ -41,7 +49,8 @@ public class CoreServiceBeanConfiguration {
                                        GameInfoProviderManager metacriticManager,
                                        GameInfoProviderManager giantBombManager) {
         return new ActionServiceImpl(
-            config,
+            configManager,
+            taskService,
             dialogService,
             gameManager,
             libraryManager,
