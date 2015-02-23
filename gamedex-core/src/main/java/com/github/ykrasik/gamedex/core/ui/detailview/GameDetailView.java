@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core.ui.detailview;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
+import com.github.ykrasik.gamedex.core.ui.rating.FixedRating;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.opt.Opt;
@@ -11,16 +12,21 @@ import com.gs.collections.api.list.ImmutableList;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -46,12 +52,18 @@ public class GameDetailView {
     @FXML private GridPane posterContainer;
     @FXML private ImageView poster;
 
-    @FXML private TextField gamePath;
-    @FXML private TextField name;
+    @FXML private VBox attributesContainer;
+    @FXML private Label nameLabel;
+    @FXML private Label pathLabel;
+
     @FXML private TextArea description;
     @FXML private TextField platform;
     @FXML private TextField releaseDate;
+
+    @FXML private HBox criticScoreContainer;
     @FXML private TextField criticScore;
+    private FixedRating criticRating;
+
     @FXML private TextField userScore;
     @FXML private TextField genres;
     @FXML private Hyperlink url;
@@ -78,8 +90,32 @@ public class GameDetailView {
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.detailViewDialogCss());
 
-        poster.fitWidthProperty().bind(posterContainer.widthProperty());
-        poster.fitHeightProperty().bind(posterContainer.heightProperty());
+        stage.setMaximized(true);
+        stage.initStyle(StageStyle.TRANSPARENT);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(scene);
+    }
+
+    @FXML
+    private void initialize() {
+        final Rectangle2D bounds = Screen.getPrimary().getBounds();
+        final double screenWidth = bounds.getWidth();
+
+        posterContainer.setMinWidth(screenWidth * 0.3);
+        posterContainer.setMaxWidth(screenWidth * 0.7);
+
+        poster.imageProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.getHeight() > newValue.getWidth()) {
+                poster.setFitWidth(0);
+                poster.setFitHeight(Math.min(posterContainer.getHeight(), newValue.getHeight() * 2));
+            } else {
+                poster.setFitWidth(Math.min(posterContainer.getWidth(), newValue.getWidth() * 2));
+                poster.setFitHeight(0);
+            }
+        });
+
+        attributesContainer.setMaxWidth(screenWidth * 0.6);
+        nameLabel.setMaxWidth(screenWidth * 0.4);
 
         okButton.setOnAction(e -> {
             result = Opt.of(createFromInput());
@@ -90,10 +126,9 @@ public class GameDetailView {
             close();
         });
 
-        stage.setMaximized(true);
-        stage.initStyle(StageStyle.TRANSPARENT);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setScene(scene);
+        criticRating = new FixedRating(10);
+        criticRating.setPartialRating(true);
+        criticScoreContainer.getChildren().add(criticRating);
     }
 
     public Opt<Game> show(Game game) {
@@ -101,12 +136,13 @@ public class GameDetailView {
 
         imageService.fetchPoster(game.getId(), poster);
 
-        gamePath.setText(game.getPath().toString());
-        name.setText(game.getName());
+        nameLabel.setText(game.getName());
+        pathLabel.setText(game.getPath().toString());
         description.setText(toStringOrUnavailable(game.getDescription()));
         platform.setText(game.getPlatform().name());
         releaseDate.setText(toStringOrUnavailable(game.getReleaseDate()));
         criticScore.setText(toStringOrUnavailable(game.getCriticScore()));
+        criticRating.setRating(game.getCriticScore().getOrElse(0.0) / 10);
         userScore.setText(toStringOrUnavailable(game.getUserScore()));
         genres.setText(StringUtils.toPrettyCsv(game.getGenres().collect(Genre::getName)));
 

@@ -22,7 +22,6 @@ public abstract class AbstractService implements Lifecycle {
         }
 
         try {
-            LOG.info("Starting...");
             started = true;
             doStart();
             LOG.info("Started.");
@@ -40,7 +39,6 @@ public abstract class AbstractService implements Lifecycle {
         }
 
         try {
-            LOG.info("Stopping...");
             doStop();
             started = false;
             LOG.info("Stopped.");

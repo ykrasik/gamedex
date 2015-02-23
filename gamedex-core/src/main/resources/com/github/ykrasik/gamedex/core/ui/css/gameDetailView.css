@@ -8,3 +8,15 @@
     -fx-text-fill: black;
     -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );
 }
+
+#nameLabel {
+    -fx-font-size: 48;
+    -fx-font-weight: bold;
+    -fx-font-family: fantasy;
+}
+
+#pathLabel {
+    -fx-font-size: 24;
+    -fx-font-style: italic;
+    -fx-font-family: fantasy;
+}
