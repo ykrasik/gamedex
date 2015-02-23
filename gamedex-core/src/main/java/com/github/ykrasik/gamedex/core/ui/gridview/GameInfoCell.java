@@ -27,13 +27,16 @@
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
+import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
+import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 import lombok.NonNull;
 import org.controlsfx.control.GridCell;
 import org.controlsfx.control.GridView;
@@ -45,56 +48,54 @@ import org.controlsfx.control.GridView;
  * @see GridView
  */
 public class GameInfoCell extends GridCell<Game> {
+    private static final double STRETCH_MARGIN = 1.2;
+
     private final ImageView imageView = new ImageView();
     private final StackPane stackPane = new StackPane(imageView);
 
     private final ImageService imageService;
-    private final boolean preserveImageProperties;
 
     private Opt<Task<Image>> loadingTask = Opt.absent();
 
     /**
-     * Creates a default ImageGridCell instance, which will preserve image properties
-     */
-    public GameInfoCell(ImageService imageService) {
-        this(imageService, true);
-    }
-
-    /**
      * Create ImageGridCell instance
-     * @param preserveImageProperties if set to true will preserve image aspect ratio and smoothness
      */
-    public GameInfoCell(@NonNull ImageService imageService, boolean preserveImageProperties) {
+    public GameInfoCell(@NonNull ImageService imageService) {
         getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
 
         this.imageService = imageService;
-        this.preserveImageProperties = preserveImageProperties;
 
-        imageView.fitHeightProperty().bind(heightProperty().subtract(4));
-        imageView.fitWidthProperty().bind(widthProperty().subtract(4));
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
 
-//        final Rectangle clip = new Rectangle(imageView.getFitWidth(), imageView.getFitHeight());
-//        clip.setArcWidth(10);
-//        clip.setArcHeight(10);
-//        imageView.setClip(clip);
+        // Add a listener that will clip the cell's corners to be round, after the cell's height is calculated.
+        final ChangeListener<Number> clipListener = (observable, oldValue, newValue) -> {
+            final Rectangle clip = new Rectangle(1, 1, getWidth() - 4, getHeight() - 4);
+            clip.setArcWidth(20);
+            clip.setArcHeight(20);
+            stackPane.setClip(clip);
+        };
+        heightProperty().addListener(clipListener);
+        widthProperty().addListener(clipListener);
 
-        emptyProperty().addListener((obs, wasEmpty, isEmpty) -> {
-            if (isEmpty) {
-                setGraphic(null);
-                setText(null);
+        imageView.imageProperty().addListener((observable, oldValue, newValue) -> {
+            // Allow stretching the image by up to 20% if it fills up the cell.
+            if (newValue != UIResources.imageLoading() &&
+                (newValue.getHeight() * STRETCH_MARGIN >= getHeight() ||
+                 newValue.getWidth() * STRETCH_MARGIN >= getWidth())) {
+                imageView.setPreserveRatio(false);
             } else {
-                setGraphic(stackPane);
+                imageView.setPreserveRatio(true);
             }
         });
+
+        imageView.fitHeightProperty().bind(heightProperty().subtract(2));
+        imageView.fitWidthProperty().bind(widthProperty().subtract(2));
 
         itemProperty().addListener((obs, oldItem, newItem) -> {
 //            cancelPrevTask();
 
             if (newItem != null) {
-                if (preserveImageProperties) {
-                    imageView.setPreserveRatio(true);
-                    imageView.setSmooth(true);
-                }
                 fetchImage(newItem);
                 setGraphic(stackPane);
             } else {

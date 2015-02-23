@@ -115,7 +115,8 @@ public class GameDetailView {
         });
 
         attributesContainer.setMaxWidth(screenWidth * 0.6);
-        nameLabel.setMaxWidth(screenWidth * 0.4);
+        nameLabel.setMaxWidth(screenWidth * 0.5);
+        pathLabel.setMaxWidth(screenWidth * 0.5);
 
         okButton.setOnAction(e -> {
             result = Opt.of(createFromInput());
