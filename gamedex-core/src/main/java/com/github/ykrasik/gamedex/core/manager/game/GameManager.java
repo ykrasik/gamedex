@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.manager.game;
 
+import com.github.ykrasik.gamedex.core.config.type.GameSort;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;

@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.manager.library;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
@@ -52,7 +52,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
         LOG.info("Added library: {}", library);
 
         // Update cache.
-        PlatformUtils.runLaterIfNecessary(() -> libraries.add(library));
+        JavaFxUtils.runLaterIfNecessary(() -> libraries.add(library));
         return library;
     }
 
@@ -62,7 +62,7 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
         LOG.info("Deleted library: {}", library);
 
         // Delete from cache.
-        PlatformUtils.runLaterIfNecessary(() -> libraries.remove(library));
+        JavaFxUtils.runLaterIfNecessary(() -> libraries.remove(library));
     }
 
     @Override

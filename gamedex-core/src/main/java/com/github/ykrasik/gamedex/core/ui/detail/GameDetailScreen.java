@@ -1,5 +1,6 @@
-package com.github.ykrasik.gamedex.core.ui.detailview;
+package com.github.ykrasik.gamedex.core.ui.detail;
 
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
@@ -9,12 +10,13 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.opt.Opt;
 import com.google.common.base.Strings;
 import com.gs.collections.api.list.ImmutableList;
+import com.gs.collections.api.tuple.Pair;
+import com.gs.collections.impl.tuple.Tuples;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -31,9 +33,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.SneakyThrows;
-import lombok.experimental.Accessors;
 
 import java.awt.*;
 import java.net.URI;
@@ -44,9 +44,7 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
 /**
  * @author Yevgeny Krasik
  */
-@Accessors(fluent = true)
-public class GameDetailView {
-    private static final GameDetailView INSTANCE = new GameDetailView();
+public class GameDetailScreen {
     private static final Duration FADE_DURATION = Duration.seconds(0.25);
 
     @FXML private GridPane posterContainer;
@@ -68,32 +66,39 @@ public class GameDetailView {
     @FXML private TextField genres;
     @FXML private Hyperlink url;
 
-    @FXML private Button okButton;
-    @FXML private Button cancelButton;
-
-    private final Stage stage = new Stage();
+    private final ImageService imageService;
+    private final Stage stage;
     private final BorderPane root;
-
-    // FIXME: Ugh...
-    @Setter @NonNull private ImageService imageService;
 
     private Game inspectedGame;
     private Opt<Game> result = Opt.absent();
 
+    public GameDetailScreen(@NonNull ImageService imageService) {
+        this.imageService = imageService;
+
+        final Pair<Stage, BorderPane> stageAndRoot = JavaFxUtils.returnLaterIfNecessary(this::createStageAndRoot);
+        this.stage = stageAndRoot.getOne();
+        this.root = stageAndRoot.getTwo();
+    }
+
     @SneakyThrows
-    private GameDetailView() {
-        final FXMLLoader loader = new FXMLLoader(UIResources.detailViewDialogFxml());
+    private Pair<Stage, BorderPane> createStageAndRoot() {
+        final Stage stage = new Stage();
+
+        final FXMLLoader loader = new FXMLLoader(UIResources.gameDetailScreenFxml());
         loader.setController(this);
-        root = loader.load();
+        final BorderPane root = loader.load();
         root.setId("gameDetailView");
 
         final Scene scene = new Scene(root, Color.TRANSPARENT);
-        scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.detailViewDialogCss());
+        scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.gameDetailScreenCss());
 
         stage.setMaximized(true);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
+
+        return Tuples.pair(stage, root);
     }
 
     @FXML
@@ -117,15 +122,6 @@ public class GameDetailView {
         attributesContainer.setMaxWidth(screenWidth * 0.6);
         nameLabel.setMaxWidth(screenWidth * 0.5);
         pathLabel.setMaxWidth(screenWidth * 0.5);
-
-        okButton.setOnAction(e -> {
-            result = Opt.of(createFromInput());
-            close();
-        });
-        cancelButton.setOnAction(e -> {
-            result = Opt.absent();
-            close();
-        });
 
         criticRating = new FixedRating(10);
         criticRating.setPartialRating(true);
@@ -208,16 +204,23 @@ public class GameDetailView {
         stage.showAndWait();
     }
 
-    @SneakyThrows
+    @FXML
+    public void accept() {
+        result = Opt.of(createFromInput());
+        close();
+    }
+
+    @FXML
+    public void reject() {
+        result = Opt.absent();
+        close();
+    }
+
     private void close() {
         final FadeTransition fade = new FadeTransition(FADE_DURATION, root);
         fade.setFromValue(1);
         fade.setToValue(0);
         fade.setOnFinished(e -> stage.hide());
         fade.play();
-    }
-
-    public static GameDetailView create() {
-        return INSTANCE;
     }
 }

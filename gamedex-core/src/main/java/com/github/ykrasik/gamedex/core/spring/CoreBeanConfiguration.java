@@ -1,8 +1,6 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
-import com.github.ykrasik.gamedex.core.config.ConfigManager;
-import com.github.ykrasik.gamedex.core.config.ConfigManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
@@ -21,19 +19,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-
 /**
  * @author Yevgeny Krasik
  */
 @Configuration
 public class CoreBeanConfiguration extends AbstractBeanConfiguration {
-    @Bean
-    public ConfigManager gameCollectionConfig() throws IOException {
-        preloader.message("Loading config...");
-        return new ConfigManagerImpl();
-    }
-
     @Bean
     public GameManager gameManager(PersistenceService persistenceService) {
         preloader.message("Loading game manager...");

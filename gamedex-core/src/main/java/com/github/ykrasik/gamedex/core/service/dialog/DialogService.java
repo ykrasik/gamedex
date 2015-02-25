@@ -13,6 +13,7 @@ import java.nio.file.Path;
  */
 public interface DialogService {
     void showException(Throwable t);
+    boolean confirmationDialog(String text);
 
     Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory);
     Opt<LibraryDef> createLibraryDialog(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform);

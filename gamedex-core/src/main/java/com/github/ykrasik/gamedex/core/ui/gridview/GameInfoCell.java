@@ -26,6 +26,7 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
+import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
@@ -53,6 +54,7 @@ public class GameInfoCell extends GridCell<Game> {
     private final ImageView imageView = new ImageView();
     private final StackPane stackPane = new StackPane(imageView);
 
+    private final ConfigService configService;
     private final ImageService imageService;
 
     private Opt<Task<Image>> loadingTask = Opt.absent();
@@ -60,11 +62,12 @@ public class GameInfoCell extends GridCell<Game> {
     /**
      * Create ImageGridCell instance
      */
-    public GameInfoCell(@NonNull ImageService imageService) {
-        getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
-
+    public GameInfoCell(@NonNull ConfigService configService, @NonNull ImageService imageService) {
+        this.configService = configService;
         this.imageService = imageService;
 
+        stackPane.maxHeightProperty().bind(heightProperty());
+        stackPane.maxWidthProperty().bind(widthProperty());
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
@@ -78,31 +81,78 @@ public class GameInfoCell extends GridCell<Game> {
         heightProperty().addListener(clipListener);
         widthProperty().addListener(clipListener);
 
-        imageView.imageProperty().addListener((observable, oldValue, newValue) -> {
-            // Allow stretching the image by up to 20% if it fills up the cell.
-            if (newValue != UIResources.imageLoading() &&
-                (newValue.getHeight() * STRETCH_MARGIN >= getHeight() ||
-                 newValue.getWidth() * STRETCH_MARGIN >= getWidth())) {
-                imageView.setPreserveRatio(false);
-            } else {
-                imageView.setPreserveRatio(true);
-            }
+        imageView.imageProperty().addListener((observable, oldValue, newValue) -> handleNewImage(newValue));
+
+//        imageView.fitHeightProperty().bind(heightProperty().subtract(2));
+//        imageView.fitWidthProperty().bind(widthProperty().subtract(2));
+
+        configService.gameWallImageDisplayProperty().addListener((observable, oldValue, newValue) -> {
+            // Refresh the current image when the display type changes.
+            handleNewImage(imageView.getImage());
         });
 
-        imageView.fitHeightProperty().bind(heightProperty().subtract(2));
-        imageView.fitWidthProperty().bind(widthProperty().subtract(2));
+        getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
+    }
 
-        itemProperty().addListener((obs, oldItem, newItem) -> {
-//            cancelPrevTask();
+    private void handleNewImage(Image image) {
+        if (image == UIResources.imageLoading()) {
+            fitImage();
+            return;
+        }
 
-            if (newItem != null) {
-                fetchImage(newItem);
-                setGraphic(stackPane);
-            } else {
-                setGraphic(null);
-                setText(null);
-            }
-        });
+        switch (configService.gameWallImageDisplayProperty().get()) {
+            case FIT: fitImage(); break;
+            case STRETCH: stretchImage(image); break;
+            case ENLARGE: enlargeImage(image); break;
+        }
+    }
+
+    private void fitImage() {
+        imageView.setTranslateX(0);
+        imageView.setPreserveRatio(true);
+        imageView.setFitHeight(getHeight() - 2);
+        imageView.setFitWidth(getWidth() - 2);
+    }
+
+    private void stretchImage(Image image) {
+        // Allow stretching the image by up to 20% if it fills up the cell.
+        if (image.getHeight() * STRETCH_MARGIN >= getHeight() ||
+            image.getWidth() * STRETCH_MARGIN >= getWidth()) {
+            imageView.setTranslateX(0);
+            imageView.setPreserveRatio(false);
+            imageView.setFitHeight(getHeight() - 2);
+            imageView.setFitWidth(getWidth() - 2);
+        } else {
+            fitImage();
+        }
+    }
+
+    private void enlargeImage(Image image) {
+        final double cellHeight = getHeight();
+        final double cellWidth = getWidth();
+        final double heightRatio = cellHeight / image.getHeight();
+        final double widthRatio = cellWidth / image.getWidth();
+        final double maxRatio = Math.max(heightRatio, widthRatio);
+        if (maxRatio <= STRETCH_MARGIN && maxRatio >= 1) {
+            imageView.setFitHeight(image.getHeight() * maxRatio - 2);
+            imageView.setFitWidth(image.getWidth() * maxRatio - 2);
+            imageView.setTranslateX(-(Math.abs(getWidth() - imageView.getFitWidth()) / 2));
+        } else {
+            fitImage();
+        }
+    }
+
+    @Override
+    protected void updateItem(Game item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (!empty) {
+            fetchImage(item);
+            setGraphic(stackPane);
+        } else {
+            setGraphic(null);
+            setText(null);
+        }
     }
 
     private void fetchImage(Game game) {

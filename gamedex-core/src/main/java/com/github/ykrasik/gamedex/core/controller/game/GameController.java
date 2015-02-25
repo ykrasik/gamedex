@@ -1,9 +1,10 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.type.GameSort;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
-import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
@@ -30,22 +31,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GameController implements Controller {
     @FXML private TextField gameSearchTextField;
-    @FXML private Button clearGameSearchButton;
 
-    @FXML private Button filterGenreButton;
     @FXML private TextField filteredGenresTextField;
-    @FXML private Button clearGenreFilterButton;
     private final ObjectProperty<ObservableList<Genre>> currentlyFilteredGenres = new SimpleObjectProperty<>(FXCollections.emptyObservableList());
 
-    @FXML private Button filterLibraryButton;
     @FXML private TextField filteredLibraryTextField;
-    @FXML private Button clearLibraryFilterButton;
     private final ObjectProperty<Library> currentlyFilteredLibrary = new SimpleObjectProperty<>();
 
-    @FXML private ComboBox<GameSort> gameSort;
+    @FXML private ComboBox<GameSort> gameSortComboBox;
 
     @FXML private CheckBox autoSkipCheckBox;
-    @FXML private Button refreshLibrariesButton;
 
     @FXML private SplitPane content;
 
@@ -54,37 +49,24 @@ public class GameController implements Controller {
 
     private final ObjectProperty<Task<Void>> currentTaskProperty = new SimpleObjectProperty<>();
 
+    @NonNull private final ConfigService configService;
     @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
 
-    // Called by JavaFX
-    public void initialize() {
+    @FXML
+    private void initialize() {
         initGameWall();
-        initGameList();
         initGameSearch();
         initGenreFilter();
         initLibraryFilter();
         initGameSort();
-        initRefreshLibraries();
+        initAutoSkip();
     }
 
-    // TODO: Interface?
     private void initGameWall() {
-        // TODO: gameWall has a problem refreshing... so instead of binding, add a listener and clear the wall before setting the value.
-        gameWallController.itemsProperty().bind(gameManager.gamesProperty());
-        gameWallController.deletedGameProperty().addListener((observable, oldValue, newValue) -> {
-            gameManager.deleteGame(newValue);
-        });
         gameWallController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
             gameListController.selectGame(newValue);
-        });
-    }
-
-    private void initGameList() {
-        gameListController.itemsProperty().bind(gameManager.gamesProperty());
-        gameListController.deletedGameProperty().addListener((observable, oldValue, newValue) -> {
-            gameManager.deleteGame(newValue);
         });
     }
 
@@ -96,8 +78,6 @@ public class GameController implements Controller {
                 gameManager.nameFilter(newValue);
             }
         });
-
-        clearGameSearchButton.setOnAction(e -> gameSearchTextField.clear());
     }
 
     private void initGenreFilter() {
@@ -110,23 +90,6 @@ public class GameController implements Controller {
                 filteredGenresTextField.setText(StringUtils.toPrettyCsv(newValue));
             }
         });
-
-        filterGenreButton.setOnAction(e -> {
-            // Sort genres by name.
-            final ObservableList<Genre> genres = gameManager.getAllGenres();
-            FXCollections.sort(genres);
-
-            final Opt<List<Genre>> selectedGenres = new GenreFilterDialog()
-                .previouslyCheckedItems(currentlyFilteredGenres.get())
-                .show(genres);
-            selectedGenres.ifPresent(selected -> {
-                if (!selected.isEmpty()) {
-                    currentlyFilteredGenres.set(FXCollections.observableArrayList(selected));
-                }
-            });
-        });
-
-        clearGenreFilterButton.setOnAction(e -> currentlyFilteredGenres.set(FXCollections.emptyObservableList()));
     }
 
     private void initLibraryFilter() {
@@ -139,34 +102,71 @@ public class GameController implements Controller {
                 filteredLibraryTextField.setText(newValue.getName());
             }
         });
-
-        filterLibraryButton.setOnAction(e -> {
-            // Sort libraries by name.
-            final ObservableList<Library> libraries = FXCollections.observableArrayList(libraryManager.getAllLibraries());
-            FXCollections.sort(libraries);
-
-            final Opt<Library> selectedLibrary = new LibraryFilterDialog()
-                .previouslySelectedItem(currentlyFilteredLibrary.get())
-                .show(libraries);
-            if (selectedLibrary.isPresent()) {
-                currentlyFilteredLibrary.setValue(selectedLibrary.get());
-            }
-        });
-
-        clearLibraryFilterButton.setOnAction(e -> currentlyFilteredLibrary.set(null));
     }
 
     private void initGameSort() {
-        gameSort.setItems(FXCollections.observableArrayList(GameSort.values()));
-        gameSort.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        gameSortComboBox.setItems(FXCollections.observableArrayList(GameSort.values()));
+        gameSortComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.sort(newValue);
         });
-        gameSort.setValue(GameSort.NAME_ASC);
+        gameSortComboBox.setValue(configService.gameSortProperty().get());
+        configService.gameSortProperty().bind(gameSortComboBox.getSelectionModel().selectedItemProperty());
     }
 
-    private void initRefreshLibraries() {
-        actionService.autoSkipProperty().bind(autoSkipCheckBox.selectedProperty());
-        refreshLibrariesButton.setOnAction(e -> registerCurrentTask(actionService.refreshLibraries()));
+    private void initAutoSkip() {
+        autoSkipCheckBox.selectedProperty().bind(configService.autoSkipProperty());
+    }
+
+    @FXML
+    private void clearGameSearch() {
+        gameSearchTextField.clear();
+    }
+
+    @FXML
+    private void filterGenres() {
+        // TODO: Do this in the actionService, which in turn should go through the dialogService.
+        // Sort genres by name.
+        final ObservableList<Genre> genres = gameManager.getAllGenres();
+        FXCollections.sort(genres);
+
+        final Opt<List<Genre>> selectedGenres = new GenreFilterDialog()
+            .previouslyCheckedItems(currentlyFilteredGenres.get())
+            .show(genres);
+        selectedGenres.ifPresent(selected -> {
+            if (!selected.isEmpty()) {
+                currentlyFilteredGenres.set(FXCollections.observableArrayList(selected));
+            }
+        });
+    }
+
+    @FXML
+    private void clearGenreFilter() {
+        currentlyFilteredGenres.set(FXCollections.emptyObservableList());
+    }
+
+    @FXML
+    private void filterLibrary() {
+        // TODO: Do this in the actionService, which in turn should go through the dialogService.
+        // Sort libraries by name.
+        final ObservableList<Library> libraries = FXCollections.observableArrayList(libraryManager.getAllLibraries());
+        FXCollections.sort(libraries);
+
+        final Opt<Library> selectedLibrary = new LibraryFilterDialog()
+            .previouslySelectedItem(currentlyFilteredLibrary.get())
+            .show(libraries);
+        if (selectedLibrary.isPresent()) {
+            currentlyFilteredLibrary.setValue(selectedLibrary.get());
+        }
+    }
+
+    @FXML
+    private void clearLibraryFilter() {
+        currentlyFilteredLibrary.set(null);
+    }
+
+    @FXML
+    private void refreshLibraries() {
+        registerCurrentTask(actionService.refreshLibraries());
     }
 
     private void registerCurrentTask(Task<Void> task) {

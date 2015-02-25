@@ -3,13 +3,14 @@ package com.github.ykrasik.gamedex.core.service.action;
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
-import com.github.ykrasik.gamedex.core.config.ConfigManager;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
 import com.github.ykrasik.gamedex.core.manager.info.SearchContext;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
+import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
@@ -47,8 +48,9 @@ public class ActionServiceImpl implements ActionService {
     private final DoubleProperty progressProperty = new SimpleDoubleProperty();
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
-    private final ConfigManager configManager;
+    private final ConfigService configService;
     private final TaskService taskService;
+    private final ScreenService screenService;
     private final DialogService dialogService;
     private final GameManager gameManager;
     private final LibraryManager libraryManager;
@@ -56,16 +58,18 @@ public class ActionServiceImpl implements ActionService {
     private final GameInfoProviderManager metacriticManager;
     private final GameInfoProviderManager giantBombManager;
 
-    public ActionServiceImpl(@NonNull ConfigManager configManager,
+    public ActionServiceImpl(@NonNull ConfigService configService,
                              @NonNull TaskService taskService,
+                             @NonNull ScreenService screenService,
                              @NonNull DialogService dialogService,
                              @NonNull GameManager gameManager,
                              @NonNull LibraryManager libraryManager,
                              @NonNull ExcludedPathManager excludedPathManager,
                              @NonNull GameInfoProviderManager metacriticManager,
                              @NonNull GameInfoProviderManager giantBombManager) {
-        this.configManager = configManager;
+        this.configService = configService;
         this.taskService = taskService;
+        this.screenService = screenService;
         this.dialogService = dialogService;
         this.gameManager = gameManager;
         this.libraryManager = libraryManager;
@@ -106,10 +110,10 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public void addNewLibrary() {
         try {
-            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(configManager.getPrevDirectory());
+            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(configService.prevDirectoryProperty().get());
             if (libraryDefOpt.isPresent()) {
                 final LibraryDef libraryDef = libraryDefOpt.get();
-                configManager.setPrevDirectory(libraryDef.getPath());
+                configService.prevDirectoryProperty().set(Opt.of(libraryDef.getPath()));
                 createLibraryFromDef(libraryDef);
             }
         } catch (Exception e) {
@@ -168,6 +172,23 @@ public class ActionServiceImpl implements ActionService {
     public Task<Void> processPath(Library library, Path path) {
         final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
         return taskService.submit((RunnableThrows) () -> processPath(libraryHierarchy, path));
+    }
+
+    @Override
+    public void deleteGame(Game game) {
+        if (dialogService.confirmationDialog(String.format("Are you sure you want to delete '%s'?", game.getName()))) {
+            gameManager.deleteGame(game);
+        }
+    }
+
+    @Override
+    public void showGameDetails(Game game) {
+        // FIXME: Handle exception while editing
+        final Opt<Game> editedGame = screenService.showGameDetails(game);
+        if (editedGame.isPresent()) {
+            // TODO: Update in db
+            System.out.println(editedGame);
+        }
     }
 
     private void refreshCurrentLibrary(LibraryHierarchy libraryHierarchy) throws Exception {

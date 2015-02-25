@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.manager.exclude;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import javafx.beans.property.ListProperty;
@@ -49,7 +49,7 @@ public class ExcludedPathManagerImpl extends AbstractService implements Excluded
         LOG.info("Excluded path: {}", excludedPath);
 
         // Update cache.
-        PlatformUtils.runLaterIfNecessary(() -> excludedPaths.add(excludedPath));
+        JavaFxUtils.runLaterIfNecessary(() -> excludedPaths.add(excludedPath));
         return excludedPath;
     }
 
@@ -59,7 +59,7 @@ public class ExcludedPathManagerImpl extends AbstractService implements Excluded
         LOG.info("Deleted excluded path: {}", excludedPath);
 
         // Delete from cache.
-        PlatformUtils.runLaterIfNecessary(() -> excludedPaths.remove(excludedPath));
+        JavaFxUtils.runLaterIfNecessary(() -> excludedPaths.remove(excludedPath));
     }
 
     @Override

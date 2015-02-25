@@ -1,11 +1,12 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
-import com.github.ykrasik.gamedex.core.config.ConfigManager;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
+import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -41,7 +42,8 @@ public class MainController implements Controller {
 
     @FXML private GameController gamesController;
 
-    @NonNull private final ConfigManager configManager;
+    @NonNull private final ConfigService configService;
+    @NonNull private final ScreenService screenService;
     @NonNull private final ActionService actionService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
@@ -66,16 +68,16 @@ public class MainController implements Controller {
     private void initBottom() {
         actionService.fetchProgressProperty().addListener((observable, oldValue, fetching) -> {
             final double progress = fetching ? -1 : 0;
-            PlatformUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(progress));
+            JavaFxUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(progress));
         });
         actionService.progressProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                PlatformUtils.runLaterIfNecessary(() -> statusBar.setProgress(newValue.doubleValue()));
+                JavaFxUtils.runLaterIfNecessary(() -> statusBar.setProgress(newValue.doubleValue()));
             }
         });
         actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                PlatformUtils.runLaterIfNecessary(() -> {
+                JavaFxUtils.runLaterIfNecessary(() -> {
                     statusBar.setText(newValue);
                     logTextArea.appendText(newValue);
                     logTextArea.appendText("\n");
@@ -86,7 +88,7 @@ public class MainController implements Controller {
         dividerPosition = content.getDividerPositions()[0];
 
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
-        toggleLog.setSelected(configManager.isShowLog());
+        toggleLog.selectedProperty().bindBidirectional(configService.showLogProperty());
 
         gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
         libraryCount.textProperty().bind(libraryManager.librariesProperty().sizeProperty().asString("Libraries: %d"));
@@ -106,7 +108,6 @@ public class MainController implements Controller {
             dividerPosition = content.getDividerPositions()[0];
             content.getItems().remove(logTextArea);
         }
-        configManager.setShowLog(show);
     }
 
     private void registerCurrentTask(Task<Void> task) {
@@ -119,5 +120,10 @@ public class MainController implements Controller {
         statusBarStopButton.setOnAction(e -> task.cancel());
 
         // TODO: Disable all other buttons while task is running.
+    }
+
+    @FXML
+    public void showSettings() {
+        screenService.showSettingsScreen();
     }
 }

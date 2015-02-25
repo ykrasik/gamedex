@@ -28,11 +28,13 @@ public final class UIResources {
 
     @Getter private static final URL mainFxml = getResource("fxml/main.fxml");
     @Getter private static final URL libraryDialogFxml = getResource("fxml/libraryDialog.fxml");
-    @Getter private static final URL detailViewDialogFxml = getResource("fxml/gameDetailView.fxml");
+    @Getter private static final URL gameDetailScreenFxml = getResource("fxml/gameDetailScreen.fxml");
+    @Getter private static final URL settingsScreenFxml = getResource("fxml/settingsScreen.fxml");
 
     @Getter private static final String mainCss = CSS_PATH + "main.css";
     @Getter private static final String libraryDialogCss = CSS_PATH + "libraryDialog.css";
-    @Getter private static final String detailViewDialogCss = CSS_PATH + "gameDetailView.css";
+    @Getter private static final String gameDetailScreenCss = CSS_PATH + "gameDetailScreen.css";
+    @Getter private static final String settingsScreenCss = CSS_PATH + "settingsScreen.css";
 
     private static InputStream getResourceAsStream(String name) {
         return Objects.requireNonNull(UIResources.class.getResourceAsStream(name), "Can't find resource on classpath: " + name);

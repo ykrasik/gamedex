@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.action;
 
+import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -17,7 +17,6 @@ import java.nio.file.Path;
 // TODO: Rename this to ActionManager? Each flow returns a Result class with properties?
 // TODO: Need 2 threads - one to search and fetch games, one to fetch thumbnails & posters.
 public interface ActionService {
-    BooleanProperty autoSkipProperty();
     ReadOnlyStringProperty messageProperty();
     ReadOnlyDoubleProperty progressProperty();
     ReadOnlyBooleanProperty fetchProgressProperty();
@@ -31,4 +30,8 @@ public interface ActionService {
     Task<Void> cleanupGames();
 
     Task<Void> processPath(Library library, Path path);
+
+    void deleteGame(Game game);
+
+    void showGameDetails(Game game);
 }

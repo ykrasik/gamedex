@@ -2,7 +2,8 @@ package com.github.ykrasik.gamedex.core.manager.game;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.config.type.GameSort;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
@@ -68,7 +69,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
         LOG.info("Added game: {}", game);
 
         // Update cache.
-        PlatformUtils.runLaterIfNecessary(() -> {
+        JavaFxUtils.runLaterIfNecessary(() -> {
             games.add(game);
             doRefreshGames();
         });
@@ -78,10 +79,10 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     @Override
     public void deleteGame(Game game) {
         persistenceService.deleteGame(game.getId());
-        LOG.info("Deleted game: {}...", game);
+        LOG.info("Deleted game: {}", game);
 
         // Delete from cache.
-        PlatformUtils.runLaterIfNecessary(() -> {
+        JavaFxUtils.runLaterIfNecessary(() -> {
             games.remove(game);
             doRefreshGames();
         });
@@ -94,7 +95,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
         }
 
         // Delete from cache.
-        PlatformUtils.runLaterIfNecessary(() -> {
+        JavaFxUtils.runLaterIfNecessary(() -> {
             this.games.removeAll(games);
             doRefreshGames();
         });
@@ -171,7 +172,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     private void refreshGames() {
-        PlatformUtils.runLaterIfNecessary(this::doRefreshGames);
+        JavaFxUtils.runLaterIfNecessary(this::doRefreshGames);
     }
 
     private void doRefreshGames() {

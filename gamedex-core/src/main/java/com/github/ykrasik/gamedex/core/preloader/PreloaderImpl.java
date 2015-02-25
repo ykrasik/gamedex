@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.preloader;
 
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleStringProperty;
@@ -68,7 +68,7 @@ public class PreloaderImpl implements Preloader {
     public void message(String message) {
         current++;
         final double progress = (double) current / max;
-        PlatformUtils.runLaterIfNecessary(() -> {
+        JavaFxUtils.runLaterIfNecessary(() -> {
             messageProperty.setValue(message);
             progressBar.setProgress(progress);
         });

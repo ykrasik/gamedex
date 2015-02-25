@@ -1,7 +1,9 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
-import com.github.ykrasik.gamedex.core.config.ConfigManager;
+import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigServiceImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
@@ -13,6 +15,8 @@ import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.image.ImageServiceImpl;
+import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
+import com.github.ykrasik.gamedex.core.service.screen.ScreenServiceImpl;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.service.task.TaskServiceImpl;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
@@ -28,20 +32,32 @@ import java.util.List;
  * @author Yevgeny Krasik
  */
 @Configuration
-public class CoreServiceBeanConfiguration {
+public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public TaskService taskService(DialogService dialogService) {
         return new TaskServiceImpl(dialogService);
     }
 
     @Bean
-    public DialogService dialogService(Stage stage) {
-        return new DialogServiceImpl(stage);
+    public ConfigService configService() {
+        preloader.message("Loading config...");
+        return new ConfigServiceImpl();
     }
 
     @Bean
-    public ActionService actionManager(ConfigManager configManager,
+    public ScreenService screenService(Stage stage, ConfigService configService, ImageService imageService) {
+        return new ScreenServiceImpl(stage, configService, imageService);
+    }
+
+    @Bean
+    public DialogService dialogService(Stage stage, ScreenService screenService) {
+        return new DialogServiceImpl(stage, screenService);
+    }
+
+    @Bean
+    public ActionService actionManager(ConfigService configService,
                                        TaskService taskService,
+                                       ScreenService screenService,
                                        DialogService dialogService,
                                        GameManager gameManager,
                                        LibraryManager libraryManager,
@@ -49,8 +65,9 @@ public class CoreServiceBeanConfiguration {
                                        GameInfoProviderManager metacriticManager,
                                        GameInfoProviderManager giantBombManager) {
         return new ActionServiceImpl(
-            configManager,
+            configService,
             taskService,
+            screenService,
             dialogService,
             gameManager,
             libraryManager,

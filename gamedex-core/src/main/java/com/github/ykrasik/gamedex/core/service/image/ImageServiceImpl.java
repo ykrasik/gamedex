@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.image;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.PlatformUtils;
+import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
@@ -34,7 +34,7 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
 
     @Override
     protected void doStart() throws Exception {
-        // TODO: There is a weird race condition with the thumbnails when more than 1 thread.
+        // FIXME: There is a weird race condition with the thumbnails when more than 1 thread.
         executorService = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setNameFormat("image-fetcher-%d").build());
     }
 
@@ -72,7 +72,7 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
         task.setOnFailed(e -> Lombok.sneakyThrow(task.getException()));
 
         // Set imageView to a "loading" image.
-        PlatformUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.imageLoading()));
+        JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.imageLoading()));
 
         final FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.02), imageView);
         fadeIn.setFromValue(0.0);
@@ -83,7 +83,7 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setOnFinished(e -> {
-            PlatformUtils.runLaterIfNecessary(() -> imageView.setImage(task.getValue()));
+            JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(task.getValue()));
             fadeIn.play();
         });
 

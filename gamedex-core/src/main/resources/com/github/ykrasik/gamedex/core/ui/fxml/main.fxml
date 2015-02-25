@@ -52,6 +52,11 @@
               <MenuItem mnemonicParsing="false" text="Re-Fetch Games" />
             </items>
           </Menu>
+            <Menu mnemonicParsing="false" text="Settings">
+               <items>
+                  <MenuItem onAction="#showSettings" mnemonicParsing="false" text="Settings" />
+               </items>
+            </Menu>
         </menus>
       </MenuBar>
    </top>

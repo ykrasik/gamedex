@@ -13,7 +13,7 @@
 }
 
 .card {
-    -fx-border-color: gray;
+    -fx-border-color: black;
     -fx-background-color: lightgray;
     -fx-border-radius: 10;
     -fx-background-radius: 10;

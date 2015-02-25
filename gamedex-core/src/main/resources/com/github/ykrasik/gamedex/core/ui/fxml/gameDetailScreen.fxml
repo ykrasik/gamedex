@@ -16,13 +16,13 @@
          <children>
             <HBox styleClass="toolbar">
                <children>
-                  <Button fx:id="okButton" defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" text="OK">
+                  <Button defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#accept" text="OK">
                      <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin>
                   </Button>
                   <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="cancelButton" cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" text="Cancel">
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#reject" text="Cancel">
                      <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin>
