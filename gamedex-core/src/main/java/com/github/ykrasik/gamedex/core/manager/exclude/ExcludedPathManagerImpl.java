@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.manager.exclude;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import javafx.beans.property.ListProperty;

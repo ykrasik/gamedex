@@ -1,11 +1,11 @@
 package com.github.ykrasik.gamedex.core.service.screen;
 
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
-import com.github.ykrasik.gamedex.core.ui.detail.GameDetailScreen;
-import com.github.ykrasik.gamedex.core.ui.settings.SettingsScreen;
+import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailScreen;
+import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
 import javafx.scene.Parent;
@@ -16,7 +16,6 @@ import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Yevgeny Krasik
@@ -40,7 +39,7 @@ public class ScreenServiceImpl implements ScreenService {
         // Dialog must be displayed on JavaFx thread.
         final FutureTask<Void> futureTask = new FutureTask<>(() -> runWithBlur(runnable));
         JavaFxUtils.runLaterIfNecessary(futureTask);
-        futureTask.get(10, TimeUnit.SECONDS);
+        futureTask.get();
     }
 
     @Override
@@ -49,7 +48,7 @@ public class ScreenServiceImpl implements ScreenService {
         // Dialog must be displayed on JavaFx thread.
         final FutureTask<T> futureTask = new FutureTask<>(() -> callWithBlur(callable));
         JavaFxUtils.runLaterIfNecessary(futureTask);
-        return futureTask.get(10, TimeUnit.SECONDS);
+        return futureTask.get();
     }
 
     @Override

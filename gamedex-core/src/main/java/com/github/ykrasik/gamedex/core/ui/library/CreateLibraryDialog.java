@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.library;
 
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.opt.Opt;

@@ -2,9 +2,12 @@ package com.github.ykrasik.gamedex.common.util;
 
 import com.github.ykrasik.opt.Opt;
 import com.google.common.io.Resources;
+import lombok.SneakyThrows;
 
+import java.awt.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -24,5 +27,10 @@ public final class UrlUtils {
         } catch (FileNotFoundException e) {
             return Opt.absent();
         }
+    }
+
+    @SneakyThrows
+    public static void browseToUrl(String url) {
+        Desktop.getDesktop().browse(new URI(url));
     }
 }

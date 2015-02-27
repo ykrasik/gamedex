@@ -1,134 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.*?>
-<?import org.controlsfx.control.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane fx:id="container" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-   <top>
-      <VBox>
-         <children>
-            <HBox styleClass="toolbar">
-               <children>
-                  <Button defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#accept" text="OK">
-                     <HBox.margin>
+    <top>
+        <VBox fx:id="toolbar">
+            <children>
+                <HBox styleClass="toolbar">
+                    <children>
+                        <Button defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#accept" text="OK">
+                            <HBox.margin>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </HBox.margin>
+                        </Button>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#reject" text="Cancel">
+                            <HBox.margin>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </HBox.margin>
+                        </Button>
+                    </children>
+                </HBox>
+                <Separator />
+            </children>
+        </VBox>
+    </top>
+    <center>
+        <HBox>
+            <children>
+                <StackPane fx:id="posterContainer" styleClass="card" HBox.hgrow="SOMETIMES">
+                    <BorderPane.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                     </HBox.margin>
-                  </Button>
-                  <Region HBox.hgrow="ALWAYS" />
-                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#reject" text="Cancel">
-                     <HBox.margin>
+                    </BorderPane.margin>
+                    <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-               <BorderPane.margin>
-                  <Insets />
-               </BorderPane.margin>
-            </HBox>
-            <Separator />
-         </children>
-      </VBox>
-   </top>
-   <center>
-      <HBox>
-         <children>
-            <StackPane styleClass="card" HBox.hgrow="SOMETIMES">
-               <children>
-                  <GridPane fx:id="posterContainer" alignment="CENTER" BorderPane.alignment="CENTER">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="0.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="0.0" valignment="CENTER" vgrow="ALWAYS" />
-                     </rowConstraints>
-                     <children>
-                        <ImageView fx:id="poster" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                     </children>
-                     <BorderPane.margin>
-                        <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
-                     </BorderPane.margin>
-                  </GridPane>
-               </children>
-               <BorderPane.margin>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </BorderPane.margin>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
-               <HBox.margin>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </HBox.margin>
-            </StackPane>
-            <VBox fx:id="attributesContainer" alignment="TOP_RIGHT" styleClass="card" HBox.hgrow="ALWAYS">
-               <children>
-                  <GridPane fx:id="attributes" alignment="TOP_RIGHT" hgap="5.0" vgap="8.0" BorderPane.alignment="CENTER" StackPane.alignment="CENTER_RIGHT">
-                     <children>
-                        <Label text="Description:" GridPane.rowIndex="4" />
-                        <TextArea fx:id="description" wrapText="true" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
-                        <Label text="Platform:" GridPane.rowIndex="5" />
-                        <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                        <Label text="Release Date:" GridPane.rowIndex="6" />
-                        <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-                        <Label text="Critic Score:" GridPane.rowIndex="7" />
-                        <HBox fx:id="criticScoreContainer" GridPane.columnIndex="1" GridPane.rowIndex="7">
-                           <children>
-                              <TextField fx:id="criticScore" GridPane.columnIndex="1" GridPane.rowIndex="6" HBox.hgrow="ALWAYS">
-                                 <HBox.margin>
-                                    <Insets right="20.0" />
-                                 </HBox.margin>
-                              </TextField>
-                           </children>
-                        </HBox>
-                        <Label text="User Score:" GridPane.rowIndex="8" />
-                        <TextField fx:id="userScore" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-                        <TextField fx:id="genres" GridPane.columnIndex="1" GridPane.rowIndex="9" />
-                        <Label text="Genres:" GridPane.rowIndex="9" />
-                        <Label text="URL:" GridPane.rowIndex="10" />
-                        <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="10" />
-                        <Label id="nameLabel" fx:id="nameLabel" text="Name" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
-                        <Label id="pathLabel" fx:id="pathLabel" text="Path" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
-                     </children>
-                     <columnConstraints>
-                        <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
-                        <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints fillHeight="false" maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="ALWAYS" />
-                        <RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" minHeight="100.0" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                        <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <BorderPane.margin>
-                        <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
-                     </BorderPane.margin>
-                     <VBox.margin>
-                        <Insets />
-                     </VBox.margin>
-                  </GridPane>
-               </children>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
-               <HBox.margin>
-                  <Insets bottom="10.0" right="10.0" top="10.0" />
-               </HBox.margin>
-            </VBox>
-         </children>
-      </HBox>
-   </center>
+                    </HBox.margin>
+                </StackPane>
+                <VBox alignment="TOP_RIGHT" styleClass="card" HBox.hgrow="ALWAYS">
+                    <children>
+                        <GridPane fx:id="attributes" alignment="TOP_RIGHT" hgap="5.0" vgap="8.0" BorderPane.alignment="CENTER" StackPane.alignment="CENTER_RIGHT">
+                            <children>
+                                <Label text="Description:" GridPane.rowIndex="4" />
+                                <TextArea fx:id="description" wrapText="true" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+                                <Label text="Platform:" GridPane.rowIndex="5" />
+                                <TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                <Label text="Release Date:" GridPane.rowIndex="6" />
+                                <TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                <Label text="Critic Score:" GridPane.rowIndex="7" />
+                                <HBox fx:id="criticScoreContainer" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                                    <children>
+                                        <TextField fx:id="criticScore" GridPane.columnIndex="1" GridPane.rowIndex="6" HBox.hgrow="ALWAYS">
+                                            <HBox.margin>
+                                                <Insets right="20.0" />
+                                            </HBox.margin>
+                                        </TextField>
+                                    </children>
+                                </HBox>
+                                <Label text="User Score:" GridPane.rowIndex="8" />
+                                <TextField fx:id="userScore" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                                <TextField fx:id="genres" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+                                <Label text="Genres:" GridPane.rowIndex="9" />
+                                <Label text="URL:" GridPane.rowIndex="10" />
+                                <Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+                                <Label id="nameLabel" fx:id="nameLabel" text="Name" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                <Label id="pathLabel" fx:id="pathLabel" text="Path" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+                            </children>
+                            <columnConstraints>
+                                <ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
+                                <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints fillHeight="false" maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="ALWAYS" />
+                                <RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" minHeight="100.0" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                                <RowConstraints fillHeight="false" vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <BorderPane.margin>
+                                <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+                            </BorderPane.margin>
+                        </GridPane>
+                    </children>
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    </padding>
+                    <HBox.margin>
+                        <Insets bottom="10.0" right="10.0" top="10.0" />
+                    </HBox.margin>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
 </BorderPane>

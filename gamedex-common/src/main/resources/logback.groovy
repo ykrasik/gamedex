@@ -7,10 +7,9 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 import java.nio.file.Paths
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
-import static ch.qos.logback.classic.Level.*
+import static ch.qos.logback.classic.Level.DEBUG
+import static ch.qos.logback.classic.Level.INFO
 
 LOG_LEVELS = [
     ROOT: INFO,
@@ -104,10 +103,8 @@ appender(APPENDER_CONSOLE, ConsoleAppender) {
 systemAppenders += APPENDER_CONSOLE
 
 // Root
-def String nowStr = DateTimeFormatter.ofPattern("yyyy_MM_dd__HH_mm").format(LocalDateTime.now())
-def String mainLogFile = "gameDex__" + nowStr
 createLogger(
-    mainLogFile,
+    "gameDex",
     [
         "root": LOG_LEVELS.ROOT,
     ]

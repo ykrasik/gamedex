@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
@@ -59,15 +60,17 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
 
     @Qualifier("metacriticManager")
     @Bean
-    public GameInfoProviderManager metacriticManager(DialogService dialogService,
+    public GameInfoProviderManager metacriticManager(ConfigService configService,
+                                                     DialogService dialogService,
                                                      @Qualifier("metacriticGameInfoProvider") GameInfoProvider metacriticGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(dialogService, metacriticGameInfoProvider, false);
+        return new GameInfoProviderManagerImpl(configService, dialogService, metacriticGameInfoProvider, false);
     }
 
     @Qualifier("giantBombManager")
     @Bean
-    public GameInfoProviderManager giantBombManager(DialogService dialogService,
+    public GameInfoProviderManager giantBombManager(ConfigService configService,
+                                                    DialogService dialogService,
                                                     @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(dialogService, giantBombGameInfoProvider, true);
+        return new GameInfoProviderManagerImpl(configService, dialogService, giantBombGameInfoProvider, true);
     }
 }

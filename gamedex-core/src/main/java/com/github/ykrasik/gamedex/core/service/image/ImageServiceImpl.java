@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.image;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;

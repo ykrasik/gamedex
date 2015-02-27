@@ -1,6 +1,8 @@
 package com.github.ykrasik.gamedex.core.manager.info;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
+import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.service.action.SkipException;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.dialog.MultipleSearchResultsDialogParams;
@@ -14,7 +16,6 @@ import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -28,10 +29,10 @@ import java.util.Collection;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
-    @Getter private final BooleanProperty autoSkipProperty = new SimpleBooleanProperty();
     private final StringProperty messageProperty = new SimpleStringProperty();
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
+    @NonNull private final ConfigService configService;
     @NonNull private final DialogService dialogService;
     @NonNull private final GameInfoProvider gameInfoProvider;
     private final boolean canProceedWithout;
@@ -178,7 +179,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private boolean isAutoSkip() {
-        return autoSkipProperty.get();
+        return configService.<Boolean>property(ConfigType.AUTO_SKIP).get();
     }
 
     private void message(String format, Object... args) {

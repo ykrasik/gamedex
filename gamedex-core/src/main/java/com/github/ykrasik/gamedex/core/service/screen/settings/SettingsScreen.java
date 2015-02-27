@@ -1,6 +1,6 @@
-package com.github.ykrasik.gamedex.core.ui.settings;
+package com.github.ykrasik.gamedex.core.service.screen.settings;
 
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;

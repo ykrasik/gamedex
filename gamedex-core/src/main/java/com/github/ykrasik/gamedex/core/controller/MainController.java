@@ -1,9 +1,9 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
@@ -72,18 +72,13 @@ public class MainController implements Controller {
             final double progress = fetching ? -1 : 0;
             JavaFxUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(progress));
         });
-        actionService.progressProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                JavaFxUtils.runLaterIfNecessary(() -> statusBar.setProgress(newValue.doubleValue()));
-            }
-        });
+        statusBar.progressProperty().bind(actionService.progressProperty());
+
+        statusBar.textProperty().bind(actionService.messageProperty());
         actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                JavaFxUtils.runLaterIfNecessary(() -> {
-                    statusBar.setText(newValue);
-                    logTextArea.appendText(newValue);
-                    logTextArea.appendText("\n");
-                });
+                logTextArea.appendText(newValue);
+                logTextArea.appendText("\n");
             }
         });
 

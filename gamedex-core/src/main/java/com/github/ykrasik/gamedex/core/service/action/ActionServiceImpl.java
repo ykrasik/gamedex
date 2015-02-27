@@ -5,6 +5,9 @@ import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareBooleanProperty;
+import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareDoubleProperty;
+import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareStringProperty;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
@@ -24,8 +27,8 @@ import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
-import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,47 +43,24 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 public class ActionServiceImpl implements ActionService {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
-    @Getter private final BooleanProperty autoSkipProperty = new SimpleBooleanProperty();
-    private final StringProperty messageProperty = new SimpleStringProperty();
-    private final DoubleProperty progressProperty = new SimpleDoubleProperty();
-    private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
+    private final StringProperty messageProperty = new ThreadAwareStringProperty();
+    private final DoubleProperty progressProperty = new ThreadAwareDoubleProperty();
+    private final BooleanProperty fetchingProperty = new ThreadAwareBooleanProperty();
 
-    private final ConfigService configService;
-    private final TaskService taskService;
-    private final ScreenService screenService;
-    private final DialogService dialogService;
-    private final GameManager gameManager;
-    private final LibraryManager libraryManager;
-    private final ExcludedPathManager excludedPathManager;
-    private final GameInfoProviderManager metacriticManager;
-    private final GameInfoProviderManager giantBombManager;
-
-    public ActionServiceImpl(@NonNull ConfigService configService,
-                             @NonNull TaskService taskService,
-                             @NonNull ScreenService screenService,
-                             @NonNull DialogService dialogService,
-                             @NonNull GameManager gameManager,
-                             @NonNull LibraryManager libraryManager,
-                             @NonNull ExcludedPathManager excludedPathManager,
-                             @NonNull GameInfoProviderManager metacriticManager,
-                             @NonNull GameInfoProviderManager giantBombManager) {
-        this.configService = configService;
-        this.taskService = taskService;
-        this.screenService = screenService;
-        this.dialogService = dialogService;
-        this.gameManager = gameManager;
-        this.libraryManager = libraryManager;
-        this.excludedPathManager = excludedPathManager;
-        this.metacriticManager = metacriticManager;
-        this.giantBombManager = giantBombManager;
-
-        metacriticManager.autoSkipProperty().bind(autoSkipProperty);
-        giantBombManager.autoSkipProperty().bind(autoSkipProperty);
-    }
+    @NonNull private final ConfigService configService;
+    @NonNull private final TaskService taskService;
+    @NonNull private final ScreenService screenService;
+    @NonNull private final DialogService dialogService;
+    @NonNull private final GameManager gameManager;
+    @NonNull private final LibraryManager libraryManager;
+    @NonNull private final ExcludedPathManager excludedPathManager;
+    @NonNull private final GameInfoProviderManager metacriticManager;
+    @NonNull private final GameInfoProviderManager giantBombManager;
 
     @Override
     public ReadOnlyStringProperty messageProperty() {
@@ -319,7 +299,7 @@ public class ActionServiceImpl implements ActionService {
     }
 
     private boolean isAutoSkip() {
-        return autoSkipProperty.get();
+        return configService.<Boolean>property(ConfigType.AUTO_SKIP).get();
     }
 
     private void message(String format, Object... args) {

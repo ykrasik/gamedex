@@ -1,7 +1,9 @@
-package com.github.ykrasik.gamedex.core.ui.detail;
+package com.github.ykrasik.gamedex.core.service.screen.detail;
 
-import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
+import com.github.ykrasik.gamedex.common.util.UrlUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewResizingPane;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.rating.FixedRating;
@@ -13,20 +15,18 @@ import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.api.tuple.Pair;
 import com.gs.collections.impl.tuple.Tuples;
 import javafx.animation.FadeTransition;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -34,9 +34,6 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-
-import java.awt.*;
-import java.net.URI;
 
 import static com.github.ykrasik.gamedex.common.util.StringUtils.isUnavailable;
 import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnavailable;
@@ -46,11 +43,11 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
  */
 public class GameDetailScreen {
     private static final Duration FADE_DURATION = Duration.seconds(0.25);
+    private static final double MAX_POSTER_WIDTH_PERCENT = 0.5;
 
-    @FXML private GridPane posterContainer;
-    @FXML private ImageView poster;
+    @FXML private StackPane posterContainer;
+    private ImageView poster;
 
-    @FXML private VBox attributesContainer;
     @FXML private Label nameLabel;
     @FXML private Label pathLabel;
 
@@ -83,16 +80,21 @@ public class GameDetailScreen {
 
     @SneakyThrows
     private Pair<Stage, BorderPane> createStageAndRoot() {
-        final Stage stage = new Stage();
-
+        final Rectangle2D bounds = Screen.getPrimary().getBounds();
         final FXMLLoader loader = new FXMLLoader(UIResources.gameDetailScreenFxml());
         loader.setController(this);
         final BorderPane root = loader.load();
         root.setId("gameDetailView");
+        root.setMaxHeight(bounds.getHeight());
+        root.setMaxWidth(bounds.getWidth());
 
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.gameDetailScreenCss());
 
+        final Stage stage = new Stage();
+        stage.setTitle("Details");
+        stage.setMaxHeight(bounds.getHeight());
+        stage.setMaxWidth(bounds.getWidth());
         stage.setMaximized(true);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -103,25 +105,27 @@ public class GameDetailScreen {
 
     @FXML
     private void initialize() {
-        final Rectangle2D bounds = Screen.getPrimary().getBounds();
-        final double screenWidth = bounds.getWidth();
+        final double screenWidth = Screen.getPrimary().getBounds().getWidth();
 
-        posterContainer.setMinWidth(screenWidth * 0.3);
-        posterContainer.setMaxWidth(screenWidth * 0.7);
+        poster = new ImageView();
+        final ImageViewResizingPane posterPane = new ImageViewResizingPane(poster);
+        posterPane.setMaxWidth(screenWidth * MAX_POSTER_WIDTH_PERCENT);
 
-        poster.imageProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.getHeight() > newValue.getWidth()) {
-                poster.setFitWidth(0);
-                poster.setFitHeight(Math.min(posterContainer.getHeight(), newValue.getHeight() * 2));
-            } else {
-                poster.setFitWidth(Math.min(posterContainer.getWidth(), newValue.getWidth() * 2));
-                poster.setFitHeight(0);
-            }
-        });
+        // Clip the posterPane's corners to be round after the posterPane's size is calculated.
+        final Rectangle clip = new Rectangle();
+        clip.setX(0);
+        clip.setY(0);
+        final ChangeListener<Number> clipListener = (observable, oldValue, newValue) -> {
+            clip.setWidth(posterPane.getWidth());
+            clip.setHeight(posterPane.getHeight());
+            clip.setArcWidth(20);
+            clip.setArcHeight(20);
+        };
+        posterPane.heightProperty().addListener(clipListener);
+        posterPane.widthProperty().addListener(clipListener);
+        posterPane.setClip(clip);
 
-        attributesContainer.setMaxWidth(screenWidth * 0.6);
-        nameLabel.setMaxWidth(screenWidth * 0.5);
-        pathLabel.setMaxWidth(screenWidth * 0.5);
+        posterContainer.getChildren().add(posterPane);
 
         criticRating = new FixedRating(10);
         criticRating.setPartialRating(true);
@@ -145,15 +149,10 @@ public class GameDetailScreen {
 
         url.setText(game.getMetacriticDetailUrl());
         url.setVisited(false);
-        url.setOnAction(e -> browseToUrl(game.getMetacriticDetailUrl()));
+        url.setOnAction(e -> UrlUtils.browseToUrl(game.getMetacriticDetailUrl()));
 
         doShow();
         return result;
-    }
-
-    @SneakyThrows
-    private void browseToUrl(String url) {
-        Desktop.getDesktop().browse(new URI(url));
     }
 
     private Game createFromInput() {

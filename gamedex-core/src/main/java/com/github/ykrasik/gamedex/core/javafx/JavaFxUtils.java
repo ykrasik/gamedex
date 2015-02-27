@@ -1,5 +1,6 @@
-package com.github.ykrasik.gamedex.common.util;
+package com.github.ykrasik.gamedex.core.javafx;
 
+import com.google.common.util.concurrent.SettableFuture;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.Stage;
@@ -24,6 +25,9 @@ public final class JavaFxUtils {
         }
     }
 
+    /**
+     * A hack to get around JavaFX's limitation of only allowing the FX thread to create new stages.
+     */
     @SneakyThrows
     public static <T> T returnLaterIfNecessary(Callable<T> callable) {
         if (Platform.isFxApplicationThread()) {
@@ -32,23 +36,20 @@ public final class JavaFxUtils {
 
         final Holder<T> holder = new Holder<>();
         Platform.runLater(() -> {
-            holder.ref = ExceptionUtils.call(callable);
+            try {
+                holder.future.set(callable.call());
+            } catch (Exception e) {
+                holder.future.setException(e);
+            }
             holder.latch.countDown();
         });
         holder.latch.await(10, TimeUnit.SECONDS);
-        return holder.ref;
+        return holder.future.get();
     }
 
     private static class Holder<T> {
         private final CountDownLatch latch = new CountDownLatch(1);
-        private volatile T ref;
-    }
-
-    /**
-     * A hack to get around JavaFX's limitation of only allowing the FX thread to create new stages.
-     */
-    public static Stage createStage() {
-        return returnLaterIfNecessary(Stage::new);
+        private final SettableFuture<T> future = SettableFuture.create();
     }
 
     public static void makeDraggable(@NonNull Stage stage, @NonNull Node root) {

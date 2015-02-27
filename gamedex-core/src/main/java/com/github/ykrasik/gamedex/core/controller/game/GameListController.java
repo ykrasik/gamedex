@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
+import com.github.ykrasik.gamedex.common.util.UrlUtils;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
@@ -11,16 +12,10 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
-import java.awt.*;
-import java.net.URI;
 
 import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnavailable;
 
@@ -92,7 +87,7 @@ public class GameListController implements Controller {
 
         urlHyperlink.setText(game.getMetacriticDetailUrl());
         urlHyperlink.setVisited(false);
-        urlHyperlink.setOnAction(e -> browseToUrl(game.getMetacriticDetailUrl()));
+        urlHyperlink.setOnAction(e -> UrlUtils.browseToUrl(game.getMetacriticDetailUrl()));
     }
 
     private void initSideBar() {
@@ -106,11 +101,6 @@ public class GameListController implements Controller {
     private void deleteGame() {
         final Game game = gameList.getSelectionModel().getSelectedItem();
         actionService.deleteGame(game);
-    }
-
-    @SneakyThrows
-    private void browseToUrl(String url) {
-        Desktop.getDesktop().browse(new URI(url));
     }
 
     public void selectGame(Game game) {
