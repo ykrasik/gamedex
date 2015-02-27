@@ -26,6 +26,7 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
+import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
@@ -52,7 +53,9 @@ import org.controlsfx.control.GridView;
  * @see GridView
  */
 public class GameWallCell extends GridCell<Game> {
-    private static final double STRETCH_MARGIN = 1.2;
+    // TODO: At some point, could consider exposing this to configService
+    private static final double MAX_STRETCH = 0.5;
+
     private static final double ENLARGE_MARGIN = 0.5;
     private static final double MAX_ENLARGE = 1.5;
 
@@ -115,22 +118,27 @@ public class GameWallCell extends GridCell<Game> {
     }
 
     private void handleNewImage(Image image) {
-        if (image == UIResources.imageLoading()) {
-            fitImage();
+        if (image == UIResources.imageLoading() ||
+            image == UIResources.notAvailable() ||
+            getHeight() == 0 || getWidth() == 0) {
+            fitImage(true);
             return;
         }
 
         switch (gameWallImageDisplayProperty().get()) {
-            case FIT: fitImage(); break;
+            case FIT: fitImage(true); break;
             case STRETCH: stretchImage(image); break;
             case ENLARGE: enlargeImage(image); break;
+            default: throw new GameDexException("Invalid displayType: " + gameWallImageDisplayProperty().get());
         }
     }
 
-    private void fitImage() {
-        imageView.setPreserveRatio(true);
+    private void fitImage(boolean preserveRatio) {
+        imageView.setPreserveRatio(preserveRatio);
+
         imageView.setFitHeight(innerContainer.getMaxHeight());
         imageView.setFitWidth(innerContainer.getMaxWidth());
+
         imageView.setTranslateX(0);
         imageView.setTranslateY(0);
         innerContainer.setTranslateY(0);
@@ -138,26 +146,31 @@ public class GameWallCell extends GridCell<Game> {
     }
 
     private void stretchImage(Image image) {
-        // Allow stretching the image by up to 20% if it fills up the cell.
-        if (image.getHeight() * STRETCH_MARGIN >= getHeight() ||
-            image.getWidth() * STRETCH_MARGIN >= getWidth()) {
-            imageView.setTranslateX(0);
-            imageView.setPreserveRatio(false);
-            imageView.setFitHeight(getHeight() - 2);
-            imageView.setFitWidth(getWidth() - 2);
-        } else {
-            fitImage();
-        }
+        final double cellHeight = getHeight();
+        final double cellWidth = getWidth();
+        final double imageHeight = image.getHeight();
+        final double imageWidth = image.getWidth();
+
+        // If the image is fit into the cell, this will be it's size.
+        final double heightRatio = cellHeight / imageHeight;
+        final double widthRatio = cellWidth / imageWidth;
+        final double fitRatio = Math.min(heightRatio, widthRatio);
+        final double imageFitHeight = imageHeight * fitRatio;
+        final double imageFitWidth = imageWidth * fitRatio;
+
+        // Calculate the ratio by which we need to stretch the image to make it fill the whole cell.
+        final double stretchHeightRatio = cellHeight / imageFitHeight;
+        final double stretchWidthRatio = cellWidth / imageFitWidth;
+        final double stretchRatio = Math.max(stretchHeightRatio, stretchWidthRatio);
+
+        // If stretchRatio isn't bigger then MAX_STRETCH, stretch the image.
+        final boolean preserveRatio = Math.abs(stretchRatio - 1) > MAX_STRETCH;
+        fitImage(preserveRatio);
     }
 
     private void enlargeImage(Image image) {
         final double cellHeight = getHeight();
         final double cellWidth = getWidth();
-        if (cellHeight == 0 || cellWidth == 0) {
-            fitImage();
-            return;
-        }
-
         final double imageHeight = image.getHeight();
         final double imageWidth = image.getWidth();
 
@@ -173,10 +186,10 @@ public class GameWallCell extends GridCell<Game> {
         final double enlargeWidthRatio = cellWidth / imageFitWidth;
         final double enlargeRatio = Math.max(enlargeHeightRatio, enlargeWidthRatio);
 
-        // If the enlarge ratio is within ENLARGE_MARGIN, and the final enlarged image isn't enlarged
+        // If enlargeRatio is within ENLARGE_MARGIN, and the final enlarged image isn't enlarged
         // by more then MAX_ENLARGE, enlarge the image.
         if (Math.abs(enlargeRatio - 1) > ENLARGE_MARGIN || enlargeRatio * fitRatio > MAX_ENLARGE) {
-            fitImage();
+            fitImage(true);
             return;
         }
 
