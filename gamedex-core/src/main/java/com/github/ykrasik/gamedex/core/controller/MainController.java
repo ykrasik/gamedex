@@ -2,11 +2,13 @@ package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.common.util.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
+import javafx.beans.property.ObjectProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -88,7 +90,7 @@ public class MainController implements Controller {
         dividerPosition = content.getDividerPositions()[0];
 
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
-        toggleLog.selectedProperty().bindBidirectional(configService.showLogProperty());
+        toggleLog.selectedProperty().bindBidirectional(showLogProperty());
 
         gameCount.textProperty().bind(gameManager.gamesProperty().sizeProperty().asString("Games: %d"));
         libraryCount.textProperty().bind(libraryManager.librariesProperty().sizeProperty().asString("Libraries: %d"));
@@ -125,5 +127,9 @@ public class MainController implements Controller {
     @FXML
     public void showSettings() {
         screenService.showSettingsScreen();
+    }
+
+    private ObjectProperty<Boolean> showLogProperty() {
+        return configService.property(ConfigType.SHOW_LOG);
     }
 }

@@ -1,18 +1,11 @@
 package com.github.ykrasik.gamedex.core.config;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.core.config.type.GameSort;
-import com.github.ykrasik.gamedex.core.config.type.GameWallImageDisplay;
-import com.github.ykrasik.opt.Opt;
+import com.gs.collections.api.map.ImmutableMap;
+import com.gs.collections.impl.factory.Maps;
 import com.thoughtworks.xstream.XStream;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.boon.IO;
@@ -21,31 +14,35 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
  */
 @Slf4j
 @Accessors(fluent = true)
+@SuppressWarnings("unchecked")
 public class ConfigServiceImpl extends AbstractService implements ConfigService {
     private static final String NAME = "config.xml";
     private static final XStream XSTREAM = new XStream();
 
     private Path file;
 
-    @Getter private final ObjectProperty<Opt<Path>> prevDirectoryProperty = new SimpleObjectProperty<>(Opt.absent());
-    @Getter private final BooleanProperty autoSkipProperty = new SimpleBooleanProperty(false);
-    @Getter private final BooleanProperty showLogProperty = new SimpleBooleanProperty(true);
-    @Getter private final ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty = new SimpleObjectProperty<>(GameWallImageDisplay.FIT);
-    @Getter private final ObjectProperty<GameSort> gameSortProperty = new SimpleObjectProperty<>(GameSort.NAME_ASC);
+    private ImmutableMap<ConfigType, ObjectProperty<Object>> propertyMap = Maps.immutable.empty();
 
     @Override
     protected void doStart() throws Exception {
         this.file = getFile();
         final String fileContent = IO.read(file);
         if (!fileContent.isEmpty()) {
-            final Config config = (Config) XSTREAM.fromXML(fileContent);
-            loadProperties(config);
+            final Map<ConfigType, Object> valueMap = (Map<ConfigType, Object>) XSTREAM.fromXML(fileContent);
+            propertyMap = fromValueMap(valueMap);
+        } else {
+            for (ConfigType type : ConfigType.values()) {
+                propertyMap = propertyMap.newWithKeyValue(type, new SimpleObjectProperty<>(type.getDefaultValue()));
+            }
         }
     }
 
@@ -59,34 +56,20 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     protected void doStop() throws Exception {
-        flushConfig();
+        IO.write(file, XSTREAM.toXML(toValueMap()));
     }
 
-    private void loadProperties(Config config) {
-        prevDirectoryProperty.set(config.prevDirectory);
-        autoSkipProperty.set(config.autoSkip);
-        showLogProperty.set(config.showLog);
-        gameWallImageDisplayProperty.set(config.gameWallImageDisplay);
-        gameSortProperty.set(config.gameSort);
+    @Override
+    public <T> ObjectProperty<T> property(ConfigType type) {
+        return (ObjectProperty<T>) Objects.requireNonNull(propertyMap.get(type));
     }
 
-    private void flushConfig() {
-        final Config config = Config.builder()
-            .prevDirectory(prevDirectoryProperty.get())
-            .showLog(showLogProperty.get())
-            .gameWallImageDisplay(gameWallImageDisplayProperty.get())
-            .gameSort(gameSortProperty.get())
-            .build();
-        IO.write(file, XSTREAM.toXML(config));
+    private ImmutableMap<ConfigType, ObjectProperty<Object>> fromValueMap(Map<ConfigType, Object> valueMap) {
+        return Maps.immutable.ofMap(valueMap).collectValues((key, value) -> new SimpleObjectProperty<>(value));
     }
 
-    @Value
-    @Builder
-    private static class Config {
-        @NonNull private final Opt<Path> prevDirectory;
-        @NonNull private final boolean autoSkip;
-        @NonNull private final boolean showLog;
-        @NonNull private final GameWallImageDisplay gameWallImageDisplay;
-        @NonNull private final GameSort gameSort;
+    private Map<ConfigType, Object> toValueMap() {
+        // MutableMap doesn't deserialize without exceptions.
+        return new HashMap<>(propertyMap.collectValues((key, value) -> value.get()).toMap());
     }
 }

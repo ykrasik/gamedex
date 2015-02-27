@@ -26,11 +26,13 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
+import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
@@ -86,7 +88,7 @@ public class GameInfoCell extends GridCell<Game> {
 //        imageView.fitHeightProperty().bind(heightProperty().subtract(2));
 //        imageView.fitWidthProperty().bind(widthProperty().subtract(2));
 
-        configService.gameWallImageDisplayProperty().addListener((observable, oldValue, newValue) -> {
+        gameWallImageDisplayProperty().addListener((observable, oldValue, newValue) -> {
             // Refresh the current image when the display type changes.
             handleNewImage(imageView.getImage());
         });
@@ -100,7 +102,7 @@ public class GameInfoCell extends GridCell<Game> {
             return;
         }
 
-        switch (configService.gameWallImageDisplayProperty().get()) {
+        switch (gameWallImageDisplayProperty().get()) {
             case FIT: fitImage(); break;
             case STRETCH: stretchImage(image); break;
             case ENLARGE: enlargeImage(image); break;
@@ -168,5 +170,9 @@ public class GameInfoCell extends GridCell<Game> {
             }
         }
         loadingTask = Opt.absent();
+    }
+
+    private ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty() {
+        return configService.property(ConfigType.GAME_WALL_IMAGE_DISPLAY);
     }
 }

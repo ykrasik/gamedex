@@ -4,6 +4,7 @@ import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
@@ -110,10 +111,10 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public void addNewLibrary() {
         try {
-            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(configService.prevDirectoryProperty().get());
+            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(prevDirectoryProperty().get());
             if (libraryDefOpt.isPresent()) {
                 final LibraryDef libraryDef = libraryDefOpt.get();
-                configService.prevDirectoryProperty().set(Opt.of(libraryDef.getPath()));
+                prevDirectoryProperty().set(Opt.of(libraryDef.getPath()));
                 createLibraryFromDef(libraryDef);
             }
         } catch (Exception e) {
@@ -338,5 +339,9 @@ public class ActionServiceImpl implements ActionService {
             message("Stopping...");
             throw new GameDexException("Stopped.");
         }
+    }
+
+    private ObjectProperty<Opt<Path>> prevDirectoryProperty() {
+        return configService.property(ConfigType.PREV_DIRECTORY);
     }
 }

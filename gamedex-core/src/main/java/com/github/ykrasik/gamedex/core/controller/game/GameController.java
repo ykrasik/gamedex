@@ -2,7 +2,8 @@ package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.type.GameSort;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
@@ -109,12 +110,12 @@ public class GameController implements Controller {
         gameSortComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.sort(newValue);
         });
-        gameSortComboBox.setValue(configService.gameSortProperty().get());
-        configService.gameSortProperty().bind(gameSortComboBox.getSelectionModel().selectedItemProperty());
+        gameSortComboBox.setValue(gameSortProperty().get());
+        gameSortProperty().bind(gameSortComboBox.getSelectionModel().selectedItemProperty());
     }
 
     private void initAutoSkip() {
-        autoSkipCheckBox.selectedProperty().bind(configService.autoSkipProperty());
+        autoSkipCheckBox.selectedProperty().bind(autoSkipProperty());
     }
 
     @FXML
@@ -175,5 +176,13 @@ public class GameController implements Controller {
 
     public ReadOnlyObjectProperty<Task<Void>> currentTaskProperty() {
         return currentTaskProperty;
+    }
+
+    private ObjectProperty<GameSort> gameSortProperty() {
+        return configService.property(ConfigType.GAME_SORT);
+    }
+
+    private ObjectProperty<Boolean> autoSkipProperty() {
+        return configService.property(ConfigType.AUTO_SKIP);
     }
 }

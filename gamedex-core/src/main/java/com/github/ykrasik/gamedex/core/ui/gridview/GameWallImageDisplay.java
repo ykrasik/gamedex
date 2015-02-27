@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.config.type;
+package com.github.ykrasik.gamedex.core.ui.gridview;
 
 /**
  * @author Yevgeny Krasik
