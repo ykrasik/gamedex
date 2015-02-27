@@ -11,7 +11,6 @@ buildscript {
         gsCollectionsVersion = '6.0.0'
         guavaVersion = '18.0'
         commonsLang3Version = '3.3.2'
-        boonVersion = '0.29'
         optVersion = '0.1.1'
         jerminalVersion = '0.1.1'
 
@@ -45,11 +44,6 @@ subprojects {
         compile "org.slf4j:slf4j-api:$slf4jVersion"
         compile "ch.qos.logback:logback-classic:$logbackVersion"
 
-        compile "com.google.guava:guava:$guavaVersion"
-        compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
-        compile "org.apache.commons:commons-lang3:$commonsLang3Version"
-        compile "io.fastjson:boon:$boonVersion"
-
         testCompile "junit:junit:$junitVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
     }
@@ -57,11 +51,13 @@ subprojects {
 
 project("gamedex-common") {
     dependencies {
-        compile "org.controlsfx:controlsfx:$controlsFxVersion"
         compile "org.springframework:spring-context:$springVersion"
 
+        compile "com.google.guava:guava:$guavaVersion"
+        compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
+        compile "org.apache.commons:commons-lang3:$commonsLang3Version"
+
         compile 'com.thoughtworks.xstream:xstream:1.4.7'
-        compile 'commons-io:commons-io:2.4'
 
         compile "com.github.ykrasik:opt:$optVersion"
         compile "com.github.ykrasik:jerminal-core:$jerminalVersion"

@@ -8,7 +8,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.boon.IO;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,7 +34,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Override
     protected void doStart() throws Exception {
         this.file = getFile();
-        final String fileContent = IO.read(file);
+        final String fileContent = new String(Files.readAllBytes(file));
         if (!fileContent.isEmpty()) {
             final Map<ConfigType, Object> valueMap = (Map<ConfigType, Object>) XSTREAM.fromXML(fileContent);
             propertyMap = fromValueMap(valueMap);
@@ -56,7 +55,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     protected void doStop() throws Exception {
-        IO.write(file, XSTREAM.toXML(toValueMap()));
+        final String xml = XSTREAM.toXML(toValueMap());
+        Files.write(file, xml.getBytes());
     }
 
     @Override
