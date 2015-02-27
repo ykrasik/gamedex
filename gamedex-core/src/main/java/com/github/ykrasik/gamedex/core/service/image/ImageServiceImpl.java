@@ -17,6 +17,7 @@ import javafx.util.Duration;
 import lombok.Lombok;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +29,10 @@ import java.util.concurrent.Future;
  */
 @RequiredArgsConstructor
 public class ImageServiceImpl extends AbstractService implements ImageService {
+    private static final Duration FADE_IN_DURATION = Duration.seconds(0.02);
+    private static final Duration FADE_OUT_DURATION = Duration.seconds(0.05);
+    private static final boolean SYNC = false;   // Debug
+
     @NonNull private final PersistenceService persistenceService;
 
     private ExecutorService executorService;
@@ -74,12 +79,12 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
         // Set imageView to a "loading" image.
         JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.imageLoading()));
 
-        final FadeTransition fadeIn = new FadeTransition(Duration.seconds(0.02), imageView);
+        final FadeTransition fadeIn = new FadeTransition(FADE_IN_DURATION, imageView);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
 
         // Prepare a fade transition to the loaded image.
-        final FadeTransition fadeOut = new FadeTransition(Duration.seconds(0.05), imageView);
+        final FadeTransition fadeOut = new FadeTransition(FADE_OUT_DURATION, imageView);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setOnFinished(e -> {
@@ -89,8 +94,19 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
 
         task.setOnSucceeded(e -> fadeOut.play());
 
-        final Future<?> future = executorService.submit(task);
-        task.setOnCancelled(e -> future.cancel(true));
+        if (SYNC) {
+            // Debug
+            return performTask(task);
+        } else {
+            final Future<?> future = executorService.submit(task);
+            task.setOnCancelled(e -> future.cancel(true));
+            return task;
+        }
+    }
+
+    @SneakyThrows
+    private Task<Image> performTask(Task<Image> task) {
+        task.run();
         return task;
     }
 }

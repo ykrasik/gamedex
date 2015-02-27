@@ -5,7 +5,7 @@ import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
-import com.github.ykrasik.gamedex.core.ui.gridview.GameInfoCell;
+import com.github.ykrasik.gamedex.core.ui.gridview.GameWallCell;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -41,7 +41,7 @@ public class GameWallController implements Controller {
     @FXML
     private void initialize() {
         gameWall.setCellFactory(gridView -> {
-            final GameInfoCell cell = new GameInfoCell(configService, imageService);
+            final GameWallCell cell = new GameWallCell(configService, imageService);
             cell.getStyleClass().addAll("card", "gameTile");
             cell.setOnMouseClicked(event -> onMouseClicked(event, cell));
 
@@ -54,7 +54,7 @@ public class GameWallController implements Controller {
         gameWall.itemsProperty().bind(gameManager.gamesProperty());
     }
 
-    private ContextMenu createContextMenu(GameInfoCell cell) {
+    private ContextMenu createContextMenu(GameWallCell cell) {
         final ContextMenu contextMenu = new ContextMenu();
 
         final MenuItem detailsItem = new MenuItem("Details");
@@ -75,7 +75,7 @@ public class GameWallController implements Controller {
         return contextMenu;
     }
 
-    private void onMouseClicked(MouseEvent event, GameInfoCell cell) {
+    private void onMouseClicked(MouseEvent event, GameWallCell cell) {
         final Game game = cell.getItem();
         selectedGameProperty.set(game);
         if (event.getClickCount() == 2) {

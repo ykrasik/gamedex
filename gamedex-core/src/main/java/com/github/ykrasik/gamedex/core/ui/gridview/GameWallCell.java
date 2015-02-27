@@ -26,13 +26,14 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
-import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
@@ -50,11 +51,14 @@ import org.controlsfx.control.GridView;
  *
  * @see GridView
  */
-public class GameInfoCell extends GridCell<Game> {
+public class GameWallCell extends GridCell<Game> {
     private static final double STRETCH_MARGIN = 1.2;
+    private static final double ENLARGE_MARGIN = 0.5;
+    private static final double MAX_ENLARGE = 1.5;
 
     private final ImageView imageView = new ImageView();
-    private final StackPane stackPane = new StackPane(imageView);
+    private final StackPane innerContainer = new StackPane(imageView);
+    private final StackPane outerContainer = new StackPane(innerContainer);
 
     private final ConfigService configService;
     private final ImageService imageService;
@@ -64,29 +68,30 @@ public class GameInfoCell extends GridCell<Game> {
     /**
      * Create ImageGridCell instance
      */
-    public GameInfoCell(@NonNull ConfigService configService, @NonNull ImageService imageService) {
+    public GameWallCell(@NonNull ConfigService configService, @NonNull ImageService imageService) {
         this.configService = configService;
         this.imageService = imageService;
 
-        stackPane.maxHeightProperty().bind(heightProperty());
-        stackPane.maxWidthProperty().bind(widthProperty());
+        bindToCellSize(outerContainer);
+        bindToCellSize(innerContainer);
+
+        // I really don't know why this is needed, but without this there is a 1 pixel empty margin inside the cell.
+        outerContainer.setTranslateX(-1);
+
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
-        // Add a listener that will clip the cell's corners to be round, after the cell's height is calculated.
+        // Clip the cell's corners to be round after the cell's size is calculated.
         final ChangeListener<Number> clipListener = (observable, oldValue, newValue) -> {
-            final Rectangle clip = new Rectangle(1, 1, getWidth() - 4, getHeight() - 4);
+            final Rectangle clip = new Rectangle(1, 1, outerContainer.getMaxWidth() - 2, outerContainer.getMaxHeight() - 2);
             clip.setArcWidth(20);
             clip.setArcHeight(20);
-            stackPane.setClip(clip);
+            outerContainer.setClip(clip);
         };
         heightProperty().addListener(clipListener);
         widthProperty().addListener(clipListener);
 
         imageView.imageProperty().addListener((observable, oldValue, newValue) -> handleNewImage(newValue));
-
-//        imageView.fitHeightProperty().bind(heightProperty().subtract(2));
-//        imageView.fitWidthProperty().bind(widthProperty().subtract(2));
 
         gameWallImageDisplayProperty().addListener((observable, oldValue, newValue) -> {
             // Refresh the current image when the display type changes.
@@ -94,6 +99,19 @@ public class GameInfoCell extends GridCell<Game> {
         });
 
         getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
+        setText(null);
+    }
+
+    private void bindToCellSize(StackPane stackPane) {
+        final ReadOnlyDoubleProperty cellHeightProperty = heightProperty();
+        final ReadOnlyDoubleProperty cellWidthProperty = widthProperty();
+
+        stackPane.minHeightProperty().bind(cellHeightProperty);
+        stackPane.minWidthProperty().bind(cellWidthProperty);
+        stackPane.maxHeightProperty().bind(cellHeightProperty);
+        stackPane.maxWidthProperty().bind(cellWidthProperty);
+        stackPane.prefHeightProperty().bind(cellHeightProperty);
+        stackPane.prefWidthProperty().bind(cellWidthProperty);
     }
 
     private void handleNewImage(Image image) {
@@ -110,10 +128,13 @@ public class GameInfoCell extends GridCell<Game> {
     }
 
     private void fitImage() {
-        imageView.setTranslateX(0);
         imageView.setPreserveRatio(true);
-        imageView.setFitHeight(getHeight() - 2);
-        imageView.setFitWidth(getWidth() - 2);
+        imageView.setFitHeight(innerContainer.getMaxHeight());
+        imageView.setFitWidth(innerContainer.getMaxWidth());
+        imageView.setTranslateX(0);
+        imageView.setTranslateY(0);
+        innerContainer.setTranslateY(0);
+        innerContainer.setTranslateX(0);
     }
 
     private void stretchImage(Image image) {
@@ -132,16 +153,47 @@ public class GameInfoCell extends GridCell<Game> {
     private void enlargeImage(Image image) {
         final double cellHeight = getHeight();
         final double cellWidth = getWidth();
-        final double heightRatio = cellHeight / image.getHeight();
-        final double widthRatio = cellWidth / image.getWidth();
-        final double maxRatio = Math.max(heightRatio, widthRatio);
-        if (maxRatio <= STRETCH_MARGIN && maxRatio >= 1) {
-            imageView.setFitHeight(image.getHeight() * maxRatio - 2);
-            imageView.setFitWidth(image.getWidth() * maxRatio - 2);
-            imageView.setTranslateX(-(Math.abs(getWidth() - imageView.getFitWidth()) / 2));
-        } else {
+        if (cellHeight == 0 || cellWidth == 0) {
             fitImage();
+            return;
         }
+
+        final double imageHeight = image.getHeight();
+        final double imageWidth = image.getWidth();
+
+        // If the image is fit into the cell, this will be it's size.
+        final double heightRatio = cellHeight / imageHeight;
+        final double widthRatio = cellWidth / imageWidth;
+        final double fitRatio = Math.min(heightRatio, widthRatio);
+        final double imageFitHeight = imageHeight * fitRatio;
+        final double imageFitWidth = imageWidth * fitRatio;
+
+        // Calculate the ratio by which we need to enlarge the image to make it fill the whole cell.
+        final double enlargeHeightRatio = cellHeight / imageFitHeight;
+        final double enlargeWidthRatio = cellWidth / imageFitWidth;
+        final double enlargeRatio = Math.max(enlargeHeightRatio, enlargeWidthRatio);
+
+        // If the enlarge ratio is within ENLARGE_MARGIN, and the final enlarged image isn't enlarged
+        // by more then MAX_ENLARGE, enlarge the image.
+        if (Math.abs(enlargeRatio - 1) > ENLARGE_MARGIN || enlargeRatio * fitRatio > MAX_ENLARGE) {
+            fitImage();
+            return;
+        }
+
+        final double enlargedImageHeight = imageFitHeight * enlargeRatio;
+        final double enlargedImageWidth = imageFitWidth * enlargeRatio;
+
+        imageView.setFitHeight(enlargedImageHeight);
+        imageView.setFitWidth(enlargedImageWidth);
+
+        // Center the enlarged image.
+        final double translateX = Math.abs(cellWidth - enlargedImageWidth) / 2;
+        imageView.setTranslateX(-translateX);
+        innerContainer.setTranslateX(translateX);
+
+        final double translateY = Math.abs(cellHeight - enlargedImageHeight) / 2;
+        imageView.setTranslateY(-translateY);
+        innerContainer.setTranslateY(translateY);
     }
 
     @Override
@@ -150,10 +202,9 @@ public class GameInfoCell extends GridCell<Game> {
 
         if (!empty) {
             fetchImage(item);
-            setGraphic(stackPane);
+            setGraphic(outerContainer);
         } else {
             setGraphic(null);
-            setText(null);
         }
     }
 
