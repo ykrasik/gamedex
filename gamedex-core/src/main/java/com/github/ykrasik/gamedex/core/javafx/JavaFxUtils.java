@@ -8,8 +8,6 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Yevgeny Krasik
@@ -34,22 +32,15 @@ public final class JavaFxUtils {
             return callable.call();
         }
 
-        final Holder<T> holder = new Holder<>();
+        final SettableFuture<T> future = SettableFuture.create();
         Platform.runLater(() -> {
             try {
-                holder.future.set(callable.call());
+                future.set(callable.call());
             } catch (Exception e) {
-                holder.future.setException(e);
+                future.setException(e);
             }
-            holder.latch.countDown();
         });
-        holder.latch.await(10, TimeUnit.SECONDS);
-        return holder.future.get();
-    }
-
-    private static class Holder<T> {
-        private final CountDownLatch latch = new CountDownLatch(1);
-        private final SettableFuture<T> future = SettableFuture.create();
+        return future.get();
     }
 
     public static void makeDraggable(@NonNull Stage stage, @NonNull Node root) {
