@@ -29,8 +29,8 @@ public class ScreenServiceImpl implements ScreenService {
                              @NonNull ConfigService configService,
                              @NonNull ImageService imageService) {
         this.stage = stage;
-        this.settingsScreen = new SettingsScreen(configService);
-        this.gameDetailScreen = new GameDetailScreen(imageService);
+        this.settingsScreen = JavaFxUtils.returnLaterIfNecessary(() -> new SettingsScreen(configService));
+        this.gameDetailScreen = JavaFxUtils.returnLaterIfNecessary(() -> new GameDetailScreen(imageService));
     }
 
     @Override

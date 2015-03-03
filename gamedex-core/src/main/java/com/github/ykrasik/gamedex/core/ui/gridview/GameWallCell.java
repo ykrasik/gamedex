@@ -26,21 +26,22 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
-import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.layout.ImageDisplayType;
+import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewLimitedPane;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
+import javafx.beans.binding.Binding;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import lombok.NonNull;
 import org.controlsfx.control.GridCell;
@@ -53,15 +54,8 @@ import org.controlsfx.control.GridView;
  * @see GridView
  */
 public class GameWallCell extends GridCell<Game> {
-    // TODO: At some point, could consider exposing this to configService
-    private static final double MAX_STRETCH = 0.5;
-
-    private static final double ENLARGE_MARGIN = 0.5;
-    private static final double MAX_ENLARGE = 1.5;
-
     private final ImageView imageView = new ImageView();
-    private final StackPane innerContainer = new StackPane(imageView);
-    private final StackPane outerContainer = new StackPane(innerContainer);
+    private final ImageViewLimitedPane imageViewLimitedPane = new ImageViewLimitedPane(imageView);
 
     private final ConfigService configService;
     private final ImageService imageService;
@@ -75,147 +69,51 @@ public class GameWallCell extends GridCell<Game> {
         this.configService = configService;
         this.imageService = imageService;
 
-        bindToCellSize(outerContainer);
-        bindToCellSize(innerContainer);
+        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
+        imageViewLimitedPane.setTranslateX(-1);
 
-        // I really don't know why this is needed, but without this there is a 1 pixel empty margin inside the cell.
-        outerContainer.setTranslateX(-1);
-
-        imageView.setPreserveRatio(true);
-        imageView.setSmooth(true);
+        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty());
+        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty());
 
         // Clip the cell's corners to be round after the cell's size is calculated.
+        final Rectangle clip = new Rectangle();
+        clip.setX(1);
+        clip.setY(1);
+        clip.setArcWidth(20);
+        clip.setArcHeight(20);
         final ChangeListener<Number> clipListener = (observable, oldValue, newValue) -> {
-            final Rectangle clip = new Rectangle(1, 1, outerContainer.getMaxWidth() - 2, outerContainer.getMaxHeight() - 2);
-            clip.setArcWidth(20);
-            clip.setArcHeight(20);
-            outerContainer.setClip(clip);
+            clip.setWidth(imageViewLimitedPane.getWidth() - 2);
+            clip.setHeight(imageViewLimitedPane.getHeight() - 2);
         };
-        heightProperty().addListener(clipListener);
-        widthProperty().addListener(clipListener);
+        imageViewLimitedPane.setClip(clip);
+        imageViewLimitedPane.heightProperty().addListener(clipListener);
+        imageViewLimitedPane.widthProperty().addListener(clipListener);
 
-        imageView.imageProperty().addListener((observable, oldValue, newValue) -> handleNewImage(newValue));
-
-        gameWallImageDisplayProperty().addListener((observable, oldValue, newValue) -> {
-            // Refresh the current image when the display type changes.
-            handleNewImage(imageView.getImage());
+        final Binding<ImageDisplayType> binding = JavaFxUtils.transformBinding(gameWallImageDisplayProperty(), imageDisplay -> {
+            final Image image = imageView.getImage();
+            if (image == UIResources.imageLoading() || image == UIResources.notAvailable()) {
+                return ImageDisplayType.FIT;
+            } else {
+                return imageDisplay.getImageDisplayType();
+            }
         });
+        imageView.imageProperty().addListener((observable, oldValue, newValue) -> {
+            binding.invalidate();
+        });
+        imageViewLimitedPane.imageDisplayTypeProperty().bind(binding);
 
         getStyleClass().add("image-grid-cell"); //$NON-NLS-1$
         setText(null);
     }
 
-    private void bindToCellSize(StackPane stackPane) {
-        final ReadOnlyDoubleProperty cellHeightProperty = heightProperty();
-        final ReadOnlyDoubleProperty cellWidthProperty = widthProperty();
-
-        stackPane.minHeightProperty().bind(cellHeightProperty);
-        stackPane.minWidthProperty().bind(cellWidthProperty);
-        stackPane.maxHeightProperty().bind(cellHeightProperty);
-        stackPane.maxWidthProperty().bind(cellWidthProperty);
-        stackPane.prefHeightProperty().bind(cellHeightProperty);
-        stackPane.prefWidthProperty().bind(cellWidthProperty);
-    }
-
-    private void handleNewImage(Image image) {
-        if (image == UIResources.imageLoading() ||
-            image == UIResources.notAvailable() ||
-            getHeight() == 0 || getWidth() == 0) {
-            fitImage(true);
-            return;
-        }
-
-        switch (gameWallImageDisplayProperty().get()) {
-            case FIT: fitImage(true); break;
-            case STRETCH: stretchImage(image); break;
-            case ENLARGE: enlargeImage(image); break;
-            default: throw new GameDexException("Invalid displayType: " + gameWallImageDisplayProperty().get());
-        }
-    }
-
-    private void fitImage(boolean preserveRatio) {
-        imageView.setPreserveRatio(preserveRatio);
-
-        imageView.setFitHeight(innerContainer.getMaxHeight());
-        imageView.setFitWidth(innerContainer.getMaxWidth());
-
-        imageView.setTranslateX(0);
-        imageView.setTranslateY(0);
-        innerContainer.setTranslateY(0);
-        innerContainer.setTranslateX(0);
-    }
-
-    private void stretchImage(Image image) {
-        final double cellHeight = getHeight();
-        final double cellWidth = getWidth();
-        final double imageHeight = image.getHeight();
-        final double imageWidth = image.getWidth();
-
-        // If the image is fit into the cell, this will be it's size.
-        final double heightRatio = cellHeight / imageHeight;
-        final double widthRatio = cellWidth / imageWidth;
-        final double fitRatio = Math.min(heightRatio, widthRatio);
-        final double imageFitHeight = imageHeight * fitRatio;
-        final double imageFitWidth = imageWidth * fitRatio;
-
-        // Calculate the ratio by which we need to stretch the image to make it fill the whole cell.
-        final double stretchHeightRatio = cellHeight / imageFitHeight;
-        final double stretchWidthRatio = cellWidth / imageFitWidth;
-        final double stretchRatio = Math.max(stretchHeightRatio, stretchWidthRatio);
-
-        // If stretchRatio isn't bigger then MAX_STRETCH, stretch the image.
-        final boolean preserveRatio = Math.abs(stretchRatio - 1) > MAX_STRETCH;
-        fitImage(preserveRatio);
-    }
-
-    private void enlargeImage(Image image) {
-        final double cellHeight = getHeight();
-        final double cellWidth = getWidth();
-        final double imageHeight = image.getHeight();
-        final double imageWidth = image.getWidth();
-
-        // If the image is fit into the cell, this will be it's size.
-        final double heightRatio = cellHeight / imageHeight;
-        final double widthRatio = cellWidth / imageWidth;
-        final double fitRatio = Math.min(heightRatio, widthRatio);
-        final double imageFitHeight = imageHeight * fitRatio;
-        final double imageFitWidth = imageWidth * fitRatio;
-
-        // Calculate the ratio by which we need to enlarge the image to make it fill the whole cell.
-        final double enlargeHeightRatio = cellHeight / imageFitHeight;
-        final double enlargeWidthRatio = cellWidth / imageFitWidth;
-        final double enlargeRatio = Math.max(enlargeHeightRatio, enlargeWidthRatio);
-
-        // If enlargeRatio is within ENLARGE_MARGIN, and the final enlarged image isn't enlarged
-        // by more then MAX_ENLARGE, enlarge the image.
-        if (Math.abs(enlargeRatio - 1) > ENLARGE_MARGIN || enlargeRatio * fitRatio > MAX_ENLARGE) {
-            fitImage(true);
-            return;
-        }
-
-        final double enlargedImageHeight = imageFitHeight * enlargeRatio;
-        final double enlargedImageWidth = imageFitWidth * enlargeRatio;
-
-        imageView.setFitHeight(enlargedImageHeight);
-        imageView.setFitWidth(enlargedImageWidth);
-
-        // Center the enlarged image.
-        final double translateX = Math.abs(cellWidth - enlargedImageWidth) / 2;
-        imageView.setTranslateX(-translateX);
-        innerContainer.setTranslateX(translateX);
-
-        final double translateY = Math.abs(cellHeight - enlargedImageHeight) / 2;
-        imageView.setTranslateY(-translateY);
-        innerContainer.setTranslateY(translateY);
-    }
-
     @Override
     protected void updateItem(Game item, boolean empty) {
+        cancelPrevTask();
         super.updateItem(item, empty);
 
         if (!empty) {
             fetchImage(item);
-            setGraphic(outerContainer);
+            setGraphic(imageViewLimitedPane);
         } else {
             setGraphic(null);
         }

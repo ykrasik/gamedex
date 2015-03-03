@@ -1,8 +1,8 @@
 package com.github.ykrasik.gamedex.core.service.screen.settings;
 
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
 import javafx.beans.property.ObjectProperty;
@@ -28,14 +28,9 @@ public class SettingsScreen {
 
     @FXML private ComboBox<GameWallImageDisplay> gameWallImageDisplayComboBox;
 
+    @SneakyThrows
     public SettingsScreen(@NonNull ConfigService configService) {
         this.configService = configService;
-        this.stage = JavaFxUtils.returnLaterIfNecessary(this::createStage);
-    }
-
-    @SneakyThrows
-    private Stage createStage() {
-        final Stage stage = new Stage();
 
         final FXMLLoader loader = new FXMLLoader(UIResources.settingsScreenFxml());
         loader.setController(this);
@@ -44,14 +39,14 @@ public class SettingsScreen {
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.settingsScreenCss());
 
-        // Make the stage draggable by clicking anywhere.
-        JavaFxUtils.makeDraggable(stage, root);
-
+        stage = new Stage();
         stage.setWidth(600);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
-        return stage;
+
+        // Make the stage draggable by clicking anywhere.
+        JavaFxUtils.makeDraggable(stage, root);
     }
 
     @FXML

@@ -33,14 +33,8 @@ public class CreateLibraryDialog {
 
     private Opt<LibraryDef> result = Opt.absent();
 
-    public CreateLibraryDialog() {
-        this.stage = JavaFxUtils.returnLaterIfNecessary(this::createStage);
-    }
-
     @SneakyThrows
-    private Stage createStage() {
-        final Stage stage = new Stage();
-
+    public CreateLibraryDialog() {
         final FXMLLoader loader = new FXMLLoader(UIResources.libraryDialogFxml());
         loader.setController(this);
         final BorderPane root = loader.load();
@@ -48,14 +42,14 @@ public class CreateLibraryDialog {
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.libraryDialogCss());
 
-        // Make the stage draggable by clicking anywhere.
-        JavaFxUtils.makeDraggable(stage, root);
-
+        stage = new Stage();
         stage.setWidth(600);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
-        return stage;
+
+        // Make the stage draggable by clicking anywhere.
+        JavaFxUtils.makeDraggable(stage, root);
     }
 
     @FXML

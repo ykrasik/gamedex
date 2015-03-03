@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.dialog;
 
 import com.github.ykrasik.gamedex.common.util.FileUtils;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.service.action.SearchResultComparators;
 import com.github.ykrasik.gamedex.core.service.dialog.choice.*;
 import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
@@ -48,7 +49,7 @@ public class DialogServiceImpl implements DialogService {
         this.stage = stage;
         this.screenService = screenService;
 
-        this.createLibraryDialog = new CreateLibraryDialog();
+        this.createLibraryDialog = JavaFxUtils.returnLaterIfNecessary(CreateLibraryDialog::new);
     }
 
     @Override

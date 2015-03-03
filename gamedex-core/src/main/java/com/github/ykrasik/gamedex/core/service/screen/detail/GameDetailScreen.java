@@ -2,7 +2,6 @@ package com.github.ykrasik.gamedex.core.service.screen.detail;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.common.util.UrlUtils;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewResizingPane;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
@@ -12,8 +11,6 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.opt.Opt;
 import com.google.common.base.Strings;
 import com.gs.collections.api.list.ImmutableList;
-import com.gs.collections.api.tuple.Pair;
-import com.gs.collections.impl.tuple.Tuples;
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
@@ -70,20 +67,15 @@ public class GameDetailScreen {
     private Game inspectedGame;
     private Opt<Game> result = Opt.absent();
 
+    @SneakyThrows
     public GameDetailScreen(@NonNull ImageService imageService) {
         this.imageService = imageService;
 
-        final Pair<Stage, BorderPane> stageAndRoot = JavaFxUtils.returnLaterIfNecessary(this::createStageAndRoot);
-        this.stage = stageAndRoot.getOne();
-        this.root = stageAndRoot.getTwo();
-    }
-
-    @SneakyThrows
-    private Pair<Stage, BorderPane> createStageAndRoot() {
         final Rectangle2D bounds = Screen.getPrimary().getBounds();
+
         final FXMLLoader loader = new FXMLLoader(UIResources.gameDetailScreenFxml());
         loader.setController(this);
-        final BorderPane root = loader.load();
+        root = loader.load();
         root.setId("gameDetailView");
         root.setMaxHeight(bounds.getHeight());
         root.setMaxWidth(bounds.getWidth());
@@ -91,7 +83,7 @@ public class GameDetailScreen {
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.gameDetailScreenCss());
 
-        final Stage stage = new Stage();
+        stage = new Stage();
         stage.setTitle("Details");
         stage.setMaxHeight(bounds.getHeight());
         stage.setMaxWidth(bounds.getWidth());
@@ -99,8 +91,6 @@ public class GameDetailScreen {
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setScene(scene);
-
-        return Tuples.pair(stage, root);
     }
 
     @FXML
@@ -113,13 +103,11 @@ public class GameDetailScreen {
 
         // Clip the posterPane's corners to be round after the posterPane's size is calculated.
         final Rectangle clip = new Rectangle();
-        clip.setX(0);
-        clip.setY(0);
+        clip.setArcWidth(20);
+        clip.setArcHeight(20);
         final ChangeListener<Number> clipListener = (observable, oldValue, newValue) -> {
             clip.setWidth(posterPane.getWidth());
             clip.setHeight(posterPane.getHeight());
-            clip.setArcWidth(20);
-            clip.setArcHeight(20);
         };
         posterPane.heightProperty().addListener(clipListener);
         posterPane.widthProperty().addListener(clipListener);
