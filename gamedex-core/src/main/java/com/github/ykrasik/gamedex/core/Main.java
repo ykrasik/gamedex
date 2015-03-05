@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core;
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
 import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
 import com.github.ykrasik.gamedex.core.preloader.PreloaderImpl;
+import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
@@ -70,26 +71,33 @@ public class Main extends Application {
     @SneakyThrows
     private void initStage(AbstractApplicationContext context, Stage stage) {
         this.context = context;
+        final DialogService dialogService = context.getBean(DialogService.class);
 
-        final ControllerProvider controllerProvider = context.getBean(ControllerProvider.class);
-        final FXMLLoader loader = new FXMLLoader(UIResources.mainFxml());
-        loader.setControllerFactory(controllerProvider::getController);
-        final Parent root = loader.load();
-        final Scene mainScene = new Scene(root);
-        mainScene.getStylesheets().add(UIResources.mainCss());
+        try {
+            final ControllerProvider controllerProvider = context.getBean(ControllerProvider.class);
+            final FXMLLoader loader = new FXMLLoader(UIResources.mainFxml());
+            loader.setControllerFactory(controllerProvider::getController);
+            final Parent root = loader.load();
+            final Scene mainScene = new Scene(root);
+            mainScene.getStylesheets().add(UIResources.mainCss());
 
-        final ShellFileSystem shellFileSystem = context.getBean(ShellFileSystem.class);
-        final Parent debugConsole = new ConsoleBuilder(shellFileSystem).build();
+            final ShellFileSystem shellFileSystem = context.getBean(ShellFileSystem.class);
+            final Parent debugConsole = new ConsoleBuilder(shellFileSystem).build();
 
-        SceneToggler.register(stage, debugConsole);
+            SceneToggler.register(stage, debugConsole);
 
-        final Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            final Rectangle2D screen = Screen.getPrimary().getVisualBounds();
 
-        stage.setWidth(screen.getWidth() * 0.9);
-        stage.setHeight(screen.getHeight() * 0.8);
-//        stage.setMaximized(true);
-        stage.setTitle("GameDex");
-        stage.setScene(mainScene);
-        stage.show();
+            stage.setWidth(screen.getWidth() * 0.9);
+            stage.setHeight(screen.getHeight() * 0.8);
+//            stage.setMaximized(true);
+            stage.setTitle("GameDex");
+            stage.setScene(mainScene);
+            stage.show();
+        } catch (Exception e) {
+            dialogService.showException(e);
+            stage.close();
+            stop();
+        }
     }
 }

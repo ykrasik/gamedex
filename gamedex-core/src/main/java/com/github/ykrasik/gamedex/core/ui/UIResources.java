@@ -19,8 +19,8 @@ public final class UIResources {
     private static final String CSS_PATH = BASE_PATH + "css/";
     private static final String IMAGE_PATH = BASE_PATH + "image/";
 
-    @Getter private static final Image notAvailable = new Image(getResourceAsStream(IMAGE_PATH + "not_available.png"));
-    @Getter private static final Image imageLoading = new Image(getResourceAsStream(IMAGE_PATH + "loading_spinner.gif"));
+    @Getter private static final Image notAvailable = new Image(getResourceAsStream(IMAGE_PATH + "no-image-available.png"));
+    @Getter private static final Image imageLoading = new Image(getResourceAsStream(IMAGE_PATH + "spinner.gif"));
 
     public static Image getLogo() {
         return new Image(getResourceAsStream(IMAGE_PATH + "gamedex.png"));

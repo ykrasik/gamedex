@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core.controller.game;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
@@ -13,6 +14,7 @@ import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.opt.Opt;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -32,18 +34,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GameController implements Controller {
     @FXML private TextField gameSearchTextField;
+    @FXML private Button clearGameSearchButton;
 
     @FXML private TextField filteredGenresTextField;
+    @FXML private Button clearGenreFilterButton;
     private final ObjectProperty<ObservableList<Genre>> currentlyFilteredGenres = new SimpleObjectProperty<>(FXCollections.emptyObservableList());
 
     @FXML private TextField filteredLibraryTextField;
+    @FXML private Button clearLibraryFilterButton;
     private final ObjectProperty<Library> currentlyFilteredLibrary = new SimpleObjectProperty<>();
 
     @FXML private ComboBox<GameSort> gameSortComboBox;
 
     @FXML private CheckBox autoSkipCheckBox;
-
-    @FXML private SplitPane content;
 
     @FXML private GameWallController gameWallController;
     @FXML private GameListController gameListController;
@@ -79,6 +82,9 @@ public class GameController implements Controller {
                 gameManager.nameFilter(newValue);
             }
         });
+
+        clearGameSearchButton.visibleProperty().bind(Bindings.isNotEmpty(gameSearchTextField.textProperty()));
+        clearGameSearchButton.setOnAction(e -> gameSearchTextField.clear());
     }
 
     private void initGenreFilter() {
@@ -91,6 +97,9 @@ public class GameController implements Controller {
                 filteredGenresTextField.setText(StringUtils.toPrettyCsv(newValue));
             }
         });
+
+        clearGenreFilterButton.visibleProperty().bind(MoreBindings.isNotEmpty(currentlyFilteredGenres));
+        clearGenreFilterButton.setOnAction(e -> currentlyFilteredGenres.set(FXCollections.emptyObservableList()));
     }
 
     private void initLibraryFilter() {
@@ -103,6 +112,9 @@ public class GameController implements Controller {
                 filteredLibraryTextField.setText(newValue.getName());
             }
         });
+
+        clearLibraryFilterButton.visibleProperty().bind(Bindings.isNotNull(currentlyFilteredLibrary));
+        clearLibraryFilterButton.setOnAction(e -> currentlyFilteredLibrary.set(null));
     }
 
     private void initGameSort() {
@@ -116,11 +128,6 @@ public class GameController implements Controller {
 
     private void initAutoSkip() {
         autoSkipCheckBox.selectedProperty().bind(autoSkipProperty());
-    }
-
-    @FXML
-    private void clearGameSearch() {
-        gameSearchTextField.clear();
     }
 
     @FXML
@@ -141,11 +148,6 @@ public class GameController implements Controller {
     }
 
     @FXML
-    private void clearGenreFilter() {
-        currentlyFilteredGenres.set(FXCollections.emptyObservableList());
-    }
-
-    @FXML
     private void filterLibrary() {
         // TODO: Do this in the actionService, which in turn should go through the dialogService.
         // Sort libraries by name.
@@ -158,11 +160,6 @@ public class GameController implements Controller {
         if (selectedLibrary.isPresent()) {
             currentlyFilteredLibrary.setValue(selectedLibrary.get());
         }
-    }
-
-    @FXML
-    private void clearLibraryFilter() {
-        currentlyFilteredLibrary.set(null);
     }
 
     @FXML

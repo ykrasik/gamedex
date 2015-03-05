@@ -28,7 +28,7 @@ package com.github.ykrasik.gamedex.core.ui.gridview;
 
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageDisplayType;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewLimitedPane;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
@@ -89,7 +89,7 @@ public class GameWallCell extends GridCell<Game> {
         imageViewLimitedPane.heightProperty().addListener(clipListener);
         imageViewLimitedPane.widthProperty().addListener(clipListener);
 
-        final Binding<ImageDisplayType> binding = JavaFxUtils.transformBinding(gameWallImageDisplayProperty(), imageDisplay -> {
+        final Binding<ImageDisplayType> binding = MoreBindings.transformBinding(gameWallImageDisplayProperty(), imageDisplay -> {
             final Image image = imageView.getImage();
             if (image == UIResources.imageLoading() || image == UIResources.notAvailable()) {
                 return ImageDisplayType.FIT;

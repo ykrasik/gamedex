@@ -2,16 +2,12 @@ package com.github.ykrasik.gamedex.core.javafx;
 
 import com.google.common.util.concurrent.SettableFuture;
 import javafx.application.Platform;
-import javafx.beans.binding.Binding;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 /**
  * @author Yevgeny Krasik
@@ -45,19 +41,6 @@ public final class JavaFxUtils {
             }
         });
         return future.get();
-    }
-
-    public static <A, B> Binding<B> transformBinding(ObservableValue<A> observable, Function<A, B> function) {
-        return new ObjectBinding<B>() {
-            {
-                super.bind(observable);
-            }
-
-            @Override
-            protected B computeValue() {
-                return function.apply(observable.getValue());
-            }
-        };
     }
 
     public static void makeDraggable(@NonNull Stage stage, @NonNull Node root) {

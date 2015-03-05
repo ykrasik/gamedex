@@ -18,9 +18,8 @@
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
-                        <TextField fx:id="gameSearchTextField" promptText="Search">
-                        </TextField>
-                        <Button onAction="#clearGameSearch" GridPane.columnIndex="1">
+                        <TextField fx:id="gameSearchTextField" promptText="Search" />
+                        <Button fx:id="clearGameSearchButton" GridPane.columnIndex="1">
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
@@ -37,9 +36,9 @@
                 <GridPane hgap="2.0">
                     <children>
                         <Button onAction="#filterGenres" text="Genre Filter" />
-                        <TextField fx:id="filteredGenresTextField" disable="true" editable="false" GridPane.columnIndex="1">
+                        <TextField fx:id="filteredGenresTextField" editable="false" GridPane.columnIndex="1">
                         </TextField>
-                        <Button onAction="#clearGenreFilter" GridPane.columnIndex="2">
+                        <Button fx:id="clearGenreFilterButton" GridPane.columnIndex="2">
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
@@ -64,9 +63,9 @@
                 <GridPane hgap="2.0">
                     <children>
                         <Button onAction="#filterLibrary" text="Library Filter" />
-                        <TextField fx:id="filteredLibraryTextField" disable="true" editable="false" GridPane.columnIndex="1">
+                        <TextField fx:id="filteredLibraryTextField" editable="false" GridPane.columnIndex="1">
                         </TextField>
-                        <Button onAction="#clearLibraryFilter" GridPane.columnIndex="2">
+                        <Button fx:id="clearLibraryFilterButton" GridPane.columnIndex="2">
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>

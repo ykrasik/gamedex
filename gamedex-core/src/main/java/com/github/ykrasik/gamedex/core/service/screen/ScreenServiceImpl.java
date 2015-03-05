@@ -1,14 +1,14 @@
 package com.github.ykrasik.gamedex.core.service.screen;
 
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailScreen;
 import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
-import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.effect.GaussianBlur;
 import javafx.stage.Stage;
 import lombok.NonNull;
@@ -62,23 +62,24 @@ public class ScreenServiceImpl implements ScreenService {
     }
 
     private <T> T callWithBlur(Callable<T> callable) throws Exception {
-        final Parent root = stage.getScene().getRoot();
-        root.setEffect(new GaussianBlur());
+        final Scene scene = stage.getScene();
+        if (scene != null) {
+            scene.getRoot().setEffect(new GaussianBlur());
+        }
+
         try {
             return callable.call();
         } finally {
-            root.setEffect(null);
+            if (scene != null) {
+                scene.getRoot().setEffect(null);
+            }
         }
     }
 
     private Void runWithBlur(RunnableThrows runnable) throws Exception {
-        final Parent root = stage.getScene().getRoot();
-        root.setEffect(new GaussianBlur());
-        try {
+        return callWithBlur(() -> {
             runnable.run();
-        } finally {
-            root.setEffect(null);
-        }
-        return null;
+            return null;
+        });
     }
 }
