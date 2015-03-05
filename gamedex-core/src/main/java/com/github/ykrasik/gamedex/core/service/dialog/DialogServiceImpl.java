@@ -13,8 +13,14 @@ import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.action.Action;
@@ -55,19 +61,25 @@ public class DialogServiceImpl implements DialogService {
     @Override
     public void showException(Throwable t) {
         log.warn("Error:", t);
-        final Dialogs dialog = createDialog()
-            .title("Error!")
-            .message(t.getMessage());
-        screenService.doWithBlur(() -> dialog.showException(t));
+        final Alert alert = initAlert(DialogFactory.createExceptionDialog(t));
+        screenService.doWithBlur(alert::showAndWait);
     }
 
     @Override
-    public boolean confirmationDialog(String text) {
-        final Dialogs dialog = createDialog()
-            .title("Are you sure?")
-            .message(text);
-        final Action action = screenService.doWithBlur(dialog::showConfirm);
-        return action == Dialog.ACTION_YES;
+    public boolean confirmationDialog(String format, Object...args) {
+        final Alert alert = initAlert(new Alert(AlertType.CONFIRMATION));
+        alert.setTitle("Are you sure?");
+        alert.setHeaderText(String.format(format, args));
+
+        final Optional<ButtonType> result = screenService.doWithBlur(alert::showAndWait);
+        return (result.get() == ButtonType.OK);
+    }
+
+    @Override
+    public <T> boolean confirmationListDialog(ObservableList<T> list, String format, Object... args) {
+        final Alert alert = initAlert(DialogFactory.createConfirmationListDialog(String.format(format, args), list));
+        final Optional<ButtonType> result = screenService.doWithBlur(alert::showAndWait);
+        return (result.get() == ButtonType.OK);
     }
 
     @Override
@@ -236,6 +248,13 @@ public class DialogServiceImpl implements DialogService {
             log.info("Dialog cancelled.");
         }
         return choice;
+    }
+
+    private Alert initAlert(Alert alert) {
+        alert.initStyle(StageStyle.UTILITY);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.initOwner(stage);
+        return alert;
     }
 
     private Dialogs createDialog() {

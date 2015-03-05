@@ -13,6 +13,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -60,6 +61,17 @@ public class ExcludedPathManagerImpl extends AbstractService implements Excluded
 
         // Delete from cache.
         JavaFxUtils.runLaterIfNecessary(() -> excludedPaths.remove(excludedPath));
+    }
+
+    @Override
+    public void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths) {
+        for (ExcludedPath excludedPath : excludedPaths) {
+            persistenceService.deleteExcludedPath(excludedPath.getId());
+            LOG.info("Deleted excluded path: {}", excludedPath);
+        }
+
+        // Delete from cache.
+        JavaFxUtils.runLaterIfNecessary(() -> this.excludedPaths.removeAll(excludedPaths));
     }
 
     @Override

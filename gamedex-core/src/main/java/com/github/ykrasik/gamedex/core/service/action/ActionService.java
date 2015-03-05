@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.service.action;
 
+import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -8,6 +9,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
 
 import java.nio.file.Path;
+import java.util.Collection;
 
 /**
  * @author Yevgeny Krasik
@@ -32,6 +34,8 @@ public interface ActionService {
     Task<Void> processPath(Library library, Path path);
 
     void deleteGame(Game game);
+
+    void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths);
 
     void showGameDetails(Game game);
 }

@@ -132,7 +132,6 @@ public class GameController implements Controller {
 
     @FXML
     private void filterGenres() {
-        // TODO: Do this in the actionService, which in turn should go through the dialogService.
         // Sort genres by name.
         final ObservableList<Genre> genres = gameManager.getAllGenres();
         FXCollections.sort(genres);
@@ -149,7 +148,6 @@ public class GameController implements Controller {
 
     @FXML
     private void filterLibrary() {
-        // TODO: Do this in the actionService, which in turn should go through the dialogService.
         // Sort libraries by name.
         final ObservableList<Library> libraries = FXCollections.observableArrayList(libraryManager.getAllLibraries());
         FXCollections.sort(libraries);

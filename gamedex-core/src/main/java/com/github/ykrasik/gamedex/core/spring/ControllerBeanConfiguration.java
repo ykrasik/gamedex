@@ -71,7 +71,7 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public ExcludeController excludedController(ExcludedPathManager excludedPathManager) {
-        return new ExcludeController(excludedPathManager);
+    public ExcludeController excludedController(ActionService actionService, ExcludedPathManager excludedPathManager) {
+        return new ExcludeController(actionService, excludedPathManager);
     }
 }

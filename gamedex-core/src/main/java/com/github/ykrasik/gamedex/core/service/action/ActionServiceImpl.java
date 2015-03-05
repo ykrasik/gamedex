@@ -19,6 +19,7 @@ import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
+import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
@@ -26,6 +27,8 @@ import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -157,8 +161,20 @@ public class ActionServiceImpl implements ActionService {
 
     @Override
     public void deleteGame(Game game) {
-        if (dialogService.confirmationDialog(String.format("Are you sure you want to delete '%s'?", game.getName()))) {
+        if (dialogService.confirmationDialog("Are you sure you want to delete '%s'?", game.getName())) {
             gameManager.deleteGame(game);
+        }
+    }
+
+    @Override
+    public void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths) {
+        if (excludedPaths.isEmpty()) {
+            return;
+        }
+
+        final ObservableList<ExcludedPath> items = FXCollections.observableArrayList(excludedPaths);
+        if (dialogService.confirmationListDialog(items, "Are you sure you want to delete these %d excluded paths?", excludedPaths.size())) {
+            excludedPathManager.deleteExcludedPaths(excludedPaths);
         }
     }
 

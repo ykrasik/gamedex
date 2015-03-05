@@ -22,7 +22,6 @@ import org.controlsfx.control.StatusBar;
  * @author Yevgeny Krasik
  */
 // TODO: Allow changing thumbnail & poster via right-click.
-// TODO: Add detail view on double click
 // TODO: Add right-click menus to library list.
 // TODO: Add ability to have gamePacks.
 @Slf4j

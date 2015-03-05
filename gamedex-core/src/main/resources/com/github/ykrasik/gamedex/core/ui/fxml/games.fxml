@@ -23,7 +23,7 @@
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
-                                        <Image url="@../image/x_small_icon.png" />
+                                        <Image url="@../image/x-small-icon.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -42,7 +42,7 @@
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
-                                        <Image url="@../image/x_small_icon.png" />
+                                        <Image url="@../image/x-small-icon.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -69,7 +69,7 @@
                             <graphic>
                                 <ImageView preserveRatio="true">
                                     <image>
-                                        <Image url="@../image/x_small_icon.png" />
+                                        <Image url="@../image/x-small-icon.png" />
                                     </image>
                                 </ImageView>
                             </graphic>

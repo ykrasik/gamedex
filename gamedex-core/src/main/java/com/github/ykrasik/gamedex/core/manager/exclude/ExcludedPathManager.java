@@ -4,6 +4,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import javafx.beans.property.ReadOnlyListProperty;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,7 +14,10 @@ public interface ExcludedPathManager {
     List<ExcludedPath> getAllExcludedPaths();
 
     ExcludedPath addExcludedPath(Path path);
+
     void deleteExcludedPath(ExcludedPath excludedPath);
+    void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths);
+
     boolean isExcluded(Path path);
 
     ReadOnlyListProperty<ExcludedPath> excludedPathsProperty();
