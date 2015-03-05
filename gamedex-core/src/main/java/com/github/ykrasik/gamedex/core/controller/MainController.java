@@ -119,6 +119,11 @@ public class MainController implements Controller {
     }
 
     @FXML
+    public void cleanupGames() {
+        actionService.cleanupGames();
+    }
+
+    @FXML
     public void showSettings() {
         screenService.showSettingsScreen();
     }

@@ -6,80 +6,80 @@
 <?import javafx.scene.layout.BorderPane?>
 
 <BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.MainController">
-   <center>
-       <SplitPane fx:id="content" dividerPositions="0.98" orientation="VERTICAL">
-           <items>
-              <TabPane>
-                 <tabs>
-                    <Tab closable="false" text="Games">
-                       <content>
-                           <fx:include fx:id="games" source="games.fxml" />
-                       </content>
-                    </Tab>
-                    <Tab closable="false" text="Libraries">
-                       <content>
-                           <fx:include fx:id="libraries" source="libraries.fxml" />
-                       </content>
-                    </Tab>
-                     <Tab closable="false" text="Excluded Paths">
-                         <content>
-                             <fx:include fx:id="excludedPaths" source="excludedPaths.fxml" />
-                         </content>
-                     </Tab>
-                 </tabs>
-              </TabPane>
-              <TextArea fx:id="logTextArea" editable="false" wrapText="true" />
-           </items>
-       </SplitPane>
-   </center>
-   <top>
-      <MenuBar BorderPane.alignment="CENTER">
-        <menus>
-          <Menu mnemonicParsing="false" text="File">
+    <center>
+        <SplitPane fx:id="content" dividerPositions="0.98" orientation="VERTICAL">
             <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
+                <TabPane>
+                    <tabs>
+                        <Tab closable="false" text="Games">
+                            <content>
+                                <fx:include fx:id="games" source="games.fxml" />
+                            </content>
+                        </Tab>
+                        <Tab closable="false" text="Libraries">
+                            <content>
+                                <fx:include fx:id="libraries" source="libraries.fxml" />
+                            </content>
+                        </Tab>
+                        <Tab closable="false" text="Excluded Paths">
+                            <content>
+                                <fx:include fx:id="excludedPaths" source="excludedPaths.fxml" />
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+                <TextArea fx:id="logTextArea" editable="false" wrapText="true" />
             </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Library">
-            <items>
-              <MenuItem fx:id="addLibraryMenuItem" mnemonicParsing="false" text="Add Library" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Game">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Cleanup Games" />
-              <SeparatorMenuItem />
-              <MenuItem mnemonicParsing="false" text="Re-Fetch Games" />
-            </items>
-          </Menu>
-            <Menu mnemonicParsing="false" text="Settings">
-               <items>
-                  <MenuItem onAction="#showSettings" mnemonicParsing="false" text="Settings" />
-               </items>
-            </Menu>
-        </menus>
-      </MenuBar>
-   </top>
+        </SplitPane>
+    </center>
+    <top>
+        <MenuBar BorderPane.alignment="CENTER">
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Close" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Library">
+                    <items>
+                        <MenuItem fx:id="addLibraryMenuItem" mnemonicParsing="false" text="Add Library" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Game">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#cleanupGames" text="Cleanup Games" />
+                        <SeparatorMenuItem />
+                        <MenuItem mnemonicParsing="false" text="Re-Fetch Games" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Settings">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#showSettings" text="Settings" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
     <bottom>
         <WorkingStatusBar fx:id="statusBar" text="Welcome to GameDex!">
             <leftItems>
-                <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50" />
-                <Separator orientation="VERTICAL" />
+                <ToggleButton fx:id="toggleLog" text="Log" selected="true" prefWidth="50"/>
+                <Separator orientation="VERTICAL"/>
                 <Label fx:id="gameCount" text="Games: 0">
                     <padding>
                         <Insets left="5.0" right="5.0" top="4.0"/>
                     </padding>
                 </Label>
-                <Separator orientation="VERTICAL" />
+                <Separator orientation="VERTICAL"/>
                 <Label fx:id="libraryCount" text="Libraries: 0">
                     <padding>
                         <Insets left="5.0" right="5.0" top="4.0"/>
                     </padding>
                 </Label>
-                <Separator orientation="VERTICAL" />
+                <Separator orientation="VERTICAL"/>
             </leftItems>
             <rightItems>
-                <ProgressIndicator fx:id="progressIndicator" visible="false" />
+                <ProgressIndicator fx:id="progressIndicator" visible="false"/>
                 <Button fx:id="statusBarStopButton" text="Stop" cancelButton="true" disable="true" visible="false"/>
             </rightItems>
         </WorkingStatusBar>
