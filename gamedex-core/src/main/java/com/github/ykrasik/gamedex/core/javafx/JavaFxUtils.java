@@ -27,7 +27,7 @@ public final class JavaFxUtils {
      * A hack to get around JavaFX's limitation of only allowing the FX thread to create new stages.
      */
     @SneakyThrows
-    public static <T> T returnLaterIfNecessary(Callable<T> callable) {
+    public static <T> T callLaterIfNecessary(Callable<T> callable) {
         if (Platform.isFxApplicationThread()) {
             return callable.call();
         }

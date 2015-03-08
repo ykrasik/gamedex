@@ -12,10 +12,8 @@ import javafx.scene.Scene;
 import javafx.scene.effect.GaussianBlur;
 import javafx.stage.Stage;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 /**
  * @author Yevgeny Krasik
@@ -29,26 +27,32 @@ public class ScreenServiceImpl implements ScreenService {
                              @NonNull ConfigService configService,
                              @NonNull ImageService imageService) {
         this.stage = stage;
-        this.settingsScreen = JavaFxUtils.returnLaterIfNecessary(() -> new SettingsScreen(configService));
-        this.gameDetailScreen = JavaFxUtils.returnLaterIfNecessary(() -> new GameDetailScreen(imageService));
+        this.settingsScreen = JavaFxUtils.callLaterIfNecessary(() -> new SettingsScreen(configService));
+        this.gameDetailScreen = JavaFxUtils.callLaterIfNecessary(() -> new GameDetailScreen(imageService));
     }
 
     @Override
-    @SneakyThrows
-    public void doWithBlur(RunnableThrows runnable) {
-        // Dialog must be displayed on JavaFx thread.
-        final FutureTask<Void> futureTask = new FutureTask<>(() -> runWithBlur(runnable));
-        JavaFxUtils.runLaterIfNecessary(futureTask);
-        futureTask.get();
+    public void runWithBlur(RunnableThrows runnable) {
+        callWithBlur(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
     @Override
-    @SneakyThrows
-    public <T> T doWithBlur(Callable<T> callable) {
-        // Dialog must be displayed on JavaFx thread.
-        final FutureTask<T> futureTask = new FutureTask<>(() -> callWithBlur(callable));
-        JavaFxUtils.runLaterIfNecessary(futureTask);
-        return futureTask.get();
+    public <T> T callWithBlur(Callable<T> callable) {
+        final Scene scene = stage.getScene();
+        if (scene != null) {
+            scene.getRoot().setEffect(new GaussianBlur());
+        }
+
+        try {
+            return JavaFxUtils.callLaterIfNecessary(callable);
+        } finally {
+            if (scene != null) {
+                scene.getRoot().setEffect(null);
+            }
+        }
     }
 
     @Override
@@ -58,28 +62,6 @@ public class ScreenServiceImpl implements ScreenService {
 
     @Override
     public void showSettingsScreen() {
-        doWithBlur(settingsScreen::show);
-    }
-
-    private <T> T callWithBlur(Callable<T> callable) throws Exception {
-        final Scene scene = stage.getScene();
-        if (scene != null) {
-            scene.getRoot().setEffect(new GaussianBlur());
-        }
-
-        try {
-            return callable.call();
-        } finally {
-            if (scene != null) {
-                scene.getRoot().setEffect(null);
-            }
-        }
-    }
-
-    private Void runWithBlur(RunnableThrows runnable) throws Exception {
-        return callWithBlur(() -> {
-            runnable.run();
-            return null;
-        });
+        runWithBlur(settingsScreen::show);
     }
 }

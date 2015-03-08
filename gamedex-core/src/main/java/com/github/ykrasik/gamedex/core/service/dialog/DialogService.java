@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.core.service.dialog;
 
-import com.github.ykrasik.gamedex.core.service.dialog.choice.DialogChoice;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.opt.Opt;
@@ -19,8 +18,4 @@ public interface DialogService {
 
     Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory);
     Opt<LibraryDef> createLibraryDialog(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform);
-
-    DialogChoice noSearchResultsDialog(NoSearchResultsDialogParams params);
-
-    DialogChoice multipleSearchResultsDialog(MultipleSearchResultsDialogParams params);
 }

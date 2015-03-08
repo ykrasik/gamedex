@@ -25,7 +25,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     @Override
     protected void doStart() throws Exception {
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("worker-%d").build());
+        executorService = Executors.newFixedThreadPool(2, new ThreadFactoryBuilder().setNameFormat("worker-%d").build());
     }
 
     @Override

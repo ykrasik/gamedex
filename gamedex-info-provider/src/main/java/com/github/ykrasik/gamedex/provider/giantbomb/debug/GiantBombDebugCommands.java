@@ -28,21 +28,21 @@ public class GiantBombDebugCommands implements DebugCommands {
                        @StringParam("name") String name,
                        @DynamicStringParam(value = "platform", supplier = "platformValues", optional = true, defaultValue = "PC") String platformStr) throws Exception {
         final GamePlatform platform = GamePlatform.valueOf(platformStr);
-        final ImmutableList<SearchResult> searchResults = service.searchGames(name, platform);
+        final ImmutableList<SearchResult> searchResults = service.search(name, platform);
         for (SearchResult searchResult : searchResults) {
             outputPrinter.println(searchResult.toString());
         }
     }
 
     @Command
-    public void get(OutputPrinter outputPrinter, @StringParam("url") String url) throws Exception {
+    public void fetch(OutputPrinter outputPrinter, @StringParam("url") String url) throws Exception {
         final SearchResult searchResult = SearchResult.builder()
             .detailUrl(url)
             .name("")
             .releaseDate(Opt.absent())
             .score(Opt.absent())
             .build();
-        outputPrinter.println(service.getGameInfo(searchResult).toString());
+        outputPrinter.println(service.fetch(searchResult).toString());
     }
 
     @ShellPath("client")

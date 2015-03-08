@@ -13,7 +13,7 @@ import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.debug.LibraryManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
+import com.github.ykrasik.gamedex.core.service.screen.GameSearchScreenService;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,16 +61,16 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Qualifier("metacriticManager")
     @Bean
     public GameInfoProviderManager metacriticManager(ConfigService configService,
-                                                     DialogService dialogService,
+                                                     GameSearchScreenService screenService,
                                                      @Qualifier("metacriticGameInfoProvider") GameInfoProvider metacriticGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(configService, dialogService, metacriticGameInfoProvider, false);
+        return new GameInfoProviderManagerImpl(configService, screenService, metacriticGameInfoProvider);
     }
 
     @Qualifier("giantBombManager")
     @Bean
     public GameInfoProviderManager giantBombManager(ConfigService configService,
-                                                    DialogService dialogService,
+                                                    GameSearchScreenService screenService,
                                                     @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(configService, dialogService, giantBombGameInfoProvider, true);
+        return new GameInfoProviderManagerImpl(configService, screenService, giantBombGameInfoProvider);
     }
 }

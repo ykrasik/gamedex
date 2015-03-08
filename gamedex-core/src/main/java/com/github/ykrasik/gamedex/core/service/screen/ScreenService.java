@@ -10,9 +10,10 @@ import java.util.concurrent.Callable;
  * @author Yevgeny Krasik
  */
 public interface ScreenService {
-    void doWithBlur(RunnableThrows runnable);
-    <T> T doWithBlur(Callable<T> callable);
+    void runWithBlur(RunnableThrows runnable);
+    <T> T callWithBlur(Callable<T> callable);
 
     Opt<Game> showGameDetails(Game game);
+
     void showSettingsScreen();
 }

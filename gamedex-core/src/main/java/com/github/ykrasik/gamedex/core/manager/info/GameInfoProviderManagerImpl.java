@@ -3,13 +3,10 @@ package com.github.ykrasik.gamedex.core.manager.info;
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.service.action.ExcludeException;
 import com.github.ykrasik.gamedex.core.service.action.SkipException;
-import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
-import com.github.ykrasik.gamedex.core.service.dialog.MultipleSearchResultsDialogParams;
-import com.github.ykrasik.gamedex.core.service.dialog.NoSearchResultsDialogParams;
-import com.github.ykrasik.gamedex.core.service.dialog.choice.DefaultDialogChoiceResolver;
-import com.github.ykrasik.gamedex.core.service.dialog.choice.DialogChoice;
-import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.core.service.screen.GameSearchScreenService;
+import com.github.ykrasik.gamedex.core.ui.search.GameSearchChoice;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
@@ -20,7 +17,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -33,9 +29,8 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     @NonNull private final ConfigService configService;
-    @NonNull private final DialogService dialogService;
+    @NonNull private final GameSearchScreenService screenService;
     @NonNull private final GameInfoProvider gameInfoProvider;
-    private final boolean canProceedWithout;
 
     @Override
     public ReadOnlyStringProperty messageProperty() {
@@ -48,37 +43,40 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     @Override
-    public Opt<GameInfo> fetchGameInfo(String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
+    public Opt<GameInfo> fetchGameInfo(String name, SearchContext context) throws Exception {
         try {
-            return doFetchGameInfo(name.trim(), path, platform, context);
+            return doFetchGameInfo(name.trim(), context);
         } finally {
             messageProperty.set(null);
         }
     }
 
-    private Opt<GameInfo> doFetchGameInfo(String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
+    private Opt<GameInfo> doFetchGameInfo(String name, SearchContext context) throws Exception {
         checkStopped();
-        final ImmutableList<SearchResult> searchResults = searchGames(name, platform, context);
+        final ImmutableList<SearchResult> searchResults = searchGames(name, context);
         checkStopped();
 
-        if (searchResults.isEmpty()) {
-            return handleNoSearchResults(name, path, platform, context);
+        if (searchResults.size() == 1) {
+            return Opt.of(fetchGameInfoFromSearchResult(searchResults.get(0)));
         }
 
-        if (searchResults.size() > 1) {
-            return handleMultipleSearchResults(name, path, platform, context, searchResults);
+        assertNotAutoSkip();
+        final GameSearchChoice choice = screenService.showGameSearchScreen(gameInfoProvider, name, context, searchResults);
+        switch (choice.getType()) {
+            case SKIP: throw new SkipException();
+            case EXCLUDE: throw new ExcludeException();
+            case PROCEED_ANYWAY: return Opt.absent();
+            case OK: return Opt.of(fetchGameInfoFromSearchResult(choice.getSearchResult().get()));
+            default: throw new IllegalStateException("Invalid choice type: " + choice.getType());
         }
-
-        final SearchResult singleSearchResult = searchResults.get(0);
-        return Opt.of(fetchGameInfoFromSearchResult(singleSearchResult));
     }
 
-    private ImmutableList<SearchResult> searchGames(String name, GamePlatform platform, SearchContext context) throws Exception {
+    private ImmutableList<SearchResult> searchGames(String name, SearchContext context) throws Exception {
         message("Searching '%s'...", name);
         fetchingProperty.set(true);
         final ImmutableList<SearchResult> searchResults;
         try {
-            searchResults = gameInfoProvider.searchGames(name, platform);
+            searchResults = gameInfoProvider.search(name, context.platform());
         } finally {
             fetchingProperty.set(false);
         }
@@ -100,70 +98,11 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
     }
 
-    private Opt<GameInfo> handleNoSearchResults(String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
-        assertNotAutoSkip();
-
-        final NoSearchResultsDialogParams params = NoSearchResultsDialogParams.builder()
-            .providerName(gameInfoProvider.getProviderType().getName())
-            .name(name)
-            .path(path)
-            .platform(platform)
-            .canProceedWithout(canProceedWithout)
-            .build();
-        final DialogChoice choice = dialogService.noSearchResultsDialog(params);
-        return choice.resolve(new DefaultDialogChoiceResolver() {
-            @Override
-            public Opt<GameInfo> newName(String newName) throws Exception {
-                return fetchGameInfo(newName, path, platform, context);
-            }
-        });
-    }
-
-    private Opt<GameInfo> handleMultipleSearchResults(String name,
-                                                      Path path,
-                                                      GamePlatform platform,
-                                                      SearchContext context,
-                                                      ImmutableList<SearchResult> searchResults) throws Exception {
-        assertNotAutoSkip();
-
-        final MultipleSearchResultsDialogParams params = MultipleSearchResultsDialogParams.builder()
-            .providerName(gameInfoProvider.getProviderType().getName())
-            .name(name)
-            .path(path)
-            .platform(platform)
-            .searchResults(searchResults)
-            .canProceedWithout(canProceedWithout)
-            .build();
-        final DialogChoice choice = dialogService.multipleSearchResultsDialog(params);
-        return choice.resolve(new DefaultDialogChoiceResolver() {
-            @Override
-            public Opt<GameInfo> newName(String newName) throws Exception {
-                // Add all current search results to excluded list.
-                final ImmutableList<String> searchResultNames = getSearchResultNames(searchResults);
-                context.addExcludedNames(searchResultNames);
-                return fetchGameInfo(newName, path, platform, context);
-            }
-
-            @Override
-            public Opt<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
-                // Add all other search results to excluded list.
-                final ImmutableList<String> searchResultNames = getSearchResultNames(searchResults);
-                final ImmutableList<String> excludedNames = searchResultNames.newWithout(chosenSearchResult.getName());
-                context.addExcludedNames(excludedNames);
-                return Opt.of(fetchGameInfoFromSearchResult(chosenSearchResult));
-            }
-        });
-    }
-
-    private ImmutableList<String> getSearchResultNames(ImmutableList<SearchResult> searchResults) {
-        return searchResults.collect(SearchResult::getName);
-    }
-
     private GameInfo fetchGameInfoFromSearchResult(SearchResult searchResult) throws Exception {
         fetchingProperty.set(true);
         try {
             message("Fetching '%s'...", searchResult.getName());
-            final GameInfo gameInfo = gameInfoProvider.getGameInfo(searchResult);
+            final GameInfo gameInfo = gameInfoProvider.fetch(searchResult);
             message("Done.");
             return gameInfo;
         } finally {
@@ -187,7 +126,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private void message(String message) {
-        final String messageWithProvider = gameInfoProvider.getProviderType().getName() + ": " + message;
+        final String messageWithProvider = gameInfoProvider.getName() + ": " + message;
         messageProperty.set(messageWithProvider);
     }
 

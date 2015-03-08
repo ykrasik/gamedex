@@ -6,7 +6,6 @@ import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
-import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.gamedex.provider.metacritic.config.MetacriticProperties;
@@ -39,12 +38,17 @@ public class MetacriticGameInfoProvider implements GameInfoProvider {
     @NonNull private final ObjectMapper mapper;
 
     @Override
-    public GameInfoProviderType getProviderType() {
-        return GameInfoProviderType.METACRITIC;
+    public String getName() {
+        return "Metacritic";
     }
 
     @Override
-    public ImmutableList<SearchResult> searchGames(String name, GamePlatform platform) throws Exception {
+    public boolean isRequired() {
+        return true;
+    }
+
+    @Override
+    public ImmutableList<SearchResult> search(String name, GamePlatform platform) throws Exception {
         log.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
@@ -66,7 +70,7 @@ public class MetacriticGameInfoProvider implements GameInfoProvider {
     }
 
     @Override
-    public GameInfo getGameInfo(SearchResult searchResult) throws Exception {
+    public GameInfo fetch(SearchResult searchResult) throws Exception {
         log.info("Getting info for searchResult={}...", searchResult);
         final String detailUrl = searchResult.getDetailUrl();
         final String reply = client.fetchDetails(detailUrl);

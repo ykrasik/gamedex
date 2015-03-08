@@ -6,7 +6,6 @@ import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
-import com.github.ykrasik.gamedex.provider.GameInfoProviderType;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.gamedex.provider.giantbomb.config.GiantBombProperties;
@@ -36,12 +35,17 @@ public class GiantBombGameInfoProvider implements GameInfoProvider {
     @NonNull private final ObjectMapper mapper;
 
     @Override
-    public GameInfoProviderType getProviderType() {
-        return GameInfoProviderType.GIANT_BOMB;
+    public String getName() {
+        return "GiantBomb";
     }
 
     @Override
-    public ImmutableList<SearchResult> searchGames(String name, GamePlatform platform) throws Exception {
+    public boolean isRequired() {
+        return false;
+    }
+
+    @Override
+    public ImmutableList<SearchResult> search(String name, GamePlatform platform) throws Exception {
         log.info("Searching for name='{}', platform={}...", name, platform);
         final int platformId = properties.getPlatformId(platform);
         final String reply = client.searchGames(name, platformId);
@@ -68,7 +72,7 @@ public class GiantBombGameInfoProvider implements GameInfoProvider {
     }
 
     @Override
-    public GameInfo getGameInfo(SearchResult searchResult) throws Exception {
+    public GameInfo fetch(SearchResult searchResult) throws Exception {
         log.info("Getting info for searchResult={}...", searchResult);
         final String detailUrl = searchResult.getDetailUrl();
         final String reply = client.fetchDetails(detailUrl);

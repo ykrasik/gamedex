@@ -43,7 +43,7 @@ public class PreloaderImpl implements Preloader {
 
     public PreloaderImpl(int max) {
         this.max = max;
-        logo = UIResources.getLogo();
+        logo = UIResources.gameDexLogo();
 
         progressBar = new ProgressBar();
         progressBar.setPrefWidth(logo.getWidth());

@@ -283,14 +283,14 @@ public class ActionServiceImpl implements ActionService {
 
         final GamePlatform platform = libraryHierarchy.getPlatform();
 
-        final SearchContext searchContext = new SearchContext();
-        final Opt<GameInfo> metacriticGameOpt = fetchGameInfo(metacriticManager, name, path, platform, searchContext);
+        final SearchContext searchContext = new SearchContext(path, platform);
+        final Opt<GameInfo> metacriticGameOpt = fetchGameInfo(metacriticManager, name, searchContext);
         if (metacriticGameOpt.isPresent()) {
             final GameInfo metacriticGame = metacriticGameOpt.get();
             log.debug("Metacritic gameInfo: {}", metacriticGame);
 
             final String metacriticName = metacriticGame.getName();
-            final Opt<GameInfo> giantBombGameOpt = fetchGameInfo(giantBombManager, metacriticName, path, platform, searchContext);
+            final Opt<GameInfo> giantBombGameOpt = fetchGameInfo(giantBombManager, metacriticName, searchContext);
             if (!giantBombGameOpt.isPresent()) {
                 message("Game not found on GiantBomb.");
             }
@@ -301,13 +301,13 @@ public class ActionServiceImpl implements ActionService {
         }
     }
 
-    private Opt<GameInfo> fetchGameInfo(GameInfoProviderManager manager, String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
+    private Opt<GameInfo> fetchGameInfo(GameInfoProviderManager manager, String name, SearchContext context) throws Exception {
         checkStopped();
 
         messageProperty.bind(manager.messageProperty());
         fetchingProperty.bind(manager.fetchingProperty());
         try {
-            return manager.fetchGameInfo(name, path, platform, context);
+            return manager.fetchGameInfo(name, context);
         } finally {
             messageProperty.unbind();
             fetchingProperty.unbind();

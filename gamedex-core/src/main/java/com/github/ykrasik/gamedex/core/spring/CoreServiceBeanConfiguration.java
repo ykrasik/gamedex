@@ -15,6 +15,7 @@ import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogServiceImpl;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.image.ImageServiceImpl;
+import com.github.ykrasik.gamedex.core.service.screen.GameSearchScreenService;
 import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
 import com.github.ykrasik.gamedex.core.service.screen.ScreenServiceImpl;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
@@ -45,8 +46,15 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ScreenService screenService(Stage stage, ConfigService configService, ImageService imageService) {
+    public ScreenService screenService(Stage stage,
+                                       ConfigService configService,
+                                       ImageService imageService) {
         return new ScreenServiceImpl(stage, configService, imageService);
+    }
+
+    @Bean
+    public GameSearchScreenService gameSearchScreenService(ScreenService screenService, TaskService taskService) {
+        return new GameSearchScreenService(screenService, taskService);
     }
 
     @Bean
@@ -55,7 +63,7 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ActionService actionManager(ConfigService configService,
+    public ActionService actionService(ConfigService configService,
                                        TaskService taskService,
                                        ScreenService screenService,
                                        DialogService dialogService,
