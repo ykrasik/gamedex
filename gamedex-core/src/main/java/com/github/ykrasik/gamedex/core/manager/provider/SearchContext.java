@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.manager.info;
+package com.github.ykrasik.gamedex.core.manager.provider;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.gs.collections.api.set.MutableSet;

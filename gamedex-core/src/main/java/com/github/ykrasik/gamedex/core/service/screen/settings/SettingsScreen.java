@@ -1,7 +1,8 @@
 package com.github.ykrasik.gamedex.core.service.screen.settings;
 
-import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigType;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
@@ -23,14 +24,17 @@ import lombok.SneakyThrows;
  * @author Yevgeny Krasik
  */
 public class SettingsScreen {
+    private final Stage stage = new Stage();
+
     private final ConfigService configService;
-    private final Stage stage;
+    private final StageManager stageManager;
 
     @FXML private ComboBox<GameWallImageDisplay> gameWallImageDisplayComboBox;
 
     @SneakyThrows
-    public SettingsScreen(@NonNull ConfigService configService) {
+    public SettingsScreen(@NonNull ConfigService configService, @NonNull StageManager stageManager) {
         this.configService = configService;
+        this.stageManager = stageManager;
 
         final FXMLLoader loader = new FXMLLoader(UIResources.settingsScreenFxml());
         loader.setController(this);
@@ -39,7 +43,6 @@ public class SettingsScreen {
         final Scene scene = new Scene(root, Color.TRANSPARENT);
         scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.settingsScreenCss());
 
-        stage = new Stage();
         stage.setWidth(600);
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -62,7 +65,7 @@ public class SettingsScreen {
     }
 
     public void show() {
-        stage.showAndWait();
+        stageManager.runWithBlur(stage::showAndWait);
     }
 
     @FXML

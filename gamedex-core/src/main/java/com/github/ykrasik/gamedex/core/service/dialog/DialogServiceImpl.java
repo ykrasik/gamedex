@@ -2,7 +2,7 @@ package com.github.ykrasik.gamedex.core.service.dialog;
 
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
-import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
@@ -31,13 +31,13 @@ import java.util.Optional;
 @Slf4j
 public class DialogServiceImpl implements DialogService {
     private final Stage stage;
-    private final ScreenService screenService;
+    private final StageManager stageManager;
 
     private final CreateLibraryDialog createLibraryDialog;
 
-    public DialogServiceImpl(@NonNull Stage stage, @NonNull ScreenService screenService) {
+    public DialogServiceImpl(@NonNull Stage stage, @NonNull StageManager stageManager) {
         this.stage = stage;
-        this.screenService = screenService;
+        this.stageManager = stageManager;
 
         this.createLibraryDialog = JavaFxUtils.callLaterIfNecessary(CreateLibraryDialog::new);
     }
@@ -46,7 +46,7 @@ public class DialogServiceImpl implements DialogService {
     public void showException(Throwable t) {
         log.warn("Error:", t);
         final Alert alert = initAlert(DialogFactory.createExceptionDialog(t));
-        screenService.callWithBlur(alert::showAndWait);
+        stageManager.callWithBlur(alert::showAndWait);
     }
 
     @Override
@@ -55,14 +55,14 @@ public class DialogServiceImpl implements DialogService {
         alert.setTitle("Are you sure?");
         alert.setHeaderText(String.format(format, args));
 
-        final Optional<ButtonType> result = screenService.callWithBlur(alert::showAndWait);
+        final Optional<ButtonType> result = stageManager.callWithBlur(alert::showAndWait);
         return (result.get() == ButtonType.OK);
     }
 
     @Override
     public <T> boolean confirmationListDialog(ObservableList<T> list, String format, Object... args) {
         final Alert alert = initAlert(DialogFactory.createConfirmationListDialog(String.format(format, args), list));
-        final Optional<ButtonType> result = screenService.callWithBlur(alert::showAndWait);
+        final Optional<ButtonType> result = stageManager.callWithBlur(alert::showAndWait);
         return (result.get() == ButtonType.OK);
     }
 
@@ -71,7 +71,7 @@ public class DialogServiceImpl implements DialogService {
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Add Library");
         directoryChooser.setInitialDirectory(initialDirectory.map(Path::toFile).getOrElseNull());
-        final File selectedDirectory = screenService.callWithBlur(() -> directoryChooser.showDialog(stage));
+        final File selectedDirectory = stageManager.callWithBlur(() -> directoryChooser.showDialog(stage));
         return Opt.ofNullable(selectedDirectory).flatMapX(this::createLibraryFromFile);
     }
 
@@ -84,7 +84,7 @@ public class DialogServiceImpl implements DialogService {
     @Override
     public Opt<LibraryDef> createLibraryDialog(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform) {
         log.info("Showing create library dialog...");
-        final Opt<LibraryDef> libraryDef = screenService.callWithBlur(() -> createLibraryDialog.show(path, children, defaultPlatform));
+        final Opt<LibraryDef> libraryDef = stageManager.callWithBlur(() -> createLibraryDialog.show(path, children, defaultPlatform));
         if (libraryDef.isPresent()) {
             log.info("Library: {}", libraryDef.get());
         } else {

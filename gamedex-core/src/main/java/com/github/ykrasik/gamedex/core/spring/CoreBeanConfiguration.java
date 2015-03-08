@@ -1,21 +1,24 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
-import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.game.debug.GameManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
-import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.debug.LibraryManagerDebugCommands;
-import com.github.ykrasik.gamedex.core.service.screen.GameSearchScreenService;
+import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManager;
+import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManagerImpl;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManagerImpl;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +28,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class CoreBeanConfiguration extends AbstractBeanConfiguration {
+    @Bean
+    public StageManager stageManager(Stage stage) {
+        return new StageManagerImpl(stage);
+    }
+
     @Bean
     public GameManager gameManager(PersistenceService persistenceService) {
         preloader.message("Loading game manager...");
@@ -61,16 +69,16 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Qualifier("metacriticManager")
     @Bean
     public GameInfoProviderManager metacriticManager(ConfigService configService,
-                                                     GameSearchScreenService screenService,
+                                                     GameSearchScreen gameSearchScreen,
                                                      @Qualifier("metacriticGameInfoProvider") GameInfoProvider metacriticGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(configService, screenService, metacriticGameInfoProvider);
+        return new GameInfoProviderManagerImpl(configService, gameSearchScreen, metacriticGameInfoProvider);
     }
 
     @Qualifier("giantBombManager")
     @Bean
     public GameInfoProviderManager giantBombManager(ConfigService configService,
-                                                    GameSearchScreenService screenService,
+                                                    GameSearchScreen gameSearchScreen,
                                                     @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
-        return new GameInfoProviderManagerImpl(configService, screenService, giantBombGameInfoProvider);
+        return new GameInfoProviderManagerImpl(configService, gameSearchScreen, giantBombGameInfoProvider);
     }
 }

@@ -1,10 +1,11 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
-import com.github.ykrasik.gamedex.core.config.ConfigService;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
+import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailsScreen;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallCell;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import javafx.beans.property.ObjectProperty;
@@ -30,7 +31,10 @@ public class GameWallController implements Controller {
     @NonNull private final ConfigService configService;
     @NonNull private final ImageService imageService;
     @NonNull private final ActionService actionService;
+
     @NonNull private final GameManager gameManager;
+
+    @NonNull private final GameDetailsScreen gameDetailsScreen;
 
     private final ObjectProperty<Game> selectedGameProperty = new SimpleObjectProperty<>();
 
@@ -84,6 +88,6 @@ public class GameWallController implements Controller {
     }
 
     private void displayGameDetails(Game game) {
-        actionService.showGameDetails(game);
+        gameDetailsScreen.show(game);
     }
 }

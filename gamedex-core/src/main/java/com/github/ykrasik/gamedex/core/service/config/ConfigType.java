@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.config;
+package com.github.ykrasik.gamedex.core.service.config;
 
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;

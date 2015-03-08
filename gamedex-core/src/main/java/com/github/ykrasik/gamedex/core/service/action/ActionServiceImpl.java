@@ -3,18 +3,18 @@ package com.github.ykrasik.gamedex.core.service.action;
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
-import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigType;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareBooleanProperty;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareDoubleProperty;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareStringProperty;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
-import com.github.ykrasik.gamedex.core.manager.info.GameInfoProviderManager;
-import com.github.ykrasik.gamedex.core.manager.info.SearchContext;
+import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManager;
+import com.github.ykrasik.gamedex.core.manager.provider.SearchContext;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
-import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
@@ -58,7 +58,7 @@ public class ActionServiceImpl implements ActionService {
 
     @NonNull private final ConfigService configService;
     @NonNull private final TaskService taskService;
-    @NonNull private final ScreenService screenService;
+    @NonNull private final StageManager stageManager;
     @NonNull private final DialogService dialogService;
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
@@ -161,6 +161,7 @@ public class ActionServiceImpl implements ActionService {
 
     @Override
     public void deleteGame(Game game) {
+        // TODO: Confirmation dialog doesn't belong here.
         if (dialogService.confirmationDialog("Are you sure you want to delete '%s'?", game.getName())) {
             gameManager.deleteGame(game);
         }
@@ -173,18 +174,9 @@ public class ActionServiceImpl implements ActionService {
         }
 
         final ObservableList<ExcludedPath> items = FXCollections.observableArrayList(excludedPaths);
+        // TODO: Confirmation dialog doesn't belong here.
         if (dialogService.confirmationListDialog(items, "Are you sure you want to delete these %d excluded paths?", excludedPaths.size())) {
             excludedPathManager.deleteExcludedPaths(excludedPaths);
-        }
-    }
-
-    @Override
-    public void showGameDetails(Game game) {
-        // FIXME: Handle exception while editing
-        final Opt<Game> editedGame = screenService.showGameDetails(game);
-        if (editedGame.isPresent()) {
-            // TODO: Update in db
-            System.out.println(editedGame);
         }
     }
 

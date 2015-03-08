@@ -29,9 +29,10 @@ import java.util.concurrent.Future;
  */
 @RequiredArgsConstructor
 public class ImageServiceImpl extends AbstractService implements ImageService {
+    private static final boolean SYNC = false;   // Debug
+
     private static final Duration FADE_IN_DURATION = Duration.seconds(0.02);
     private static final Duration FADE_OUT_DURATION = Duration.seconds(0.05);
-    private static final boolean SYNC = false;   // Debug
 
     @NonNull private final PersistenceService persistenceService;
 
@@ -74,10 +75,11 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
             }
         };
 
+        // TODO: Display exception in uniform way.
         task.setOnFailed(e -> Lombok.sneakyThrow(task.getException()));
 
         // Set imageView to a "loading" image.
-        JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.imageLoading()));
+        JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.loading()));
 
         final FadeTransition fadeIn = new FadeTransition(FADE_IN_DURATION, imageView);
         fadeIn.setFromValue(0.0);

@@ -1,12 +1,12 @@
-package com.github.ykrasik.gamedex.core.manager.info;
+package com.github.ykrasik.gamedex.core.manager.provider;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
-import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.service.action.ExcludeException;
 import com.github.ykrasik.gamedex.core.service.action.SkipException;
-import com.github.ykrasik.gamedex.core.service.screen.GameSearchScreenService;
-import com.github.ykrasik.gamedex.core.ui.search.GameSearchChoice;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigType;
+import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchChoice;
+import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
@@ -29,7 +29,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     @NonNull private final ConfigService configService;
-    @NonNull private final GameSearchScreenService screenService;
+    @NonNull private final GameSearchScreen gameSearchScreen;
     @NonNull private final GameInfoProvider gameInfoProvider;
 
     @Override
@@ -61,7 +61,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
 
         assertNotAutoSkip();
-        final GameSearchChoice choice = screenService.showGameSearchScreen(gameInfoProvider, name, context, searchResults);
+        final GameSearchChoice choice = gameSearchScreen.show(gameInfoProvider, name, context, searchResults);
         switch (choice.getType()) {
             case SKIP: throw new SkipException();
             case EXCLUDE: throw new ExcludeException();

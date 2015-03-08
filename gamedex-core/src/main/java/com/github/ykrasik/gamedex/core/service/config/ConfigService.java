@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.config;
+package com.github.ykrasik.gamedex.core.service.config;
 
 import javafx.beans.property.ObjectProperty;
 

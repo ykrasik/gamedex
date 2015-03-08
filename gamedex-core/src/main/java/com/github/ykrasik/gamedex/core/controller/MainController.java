@@ -1,13 +1,13 @@
 package com.github.ykrasik.gamedex.core.controller;
 
-import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
-import com.github.ykrasik.gamedex.core.service.screen.ScreenService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigType;
+import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
 import javafx.beans.property.ObjectProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -44,10 +44,12 @@ public class MainController implements Controller {
     @FXML private GameController gamesController;
 
     @NonNull private final ConfigService configService;
-    @NonNull private final ScreenService screenService;
     @NonNull private final ActionService actionService;
+
     @NonNull private final GameManager gameManager;
     @NonNull private final LibraryManager libraryManager;
+
+    @NonNull private final SettingsScreen settingsScreen;
 
     // Called by JavaFx
     public void initialize() {
@@ -125,7 +127,7 @@ public class MainController implements Controller {
 
     @FXML
     public void showSettings() {
-        screenService.showSettingsScreen();
+        settingsScreen.show();
     }
 
     private ObjectProperty<Boolean> showLogProperty() {

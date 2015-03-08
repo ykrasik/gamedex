@@ -17,6 +17,32 @@
                             </HBox.margin>
                         </Button>
                         <Region HBox.hgrow="ALWAYS" />
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#changeThumbnail" text="Change Thumbnail">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#changePoster" text="Change Poster">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#reSearch" text="Re-Search">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#refresh" text="Refresh">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#delete" text="Delete">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Region HBox.hgrow="ALWAYS" />
                         <Button cancelButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#reject" text="Cancel">
                             <HBox.margin>
                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

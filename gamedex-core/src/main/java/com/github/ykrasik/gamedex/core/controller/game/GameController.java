@@ -1,8 +1,8 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
-import com.github.ykrasik.gamedex.core.config.ConfigService;
-import com.github.ykrasik.gamedex.core.config.ConfigType;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigType;
 import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.controller.Controller;

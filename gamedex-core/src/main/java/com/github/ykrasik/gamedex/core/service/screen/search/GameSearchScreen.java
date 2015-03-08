@@ -1,7 +1,8 @@
-package com.github.ykrasik.gamedex.core.ui.search;
+package com.github.ykrasik.gamedex.core.service.screen.search;
 
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
-import com.github.ykrasik.gamedex.core.manager.info.SearchContext;
+import com.github.ykrasik.gamedex.core.manager.provider.SearchContext;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
@@ -57,13 +58,15 @@ public class GameSearchScreen {
     private final BooleanProperty searchingProperty = new SimpleBooleanProperty(false);
 
     private final TaskService taskService;
+    private final StageManager stageManager;
 
     private SearchContext context;
     private GameSearchChoice result;
 
     @SneakyThrows
-    public GameSearchScreen(@NonNull TaskService taskService) {
+    public GameSearchScreen(@NonNull TaskService taskService, @NonNull StageManager stageManager) {
         this.taskService = taskService;
+        this.stageManager = stageManager;
 
         final FXMLLoader loader = new FXMLLoader(UIResources.gameSearchScreenFxml());
         loader.setController(this);
@@ -91,11 +94,13 @@ public class GameSearchScreen {
         okButton.disableProperty().bind(searchResultsTable.getSelectionModel().selectedItemProperty().isNull());
         okButton.setOnAction(e -> setResultFromSelection());
 
-        searchingImageView.setImage(UIResources.imageLoading());
+        searchingImageView.setImage(UIResources.loading());
         searchingImageView.fitHeightProperty().bind(searchResultsTable.heightProperty().subtract(20));
         searchingImageView.fitWidthProperty().bind(searchResultsTable.widthProperty().subtract(20));
         searchingImageView.visibleProperty().bind(searchingProperty);
         searchResultsTable.disableProperty().bind(searchingProperty);
+
+        proceedAnywayButton.setOnAction(e -> setNoResult(GameSearchChoiceType.PROCEED_ANYWAY));
     }
 
     private void initSearchResultsTable() {
@@ -200,14 +205,19 @@ public class GameSearchScreen {
                                  ImmutableList<SearchResult> searchResults) {
         this.context = context;
 
+        // FIXME: Ugh, no.
+        switch (gameInfoProvider.getName()) {
+            case "Metacritic": logoImageView.setImage(UIResources.metacriticLogo()); break;
+            case "GiantBomb": logoImageView.setImage(UIResources.giantBombLogo()); break;
+        }
+
         proceedAnywayButton.setDisable(gameInfoProvider.isRequired());
-        proceedAnywayButton.setVisible(gameInfoProvider.isRequired());
         searchButton.setOnAction(e -> searchFromInput(gameInfoProvider));
 
         pathLabel.setText(context.path().toString());
         searchTextField.setText(searchedName);
         setSearchResults(searchResults);
-        stage.showAndWait();
+        stageManager.runWithBlur(stage::showAndWait);
         return result;
     }
 

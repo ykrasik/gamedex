@@ -3,6 +3,8 @@ package com.github.ykrasik.gamedex.core.service.screen.detail;
 import com.github.ykrasik.gamedex.common.util.StringUtils;
 import com.github.ykrasik.gamedex.common.util.UrlUtils;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewResizingPane;
+import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
+import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.rating.FixedRating;
@@ -38,7 +40,7 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
 /**
  * @author Yevgeny Krasik
  */
-public class GameDetailScreen {
+public class GameDetailsScreen {
     private static final Duration FADE_DURATION = Duration.seconds(0.25);
     private static final double MAX_POSTER_WIDTH_PERCENT = 0.5;
 
@@ -61,19 +63,26 @@ public class GameDetailScreen {
     @FXML private Hyperlink url;
 
     private final ImageService imageService;
+    private final ActionService actionService;
+    private final StageManager stageManager;
+
     private final Stage stage;
     private final BorderPane root;
 
-    private Game inspectedGame;
+    private Game game;
     private Opt<Game> result = Opt.absent();
 
     @SneakyThrows
-    public GameDetailScreen(@NonNull ImageService imageService) {
+    public GameDetailsScreen(@NonNull ImageService imageService,
+                             @NonNull ActionService actionService,
+                             @NonNull StageManager stageManager) {
         this.imageService = imageService;
+        this.actionService = actionService;
+        this.stageManager = stageManager;
 
         final Rectangle2D bounds = Screen.getPrimary().getBounds();
 
-        final FXMLLoader loader = new FXMLLoader(UIResources.gameDetailScreenFxml());
+        final FXMLLoader loader = new FXMLLoader(UIResources.gameDetailsScreenFxml());
         loader.setController(this);
         root = loader.load();
         root.setId("gameDetailView");
@@ -81,7 +90,7 @@ public class GameDetailScreen {
         root.setMaxWidth(bounds.getWidth());
 
         final Scene scene = new Scene(root, Color.TRANSPARENT);
-        scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.gameDetailScreenCss());
+        scene.getStylesheets().addAll(UIResources.mainCss(), UIResources.gameDetailsScreenCss());
 
         stage = new Stage();
         stage.setTitle("Details");
@@ -120,8 +129,8 @@ public class GameDetailScreen {
         criticScoreContainer.getChildren().add(criticRating);
     }
 
-    public Opt<Game> show(Game game) {
-        inspectedGame = game;
+    public void show(Game game) {
+        this.game = game;
 
         imageService.fetchPoster(game.getId(), poster);
 
@@ -140,24 +149,28 @@ public class GameDetailScreen {
         url.setOnAction(e -> UrlUtils.browseToUrl(game.getMetacriticDetailUrl()));
 
         doShow();
-        return result;
+        // FIXME: Handle exception while editing
+        if (result.isPresent()) {
+            // TODO: Update in db
+            System.out.println(result);
+        }
     }
 
     private Game createFromInput() {
         return Game.builder()
-            .id(inspectedGame.getId())
-            .path(inspectedGame.getPath())
-            .metacriticDetailUrl(inspectedGame.getMetacriticDetailUrl())
-            .giantBombDetailUrl(inspectedGame.getGiantBombDetailUrl())
-            .name(inspectedGame.getName())
-            .platform(inspectedGame.getPlatform())
+            .id(game.getId())
+            .path(game.getPath())
+            .metacriticDetailUrl(game.getMetacriticDetailUrl())
+            .giantBombDetailUrl(game.getGiantBombDetailUrl())
+            .name(game.getName())
+            .platform(game.getPlatform())
             .description(descriptionFromInput())
-            .releaseDate(inspectedGame.getReleaseDate())
+            .releaseDate(game.getReleaseDate())
             .criticScore(criticScoreFromInput())
             .userScore(userScoreFromInput())
-            .lastModified(inspectedGame.getLastModified())
+            .lastModified(game.getLastModified())
             .genres(genresFromInput())
-            .libraries(inspectedGame.getLibraries())
+            .libraries(game.getLibraries())
             .build();
     }
 
@@ -175,7 +188,7 @@ public class GameDetailScreen {
 
     private ImmutableList<Genre> genresFromInput() {
         // TODO: Implement
-        return inspectedGame.getGenres();
+        return game.getGenres();
     }
 
     private Opt<String> readText(TextInputControl control) {
@@ -188,7 +201,7 @@ public class GameDetailScreen {
         fade.setToValue(1);
         fade.play();
 
-        stage.showAndWait();
+        stageManager.runWithBlur(stage::showAndWait);
     }
 
     @FXML
@@ -209,5 +222,30 @@ public class GameDetailScreen {
         fade.setToValue(0);
         fade.setOnFinished(e -> stage.hide());
         fade.play();
+    }
+
+    @FXML
+    private void changeThumbnail() {
+
+    }
+
+    @FXML
+    private void changePoster() {
+
+    }
+
+    @FXML
+    private void reSearch() {
+
+    }
+
+    @FXML
+    private void refresh() {
+
+    }
+
+    @FXML
+    private void delete() {
+        actionService.deleteGame(game);
     }
 }

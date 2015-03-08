@@ -36,6 +36,4 @@ public interface ActionService {
     void deleteGame(Game game);
 
     void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths);
-
-    void showGameDetails(Game game);
 }

@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.config;
+package com.github.ykrasik.gamedex.core.service.config;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.gs.collections.api.map.ImmutableMap;

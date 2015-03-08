@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.core.ui.search;
+package com.github.ykrasik.gamedex.core.service.screen.search;
 
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.opt.Opt;

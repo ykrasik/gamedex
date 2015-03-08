@@ -6,9 +6,9 @@ import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
+import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailsScreen;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -28,8 +28,8 @@ public class GameListController implements Controller {
     @FXML private TableColumn<Game, String> gameNameColumn;
     @FXML private TableColumn<Game, String> gamePlatformColumn;
     @FXML private TableColumn<Game, String> gameReleaseDateColumn;
-    @FXML private TableColumn<Game, Number> gameCriticScoreColumn;
-    @FXML private TableColumn<Game, Number> gameUserScoreColumn;
+    @FXML private TableColumn<Game, String> gameCriticScoreColumn;
+    @FXML private TableColumn<Game, String> gameUserScoreColumn;
     @FXML private TableColumn<Game, String> gamePathColumn;
     @FXML private TableColumn<Game, String> gameDateAddedColumn;
 
@@ -48,7 +48,10 @@ public class GameListController implements Controller {
 
     @NonNull private final ImageService imageService;
     @NonNull private final ActionService actionService;
+
     @NonNull private final GameManager gameManager;
+
+    @NonNull private final GameDetailsScreen gameDetailsScreen;
 
     @FXML
     private void initialize() {
@@ -60,8 +63,8 @@ public class GameListController implements Controller {
         gameNameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
         gamePlatformColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
         gameReleaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
-        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getCriticScore().getOrElse(0.0)));
-        gameUserScoreColumn.setCellValueFactory(e -> new SimpleDoubleProperty(e.getValue().getUserScore().getOrElse(0.0)));
+        gameCriticScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getCriticScore())));
+        gameUserScoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getUserScore())));
         gamePathColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
         gameDateAddedColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getLastModified().toLocalDate().toString()));
 
@@ -69,6 +72,12 @@ public class GameListController implements Controller {
         gameList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 displayGame(newValue);
+            }
+        });
+
+        gameList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                gameDetailsScreen.show(gameList.getSelectionModel().getSelectedItem());
             }
         });
     }
@@ -106,4 +115,5 @@ public class GameListController implements Controller {
     public void selectGame(Game game) {
         gameList.getSelectionModel().select(game);
     }
+
 }
