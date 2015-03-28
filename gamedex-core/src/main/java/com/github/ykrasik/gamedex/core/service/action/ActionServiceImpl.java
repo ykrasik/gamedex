@@ -4,7 +4,6 @@ import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareBooleanProperty;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareDoubleProperty;
-import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareStringProperty;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
@@ -44,7 +43,7 @@ import java.util.List;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class ActionServiceImpl implements ActionService {
-    @Getter private final StringProperty messageProperty = new ThreadAwareStringProperty();
+    @Getter private final StringProperty messageProperty = new SimpleStringProperty();
     private final DoubleProperty progressProperty = new ThreadAwareDoubleProperty();
     private final BooleanProperty fetchingProperty = new ThreadAwareBooleanProperty();
 
@@ -62,7 +61,7 @@ public class ActionServiceImpl implements ActionService {
     }
 
     @Override
-    public ReadOnlyBooleanProperty fetchProgressProperty() {
+    public ReadOnlyBooleanProperty fetchingProperty() {
         return fetchingProperty;
     }
 

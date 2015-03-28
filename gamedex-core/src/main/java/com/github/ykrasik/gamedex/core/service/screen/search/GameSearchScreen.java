@@ -1,17 +1,15 @@
 package com.github.ykrasik.gamedex.core.service.screen.search;
 
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
-import com.github.ykrasik.gamedex.core.manager.provider.SearchContext;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
-import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.provider.GameInfoProvider;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.gs.collections.api.list.ImmutableList;
-import javafx.beans.property.*;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -26,6 +24,8 @@ import javafx.stage.StageStyle;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 
+import java.nio.file.Path;
+
 import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnavailable;
 
 /**
@@ -34,6 +34,7 @@ import static com.github.ykrasik.gamedex.common.util.StringUtils.toStringOrUnava
 public class GameSearchScreen {
     @FXML private Label pathLabel;
     @FXML private ImageView logoImageView;
+    @FXML private Label errorLabel;
 
     @FXML private TextField searchTextField;
     @FXML private Button searchButton;
@@ -48,24 +49,18 @@ public class GameSearchScreen {
     @FXML private TableColumn<SearchResult, String> scoreColumn;
     @FXML private TableColumn<SearchResult, String> releaseDateColumn;
 
-    @FXML private ImageView searchingImageView;
-
     @FXML private Button proceedAnywayButton;
     @FXML private Button okButton;
 
     private final Stage stage = new Stage();
     private final ListProperty<SearchResult> searchResultsProperty = new SimpleListProperty<>(FXCollections.emptyObservableList());
-    private final BooleanProperty searchingProperty = new SimpleBooleanProperty(false);
 
-    private final TaskService taskService;
     private final StageManager stageManager;
 
-    private SearchContext context;
     private GameSearchChoice result;
 
     @SneakyThrows
-    public GameSearchScreen(@NonNull TaskService taskService, @NonNull StageManager stageManager) {
-        this.taskService = taskService;
+    public GameSearchScreen(@NonNull StageManager stageManager) {
         this.stageManager = stageManager;
 
         final FXMLLoader loader = new FXMLLoader(UIResources.gameSearchScreenFxml());
@@ -93,12 +88,6 @@ public class GameSearchScreen {
         okButton.defaultButtonProperty().bind(searchButton.defaultButtonProperty().not());
         okButton.disableProperty().bind(searchResultsTable.getSelectionModel().selectedItemProperty().isNull());
         okButton.setOnAction(e -> setResultFromSelection());
-
-        searchingImageView.setImage(UIResources.loading());
-        searchingImageView.fitHeightProperty().bind(searchResultsTable.heightProperty().subtract(20));
-        searchingImageView.fitWidthProperty().bind(searchResultsTable.widthProperty().subtract(20));
-        searchingImageView.visibleProperty().bind(searchingProperty);
-        searchResultsTable.disableProperty().bind(searchingProperty);
     }
 
     private void initSearchResultsTable() {
@@ -113,112 +102,61 @@ public class GameSearchScreen {
                 setResultFromSelection();
             }
         });
+
+        searchButton.setOnAction(e -> {
+            final String newName = searchTextField.getText();
+            setResult(GameSearchChoice.newName(newName));
+        });
     }
 
-//    private ImmutableList<SearchResult> search(String name, SearchContext context) throws Exception {
-//        message("Searching '%s'...", name);
-//        fetchingProperty.set(true);
-//        final ImmutableList<SearchResult> searchResults;
-//        try {
-//            searchResults = gameInfoProvider.search(name, context.platform());
-//        } finally {
-//            fetchingProperty.set(false);
-//        }
-//        message("Found %d results for '%s'.", searchResults.size(), name);
-//
-//        final Collection<String> excludedNames = context.getExcludedNames();
-//        if (searchResults.size() <= 1 || excludedNames.isEmpty()) {
-//            return searchResults;
-//        }
-//
-//        message("Filtering previously encountered search results...");
-//        final ImmutableList<SearchResult> filteredSearchResults = searchResults.select(result -> !excludedNames.contains(result.getName()));
-//        if (!filteredSearchResults.isEmpty()) {
-//            message("%d remaining results.", filteredSearchResults.size());
-//            return filteredSearchResults;
-//        } else {
-//            message("No search results after filtering, reverting...");
-//            return searchResults;
-//        }
-//    }
-
-    public GameSearchChoice show(GameInfoProvider gameInfoProvider,
-                                 String searchedName,
-                                 SearchContext context,
-                                 ImmutableList<SearchResult> searchResults) {
-        this.context = context;
-
-        // FIXME: Ugh, no.
-        switch (gameInfoProvider.getName()) {
-            case "Metacritic": logoImageView.setImage(UIResources.metacriticLogo()); break;
-            case "GiantBomb": logoImageView.setImage(UIResources.giantBombLogo()); break;
-        }
-
-        proceedAnywayButton.setDisable(gameInfoProvider.isRequired());
-        searchButton.setOnAction(e -> searchFromInput(gameInfoProvider));
-
-        pathLabel.setText(context.path().toString());
+    public GameSearchChoice show(String searchedName, Path path, GameInfoProviderInfo info, ImmutableList<SearchResult> searchResults) {
+        logoImageView.setImage(info.getLogo());
+        pathLabel.setText(path.toString());
         searchTextField.setText(searchedName);
+        errorLabel.setText(getErrorLabel(searchedName, searchResults));
         setSearchResults(searchResults);
+        proceedAnywayButton.setDisable(info.isRequired());
+
         stageManager.runWithBlur(stage::showAndWait);
         return result;
     }
 
-    @SneakyThrows
-    private void searchFromInput(GameInfoProvider gameInfoProvider) {
-        final String name = searchTextField.getText().trim();
-
-        searchingProperty.set(true);
-        final Task<ImmutableList<SearchResult>> task = taskService.submit(() -> gameInfoProvider.search(name, context.platform()));
-        task.setOnSucceeded(e -> {
-            searchingProperty.set(false);
-
-            final ImmutableList<SearchResult> searchResults = task.getValue();
-            setSearchResults(searchResults);
-
-            // TODO: If only 1 result and checked to continue, do it.
-            if (searchResults.size() == 1) {
-                setResult(searchResults.get(0));
-            }
-        });
+    private String getErrorLabel(String searchedName, ImmutableList<SearchResult> searchResults) {
+        if (searchResults.isEmpty()) {
+            return String.format("No search results for '%s'!", searchedName);
+        } else {
+            return String.format("Too many search results for '%s'!", searchedName);
+        }
     }
 
     private void setSearchResults(ImmutableList<SearchResult> searchResults) {
         searchResultsProperty.set(FXCollections.observableArrayList(searchResults.castToList()));
     }
 
-    private void setNoResult(GameSearchChoiceType type) {
-        if (type == GameSearchChoiceType.OK) {
-            throw new IllegalArgumentException("Illegal no result type: " + type);
-        }
-        result = new GameSearchChoice(Opt.absent(), type);
-        stage.hide();
-    }
-
     private void setResultFromSelection() {
         final SearchResult selectedItem = searchResultsTable.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
-            setResult(selectedItem);
+            setResult(GameSearchChoice.select(selectedItem));
         }
-    }
-
-    private void setResult(SearchResult searchResult) {
-        result = new GameSearchChoice(Opt.of(searchResult), GameSearchChoiceType.OK);
-        stage.hide();
     }
 
     @FXML
     private void skip() {
-        setNoResult(GameSearchChoiceType.SKIP);
+        setResult(GameSearchChoice.skip());
     }
 
     @FXML
     private void exclude() {
-        setNoResult(GameSearchChoiceType.EXCLUDE);
+        setResult(GameSearchChoice.exclude());
     }
 
     @FXML
     private void proceedAnyway() {
-        setNoResult(GameSearchChoiceType.PROCEED_ANYWAY);
+        setResult(GameSearchChoice.proceedAnyway());
+    }
+
+    private void setResult(GameSearchChoice choice) {
+        this.result = choice;
+        stage.hide();
     }
 }

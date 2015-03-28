@@ -1,8 +1,6 @@
 package com.github.ykrasik.gamedex.core.manager.path;
 
 import com.github.ykrasik.gamedex.common.util.FileUtils;
-import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareBooleanProperty;
-import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareStringProperty;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
@@ -22,9 +20,7 @@ import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +45,8 @@ public class PathManagerImpl implements PathManager {
     private static final ProcessPathReturnValue SKIP = new ProcessPathReturnValue(Type.SKIP, Opt.absent());
     private static final ProcessPathReturnValue EXCLUDE = new ProcessPathReturnValue(Type.EXCLUDE, Opt.absent());
 
-    @Getter private final StringProperty messageProperty = new ThreadAwareStringProperty();
-    private final BooleanProperty fetchingProperty = new ThreadAwareBooleanProperty();
+    @Getter private final StringProperty messageProperty = new SimpleStringProperty();
+    private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     @NonNull private final ConfigService configService;
     @NonNull private final DialogService dialogService;

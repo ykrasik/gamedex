@@ -39,6 +39,16 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
+    public ObjectProperty<Number> logDividerPosition() {
+        return configManager.property(ConfigType.LOG_DIVIDER_POSITION);
+    }
+
+    @Override
+    public double getLogDividerPosition() {
+        return logDividerPosition().get().doubleValue();
+    }
+
+    @Override
     public ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty() {
         return configManager.property(ConfigType.GAME_WALL_IMAGE_DISPLAY);
     }

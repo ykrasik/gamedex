@@ -9,8 +9,7 @@ import com.gs.collections.api.list.ImmutableList;
  * @author Yevgeny Krasik
  */
 public interface GameInfoProvider {
-    String getName();
-    boolean isRequired();
+    GameInfoProviderInfo getInfo();
 
     ImmutableList<SearchResult> search(String name, GamePlatform platform) throws Exception;
 

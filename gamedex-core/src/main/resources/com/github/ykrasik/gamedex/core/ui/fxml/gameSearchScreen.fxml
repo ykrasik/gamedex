@@ -17,16 +17,18 @@
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label fx:id="pathLabel" minWidth="-Infinity" text="Label" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
+                  <Label id="pathLabel" fx:id="pathLabel" minWidth="-Infinity" text="Label" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
                      <GridPane.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </GridPane.margin></Label>
-                  <ImageView fx:id="logoImageView" fitHeight="300.0" fitWidth="500.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
+                  <ImageView fx:id="logoImageView" fitHeight="200.0" fitWidth="500.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
                      <GridPane.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </GridPane.margin></ImageView>
+                  <Label id="errorLabel" fx:id="errorLabel" minWidth="-Infinity" text="Label" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
                </children>
             </GridPane>
             <HBox BorderPane.alignment="CENTER">
@@ -93,19 +95,14 @@
       </VBox>
    </top>
    <center>
-      <StackPane>
-         <children>
-            <TableView fx:id="searchResultsTable" BorderPane.alignment="CENTER">
-              <columns>
-                <TableColumn fx:id="checkColumn" editable="false" prefWidth="29.0" resizable="false" sortable="false" visible="false" />
-                <TableColumn fx:id="nameColumn" editable="false" prefWidth="492.0" text="Name" />
-                  <TableColumn fx:id="releaseDateColumn" editable="false" prefWidth="97.0" resizable="false" text="Release Date" />
-                  <TableColumn fx:id="scoreColumn" editable="false" prefWidth="50.0" resizable="false" text="Score" />
-              </columns>
-            </TableView>
-            <ImageView fx:id="searchingImageView" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-         </children>
-      </StackPane>
+      <TableView fx:id="searchResultsTable" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn fx:id="checkColumn" editable="false" prefWidth="29.0" resizable="false" sortable="false" visible="false" />
+          <TableColumn fx:id="nameColumn" editable="false" prefWidth="492.0" text="Name" />
+            <TableColumn fx:id="releaseDateColumn" editable="false" prefWidth="97.0" resizable="false" text="Release Date" />
+            <TableColumn fx:id="scoreColumn" editable="false" prefWidth="50.0" resizable="false" text="Score" />
+        </columns>
+      </TableView>
    </center>
    <bottom>
       <HBox BorderPane.alignment="CENTER">

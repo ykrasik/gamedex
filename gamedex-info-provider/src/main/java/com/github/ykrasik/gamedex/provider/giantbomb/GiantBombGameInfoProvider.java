@@ -6,11 +6,13 @@ import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.gamedex.provider.giantbomb.config.GiantBombProperties;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,19 +32,10 @@ import static com.github.ykrasik.gamedex.provider.util.JsonUtils.*;
 @Slf4j
 @RequiredArgsConstructor
 public class GiantBombGameInfoProvider implements GameInfoProvider {
+    @Getter @NonNull private final GameInfoProviderInfo info;
     @NonNull private final GiantBombGameInfoClient client;
     @NonNull private final GiantBombProperties properties;
     @NonNull private final ObjectMapper mapper;
-
-    @Override
-    public String getName() {
-        return "GiantBomb";
-    }
-
-    @Override
-    public boolean isRequired() {
-        return false;
-    }
 
     @Override
     public ImmutableList<SearchResult> search(String name, GamePlatform platform) throws Exception {

@@ -2,6 +2,7 @@ package com.github.ykrasik.gamedex.provider.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.gamedex.provider.giantbomb.GiantBombGameInfoProvider;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClientImpl;
@@ -27,10 +28,11 @@ import org.springframework.context.annotation.Configuration;
 public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
     @Qualifier("metacriticGameInfoProvider")
     @Bean
-    public GameInfoProvider metacriticGameInfoProvider(MetacriticGameInfoClient client,
+    public GameInfoProvider metacriticGameInfoProvider(@Qualifier("metacriticInfo") GameInfoProviderInfo info,
+                                                       MetacriticGameInfoClient client,
                                                        MetacriticProperties properties,
                                                        ObjectMapper objectMapper) {
-        return new MetacriticGameInfoProvider(client, properties, objectMapper);
+        return new MetacriticGameInfoProvider(info, client, properties, objectMapper);
     }
 
     @Bean
@@ -53,10 +55,11 @@ public class ProviderBeanConfiguration extends AbstractBeanConfiguration {
 
     @Qualifier("giantBombGameInfoProvider")
     @Bean
-    public GameInfoProvider giantBombGameInfoProvider(GiantBombGameInfoClient client,
+    public GameInfoProvider giantBombGameInfoProvider(@Qualifier("giantBombInfo") GameInfoProviderInfo info,
+                                                      GiantBombGameInfoClient client,
                                                       GiantBombProperties properties,
                                                       ObjectMapper objectMapper) {
-        return new GiantBombGameInfoProvider(client, properties, objectMapper);
+        return new GiantBombGameInfoProvider(info, client, properties, objectMapper);
     }
 
     @Bean

@@ -6,12 +6,14 @@ import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.gamedex.provider.metacritic.config.MetacriticProperties;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.impl.factory.Lists;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,19 +35,10 @@ import static com.github.ykrasik.gamedex.provider.util.JsonUtils.*;
 public class MetacriticGameInfoProvider implements GameInfoProvider {
     private static final LocalDate MIN_DATE = LocalDate.of(1980, 1, 1);
 
+    @Getter @NonNull private final GameInfoProviderInfo info;
     @NonNull private final MetacriticGameInfoClient client;
     @NonNull private final MetacriticProperties properties;
     @NonNull private final ObjectMapper mapper;
-
-    @Override
-    public String getName() {
-        return "Metacritic";
-    }
-
-    @Override
-    public boolean isRequired() {
-        return true;
-    }
 
     @Override
     public ImmutableList<SearchResult> search(String name, GamePlatform platform) throws Exception {

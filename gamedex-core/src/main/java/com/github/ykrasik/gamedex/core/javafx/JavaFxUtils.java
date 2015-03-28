@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.core.javafx;
 
-import com.google.common.util.concurrent.SettableFuture;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.Stage;
@@ -8,6 +7,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Yevgeny Krasik
@@ -32,12 +32,12 @@ public final class JavaFxUtils {
             return callable.call();
         }
 
-        final SettableFuture<T> future = SettableFuture.create();
+        final CompletableFuture<T> future = new CompletableFuture<>();
         Platform.runLater(() -> {
             try {
-                future.set(callable.call());
+                future.complete(callable.call());
             } catch (Exception e) {
-                future.setException(e);
+                future.completeExceptionally(e);
             }
         });
         return future.get();

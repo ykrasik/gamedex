@@ -15,12 +15,14 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 
 /**
  * @author Yevgeny Krasik
  */
+@Slf4j
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
@@ -38,11 +40,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
     @Override
     public Opt<GameInfo> fetchGameInfo(String name, SearchContext context) throws Exception {
-        try {
-            return doFetchGameInfo(name.trim(), context);
-        } finally {
-            messageProperty.set(null);
-        }
+        return doFetchGameInfo(name.trim(), context);
     }
 
     private Opt<GameInfo> doFetchGameInfo(String name, SearchContext context) throws Exception {
@@ -55,17 +53,23 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
 
         assertNotAutoSkip();
-        final GameSearchChoice choice = gameSearchScreen.show(gameInfoProvider, name, context, searchResults);
-        switch (choice.getType()) {
-            case SKIP: throw new SkipException();
-            case EXCLUDE: throw new ExcludeException();
-            case PROCEED_ANYWAY: return Opt.absent();
-            case OK: return Opt.of(fetchGameInfoFromSearchResult(choice.getSearchResult().get()));
-            default: throw new IllegalStateException("Invalid choice type: " + choice.getType());
+        final GameSearchChoice choice = gameSearchScreen.show(name, context.path(), gameInfoProvider.getInfo(), searchResults);
+        switch (choice.type()) {
+            case SELECT_RESULT:
+                log.info("Result selected: {}", choice.searchResult().get());
+                return Opt.of(fetchGameInfoFromSearchResult(choice.searchResult().get()));
+
+            case NEW_NAME:
+                log.info("New name requested: {}", choice.newName().get());
+                return doFetchGameInfo(choice.newName().get(), context);
+
+            case SKIP: log.info("Skip selected."); throw new SkipException();
+            case EXCLUDE: log.info("Exclude selected."); throw new ExcludeException();
+            case PROCEED_ANYWAY: log.info("Proceed anyway selected."); return Opt.absent();
+            default: throw new IllegalStateException("Invalid choice type: " + choice.type());
         }
     }
 
-    // TODO: I hate that this logic is duplicated both here and in the screen.
     private ImmutableList<SearchResult> searchGames(String name, SearchContext context) throws Exception {
         message("Searching '%s'...", name);
         fetchingProperty.set(true);
@@ -114,7 +118,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
     @Override
     public void message(String message) {
-        final String messageWithProvider = String.format("%s: %s", gameInfoProvider.getName(), message);
+        final String messageWithProvider = String.format("%s: %s", gameInfoProvider.getInfo().getName(), message);
         messageProperty.set(messageWithProvider);
     }
 }

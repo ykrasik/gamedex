@@ -8,7 +8,6 @@ import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailsScreen;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
-import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,8 +17,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ScreenBeanConfiguration {
     @Bean
-    public GameSearchScreen gameSearchScreen(TaskService taskService, StageManager stageManager) {
-        return JavaFxUtils.callLaterIfNecessary(() -> new GameSearchScreen(taskService, stageManager));
+    public GameSearchScreen gameSearchScreen(StageManager stageManager) {
+        return JavaFxUtils.callLaterIfNecessary(() -> new GameSearchScreen(stageManager));
     }
 
     @Bean

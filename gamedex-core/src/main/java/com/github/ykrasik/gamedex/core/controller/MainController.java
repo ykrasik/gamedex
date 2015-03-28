@@ -2,11 +2,13 @@ package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
+import javafx.beans.binding.Binding;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -28,7 +30,6 @@ public class MainController implements Controller {
     @FXML private MenuItem addLibraryMenuItem;
 
     @FXML private SplitPane content;
-    private double dividerPosition;
 
     @FXML private VBox bottomContainer;
     @FXML private StatusBar statusBar;
@@ -49,7 +50,7 @@ public class MainController implements Controller {
 
     @NonNull private final SettingsScreen settingsScreen;
 
-    // Called by JavaFx
+    @FXML
     public void initialize() {
         initMenu();
         initBottom();
@@ -57,31 +58,29 @@ public class MainController implements Controller {
 
     private void initMenu() {
         addLibraryMenuItem.setOnAction(e -> actionService.addNewLibrary());
-//        showSideBar.selectedProperty().addListener((observable, oldValue, newValue) -> {
-//            if (newValue) {
-//                contentScreen.getChildren().add(sideBar);
-//            } else {
-//                contentScreen.getChildren().remove(sideBar);
-//            }
-//        });
     }
 
     private void initBottom() {
-        actionService.fetchProgressProperty().addListener((observable, oldValue, fetching) -> {
-            final double progress = fetching ? -1 : 0;
-            JavaFxUtils.runLaterIfNecessary(() -> progressIndicator.setProgress(progress));
-        });
+        final Binding<Double> binding = MoreBindings.transformBinding(actionService.fetchingProperty(), fetching -> (double) (fetching ? -1 : 0));
+        progressIndicator.progressProperty().bind(binding);
+
         statusBar.progressProperty().bind(actionService.progressProperty());
 
-        statusBar.textProperty().bind(actionService.messageProperty());
-        actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
+        actionService.messageProperty().addListener((observable, oldValue, newValue) -> JavaFxUtils.runLaterIfNecessary(() -> {
             if (newValue != null) {
+                statusBar.setText(newValue);
                 logTextArea.appendText(newValue);
                 logTextArea.appendText("\n");
             }
-        });
+        }));
+//        statusBar.textProperty().bind(actionService.messageProperty());
 
-        dividerPosition = content.getDividerPositions()[0];
+//        actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
+//            if (newValue != null) {
+//                logTextArea.appendText(newValue);
+//                logTextArea.appendText("\n");
+//            }
+//        });
 
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
         toggleLog.selectedProperty().bindBidirectional(configService.showLogProperty());
@@ -99,9 +98,8 @@ public class MainController implements Controller {
     private void toggleLogTextArea(boolean show) {
         if (show) {
             content.getItems().add(logTextArea);
-            content.setDividerPositions(dividerPosition);
+            bindLogDivider();
         } else {
-            dividerPosition = content.getDividerPositions()[0];
             content.getItems().remove(logTextArea);
         }
     }
@@ -116,6 +114,11 @@ public class MainController implements Controller {
         statusBarStopButton.setOnAction(e -> task.cancel());
 
         // TODO: Disable all other buttons while task is running.
+    }
+
+    private void bindLogDivider() {
+        content.setDividerPosition(0, configService.getLogDividerPosition());
+        configService.logDividerPosition().bind(content.getDividers().get(0).positionProperty());
     }
 
     @FXML

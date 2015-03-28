@@ -17,6 +17,9 @@ public interface ConfigService {
     ObjectProperty<Boolean> showLogProperty();
     boolean isShowLog();
 
+    ObjectProperty<Number> logDividerPosition();
+    double getLogDividerPosition();
+
     ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty();
     GameWallImageDisplay getGameWallImageDisplay();
 

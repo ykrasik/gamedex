@@ -20,7 +20,7 @@ import java.util.Collection;
 // TODO: Need 2 threads - one to search and fetch games, one to fetch thumbnails & posters.
 public interface ActionService extends Messageable {
     ReadOnlyDoubleProperty progressProperty();
-    ReadOnlyBooleanProperty fetchProgressProperty();
+    ReadOnlyBooleanProperty fetchingProperty();
 
     void stopTask(Task<Void> task);
 

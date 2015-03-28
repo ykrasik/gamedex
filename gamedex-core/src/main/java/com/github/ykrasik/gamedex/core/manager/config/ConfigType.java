@@ -11,7 +11,9 @@ public enum ConfigType {
     PREV_DIRECTORY(Opt.absent()),
 
     AUTO_SKIP(false),
+
     SHOW_LOG(true),
+    LOG_DIVIDER_POSITION(0.98),
 
     GAME_WALL_IMAGE_DISPLAY(GameWallImageDisplay.FIT),
     GAME_SORT(GameSort.NAME_ASC);

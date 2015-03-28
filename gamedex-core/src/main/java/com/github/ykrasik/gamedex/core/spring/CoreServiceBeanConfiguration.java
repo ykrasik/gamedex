@@ -19,9 +19,12 @@ import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.image.ImageServiceImpl;
 import com.github.ykrasik.gamedex.core.service.task.TaskService;
 import com.github.ykrasik.gamedex.core.service.task.TaskServiceImpl;
+import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
+import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -82,5 +85,17 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
         final ShellFileSystem fileSystem = new ShellFileSystem();
         debugCommands.forEach(fileSystem::processAnnotationsOfObject);
         return fileSystem;
+    }
+
+    @Bean
+    @Qualifier("metacriticInfo")
+    public GameInfoProviderInfo metacriticInfo() {
+        return new GameInfoProviderInfo("Metacritic", true, UIResources.metacriticLogo());
+    }
+
+    @Bean
+    @Qualifier("giantBombInfo")
+    public GameInfoProviderInfo giantBombInfo() {
+        return new GameInfoProviderInfo("GiantBombInfo", false, UIResources.giantBombLogo());
     }
 }
