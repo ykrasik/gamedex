@@ -56,11 +56,19 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         final GameSearchChoice choice = gameSearchScreen.show(name, context.path(), gameInfoProvider.getInfo(), searchResults);
         switch (choice.type()) {
             case SELECT_RESULT:
-                log.info("Result selected: {}", choice.searchResult().get());
-                return Opt.of(fetchGameInfoFromSearchResult(choice.searchResult().get()));
+                final SearchResult selectedResult = choice.searchResult().get();
+                log.info("Result selected: {}", selectedResult);
+
+                // Add all search results except the selected one to excluded list.
+                final ImmutableList<SearchResult> resultsToExclude = searchResults.newWithout(selectedResult);
+                context.addExcludedNames(resultsToExclude.collect(SearchResult::getName));
+                return Opt.of(fetchGameInfoFromSearchResult(selectedResult));
 
             case NEW_NAME:
                 log.info("New name requested: {}", choice.newName().get());
+
+                // Add all current search results to excluded list.
+                context.addExcludedNames(searchResults.collect(SearchResult::getName));
                 return doFetchGameInfo(choice.newName().get(), context);
 
             case SKIP: log.info("Skip selected."); throw new SkipException();

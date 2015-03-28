@@ -14,9 +14,10 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @DatabaseTable(tableName = "libraries", daoClass = LibraryDaoImpl.class)
 public class LibraryEntity {
+    public static final String ID_COLUMN = "id";
     public static final String PATH_COLUMN = "path";
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(columnName = ID_COLUMN, generatedId = true)
     private int id;
 
     @DatabaseField(columnName = PATH_COLUMN, unique = true, canBeNull = false, index = true)

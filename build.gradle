@@ -97,6 +97,7 @@ project("gamedex-persistence") {
 
 project("gamedex-core") {
     apply plugin: "application"
+    mainClassName = "com.github.ykrasik.gamedex.core.Main"
 
     dependencies {
         compile project(":gamedex-common")

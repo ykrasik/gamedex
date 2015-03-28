@@ -144,8 +144,10 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public void deleteGame(Game game) {
         // TODO: Confirmation dialog doesn't belong here.
-        if (dialogService.confirmationDialog("Are you sure you want to delete '%s'?", game.getName())) {
+        if (dialogService.confirmationDialog("Are you sure you want to delete the game '%s'?", game.getName())) {
+            message("Deleting game '%s'...", game.getName());
             gameManager.deleteGame(game);
+            message("Done.\n");
         }
     }
 
@@ -159,6 +161,20 @@ public class ActionServiceImpl implements ActionService {
         // TODO: Confirmation dialog doesn't belong here.
         if (dialogService.confirmationListDialog(items, "Are you sure you want to delete these %d excluded paths?", excludedPaths.size())) {
             excludedPathManager.deleteExcludedPaths(excludedPaths);
+        }
+    }
+
+    @Override
+    public void deleteLibrary(Library library) {
+        // TODO: Confirmation dialog doesn't belong here.
+        if (dialogService.confirmationDialog("Are you sure you want to delete the library '%s'?", library.getName())) {
+            message("Deleting library '%s'...", library.getName());
+            final ObservableList<Game> games = libraryManager.deleteLibrary(library);
+            message("Done.");
+
+            message("Deleting '%d' games linked to library '%s'...", games.size(), library.getName());
+            gameManager.deleteGames(games);
+            message("Done.\n");
         }
     }
 
@@ -183,17 +199,19 @@ public class ActionServiceImpl implements ActionService {
     private void processPath(LibraryHierarchy libraryHierarchy, Path path) throws Exception {
         messageProperty.bind(pathManager.messageProperty());
         fetchingProperty.bind(pathManager.fetchingProperty());
+        final ProcessPathReturnValue returnValue;
         try {
-            final ProcessPathReturnValue returnValue = pathManager.processPath(libraryHierarchy, path);
-            if (returnValue.getType() == Type.NEW_LIBRARY) {
-                final Library library = returnValue.getCreatedLibrary().get();
-                libraryHierarchy.pushLibrary(library);
-                refreshCurrentLibrary(libraryHierarchy);
-                libraryHierarchy.popLibrary();
-            }
+            returnValue = pathManager.processPath(libraryHierarchy, path);
         } finally {
             messageProperty.unbind();
             fetchingProperty.unbind();
+        }
+
+        if (returnValue.getType() == Type.NEW_LIBRARY) {
+            final Library library = returnValue.getCreatedLibrary().get();
+            libraryHierarchy.pushLibrary(library);
+            refreshCurrentLibrary(libraryHierarchy);
+            libraryHierarchy.popLibrary();
         }
     }
 

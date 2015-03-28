@@ -35,4 +35,6 @@ public interface ActionService extends Messageable {
     void deleteGame(Game game);
 
     void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths);
+
+    void deleteLibrary(Library library);
 }

@@ -10,6 +10,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.persistence.exception.DataException;
+import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -61,12 +62,13 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public void deleteLibrary(Library library) {
-        persistenceService.deleteLibrary(library.getId());
+    public ObservableList<Game> deleteLibrary(Library library) {
+        final ImmutableList<Game> games = persistenceService.deleteLibrary(library.getId());
         LOG.info("Deleted library: {}", library);
 
         // Delete from cache.
         JavaFxUtils.runLaterIfNecessary(() -> libraries.remove(library));
+        return FXCollections.observableArrayList(games.castToList());
     }
 
     @Override

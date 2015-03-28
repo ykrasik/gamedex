@@ -8,8 +8,7 @@ import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 import java.nio.file.Paths
 
-import static ch.qos.logback.classic.Level.DEBUG
-import static ch.qos.logback.classic.Level.INFO
+import static ch.qos.logback.classic.Level.*
 
 LOG_LEVELS = [
     ROOT: INFO,

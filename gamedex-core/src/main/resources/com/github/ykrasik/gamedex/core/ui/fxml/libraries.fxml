@@ -12,6 +12,13 @@
                <TableColumn fx:id="libraryPlatform" editable="false" minWidth="55.0" prefWidth="-1.0" text="Platform" />
                <TableColumn fx:id="libraryPath" editable="false" minWidth="400.0" prefWidth="-1.0" text="Path" />
            </columns>
+         <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#deleteLibrary" text="Delete" />
+              </items>
+            </ContextMenu>
+         </contextMenu>
        </TableView>
    </center>
 </BorderPane>

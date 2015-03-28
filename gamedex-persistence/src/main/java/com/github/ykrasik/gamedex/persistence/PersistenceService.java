@@ -25,7 +25,7 @@ public interface PersistenceService {
     Opt<ImageData> getPoster(Id<Game> id);
 
     Library addLibrary(Path path, GamePlatform platform, String name);
-    void deleteLibrary(Id<Library> id);
+    ImmutableList<Game> deleteLibrary(Id<Library> id);
     ImmutableList<Library> getAllLibraries();
     Library getLibraryById(Id<Library> id);
     boolean hasLibraryForPath(Path path);

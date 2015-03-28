@@ -15,7 +15,7 @@ import java.nio.file.Path;
  */
 public interface LibraryManager {
     Library createLibrary(LibraryDef libraryDef);
-    void deleteLibrary(Library library);
+    ObservableList<Game> deleteLibrary(Library library);
 
     ObservableList<Library> getAllLibraries();
     Library getLibraryById(Id<Library> id);

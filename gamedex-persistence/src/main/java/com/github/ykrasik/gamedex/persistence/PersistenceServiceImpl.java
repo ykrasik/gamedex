@@ -174,7 +174,11 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
     public ImmutableList<Game> getAllGames() {
         LOG.debug("Fetching all games...");
         final ImmutableList<GameEntity> games = gameDao.getAll();
+        return collectAdditionalGameInfo(games);
+    }
 
+    private ImmutableList<Game> collectAdditionalGameInfo(ImmutableList<GameEntity> games) throws SQLException {
+        // Add genres and libraries to game object.
         // This is required due to lack of support for intelligent joins in OrmLite... :/
         final GenreExtractor genreExtractor = createGenreExtractor();
         final LibraryExtractor libraryExtractor = createLibraryExtractor();
@@ -257,13 +261,18 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
 
     @Override
     @SneakyThrows
-    public void deleteLibrary(Id<Library> id) {
+    public ImmutableList<Game> deleteLibrary(Id<Library> id) {
         final int libraryId = id.getId();
         LOG.debug("Deleting library of id {}...", libraryId);
+
+        // Delete library.
         if (libraryDao.deleteById(libraryId) != 1) {
             throw new DataException("Error deleting library by id: %s. Entry doesn't exist?", libraryId);
         }
-        libraryGameLinkDao.deleteByLibraryId(libraryId);
+
+        // Return games that were linked to this library.
+        final ImmutableList<GameEntity> games = libraryGameLinkDao.getGamesByLibraryId(libraryId);
+        return collectAdditionalGameInfo(games);
     }
 
     @Override

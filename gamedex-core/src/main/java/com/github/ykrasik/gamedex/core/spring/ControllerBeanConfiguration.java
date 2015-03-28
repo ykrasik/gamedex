@@ -69,8 +69,8 @@ public class ControllerBeanConfiguration {
     }
 
     @Bean
-    public LibraryController libraryController(LibraryManager libraryManager) {
-        return new LibraryController(libraryManager);
+    public LibraryController libraryController(ActionService actionService, LibraryManager libraryManager) {
+        return new LibraryController(actionService, libraryManager);
     }
 
     @Bean

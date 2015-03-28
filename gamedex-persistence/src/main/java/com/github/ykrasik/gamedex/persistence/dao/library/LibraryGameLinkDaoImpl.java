@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.persistence.dao.library;
 
 import com.github.ykrasik.gamedex.persistence.dao.game.GameDao;
-import com.github.ykrasik.gamedex.persistence.entity.GenreEntity;
+import com.github.ykrasik.gamedex.persistence.entity.GameEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryGameLinkEntity;
 import com.gs.collections.api.list.ImmutableList;
@@ -33,6 +33,7 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
     private final SelectArg gameArg = new SelectArg();
     private final SelectArg libraryArg = new SelectArg();
     private PreparedQuery<LibraryEntity> fetchLibrariesByGameQuery;
+    private PreparedQuery<GameEntity> fetchGamesByLibraryQuery;
     private PreparedDelete<LibraryGameLinkEntity> deleteByGameIdQuery;
     private PreparedDelete<LibraryGameLinkEntity> deleteByLibraryIdQuery;
 
@@ -44,6 +45,7 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
         this.libraryDao = libraryDao;
 
         this.fetchLibrariesByGameQuery = prepareFetchLibrariesByGameQuery();
+        this.fetchGamesByLibraryQuery = prepareFetchGamesByLibraryQuery();
         this.deleteByGameIdQuery = prepareDeleteByGameIdQuery();
         this.deleteByLibraryIdQuery = prepareDeleteByLibraryIdQuery();
     }
@@ -56,8 +58,20 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
 
         // Outer query for Library.
         final QueryBuilder<LibraryEntity, Integer> libraryEntityQueryBuilder = libraryDao.queryBuilder();
-        libraryEntityQueryBuilder.where().in(GenreEntity.ID_COLUMN, libraryGameLinkEntityQueryBuilder);
+        libraryEntityQueryBuilder.where().in(LibraryEntity.ID_COLUMN, libraryGameLinkEntityQueryBuilder);
         return libraryEntityQueryBuilder.prepare();
+    }
+
+    private PreparedQuery<GameEntity> prepareFetchGamesByLibraryQuery() throws SQLException {
+        // Inner query for LibraryGameLinkEntity.
+        final QueryBuilder<LibraryGameLinkEntity, Integer> libraryGameLinkEntityQueryBuilder = queryBuilder();
+        libraryGameLinkEntityQueryBuilder.selectColumns(LibraryGameLinkEntity.GAME_COLUMN);
+        libraryGameLinkEntityQueryBuilder.where().eq(LibraryGameLinkEntity.LIBRARY_COLUMN, libraryArg);
+
+        // Outer query for Game.
+        final QueryBuilder<GameEntity, Integer> gameEntityQueryBuilder = gameDao.queryBuilder();
+        gameEntityQueryBuilder.where().in(GameEntity.ID_COLUMN, libraryGameLinkEntityQueryBuilder);
+        return gameEntityQueryBuilder.prepare();
     }
 
     private PreparedDelete<LibraryGameLinkEntity> prepareDeleteByGameIdQuery() throws SQLException {
@@ -81,6 +95,12 @@ public class LibraryGameLinkDaoImpl extends BaseDaoImpl<LibraryGameLinkEntity, I
     public ImmutableList<LibraryEntity> getLibrariesByGameId(int gameId) throws SQLException {
         gameArg.setValue(gameId);
         return Lists.immutable.ofAll(libraryDao.query(fetchLibrariesByGameQuery));
+    }
+
+    @Override
+    public ImmutableList<GameEntity> getGamesByLibraryId(int libraryId) throws SQLException {
+        libraryArg.setValue(libraryId);
+        return Lists.immutable.ofAll(gameDao.query(fetchGamesByLibraryQuery));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.persistence.dao.library;
 
+import com.github.ykrasik.gamedex.persistence.entity.GameEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryEntity;
 import com.github.ykrasik.gamedex.persistence.entity.LibraryGameLinkEntity;
 import com.gs.collections.api.list.ImmutableList;
@@ -14,6 +15,7 @@ public interface LibraryGameLinkDao extends Dao<LibraryGameLinkEntity, Integer> 
     ImmutableList<LibraryGameLinkEntity> getAll() throws SQLException;
 
     ImmutableList<LibraryEntity> getLibrariesByGameId(int gameId) throws SQLException;
+    ImmutableList<GameEntity> getGamesByLibraryId(int libraryId) throws SQLException;
 
     void deleteByGameId(int gameId) throws SQLException;
     void deleteByLibraryId(int libraryId) throws SQLException;
