@@ -22,7 +22,6 @@ import org.controlsfx.control.StatusBar;
  * @author Yevgeny Krasik
  */
 // TODO: Allow changing thumbnail & poster via right-click.
-// TODO: Add right-click menus to library list.
 // TODO: Add ability to have gamePacks.
 @Slf4j
 @RequiredArgsConstructor
@@ -57,7 +56,6 @@ public class MainController implements Controller {
     }
 
     private void initMenu() {
-        addLibraryMenuItem.setOnAction(e -> actionService.addNewLibrary());
     }
 
     private void initBottom() {
@@ -73,14 +71,6 @@ public class MainController implements Controller {
                 logTextArea.appendText("\n");
             }
         }));
-//        statusBar.textProperty().bind(actionService.messageProperty());
-
-//        actionService.messageProperty().addListener((observable, oldValue, newValue) -> {
-//            if (newValue != null) {
-//                logTextArea.appendText(newValue);
-//                logTextArea.appendText("\n");
-//            }
-//        });
 
         toggleLog.selectedProperty().addListener((observable, oldValue, newValue) -> toggleLogTextArea(newValue));
         toggleLog.selectedProperty().bindBidirectional(configService.showLogProperty());

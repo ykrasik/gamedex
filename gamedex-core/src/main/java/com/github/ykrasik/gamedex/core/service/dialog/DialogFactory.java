@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.core.service.dialog;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -8,6 +9,8 @@ import javafx.scene.control.TextArea;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Yevgeny Krasik
@@ -34,12 +37,13 @@ public final class DialogFactory {
         return alert;
     }
 
-    public static <T> Alert createConfirmationListDialog(String text, ObservableList<T> list) {
+    public static <T> Alert createConfirmationListDialog(String text, ObservableList<T> list, Function<T, String> stringifier) {
         final Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Are you sure?");
         alert.setHeaderText(text);
 
-        final ListView<T> listView = new ListView<>(list);
+        final ObservableList<String> stringList = FXCollections.observableArrayList(list.stream().map(stringifier::apply).collect(Collectors.toList()));
+        final ListView<String> listView = new ListView<>(stringList);
         alert.getDialogPane().setContent(listView);
         return alert;
     }

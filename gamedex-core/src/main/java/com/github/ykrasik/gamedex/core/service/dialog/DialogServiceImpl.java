@@ -3,6 +3,7 @@ package com.github.ykrasik.gamedex.core.service.dialog;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author Yevgeny Krasik
@@ -32,12 +34,14 @@ import java.util.Optional;
 public class DialogServiceImpl implements DialogService {
     private final Stage stage;
     private final StageManager stageManager;
+    private final ConfigService configService;
 
     private final CreateLibraryDialog createLibraryDialog;
 
-    public DialogServiceImpl(@NonNull Stage stage, @NonNull StageManager stageManager) {
+    public DialogServiceImpl(@NonNull Stage stage, @NonNull StageManager stageManager, @NonNull ConfigService configService) {
         this.stage = stage;
         this.stageManager = stageManager;
+        this.configService = configService;
 
         this.createLibraryDialog = JavaFxUtils.callLaterIfNecessary(CreateLibraryDialog::new);
     }
@@ -60,24 +64,19 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public <T> boolean confirmationListDialog(ObservableList<T> list, String format, Object... args) {
-        final Alert alert = initAlert(DialogFactory.createConfirmationListDialog(String.format(format, args), list));
+    public <T> boolean confirmationListDialog(ObservableList<T> list, Function<T, String> stringifier, String format, Object... args) {
+        final Alert alert = initAlert(DialogFactory.createConfirmationListDialog(String.format(format, args), list, stringifier));
         final Optional<ButtonType> result = stageManager.callWithBlur(alert::showAndWait);
         return (result.get() == ButtonType.OK);
     }
 
     @Override
-    public Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory) {
-        final DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Add Library");
-        directoryChooser.setInitialDirectory(initialDirectory.map(Path::toFile).getOrElseNull());
-        final File selectedDirectory = stageManager.callWithBlur(() -> directoryChooser.showDialog(stage));
-        return Opt.ofNullable(selectedDirectory).flatMap(this::createLibraryFromFile);
+    public Opt<LibraryDef> addLibraryDialog() {
+        return chooseDirectory("Add Library").flatMap(this::createLibraryFromPath);
     }
 
     @SneakyThrows
-    private Opt<LibraryDef> createLibraryFromFile(File file) {
-        final Path path = Paths.get(file.toURI());
+    private Opt<LibraryDef> createLibraryFromPath(Path path) {
         final ImmutableList<Path> children = FileUtils.listFirstChildDirectories(path, 10).newWith(Paths.get("..."));
         return createLibraryDialog(path, children, GamePlatform.PC);
     }
@@ -92,6 +91,23 @@ public class DialogServiceImpl implements DialogService {
             log.info("Dialog cancelled.");
         }
         return libraryDef;
+    }
+
+    @Override
+    public Opt<Path> addExcludedPathDialog() {
+        return chooseDirectory("Add Excluded Path");
+    }
+
+    private Opt<Path> chooseDirectory(String title) {
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle(title);
+        directoryChooser.setInitialDirectory(configService.getPrevDirectory().map(Path::toFile).getOrElseNull());
+        final File selectedDirectory = stageManager.callWithBlur(() -> directoryChooser.showDialog(stage));
+        final Opt<Path> path = Opt.ofNullable(selectedDirectory).map(File::toURI).map(Paths::get);
+        if (path.isPresent()) {
+            configService.prevDirectoryProperty().set(path);
+        }
+        return path;
     }
 
     private Alert initAlert(Alert alert) {

@@ -47,8 +47,8 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public DialogService dialogService(Stage stage, StageManager stageManager) {
-        return new DialogServiceImpl(stage, stageManager);
+    public DialogService dialogService(Stage stage, StageManager stageManager, ConfigService configService) {
+        return new DialogServiceImpl(stage, stageManager, configService);
     }
 
     @Bean

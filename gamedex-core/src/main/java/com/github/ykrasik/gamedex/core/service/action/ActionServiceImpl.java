@@ -21,7 +21,6 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import lombok.Getter;
@@ -33,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,12 +77,17 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public void addNewLibrary() {
         doWithExceptionHandling(() -> {
-            final Opt<LibraryDef> libraryDefOpt = dialogService.addLibraryDialog(configService.getPrevDirectory());
-            if (libraryDefOpt.isPresent()) {
-                final LibraryDef libraryDef = libraryDefOpt.get();
-                configService.prevDirectoryProperty().set(Opt.of(libraryDef.getPath()));
-                libraryManager.createLibrary(libraryDef);
-            }
+            final Opt<LibraryDef> libraryDef = dialogService.addLibraryDialog();
+            libraryDef.ifPresent(libraryManager::createLibrary);
+        });
+    }
+
+    // TODO: Do this on the background thread and return a task?
+    @Override
+    public void addNewExcludedPath() {
+        doWithExceptionHandling(() -> {
+            final Opt<Path> excludedPath = dialogService.addExcludedPathDialog();
+            excludedPath.ifPresent(excludedPathManager::addExcludedPath);
         });
     }
 
@@ -152,30 +155,37 @@ public class ActionServiceImpl implements ActionService {
     }
 
     @Override
-    public void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths) {
+    public void deleteExcludedPaths(ObservableList<ExcludedPath> excludedPaths) {
         if (excludedPaths.isEmpty()) {
             return;
         }
 
-        final ObservableList<ExcludedPath> items = FXCollections.observableArrayList(excludedPaths);
         // TODO: Confirmation dialog doesn't belong here.
-        if (dialogService.confirmationListDialog(items, "Are you sure you want to delete these %d excluded paths?", excludedPaths.size())) {
+        if (dialogService.confirmationListDialog(excludedPaths, Object::toString, "Are you sure you want to delete these %d excluded paths?", excludedPaths.size())) {
             excludedPathManager.deleteExcludedPaths(excludedPaths);
         }
     }
 
     @Override
-    public void deleteLibrary(Library library) {
-        // TODO: Confirmation dialog doesn't belong here.
-        if (dialogService.confirmationDialog("Are you sure you want to delete the library '%s'?", library.getName())) {
-            message("Deleting library '%s'...", library.getName());
-            final ObservableList<Game> games = libraryManager.deleteLibrary(library);
-            message("Done.");
-
-            message("Deleting '%d' games linked to library '%s'...", games.size(), library.getName());
-            gameManager.deleteGames(games);
-            message("Done.\n");
+    public void deleteLibraries(ObservableList<Library> libraries) {
+        if (libraries.isEmpty()) {
+            return;
         }
+
+        // TODO: Confirmation dialog doesn't belong here.
+        if (dialogService.confirmationListDialog(libraries, Library::getName, "Are you sure you want to delete these %d libraries?", libraries.size())) {
+            libraries.forEach(this::deleteLibrary);
+        }
+    }
+
+    private void deleteLibrary(Library library) {
+        message("Deleting library '%s'...", library.getName());
+        final ObservableList<Game> games = libraryManager.deleteLibrary(library);
+        message("Done.");
+
+        message("Deleting '%d' games linked to library '%s'...", games.size(), library.getName());
+        gameManager.deleteGames(games);
+        message("Done.\n");
     }
 
     private void refreshCurrentLibrary(LibraryHierarchy libraryHierarchy) throws Exception {

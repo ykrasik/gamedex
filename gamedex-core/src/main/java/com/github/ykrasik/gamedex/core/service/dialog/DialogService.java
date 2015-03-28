@@ -7,6 +7,7 @@ import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
+import java.util.function.Function;
 
 /**
  * @author Yevgeny Krasik
@@ -14,8 +15,10 @@ import java.nio.file.Path;
 public interface DialogService {
     void showException(Throwable t);
     boolean confirmationDialog(String format, Object... args);
-    <T> boolean confirmationListDialog(ObservableList<T> list, String format, Object... args);
+    <T> boolean confirmationListDialog(ObservableList<T> list, Function<T, String> stringifier, String format, Object... args);
 
-    Opt<LibraryDef> addLibraryDialog(Opt<Path> initialDirectory);
+    Opt<LibraryDef> addLibraryDialog();
     Opt<LibraryDef> createLibraryDialog(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform);
+
+    Opt<Path> addExcludedPathDialog();
 }

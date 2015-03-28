@@ -10,9 +10,6 @@ import javafx.scene.control.SelectionMode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.Objects;
-
 /**
  * @author Yevgeny Krasik
  */
@@ -30,15 +27,12 @@ public class ExcludeController implements Controller {
     }
 
     @FXML
+    public void addExcludedPath() {
+        actionService.addNewExcludedPath();
+    }
+
+    @FXML
     public void deleteExcludedPaths() {
-        actionService.deleteExcludedPaths(getSelectedItems());
-    }
-
-    private ExcludedPath getSelectedItem() {
-        return Objects.requireNonNull(excludedPathsList.getSelectionModel().getSelectedItem(), "No item selected!");
-    }
-
-    private Collection<ExcludedPath> getSelectedItems() {
-        return excludedPathsList.getSelectionModel().getSelectedItems();
+        actionService.deleteExcludedPaths(excludedPathsList.getSelectionModel().getSelectedItems());
     }
 }

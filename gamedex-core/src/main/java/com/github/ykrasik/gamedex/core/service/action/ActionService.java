@@ -6,10 +6,10 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
 import java.nio.file.Path;
-import java.util.Collection;
 
 /**
  * @author Yevgeny Krasik
@@ -26,6 +26,8 @@ public interface ActionService extends Messageable {
 
     void addNewLibrary();
 
+    void addNewExcludedPath();
+
     Task<Void> refreshLibraries();
 
     Task<Void> cleanupGames();
@@ -34,7 +36,7 @@ public interface ActionService extends Messageable {
 
     void deleteGame(Game game);
 
-    void deleteExcludedPaths(Collection<ExcludedPath> excludedPaths);
+    void deleteExcludedPaths(ObservableList<ExcludedPath> excludedPaths);
 
-    void deleteLibrary(Library library);
+    void deleteLibraries(ObservableList<Library> libraries);
 }

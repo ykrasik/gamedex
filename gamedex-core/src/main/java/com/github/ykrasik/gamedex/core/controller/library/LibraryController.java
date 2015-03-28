@@ -6,6 +6,7 @@ import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.NonNull;
@@ -30,14 +31,17 @@ public class LibraryController implements Controller {
         libraryPlatform.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPlatform().toString()));
         libraryPath.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getPath().toString()));
 
+        libraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         libraryList.itemsProperty().bind(libraryManager.librariesProperty());
     }
 
     @FXML
+    public void addLibrary() {
+        actionService.addNewLibrary();
+    }
+
+    @FXML
     public void deleteLibrary() {
-        final Library library = libraryList.getSelectionModel().getSelectedItem();
-        if (library != null) {
-            actionService.deleteLibrary(library);
-        }
+        actionService.deleteLibraries(libraryList.getSelectionModel().getSelectedItems());
     }
 }
