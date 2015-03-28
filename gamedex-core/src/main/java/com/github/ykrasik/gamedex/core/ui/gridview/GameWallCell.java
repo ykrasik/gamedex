@@ -26,17 +26,15 @@
  */
 package com.github.ykrasik.gamedex.core.ui.gridview;
 
-import com.github.ykrasik.gamedex.core.service.config.ConfigService;
-import com.github.ykrasik.gamedex.core.service.config.ConfigType;
 import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageDisplayType;
 import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewLimitedPane;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.opt.Opt;
 import javafx.beans.binding.Binding;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
@@ -89,7 +87,7 @@ public class GameWallCell extends GridCell<Game> {
         imageViewLimitedPane.heightProperty().addListener(clipListener);
         imageViewLimitedPane.widthProperty().addListener(clipListener);
 
-        final Binding<ImageDisplayType> binding = MoreBindings.transformBinding(gameWallImageDisplayProperty(), imageDisplay -> {
+        final Binding<ImageDisplayType> binding = MoreBindings.transformBinding(configService.gameWallImageDisplayProperty(), imageDisplay -> {
             final Image image = imageView.getImage();
             if (image == UIResources.loading() || image == UIResources.notAvailable()) {
                 return ImageDisplayType.FIT;
@@ -132,9 +130,5 @@ public class GameWallCell extends GridCell<Game> {
             }
         }
         loadingTask = Opt.absent();
-    }
-
-    private ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty() {
-        return configService.property(ConfigType.GAME_WALL_IMAGE_DISPLAY);
     }
 }

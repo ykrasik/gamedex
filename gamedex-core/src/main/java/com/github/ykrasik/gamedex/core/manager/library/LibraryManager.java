@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.manager.library;
 
-import com.github.ykrasik.gamedex.datamodel.GamePlatform;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
  * @author Yevgeny Krasik
  */
 public interface LibraryManager {
-    Library createLibrary(Path path, GamePlatform platform, String name);
+    Library createLibrary(LibraryDef libraryDef);
     void deleteLibrary(Library library);
 
     ObservableList<Library> getAllLibraries();

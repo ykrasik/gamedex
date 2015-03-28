@@ -1,12 +1,10 @@
 package com.github.ykrasik.gamedex.core.service.screen.settings;
 
+import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
-import com.github.ykrasik.gamedex.core.service.config.ConfigType;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -60,8 +58,8 @@ public class SettingsScreen {
     private void initGameWallImageDisplay() {
         gameWallImageDisplayComboBox.setItems(FXCollections.observableArrayList(GameWallImageDisplay.values()));
 
-        gameWallImageDisplayComboBox.getSelectionModel().select(gameWallImageDisplayProperty().get());
-        gameWallImageDisplayProperty().bind(gameWallImageDisplayComboBox.getSelectionModel().selectedItemProperty());
+        gameWallImageDisplayComboBox.getSelectionModel().select(configService.getGameWallImageDisplay());
+        configService.gameWallImageDisplayProperty().bind(gameWallImageDisplayComboBox.getSelectionModel().selectedItemProperty());
     }
 
     public void show() {
@@ -71,9 +69,5 @@ public class SettingsScreen {
     @FXML
     public void close() {
         stage.close();
-    }
-
-    private ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty() {
-        return configService.property(ConfigType.GAME_WALL_IMAGE_DISPLAY);
     }
 }

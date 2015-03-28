@@ -2,10 +2,11 @@ package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
+import com.github.ykrasik.gamedex.core.manager.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
-import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManager;
+import com.github.ykrasik.gamedex.core.manager.path.PathManager;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.action.ActionServiceImpl;
@@ -38,9 +39,8 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     }
 
     @Bean
-    public ConfigService configService() {
-        preloader.message("Loading config...");
-        return new ConfigServiceImpl();
+    public ConfigService configService(ConfigManager configManager) {
+        return new ConfigServiceImpl(configManager);
     }
 
     @Bean
@@ -51,23 +51,19 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public ActionService actionService(ConfigService configService,
                                        TaskService taskService,
-                                       StageManager stageManager,
                                        DialogService dialogService,
                                        GameManager gameManager,
                                        LibraryManager libraryManager,
                                        ExcludedPathManager excludedPathManager,
-                                       GameInfoProviderManager metacriticManager,
-                                       GameInfoProviderManager giantBombManager) {
+                                       PathManager pathManager) {
         return new ActionServiceImpl(
             configService,
             taskService,
-            stageManager,
             dialogService,
             gameManager,
             libraryManager,
             excludedPathManager,
-            metacriticManager,
-            giantBombManager
+            pathManager
         );
     }
 

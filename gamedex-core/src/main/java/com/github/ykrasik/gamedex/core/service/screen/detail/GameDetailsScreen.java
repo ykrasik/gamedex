@@ -226,22 +226,22 @@ public class GameDetailsScreen {
 
     @FXML
     private void changeThumbnail() {
-
+        // TODO: Implement
     }
 
     @FXML
     private void changePoster() {
-
+        // TODO: Implement
     }
 
     @FXML
     private void reSearch() {
-
+        // TODO: Implement
     }
 
     @FXML
     private void refresh() {
-
+        // TODO: Implement
     }
 
     @FXML

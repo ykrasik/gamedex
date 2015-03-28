@@ -1,75 +1,70 @@
 package com.github.ykrasik.gamedex.core.service.config;
 
-import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.gs.collections.api.map.ImmutableMap;
-import com.gs.collections.impl.factory.Maps;
-import com.thoughtworks.xstream.XStream;
+import com.github.ykrasik.gamedex.core.manager.config.ConfigManager;
+import com.github.ykrasik.gamedex.core.manager.config.ConfigType;
+import com.github.ykrasik.gamedex.core.manager.game.GameSort;
+import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
+import com.github.ykrasik.opt.Opt;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Yevgeny Krasik
  */
-@Slf4j
-@Accessors(fluent = true)
-@SuppressWarnings("unchecked")
-public class ConfigServiceImpl extends AbstractService implements ConfigService {
-    private static final String NAME = "config.xml";
-    private static final XStream XSTREAM = new XStream();
-
-    private Path file;
-
-    private ImmutableMap<ConfigType, ObjectProperty<Object>> propertyMap = Maps.immutable.empty();
+@RequiredArgsConstructor
+public class ConfigServiceImpl implements ConfigService {
+    @NonNull private final ConfigManager configManager;
 
     @Override
-    protected void doStart() throws Exception {
-        this.file = getFile();
-        final String fileContent = new String(Files.readAllBytes(file));
-        if (!fileContent.isEmpty()) {
-            final Map<ConfigType, Object> valueMap = (Map<ConfigType, Object>) XSTREAM.fromXML(fileContent);
-            propertyMap = fromValueMap(valueMap);
-        } else {
-            for (ConfigType type : ConfigType.values()) {
-                propertyMap = propertyMap.newWithKeyValue(type, new SimpleObjectProperty<>(type.getDefaultValue()));
-            }
-        }
-    }
-
-    private Path getFile() throws IOException {
-        Path path = Paths.get(NAME);
-        if (!Files.exists(path)) {
-            path = Files.createFile(path);
-        }
-        return path;
+    public ObjectProperty<Boolean> autoSkipProperty() {
+        return configManager.property(ConfigType.AUTO_SKIP);
     }
 
     @Override
-    protected void doStop() throws Exception {
-        final String xml = XSTREAM.toXML(toValueMap());
-        Files.write(file, xml.getBytes());
+    public boolean isAutoSkip() {
+        return autoSkipProperty().get();
     }
 
     @Override
-    public <T> ObjectProperty<T> property(ConfigType type) {
-        return (ObjectProperty<T>) Objects.requireNonNull(propertyMap.get(type));
+    public ObjectProperty<Boolean> showLogProperty() {
+        return configManager.property(ConfigType.SHOW_LOG);
     }
 
-    private ImmutableMap<ConfigType, ObjectProperty<Object>> fromValueMap(Map<ConfigType, Object> valueMap) {
-        return Maps.immutable.ofMap(valueMap).collectValues((key, value) -> new SimpleObjectProperty<>(value));
+    @Override
+    public boolean isShowLog() {
+        return showLogProperty().get();
     }
 
-    private Map<ConfigType, Object> toValueMap() {
-        // MutableMap doesn't deserialize without exceptions.
-        return new HashMap<>(propertyMap.collectValues((key, value) -> value.get()).toMap());
+    @Override
+    public ObjectProperty<GameWallImageDisplay> gameWallImageDisplayProperty() {
+        return configManager.property(ConfigType.GAME_WALL_IMAGE_DISPLAY);
+    }
+
+    @Override
+    public GameWallImageDisplay getGameWallImageDisplay() {
+        return gameWallImageDisplayProperty().get();
+    }
+
+    @Override
+    public ObjectProperty<GameSort> gameSortProperty() {
+        return configManager.property(ConfigType.GAME_SORT);
+    }
+
+    @Override
+    public GameSort getGameSort() {
+        return gameSortProperty().get();
+    }
+
+    @Override
+    public ObjectProperty<Opt<Path>> prevDirectoryProperty() {
+        return configManager.property(ConfigType.PREV_DIRECTORY);
+    }
+
+    @Override
+    public Opt<Path> getPrevDirectory() {
+        return prevDirectoryProperty().get();
     }
 }

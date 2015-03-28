@@ -1,14 +1,13 @@
 package com.github.ykrasik.gamedex.core.controller.game;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
-import com.github.ykrasik.gamedex.core.service.config.ConfigService;
-import com.github.ykrasik.gamedex.core.service.config.ConfigType;
-import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
-import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.controller.Controller;
+import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
+import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
+import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
@@ -22,7 +21,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -122,12 +124,12 @@ public class GameController implements Controller {
         gameSortComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             gameManager.sort(newValue);
         });
-        gameSortComboBox.setValue(gameSortProperty().get());
-        gameSortProperty().bind(gameSortComboBox.getSelectionModel().selectedItemProperty());
+        gameSortComboBox.setValue(configService.getGameSort());
+        configService.gameSortProperty().bind(gameSortComboBox.getSelectionModel().selectedItemProperty());
     }
 
     private void initAutoSkip() {
-        autoSkipCheckBox.selectedProperty().bind(autoSkipProperty());
+        autoSkipCheckBox.selectedProperty().bind(configService.autoSkipProperty());
     }
 
     @FXML
@@ -171,13 +173,5 @@ public class GameController implements Controller {
 
     public ReadOnlyObjectProperty<Task<Void>> currentTaskProperty() {
         return currentTaskProperty;
-    }
-
-    private ObjectProperty<GameSort> gameSortProperty() {
-        return configService.property(ConfigType.GAME_SORT);
-    }
-
-    private ObjectProperty<Boolean> autoSkipProperty() {
-        return configService.property(ConfigType.AUTO_SKIP);
     }
 }

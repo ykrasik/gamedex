@@ -99,8 +99,6 @@ public class GameSearchScreen {
         searchingImageView.fitWidthProperty().bind(searchResultsTable.widthProperty().subtract(20));
         searchingImageView.visibleProperty().bind(searchingProperty);
         searchResultsTable.disableProperty().bind(searchingProperty);
-
-        proceedAnywayButton.setOnAction(e -> setNoResult(GameSearchChoiceType.PROCEED_ANYWAY));
     }
 
     private void initSearchResultsTable() {
@@ -143,61 +141,6 @@ public class GameSearchScreen {
 //            return searchResults;
 //        }
 //    }
-//
-//    private Opt<GameInfo> handleNoSearchResults(String name, Path path, GamePlatform platform, SearchContext context) throws Exception {
-//        assertNotAutoSkip();
-//
-//        final NoSearchResultsDialogParams params = NoSearchResultsDialogParams.builder()
-//            .providerName(gameInfoProvider.getProviderType().getName())
-//            .name(name)
-//            .path(path)
-//            .platform(platform)
-//            .canProceedWithout(canProceedWithout)
-//            .build();
-//        final DialogChoice choice = dialogService.noSearchResultsDialog(params);
-//        return choice.resolve(new DefaultDialogChoiceResolver() {
-//            @Override
-//            public Opt<GameInfo> newName(String newName) throws Exception {
-//                return fetchGameInfo(newName, path, platform, context);
-//            }
-//        });
-//    }
-//
-//    private Opt<GameInfo> handleMultipleSearchResults(String name,
-//                                                      Path path,
-//                                                      GamePlatform platform,
-//                                                      SearchContext context,
-//                                                      ImmutableList<SearchResult> searchResults) throws Exception {
-//        assertNotAutoSkip();
-//
-//        final MultipleSearchResultsDialogParams params = MultipleSearchResultsDialogParams.builder()
-//            .providerName(gameInfoProvider.getProviderType().getName())
-//            .name(name)
-//            .path(path)
-//            .platform(platform)
-//            .searchResults(searchResults)
-//            .canProceedWithout(canProceedWithout)
-//            .build();
-//        final DialogChoice choice = dialogService.multipleSearchResultsDialog(params);
-//        return choice.resolve(new DefaultDialogChoiceResolver() {
-//            @Override
-//            public Opt<GameInfo> newName(String newName) throws Exception {
-//                // Add all current search results to excluded list.
-//                final ImmutableList<String> searchResultNames = getSearchResultNames(searchResults);
-//                context.addExcludedNames(searchResultNames);
-//                return fetchGameInfo(newName, path, platform, context);
-//            }
-//
-//            @Override
-//            public Opt<GameInfo> choose(SearchResult chosenSearchResult) throws Exception {
-//                // Add all other search results to excluded list.
-//                final ImmutableList<String> searchResultNames = getSearchResultNames(searchResults);
-//                final ImmutableList<String> excludedNames = searchResultNames.newWithout(chosenSearchResult.getName());
-//                context.addExcludedNames(excludedNames);
-//                return Opt.of(fetchGameInfoFromSearchResult(chosenSearchResult));
-//            }
-//        });
-//    }
 
     public GameSearchChoice show(GameInfoProvider gameInfoProvider,
                                  String searchedName,
@@ -223,7 +166,7 @@ public class GameSearchScreen {
 
     @SneakyThrows
     private void searchFromInput(GameInfoProvider gameInfoProvider) {
-        final String name = searchTextField.getText();
+        final String name = searchTextField.getText().trim();
 
         searchingProperty.set(true);
         final Task<ImmutableList<SearchResult>> task = taskService.submit(() -> gameInfoProvider.search(name, context.platform()));
@@ -272,5 +215,10 @@ public class GameSearchScreen {
     @FXML
     private void exclude() {
         setNoResult(GameSearchChoiceType.EXCLUDE);
+    }
+
+    @FXML
+    private void proceedAnyway() {
+        setNoResult(GameSearchChoiceType.PROCEED_ANYWAY);
     }
 }

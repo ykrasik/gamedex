@@ -1,10 +1,8 @@
 package com.github.ykrasik.gamedex.core.manager.provider;
 
-import com.github.ykrasik.gamedex.common.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.service.action.ExcludeException;
 import com.github.ykrasik.gamedex.core.service.action.SkipException;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
-import com.github.ykrasik.gamedex.core.service.config.ConfigType;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchChoice;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
@@ -13,6 +11,7 @@ import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.opt.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -25,17 +24,12 @@ import java.util.Collection;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
-    private final StringProperty messageProperty = new SimpleStringProperty();
+    @Getter private final StringProperty messageProperty = new SimpleStringProperty();
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
 
     @NonNull private final ConfigService configService;
     @NonNull private final GameSearchScreen gameSearchScreen;
     @NonNull private final GameInfoProvider gameInfoProvider;
-
-    @Override
-    public ReadOnlyStringProperty messageProperty() {
-        return messageProperty;
-    }
 
     @Override
     public ReadOnlyBooleanProperty fetchingProperty() {
@@ -52,9 +46,9 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private Opt<GameInfo> doFetchGameInfo(String name, SearchContext context) throws Exception {
-        checkStopped();
+        assertNotStopped();
         final ImmutableList<SearchResult> searchResults = searchGames(name, context);
-        checkStopped();
+        assertNotStopped();
 
         if (searchResults.size() == 1) {
             return Opt.of(fetchGameInfoFromSearchResult(searchResults.get(0)));
@@ -71,6 +65,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
     }
 
+    // TODO: I hate that this logic is duplicated both here and in the screen.
     private ImmutableList<SearchResult> searchGames(String name, SearchContext context) throws Exception {
         message("Searching '%s'...", name);
         fetchingProperty.set(true);
@@ -111,29 +106,15 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
     }
 
     private void assertNotAutoSkip() {
-        if (isAutoSkip()) {
+        if (configService.isAutoSkip()) {
             message("AutoSkip is on.");
             throw new SkipException();
         }
     }
 
-    private boolean isAutoSkip() {
-        return configService.<Boolean>property(ConfigType.AUTO_SKIP).get();
-    }
-
-    private void message(String format, Object... args) {
-        message(String.format(format, args));
-    }
-
-    private void message(String message) {
-        final String messageWithProvider = gameInfoProvider.getName() + ": " + message;
+    @Override
+    public void message(String message) {
+        final String messageWithProvider = String.format("%s: %s", gameInfoProvider.getName(), message);
         messageProperty.set(messageWithProvider);
-    }
-
-    private void checkStopped() {
-        if (Thread.interrupted()) {
-            message("Stopping...");
-            throw new GameDexException("Stopped.");
-        }
     }
 }

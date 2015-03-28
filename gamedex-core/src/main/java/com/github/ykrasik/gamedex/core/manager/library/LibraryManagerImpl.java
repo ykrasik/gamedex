@@ -2,6 +2,7 @@ package com.github.ykrasik.gamedex.core.manager.library;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
@@ -43,11 +44,14 @@ public class LibraryManagerImpl extends AbstractService implements LibraryManage
     }
 
     @Override
-    public Library createLibrary(Path path, GamePlatform platform, String name) {
+    public Library createLibrary(LibraryDef libraryDef) {
+        final Path path = libraryDef.getPath();
         if (persistenceService.hasLibraryForPath(path)) {
             throw new DataException("Library already exists for path: " + path);
         }
 
+        final GamePlatform platform = libraryDef.getPlatform();
+        final String name = libraryDef.getName();
         final Library library = persistenceService.addLibrary(path, platform, name);
         LOG.info("Added library: {}", library);
 

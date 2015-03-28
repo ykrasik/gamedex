@@ -1,6 +1,8 @@
 package com.github.ykrasik.gamedex.core.spring;
 
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
+import com.github.ykrasik.gamedex.core.manager.config.ConfigManager;
+import com.github.ykrasik.gamedex.core.manager.config.ConfigManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.exclude.debug.ExcludedPathDebugCommands;
@@ -10,11 +12,14 @@ import com.github.ykrasik.gamedex.core.manager.game.debug.GameManagerDebugComman
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.library.debug.LibraryManagerDebugCommands;
+import com.github.ykrasik.gamedex.core.manager.path.PathManager;
+import com.github.ykrasik.gamedex.core.manager.path.PathManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManager;
 import com.github.ykrasik.gamedex.core.manager.provider.GameInfoProviderManagerImpl;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManagerImpl;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
+import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
@@ -80,5 +85,30 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
                                                     GameSearchScreen gameSearchScreen,
                                                     @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
         return new GameInfoProviderManagerImpl(configService, gameSearchScreen, giantBombGameInfoProvider);
+    }
+
+    @Bean
+    public PathManager pathManager(ConfigService configService,
+                                   DialogService dialogService,
+                                   GameManager gameManager,
+                                   LibraryManager libraryManager,
+                                   ExcludedPathManager excludedPathManager,
+                                   @Qualifier("metacriticManager") GameInfoProviderManager metacriticManager,
+                                   @Qualifier("giantBombManager") GameInfoProviderManager giantBombManager) {
+        return new PathManagerImpl(
+            configService,
+            dialogService,
+            gameManager,
+            libraryManager,
+            excludedPathManager,
+            metacriticManager,
+            giantBombManager
+        );
+    }
+
+    @Bean
+    public ConfigManager configManager() {
+        preloader.message("Loading config...");
+        return new ConfigManagerImpl();
     }
 }

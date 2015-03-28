@@ -1,11 +1,11 @@
 package com.github.ykrasik.gamedex.core.service.action;
 
+import com.github.ykrasik.gamedex.core.manager.Messageable;
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
 
 import java.nio.file.Path;
@@ -18,8 +18,7 @@ import java.util.Collection;
 // TODO: This class should sub-divide responsibilities among the rest of the classes.
 // TODO: Rename this to ActionManager? Each flow returns a Result class with properties?
 // TODO: Need 2 threads - one to search and fetch games, one to fetch thumbnails & posters.
-public interface ActionService {
-    ReadOnlyStringProperty messageProperty();
+public interface ActionService extends Messageable {
     ReadOnlyDoubleProperty progressProperty();
     ReadOnlyBooleanProperty fetchProgressProperty();
 

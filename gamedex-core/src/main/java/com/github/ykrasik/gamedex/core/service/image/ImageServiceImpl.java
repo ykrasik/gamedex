@@ -76,7 +76,9 @@ public class ImageServiceImpl extends AbstractService implements ImageService {
         };
 
         // TODO: Display exception in uniform way.
-        task.setOnFailed(e -> Lombok.sneakyThrow(task.getException()));
+        task.setOnFailed(e -> {
+            throw Lombok.sneakyThrow(task.getException());
+        });
 
         // Set imageView to a "loading" image.
         JavaFxUtils.runLaterIfNecessary(() -> imageView.setImage(UIResources.loading()));

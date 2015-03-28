@@ -17,10 +17,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -72,10 +72,11 @@ public class DialogServiceImpl implements DialogService {
         directoryChooser.setTitle("Add Library");
         directoryChooser.setInitialDirectory(initialDirectory.map(Path::toFile).getOrElseNull());
         final File selectedDirectory = stageManager.callWithBlur(() -> directoryChooser.showDialog(stage));
-        return Opt.ofNullable(selectedDirectory).flatMapX(this::createLibraryFromFile);
+        return Opt.ofNullable(selectedDirectory).flatMap(this::createLibraryFromFile);
     }
 
-    private Opt<LibraryDef> createLibraryFromFile(File file) throws IOException {
+    @SneakyThrows
+    private Opt<LibraryDef> createLibraryFromFile(File file) {
         final Path path = Paths.get(file.toURI());
         final ImmutableList<Path> children = FileUtils.listFirstChildDirectories(path, 10).newWith(Paths.get("..."));
         return createLibraryDialog(path, children, GamePlatform.PC);
