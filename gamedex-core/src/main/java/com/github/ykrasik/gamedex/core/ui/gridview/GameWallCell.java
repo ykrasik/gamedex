@@ -33,7 +33,7 @@ import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.binding.Binding;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
@@ -58,7 +58,7 @@ public class GameWallCell extends GridCell<Game> {
     private final ConfigService configService;
     private final ImageService imageService;
 
-    private Opt<Task<Image>> loadingTask = Opt.absent();
+    private Opt<Task<Image>> loadingTask = Opt.none();
 
     /**
      * Create ImageGridCell instance
@@ -118,17 +118,17 @@ public class GameWallCell extends GridCell<Game> {
     }
 
     private void fetchImage(Game game) {
-        loadingTask = Opt.of(imageService.fetchThumbnail(game.getId(), imageView));
+        loadingTask = Opt.some(imageService.fetchThumbnail(game.getId(), imageView));
     }
 
     private void cancelPrevTask() {
-        if (loadingTask.isPresent()) {
+        if (loadingTask.isDefined()) {
             final Task<Image> task = loadingTask.get();
             if (task.getState() != Worker.State.SUCCEEDED &&
                 task.getState() != Worker.State.FAILED) {
                 task.cancel();
             }
         }
-        loadingTask = Opt.absent();
+        loadingTask = Opt.none();
     }
 }

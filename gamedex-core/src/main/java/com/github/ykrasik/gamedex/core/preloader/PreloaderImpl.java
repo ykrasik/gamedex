@@ -1,8 +1,8 @@
 package com.github.ykrasik.gamedex.core.preloader;
 
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

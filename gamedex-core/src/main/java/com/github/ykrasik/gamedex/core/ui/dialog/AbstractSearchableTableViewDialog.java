@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -62,7 +62,7 @@ public abstract class AbstractSearchableTableViewDialog<T> {
             // It is possible to press "OK" without selecting anything.
             return Opt.ofNullable(tableView.selectionModelProperty().get().getSelectedItem());
         } else {
-            return Opt.absent();
+            return Opt.none();
         }
     }
 

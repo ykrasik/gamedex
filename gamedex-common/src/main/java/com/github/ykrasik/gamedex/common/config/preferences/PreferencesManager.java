@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.common.config.preferences;
 
 import com.github.ykrasik.gamedex.common.util.StringUtils;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.api.map.ImmutableMap;

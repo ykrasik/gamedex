@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.*;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 
 import java.nio.file.Path;

@@ -2,7 +2,7 @@ package com.github.ykrasik.gamedex.core.service.dialog;
 
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.ObservableList;
 

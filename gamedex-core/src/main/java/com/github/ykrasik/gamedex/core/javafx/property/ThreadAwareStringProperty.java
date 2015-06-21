@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.javafx.property;
 
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import javafx.beans.property.SimpleStringProperty;
 
 /**

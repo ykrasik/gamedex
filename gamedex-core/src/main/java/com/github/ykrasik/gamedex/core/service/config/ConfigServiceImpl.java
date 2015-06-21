@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.core.manager.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.config.ConfigType;
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.property.ObjectProperty;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

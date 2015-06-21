@@ -23,7 +23,7 @@ import com.github.ykrasik.gamedex.persistence.translator.exclude.ExcludedPathEnt
 import com.github.ykrasik.gamedex.persistence.translator.game.GameEntityTranslator;
 import com.github.ykrasik.gamedex.persistence.translator.genre.GenreEntityTranslator;
 import com.github.ykrasik.gamedex.persistence.translator.library.LibraryEntityTranslator;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.api.list.MutableList;
 import com.gs.collections.impl.factory.Lists;
@@ -111,8 +111,8 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         }
 
         // Insert thumbnail & poster.
-        gameInfo.getThumbnail().ifPresent(thumbnail -> insertImage(game, GameImageEntityType.THUMBNAIL, thumbnail));
-        gameInfo.getPoster().ifPresent(poster -> insertImage(game, GameImageEntityType.POSTER, poster));
+        gameInfo.getThumbnail().ifDefinedX(thumbnail -> insertImage(game, GameImageEntityType.THUMBNAIL, thumbnail));
+        gameInfo.getPoster().ifDefinedX(poster -> insertImage(game, GameImageEntityType.POSTER, poster));
 
         // Insert all new genres.
         final ImmutableList<GenreEntity> genreEntities = gameInfo.getGenres().collect(this::getOrCreateGenreByName);
@@ -126,8 +126,7 @@ public class PersistenceServiceImpl extends AbstractService implements Persisten
         return getGameById(new Id<>(game.id()));
     }
 
-    @SneakyThrows
-    private void insertImage(GameEntity game, GameImageEntityType type, ImageData thumbnail) {
+    private void insertImage(GameEntity game, GameImageEntityType type, ImageData thumbnail) throws SQLException {
         final GameImageEntity imageEntity = new GameImageEntity().game(game).type(type).data(thumbnail.getRawData());
         gameImageDao.create(imageEntity);
     }

@@ -2,7 +2,7 @@ package com.github.ykrasik.gamedex.core.service.config;
 
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.property.ObjectProperty;
 
 import java.nio.file.Path;

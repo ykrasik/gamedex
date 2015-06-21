@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.manager.stage;
 
-import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.util.RunnableX;
 import javafx.scene.Scene;
 import javafx.scene.effect.GaussianBlur;
 import javafx.stage.Stage;
@@ -18,12 +18,12 @@ public class StageManagerImpl implements StageManager {
     @NonNull private final Stage mainStage;
 
     @Override
-    public void runWithBlur(RunnableThrows runnable) {
+    public void runWithBlur(RunnableX runnable) {
         runWithBlur(mainStage, runnable);
     }
 
     @Override
-    public void runWithBlur(Stage stage, RunnableThrows runnable) {
+    public void runWithBlur(Stage stage, RunnableX runnable) {
         callWithBlur(stage, () -> {
             runnable.run();
             return null;

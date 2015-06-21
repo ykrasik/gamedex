@@ -8,7 +8,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.gamedex.persistence.entity.GameEntity;
 import com.github.ykrasik.gamedex.persistence.translator.AbstractEntityTranslator;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 
 import java.nio.file.Paths;

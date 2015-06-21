@@ -10,7 +10,7 @@ import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.rating.FixedRating;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.google.common.base.Strings;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.animation.FadeTransition;
@@ -70,7 +70,7 @@ public class GameDetailsScreen {
     private final BorderPane root;
 
     private Game game;
-    private Opt<Game> result = Opt.absent();
+    private Opt<Game> result = Opt.none();
 
     @SneakyThrows
     public GameDetailsScreen(@NonNull ImageService imageService,
@@ -150,7 +150,7 @@ public class GameDetailsScreen {
 
         doShow();
         // FIXME: Handle exception while editing
-        if (result.isPresent()) {
+        if (result.isDefined()) {
             // TODO: Update in db
             System.out.println(result);
         }
@@ -206,13 +206,13 @@ public class GameDetailsScreen {
 
     @FXML
     public void accept() {
-        result = Opt.of(createFromInput());
+        result = Opt.some(createFromInput());
         close();
     }
 
     @FXML
     public void reject() {
-        result = Opt.absent();
+        result = Opt.none();
         close();
     }
 

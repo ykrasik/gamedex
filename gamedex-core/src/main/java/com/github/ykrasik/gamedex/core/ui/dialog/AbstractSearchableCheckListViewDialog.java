@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,15 +49,15 @@ public abstract class AbstractSearchableCheckListViewDialog<T> {
         Platform.runLater(searchTextField::requestFocus);
 
         final Action response = dialog.show();
-        if (response == Dialog.ACTION_OK) {
-            final ObservableList<T> checkedItems = checkListView.checkModelProperty().get().getCheckedItems();
-            if (checkedItems.isEmpty()) {
-                return Opt.absent();
-            } else {
-                return Opt.of(checkedItems);
-            }
+        if (response != Dialog.ACTION_OK) {
+            return Opt.none();
+        }
+
+        final ObservableList<T> checkedItems = checkListView.checkModelProperty().get().getCheckedItems();
+        if (checkedItems.isEmpty()) {
+            return Opt.none();
         } else {
-            return Opt.absent();
+            return Opt.some(checkedItems);
         }
     }
 

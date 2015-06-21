@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.common.comparator;
 
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,14 +43,14 @@ public class OptionalComparator<T, E extends Comparable<? super E>> implements C
     }
 
     private int compareOpt(Opt<E> o1, Opt<E> o2) {
-        if (o1.isPresent()) {
-            if (o2.isPresent()) {
+        if (o1.isDefined()) {
+            if (o2.isDefined()) {
                 return o1.get().compareTo(o2.get());
             } else {
                 return 1;
             }
         } else {
-            if (o2.isPresent()) {
+            if (o2.isDefined()) {
                 return -1;
             } else {
                 return 0;

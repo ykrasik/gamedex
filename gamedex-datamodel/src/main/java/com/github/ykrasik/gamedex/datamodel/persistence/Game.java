@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel.persistence;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import lombok.*;
 
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @EqualsAndHashCode(of = "id")
 @ToString(of = {"id", "name", "path"})
-public class Game {
+public class Game implements PathEntity {
     @NonNull private final Id<Game> id;
     @NonNull private final Path path;
 

@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.common.util;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.gs.collections.api.block.function.Function;

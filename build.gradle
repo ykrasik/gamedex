@@ -11,8 +11,8 @@ buildscript {
         gsCollectionsVersion = '6.0.0'
         guavaVersion = '18.0'
         commonsLang3Version = '3.3.2'
-        optVersion = '0.1.1'
-        jerminalVersion = '0.1.1'
+        yavaVersion = '0.1.0'
+        jaciVersion = '0.1.0'
 
         unirestVersion = '1.3.22'
         jacksonVersion = '1.9.13'
@@ -59,9 +59,8 @@ project("gamedex-common") {
 
         compile 'com.thoughtworks.xstream:xstream:1.4.7'
 
-        compile "com.github.ykrasik:opt:$optVersion"
-        compile "com.github.ykrasik:jerminal-core:$jerminalVersion"
-        compile "com.github.ykrasik:jerminal-javafx:$jerminalVersion"
+        compile "com.github.ykrasik:yava:$yavaVersion"
+        compile "com.github.ykrasik:jaci-javafx-cli:$jaciVersion"
 
         runtime "org.codehaus.groovy:groovy-all:$groovyVersion"
     }
@@ -107,4 +106,8 @@ project("gamedex-core") {
 
         compile "org.controlsfx:controlsfx:$controlsFxVersion"
     }
+}
+
+wrapper {
+    gradleVersion = '2.4'
 }

@@ -14,7 +14,7 @@ import java.nio.file.Path;
 @Value
 @Builder
 @EqualsAndHashCode(of = "id")
-public class Library implements Comparable<Library> {
+public class Library implements PathEntity, Comparable<Library> {
     @NonNull private final Id<Library> id;
     @NonNull private final String name;
     @NonNull private final Path path;

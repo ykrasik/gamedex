@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.common.util;
 
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.google.common.io.Resources;
 import lombok.SneakyThrows;
 
@@ -23,9 +23,9 @@ public final class UrlUtils {
     public static Opt<byte[]> fetchData(String urlStr) throws IOException {
         final URL url = new URL(urlStr);
         try {
-            return Opt.of(Resources.toByteArray(url));
+            return Opt.some(Resources.toByteArray(url));
         } catch (FileNotFoundException e) {
-            return Opt.absent();
+            return Opt.none();
         }
     }
 

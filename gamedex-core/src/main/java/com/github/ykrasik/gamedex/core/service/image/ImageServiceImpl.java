@@ -1,13 +1,13 @@
 package com.github.ykrasik.gamedex.core.service.image;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.option.Opt;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;

@@ -18,7 +18,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import lombok.Getter;
@@ -40,10 +40,10 @@ public class PathManagerImpl implements PathManager {
     private static final Pattern META_DATA_PATTERN = Pattern.compile("(\\[.*?\\])|(-)");
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
-    private static final ProcessPathReturnValue OK = new ProcessPathReturnValue(Type.OK, Opt.absent());
-    private static final ProcessPathReturnValue NOT_OK = new ProcessPathReturnValue(Type.NOT_OK, Opt.absent());
-    private static final ProcessPathReturnValue SKIP = new ProcessPathReturnValue(Type.SKIP, Opt.absent());
-    private static final ProcessPathReturnValue EXCLUDE = new ProcessPathReturnValue(Type.EXCLUDE, Opt.absent());
+    private static final ProcessPathReturnValue OK = new ProcessPathReturnValue(Type.OK, Opt.none());
+    private static final ProcessPathReturnValue NOT_OK = new ProcessPathReturnValue(Type.NOT_OK, Opt.none());
+    private static final ProcessPathReturnValue SKIP = new ProcessPathReturnValue(Type.SKIP, Opt.none());
+    private static final ProcessPathReturnValue EXCLUDE = new ProcessPathReturnValue(Type.EXCLUDE, Opt.none());
 
     @Getter private final StringProperty messageProperty = new SimpleStringProperty();
     private final BooleanProperty fetchingProperty = new SimpleBooleanProperty();
@@ -82,10 +82,10 @@ public class PathManagerImpl implements PathManager {
 
         if (!configService.isAutoSkip()) {
             final Opt<LibraryDef> libraryDef = tryCreateLibrary(path, libraryHierarchy);
-            if (libraryDef.isPresent()) {
+            if (libraryDef.isDefined()) {
                 final Library library = libraryManager.createLibrary(libraryDef.get());
                 message("New library created: '%s'", library.getName());
-                return new ProcessPathReturnValue(Type.NEW_LIBRARY, Opt.of(library));
+                return new ProcessPathReturnValue(Type.NEW_LIBRARY, Opt.some(library));
             }
         }
 
@@ -110,7 +110,7 @@ public class PathManagerImpl implements PathManager {
 
         if (!FileUtils.hasChildDirectories(path) || FileUtils.hasChildFiles(path)) {
             // Only directories that have sub-directories and no files can be libraries.
-            return Opt.absent();
+            return Opt.none();
         }
 
         final ImmutableList<Path> children = FileUtils.listChildDirectories(path);
@@ -144,7 +144,7 @@ public class PathManagerImpl implements PathManager {
 
         final String metacriticName = metacriticGame.getName();
         final Opt<GameInfo> giantBombGameOpt = fetchGameInfo(giantBombManager, metacriticName, searchContext);
-        if (!giantBombGameOpt.isPresent()) {
+        if (!giantBombGameOpt.isDefined()) {
             message("Game not found on GiantBomb.");
         }
 

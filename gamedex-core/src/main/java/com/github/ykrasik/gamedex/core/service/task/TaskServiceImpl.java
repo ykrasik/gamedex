@@ -1,13 +1,12 @@
 package com.github.ykrasik.gamedex.core.service.task;
 
-import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
+import com.github.ykrasik.yava.util.RunnableX;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import javafx.concurrent.Task;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -49,23 +48,18 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     }
 
     @Override
-    public Task<Void> submit(RunnableThrows runnable) {
+    public Task<Void> submit(RunnableX runnable) {
         final Task<Void> task = createTask(runnable);
         executorService.submit(task);
         return task;
     }
 
     @Override
-    public Task<Void> submit(RunnableThrows runnable, RunnableThrows completionHandler) {
+    public Task<Void> submit(RunnableX runnable, RunnableX completionHandler) {
         final Task<Void> task = createTask(runnable);
-        task.setOnSucceeded(e -> run(completionHandler));
+        task.setOnSucceeded(e -> completionHandler.run());
         executorService.submit(task);
         return task;
-    }
-
-    @SneakyThrows
-    private void run(RunnableThrows runnable) {
-        runnable.run();
     }
 
     private <V> Task<V> createTask(Callable<V> callable) {
@@ -79,7 +73,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         return task;
     }
 
-    private Task<Void> createTask(RunnableThrows runnable) {
+    private Task<Void> createTask(RunnableX runnable) {
         final Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {

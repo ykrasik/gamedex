@@ -1,13 +1,13 @@
 package com.github.ykrasik.gamedex.core;
 
+import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.common.preloader.Preloader;
 import com.github.ykrasik.gamedex.core.controller.ControllerProvider;
 import com.github.ykrasik.gamedex.core.preloader.PreloaderImpl;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
-import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
-import com.github.ykrasik.jerminal.javafx.ConsoleBuilder;
-import com.github.ykrasik.jerminal.javafx.SceneToggler;
+import com.github.ykrasik.jaci.cli.javafx.JavaFxCliBuilder;
+import com.github.ykrasik.jaci.cli.javafx.SceneToggler;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
@@ -20,6 +20,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
+
+import java.util.Map;
 
 /**
  * @author Yevgeny Krasik
@@ -81,8 +83,10 @@ public class Main extends Application {
             final Scene mainScene = new Scene(root);
             mainScene.getStylesheets().add(UIResources.mainCss());
 
-            final ShellFileSystem shellFileSystem = context.getBean(ShellFileSystem.class);
-            final Parent debugConsole = new ConsoleBuilder(shellFileSystem).build();
+            final Map<String, DebugCommands> debugCommands = context.getBeansOfType(DebugCommands.class);
+            final JavaFxCliBuilder cliBuilder = new JavaFxCliBuilder();
+            debugCommands.values().forEach(cliBuilder::processObject);
+            final Parent debugConsole = cliBuilder.build();
 
             SceneToggler.register(stage, debugConsole);
 

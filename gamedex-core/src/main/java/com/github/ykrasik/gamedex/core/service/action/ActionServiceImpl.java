@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.core.service.action;
 
-import com.github.ykrasik.gamedex.common.exception.RunnableThrows;
 import com.github.ykrasik.gamedex.common.util.FileUtils;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareBooleanProperty;
 import com.github.ykrasik.gamedex.core.javafx.property.ThreadAwareDoubleProperty;
@@ -18,7 +17,9 @@ import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.gamedex.datamodel.persistence.PathEntity;
+import com.github.ykrasik.yava.option.Opt;
+import com.github.ykrasik.yava.util.RunnableX;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
@@ -78,7 +79,7 @@ public class ActionServiceImpl implements ActionService {
     public void addNewLibrary() {
         doWithExceptionHandling(() -> {
             final Opt<LibraryDef> libraryDef = dialogService.addLibraryDialog();
-            libraryDef.ifPresent(libraryManager::createLibrary);
+            libraryDef.ifDefined(libraryManager::createLibrary);
         });
     }
 
@@ -87,7 +88,7 @@ public class ActionServiceImpl implements ActionService {
     public void addNewExcludedPath() {
         doWithExceptionHandling(() -> {
             final Opt<Path> excludedPath = dialogService.addExcludedPathDialog();
-            excludedPath.ifPresent(excludedPathManager::addExcludedPath);
+            excludedPath.ifDefined(excludedPathManager::addExcludedPath);
         });
     }
 
@@ -111,37 +112,62 @@ public class ActionServiceImpl implements ActionService {
     }
 
     @Override
-    public Task<Void> cleanupGames() {
-        return taskService.submit(this::doCleanupGames);
+    public Task<Void> cleanup() {
+        return taskService.submit(this::doCleanup);
     }
 
     // TODO: Make this a total cleanup? libraries, excluded, evertyhing?
-    private void doCleanupGames() {
+    private void doCleanup() {
+        cleanupGames();
+        cleanupLibraries();
+        cleanupExcludedPaths();
+        setProgress(0, 1);
+    }
+
+    private void cleanupGames() {
         message("Cleaning up games...");
-
-        final List<Game> obsoleteGames = new ArrayList<>();
         final List<Game> games = gameManager.getAllGames();
-        for (int i = 0; i < games.size(); i++) {
-            assertNotStopped();
-
-            setProgress(i, games.size());
-            final Game game = games.get(i);
-            final Path path = game.getPath();
-            if (!Files.exists(path)) {
-                message("Obsolete path detected: %s", path);
-                obsoleteGames.add(game);
-            }
-        }
-
+        final List<Game> obsoleteGames = getObsoleteEntries(games);
         gameManager.deleteGames(obsoleteGames);
         message("Removed %d obsolete games.", obsoleteGames.size());
-        setProgress(0, 1);
+    }
+
+    private void cleanupLibraries() {
+        message("Cleaning up libraries...");
+        final List<Library> libraries = libraryManager.getAllLibraries();
+        final List<Library> obsoleteLibraries = getObsoleteEntries(libraries);
+        obsoleteLibraries.forEach(this::deleteLibrary);
+        message("Removed %d obsolete libraries.", obsoleteLibraries.size());
+    }
+
+    private void cleanupExcludedPaths() {
+        message("Cleaning up excluded paths...");
+        final List<ExcludedPath> excludedPaths = excludedPathManager.getAllExcludedPaths();
+        final List<ExcludedPath> obsoleteExcludedPaths = getObsoleteEntries(excludedPaths);
+        excludedPathManager.deleteExcludedPaths(obsoleteExcludedPaths);
+        message("Removed %d obsolete excluded paths.", obsoleteExcludedPaths.size());
+    }
+
+    private <T extends PathEntity> List<T> getObsoleteEntries(List<T> entries) {
+        final List<T> obsoleteEntries = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            assertNotStopped();
+
+            setProgress(i, entries.size());
+            final T entry = entries.get(i);
+            final Path path = entry.getPath();
+            if (!Files.exists(path)) {
+                message("Obsolete path detected: %s", path);
+                obsoleteEntries.add(entry);
+            }
+        }
+        return obsoleteEntries;
     }
 
     @Override
     public Task<Void> processPath(Library library, Path path) {
         final LibraryHierarchy libraryHierarchy = new LibraryHierarchy(library);
-        return taskService.submit((RunnableThrows) () -> processPath(libraryHierarchy, path));
+        return taskService.submit(() -> processPath(libraryHierarchy, path));
     }
 
     @Override
@@ -229,9 +255,9 @@ public class ActionServiceImpl implements ActionService {
         progressProperty.setValue((double) current / total);
     }
 
-    private void doWithExceptionHandling(RunnableThrows runnable) {
+    private void doWithExceptionHandling(RunnableX runnable) {
         try {
-            runnable.run();
+            runnable.runX();
         } catch (Exception e) {
             dialogService.showException(e);
         }

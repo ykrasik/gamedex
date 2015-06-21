@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.provider.util;
 
 import com.github.ykrasik.gamedex.common.exception.GameDexException;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.api.list.MutableList;
 import com.gs.collections.impl.factory.Lists;
@@ -23,14 +23,14 @@ public final class JsonUtils {
 
     public static Opt<JsonNode> getField(JsonNode node, String fieldName) {
         if (!exists(node)) {
-            return Opt.absent();
+            return Opt.none();
         }
 
         final JsonNode field = node.get(fieldName);
         if (exists(field)) {
-            return Opt.of(field);
+            return Opt.some(field);
         } else {
-            return Opt.absent();
+            return Opt.none();
         }
     }
 
@@ -91,7 +91,7 @@ public final class JsonUtils {
             final JsonNode node = iterator.next();
             if (exists(node)) {
                 final Opt<T> result = f.apply(node);
-                result.ifPresent(list::add);
+                result.ifDefined(list::add);
             }
         }
         return list.toImmutable();

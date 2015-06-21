@@ -1,13 +1,13 @@
 package com.github.ykrasik.gamedex.core.controller;
 
 import com.github.ykrasik.gamedex.core.controller.game.GameController;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.javafx.MoreBindings;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.screen.settings.SettingsScreen;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import javafx.beans.binding.Binding;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -112,8 +112,8 @@ public class MainController implements Controller {
     }
 
     @FXML
-    public void cleanupGames() {
-        actionService.cleanupGames();
+    public void cleanup() {
+        actionService.cleanup();
     }
 
     @FXML

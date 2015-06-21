@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.manager.path;
 
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import lombok.NonNull;
 import lombok.Value;
 

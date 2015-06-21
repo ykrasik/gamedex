@@ -1,9 +1,9 @@
 package com.github.ykrasik.gamedex.core.ui.library;
 
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -31,7 +31,7 @@ public class CreateLibraryDialog {
     @FXML private TreeView<Path> childrenTreeView;
     @FXML private Button yesButton;
 
-    private Opt<LibraryDef> result = Opt.absent();
+    private Opt<LibraryDef> result = Opt.none();
 
     @SneakyThrows
     public CreateLibraryDialog() {
@@ -49,7 +49,7 @@ public class CreateLibraryDialog {
         stage.setScene(scene);
 
         // Make the stage draggable by clicking anywhere.
-        JavaFxUtils.makeDraggable(stage, root);
+        JavaFxUtils.makeStageDraggable(stage, root);
     }
 
     @FXML
@@ -69,11 +69,11 @@ public class CreateLibraryDialog {
         childrenTreeView.setRoot(root);
 
         yesButton.setOnAction(e -> {
-            result = Opt.of(createFromInput(path));
+            result = Opt.some(createFromInput(path));
             stage.hide();
         });
 
-        result = Opt.absent();
+        result = Opt.none();
         stage.showAndWait();
         return result;
     }

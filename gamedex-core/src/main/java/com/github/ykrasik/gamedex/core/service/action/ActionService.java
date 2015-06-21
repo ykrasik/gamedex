@@ -30,7 +30,7 @@ public interface ActionService extends Messageable {
 
     Task<Void> refreshLibraries();
 
-    Task<Void> cleanupGames();
+    Task<Void> cleanup();
 
     Task<Void> processPath(Library library, Path path);
 

@@ -4,11 +4,7 @@ import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.core.manager.game.GameManager;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
-import com.github.ykrasik.jerminal.api.annotation.Command;
-import com.github.ykrasik.jerminal.api.annotation.IntParam;
-import com.github.ykrasik.jerminal.api.annotation.ShellPath;
-import com.github.ykrasik.jerminal.api.annotation.StringParam;
-import com.github.ykrasik.jerminal.api.command.OutputPrinter;
+import com.github.ykrasik.jaci.api.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -19,29 +15,31 @@ import java.util.List;
  * @author Yevgeny Krasik
  */
 @RequiredArgsConstructor
-@ShellPath("game")
+@CommandPath("game")
 public class GameManagerDebugCommands implements DebugCommands {
     @NonNull private final GameManager manager;
 
+    private CommandOutput output;
+    
     @Command
-    public void getById(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
+    public void getById(@IntParam("id") int id) throws Exception {
         final Game game = manager.getGameById(new Id<>(id));
-        outputPrinter.println(game.toString());
+        output.message(game.toString());
     }
 
     @Command
-    public void isGame(OutputPrinter outputPrinter, @StringParam("path") String path) throws Exception {
-        outputPrinter.println(String.valueOf(manager.isGame(Paths.get(path))));
+    public void isGame( @StringParam("path") String path) throws Exception {
+        output.message(String.valueOf(manager.isGame(Paths.get(path))));
     }
 
     @Command
-    public void all(OutputPrinter outputPrinter) throws Exception {
+    public void all() throws Exception {
         final List<Game> games = manager.getAllGames();
-        games.forEach(game -> outputPrinter.println(game.toString()));
+        games.forEach(game -> output.message(game.toString()));
     }
 
     @Command
-    public void delete(OutputPrinter outputPrinter, @IntParam("id") int id) throws Exception {
+    public void delete(@IntParam("id") int id) throws Exception {
         final Game game = manager.getGameById(new Id<>(id));
         manager.deleteGame(game);
     }

@@ -2,13 +2,13 @@ package com.github.ykrasik.gamedex.core.manager.config;
 
 import com.github.ykrasik.gamedex.core.manager.game.GameSort;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 
 /**
  * @author Yevgeny Krasik
  */
 public enum ConfigType {
-    PREV_DIRECTORY(Opt.absent()),
+    PREV_DIRECTORY(Opt.none()),
 
     AUTO_SKIP(false),
 

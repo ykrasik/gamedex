@@ -11,7 +11,7 @@ import java.nio.file.Path;
  */
 @Value
 @EqualsAndHashCode(of = "id")
-public class ExcludedPath {
+public class ExcludedPath implements PathEntity {
     @NonNull private final Id<ExcludedPath> id;
     @NonNull private final Path path;
 

@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.core.spring;
 
-import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.common.spring.AbstractBeanConfiguration;
 import com.github.ykrasik.gamedex.core.manager.config.ConfigManager;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
@@ -22,14 +21,10 @@ import com.github.ykrasik.gamedex.core.service.task.TaskServiceImpl;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
-import com.github.ykrasik.jerminal.api.filesystem.ShellFileSystem;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * @author Yevgeny Krasik
@@ -78,13 +73,6 @@ public class CoreServiceBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public ImageService imageService(PersistenceService persistenceService) {
         return new ImageServiceImpl(persistenceService);
-    }
-
-    @Bean
-    public ShellFileSystem shellFileSystem(List<DebugCommands> debugCommands) throws IOException {
-        final ShellFileSystem fileSystem = new ShellFileSystem();
-        debugCommands.forEach(fileSystem::processAnnotationsOfObject);
-        return fileSystem;
     }
 
     @Bean

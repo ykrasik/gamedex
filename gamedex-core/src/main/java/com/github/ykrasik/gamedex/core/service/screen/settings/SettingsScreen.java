@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.service.screen.settings;
 
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallImageDisplay;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -47,7 +47,7 @@ public class SettingsScreen {
         stage.setScene(scene);
 
         // Make the stage draggable by clicking anywhere.
-        JavaFxUtils.makeDraggable(stage, root);
+        JavaFxUtils.makeStageDraggable(stage, root);
     }
 
     @FXML

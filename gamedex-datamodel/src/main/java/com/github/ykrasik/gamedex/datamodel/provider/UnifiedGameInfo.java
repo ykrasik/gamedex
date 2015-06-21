@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel.provider;
 
 import com.github.ykrasik.gamedex.datamodel.ImageData;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import lombok.*;
 

@@ -12,7 +12,7 @@ import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -129,7 +129,8 @@ public class GameController implements Controller {
     }
 
     private void initAutoSkip() {
-        autoSkipCheckBox.selectedProperty().bind(configService.autoSkipProperty());
+        autoSkipCheckBox.setSelected(configService.isAutoSkip());
+        configService.autoSkipProperty().bind(autoSkipCheckBox.selectedProperty());
     }
 
     @FXML
@@ -141,7 +142,7 @@ public class GameController implements Controller {
         final Opt<List<Genre>> selectedGenres = new GenreFilterDialog()
             .previouslyCheckedItems(currentlyFilteredGenres.get())
             .show(genres);
-        selectedGenres.ifPresent(selected -> {
+        selectedGenres.ifDefined(selected -> {
             if (!selected.isEmpty()) {
                 currentlyFilteredGenres.set(FXCollections.observableArrayList(selected));
             }
@@ -157,7 +158,7 @@ public class GameController implements Controller {
         final Opt<Library> selectedLibrary = new LibraryFilterDialog()
             .previouslySelectedItem(currentlyFilteredLibrary.get())
             .show(libraries);
-        if (selectedLibrary.isPresent()) {
+        if (selectedLibrary.isDefined()) {
             currentlyFilteredLibrary.setValue(selectedLibrary.get());
         }
     }

@@ -10,7 +10,7 @@ import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.giantbomb.client.GiantBombGameInfoClient;
 import com.github.ykrasik.gamedex.provider.giantbomb.config.GiantBombProperties;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import lombok.Getter;
 import lombok.NonNull;
@@ -60,7 +60,7 @@ public class GiantBombGameInfoProvider implements GameInfoProvider {
             .detailUrl(getDetailUrl(node))
             .name(getName(node))
             .releaseDate(getReleaseDate(node))
-            .score(Opt.absent())
+            .score(Opt.none())
             .build();
     }
 
@@ -92,8 +92,8 @@ public class GiantBombGameInfoProvider implements GameInfoProvider {
             .name(getName(node))
             .description(getDescription(node))
             .releaseDate(getReleaseDate(node))
-            .criticScore(Opt.absent())
-            .userScore(Opt.absent())
+            .criticScore(Opt.none())
+            .userScore(Opt.none())
             .thumbnail(getThumbnail(node))
             .poster(getPoster(node))
             .genres(getGenres(node))
@@ -130,9 +130,9 @@ public class GiantBombGameInfoProvider implements GameInfoProvider {
         try {
             final int indexOfSpace = raw.indexOf(' ');
             final String toParse = indexOfSpace != -1 ? raw.substring(0, indexOfSpace) : raw;
-            return Opt.of(LocalDate.parse(toParse));
+            return Opt.some(LocalDate.parse(toParse));
         } catch (DateTimeParseException e) {
-            return Opt.absent();
+            return Opt.none();
         }
     }
 

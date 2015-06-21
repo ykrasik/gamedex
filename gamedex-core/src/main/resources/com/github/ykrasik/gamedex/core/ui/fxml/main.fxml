@@ -37,7 +37,7 @@
             <menus>
                 <Menu mnemonicParsing="false" text="Game">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#cleanupGames" text="Cleanup Games" />
+                        <MenuItem mnemonicParsing="false" onAction="#cleanup" text="Cleanup" />
                         <SeparatorMenuItem />
                         <MenuItem mnemonicParsing="false" text="Re-Fetch Games" />
                     </items>

@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.service.screen.search;
 
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -75,7 +75,7 @@ public class GameSearchScreen {
         stage.setScene(scene);
 
         // Make the stage draggable by clicking anywhere.
-        JavaFxUtils.makeDraggable(stage, root);
+        JavaFxUtils.makeStageDraggable(stage, root);
     }
 
     @FXML

@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.screen.search;
 
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import lombok.*;
 import lombok.experimental.Accessors;
 
@@ -21,14 +21,14 @@ public class GameSearchChoice {
     @Getter private static final GameSearchChoice proceedAnyway = noReturnChoice(GameSearchChoiceType.PROCEED_ANYWAY);
 
     private static GameSearchChoice noReturnChoice(GameSearchChoiceType type) {
-        return new GameSearchChoice(type, Opt.absent(), Opt.absent());
+        return new GameSearchChoice(type, Opt.none(), Opt.none());
     }
 
     public static GameSearchChoice select(SearchResult searchResult) {
-        return new GameSearchChoice(GameSearchChoiceType.SELECT_RESULT, Opt.of(searchResult), Opt.absent());
+        return new GameSearchChoice(GameSearchChoiceType.SELECT_RESULT, Opt.some(searchResult), Opt.none());
     }
 
     public static GameSearchChoice newName(String newName) {
-        return new GameSearchChoice(GameSearchChoiceType.NEW_NAME, Opt.absent(), Opt.of(newName));
+        return new GameSearchChoice(GameSearchChoiceType.NEW_NAME, Opt.none(), Opt.some(newName));
     }
 }

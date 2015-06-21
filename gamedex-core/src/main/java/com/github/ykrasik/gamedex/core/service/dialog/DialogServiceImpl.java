@@ -1,13 +1,13 @@
 package com.github.ykrasik.gamedex.core.service.dialog;
 
 import com.github.ykrasik.gamedex.common.util.FileUtils;
-import com.github.ykrasik.gamedex.core.javafx.JavaFxUtils;
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.ui.library.CreateLibraryDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.javafx.JavaFxUtils;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
@@ -85,7 +85,7 @@ public class DialogServiceImpl implements DialogService {
     public Opt<LibraryDef> createLibraryDialog(Path path, ImmutableList<Path> children, GamePlatform defaultPlatform) {
         log.info("Showing create library dialog...");
         final Opt<LibraryDef> libraryDef = stageManager.callWithBlur(() -> createLibraryDialog.show(path, children, defaultPlatform));
-        if (libraryDef.isPresent()) {
+        if (libraryDef.isDefined()) {
             log.info("Library: {}", libraryDef.get());
         } else {
             log.info("Dialog cancelled.");
@@ -104,7 +104,7 @@ public class DialogServiceImpl implements DialogService {
         directoryChooser.setInitialDirectory(configService.getPrevDirectory().map(Path::toFile).getOrElseNull());
         final File selectedDirectory = stageManager.callWithBlur(() -> directoryChooser.showDialog(stage));
         final Opt<Path> path = Opt.ofNullable(selectedDirectory).map(File::toURI).map(Paths::get);
-        if (path.isPresent()) {
+        if (path.isDefined()) {
             configService.prevDirectoryProperty().set(path);
         }
         return path;

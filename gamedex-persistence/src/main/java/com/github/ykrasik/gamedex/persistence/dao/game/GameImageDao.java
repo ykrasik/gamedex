@@ -2,7 +2,7 @@ package com.github.ykrasik.gamedex.persistence.dao.game;
 
 import com.github.ykrasik.gamedex.persistence.entity.GameImageEntity;
 import com.github.ykrasik.gamedex.persistence.entity.GameImageEntityType;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;

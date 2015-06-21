@@ -8,7 +8,7 @@ import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
 import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.gamedex.provider.GameInfoProvider;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import lombok.Getter;
@@ -49,7 +49,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         assertNotStopped();
 
         if (searchResults.size() == 1) {
-            return Opt.of(fetchGameInfoFromSearchResult(searchResults.get(0)));
+            return Opt.some(fetchGameInfoFromSearchResult(searchResults.get(0)));
         }
 
         assertNotAutoSkip();
@@ -62,7 +62,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
                 // Add all search results except the selected one to excluded list.
                 final ImmutableList<SearchResult> resultsToExclude = searchResults.newWithout(selectedResult);
                 context.addExcludedNames(resultsToExclude.collect(SearchResult::getName));
-                return Opt.of(fetchGameInfoFromSearchResult(selectedResult));
+                return Opt.some(fetchGameInfoFromSearchResult(selectedResult));
 
             case NEW_NAME:
                 log.info("New name requested: {}", choice.newName().get());
@@ -73,7 +73,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
             case SKIP: log.info("Skip selected."); throw new SkipException();
             case EXCLUDE: log.info("Exclude selected."); throw new ExcludeException();
-            case PROCEED_ANYWAY: log.info("Proceed anyway selected."); return Opt.absent();
+            case PROCEED_ANYWAY: log.info("Proceed anyway selected."); return Opt.none();
             default: throw new IllegalStateException("Invalid choice type: " + choice.type());
         }
     }

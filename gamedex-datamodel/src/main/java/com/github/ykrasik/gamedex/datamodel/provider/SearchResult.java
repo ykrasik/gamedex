@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.provider;
 
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;

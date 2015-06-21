@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.persistence.extractor;
 
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.collection.ImmutableCollection;
 import com.gs.collections.api.map.ImmutableMap;
 import com.gs.collections.api.multimap.ImmutableMultimap;

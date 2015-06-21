@@ -10,7 +10,7 @@ import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.github.ykrasik.gamedex.provider.metacritic.client.MetacriticGameInfoClient;
 import com.github.ykrasik.gamedex.provider.metacritic.config.MetacriticProperties;
-import com.github.ykrasik.opt.Opt;
+import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import com.gs.collections.impl.factory.Lists;
 import lombok.Getter;
@@ -88,7 +88,7 @@ public class MetacriticGameInfoProvider implements GameInfoProvider {
             .criticScore(getCriticScore(node))
             .userScore(getUserScore(node))
             .thumbnail(getThumbnail(node))
-            .poster(Opt.absent())
+            .poster(Opt.none())
             .genres(getGenre(node))
             .build();
     }
@@ -132,9 +132,9 @@ public class MetacriticGameInfoProvider implements GameInfoProvider {
 
     private Opt<LocalDate> translateDate(String raw) {
         try {
-            return Opt.of(LocalDate.parse(raw));
+            return Opt.some(LocalDate.parse(raw));
         } catch (DateTimeParseException e) {
-            return Opt.absent();
+            return Opt.none();
         }
     }
 
