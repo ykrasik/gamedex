@@ -1,27 +1,51 @@
 buildscript {
     ext {
-        controlsFxVersion = '8.20.8'
-        springVersion = '4.1.1.RELEASE'
-        lombokVersion = '1.16.0'
+        // FIXME: Delete these
+springVersion = '4.1.1.RELEASE'
+lombokVersion = '1.16.0'
+gsCollectionsVersion = '6.0.0'
+yavaVersion = '0.1.0'
+unirestVersion = '1.3.22'
+
+        kotlinVersion = '1.0.4'
         groovyVersion = '2.3.6'
+
+        guiceVersion = '4.1.0'
+
+        typesafeConfigVersion = '1.3.1'
+
+        controlsFxVersion = '8.20.9'
 
         slf4jVersion = '1.7.6'
         logbackVersion = '1.1.2'
 
-        gsCollectionsVersion = '6.0.0'
         guavaVersion = '18.0'
         commonsLang3Version = '3.3.2'
-        yavaVersion = '0.1.0'
-        jaciVersion = '0.1.0'
+        jaciVersion = '0.4.0'
 
-        unirestVersion = '1.3.22'
-        jacksonVersion = '1.9.13'
+        jodaVersion = '2.9.3'
 
-        ormLiteVersion = '4.48'
+        fuelVersion = '1.3.1'
+        jacksonVersion = '2.8.3'
+
         h2Version = '1.4.182'
+        exposedVersion = '0.6.5'
 
         junitVersion = '4.11'
         mockitoVersion = '1.9.5'
+
+        gradleDokkaVersion = '0.9.7'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$gradleDokkaVersion"
     }
 }
 
@@ -32,82 +56,34 @@ allprojects {
     targetCompatibility = 1.8
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url "http://dl.bintray.com/kotlin/exposed" }
     }
 }
 
 subprojects {
+    apply plugin: 'kotlin'
+    apply plugin: 'org.jetbrains.dokka'
+
     dependencies {
-        compile "org.projectlombok:lombok:$lombokVersion"
+        // FIXME: Delete these
+compile "org.projectlombok:lombok:$lombokVersion"
+
+        compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+        compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
         compile "org.slf4j:slf4j-api:$slf4jVersion"
-        compile "ch.qos.logback:logback-classic:$logbackVersion"
 
         testCompile "junit:junit:$junitVersion"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
+        testCompile "com.carlosbecker:guice-junit-test-runner:1.1"
     }
-}
 
-project("gamedex-common") {
-    dependencies {
-        compile "org.springframework:spring-context:$springVersion"
-
-        compile "com.google.guava:guava:$guavaVersion"
-        compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
-        compile "org.apache.commons:commons-lang3:$commonsLang3Version"
-
-        compile 'com.thoughtworks.xstream:xstream:1.4.7'
-
-        compile "com.github.ykrasik:yava:$yavaVersion"
-        compile "com.github.ykrasik:jaci-javafx-cli:$jaciVersion"
-
-        runtime "org.codehaus.groovy:groovy-all:$groovyVersion"
+    dokka {
+        outputFormat = 'javadoc'
+        outputDirectory = "$buildDir/javadoc"
+        processConfigurations = ['compile']
     }
-}
-
-project("gamedex-datamodel") {
-    dependencies {
-        compile project(":gamedex-common")
-    }
-}
-
-project("gamedex-info-provider") {
-    dependencies {
-        compile project(":gamedex-common")
-        compile project(":gamedex-datamodel")
-
-        compile "com.mashape.unirest:unirest-java:$unirestVersion"
-        compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
-    }
-}
-
-project("gamedex-persistence") {
-    dependencies {
-        compile project(":gamedex-common")
-        compile project(":gamedex-datamodel")
-
-        compile "com.j256.ormlite:ormlite-core:$ormLiteVersion"
-        compile "com.j256.ormlite:ormlite-jdbc:$ormLiteVersion"
-
-        compile "com.h2database:h2:$h2Version"
-    }
-}
-
-project("gamedex-core") {
-    apply plugin: "application"
-    mainClassName = "com.github.ykrasik.gamedex.core.Main"
-
-    dependencies {
-        compile project(":gamedex-common")
-        compile project(":gamedex-datamodel")
-        compile project(":gamedex-info-provider")
-        compile project(":gamedex-persistence")
-
-        compile "org.controlsfx:controlsfx:$controlsFxVersion"
-    }
-}
-
-wrapper {
-    gradleVersion = '2.4'
 }

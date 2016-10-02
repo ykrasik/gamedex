@@ -22,7 +22,7 @@ import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.dialog.DialogService;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
-import com.github.ykrasik.gamedex.provider.GameInfoProvider;
+import com.gitlab.ykrasik.gamedex.provider.DataProvider;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -75,7 +75,7 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public GameInfoProviderManager metacriticManager(ConfigService configService,
                                                      GameSearchScreen gameSearchScreen,
-                                                     @Qualifier("metacriticGameInfoProvider") GameInfoProvider metacriticGameInfoProvider) {
+                                                     @Qualifier("metacriticGameInfoProvider") DataProvider metacriticGameInfoProvider) {
         return new GameInfoProviderManagerImpl(configService, gameSearchScreen, metacriticGameInfoProvider);
     }
 
@@ -83,7 +83,7 @@ public class CoreBeanConfiguration extends AbstractBeanConfiguration {
     @Bean
     public GameInfoProviderManager giantBombManager(ConfigService configService,
                                                     GameSearchScreen gameSearchScreen,
-                                                    @Qualifier("giantBombGameInfoProvider") GameInfoProvider giantBombGameInfoProvider) {
+                                                    @Qualifier("giantBombGameInfoProvider") DataProvider giantBombGameInfoProvider) {
         return new GameInfoProviderManagerImpl(configService, gameSearchScreen, giantBombGameInfoProvider);
     }
 

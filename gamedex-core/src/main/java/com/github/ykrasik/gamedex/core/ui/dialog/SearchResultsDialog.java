@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
-import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
+import com.gitlab.ykrasik.gamedex.provider.SearchResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;

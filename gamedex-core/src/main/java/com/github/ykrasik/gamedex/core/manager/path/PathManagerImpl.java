@@ -16,8 +16,8 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform;
 import com.github.ykrasik.gamedex.datamodel.flow.LibraryHierarchy;
 import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
+import com.github.ykrasik.gamedex.datamodel.provider.GameData;
 import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
 import com.github.ykrasik.yava.option.Opt;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
@@ -148,7 +148,7 @@ public class PathManagerImpl implements PathManager {
             message("Game not found on GiantBomb.");
         }
 
-        final UnifiedGameInfo gameInfo = UnifiedGameInfo.from(metacriticGame, giantBombGameOpt);
+        final GameData gameInfo = GameData.from(metacriticGame, giantBombGameOpt);
         final Game game = gameManager.addGame(gameInfo, path, platform);
         libraryManager.addGameToLibraryHierarchy(game, libraryHierarchy);
         return OK;

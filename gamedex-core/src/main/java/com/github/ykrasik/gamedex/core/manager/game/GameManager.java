@@ -5,7 +5,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.GameData;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.collections.ObservableList;
 
@@ -17,7 +17,7 @@ import java.util.List;
  * @author Yevgeny Krasik
  */
 public interface GameManager {
-    Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform);
+    Game addGame(GameData gameInfo, Path path, GamePlatform platform);
 
     void deleteGame(Game game);
     void deleteGames(Collection<Game> games);

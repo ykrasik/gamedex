@@ -2,9 +2,9 @@ package com.github.ykrasik.gamedex.core.service.screen.search;
 
 import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
-import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.provider.GameInfoProviderInfo;
 import com.github.ykrasik.yava.javafx.JavaFxUtils;
+import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo;
+import com.gitlab.ykrasik.gamedex.provider.SearchResult;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -109,7 +109,7 @@ public class GameSearchScreen {
         });
     }
 
-    public GameSearchChoice show(String searchedName, Path path, GameInfoProviderInfo info, ImmutableList<SearchResult> searchResults) {
+    public GameSearchChoice show(String searchedName, Path path, DataProviderInfo info, ImmutableList<SearchResult> searchResults) {
         logoImageView.setImage(info.getLogo());
         pathLabel.setText(path.toString());
         searchTextField.setText(searchedName);

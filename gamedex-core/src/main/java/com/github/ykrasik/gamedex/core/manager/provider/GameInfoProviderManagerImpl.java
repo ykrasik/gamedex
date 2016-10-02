@@ -5,10 +5,9 @@ import com.github.ykrasik.gamedex.core.service.action.SkipException;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchChoice;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
-import com.github.ykrasik.gamedex.datamodel.provider.GameInfo;
-import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
-import com.github.ykrasik.gamedex.provider.GameInfoProvider;
 import com.github.ykrasik.yava.option.Opt;
+import com.gitlab.ykrasik.gamedex.provider.DataProvider;
+import com.gitlab.ykrasik.gamedex.provider.SearchResult;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import lombok.Getter;
@@ -31,7 +30,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
     @NonNull private final ConfigService configService;
     @NonNull private final GameSearchScreen gameSearchScreen;
-    @NonNull private final GameInfoProvider gameInfoProvider;
+    @NonNull private final DataProvider gameInfoProvider;
 
     @Override
     public ReadOnlyBooleanProperty fetchingProperty() {

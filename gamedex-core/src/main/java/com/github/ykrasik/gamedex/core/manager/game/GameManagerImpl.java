@@ -7,7 +7,7 @@ import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.datamodel.persistence.Library;
-import com.github.ykrasik.gamedex.datamodel.provider.UnifiedGameInfo;
+import com.github.ykrasik.gamedex.datamodel.provider.GameData;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import com.gs.collections.impl.map.mutable.MutableMapFactoryImpl;
@@ -51,7 +51,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     @Override
     protected void doStart() throws Exception {
         LOG.info("Loading games...");
-        games = FXCollections.observableArrayList(persistenceService.getAllGames().castToList());
+        games = FXCollections.observableArrayList(persistenceService.getGames().castToList());
         gamesProperty.set(games);
         doRefreshGames();
         LOG.info("Games: {}", games.size());
@@ -63,7 +63,7 @@ public class GameManagerImpl extends AbstractService implements GameManager {
     }
 
     @Override
-    public Game addGame(UnifiedGameInfo gameInfo, Path path, GamePlatform platform) {
+    public Game addGame(GameData gameInfo, Path path, GamePlatform platform) {
         final Game game = persistenceService.addGame(gameInfo, path, platform);
         LOG.info("Added game: {}", game);
 
@@ -214,6 +214,12 @@ public class GameManagerImpl extends AbstractService implements GameManager {
 
             case USER_SCORE_ASC: return GameComparators.userScoreAsc();
             case USER_SCORE_DESC: return GameComparators.userScoreDesc();
+
+            case MIN_SCORE_ASC: return GameComparators.minScoreAsc();
+            case MIN_SCORE_DESC: return GameComparators.minScoreDesc();
+
+            case AVG_SCORE_ASC: return GameComparators.avgScoreAsc();
+            case AVG_SCORE_DESC: return GameComparators.avgScoreDesc();
 
             case RELEASE_DATE_ASC: return GameComparators.releaseDateAsc();
             case RELEASE_DATE_DESC: return GameComparators.releaseDateDesc();

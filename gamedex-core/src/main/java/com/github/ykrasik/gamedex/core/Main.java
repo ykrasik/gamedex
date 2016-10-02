@@ -85,7 +85,7 @@ public class Main extends Application {
 
             final Map<String, DebugCommands> debugCommands = context.getBeansOfType(DebugCommands.class);
             final JavaFxCliBuilder cliBuilder = new JavaFxCliBuilder();
-            debugCommands.values().forEach(cliBuilder::processObject);
+            debugCommands.values().forEach(cliBuilder::process);
             final Parent debugConsole = cliBuilder.build();
 
             SceneToggler.register(stage, debugConsole);

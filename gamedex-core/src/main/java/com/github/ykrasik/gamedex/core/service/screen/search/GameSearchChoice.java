@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.service.screen.search;
 
-import com.github.ykrasik.gamedex.datamodel.provider.SearchResult;
 import com.github.ykrasik.yava.option.Opt;
+import com.gitlab.ykrasik.gamedex.provider.SearchResult;
 import lombok.*;
 import lombok.experimental.Accessors;
 
