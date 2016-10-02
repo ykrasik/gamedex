@@ -8,7 +8,7 @@ yavaVersion = '0.1.0'
 unirestVersion = '1.3.22'
 
         kotlinVersion = '1.0.4'
-        groovyVersion = '2.3.6'
+        groovyVersion = '2.4.7'
 
         guiceVersion = '4.1.0'
 

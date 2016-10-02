@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.config
+package com.gitlab.ykrasik.gamedex.persistence
 
 import com.github.ykrasik.gamedex.common.BaseConfig
 import com.typesafe.config.Config
@@ -12,9 +12,15 @@ import javax.inject.Singleton
  */
 interface PersistenceConfig {
     val dbUrl: String
+    val driver: String
+    val user: String
+    val password: String
 }
 
 @Singleton
 class PersistenceConfigImpl @Inject constructor(c: Config) : BaseConfig(c, "db"), PersistenceConfig {
     override val dbUrl = config.getString("url")
+    override val driver = config.getString("driver")
+    override val user = config.getString("user")
+    override val password = config.getString("password")
 }

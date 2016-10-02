@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.entity
+package com.gitlab.ykrasik.gamedex.persistence.entity
 
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
 import com.github.ykrasik.gamedex.datamodel.persistence.Game

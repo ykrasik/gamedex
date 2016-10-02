@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.persistence.entity
+package com.gitlab.ykrasik.gamedex.persistence.entity
 
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntIdTable

@@ -1,23 +1,24 @@
-package com.github.ykrasik.gamedex.persistence.entity
+package com.gitlab.ykrasik.gamedex.persistence.entity
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import org.jetbrains.exposed.dao.IntIdTable
+import org.jetbrains.exposed.sql.Table
 
 /**
  * User: ykrasik
  * Date: 25/05/2016
  * Time: 08:51
  */
+// TODO: Why doesn't extending IntIdTable work?
 
-object Libraries : IntIdTable() {
-//    val id = integer("id").autoIncrement().primaryKey()
+object Libraries : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
     val name = varchar("name", 255)
     val platform = enumeration("platform", GamePlatform::class.java)
 }
 
-object Games : IntIdTable() {
-//    val id = integer("id").autoIncrement().primaryKey()
+object Games : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
     val name = varchar("name", 255)
 
@@ -38,22 +39,22 @@ object Games : IntIdTable() {
     val library = reference("library_id", Libraries.id)
 
     // Extensions
-
+    // TODO: Remove this, make this a one to many.
     val withoutBlobs = columns - arrayOf(thumbnail, poster)
 }
 
-object Genres : IntIdTable() {
-//    val id = integer("id").autoIncrement().primaryKey()
+object Genres : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
     val name = varchar("name", 255)
 }
 
-object GameGenres : IntIdTable() {
-//    val id = integer("id").autoIncrement().primaryKey()
+object GameGenres : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
     val game = reference("game_id", Games.id)
     val genre = reference("genre_id", Genres.id)
 }
 
-object ExcludedPaths : IntIdTable() {
-//    val id = integer("id").autoIncrement().primaryKey()
+object ExcludedPaths : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
     val path = Libraries.varchar("path", 255).uniqueIndex()
 }
