@@ -19,7 +19,7 @@ class OneToManyContext<T>(private val mapping: Map<Int, List<T>>) {
 
 object LibrariesMapper {
     fun map(row: ResultRow) = Library(
-        id = row[Libraries.id].value,
+        id = row[Libraries.id],
         path = Paths.get(row[Libraries.path]),
         platform = row[Libraries.platform],
         name = row[Libraries.name]
@@ -29,7 +29,7 @@ inline fun ResultRow.toLibrary(): Library = LibrariesMapper.map(this)
 
 object GamesMapper {
     fun map(row: ResultRow, genres: OneToManyContext<Genre>, library: Library): Game {
-        val id = row[Games.id].value
+        val id = row[Games.id]
         return Game(
             id = id,
             path = Paths.get(row[Games.path]),
@@ -48,17 +48,9 @@ object GamesMapper {
 }
 inline fun ResultRow.toGame(genres: OneToManyContext<Genre>, library: Library): Game = GamesMapper.map(this, genres, library)
 
-object GenresMapper {
-    fun map(row: ResultRow) = Genre(
-        id = row[Genres.id].value,
-        name = row[Genres.name]
-    )
-}
-inline fun ResultRow.toGenre(): Genre = GenresMapper.map(this)
-
 object ExcludedPathsMapper {
     fun map(row: ResultRow) = ExcludedPath(
-        id = row[ExcludedPaths.id].value,
+        id = row[ExcludedPaths.id],
         path = Paths.get(row[ExcludedPaths.path])
     )
 }

@@ -1,13 +1,10 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.d
-import com.github.ykrasik.gamedex.common.i
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre
 import com.gitlab.ykrasik.gamedex.persistence.entity.GameGenres
 import com.gitlab.ykrasik.gamedex.persistence.entity.Genres
 import com.gitlab.ykrasik.gamedex.persistence.entity.OneToManyContext
-import com.gitlab.ykrasik.gamedex.persistence.entity.toGenre
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
@@ -33,16 +30,16 @@ class GameGenreDaoImpl @Inject constructor() : GameGenreDao {
 
     override fun add(gameId: Int, genres: List<Genre>) {
         GameGenres.batchInsert(genres, false) { genre ->
-            log.d { "Linking gameId=$gameId with genreId=${genre.id}..." }
+            log.debug { "Linking gameId=$gameId with genreId=${genre.id}..." }
             set(GameGenres.game, gameId)
             set(GameGenres.genre, genre.id)
         }
     }
 
     override fun deleteByGame(gameId: Int) {
-        log.d { "Un-linking all genres from gameId=$gameId..." }
+        log.debug { "Un-linking all genres from gameId=$gameId..." }
         val amount = GameGenres.deleteWhere { GameGenres.game.eq(gameId) }
-        log.i { "Un-linked $amount genres." }
+        log.info { "Un-linked $amount genres." }
     }
 
     override fun contains(genreId: Int) = !GameGenres.select { GameGenres.genre.eq(genreId) }.empty()
@@ -50,10 +47,10 @@ class GameGenreDaoImpl @Inject constructor() : GameGenreDao {
     override fun oneToManyContext(id: Int?): OneToManyContext<Genre> {
         val join = GameGenres innerJoin Genres
         val query = if (id == null) {
-            log.i { "Fetching all gameGenres..." }
+            log.info { "Fetching all gameGenres..." }
             join.selectAll()
         } else {
-            log.i { "Fetching gameGenres for gameId=$id..." }
+            log.info { "Fetching gameGenres for gameId=$id..." }
             join.select { GameGenres.game.eq(id) }
         }
         val mapping = query.groupBy(keySelector = { it[GameGenres.game] }, valueTransform = { it.toGenre() })

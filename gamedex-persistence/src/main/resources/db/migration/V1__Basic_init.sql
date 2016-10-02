@@ -1,0 +1,46 @@
+CREATE TABLE IF NOT EXISTS Libraries(
+  id INT AUTO_INCREMENT NOT NULL,
+  path VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  platform INT NOT NULL,
+  CONSTRAINT pk_Libraries PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX Libraries_path_unique ON Libraries(path);
+
+CREATE TABLE IF NOT EXISTS excluded_paths(
+  id INT AUTO_INCREMENT NOT NULL PRIMARY KEY ,
+  path VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS genres(
+  id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS Games(
+  id INT AUTO_INCREMENT NOT NULL,
+  path VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  release_date DATE NULL,
+  description VARCHAR(255) NULL,
+  critic_score DECIMAL(9, 1) NULL,
+  user_score DECIMAL(9, 1) NULL,
+  metacritic_url VARCHAR(255) NOT NULL,
+  giantbomb_url VARCHAR(255) NULL,
+  thumbnail BLOB NULL,
+  poster BLOB NULL,
+  last_modified DATETIME NOT NULL,
+  library_id INT AUTO_INCREMENT NOT NULL,
+  CONSTRAINT pk_Games PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX Games_path_unique ON Games(path);
+ALTER TABLE Games ADD FOREIGN KEY (library_id) REFERENCES Libraries(id);
+
+CREATE TABLE IF NOT EXISTS GameGenres(
+  id INT AUTO_INCREMENT NOT NULL,
+  game_id INT AUTO_INCREMENT NOT NULL,
+  genre_id INT AUTO_INCREMENT NOT NULL,
+  CONSTRAINT pk_GameGenres PRIMARY KEY (id)
+);
+ALTER TABLE GameGenres ADD FOREIGN KEY (game_id) REFERENCES Games(id);
+ALTER TABLE GameGenres ADD FOREIGN KEY (genre_id) REFERENCES Genres(id);

@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.i
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.persistence.Library
@@ -40,7 +39,7 @@ class LibraryDaoImpl @Inject constructor(
     override fun contains(path: Path) = !Libraries.select { Libraries.path.eq(path.toString()) }.empty()
 
     override fun add(path: Path, platform: GamePlatform, name: String): Library {
-        log.i { "Inserting library: path=$path, platform=$platform, name=$name" }
+        log.info { "Inserting library: path=$path, platform=$platform, name=$name" }
         val id = Libraries.insert {
             it[Libraries.path] = path.toString()
             it[Libraries.platform] = platform
@@ -56,9 +55,9 @@ class LibraryDaoImpl @Inject constructor(
         // TODO: onDelete Cascade does the exact same thing
         gameDao.deleteByLibrary(id)
 
-        log.i { "Deleting library: $id" }
+        log.info { "Deleting library: $id" }
         require(Libraries.deleteWhere { Libraries.id.eq(id) } == 1) { "Library doesn't exist: $id" }
-        log.i { "Deleted." }
+        log.info { "Deleted." }
         return gameIds
     }
 }

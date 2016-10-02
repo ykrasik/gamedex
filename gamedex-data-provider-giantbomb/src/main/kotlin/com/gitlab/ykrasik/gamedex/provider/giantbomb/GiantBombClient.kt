@@ -5,7 +5,6 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.d
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import javax.inject.Inject
@@ -69,7 +68,7 @@ class FuelGiantBombClient @Inject constructor(
     private fun <T> Result<ByteArray, FuelError>.fromJson(clazz: Class<T>): T = when (this) {
         is Result.Failure -> throw error
         is Result.Success -> {
-            log.d { "Raw result: ${String(value)}" }
+            log.debug { "Raw result: ${String(value)}" }
             mapper.readValue(value, clazz)
         }
     }

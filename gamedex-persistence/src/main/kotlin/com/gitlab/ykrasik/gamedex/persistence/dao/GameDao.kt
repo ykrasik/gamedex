@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.d
-import com.github.ykrasik.gamedex.common.i
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.github.ykrasik.gamedex.datamodel.persistence.Game
@@ -49,7 +47,7 @@ class GameDaoImpl @Inject constructor(
 
     override val all: List<Game> get() {
         val genres = gameGenreDao.oneToManyContext()
-        log.i { "Fetching all games..." }
+        log.info { "Fetching all games..." }
         return baseQuery.selectAll().map {
             val library = it.toLibrary()
             it.toGame(genres, library)
@@ -58,7 +56,7 @@ class GameDaoImpl @Inject constructor(
 
     override fun get(id: Int): Game {
         val genres = gameGenreDao.oneToManyContext(id)
-        log.i { "Fetching game: $id..." }
+        log.info { "Fetching game: $id..." }
         val row = baseQuery.select { Games.id.eq(id) }.first()
         val library = row.toLibrary()
         return row.toGame(genres, library)
@@ -67,7 +65,7 @@ class GameDaoImpl @Inject constructor(
     override fun contains(path: Path) = !Games.selectBy { it.path.eq(path.toString()) }.empty()
 
     override fun add(gameData: GameData, path: Path, library: Library): Game {
-        log.d { "Inserting game: $gameData..." }
+        log.debug { "Inserting game: $gameData..." }
         val lastModified = DateTime.now()
         val id = Games.insert {
             it[Games.path] = path.toString()
@@ -108,7 +106,7 @@ class GameDaoImpl @Inject constructor(
     }
 
     override fun delete(id: Int) {
-        log.i { "Deleting gameId=$id..." }
+        log.info { "Deleting gameId=$id..." }
         require(Games.deleteWhere { Games.id.eq(id) } == 1) { "Failed to delete gameId=$id!" }
 
         val genres = gameGenreDao.oneToManyContext(id)[id]
@@ -119,7 +117,7 @@ class GameDaoImpl @Inject constructor(
             if (gameGenreDao.contains(genre.id)) {
                 null
             } else {
-                log.d { "GenreId=${genre.id} was only linked to gameId=$id, deleting..." }
+                log.debug { "GenreId=${genre.id} was only linked to gameId=$id, deleting..." }
                 genre.id
             }
         }
@@ -139,17 +137,17 @@ class GameDaoImpl @Inject constructor(
     }
 
     override fun getByLibrary(libraryId: Int): List<Int> {
-        log.i { "Fetching games of library: $libraryId" }
+        log.info { "Fetching games of library: $libraryId" }
         val ids = Games.select { Games.library.eq(libraryId) }.map {
             it[Games.id]
         }
-        log.i { "Fetched ${ids.size} games." }
+        log.info { "Fetched ${ids.size} games." }
         return ids
     }
 
     override fun deleteByLibrary(libraryId: Int) {
-        log.i { "Deleting games by library: $libraryId" }
+        log.info { "Deleting games by library: $libraryId" }
         val amount = Games.deleteWhere { Games.library.eq(libraryId) }
-        log.i { "Deleted $amount games." }
+        log.info { "Deleted $amount games." }
     }
 }

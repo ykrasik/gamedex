@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.ykrasik.gamedex.common.d
 import com.github.ykrasik.gamedex.common.getResourceAsByteArray
-import com.github.ykrasik.gamedex.common.i
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.*
@@ -21,15 +19,15 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
     override val info = DataProviderInfo("GiantBomb", false, this.getResourceAsByteArray("logo.png"))
 
     override fun search(name: String, platform: GamePlatform): List<SearchResult> {
-        log.i { "Searching for name='$name', platform=$platform..." }
+        log.info { "Searching for name='$name', platform=$platform..." }
         val response = client.search(name, platform)
         if (!response.isOk()) {
             throw DataProviderException("Search: Invalid status code. name=$name, platform=$platform, statusCode=${response.statusCode}")
         }
 
         val results = response.results.map { mapSearchResult(it) }
-        log.i { "Found ${results.size} results." }
-        log.d { "Results = $results" }
+        log.info { "Found ${results.size} results." }
+        log.debug { "Results = $results" }
         return results
     }
 
@@ -41,7 +39,7 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
     )
 
     override fun fetch(searchResult: SearchResult): ProviderGameData {
-        log.i { "Getting info for searchResult=$searchResult..." }
+        log.info { "Getting info for searchResult=$searchResult..." }
         val detailUrl = searchResult.detailUrl
         val result = client.fetch(detailUrl)
         if (!result.isOk()) {
@@ -56,7 +54,7 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
         val gameData = mapGame(result.results.first(), detailUrl)
-        log.i { "Found: $gameData" }
+        log.info { "Found: $gameData" }
         return gameData
     }
 

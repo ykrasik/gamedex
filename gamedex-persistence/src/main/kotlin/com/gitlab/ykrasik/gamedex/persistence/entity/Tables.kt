@@ -45,7 +45,7 @@ object Games : Table() {
 
 object Genres : Table() {
     val id = integer("id").autoIncrement().primaryKey()
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).uniqueIndex()
 }
 
 object GameGenres : Table() {
@@ -54,7 +54,7 @@ object GameGenres : Table() {
     val genre = reference("genre_id", Genres.id)
 }
 
-object ExcludedPaths : Table() {
+object ExcludedPaths : Table("excluded_paths") {
     val id = integer("id").autoIncrement().primaryKey()
-    val path = Libraries.varchar("path", 255).uniqueIndex()
+    val path = varchar("path", 255).uniqueIndex()
 }

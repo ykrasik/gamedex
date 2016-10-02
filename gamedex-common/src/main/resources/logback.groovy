@@ -8,7 +8,8 @@ import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 import java.nio.file.Paths
 
-import static ch.qos.logback.classic.Level.*
+import static ch.qos.logback.classic.Level.DEBUG
+import static ch.qos.logback.classic.Level.INFO
 
 LOG_LEVELS = [
     ROOT: INFO,
@@ -25,7 +26,7 @@ context = new LevelChangePropagator()
 context.resetJUL = true
 
 LOG_DIR = Paths.get("logs").toAbsolutePath().toString() + "/"
-DEFAULT_PATTERN = "%date{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+DEFAULT_PATTERN = "%date{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n"
 
 systemAppenders = []
 

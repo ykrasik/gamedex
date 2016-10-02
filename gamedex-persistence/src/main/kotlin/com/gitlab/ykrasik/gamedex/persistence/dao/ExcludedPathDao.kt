@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.i
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
 import com.gitlab.ykrasik.gamedex.persistence.entity.ExcludedPaths
@@ -10,6 +9,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,25 +31,41 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
     private val log by logger()
 
     override val all: List<ExcludedPath> get() {
-        log.i { "Fetching all excludedPaths..." }
-        return ExcludedPaths.selectAll().map { it.toExcludedPath() }
+        log.info { "Fetching all..." }
+        val excludedPaths = transaction {
+            ExcludedPaths.selectAll().map { it.toExcludedPath() }
+        }
+        log.info { "Fetched ${excludedPaths.size}." }
+        return excludedPaths
     }
 
-    override fun contains(path: Path) = !ExcludedPaths.selectBy { it.path.eq(path.toString()) }.empty()
+    override fun contains(path: Path): Boolean {
+        log.debug { "Checking if exists: '$path'..." }
+        val contains = transaction {
+            !ExcludedPaths.selectBy { it.path.eq(path.toString()) }.empty()
+        }
+        log.debug { "Exists: $contains."}
+        return contains
+    }
 
     override fun add(path: Path): ExcludedPath {
-        log.i { "Inserting excludedPath: path=$path" }
-        val id = ExcludedPaths.insert {
-            it[ExcludedPaths.path] = path.toString()
-        } get ExcludedPaths.id
+        log.info { "Inserting: '$path'..." }
+        val id = transaction {
+            ExcludedPaths.insert {
+                it[ExcludedPaths.path] = path.toString()
+            } get ExcludedPaths.id
+        }
         val excludedPath = ExcludedPath(id, path)
-        log.i { "Inserted: $excludedPath" }
+        log.info { "Inserted: $excludedPath." }
         return excludedPath
     }
 
     override fun delete(id: Int) {
-        log.i { "Deleting excludedPath: id=$id..." }
-        require(ExcludedPaths.deleteWhere { ExcludedPaths.id.eq(id) } == 1) { "ExcludedPath doesn't exist: $id" }
-        log.i { "Deleted." }
+        log.info { "Deleting: $id..." }
+        val amount = transaction {
+            ExcludedPaths.deleteWhere { ExcludedPaths.id.eq(id) }
+        }
+        require(amount == 1) { "ExcludedPath doesn't exist: $id" }
+        log.info { "Deleted." }
     }
 }

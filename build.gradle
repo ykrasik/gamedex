@@ -48,7 +48,11 @@ buildscript {
             controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.20.9']
 
             junit = [group: 'junit', name: 'junit', version: '4.11']
-            mockito = [group: 'org.mockito', name: 'mockito-all', version: '1.9.5']
+            mockito = [:].with {
+                core = [group: 'org.mockito', name: 'mockito-all', version: '1.9.5']
+                kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '0.7.0']
+                delegate
+            }
 
             delegate
         }
@@ -94,7 +98,8 @@ subprojects {
         compile dep.guice.multibindings
 
         testCompile dep.junit
-        testCompile dep.mockito
+        testCompile dep.mockito.core
+        testCompile dep.mockito.kotlin
         testCompile dep.guice.junit
     }
 
