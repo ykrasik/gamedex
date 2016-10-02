@@ -2,7 +2,7 @@ dependencies {
     compile project(":gamedex-common")
     compile project(":gamedex-datamodel")
 
-    compile group: 'org.jetbrains.exposed', name: 'exposed', version: exposedVersion
-
-    compile "com.h2database:h2:$h2Version"
+    compile dep.h2
+    compile dep.exposed
+    compile dep.flyway
 }

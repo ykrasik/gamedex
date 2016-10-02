@@ -1,40 +1,57 @@
 buildscript {
     ext {
-        // FIXME: Delete these
-springVersion = '4.1.1.RELEASE'
-lombokVersion = '1.16.0'
-gsCollectionsVersion = '6.0.0'
-yavaVersion = '0.1.0'
-unirestVersion = '1.3.22'
+        dep = [:].with {
+            kotlin = [:].with {
+                v = '1.0.4'
+                std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
+                reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
+                gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
+                dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.7']
+                delegate
+            }
 
-        kotlinVersion = '1.0.4'
-        groovyVersion = '2.4.7'
+            groovy = [group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7']
 
-        guiceVersion = '4.1.0'
+            guice = [:].with {
+                v = '4.1.0'
+                core = [group: 'com.google.inject', name: 'guice', version: v]
+                multibindings = [group: 'com.google.inject.extensions', name: 'guice-multibindings', version: v]
+                junit = [group: 'com.carlosbecker', name: 'guice-junit-test-runner', version: '1.1']
+                delegate
+            }
 
-        typesafeConfigVersion = '1.3.1'
+            slf4j = [group: 'org.slf4j', name: 'slf4j-api', version: '1.7.6']
+            logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2']
 
-        controlsFxVersion = '8.20.9'
+            config = [group: 'com.typesafe', name: 'config', version: '1.3.1']
 
-        slf4jVersion = '1.7.6'
-        logbackVersion = '1.1.2'
+            guava = [group: 'com.google.guava', name: 'guava', version: '18.0']
+            commonsLang3 = [group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2']
 
-        guavaVersion = '18.0'
-        commonsLang3Version = '3.3.2'
-        jaciVersion = '0.4.0'
+            jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.3']
 
-        jodaVersion = '2.9.3'
+            jaci = [group: 'com.github.ykrasik', name: 'jaci-javafx-cli', version: '0.4.0']
 
-        fuelVersion = '1.3.1'
-        jacksonVersion = '2.8.3'
+            fuel = [group: 'com.github.kittinunf.fuel', name: 'fuel', version: '1.3.1']
 
-        h2Version = '1.4.182'
-        exposedVersion = '0.6.5'
+            jackson = [:].with {
+                v = '2.8.3'
+                core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
+                kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
+                delegate
+            }
 
-        junitVersion = '4.11'
-        mockitoVersion = '1.9.5'
+            h2 = [group: 'com.h2database', name: 'h2', version: '1.4.192']
+            exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.6.5']
+            flyway = [group: 'org.flywaydb', name: 'flyway-core', version: '4.0.3']
 
-        gradleDokkaVersion = '0.9.7'
+            controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.20.9']
+
+            junit = [group: 'junit', name: 'junit', version: '4.11']
+            mockito = [group: 'org.mockito', name: 'mockito-all', version: '1.9.5']
+
+            delegate
+        }
     }
 
     repositories {
@@ -44,8 +61,8 @@ unirestVersion = '1.3.22'
     }
 
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$gradleDokkaVersion"
+        classpath dep.kotlin.gradle
+        classpath dep.kotlin.dokka
     }
 }
 
@@ -68,17 +85,17 @@ subprojects {
     apply plugin: 'org.jetbrains.dokka'
 
     dependencies {
-        // FIXME: Delete these
-compile "org.projectlombok:lombok:$lombokVersion"
+        compile dep.kotlin.std
+        compile dep.kotlin.reflect
 
-        compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+        compile dep.slf4j
 
-        compile "org.slf4j:slf4j-api:$slf4jVersion"
+        compile dep.guice.core
+        compile dep.guice.multibindings
 
-        testCompile "junit:junit:$junitVersion"
-        testCompile "org.mockito:mockito-all:$mockitoVersion"
-        testCompile "com.carlosbecker:guice-junit-test-runner:1.1"
+        testCompile dep.junit
+        testCompile dep.mockito
+        testCompile dep.guice.junit
     }
 
     dokka {

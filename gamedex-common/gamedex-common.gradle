@@ -1,23 +1,16 @@
 dependencies {
-    // FIXME: Delete these
-compile "org.springframework:spring-context:$springVersion"
-compile "com.goldmansachs:gs-collections:$gsCollectionsVersion"
-compile "com.github.ykrasik:yava:$yavaVersion"
+    // FIXME: Decide if this shoud stay
 compile 'com.thoughtworks.xstream:xstream:1.4.7'
 
-    compile group: 'com.google.inject', name: 'guice', version: guiceVersion
-    compile group: 'com.google.inject.extensions', name: 'guice-multibindings', version: guiceVersion
+    compile dep.groovy
+    compile dep.logback
 
-    compile "ch.qos.logback:logback-classic:$logbackVersion"
+    compile dep.config
 
-    compile group: 'com.typesafe', name: 'config', version: typesafeConfigVersion
+    compile dep.guava
+    compile dep.commonsLang3
 
-    compile "com.google.guava:guava:$guavaVersion"
-    compile "org.apache.commons:commons-lang3:$commonsLang3Version"
+    compile dep.jodaTime
 
-    compile group: 'joda-time', name: 'joda-time', version: jodaVersion
-
-    compile "com.github.ykrasik:jaci-javafx-cli:$jaciVersion"
-
-    runtime "org.codehaus.groovy:groovy-all:$groovyVersion"
+    compile dep.jaci
 }
