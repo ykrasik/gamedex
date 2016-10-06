@@ -4,6 +4,7 @@ import com.carlosbecker.guice.GuiceModules
 import com.carlosbecker.guice.GuiceTestRunner
 import com.github.ykrasik.gamedex.common.module.CommonModule
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.*
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.provider.module.JacksonModule
 import org.joda.time.LocalDate

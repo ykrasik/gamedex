@@ -1,6 +1,7 @@
-package com.gitlab.ykrasik.gamedex.provider.giantbomb
+package com.gitlab.ykrasik.gamedex.provider.giantbomb.client
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombJacksonDateDeserializer
 import org.joda.time.LocalDate
@@ -10,6 +11,7 @@ import org.joda.time.LocalDate
  * Date: 01/10/2016
  * Time: 10:54
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class GiantBombDetailsResponse(
     val statusCode: GiantBombStatus,
 
@@ -30,10 +32,12 @@ data class GiantBombDetailsResult(
     val genres: List<GiantBombGenre>
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class GiantBombGenre(
     val name: String
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class GiantBombDetailsImage(
     val thumbUrl: String,
     val superUrl: String

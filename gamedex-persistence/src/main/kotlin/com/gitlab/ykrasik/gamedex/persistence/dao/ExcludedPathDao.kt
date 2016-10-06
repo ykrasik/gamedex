@@ -4,13 +4,14 @@ import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
 import com.gitlab.ykrasik.gamedex.persistence.entity.ExcludedPaths
 import com.gitlab.ykrasik.gamedex.persistence.entity.selectBy
-import com.gitlab.ykrasik.gamedex.persistence.entity.toExcludedPath
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Path
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +34,7 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
     override val all: List<ExcludedPath> get() {
         log.info { "Fetching all..." }
         val excludedPaths = transaction {
-            ExcludedPaths.selectAll().map { it.toExcludedPath() }
+            ExcludedPaths.selectAll().map { Mapper(it) }
         }
         log.info { "Fetched ${excludedPaths.size}." }
         return excludedPaths
@@ -67,5 +68,12 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
         }
         require(amount == 1) { "ExcludedPath doesn't exist: $id" }
         log.info { "Deleted." }
+    }
+
+    private object Mapper {
+        operator fun invoke(row: ResultRow) = ExcludedPath(
+            id = row[ExcludedPaths.id],
+            path = Paths.get(row[ExcludedPaths.path])
+        )
     }
 }

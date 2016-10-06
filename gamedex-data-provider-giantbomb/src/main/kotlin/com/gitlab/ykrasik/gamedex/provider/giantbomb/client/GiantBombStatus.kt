@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.provider.giantbomb
+package com.gitlab.ykrasik.gamedex.provider.giantbomb.client
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.github.ykrasik.gamedex.common.enums.EnumIdConverter

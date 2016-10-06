@@ -6,7 +6,12 @@ package com.gitlab.ykrasik.gamedex.persistence
  * Time: 21:18
  */
 object TestDbInitializer {
-    private val initializer: DbInitializer = DbInitializer(PersistenceConfig.test)
+    private val initializer: DbInitializer = DbInitializer(PersistenceConfig(
+        dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
+        driver = "org.h2.Driver",
+        user = "sa",
+        password = ""
+    ))
 
     init {
         initializer.connect()

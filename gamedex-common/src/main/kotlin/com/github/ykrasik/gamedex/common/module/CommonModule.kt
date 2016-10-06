@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -16,6 +17,7 @@ class CommonModule : AbstractModule() {
     }
 
     @Provides
+    @Singleton
     fun config(): Config {
         // TODO: Load all .conf files on classpath
         return ConfigFactory.load()

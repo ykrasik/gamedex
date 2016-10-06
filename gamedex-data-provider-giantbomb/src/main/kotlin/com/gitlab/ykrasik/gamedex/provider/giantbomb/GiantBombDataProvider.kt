@@ -4,6 +4,9 @@ import com.github.ykrasik.gamedex.common.getResourceAsByteArray
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.GiantBombClient
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.GiantBombDetailsResult
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.GiantBombSearchResult
 import javax.inject.Inject
 import javax.inject.Singleton
 

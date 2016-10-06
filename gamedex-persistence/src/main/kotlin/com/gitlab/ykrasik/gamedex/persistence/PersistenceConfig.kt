@@ -10,13 +10,4 @@ data class PersistenceConfig(
     val driver: String,
     val user: String,
     val password: String
-) {
-    companion object {
-        val test: PersistenceConfig get() = PersistenceConfig(
-            dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-            driver = "org.h2.Driver",
-            user = "sa",
-            password = ""
-        )
-    }
-}
+)

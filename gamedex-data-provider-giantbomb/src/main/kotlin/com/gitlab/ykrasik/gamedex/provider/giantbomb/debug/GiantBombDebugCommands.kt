@@ -4,8 +4,8 @@ import com.github.ykrasik.gamedex.common.debug.DebugCommands
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.jaci.api.*
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombClient
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.GiantBombClient
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -17,9 +18,9 @@ class JacksonModule : AbstractModule() {
     }
 
     @Provides
+    @Singleton
     fun objectMapper(): ObjectMapper = ObjectMapper()
         .registerModule(KotlinModule())
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
 }

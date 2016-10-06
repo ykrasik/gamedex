@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence.entity
 
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
 import com.github.ykrasik.gamedex.datamodel.persistence.Game
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre
 import com.github.ykrasik.gamedex.datamodel.persistence.Library
@@ -47,11 +46,3 @@ object GamesMapper {
     }
 }
 inline fun ResultRow.toGame(genres: OneToManyContext<Genre>, library: Library): Game = GamesMapper.map(this, genres, library)
-
-object ExcludedPathsMapper {
-    fun map(row: ResultRow) = ExcludedPath(
-        id = row[ExcludedPaths.id],
-        path = Paths.get(row[ExcludedPaths.path])
-    )
-}
-inline fun ResultRow.toExcludedPath(): ExcludedPath = ExcludedPathsMapper.map(this)
