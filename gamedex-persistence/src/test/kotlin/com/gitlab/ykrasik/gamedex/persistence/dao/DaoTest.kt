@@ -14,7 +14,7 @@ import com.nhaarman.mockito_kotlin.atLeast
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import io.kotlintest.specs.WordSpec
+import io.kotlintest.specs.StringSpec
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 
@@ -23,7 +23,7 @@ import org.joda.time.LocalDate
  * Date: 06/10/2016
  * Time: 20:55
  */
-abstract class DaoTest : WordSpec() {
+abstract class DaoTest : StringSpec() {
     val now = DateTime.now()
 
     private val timeProvider = mock<TimeProvider> {
@@ -93,6 +93,10 @@ abstract class DaoTest : WordSpec() {
         val genre = genreDao.add(name)
         genre shouldBe Genre(id.toId(), name)
         return genre
+    }
+
+    fun givenGenresAreLinkedToGame(game: Game, vararg genres: Genre) {
+        genreDao.linkedGames.link(game.id, genres.toList())
     }
 
     fun givenExcludedPathExists(id: Int, rawPath: String): ExcludedPath {

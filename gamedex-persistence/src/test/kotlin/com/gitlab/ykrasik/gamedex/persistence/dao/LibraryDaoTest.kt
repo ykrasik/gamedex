@@ -16,71 +16,69 @@ class LibraryDaoTest : DaoTest() {
     val dao = libraryDao
 
     init {
-        "LibraryDao" should {
-            "insert and be able to check that a library for this path exists" {
-                givenLibraryExists(1, "path/to/library")
+        "Insert and check that a library for this path exists" {
+            givenLibraryExists(1, "path/to/library")
 
-                dao.exists("path/to/library".toPath()) shouldBe true
-                dao.exists("path/to/library2".toPath()) shouldBe false
+            dao.exists("path/to/library".toPath()) shouldBe true
+            dao.exists("path/to/library2".toPath()) shouldBe false
+        }
+
+        "Insert and retrieve libraries" {
+            val library1 = givenLibraryExists(1, "library1")
+            val library2 = givenLibraryExists(2, "library2")
+
+            dao.get(1.toId()) shouldBe library1
+            dao.get(2.toId()) shouldBe library2
+        }
+
+        "Retrieve all existing libraries" {
+            val library1 = givenLibraryExists(1, "library1")
+            val library2 = givenLibraryExists(2, "library2")
+            val library3 = givenLibraryExists(3, "library3")
+
+            dao.all shouldBe listOf(library1, library2, library3)
+        }
+
+        // FIXME: This will fail if the game is linked to a genre.
+        "Delete existing libraries along with all their games" {
+            val library1 = givenLibraryExists(1, "library1")
+            val game1 = givenGameExists(1, library1)
+            val game2 = givenGameExists(2, library1)
+
+            val library2 = givenLibraryExists(2, "library2")
+            val game3 = givenGameExists(3, library2)
+
+            dao.delete(library1)
+            gameDao.all shouldBe listOf(game3)
+            dao.all shouldBe listOf(library2)
+
+            dao.delete(library2)
+            gameDao.all shouldBe emptyList<Game>()
+            dao.all shouldBe emptyList<Library>()
+        }
+
+        "Throw an exception when trying to fetch a non-existing library" {
+            givenLibraryExists(1, "library1")
+
+            shouldThrow<IllegalArgumentException> {
+                dao.get(2.toId())
             }
+        }
 
-            "insert and retrieve libraries" {
-                val library1 = givenLibraryExists(1, "library1")
-                val library2 = givenLibraryExists(2, "library2")
+        "Throw an exception when trying to delete a library that doesn't exist" {
+            givenLibraryExists(1, "library1")
 
-                dao.get(1.toId()) shouldBe library1
-                dao.get(2.toId()) shouldBe library2
+            shouldThrow<IllegalArgumentException> {
+                val invalidLibrary = Library(2.toId(), "".toPath(), GamePlatform.PC, "")
+                dao.delete(invalidLibrary)
             }
+        }
 
-            "throw an exception when trying to fetch a non-existing library" {
-                givenLibraryExists(1, "library1")
+        "Throw an exception when trying to insert a library at the same path twice" {
+            givenLibraryExists(1, "path1", GamePlatform.PC, "library1")
 
-                shouldThrow<IllegalArgumentException> {
-                    dao.get(2.toId())
-                }
-            }
-
-            "return all existing libraries" {
-                val library1 = givenLibraryExists(1, "library1")
-                val library2 = givenLibraryExists(2, "library2")
-                val library3 = givenLibraryExists(3, "library3")
-
-                dao.all shouldBe listOf(library1, library2, library3)
-            }
-
-            "delete an existing libraries along with all their games" {
-                val library1 = givenLibraryExists(1, "library1")
-                val game1 = givenGameExists(1, library1)
-                val game2 = givenGameExists(2, library1)
-
-                val library2 = givenLibraryExists(2, "library2")
-
-                val game3 = givenGameExists(3, library2)
-
-                dao.delete(library1)
-                gameDao.all shouldBe listOf(game3)
-                dao.all shouldBe listOf(library2)
-
-                dao.delete(library2)
-                gameDao.all shouldBe emptyList<Game>()
-                dao.all shouldBe emptyList<Library>()
-            }
-
-            "throw an exception when trying to delete a library that doesn't exist" {
-                givenLibraryExists(1, "library1")
-
-                shouldThrow<IllegalArgumentException> {
-                    val invalidLibrary = Library(2.toId(), "".toPath(), GamePlatform.PC, "")
-                    dao.delete(invalidLibrary)
-                }
-            }
-
-            "throw an exception when trying to insert a library at the same path twice" {
-                givenLibraryExists(1, "path1", GamePlatform.PC, "library1")
-
-                shouldThrow<JdbcSQLException> {
-                    dao.add("path1".toPath(), GamePlatform.XBOX_360, "library2")
-                }
+            shouldThrow<JdbcSQLException> {
+                dao.add("path1".toPath(), GamePlatform.XBOX_360, "library2")
             }
         }
     }
