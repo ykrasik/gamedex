@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.datamodel.ImageData
 import org.joda.time.LocalDate
 
 /**
@@ -15,7 +14,7 @@ data class ProviderGameData(
     val releaseDate: LocalDate?,
     val criticScore: Double?,
     val userScore: Double?,
-    val thumbnail: ImageData?,
-    val poster: ImageData?,
+    val thumbnailUrl: String?,
+    val posterUrl: String?,
     val genres: List<String>
 )

@@ -5,7 +5,6 @@ import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.jaci.api.*
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.client.GiantBombClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,8 +14,7 @@ import javax.inject.Singleton
 @Singleton
 @CommandPath("giantbomb")
 class GiantBombDebugCommands @Inject constructor(
-    private val provider: GiantBombDataProvider,
-    private val client: GiantBombClient
+    private val provider: GiantBombDataProvider
 ) : DebugCommands {
     private lateinit var output: CommandOutput
 
@@ -33,26 +31,10 @@ class GiantBombDebugCommands @Inject constructor(
             detailUrl = url,
             name = "",
             releaseDate = null,
-            score = null
+            score = null,
+            thumbnailUrl = null
         )
         val response = provider.fetch(searchResult)
         output.message(response.toString())
-    }
-
-    @CommandPath("client")
-    inner class Client {
-
-        @Command("search")
-        fun search(@StringParam("name") name: String,
-                   @EnumParam(value = "platform", optional = true, defaultValue = "PC") platform: GamePlatform) {
-            val response = client.search(name, platform)
-            output.message(response.toString())
-        }
-
-        @Command("get")
-        fun get(@StringParam("detailUrl") detailUrl: String) {
-            val response = client.fetch(detailUrl)
-            output.message(response.toString())
-        }
     }
 }

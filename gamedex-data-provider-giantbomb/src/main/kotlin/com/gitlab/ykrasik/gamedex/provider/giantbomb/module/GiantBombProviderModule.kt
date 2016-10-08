@@ -13,7 +13,5 @@ import com.google.inject.multibindings.Multibinder
 class GiantBombProviderModule : AbstractModule() {
     override fun configure() {
         Multibinder.newSetBinder(binder(), DataProvider::class.java).addBinding().to(GiantBombDataProvider::class.java)
-        // TODO: If this works without this, delete the following line
-//        bind(GiantBombConfig::class.java).toInstance(GiantBombConfig())
     }
 }

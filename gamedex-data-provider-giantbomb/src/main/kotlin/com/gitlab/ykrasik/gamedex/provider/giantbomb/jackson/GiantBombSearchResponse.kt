@@ -1,8 +1,9 @@
-package com.gitlab.ykrasik.gamedex.provider.giantbomb.client
+package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombJacksonDateDeserializer
+import com.gitlab.ykrasik.gamedex.provider.DataProviderException
+import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import org.joda.time.LocalDate
 
 /**
@@ -15,7 +16,11 @@ data class GiantBombSearchResponse(
     val statusCode: GiantBombStatus,
     val results: List<GiantBombSearchResult>
 ) {
-    fun isOk() = statusCode == GiantBombStatus.ok
+    fun assertOk() {
+        if (statusCode != GiantBombStatus.ok) {
+            throw DataProviderException("Invalid statusCode: $statusCode")
+        }
+    }
 }
 
 data class GiantBombSearchResult(
@@ -24,7 +29,15 @@ data class GiantBombSearchResult(
     @JsonDeserialize(using = GiantBombJacksonDateDeserializer::class)
     val originalReleaseDate: LocalDate?,
     val image: GiantBombSearchImage
-)
+) {
+    fun toSearchResult() = SearchResult(
+        detailUrl = this.apiDetailUrl,
+        name = this.name,
+        releaseDate = this.originalReleaseDate,
+        score = null,
+        thumbnailUrl = this.image.thumbUrl
+    )
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GiantBombSearchImage(

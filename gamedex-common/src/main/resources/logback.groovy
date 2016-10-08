@@ -17,7 +17,7 @@ import static ch.qos.logback.classic.Level.INFO
 log = [
     ROOT: INFO,
     CONSOLE: INFO,
-    DATA_PROVIDER: INFO,
+    DATA_PROVIDER: DEBUG,
     PERSISTENCE: DEBUG,
     SQL: DEBUG,
 ]
@@ -38,19 +38,14 @@ class LoggerConfig {
     String pattern = "%date{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n"
     Level level = null
     String maxFileSize = "5mb"
-    boolean transitive = true
+    boolean transitive = false
 }
 DEFAULT_CONFIG = new LoggerConfig()
 
-APPENDER_CONSOLE = "console"
-appender(APPENDER_CONSOLE, ConsoleAppender) {
-    filter(ThresholdFilter) {
-        level = log.CONSOLE
-    }
-    encoder(PatternLayoutEncoder) {
-        pattern = this.DEFAULT_CONFIG.pattern
-    }
-}
+consoleAppender = "console"
+
+nowStr = DateTimeFormatter.ofPattern("yyyy_MM_dd__HH_mm").format(LocalDateTime.now())
+mainAppender = "gameDex__" + nowStr
 
 def createLogger(String name, Map loggers, LoggerConfig config = DEFAULT_CONFIG) {
     if (!name || !loggers) {
@@ -60,7 +55,7 @@ def createLogger(String name, Map loggers, LoggerConfig config = DEFAULT_CONFIG)
     // Configure the logger
     rollingFileAppender(name, config)
 
-    List appenders = [name, APPENDER_CONSOLE]
+    List appenders = [name, mainAppender, consoleAppender]
 
     loggers.each { logPackage, logLevel ->
         println "LOGBACK:    * $logPackage : $logLevel"
@@ -102,18 +97,23 @@ def rollingFileAppender(String name, LoggerConfig config) {
  *                          Loggers                            *
  ***************************************************************/
 
-// Root
-def String nowStr = DateTimeFormatter.ofPattern("yyyy_MM_dd__HH_mm").format(LocalDateTime.now())
-def String mainLogFile = "gameDex__" + nowStr
+appender(consoleAppender, ConsoleAppender) {
+    filter(ThresholdFilter) {
+        level = log.CONSOLE
+    }
+    encoder(PatternLayoutEncoder) {
+        pattern = this.DEFAULT_CONFIG.pattern
+    }
+}
+
 createLogger(
-    mainLogFile,
+    mainAppender,
     [
         "root": log.ROOT,
     ],
     new LoggerConfig(level: log.ROOT)
 )
 
-// Game info service
 createLogger(
     "provider",
     [
@@ -121,7 +121,6 @@ createLogger(
     ]
 )
 
-// SQL
 createLogger(
     "persistence",
     [

@@ -11,5 +11,6 @@ data class SearchResult(
     val detailUrl: String,
     val name: String,
     val releaseDate: LocalDate?,
-    val score: Double?
+    val score: Double?,
+    val thumbnailUrl: String?
 )
