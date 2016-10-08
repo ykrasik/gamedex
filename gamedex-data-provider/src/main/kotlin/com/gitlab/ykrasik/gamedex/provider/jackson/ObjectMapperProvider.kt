@@ -1,25 +1,18 @@
-package com.gitlab.ykrasik.gamedex.provider.module
+package com.gitlab.ykrasik.gamedex.provider.jackson
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.google.inject.AbstractModule
-import com.google.inject.Provides
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/10/2016
- * Time: 10:22
+ * Date: 08/10/2016
+ * Time: 09:21
  */
-class JacksonModule : AbstractModule() {
-    override fun configure() {
-    }
-
-    @Provides
-    @Singleton
-    fun objectMapper(): ObjectMapper = ObjectMapper()
+// TODO: Are global variables like this lazy by default?
+val objectMapper: ObjectMapper by lazy {
+    ObjectMapper()
         .registerModule(KotlinModule())
         .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)

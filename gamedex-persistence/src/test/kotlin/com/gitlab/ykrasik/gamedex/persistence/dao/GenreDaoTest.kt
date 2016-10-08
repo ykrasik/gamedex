@@ -1,88 +1,88 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
+import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.datamodel.persistence.Genre
 import org.h2.jdbc.JdbcSQLException
-import org.junit.Assert.assertEquals
 
 /**
  * User: ykrasik
  * Date: 06/10/2016
  * Time: 21:07
  */
-class GenreDaoTest : BaseDaoTest() {
-    val dao = GenreDaoImpl()
+class GenreDaoTest : DaoTest() {
+    val dao = genreDao
 
     init {
         "GenreDao" should {
-            "insert and retrieve genre" {
-                val genre1 = givenGenreExists("genre1", 1)
-                dao.getByName("genre1") shouldBe genre1
-                dao.getByName("genre2") shouldBe null
+            "insert and retrieve a genre" {
+                val genre1 = givenGenreExists(1, "genre1")
+                dao.get("genre1") shouldBe genre1
+                dao.get("genre2") shouldBe null
             }
 
             "retrieve all existing genres" {
-                val genre1 = givenGenreExists("genre1", 1)
-                val genre2 = givenGenreExists("genre2", 2)
-                val genre3 = givenGenreExists("genre3", 3)
+                val genre1 = givenGenreExists(1, "genre1")
+                val genre2 = givenGenreExists(2, "genre2")
+                val genre3 = givenGenreExists(3, "genre3")
 
                 dao.all shouldBe listOf(genre1, genre2, genre3)
             }
 
-            "getOrAdd returns existing genre when it exists" {
-                val genre = givenGenreExists("genre", 1)
+            "getOrAdd returns an existing genre when it exists" {
+                // TODO: This doesn't really test this case, lacks an assertion that verifies
+                val genre = givenGenreExists(1, "genre")
                 dao.getOrAdd("genre") shouldBe genre
             }
 
             "getOrAdd inserts a new genre when it doesn't exist" {
-                dao.getOrAdd("genre") shouldBe Genre(1, "genre")
+                // TODO: This doesn't really test this case, lacks an assertion that verifies
+                dao.getOrAdd("genre") shouldBe Genre(1.toId(), "genre")
             }
 
-            "delete single genre by id" {
-                val genre1 = givenGenreExists("genre1", 1)
-                val genre2 = givenGenreExists("genre2", 2)
-                val genre3 = givenGenreExists("genre3", 3)
+            "delete a single genre" {
+                val genre1 = givenGenreExists(1, "genre1")
+                val genre2 = givenGenreExists(2, "genre2")
+                val genre3 = givenGenreExists(3, "genre3")
 
-                dao.deleteByIds(listOf(2)) shouldBe 1
+                dao.delete(listOf(genre2)) shouldBe 1
                 dao.all shouldBe listOf(genre1, genre3)
             }
 
-            "delete multiple genres by id" {
-                val genre1 = givenGenreExists("genre1", 1)
-                val genre2 = givenGenreExists("genre2", 2)
-                val genre3 = givenGenreExists("genre3", 3)
+            "delete multiple genres" {
+                val genre1 = givenGenreExists(1, "genre1")
+                val genre2 = givenGenreExists(2, "genre2")
+                val genre3 = givenGenreExists(3, "genre3")
 
-                dao.deleteByIds(listOf(1, 3)) shouldBe 2
+                dao.delete(listOf(genre1, genre3)) shouldBe 2
                 dao.all shouldBe listOf(genre2)
             }
 
-            "delete multiple genres by id, but ignore ids that don't exist" {
-                val genre1 = givenGenreExists("genre1", 1)
-                val genre2 = givenGenreExists("genre2", 2)
-                val genre3 = givenGenreExists("genre3", 3)
+            "delete multiple genres but ignore genres that don't exist" {
+                val genre1 = givenGenreExists(1, "genre1")
+                val genre2 = givenGenreExists(2, "genre2")
+                val genre3 = givenGenreExists(3, "genre3")
+                val invalidGenre = Genre(4.toId(), "invalidGenre")
 
-                dao.deleteByIds(listOf(1, 3, 4)) shouldBe 2
+                dao.delete(listOf(genre1, genre3, invalidGenre)) shouldBe 2
                 dao.all shouldBe listOf(genre2)
             }
 
-            "not delete anything when no genre ids match the delete criteria" {
-                val genre1 = givenGenreExists("genre1", 1)
-                val genre2 = givenGenreExists("genre2", 2)
-                val genre3 = givenGenreExists("genre3", 3)
+            "not delete anything when no genres match the delete criteria" {
+                val genre1 = givenGenreExists(1, "genre1")
+                val invalidGenre1 = Genre(2.toId(), "invalidGenre1")
+                val invalidGenre2 = Genre(3.toId(), "invalidGenre2")
 
-                dao.deleteByIds(listOf(4, 5, 6)) shouldBe 0
-                dao.all shouldBe listOf(genre1, genre2, genre3)
+                dao.delete(listOf(invalidGenre1, invalidGenre2)) shouldBe 0
+                dao.all shouldBe listOf(genre1)
             }
 
             "throw an exception when trying to insert the same genre twice" {
-                givenGenreExists("genre", 1)
+                givenGenreExists(1, "genre")
+
                 shouldThrow<JdbcSQLException> {
                     dao.add("genre")
                 }
             }
         }
-    }
-
-    private fun givenGenreExists(name: String, expectedId: Int): Genre = dao.add(name).apply {
-        assertEquals(Genre(expectedId, name), this)
     }
 }

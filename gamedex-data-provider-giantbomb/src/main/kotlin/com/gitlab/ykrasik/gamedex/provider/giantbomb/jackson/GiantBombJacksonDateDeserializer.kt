@@ -11,6 +11,7 @@ import java.time.format.DateTimeParseException
  * Date: 02/10/2016
  * Time: 09:31
  */
+// FIXME: Use JsonFormat instead?
 class GiantBombJacksonDateDeserializer : JsonDeserializer<LocalDate?>() {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): LocalDate? {
         // The date comes at a non-standard format, with a ' ' between the date and time (rather then 'T' as ISO dictates).

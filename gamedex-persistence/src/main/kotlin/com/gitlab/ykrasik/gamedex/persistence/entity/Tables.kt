@@ -48,7 +48,7 @@ object Genres : Table() {
     val name = varchar("name", 255).uniqueIndex()
 }
 
-object GameGenres : Table() {
+object GameGenres : Table("game_genres") {
     val id = integer("id").autoIncrement().primaryKey()
     val game = reference("game_id", Games.id)
     val genre = reference("genre_id", Genres.id)

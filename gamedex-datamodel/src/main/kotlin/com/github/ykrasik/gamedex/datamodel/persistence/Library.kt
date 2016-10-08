@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.persistence
 
+import com.github.ykrasik.gamedex.common.Id
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import java.nio.file.Path
 
@@ -9,13 +10,11 @@ import java.nio.file.Path
  * Time: 11:29
  */
 data class Library(
-    val id: Int,
+    val id: Id<Library>,
     val path: Path,
     val platform: GamePlatform,
     val name: String
 ) : Comparable<Library> {
 
     override fun compareTo(other: Library) = name.compareTo(other.name)
-
-    override fun toString() = name
 }

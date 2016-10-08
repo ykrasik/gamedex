@@ -16,7 +16,7 @@ LOG_LEVELS = [
     CONSOLE: INFO,
     GAME_INFO_SERVICE: INFO,
     PERSISTENCE: DEBUG,
-    SQL: INFO,
+    SQL: DEBUG,
 ]
 
 scan("30 seconds")
@@ -122,8 +122,9 @@ createLogger(
 createLogger(
     "persistence",
     [
-        "com.github.ykrasik.gamedex.persistence": LOG_LEVELS.PERSISTENCE,
-        "com.j256.ormlite": LOG_LEVELS.SQL,
+        "com.gitlab.ykrasik.gamedex.persistence": LOG_LEVELS.PERSISTENCE,
+        "org.flywaydb": LOG_LEVELS.SQL,
+        "Exposed": LOG_LEVELS.SQL
     ],
     [
         includeSystemAppenders: false

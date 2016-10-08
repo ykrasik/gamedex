@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.persistence
 
+import com.github.ykrasik.gamedex.common.Id
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import java.nio.file.Path
@@ -10,7 +11,7 @@ import java.nio.file.Path
  * Time: 15:32
  */
 data class Game(
-    val id: Int,
+    val id: Id<Game>,
     val path: Path,
 
     val name: String,
@@ -28,6 +29,6 @@ data class Game(
     val genres: List<Genre>,
     val library: Library
 ) {
-    override fun hashCode() = id.hashCode()
-    override fun equals(other: Any?) = id.equals(other)
+
+    override fun toString() = "Game(id = $id, name = $name, path = $path)"
 }

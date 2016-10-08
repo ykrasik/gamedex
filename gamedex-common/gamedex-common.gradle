@@ -1,4 +1,8 @@
 dependencies {
+// FIXME: Delete these
+compile "org.springframework:spring-context:4.1.1.RELEASE"
+compile "com.goldmansachs:gs-collections:6.0.0"
+compile "com.github.ykrasik:yava:0.1.0"
     // FIXME: Decide if this shoud stay
 compile 'com.thoughtworks.xstream:xstream:1.4.7'
 
@@ -13,4 +17,9 @@ compile 'com.thoughtworks.xstream:xstream:1.4.7'
     compile dep.jodaTime
 
     compile dep.jaci
+}
+
+// FIXME: Temp
+ext {
+    lombokVersion = '1.16.0'
 }

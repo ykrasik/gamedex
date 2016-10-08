@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
@@ -8,6 +7,7 @@ import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombConfig
+import com.gitlab.ykrasik.gamedex.provider.jackson.objectMapper
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,10 +17,7 @@ import javax.inject.Singleton
  * Time: 10:43
  */
 @Singleton
-class GiantBombClient @Inject constructor(
-    private val config: GiantBombConfig,
-    private val mapper: ObjectMapper
-) {
+class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     private val log by logger()
 
     private val searchFields = listOf("api_detail_url", "name", "original_release_date", "image").joinToString(",")
@@ -64,7 +61,7 @@ class GiantBombClient @Inject constructor(
         is Result.Failure -> throw error
         is Result.Success -> {
             log.debug { "Raw result: ${String(value)}" }
-            mapper.readValue(value, clazz)
+            objectMapper.readValue(value, clazz)
         }
     }
 }

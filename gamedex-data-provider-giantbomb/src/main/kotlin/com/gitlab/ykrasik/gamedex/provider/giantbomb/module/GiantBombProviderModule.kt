@@ -1,13 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.module
 
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombConfig
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
 import com.google.inject.AbstractModule
-import com.google.inject.Provides
 import com.google.inject.multibindings.Multibinder
-import com.typesafe.config.Config
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -17,9 +13,7 @@ import javax.inject.Singleton
 class GiantBombProviderModule : AbstractModule() {
     override fun configure() {
         Multibinder.newSetBinder(binder(), DataProvider::class.java).addBinding().to(GiantBombDataProvider::class.java)
+        // TODO: If this works without this, delete the following line
+//        bind(GiantBombConfig::class.java).toInstance(GiantBombConfig())
     }
-
-    @Provides
-    @Singleton
-    fun giantBombConfig(config: Config) = GiantBombConfig(config)
 }

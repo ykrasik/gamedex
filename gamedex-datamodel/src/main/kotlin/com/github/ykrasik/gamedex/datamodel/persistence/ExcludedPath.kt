@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel.persistence
 
+import com.github.ykrasik.gamedex.common.Id
 import java.nio.file.Path
 
 /**
@@ -8,7 +9,6 @@ import java.nio.file.Path
  * Time: 12:08
  */
 data class ExcludedPath(
-    val id: Int,
+    val id: Id<ExcludedPath>,
     val path: Path
-) {
-}
+)
