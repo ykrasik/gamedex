@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
+import com.github.ykrasik.gamedex.common.getObjectMap
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.typesafe.config.Config
 
 /**
  * User: ykrasik
@@ -12,4 +14,14 @@ data class GiantBombConfig(
     private val platforms: Map<GamePlatform, Int>
 ) {
     fun getPlatformId(platform: GamePlatform) = platforms[platform]!!
+
+    companion object {
+        operator fun invoke(config: Config): GiantBombConfig =
+            config.getConfig("gameDex.provider.giantBomb").let { config ->
+                GiantBombConfig(
+                    applicationKey = config.getString("applicationKey"),
+                    platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int })
+                )
+            }
+    }
 }

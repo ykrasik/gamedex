@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.module
 
-import com.github.ykrasik.gamedex.common.getObjectMap
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombConfig
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
@@ -23,11 +21,5 @@ class GiantBombProviderModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun giantBombConfig(config: Config): GiantBombConfig =
-        config.getConfig("gameDex.provider.giantBomb").let { config ->
-            GiantBombConfig(
-                applicationKey = config.getString("applicationKey"),
-                platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int })
-            )
-        }
+    fun giantBombConfig(config: Config) = GiantBombConfig(config)
 }

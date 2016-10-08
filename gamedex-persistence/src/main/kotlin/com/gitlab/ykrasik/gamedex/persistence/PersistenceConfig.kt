@@ -1,5 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
+import com.typesafe.config.Config
+
 /**
  * User: ykrasik
  * Date: 26/05/2016
@@ -10,4 +12,17 @@ data class PersistenceConfig(
     val driver: String,
     val user: String,
     val password: String
-)
+) {
+
+    companion object {
+        operator fun invoke(config: Config): PersistenceConfig =
+            config.getConfig("gameDex.persistence").let { config ->
+                PersistenceConfig(
+                    dbUrl = config.getString("dbUrl"),
+                    driver = config.getString("driver"),
+                    user = config.getString("user"),
+                    password = config.getString("password")
+                )
+            }
+    }
+}

@@ -22,7 +22,7 @@ import javax.inject.Singleton
  */
 interface ExcludedPathDao {
     val all: List<ExcludedPath>
-    operator fun contains(path: Path): Boolean
+    fun contains(path: Path): Boolean
     fun add(path: Path): ExcludedPath
     fun delete(id: Int)
 }
@@ -62,7 +62,7 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
     }
 
     override fun delete(id: Int) {
-        log.info { "Deleting: $id..." }
+        log.info { "Deleting: id=$id..." }
         val amount = transaction {
             ExcludedPaths.deleteWhere { ExcludedPaths.id.eq(id) }
         }

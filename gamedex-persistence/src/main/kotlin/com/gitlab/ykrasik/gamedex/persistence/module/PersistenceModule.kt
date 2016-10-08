@@ -27,13 +27,5 @@ class PersistenceModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun persistenceConfig(config: Config): PersistenceConfig =
-        config.getConfig("gameDex.persistence").let { config ->
-            PersistenceConfig(
-                dbUrl = config.getString("dbUrl"),
-                driver = config.getString("driver"),
-                user = config.getString("user"),
-                password = config.getString("password")
-            )
-        }
+    fun persistenceConfig(config: Config) = PersistenceConfig(config)
 }

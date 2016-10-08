@@ -69,7 +69,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
     }
 
     override fun deleteByIds(ids: List<Int>): Int {
-        log.info { "Deleting: $ids..." }
+        log.info { "Deleting: ids=$ids..." }
         val amount = transaction {
             Genres.deleteWhere { Genres.id.inList(ids) }
         }

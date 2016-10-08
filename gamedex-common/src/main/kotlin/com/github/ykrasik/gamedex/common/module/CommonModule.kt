@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.common.module
 
+import com.github.ykrasik.gamedex.common.ClassPathScanner
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.typesafe.config.Config
@@ -19,7 +20,11 @@ class CommonModule : AbstractModule() {
     @Provides
     @Singleton
     fun config(): Config {
-        // TODO: Load all .conf files on classpath
-        return ConfigFactory.load()
+        val configurationFiles = ClassPathScanner.scanPackage("") {
+            it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
+        }
+        return configurationFiles.fold(ConfigFactory.load()) { current, url ->
+            current.withFallback(ConfigFactory.parseURL(url))
+        }
     }
 }
