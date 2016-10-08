@@ -40,7 +40,7 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
         val excludedPaths = transaction {
             ExcludedPaths.selectAll().map { it.toExcludedPath() }
         }
-        log.info { "Done: ${excludedPaths.size} excluded paths." }
+        log.info { "Result: ${excludedPaths.size} excluded paths." }
         return excludedPaths
     }
 
@@ -49,7 +49,7 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
         val contains = transaction {
             !ExcludedPaths.selectBy { it.path.eq(path.toString()) }.empty()
         }
-        log.debug { "Done: $contains." }
+        log.debug { "Result: $contains." }
         return contains
     }
 
@@ -61,7 +61,7 @@ class ExcludedPathDaoImpl @Inject constructor() : ExcludedPathDao {
             } get ExcludedPaths.id
         }
         val excludedPath = ExcludedPath(id.toId(), path)
-        log.info { "Done: $excludedPath." }
+        log.info { "Result: $excludedPath." }
         return excludedPath
     }
 

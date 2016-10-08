@@ -39,7 +39,7 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
         val libraries = transaction {
             Libraries.selectAll().map { it.toLibrary() }
         }
-        log.info { "Done: ${libraries.size} libraries." }
+        log.info { "Result: ${libraries.size} libraries." }
         return libraries
     }
 
@@ -49,17 +49,17 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
             val library = Libraries.select { Libraries.id.eq(id.id) }.firstOrNull()
             requireNotNull(library) { "Library doesn't exist: $id!" }.toLibrary()
         }
-        log.info { "Done: $library." }
+        log.info { "Result: $library." }
         return library
     }
 
     override fun exists(path: Path): Boolean {
         log.debug { "Checking if exists: '$path'..." }
-        val contains = transaction {
+        val exists = transaction {
             !Libraries.select { Libraries.path.eq(path.toString()) }.empty()
         }
-        log.debug { "Done: $contains." }
-        return contains
+        log.debug { "Result: $exists." }
+        return exists
     }
 
     override fun add(path: Path, platform: GamePlatform, name: String): Library {
@@ -72,7 +72,7 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
             } get Libraries.id
         }
         val library = Library(id.toId(), path, platform, name)
-        log.info { "Done: $library." }
+        log.info { "Result: $library." }
         return library
     }
 
@@ -86,13 +86,10 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
     }
 }
 
-object LibrariesMapper {
-    fun map(row: ResultRow) = Library(
-        id = row[Libraries.id].toId(),
-        path = row[Libraries.path].toPath(),
-        platform = row[Libraries.platform],
-        name = row[Libraries.name]
-    )
-}
-
-inline fun ResultRow.toLibrary(): Library = LibrariesMapper.map(this)
+// FIXME: Hide this somehow.
+inline fun ResultRow.toLibrary(): Library = Library(
+    id = this[Libraries.id].toId(),
+    path = this[Libraries.path].toPath(),
+    platform = this[Libraries.platform],
+    name = this[Libraries.name]
+)

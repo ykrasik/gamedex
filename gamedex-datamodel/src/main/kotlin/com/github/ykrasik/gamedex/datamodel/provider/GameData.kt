@@ -8,6 +8,7 @@ import org.joda.time.LocalDate
  * Date: 27/05/2016
  * Time: 23:16
  */
+// FIXME: Something needs to be done about this class.
 data class GameData(
     val name: String,
     val description: String?,

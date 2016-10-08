@@ -23,11 +23,12 @@ data class Game(
 
     val lastModified: DateTime,
 
+    // TODO: Do something about these fields, maybe save as a list of ProviderExtensions?
     val metacriticUrl: String,
     val giantBombUrl: String?,
 
     val genres: List<Genre>,
-    val library: Library
+    val library: Library  // TODO: Is this needed? It holds no interesting information, can probably save just the Id.
 ) {
 
     override fun toString() = "Game(id = $id, name = $name, path = $path)"

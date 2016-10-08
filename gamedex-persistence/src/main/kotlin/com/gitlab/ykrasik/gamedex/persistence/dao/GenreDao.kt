@@ -55,7 +55,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
         val genres = transaction {
             Genres.selectAll().map { it.toGenre() }
         }
-        log.info { "Done: ${genres.size} genres." }
+        log.info { "Result: ${genres.size} genres." }
         return genres
     }
 
@@ -67,7 +67,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
             } get Genres.id
         }
         val genre = Genre(id.toId(), name)
-        log.info { "Done: $genre." }
+        log.info { "Result: $genre." }
         return genre
     }
 
@@ -76,11 +76,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
         val genre = transaction {
             Genres.selectBy { it.name.eq(name) }.firstOrNull()?.toGenre()
         }
-        if (genre != null) {
-            log.debug { "Found: $genre." }
-        } else {
-            log.debug { "Not found: '$name'." }
-        }
+        log.debug { "Result: $genre." }
         return genre
     }
 
@@ -114,7 +110,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
                     valueTransform = { it.toGenre() }
                 )
             }
-            log.info { "Done: ${genres.size} game-genre links." }
+            log.info { "Result: ${genres.size} game-genre links." }
             return genres
         }
 
@@ -123,12 +119,17 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
             val genres = transaction {
                 (GameGenres innerJoin Genres).select { GameGenres.game.eq(id.id) }.map { it.toGenre() }
             }
-            log.info { "Done: $genres." }
+            log.info { "Result: $genres." }
             return genres
         }
 
         override fun isGenreLinkedToAnyGame(genre: Genre): Boolean {
-            TODO()
+            log.debug { "Checking if genre is linked to any game: $genre..." }
+            val linked = transaction {
+                !GameGenres.select { GameGenres.genre.eq(genre.id.id) }.empty()
+            }
+            log.debug { "Result: $linked." }
+            return linked
         }
 
         override fun link(id: Id<Game>, genres: List<Genre>) {
@@ -156,7 +157,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
             val amount = transaction {
                 GameGenres.deleteWhere { GameGenres.game.eq(game.id.id) }
             }
-            log.info { "Done: $amount un-linked." }
+            log.info { "Result: $amount un-linked." }
             return amount
         }
 
