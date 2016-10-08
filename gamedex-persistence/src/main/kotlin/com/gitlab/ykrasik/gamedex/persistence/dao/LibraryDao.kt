@@ -56,7 +56,6 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
     override fun exists(path: Path): Boolean {
         log.debug { "Checking if exists: '$path'..." }
         val contains = transaction {
-            logger.addLogger(StdOutSqlLogger())
             !Libraries.select { Libraries.path.eq(path.toString()) }.empty()
         }
         log.debug { "Done: $contains." }

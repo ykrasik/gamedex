@@ -1,3 +1,4 @@
+import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.filter.ThresholdFilter
 import ch.qos.logback.classic.jul.LevelChangePropagator
@@ -7,14 +8,16 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import static ch.qos.logback.classic.Level.DEBUG
 import static ch.qos.logback.classic.Level.INFO
 
-LOG_LEVELS = [
+log = [
     ROOT: INFO,
     CONSOLE: INFO,
-    GAME_INFO_SERVICE: INFO,
+    DATA_PROVIDER: INFO,
     PERSISTENCE: DEBUG,
     SQL: DEBUG,
 ]
@@ -26,95 +29,95 @@ context = new LevelChangePropagator()
 context.resetJUL = true
 
 LOG_DIR = Paths.get("logs").toAbsolutePath().toString() + "/"
-DEFAULT_PATTERN = "%date{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n"
 
-systemAppenders = []
 
 /***************************************************************
  *                       Aux methods                           *
  ***************************************************************/
-def rollingFileAppender(String name, def filterLevel = null, def _pattern = DEFAULT_PATTERN) {
-    String appenderFile = "${LOG_DIR}${name}.log"
-    String appenderFileZip = "${LOG_DIR}${name}.%i.log.zip"
+class LoggerConfig {
+    String pattern = "%date{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n"
+    Level level = null
+    String maxFileSize = "5mb"
+    boolean transitive = true
+}
+DEFAULT_CONFIG = new LoggerConfig()
 
-    println "LOGBACK: ${appenderFile}"
-
-    appender(name, RollingFileAppender) {
-        file = appenderFile
-        encoder(PatternLayoutEncoder) {
-            pattern = _pattern
-        }
-        rollingPolicy(FixedWindowRollingPolicy) {
-            fileNamePattern = appenderFileZip
-            minIndex = 1
-            maxIndex = 9
-        }
-        triggeringPolicy(SizeBasedTriggeringPolicy) {
-            maxFileSize = "5MB"
-        }
-        if (filterLevel != null) {
-            filter(ThresholdFilter) {
-                level = filterLevel
-            }
-        }
-        append = true
+APPENDER_CONSOLE = "console"
+appender(APPENDER_CONSOLE, ConsoleAppender) {
+    filter(ThresholdFilter) {
+        level = log.CONSOLE
     }
-    return appenderFile
+    encoder(PatternLayoutEncoder) {
+        pattern = this.DEFAULT_CONFIG.pattern
+    }
 }
 
-def createLogger(String name, Map loggers, Map args = [:]) {
+def createLogger(String name, Map loggers, LoggerConfig config = DEFAULT_CONFIG) {
     if (!name || !loggers) {
         throw new RuntimeException("Missing name or loggers!")
     }
-    boolean includeSystemAppenders = args.includeSystemAppenders != null ? args.includeSystemAppenders : true
-    def filterLevel = args.filterLevel ?: null
-    boolean transitive = args.transitive != null ? args.transitive : false
 
     // Configure the logger
-    rollingFileAppender(name, filterLevel)
+    rollingFileAppender(name, config)
 
-    List appenders = [name]
-    if (includeSystemAppenders) {
-        appenders += systemAppenders
-    }
+    List appenders = [name, APPENDER_CONSOLE]
 
     loggers.each { logPackage, logLevel ->
         println "LOGBACK:    * $logPackage : $logLevel"
         logPackage == "root" ?
             root(logLevel, appenders) :
-            logger(logPackage, logLevel, appenders, transitive)
+            logger(logPackage, logLevel, appenders, config.transitive)
     }
+}
+
+def rollingFileAppender(String name, LoggerConfig config) {
+    final String logFile = "${LOG_DIR}${name}.log"
+    final String logFileZip = "${LOG_DIR}${name}.%i.log.zip"
+
+    appender(name, RollingFileAppender) {
+        file = logFile
+        encoder(PatternLayoutEncoder) {
+            pattern = config.pattern
+        }
+        rollingPolicy(FixedWindowRollingPolicy) {
+            fileNamePattern = logFileZip
+            minIndex = 1
+            maxIndex = 9
+        }
+        triggeringPolicy(SizeBasedTriggeringPolicy) {
+            maxFileSize = config.maxFileSize
+        }
+        if (config.level != null) {
+            filter(ThresholdFilter) {
+                level = config.level
+            }
+        }
+        append = true
+    }
+
+    println "LOGBACK: $logFile ${if(config.level != null) "[${config.level}]" else ""}"
 }
 
 /***************************************************************
  *                          Loggers                            *
  ***************************************************************/
 
-// Console
-def APPENDER_CONSOLE = "console"
-appender(APPENDER_CONSOLE, ConsoleAppender) {
-    filter(ThresholdFilter) {
-        level = INFO
-    }
-    encoder(PatternLayoutEncoder) {
-        pattern = this.DEFAULT_PATTERN
-    }
-}
-systemAppenders += APPENDER_CONSOLE
-
 // Root
+def String nowStr = DateTimeFormatter.ofPattern("yyyy_MM_dd__HH_mm").format(LocalDateTime.now())
+def String mainLogFile = "gameDex__" + nowStr
 createLogger(
-    "gameDex",
+    mainLogFile,
     [
-        "root": LOG_LEVELS.ROOT,
-    ]
+        "root": log.ROOT,
+    ],
+    new LoggerConfig(level: log.ROOT)
 )
 
 // Game info service
 createLogger(
     "provider",
     [
-        "com.github.ykrasik.gamedex.provider": LOG_LEVELS.GAME_INFO_SERVICE,
+        "com.gitlab.ykrasik.gamedex.provider": log.DATA_PROVIDER,
     ]
 )
 
@@ -122,12 +125,9 @@ createLogger(
 createLogger(
     "persistence",
     [
-        "com.gitlab.ykrasik.gamedex.persistence": LOG_LEVELS.PERSISTENCE,
-        "org.flywaydb": LOG_LEVELS.SQL,
-        "Exposed": LOG_LEVELS.SQL
-    ],
-    [
-        includeSystemAppenders: false
+        "com.gitlab.ykrasik.gamedex.persistence": log.PERSISTENCE,
+        "org.flywaydb": log.SQL,
+        "Exposed": log.SQL
     ]
 )
 
