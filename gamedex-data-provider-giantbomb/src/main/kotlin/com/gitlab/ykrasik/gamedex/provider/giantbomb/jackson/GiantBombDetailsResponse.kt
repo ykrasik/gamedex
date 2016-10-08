@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
 import org.joda.time.LocalDate
@@ -30,7 +29,7 @@ data class GiantBombDetailsResponse(
 data class GiantBombDetailsResult(
     val name: String,
     val deck: String?,
-    @JsonDeserialize(using = GiantBombJacksonDateDeserializer::class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val originalReleaseDate: LocalDate?,
     val image: GiantBombDetailsImage,
     val genres: List<GiantBombGenre>

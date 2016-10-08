@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import org.joda.time.LocalDate
@@ -26,7 +26,7 @@ data class GiantBombSearchResponse(
 data class GiantBombSearchResult(
     val apiDetailUrl: String,
     val name: String,
-    @JsonDeserialize(using = GiantBombJacksonDateDeserializer::class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val originalReleaseDate: LocalDate?,
     val image: GiantBombSearchImage
 ) {

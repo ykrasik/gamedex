@@ -6,4 +6,5 @@ dependencies {
 
     compile dep.jackson.core
     compile dep.jackson.kotlin
+    compile dep.jackson.joda
 }
