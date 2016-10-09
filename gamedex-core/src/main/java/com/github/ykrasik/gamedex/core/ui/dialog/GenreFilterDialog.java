@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
+import com.github.ykrasik.gamedex.datamodel.Genre;
 import org.apache.commons.lang3.StringUtils;
 
 /**

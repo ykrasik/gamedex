@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel.flow;
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.persistence.Library;
+import com.github.ykrasik.gamedex.datamodel.Library;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

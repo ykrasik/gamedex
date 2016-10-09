@@ -4,8 +4,8 @@ import com.github.ykrasik.gamedex.common.Id
 import com.github.ykrasik.gamedex.common.KLogger
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toId
-import com.github.ykrasik.gamedex.datamodel.persistence.Game
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre
+import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.Genre
 import com.gitlab.ykrasik.gamedex.persistence.entity.GameGenres
 import com.gitlab.ykrasik.gamedex.persistence.entity.Genres
 import com.gitlab.ykrasik.gamedex.persistence.entity.selectBy

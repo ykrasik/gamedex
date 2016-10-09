@@ -1,5 +1,7 @@
 rootProject.name = 'gamedex'
 
+include "gamedex-app"
+
 include "gamedex-common"
 
 include "gamedex-datamodel"
@@ -11,6 +13,7 @@ include "gamedex-persistence"
 
 include "gamedex-ui"
 
+// TODO: Remove
 include "gamedex-core"
 
 // All projects must be defined above this line, this must be the last piece of code.

@@ -2,8 +2,8 @@ package com.github.ykrasik.gamedex.core.manager.library.debug;
 
 import com.github.ykrasik.gamedex.common.debug.DebugCommands;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
+import com.github.ykrasik.gamedex.datamodel.Library;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
-import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.jaci.api.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

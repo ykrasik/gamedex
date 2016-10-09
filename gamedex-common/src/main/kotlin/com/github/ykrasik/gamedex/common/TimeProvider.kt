@@ -7,10 +7,6 @@ import org.joda.time.DateTime
  * Date: 08/10/2016
  * Time: 12:02
  */
-interface TimeProvider {
-    fun now(): DateTime
-}
-
-class DefaultTimeProvider : TimeProvider {
-    override fun now(): DateTime = DateTime.now()
+open class TimeProvider {
+    open fun now(): DateTime = DateTime.now()
 }

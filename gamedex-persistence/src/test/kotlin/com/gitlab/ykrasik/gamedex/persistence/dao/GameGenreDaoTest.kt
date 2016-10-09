@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.toId
-import com.github.ykrasik.gamedex.datamodel.persistence.Game
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre
-import com.github.ykrasik.gamedex.datamodel.persistence.Library
+import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.Genre
+import com.github.ykrasik.gamedex.datamodel.Library
 import org.h2.jdbc.JdbcSQLException
 
 /**

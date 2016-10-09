@@ -2,9 +2,9 @@ dependencies {
     compile project(":gamedex-common")
     compile project(":gamedex-datamodel")
 
-    compile dep.fuel
+    compile fuel
 
-    compile dep.jackson.core
-    compile dep.jackson.kotlin
-    compile dep.jackson.joda
+    compile jackson.core
+    compile jackson.kotlin
+    compile jackson.joda
 }

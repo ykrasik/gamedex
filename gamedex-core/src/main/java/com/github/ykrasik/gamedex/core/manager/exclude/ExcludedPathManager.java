@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.manager.exclude;
 
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
+import com.github.ykrasik.gamedex.datamodel.ExcludedPath;
 import javafx.beans.property.ReadOnlyListProperty;
 
 import java.nio.file.Path;

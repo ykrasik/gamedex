@@ -7,7 +7,7 @@ import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.service.screen.detail.GameDetailsScreen;
 import com.github.ykrasik.gamedex.core.ui.gridview.GameWallCell;
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
+import com.github.ykrasik.gamedex.datamodel.Game;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

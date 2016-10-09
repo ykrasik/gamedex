@@ -5,7 +5,7 @@ import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.persistence.Library
+import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction

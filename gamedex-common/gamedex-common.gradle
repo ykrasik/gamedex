@@ -6,17 +6,17 @@ compile "com.github.ykrasik:yava:0.1.0"
     // FIXME: Decide if this shoud stay
 compile 'com.thoughtworks.xstream:xstream:1.4.7'
 
-    compile dep.groovy
-    compile dep.logback
+    compile groovy
+    compile logback
 
-    compile dep.config
+    compile config
 
-    compile dep.guava
-    compile dep.commonsLang3
+    compile guava
+    compile commonsLang3
 
-    compile dep.jodaTime
+    compile jodaTime
 
-    compile dep.jaci
+    compile jaci
 }
 
 // FIXME: Temp

@@ -7,5 +7,5 @@ dependencies {
     compile project(":gamedex-data-provider")
     compile project(":gamedex-persistence")
 
-    compile dep.controlsFx
+    compile controlsFx
 }

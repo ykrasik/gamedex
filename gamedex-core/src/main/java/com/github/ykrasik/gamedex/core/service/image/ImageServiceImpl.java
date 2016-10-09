@@ -2,8 +2,8 @@ package com.github.ykrasik.gamedex.core.service.image;
 
 import com.github.ykrasik.gamedex.common.service.AbstractService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
+import com.github.ykrasik.gamedex.datamodel.Game;
 import com.github.ykrasik.gamedex.datamodel.ImageData;
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.yava.javafx.JavaFxUtils;

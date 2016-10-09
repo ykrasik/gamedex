@@ -1,10 +1,10 @@
 package com.github.ykrasik.gamedex.core.manager.game;
 
+import com.github.ykrasik.gamedex.datamodel.Game;
 import com.github.ykrasik.gamedex.datamodel.GamePlatform;
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre;
+import com.github.ykrasik.gamedex.datamodel.Genre;
+import com.github.ykrasik.gamedex.datamodel.Library;
 import com.github.ykrasik.gamedex.datamodel.persistence.Id;
-import com.github.ykrasik.gamedex.datamodel.persistence.Library;
 import com.github.ykrasik.gamedex.datamodel.provider.GameData;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.collections.ObservableList;

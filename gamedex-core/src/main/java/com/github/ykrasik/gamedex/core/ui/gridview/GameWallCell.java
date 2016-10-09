@@ -32,7 +32,7 @@ import com.github.ykrasik.gamedex.core.javafx.layout.ImageViewLimitedPane;
 import com.github.ykrasik.gamedex.core.service.config.ConfigService;
 import com.github.ykrasik.gamedex.core.service.image.ImageService;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
+import com.github.ykrasik.gamedex.datamodel.Game;
 import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.binding.Binding;
 import javafx.beans.value.ChangeListener;

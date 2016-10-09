@@ -1,0 +1,4 @@
+dependencies {
+    compile project(":gamedex-ui")
+    compile project(":gamedex-data-provider-giantbomb")
+}

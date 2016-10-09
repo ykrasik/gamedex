@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
+import com.github.ykrasik.gamedex.datamodel.ExcludedPath
 import com.gitlab.ykrasik.gamedex.persistence.entity.ExcludedPaths
 import com.gitlab.ykrasik.gamedex.persistence.entity.selectBy
 import org.jetbrains.exposed.sql.ResultRow

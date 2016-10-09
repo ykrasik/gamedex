@@ -3,7 +3,7 @@ package com.github.ykrasik.gamedex.core.controller.exclude;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.exclude.ExcludedPathManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath;
+import com.github.ykrasik.gamedex.datamodel.ExcludedPath;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;

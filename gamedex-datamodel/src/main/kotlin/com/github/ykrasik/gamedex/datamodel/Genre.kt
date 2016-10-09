@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.datamodel.persistence
+package com.github.ykrasik.gamedex.datamodel
 
 import com.github.ykrasik.gamedex.common.Id
 

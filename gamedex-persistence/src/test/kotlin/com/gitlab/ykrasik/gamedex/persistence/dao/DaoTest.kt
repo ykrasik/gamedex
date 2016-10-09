@@ -3,11 +3,7 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 import com.github.ykrasik.gamedex.common.TimeProvider
 import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
-import com.github.ykrasik.gamedex.datamodel.persistence.Game
-import com.github.ykrasik.gamedex.datamodel.persistence.Genre
-import com.github.ykrasik.gamedex.datamodel.persistence.Library
+import com.github.ykrasik.gamedex.datamodel.*
 import com.github.ykrasik.gamedex.datamodel.provider.GameData
 import com.gitlab.ykrasik.gamedex.persistence.TestDbInitializer
 import com.nhaarman.mockito_kotlin.atLeast

@@ -1,60 +1,61 @@
 buildscript {
     ext {
-        dep = [:].with {
-            kotlin = [:].with {
-                v = '1.0.4'
-                std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
-                reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
-                gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
-                dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.7']
-                delegate
-            }
+        kotlin = [:].with {
+            v = '1.0.4'
+            std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
+            reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
+            gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
+            dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.7']
+            delegate
+        }
 
-            groovy = [group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7']
+        groovy = [group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7']
 
-            guice = [:].with {
-                v = '4.1.0'
-                core = [group: 'com.google.inject', name: 'guice', version: v]
-                multibindings = [group: 'com.google.inject.extensions', name: 'guice-multibindings', version: v]
-                delegate
-            }
+        guice = [:].with {
+            v = '4.1.0'
+            core = [group: 'com.google.inject', name: 'guice', version: v]
+            multibindings = [group: 'com.google.inject.extensions', name: 'guice-multibindings', version: v]
+            delegate
+        }
 
-            slf4j = [group: 'org.slf4j', name: 'slf4j-api', version: '1.7.6']
-            logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2']
+        slf4j = [group: 'org.slf4j', name: 'slf4j-api', version: '1.7.6']
+        logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2']
 
-            config = [group: 'com.typesafe', name: 'config', version: '1.3.1']
+        config = [group: 'com.typesafe', name: 'config', version: '1.3.1']
 
-            guava = [group: 'com.google.guava', name: 'guava', version: '18.0']
-            commonsLang3 = [group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2']
+        guava = [group: 'com.google.guava', name: 'guava', version: '18.0']
+        commonsLang3 = [group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2']
 
-            jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.3']
+        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.3']
 
-            jaci = [group: 'com.github.ykrasik', name: 'jaci-javafx-cli', version: '0.4.0']
+        jaci = [group: 'com.github.ykrasik', name: 'jaci-javafx-cli', version: '0.4.0']
 
-            fuel = [group: 'com.github.kittinunf.fuel', name: 'fuel', version: '1.3.1']
+        fuel = [group: 'com.github.kittinunf.fuel', name: 'fuel', version: '1.3.1']
 
-            jackson = [:].with {
-                v = '2.8.3'
-                core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
-                kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
-                joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.8.3']
-                delegate
-            }
+        jackson = [:].with {
+            v = '2.8.3'
+            core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
+            kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
+            joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.8.3']
+            delegate
+        }
 
-            h2 = [group: 'com.h2database', name: 'h2', version: '1.4.192']
-            exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.6.5']
-            flyway = [group: 'org.flywaydb', name: 'flyway-core', version: '4.0.3']
+        h2 = [group: 'com.h2database', name: 'h2', version: '1.4.192']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.6.5']
+        flyway = [group: 'org.flywaydb', name: 'flyway-core', version: '4.0.3']
 
-            controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.20.9']
+        controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
+        tornadoFx = [:].with {
+            core = [group: 'no.tornado', name: 'tornadofx', version: '1.5.6']
+            controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.5']
+            delegate
+        }
 
-            kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '1.3.5']
-            junit = [group: 'junit', name: 'junit', version: '4.11']
-            mockito = [:].with {
-                core = [group: 'org.mockito', name: 'mockito-all', version: '1.9.5']
-                kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '0.7.0']
-                delegate
-            }
-
+        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '1.3.5']
+        junit = [group: 'junit', name: 'junit', version: '4.11']
+        mockito = [:].with {
+            core = [group: 'org.mockito', name: 'mockito-all', version: '1.9.5']
+            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '0.7.0']
             delegate
         }
     }
@@ -66,8 +67,8 @@ buildscript {
     }
 
     dependencies {
-        classpath dep.kotlin.gradle
-        classpath dep.kotlin.dokka
+        classpath kotlin.gradle
+        classpath kotlin.dokka
     }
 }
 
@@ -90,18 +91,18 @@ subprojects {
     apply plugin: 'org.jetbrains.dokka'
 
     dependencies {
-        compile dep.kotlin.std
-        compile dep.kotlin.reflect
+        compile kotlin.std
+        compile kotlin.reflect
 
-        compile dep.slf4j
+        compile slf4j
 
-        compile dep.guice.core
-        compile dep.guice.multibindings
+        compile guice.core
+        compile guice.multibindings
 
-        testCompile dep.junit
-        testCompile dep.kotlinTest
-        testCompile dep.mockito.core
-        testCompile dep.mockito.kotlin
+        testCompile junit
+        testCompile kotlinTest
+        testCompile mockito.core
+        testCompile mockito.kotlin
     }
 
     dokka {

@@ -3,7 +3,7 @@ package com.github.ykrasik.gamedex.core.manager.game;
 import com.github.ykrasik.gamedex.common.comparator.FieldComparator;
 import com.github.ykrasik.gamedex.common.comparator.OptionalComparator;
 import com.github.ykrasik.gamedex.common.comparator.TwoFieldOptionalComparator;
-import com.github.ykrasik.gamedex.datamodel.persistence.Game;
+import com.github.ykrasik.gamedex.datamodel.Game;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 

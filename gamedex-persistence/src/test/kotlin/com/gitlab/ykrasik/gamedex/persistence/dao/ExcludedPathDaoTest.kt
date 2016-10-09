@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
-import com.github.ykrasik.gamedex.datamodel.persistence.ExcludedPath
+import com.github.ykrasik.gamedex.datamodel.ExcludedPath
 import org.h2.jdbc.JdbcSQLException
 
 /**
