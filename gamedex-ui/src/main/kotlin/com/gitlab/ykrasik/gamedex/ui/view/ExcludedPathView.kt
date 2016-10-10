@@ -1,7 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import tornadofx.View
-import tornadofx.borderpane
+import com.github.ykrasik.gamedex.datamodel.ExcludedPath
+import com.gitlab.ykrasik.gamedex.ui.controller.ExcludedPathController
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -9,7 +10,13 @@ import tornadofx.borderpane
  * Time: 22:52
  */
 class ExcludedPathView : View("Excluded Paths") {
-    override val root = borderpane {
+    private val controller: ExcludedPathController by inject()
 
+    override val root = listview<ExcludedPath> {
+        contextmenu {
+            menuitem("Add") { controller.add() }
+            separator()
+            menuitem("Delete") { controller.delete() }
+        }
     }
 }

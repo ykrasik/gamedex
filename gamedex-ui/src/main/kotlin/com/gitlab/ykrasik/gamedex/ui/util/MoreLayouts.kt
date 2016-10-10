@@ -9,6 +9,7 @@ import javafx.scene.Node
 import javafx.scene.control.Separator
 import javafx.scene.control.SplitPane
 import javafx.scene.layout.Region
+import org.controlsfx.control.GridView
 import org.controlsfx.control.StatusBar
 import tornadofx.opcr
 import tornadofx.separator
@@ -40,14 +41,14 @@ class InsetBuilder(region: Region) {
     var left: Double = region.padding.left
 }
 
-fun EventTarget.verticalSeparator(op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op)
+fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {
+    padding?.let {
+        padding { right = it; left = it }
+    }
+}
+
+fun <T> EventTarget.gridView(op: (GridView<T>.() -> Unit)? = null) = opcr(this, GridView(), op)
 
 var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
-
-
-
-//fun GridPane.row(op: (GridPane.() -> Unit)) {
-//    properties["gridPane.row"] = properties["gridPane.row"]?.let { it as Int + 1 } ?: 0
-//}

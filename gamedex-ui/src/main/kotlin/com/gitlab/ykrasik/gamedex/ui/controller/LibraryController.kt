@@ -4,15 +4,11 @@ import tornadofx.Controller
 
 /**
  * User: ykrasik
- * Date: 09/10/2016
- * Time: 14:39
+ * Date: 10/10/2016
+ * Time: 13:25
  */
-class GameController : Controller() {
-    fun filterGenres() {
-        TODO()  // TODO: Implement
-    }
-
-    fun filterLibraries() {
+class LibraryController : Controller() {
+    fun add() {
         TODO()  // TODO: Implement
     }
 

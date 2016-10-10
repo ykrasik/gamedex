@@ -3,10 +3,8 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.model.GameSort
 import com.gitlab.ykrasik.gamedex.ui.util.nonClosableTab
-import com.gitlab.ykrasik.gamedex.ui.util.padding
 import com.gitlab.ykrasik.gamedex.ui.util.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.util.verticalSeparator
-import javafx.scene.layout.Priority
 import tornadofx.*
 
 /**
@@ -28,87 +26,52 @@ class GameView : View("Games") {
 
                 gridpane {
                     hgap = 2.0
-                    gridpaneConstraints {
-                        hGrow = Priority.SOMETIMES
-                        minWidth = 10.0
-                        vGrow = Priority.SOMETIMES
-                        minHeight = 10.0
-                        // TODO: Not sure this is equal
-                        //    <columnConstraints>
-                        //    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                        //    </columnConstraints>
-                        //    <rowConstraints>
-                        //    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                        //    </rowConstraints>
-                    }
-                    textfield { promptText = "Search" }
-                    button {
-                        gridpaneConstraints { columnIndex = 1 }
-                        graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png") { isPreserveRatio = true }
+                    row {
+                        textfield { promptText = "Search" }
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png"))
                     }
                 }
 
-                verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                verticalSeparator(10.0)
 
                 gridpane {
                     hgap = 2.0
-                    gridpaneConstraints {
-                        hGrow = Priority.SOMETIMES
-                        minWidth = 10.0
-                        vGrow = Priority.SOMETIMES
-                        minHeight = 10.0
-                    }
-                    button("Genre Filter") { setOnAction { controller.filterGenres() } }
-                    readOnlyTextField { gridpaneConstraints { columnIndex = 1 } }
-                    button {
-                        gridpaneConstraints { columnIndex = 2 }
-                        graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png") { isPreserveRatio = true }
+                    row {
+                        button("Genre Filter") { setOnAction { controller.filterGenres() } }
+                        readOnlyTextField()
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png"))
                     }
                 }
 
-                verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                verticalSeparator(10.0)
 
                 gridpane {
                     hgap = 2.0
-                    gridpaneConstraints {
-                        hGrow = Priority.SOMETIMES
-                        minWidth = 10.0
-                        vGrow = Priority.SOMETIMES
-                        minHeight = 10.0
-                    }
-                    button("Library Filter") { setOnAction { controller.filterLibraries() } }
-                    readOnlyTextField { gridpaneConstraints { columnIndex = 1 } }
-                    button {
-                        gridpaneConstraints { columnIndex = 2 }
-                        graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png") { isPreserveRatio = true }
+                    row {
+                        button("Library Filter") { setOnAction { controller.filterLibraries() } }
+                        readOnlyTextField()
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png"))
                     }
                 }
 
-                verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                verticalSeparator(10.0)
 
                 gridpane {
                     hgap = 2.0
-                    gridpaneConstraints {
-                        hGrow = Priority.SOMETIMES
-                        minWidth = 10.0
-                        vGrow = Priority.SOMETIMES
-                        minHeight = 10.0
-                    }
-                    label("Sort:")
-                    combobox<GameSort> {
-                        gridpaneConstraints {
-                            columnIndex = 1
-                        }
+                    setMinSize(10.0, 10.0)
+                    row {
+                        label("Sort:")
+                        combobox<GameSort>()
                     }
                 }
 
-                verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                verticalSeparator(10.0)
 
                 spacer()
 
                 checkbox("Don't bother me") { isMnemonicParsing = false }
 
-                verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                verticalSeparator(10.0)
 
                 button("Refresh Libraries") {
                     isDefaultButton = true

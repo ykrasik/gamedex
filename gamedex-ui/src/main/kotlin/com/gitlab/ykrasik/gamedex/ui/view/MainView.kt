@@ -18,15 +18,12 @@ class MainView : View("Main") {
     private val libraryView: LibraryView by inject()
     private val excludedPathView: ExcludedPathView by inject()
 
-    private lateinit var logTextArea: TextArea
+    private var logTextArea: TextArea by singleAssign()
 
     override val root = borderpane {
 
         top {
             menubar {
-//                borderpaneConstraints {
-//                    alignment = Pos.CENTER
-//                }
                 menu("Game") {
                     isMnemonicParsing = false
                     menuitem("Cleanup") { controller.cleanup() }
@@ -63,11 +60,11 @@ class MainView : View("Main") {
                         prefWidth = 50.0
                         logTextArea.visibleProperty().bind(selectedProperty())
                     }
-                    verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                    verticalSeparator(10.0)
                     label("Games: 0") { padding { top = 4.0 } }
-                    verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                    verticalSeparator(10.0)
                     label("Libraries: 0") { padding { top = 4.0 } }
-                    verticalSeparator { padding { left = 10.0; right = 10.0 } }
+                    verticalSeparator(10.0)
                 }
 
                 right {
