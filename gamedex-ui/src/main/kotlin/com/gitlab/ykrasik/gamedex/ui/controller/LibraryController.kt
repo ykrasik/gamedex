@@ -18,10 +18,11 @@ class LibraryController : Controller() {
     private val libraries = libraryService.all.observable()
     val librariesProperty = SimpleListProperty<Library>(libraries)
 
-    fun add() {
-        val libraryData = AddLibraryFragment().show() ?: return
+    fun add(): Boolean {
+        val libraryData = AddLibraryFragment().show() ?: return false
         val library = libraryService.add(libraryData)
         libraries.add(library)
+        return true
     }
 
     fun delete(library: Library) {

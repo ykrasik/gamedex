@@ -24,7 +24,7 @@ class LibraryView : View("Libraries") {
         }
         column("Path", Library::path) {
             isSortable = false
-            contentWidth(padding = 10.0, useAsMin = true)
+            contentWidth(padding = 100.0, useAsMin = true)
             remainingWidth()
         }
         column("Platform", Library::platform) {
@@ -40,7 +40,9 @@ class LibraryView : View("Libraries") {
     }
 
     private fun addLibrary() {
-        controller.add()
+        if (controller.add()) {
+            root.resizeColumnsToFitContent()
+        }
     }
 
     private fun deleteLibrary() {

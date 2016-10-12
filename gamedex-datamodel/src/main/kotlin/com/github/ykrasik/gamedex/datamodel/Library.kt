@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel
 
 import com.github.ykrasik.gamedex.common.Id
+import com.github.ykrasik.gamedex.common.delegate
 import java.nio.file.Path
 
 /**
@@ -11,10 +12,9 @@ import java.nio.file.Path
 data class Library(val id: Id<Library>, val data: LibraryData) : Comparable<Library> {
     override fun compareTo(other: Library) = data.compareTo(other.data)
 
-    // FIXME: Find a less verbose way.
-    val name: String get() = data.name
-    val path: Path get() = data.path
-    val platform: GamePlatform get() = data.platform
+    val name by delegate(data, LibraryData::name)
+    val path by delegate(data, LibraryData::path)
+    val platform by delegate(data, LibraryData::platform)
 }
 
 data class LibraryData(

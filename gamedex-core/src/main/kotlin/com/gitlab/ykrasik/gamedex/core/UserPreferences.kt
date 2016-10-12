@@ -14,40 +14,22 @@ class UserPreferences {
     private var update = false
 
     var autoSkip: Boolean = false
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     var showLog: Boolean = true
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     var logDividerPosition: Double = 0.98
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     var gameWallImageDisplay: GameWallImageDisplay = GameWallImageDisplay.fit
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     var gameSort: GameSort = GameSort.nameAsc
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     var prevDirectory: Path? = null
-        set(value) {
-            field = value
-            update()
-        }
+        set(value) { field = value; update() }
 
     private fun update() {
         if (update) {
