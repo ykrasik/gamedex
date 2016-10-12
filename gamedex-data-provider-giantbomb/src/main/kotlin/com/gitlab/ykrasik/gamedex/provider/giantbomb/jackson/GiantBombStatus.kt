@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.github.ykrasik.gamedex.common.enums.EnumIdConverter
-import com.github.ykrasik.gamedex.common.enums.IdentifiableEnum
+import com.github.ykrasik.gamedex.common.EnumIdConverter
+import com.github.ykrasik.gamedex.common.IdentifiableEnum
 
 /**
  * User: ykrasik
@@ -27,6 +27,6 @@ enum class GiantBombStatus constructor(private val code: Int) : IdentifiableEnum
 
         @JsonCreator
         @JvmStatic
-        operator fun invoke(code: Int): GiantBombStatus = values.get(code)
+        operator fun invoke(code: Int): GiantBombStatus = values[code]
     }
 }

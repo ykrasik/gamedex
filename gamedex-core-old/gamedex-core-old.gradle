@@ -1,0 +1,18 @@
+apply plugin: "application"
+mainClassName = "com.github.ykrasik.gamedex.core.Main"
+
+dependencies {
+    compile project(":gamedex-common")
+    compile project(":gamedex-datamodel")
+    compile project(":gamedex-data-provider")
+    compile project(":gamedex-persistence")
+
+    compile controlsFx
+
+    // FIXME: Delete these
+    compile "org.springframework:spring-context:4.1.1.RELEASE"
+    compile "com.goldmansachs:gs-collections:6.0.0"
+    compile "com.github.ykrasik:yava:0.1.0"
+    // FIXME: Decide if this shoud stay
+    compile 'com.thoughtworks.xstream:xstream:1.4.7'
+}

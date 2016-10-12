@@ -77,6 +77,8 @@ class GameView : View("Games") {
                     isDefaultButton = true
                     isMnemonicParsing = false
                     minWidth = Double.NEGATIVE_INFINITY // TODO: Why?
+
+                    setOnAction { controller.refresh() }
                 }
             }
         }

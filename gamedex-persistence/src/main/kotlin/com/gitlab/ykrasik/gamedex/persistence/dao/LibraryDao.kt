@@ -4,8 +4,8 @@ import com.github.ykrasik.gamedex.common.Id
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.Library
+import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,14 +24,13 @@ interface LibraryDao {
 
     fun exists(path: Path): Boolean   // TODO: Under which circumstances is this call needed?
 
-    fun add(path: Path, platform: GamePlatform, name: String): Library
+    fun add(data: LibraryData): Library
 
     fun delete(library: Library)
 }
 
 @Singleton
 class LibraryDaoImpl @Inject constructor() : LibraryDao {
-
     private val log by logger()
 
     override val all: List<Library> get() {
@@ -62,16 +61,16 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
         return exists
     }
 
-    override fun add(path: Path, platform: GamePlatform, name: String): Library {
-        log.info { "Inserting: path=$path, platform=$platform, name=$name..." }
+    override fun add(data: LibraryData): Library {
+        log.info { "Inserting: $data..." }
         val id = transaction {
             Libraries.insert {
-                it[Libraries.path] = path.toString()
-                it[Libraries.platform] = platform
-                it[Libraries.name] = name
+                it[Libraries.path] = data.path.toString()
+                it[Libraries.name] = data.name
+                it[Libraries.platform] = data.platform
             } get Libraries.id
         }
-        val library = Library(id.toId(), path, platform, name)
+        val library = Library(id.toId(), data)
         log.info { "Result: $library." }
         return library
     }
@@ -89,7 +88,9 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
 // FIXME: Hide this somehow.
 inline fun ResultRow.toLibrary(): Library = Library(
     id = this[Libraries.id].toId(),
-    path = this[Libraries.path].toPath(),
-    platform = this[Libraries.platform],
-    name = this[Libraries.name]
+    data = LibraryData(
+        path = this[Libraries.path].toPath(),
+        name = this[Libraries.name],
+        platform = this[Libraries.platform]
+    )
 )

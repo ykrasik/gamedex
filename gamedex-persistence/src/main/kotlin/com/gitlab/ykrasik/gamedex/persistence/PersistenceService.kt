@@ -12,6 +12,7 @@ import javax.inject.Singleton
  * Date: 02/10/2016
  * Time: 15:10
  */
+// FIXME: This class is redundant.
 interface PersistenceService {
     val games: GameDao
     val genres: GenreDao

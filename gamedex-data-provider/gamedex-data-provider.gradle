@@ -3,8 +3,4 @@ dependencies {
     compile project(":gamedex-datamodel")
 
     compile fuel
-
-    compile jackson.core
-    compile jackson.kotlin
-    compile jackson.joda
 }

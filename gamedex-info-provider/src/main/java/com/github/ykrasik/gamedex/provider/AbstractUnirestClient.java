@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.provider;
 
-import com.github.ykrasik.gamedex.common.service.AbstractService;
+import com.github.ykrasik.gamedex.core.service.AbstractService;
 import com.github.ykrasik.gamedex.provider.exception.GameInfoProviderException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;

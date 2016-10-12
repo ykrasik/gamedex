@@ -8,12 +8,20 @@ import java.nio.file.Path
  * Date: 25/05/2016
  * Time: 11:29
  */
-data class Library(
-    val id: Id<Library>,
-    val path: Path,
-    val platform: GamePlatform,
-    val name: String
-) : Comparable<Library> {
+data class Library(val id: Id<Library>, val data: LibraryData) : Comparable<Library> {
+    override fun compareTo(other: Library) = data.compareTo(other.data)
 
-    override fun compareTo(other: Library) = name.compareTo(other.name)
+    // FIXME: Find a less verbose way.
+    val name: String get() = data.name
+    val path: Path get() = data.path
+    val platform: GamePlatform get() = data.platform
+}
+
+data class LibraryData(
+    val path: Path,
+    val name: String,
+    val platform: GamePlatform
+) : Comparable<LibraryData> {
+
+    override fun compareTo(other: LibraryData) = name.compareTo(other.name)
 }

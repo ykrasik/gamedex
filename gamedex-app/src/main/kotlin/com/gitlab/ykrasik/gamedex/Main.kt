@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex
 
 import com.github.ykrasik.gamedex.common.module.CommonModule
+import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
@@ -26,6 +27,7 @@ class Main : App(MainView::class) {
         FX.dicontainer = GuiceDiContainer(
             CommonModule(),
             PersistenceModule(),
+            CoreModule(),
             GiantBombProviderModule()
         )
     }
@@ -36,7 +38,7 @@ class Main : App(MainView::class) {
     }
 
     private class GuiceDiContainer(vararg modules: Module) : DIContainer {
-        private val guice = Guice.createInjector(*modules)
+        private val guice = Guice.createInjector(com.google.inject.Stage.PRODUCTION, *modules)
         override fun <T : Any> getInstance(type: KClass<T>) = guice.getInstance(type.java)
     }
 

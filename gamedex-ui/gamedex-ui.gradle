@@ -1,6 +1,7 @@
 dependencies {
     compile project(":gamedex-common")
     compile project(":gamedex-datamodel")
+    compile project(":gamedex-core")
     compile project(":gamedex-data-provider")
     compile project(":gamedex-persistence")
 

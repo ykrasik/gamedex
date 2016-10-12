@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import com.github.ykrasik.gamedex.common.enums.EnumIdConverter
-import com.github.ykrasik.gamedex.common.enums.IdentifiableEnum
+import com.github.ykrasik.gamedex.common.EnumIdConverter
+import com.github.ykrasik.gamedex.common.IdentifiableEnum
 
 /**
  * @author Yevgeny Krasik
@@ -20,6 +20,6 @@ enum class GamePlatform constructor(private val key: String) : IdentifiableEnum<
     companion object {
         private val values = EnumIdConverter(GamePlatform::class.java)
 
-        operator fun invoke(name: String): GamePlatform = values.get(name)
+        operator fun invoke(name: String): GamePlatform = values[name]
     }
 }

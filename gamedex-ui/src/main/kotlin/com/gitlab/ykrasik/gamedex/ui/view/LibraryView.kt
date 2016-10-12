@@ -16,6 +16,8 @@ class LibraryView : View("Libraries") {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
+        itemsProperty().bind(controller.librariesProperty)
+
         column("Name", Library::name) {
             isSortable = false
             contentWidth(padding = 10.0, useAsMin = true)
@@ -31,9 +33,20 @@ class LibraryView : View("Libraries") {
         }
 
         contextmenu {
-            menuitem("Add") { controller.add() }
+            menuitem("Add") { addLibrary() }
             separator()
-            menuitem("Delete") { controller.delete() }
+            menuitem("Delete") { deleteLibrary() }
+        }
+    }
+
+    private fun addLibrary() {
+        controller.add()
+    }
+
+    private fun deleteLibrary() {
+        val selectedItem = root.selectedItem
+        if (selectedItem != null) {
+            controller.delete(selectedItem)
         }
     }
 }

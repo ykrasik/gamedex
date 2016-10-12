@@ -1,11 +1,6 @@
-apply plugin: "application"
-mainClassName = "com.github.ykrasik.gamedex.core.Main"
-
 dependencies {
     compile project(":gamedex-common")
     compile project(":gamedex-datamodel")
     compile project(":gamedex-data-provider")
     compile project(":gamedex-persistence")
-
-    compile controlsFx
 }

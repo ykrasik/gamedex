@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" styleClass="screen">
+    <center>
+        <TabPane minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <tabs>
+                <Tab closable="false" text="Game Wall">
+                    <content>
+                        <GridPane hgap="10.0" vgap="10.0">
+                            <columnConstraints>
+                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
+                                <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" minWidth="-Infinity" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                                <RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <children>
+                                <Label text="Wall Cell Image Behavior">
+                                    <tooltip>
+                                        <Tooltip autoHide="true" text="How to handle images that don't exactly fit a cell" />
+                                    </tooltip>
+                                </Label>
+                                <ComboBox fx:id="gameWallImageDisplayComboBox" GridPane.columnIndex="1" />
+                            </children>
+                            <padding>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </padding>
+                        </GridPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+    <bottom>
+        <Button fx:id="closeButton" cancelButton="true" defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#close" text="Close" BorderPane.alignment="CENTER_RIGHT">
+            <BorderPane.margin>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+            </BorderPane.margin>
+        </Button>
+    </bottom>
+</BorderPane>

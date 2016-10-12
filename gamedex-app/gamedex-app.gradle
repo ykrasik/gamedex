@@ -1,3 +1,6 @@
+apply plugin: "application"
+mainClassName = "com.gitlab.ykrasik.gamedex.Main"
+
 dependencies {
     compile project(":gamedex-ui")
     compile project(":gamedex-data-provider-giantbomb")

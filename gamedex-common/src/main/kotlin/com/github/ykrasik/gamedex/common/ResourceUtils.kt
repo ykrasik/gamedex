@@ -8,4 +8,4 @@ import com.google.common.io.Resources
  * Time: 23:13
  */
 
-fun Any.getResourceAsByteArray(path: String): ByteArray = Resources.toByteArray(Resources.getResource(path))
+fun Any.getResourceAsByteArray(path: String): ByteArray = Resources.toByteArray(Resources.getResource(javaClass, path))

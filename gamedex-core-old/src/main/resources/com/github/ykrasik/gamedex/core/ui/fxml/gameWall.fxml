@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import org.controlsfx.control.GridView?>
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.ykrasik.gamedex.core.controller.game.GameWallController">
+    <center>
+        <GridView fx:id="gameWall" cellHeight="192.0" cellWidth="136.0" horizontalCellSpacing="3.0" verticalCellSpacing="3.0" />
+    </center>
+</BorderPane>
