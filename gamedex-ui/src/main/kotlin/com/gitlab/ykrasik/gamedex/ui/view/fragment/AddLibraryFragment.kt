@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.LibraryData
-import com.gitlab.ykrasik.gamedex.core.UserPreferencesService
+import com.gitlab.ykrasik.gamedex.core.UserPreferences
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryDataModel
 import com.gitlab.ykrasik.gamedex.ui.util.chooseDirectory
 import com.gitlab.ykrasik.gamedex.ui.util.enumComboBox
@@ -14,7 +14,7 @@ import tornadofx.*
  * Time: 10:56
  */
 class AddLibraryFragment : Fragment("Add Library") {
-    private val userPreferencesService: UserPreferencesService by di()
+    private val preferences: UserPreferences by di()
 
     private val libraryData = LibraryDataModel()
     private var save = false
@@ -46,10 +46,10 @@ class AddLibraryFragment : Fragment("Add Library") {
 
     private fun browse() {
         val path = chooseDirectory("Add Library") {
-            initialDirectory = userPreferencesService.preferences.pevDirectory?.toFile()
+            initialDirectory = preferences.prevDirectory?.toFile()
         } ?: return
 
-        userPreferencesService.update { pevDirectory = path }
+        preferences.prevDirectory = path
         libraryData.path = path.toString()
         libraryData.name = path.fileName.toString()
     }

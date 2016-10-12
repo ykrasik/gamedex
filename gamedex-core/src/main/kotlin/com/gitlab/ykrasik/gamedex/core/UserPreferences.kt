@@ -4,59 +4,64 @@ import com.gitlab.ykrasik.gamedex.provider.jackson.objectMapper
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 11/10/2016
  * Time: 10:34
  */
-data class UserPreferences(
-    val autoSkip: Boolean = false,
-    val showLog: Boolean = true,
-    val logDividerPosition: Double = 0.98,
-    val gameWallImageDisplay: GameWallImageDisplay = GameWallImageDisplay.fit,
-    val gameSort: GameSort = GameSort.nameAsc,
-    val pevDirectory: Path? = null
-)
+class UserPreferences {
+    private var update = false
 
-data class UserPreferencesBuilder(
-    var autoSkip: Boolean = false,
-    var showLog: Boolean = true,
-    var logDividerPosition: Double = 0.98,
-    var gameWallImageDisplay: GameWallImageDisplay = GameWallImageDisplay.fit,
-    var gameSort: GameSort = GameSort.nameAsc,
-    var pevDirectory: Path? = null
-) {
-    fun build() = UserPreferences(
-        autoSkip = autoSkip,
-        showLog = showLog,
-        logDividerPosition = logDividerPosition,
-        gameWallImageDisplay = gameWallImageDisplay,
-        gameSort = gameSort,
-        pevDirectory = pevDirectory
-    )
+    var autoSkip: Boolean = false
+        set(value) {
+            field = value
+            update()
+        }
 
-    companion object {
-        operator fun invoke(p: UserPreferences) = UserPreferencesBuilder(
-            autoSkip = p.autoSkip,
-            showLog = p.showLog,
-            logDividerPosition = p.logDividerPosition,
-            gameWallImageDisplay = p.gameWallImageDisplay,
-            gameSort = p.gameSort,
-            pevDirectory = p.pevDirectory
-        )
+    var showLog: Boolean = true
+        set(value) {
+            field = value
+            update()
+        }
+
+    var logDividerPosition: Double = 0.98
+        set(value) {
+            field = value
+            update()
+        }
+
+    var gameWallImageDisplay: GameWallImageDisplay = GameWallImageDisplay.fit
+        set(value) {
+            field = value
+            update()
+        }
+
+    var gameSort: GameSort = GameSort.nameAsc
+        set(value) {
+            field = value
+            update()
+        }
+
+    var prevDirectory: Path? = null
+        set(value) {
+            field = value
+            update()
+        }
+
+    private fun update() {
+        if (update) {
+            UserPreferencesService.update(this)
+        }
+    }
+
+    internal fun enableUpdates(): UserPreferences {
+        update = true
+        return this
     }
 }
 
-interface UserPreferencesService {
-    val preferences: UserPreferences
-
-    fun update(updater: UserPreferencesBuilder.() -> Unit)
-}
-
-@Singleton
-class UserPreferencesServiceImpl : UserPreferencesService {
+internal object UserPreferencesService {
     private val fileName = "conf/user.json"
     private val file = Paths.get(fileName).let {
         val path = if (Files.exists(it)) {
@@ -68,19 +73,17 @@ class UserPreferencesServiceImpl : UserPreferencesService {
         path.toFile()
     }
 
-    override var preferences = file.readText().let {
-        if (it.isEmpty()) {
+    fun preferences(): UserPreferences = file.readText().let {
+        val p = if (it.isEmpty()) {
             UserPreferences()
         } else {
             objectMapper.readValue(it, UserPreferences::class.java)
         }
+        p.enableUpdates()
     }
 
-    override fun update(updater: UserPreferencesBuilder.() -> Unit) {
-        val newPreferences = UserPreferencesBuilder(preferences)
-        updater(newPreferences)
-        preferences = newPreferences.build()
-        val json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(preferences)
+    fun update(p: UserPreferences) {
+        val json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(p)
         file.writeText(json)
     }
 }
