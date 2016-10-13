@@ -26,8 +26,11 @@ interface GameDao {
     val all: List<Game>
     fun get(id: Id<Game>): Game     // TODO: Under which circumstance is this needed?
     fun exists(path: Path): Boolean
+
     fun add(gameData: GameData, path: Path, library: Library): Game
+
     fun delete(game: Game)
+    fun deleteByLibrary(library: Library)
 
 //    fun getThumbnail(id: Int): ImageData?
 //    fun getPoster(id: Int): ImageData?
@@ -143,6 +146,10 @@ class GameDaoImpl @Inject constructor(
 
         }
         log.info { "Done." }
+    }
+
+    override fun deleteByLibrary(library: Library) {
+        TODO("deleteByLibrary")  // TODO: Implement
     }
 
     private fun ResultRow.toGame(genres: Map<Id<Game>, List<Genre>>): Game {

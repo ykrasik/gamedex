@@ -38,3 +38,19 @@ fun chooseDirectory(title: String? = null, owner: Window? = null, op: (Directory
     val result = chooser.showDialog(owner)
     return result?.let { Paths.get(it.toURI()) }
 }
+
+fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
+    var ok = false
+    val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.OK, ButtonType.CANCEL)
+    alert.headerText = "Are You Sure?"
+    op?.let { it(alert) }
+    val buttonClicked = alert.showAndWait()
+    buttonClicked.ifPresent {
+        when(it) {
+            ButtonType.OK -> ok = true
+            ButtonType.CANCEL -> ok = false
+            else -> error("Unexpected buttonType: $it")
+        }
+    }
+    return ok
+}
