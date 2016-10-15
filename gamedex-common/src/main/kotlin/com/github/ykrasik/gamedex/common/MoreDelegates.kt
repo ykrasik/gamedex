@@ -12,3 +12,9 @@ import kotlin.reflect.KProperty1
 fun <I, T, R> I.delegate(to: T, f: KProperty1<T, R>) = object : ReadOnlyProperty<I, R> {
     override fun getValue(thisRef: I, property: KProperty<*>): R = f(to)
 }
+
+inline fun <T, R> T.to(crossinline f: () -> R) = object : ReadOnlyProperty<T, R> {
+    override fun getValue(thisRef: T, property: KProperty<*>): R = f()
+}
+
+//operator fun <T> T.getValue(thisRef: Any, property: KProperty<*>) = this

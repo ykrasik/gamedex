@@ -25,22 +25,4 @@ data class GameData(
     val metacriticUrl: String,
     val giantBombUrl: String?
 ) {
-
-//    companion object {
-//        operator fun invoke(metacriticData: com.gitlab.ykrasik.gamedex.provider.ProviderGameData, giantBombData: com.gitlab.ykrasik.gamedex.provider.ProviderGameData?): GameData {
-//            val thumbnail = giantBombData?.thumbnail ?: metacriticData.thumbnail
-//            return GameData(
-//                name = metacriticData.name,
-//                description = giantBombData?.description ?: metacriticData.description,
-//                releaseDate = metacriticData.releaseDate ?: giantBombData?.releaseDate,
-//                criticScore = metacriticData.criticScore,
-//                userScore = metacriticData.userScore,
-//                thumbnail = thumbnail,
-//                poster = giantBombData?.poster ?: thumbnail,
-//                genres = giantBombData?.genres ?: metacriticData.genres,
-//                metacriticUrl = metacriticData.detailUrl,
-//                giantBombUrl = giantBombData?.detailUrl
-//            )
-//        }
-//    }
 }

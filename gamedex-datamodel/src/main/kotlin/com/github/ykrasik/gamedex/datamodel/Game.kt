@@ -12,7 +12,7 @@ import java.nio.file.Path
  */
 data class Game(
     val id: Id<Game>,
-    val path: Path,
+    override val path: Path,
 
     val name: String,
     val description: String?,
@@ -29,7 +29,7 @@ data class Game(
 
     val genres: List<Genre>,
     val library: Library  // TODO: Is this needed? It holds no interesting information, can probably save just the Id.
-) {
+) : HasPath {
 
     override fun toString() = "Game(id = $id, name = $name, path = $path)"
 }

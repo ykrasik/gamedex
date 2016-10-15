@@ -2,6 +2,7 @@ package com.github.ykrasik.gamedex.common
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.reflect.KProperty
 import kotlin.reflect.companionObject
 
 /**
@@ -17,11 +18,12 @@ class KLogger(loggerName: String) {
     inline fun info(msg: () -> String): Unit { if (logger.isInfoEnabled) logger.info(msg()) }
     inline fun debug(msg: () -> String): Unit { if (logger.isDebugEnabled) logger.debug(msg()) }
     inline fun trace(msg: () -> String): Unit { if (logger.isTraceEnabled) logger.trace(msg()) }
+
+    // For delegation access.
+    operator fun getValue(thisRef: Any, property: KProperty<*>) = this
 }
 
-fun <R : Any> R.logger(): Lazy<KLogger> = lazy {
-    KLogger(unwrapCompanionClass(this.javaClass).name)
-}
+fun <R : Any> R.logger() = KLogger(unwrapCompanionClass(this.javaClass).name)
 
 // unwrap companion class to enclosing class given a Java Class
 private fun <T: Any> unwrapCompanionClass(ofClass: Class<T>): Class<*> {

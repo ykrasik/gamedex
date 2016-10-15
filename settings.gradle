@@ -13,7 +13,7 @@ include "gamedex-data-provider-giantbomb"
 
 include "gamedex-persistence"
 
-include "gamedex-ui"
+include "gamedex-ui-javafx"
 
 // TODO: Remove
 include "gamedex-core-old"

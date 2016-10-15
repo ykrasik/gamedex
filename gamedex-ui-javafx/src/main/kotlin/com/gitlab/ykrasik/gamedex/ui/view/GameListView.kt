@@ -18,7 +18,7 @@ import tornadofx.*
  * Time: 15:06
  */
 class GameListView : View("Game List") {
-    private val controller: GameController by inject()
+    private val controller: GameController by di()
 
     override val root = splitpane {
         dividerPosition = 0.69
@@ -55,7 +55,7 @@ class GameListView : View("Game List") {
             }
 
             contextmenu {
-                menuitem("Delete") { controller.delete() }
+                menuitem("Delete") { selectedItem?. let { controller.delete(it) }}
             }
         }
 

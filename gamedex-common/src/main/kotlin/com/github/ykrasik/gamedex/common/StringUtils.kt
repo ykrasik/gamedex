@@ -34,3 +34,7 @@ fun <T> T?.toStringOrUnavailable(): String = toString(NOT_AVAILABLE)
 
 // FIXME: Doesn't belong here.
 val String.isUnavailable: Boolean get() = this == NOT_AVAILABLE
+
+fun String.collapseSpaces(): String = "\\s+".toRegex().replace(this, " ")
+
+fun String.emptyToNull(): String? = if (isNullOrEmpty()) null else this

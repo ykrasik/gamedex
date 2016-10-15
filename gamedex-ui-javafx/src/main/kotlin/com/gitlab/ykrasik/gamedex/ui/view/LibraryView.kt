@@ -10,7 +10,7 @@ import tornadofx.*
  * Time: 22:17
  */
 class LibraryView : View("Libraries") {
-    private val controller: LibraryController by inject()
+    private val controller: LibraryController by di()
 
     override val root = tableview<Library> {
         isEditable = false
@@ -35,20 +35,13 @@ class LibraryView : View("Libraries") {
         contextmenu {
             menuitem("Add") { addLibrary() }
             separator()
-            menuitem("Delete") { deleteLibrary() }
+            menuitem("Delete") { selectedItem?.let { controller.delete(it) } }
         }
     }
 
     private fun addLibrary() {
         if (controller.add()) {
             root.resizeColumnsToFitContent()
-        }
-    }
-
-    private fun deleteLibrary() {
-        val selectedItem = root.selectedItem
-        if (selectedItem != null) {
-            controller.delete(selectedItem)
         }
     }
 }

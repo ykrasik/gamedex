@@ -10,7 +10,7 @@ import tornadofx.*
  * Time: 22:52
  */
 class ExcludedPathView : View("Excluded Paths") {
-    private val controller: ExcludedPathController by inject()
+    private val controller: ExcludedPathController by di()
 
     override val root = listview<ExcludedPath> {
         contextmenu {

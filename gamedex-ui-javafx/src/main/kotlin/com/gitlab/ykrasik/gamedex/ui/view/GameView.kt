@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
+import com.gitlab.ykrasik.gamedex.ui.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.ui.model.GameSort
 import com.gitlab.ykrasik.gamedex.ui.util.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.util.readOnlyTextField
@@ -13,7 +14,8 @@ import tornadofx.*
  * Time: 22:14
  */
 class GameView : View("Games") {
-    private val controller: GameController by inject()
+    private val gameController: GameController by di()
+    private val libraryController: LibraryController by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -37,7 +39,7 @@ class GameView : View("Games") {
                 gridpane {
                     hgap = 2.0
                     row {
-                        button("Genre Filter") { setOnAction { controller.filterGenres() } }
+                        button("Genre Filter") { setOnAction { gameController.filterGenres() } }
                         readOnlyTextField()
                         button(graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png"))
                     }
@@ -48,7 +50,7 @@ class GameView : View("Games") {
                 gridpane {
                     hgap = 2.0
                     row {
-                        button("Library Filter") { setOnAction { controller.filterLibraries() } }
+                        button("Library Filter") { setOnAction { gameController.filterLibraries() } }
                         readOnlyTextField()
                         button(graphic = imageview("/com/gitlab/ykrasik/gamedex/ui/image/x-small-icon.png"))
                     }
@@ -78,7 +80,7 @@ class GameView : View("Games") {
                     isMnemonicParsing = false
                     minWidth = Double.NEGATIVE_INFINITY // TODO: Why?
 
-                    setOnAction { controller.refresh() }
+                    setOnAction { refreshLibraries() }
                 }
             }
         }
@@ -89,5 +91,9 @@ class GameView : View("Games") {
                 nonClosableTab("List") { content = gameListView.root }
             }
         }
+    }
+
+    private fun refreshLibraries() {
+        libraryController.refreshLibraries()
     }
 }
