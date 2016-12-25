@@ -6,11 +6,11 @@ import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.github.ykrasik.gamedex.datamodel.provider.GameData
-import com.gitlab.ykrasik.gamedex.core.TaskToken
 import com.gitlab.ykrasik.gamedex.core.UserPreferences
-import com.gitlab.ykrasik.gamedex.core.ui.GameUIManager
+import com.gitlab.ykrasik.gamedex.core.controller.GameController
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
+import javafx.concurrent.Task
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,27 +24,29 @@ import javax.inject.Singleton
 class LibraryScanner @Inject constructor(
     private val userPreferences: UserPreferences,
     private val pathDetector: PathDetector,
-    private val gameUIManager: GameUIManager,
+    private val gameController: GameController,
     private val providerService: DataProviderService
 ) {
     private val log by logger()
     private val metaDataRegex = "(\\[.*?\\])|(-)".toRegex()
 
-    fun refresh(library: Library): TaskToken = object : TaskToken("Refresh Library: $library") {
+    fun refresh(library: Library): Task<Unit> = object : Task<Unit>() {
         init {
-            messageListener { log.info { it } }
+            messageProperty().addListener { observableValue, oldValue, newValue ->
+                log.info { newValue }
+            }
         }
 
-        override fun run() {
-            message("Refreshing library: '$library'...")
+        override fun call() {
+            updateMessage("Refreshing library: '$library'...")
             val newPaths = pathDetector.detectNewPaths(library.path)
             val newGames = newPaths.mapIndexedNotNull { i, path ->
                 if (isStopped()) return@mapIndexedNotNull
 
-                progress(i, newPaths.size)
+                updateProgress(i.toLong(), newPaths.size.toLong())
                 processPath(path, library)
             }
-            message("Done refreshing library: '$library'. Added ${newGames.size} new games.")
+            updateMessage("Done refreshing library: '$library'. Added ${newGames.size} new games.")
         }
 
         private fun processPath(path: Path, library: Library): Game? {
@@ -59,8 +61,8 @@ class LibraryScanner @Inject constructor(
             val d = GameData(gameData.name, gameData.description, gameData.releaseDate, gameData.criticScore, gameData.userScore,
                 null, null, gameData.genres, "", null)
 
-            val game = gameUIManager.add(d, path, library)
-            message("[$path] Done: $game")
+            val game = gameController.add(d, path, library)
+            updateMessage("[$path] Done: $game")
             return game
         }
 
@@ -68,6 +70,8 @@ class LibraryScanner @Inject constructor(
             // TODO: Display dialog
             return results.first()
         }
+
+        private fun isStopped(): Boolean = this.isCancelled || Thread.interrupted()
 
         // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
         private fun Path.normalizeName(): String = metaDataRegex.replace(fileName.toString(), "").collapseSpaces()

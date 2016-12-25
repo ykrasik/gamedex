@@ -5,6 +5,7 @@ import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.Library
+import com.github.ykrasik.gamedex.datamodel.LibraryData
 import org.h2.jdbc.JdbcSQLException
 
 /**
@@ -69,7 +70,7 @@ class LibraryDaoTest : DaoTest() {
             givenLibraryExists(1, "library1")
 
             shouldThrow<IllegalArgumentException> {
-                val invalidLibrary = Library(2.toId(), "".toPath(), GamePlatform.PC, "")
+                val invalidLibrary = Library(2.toId(), "".toPath(), "", GamePlatform.PC)
                 dao.delete(invalidLibrary)
             }
         }
@@ -78,7 +79,7 @@ class LibraryDaoTest : DaoTest() {
             givenLibraryExists(1, "path1", GamePlatform.PC, "library1")
 
             shouldThrow<JdbcSQLException> {
-                dao.add("path1".toPath(), GamePlatform.XBOX_360, "library2")
+                dao.add(LibraryData("path1".toPath(), "library2", GamePlatform.XBOX_360))
             }
         }
     }

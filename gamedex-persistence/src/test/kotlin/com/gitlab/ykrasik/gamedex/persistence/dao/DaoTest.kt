@@ -39,8 +39,8 @@ abstract class DaoTest : StringSpec() {
 
     fun givenLibraryExists(id: Int, rawPath: String, platform: GamePlatform = GamePlatform.PC, name: String = rawPath): Library {
         val path = rawPath.toPath()
-        val library = libraryDao.add(path, platform, name)
-        library shouldBe Library(id.toId(), path, platform, name)
+        val library = libraryDao.add(LibraryData(path, name, platform))
+        library shouldBe Library(id.toId(), path, name, platform)
         return library
     }
 

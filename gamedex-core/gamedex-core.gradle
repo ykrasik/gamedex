@@ -3,4 +3,8 @@ dependencies {
     compile project(":gamedex-datamodel")
     compile project(":gamedex-data-provider")
     compile project(":gamedex-persistence")
+
+    compile controlsFx
+    compile tornadoFx.core
+    compile tornadoFx.controls
 }

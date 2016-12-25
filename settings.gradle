@@ -1,19 +1,17 @@
 rootProject.name = 'gamedex'
 
-include "gamedex-app"
-
 include "gamedex-common"
 
 include "gamedex-datamodel"
-
-include "gamedex-core"
 
 include "gamedex-data-provider"
 include "gamedex-data-provider-giantbomb"
 
 include "gamedex-persistence"
 
-include "gamedex-ui-javafx"
+include "gamedex-core"
+
+include "gamedex-app"
 
 // TODO: Remove
 include "gamedex-core-old"

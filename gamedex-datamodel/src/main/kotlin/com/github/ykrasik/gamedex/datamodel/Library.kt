@@ -15,6 +15,12 @@ data class Library(val id: Id<Library>, val data: LibraryData) : HasPath, Compar
     val name: String get() = data.name
     override val path: Path get() = data.path
     val platform: GamePlatform get() = data.platform
+
+    companion object {
+        operator fun invoke(id: Id<Library>, path: Path, name: String, platform: GamePlatform): Library = Library(
+            id, LibraryData(path, name, platform)
+        )
+    }
 }
 
 data class LibraryData(

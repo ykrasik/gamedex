@@ -144,7 +144,7 @@ class GameDaoTest : DaoTest() {
         }
 
         "Throw an exception when trying to insert a game for a non-existing library" {
-            val library = Library(2.toId(), "".toPath(), GamePlatform.PC, "")
+            val library = Library(2.toId(), "".toPath(), "", GamePlatform.PC)
 
             shouldThrow<JdbcSQLException> {
                 // Too much typing... so we called this method again.

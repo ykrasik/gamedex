@@ -4,11 +4,9 @@ import com.github.ykrasik.gamedex.common.children
 import com.github.ykrasik.gamedex.common.exists
 import com.github.ykrasik.gamedex.common.isDirectory
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.datamodel.HasPath
-import com.gitlab.ykrasik.gamedex.core.ui.ExcludedPathUIManager
-import com.gitlab.ykrasik.gamedex.core.ui.GameUIManager
-import com.gitlab.ykrasik.gamedex.core.ui.LibraryUIManager
-import com.gitlab.ykrasik.gamedex.core.ui.UIManager
+import com.gitlab.ykrasik.gamedex.core.controller.ExcludedPathController
+import com.gitlab.ykrasik.gamedex.core.controller.GameController
+import com.gitlab.ykrasik.gamedex.core.controller.LibraryController
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,9 +24,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class PathDetector @Inject constructor(
-    private val gameUiManager: GameUIManager,
-    private val libraryUiManager: LibraryUIManager,
-    private val excludedPathUiManager: ExcludedPathUIManager
+    private val gameController: GameController,
+    private val libraryController: LibraryController,
+    private val excludedPathController: ExcludedPathController
 ) {
     private val log by logger()
 
@@ -55,18 +53,20 @@ class PathDetector @Inject constructor(
     private fun shouldScanRecursively(children: List<Path>): Boolean = children.isNotEmpty() && children.all(Path::isDirectory)
 
     fun isPathKnown(path: Path): Boolean {
-        if (check(path, gameUiManager, "an already mapped game")) return true
-        if (check(path, libraryUiManager, "an already mapped library")) return true
-        if (check(path, excludedPathUiManager, "an excluded path")) return true
+        if (gameController.contains(path)) {
+            log.debug { "[$path] is an already mapped game." }
+            return true
+        }
+        if (libraryController.contains(path)) {
+            log.debug { "[$path] is an already mapped library." }
+            return true
+        }
+        if (excludedPathController.contains(path)) {
+            log.debug { "[$path] is an already excluded path." }
+            return true
+        }
 
         log.info { "[$path] is a new path!" }
         return false
-    }
-
-    private fun <T : HasPath> check(path: Path, checker: UIManager<T>, message: String): Boolean = if (path in checker) {
-        log.debug { "[$path] is $message." }
-        true
-    } else {
-        false
     }
 }
