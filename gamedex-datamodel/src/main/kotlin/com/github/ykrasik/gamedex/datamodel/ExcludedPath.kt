@@ -10,5 +10,5 @@ import java.nio.file.Path
  */
 data class ExcludedPath(
     val id: Id<ExcludedPath>,
-    override val path: Path
-) : HasPath
+    val path: Path
+)

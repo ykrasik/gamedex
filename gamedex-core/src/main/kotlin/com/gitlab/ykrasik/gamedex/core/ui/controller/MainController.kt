@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.core.controller
+package com.gitlab.ykrasik.gamedex.core.ui.controller
 
 import tornadofx.Controller
 

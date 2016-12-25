@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.provider.jackson
+package com.github.ykrasik.gamedex.common.jackson
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -18,4 +18,9 @@ val objectMapper: ObjectMapper by lazy {
         .registerModule(JodaModule())
         .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+}
+
+inline fun <reified T : Any> ObjectMapper.readList(src: String): List<T> {
+    val type = this.typeFactory.constructCollectionType(List::class.java, T::class.java)
+    return this.readValue(src, type)
 }

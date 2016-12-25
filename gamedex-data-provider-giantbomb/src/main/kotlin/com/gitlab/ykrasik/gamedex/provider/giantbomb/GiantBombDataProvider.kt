@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.getResourceAsByteArray
+import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
@@ -14,7 +15,6 @@ import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombSearchResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombStatus
-import com.gitlab.ykrasik.gamedex.provider.jackson.objectMapper
 import javax.inject.Inject
 import javax.inject.Singleton
 

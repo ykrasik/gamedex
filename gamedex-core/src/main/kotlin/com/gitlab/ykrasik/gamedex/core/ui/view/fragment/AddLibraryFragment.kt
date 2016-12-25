@@ -1,12 +1,12 @@
-package com.gitlab.ykrasik.gamedex.core.view.fragment
+package com.gitlab.ykrasik.gamedex.core.ui.view.fragment
 
 import com.github.ykrasik.gamedex.common.existsOrNull
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.LibraryData
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
 import com.gitlab.ykrasik.gamedex.core.model.LibraryDataModel
-import com.gitlab.ykrasik.gamedex.core.util.chooseDirectory
-import com.gitlab.ykrasik.gamedex.core.util.enumComboBox
+import com.gitlab.ykrasik.gamedex.core.ui.chooseDirectory
+import com.gitlab.ykrasik.gamedex.core.ui.enumComboBox
+import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import tornadofx.*
 import java.nio.file.Path
 

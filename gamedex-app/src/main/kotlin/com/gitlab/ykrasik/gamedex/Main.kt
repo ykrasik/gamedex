@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex
 
 import com.github.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.view.MainView
+import com.gitlab.ykrasik.gamedex.core.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule

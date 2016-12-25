@@ -13,10 +13,9 @@ CREATE TABLE IF NOT EXISTS Games(
   description VARCHAR(255) NULL,
   critic_score DECIMAL(9, 1) NULL,
   user_score DECIMAL(9, 1) NULL,
-  metacritic_url VARCHAR(255) NOT NULL,
-  giantbomb_url VARCHAR(255) NULL,
   thumbnail BLOB NULL,
   poster BLOB NULL,
+  provider_specific_data VARCHAR(64000) NOT NULL,
   last_modified DATETIME NOT NULL,
   library_id INT NOT NULL REFERENCES Libraries(id) ON DELETE CASCADE,
   CONSTRAINT pk_Games PRIMARY KEY (id)

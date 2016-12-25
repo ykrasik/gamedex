@@ -1,7 +1,8 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.core.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.ui.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.ui.model.LibrariesModel
 import tornadofx.*
 
 /**
@@ -11,12 +12,13 @@ import tornadofx.*
  */
 class LibraryView : View("Libraries") {
     private val controller: LibraryController by di()
+    private val model: LibrariesModel by di()
 
     override val root = tableview<Library> {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
-        itemsProperty().bind(controller.librariesProperty)
+        itemsProperty().bind(model.allProperty)
 
         column("Name", Library::name) {
             isSortable = false

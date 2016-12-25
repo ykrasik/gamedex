@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
 /**
  * User: ykrasik

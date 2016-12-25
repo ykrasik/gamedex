@@ -1,7 +1,7 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
-import com.gitlab.ykrasik.gamedex.core.controller.MainController
-import com.gitlab.ykrasik.gamedex.core.util.*
+import com.gitlab.ykrasik.gamedex.core.ui.*
+import com.gitlab.ykrasik.gamedex.core.ui.controller.MainController
 import javafx.geometry.Orientation
 import javafx.scene.control.TextArea
 import tornadofx.*

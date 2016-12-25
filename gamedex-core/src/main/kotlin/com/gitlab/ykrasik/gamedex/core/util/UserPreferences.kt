@@ -1,6 +1,6 @@
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.util
 
-import com.gitlab.ykrasik.gamedex.provider.jackson.objectMapper
+import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths

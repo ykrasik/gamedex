@@ -4,10 +4,10 @@ import com.github.ykrasik.gamedex.common.collapseSpaces
 import com.github.ykrasik.gamedex.common.emptyToNull
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.github.ykrasik.gamedex.datamodel.provider.GameData
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
-import com.gitlab.ykrasik.gamedex.core.controller.GameController
+import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
+import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import javafx.concurrent.Task
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 class LibraryScanner @Inject constructor(
     private val userPreferences: UserPreferences,
     private val pathDetector: PathDetector,
-    private val gameController: GameController,
+    private val gamesModel: GamesModel,
     private val providerService: DataProviderService
 ) {
     private val log by logger()
@@ -53,15 +53,25 @@ class LibraryScanner @Inject constructor(
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
-            val gameData = providerService.fetch(name, platform) { results ->
-                chooseSearchResult(results)
-            } ?: return null
+//            val gameData = providerService.fetch(name, platform) { results ->
+//                chooseSearchResult(results)
+//            } ?: return null
 
             // FIXME: TEMP!!!
-            val d = GameData(gameData.name, gameData.description, gameData.releaseDate, gameData.criticScore, gameData.userScore,
-                null, null, gameData.genres, "", null)
+            val d = GameData(
+                path = path,
+                name = name,
+                description = null,
+                releaseDate = null,
+                criticScore = null,
+                userScore = null,
+                thumbnail = null,
+                poster = null,
+                genres = emptyList(),
+                providerSpecificData = emptyList()
+            )
 
-            val game = gameController.add(d, path, library)
+            val game = gamesModel.add(d, path, library)
             updateMessage("[$path] Done: $game")
             return game
         }

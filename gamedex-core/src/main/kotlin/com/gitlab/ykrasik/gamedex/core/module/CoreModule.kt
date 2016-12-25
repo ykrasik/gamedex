@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
-import com.gitlab.ykrasik.gamedex.core.UserPreferencesService
+import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
+import com.gitlab.ykrasik.gamedex.core.util.UserPreferencesService
 import com.google.inject.AbstractModule
 
 /**

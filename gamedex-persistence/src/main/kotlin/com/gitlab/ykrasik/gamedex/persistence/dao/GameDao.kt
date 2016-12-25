@@ -1,10 +1,12 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.*
+import com.github.ykrasik.gamedex.common.jackson.objectMapper
+import com.github.ykrasik.gamedex.common.jackson.readList
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.Genre
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.github.ykrasik.gamedex.datamodel.provider.GameData
 import com.gitlab.ykrasik.gamedex.persistence.entity.Games
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
 import com.gitlab.ykrasik.gamedex.persistence.entity.selectBy
@@ -86,11 +88,10 @@ class GameDaoImpl @Inject constructor(
                 it[description] = gameData.description
                 it[criticScore] = gameData.criticScore?.let(::BigDecimal)
                 it[userScore] = gameData.userScore?.let(::BigDecimal)
-                it[metacriticUrl] = gameData.metacriticUrl
-                it[giantBombUrl] = gameData.giantBombUrl
                 it[thumbnail] = gameData.thumbnail?.rawData?.let { it.toBlob() }
                 it[poster] = gameData.poster?.rawData?.let { it.toBlob() }
                 it[Games.lastModified] = lastModified
+                it[providerSpecificData] = objectMapper.writeValueAsString(gameData.providerSpecificData)
                 it[Games.library] = library.id.id
             } get Games.id
         }.toId<Game>()
@@ -98,24 +99,16 @@ class GameDaoImpl @Inject constructor(
         // Insert all new genres.
         // TODO: Room for optimization - do one inList bulk fetch for existing genres.
         // FIXME: Is adding genres part of the responsibilities of this DAO? that's probably more in the Manager domain.
-        val genres = gameData.genres.map { genreDao.getOrAdd(it) }
+        val genres = gameData.genres.map { genreDao.getOrAdd(it.name) }
 
         // Link genres to game.
         genreDao.linkedGames.link(id, genres)
 
         val game = Game(
             id = id,
-            path = path,
-            name = gameData.name,
-            description = gameData.description,
-            releaseDate = gameData.releaseDate,
-            criticScore = gameData.criticScore,
-            userScore = gameData.userScore,
             lastModified = lastModified,
-            metacriticUrl = gameData.metacriticUrl,
-            giantBombUrl = gameData.giantBombUrl,
-            genres = genres,
-            library = library
+            library = library,
+            data = gameData
         )
         log.info { "Result: $game." }
         return game
@@ -157,21 +150,24 @@ class GameDaoImpl @Inject constructor(
         return toGame(genres[id] ?: emptyList())
     }
 
-    private fun ResultRow.toGame( genres: List<Genre>): Game {
+    private fun ResultRow.toGame(genres: List<Genre>): Game {
         val library = this.toLibrary()
         return Game(
             id = this[Games.id].toId(),
-            path = this[Games.path].toPath(),
-            name = this[Games.name],
-            description = this[Games.description],
-            releaseDate = this[Games.releaseDate]?.toLocalDate(),
-            criticScore = this[Games.criticScore]?.toDouble(),
-            userScore = this[Games.userScore]?.toDouble(),
             lastModified = this[Games.lastModified],
-            metacriticUrl = this[Games.metacriticUrl],
-            giantBombUrl = this[Games.giantBombUrl],
-            genres = genres,
-            library = library
+            library = library,
+            data = GameData(
+                path = this[Games.path].toPath(),
+                name = this[Games.name],
+                description = this[Games.description],
+                releaseDate = this[Games.releaseDate]?.toLocalDate(),
+                criticScore = this[Games.criticScore]?.toDouble(),
+                userScore = this[Games.userScore]?.toDouble(),
+                thumbnail = null,
+                poster = null,
+                genres = genres,
+                providerSpecificData = objectMapper.readList(this[Games.providerSpecificData])
+            )
         )
     }
 

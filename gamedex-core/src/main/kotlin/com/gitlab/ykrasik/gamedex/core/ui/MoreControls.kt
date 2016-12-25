@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.core.util
+package com.gitlab.ykrasik.gamedex.core.ui
 
 import javafx.beans.property.Property
 import javafx.event.EventTarget

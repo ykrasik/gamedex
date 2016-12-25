@@ -4,9 +4,9 @@ import com.github.ykrasik.gamedex.common.children
 import com.github.ykrasik.gamedex.common.exists
 import com.github.ykrasik.gamedex.common.isDirectory
 import com.github.ykrasik.gamedex.common.logger
-import com.gitlab.ykrasik.gamedex.core.controller.ExcludedPathController
-import com.gitlab.ykrasik.gamedex.core.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.ui.model.ExcludedPathsModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.LibrariesModel
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,9 +24,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class PathDetector @Inject constructor(
-    private val gameController: GameController,
-    private val libraryController: LibraryController,
-    private val excludedPathController: ExcludedPathController
+    private val gamesModel: GamesModel,
+    private val librariesModel: LibrariesModel,
+    private val excludedPathsModel: ExcludedPathsModel
 ) {
     private val log by logger()
 
@@ -53,15 +53,15 @@ class PathDetector @Inject constructor(
     private fun shouldScanRecursively(children: List<Path>): Boolean = children.isNotEmpty() && children.all(Path::isDirectory)
 
     fun isPathKnown(path: Path): Boolean {
-        if (gameController.contains(path)) {
+        if (gamesModel.contains(path)) {
             log.debug { "[$path] is an already mapped game." }
             return true
         }
-        if (libraryController.contains(path)) {
+        if (librariesModel.contains(path)) {
             log.debug { "[$path] is an already mapped library." }
             return true
         }
-        if (excludedPathController.contains(path)) {
+        if (excludedPathsModel.contains(path)) {
             log.debug { "[$path] is an already excluded path." }
             return true
         }

@@ -1,11 +1,11 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.gitlab.ykrasik.gamedex.core.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.util.dividerPosition
-import com.gitlab.ykrasik.gamedex.core.util.padding
-import com.gitlab.ykrasik.gamedex.core.util.readOnlyTextArea
-import com.gitlab.ykrasik.gamedex.core.util.readOnlyTextField
+import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
+import com.gitlab.ykrasik.gamedex.core.ui.dividerPosition
+import com.gitlab.ykrasik.gamedex.core.ui.padding
+import com.gitlab.ykrasik.gamedex.core.ui.readOnlyTextArea
+import com.gitlab.ykrasik.gamedex.core.ui.readOnlyTextField
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.geometry.VPos

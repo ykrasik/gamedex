@@ -1,11 +1,11 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
-import com.gitlab.ykrasik.gamedex.core.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.core.model.GameSort
-import com.gitlab.ykrasik.gamedex.core.util.nonClosableTab
-import com.gitlab.ykrasik.gamedex.core.util.readOnlyTextField
-import com.gitlab.ykrasik.gamedex.core.util.verticalSeparator
+import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
+import com.gitlab.ykrasik.gamedex.core.ui.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.ui.nonClosableTab
+import com.gitlab.ykrasik.gamedex.core.ui.readOnlyTextField
+import com.gitlab.ykrasik.gamedex.core.ui.verticalSeparator
 import tornadofx.*
 
 /**
@@ -80,7 +80,7 @@ class GameView : View("Games") {
                     isMnemonicParsing = false
                     minWidth = Double.NEGATIVE_INFINITY // TODO: Why?
 
-                    setOnAction { refreshLibraries() }
+                    setOnAction { libraryController.refreshLibraries() }
                 }
             }
         }
@@ -91,9 +91,5 @@ class GameView : View("Games") {
                 nonClosableTab("List") { content = gameListView.root }
             }
         }
-    }
-
-    private fun refreshLibraries() {
-        libraryController.refreshLibraries()
     }
 }

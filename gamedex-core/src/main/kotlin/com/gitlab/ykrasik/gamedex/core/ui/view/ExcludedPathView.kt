@@ -1,7 +1,7 @@
-package com.gitlab.ykrasik.gamedex.core.view
+package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.ExcludedPath
-import com.gitlab.ykrasik.gamedex.core.controller.ExcludedPathController
+import com.gitlab.ykrasik.gamedex.core.ui.controller.ExcludedPathController
 import tornadofx.*
 
 /**

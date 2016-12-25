@@ -12,8 +12,26 @@ import java.nio.file.Path
  */
 data class Game(
     val id: Id<Game>,
-    override val path: Path,
+    val lastModified: DateTime,
+    val library: Library,  // TODO: Is this needed? It holds no interesting information, can probably save just the Id.
+    val data: GameData
+) {
+    val name: String get() = data.name
+    val path: Path get() = data.path
+    val description: String? get() = data.description
+    val releaseDate: LocalDate? get() = data.releaseDate
+    val criticScore: Double? get() = data.criticScore
+    val userScore: Double? get() = data.userScore
+    val thumbnail: ImageData? get() = data.thumbnail
+    val poster: ImageData? get() = data.poster
+    val genres: List<Genre> get() = data.genres
+    val providerSpecificData: List<GameProviderSpecificData> get() = data.providerSpecificData
 
+    override fun toString() = "Game(id = $id, name = $name, path = $path)"
+}
+
+data class GameData(
+    val path: Path,
     val name: String,
     val description: String?,
     val releaseDate: LocalDate?,
@@ -21,15 +39,14 @@ data class Game(
     val criticScore: Double?,
     val userScore: Double?,
 
-    val lastModified: DateTime,
-
-    // TODO: Do something about these fields, maybe save as a list of ProviderExtensions?
-    val metacriticUrl: String,
-    val giantBombUrl: String?,
+    val thumbnail: ImageData?,
+    val poster: ImageData?,
 
     val genres: List<Genre>,
-    val library: Library  // TODO: Is this needed? It holds no interesting information, can probably save just the Id.
-) : HasPath {
 
-    override fun toString() = "Game(id = $id, name = $name, path = $path)"
+    val providerSpecificData: List<GameProviderSpecificData>
+)
+
+interface GameProviderSpecificData {
+
 }

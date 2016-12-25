@@ -28,15 +28,13 @@ object Games : Table() {
     val criticScore = decimal("critic_score", 9, 1).nullable()
     val userScore = decimal("user_score", 9, 1).nullable()
 
-    // TODO: Make this an extension table? with json data?
-    val metacriticUrl = varchar("metacritic_url", 255)
-    val giantBombUrl = varchar("giantbomb_url", 255).nullable()
-
     // TODO: Remove this, make this a one to many.
     val thumbnail = blob("thumbnail").nullable()
     val poster = blob("poster").nullable()
 
     val lastModified = datetime("last_modified")
+
+    val providerSpecificData = varchar("provider_specific_data", 64000)
 
     val library = reference("library_id", Libraries.id)
 

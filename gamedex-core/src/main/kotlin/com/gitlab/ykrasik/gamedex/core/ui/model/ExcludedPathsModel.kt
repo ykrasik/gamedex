@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.core.controller
+package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.ExcludedPath
 import com.gitlab.ykrasik.gamedex.persistence.dao.ExcludedPathDao
@@ -12,14 +12,14 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 10/10/2016
- * Time: 13:32
+ * Date: 25/12/2016
+ * Time: 20:12
  */
 @Singleton
-class ExcludedPathController @Inject constructor(
+class ExcludedPathsModel @Inject constructor(
     private val excludedPathDao: ExcludedPathDao
 ) {
-    private val allProperty = SimpleListProperty(excludedPathDao.all.observable())
+    val allProperty = SimpleListProperty(excludedPathDao.all.observable())
     val all: ObservableList<ExcludedPath> by allProperty
 
     fun contains(path: Path): Boolean = all.any { it.path == path }

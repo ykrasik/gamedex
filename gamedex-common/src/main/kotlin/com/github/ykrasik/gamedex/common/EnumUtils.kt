@@ -7,8 +7,8 @@ import java.util.*
  * Date: 11/10/2016
  * Time: 11:55
  */
-interface IdentifiableEnum<K> {
-    fun getKey(): K
+interface IdentifiableEnum<out K> {
+    val key: K
 }
 
 class EnumIdConverter<K, V>(valueType: Class<V>) where V : Enum<V>, V : IdentifiableEnum<K> {
@@ -16,7 +16,7 @@ class EnumIdConverter<K, V>(valueType: Class<V>) where V : Enum<V>, V : Identifi
 
     init {
         for (v in valueType.enumConstants) {
-            map.put(v.getKey(), v)
+            map.put(v.key, v)
         }
     }
 
