@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex
 import com.github.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.ui.view.MainView
+import com.gitlab.ykrasik.gamedex.core.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule
@@ -20,7 +21,7 @@ import kotlin.reflect.KClass
  * Date: 08/10/2016
  * Time: 21:40
  */
-class Main : App(MainView::class) {
+class Main : App(MainView::class, Styles::class) {
     init {
         // Import a file based stylesheet
 //        importStylesheet(Styles::class)

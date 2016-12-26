@@ -8,6 +8,9 @@ package com.gitlab.ykrasik.gamedex.core.ui.view
 import javafx.geometry.Pos.CENTER
 import javafx.geometry.Pos.CENTER_LEFT
 import javafx.scene.Cursor.HAND
+import javafx.scene.effect.BlurType
+import javafx.scene.effect.DropShadow
+import javafx.scene.paint.Color
 import javafx.scene.paint.Color.*
 import javafx.scene.paint.CycleMethod
 import javafx.scene.paint.LinearGradient
@@ -83,6 +86,9 @@ class Styles : Stylesheet() {
         val locationIcon by cssclass()
         val linkIcon by cssclass()
         val clockIcon by cssclass()
+
+        val gameTile by cssclass()
+        val card by cssclass()
     }
 
     init {
@@ -437,5 +443,19 @@ class Styles : Stylesheet() {
             }
         }
 
+        gameTile {
+            and(hover) {
+                translateX = 1.px
+                translateY = 1.px
+                effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
+            }
+        }
+
+        card {
+            borderColor = multi(box(Color.BLACK))
+            borderRadius = multi(box(10.px))
+            backgroundColor = multi(Color.LIGHTGRAY)
+            backgroundRadius = multi(box(10.px))
+        }
     }
 }

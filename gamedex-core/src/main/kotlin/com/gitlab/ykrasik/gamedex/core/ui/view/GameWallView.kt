@@ -5,14 +5,13 @@ import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.gridView
 import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
 import com.gitlab.ykrasik.gamedex.core.ui.view.widgets.ImageViewLimitedPane
-import javafx.beans.value.ChangeListener
 import javafx.event.EventHandler
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
-import javafx.scene.shape.Rectangle
 import javafx.util.Callback
 import org.controlsfx.control.GridCell
 import tornadofx.View
+import tornadofx.addClass
 import java.awt.Desktop
 import java.net.URL
 import java.net.URLEncoder
@@ -56,25 +55,25 @@ class GameWallCell : GridCell<Game>() {
 
     init {
 
-        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
-        imageViewLimitedPane.translateX = -1.0
-
-        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
-        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
-
-        // Clip the cell's corners to be round after the cell's size is calculated.
-        val clip = Rectangle()
-        clip.x = 1.0
-        clip.y = 1.0
-        clip.arcWidth = 20.0
-        clip.arcHeight = 20.0
-        val clipListener = ChangeListener<Number> { observable, oldValue, newValue ->
-            clip.width = imageViewLimitedPane.width - 2
-            clip.height = imageViewLimitedPane.height - 2
-        }
-        imageViewLimitedPane.clip = clip
-        imageViewLimitedPane.heightProperty().addListener(clipListener)
-        imageViewLimitedPane.widthProperty().addListener(clipListener)
+//        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
+//        imageViewLimitedPane.translateX = -1.0
+//
+//        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
+//        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
+//
+//        // Clip the cell's corners to be round after the cell's size is calculated.
+//        val clip = Rectangle()
+//        clip.x = 1.0
+//        clip.y = 1.0
+//        clip.arcWidth = 20.0
+//        clip.arcHeight = 20.0
+//        val clipListener = ChangeListener<Number> { observable, oldValue, newValue ->
+//            clip.width = imageViewLimitedPane.width - 2
+//            clip.height = imageViewLimitedPane.height - 2
+//        }
+//        imageViewLimitedPane.clip = clip
+//        imageViewLimitedPane.heightProperty().addListener(clipListener)
+//        imageViewLimitedPane.widthProperty().addListener(clipListener)
 
 //        val binding = MoreBindings.transformBinding(configService.gameWallImageDisplayProperty(), { imageDisplay ->
 //            val image = imageView.image
@@ -87,8 +86,9 @@ class GameWallCell : GridCell<Game>() {
 //        imageView.imageProperty().addListener { observable, oldValue, newValue -> binding.invalidate() }
 //        imageViewLimitedPane.imageDisplayTypeProperty().bind(binding)
 
-        styleClass.add("image-grid-cell") //$NON-NLS-1$
-        text = null
+        addClass(Styles.gameTile, Styles.card)
+        addClass("image-grid-cell") //$NON-NLS-1$
+        text = ""
     }
 
     override fun updateItem(item: Game?, empty: Boolean) {
