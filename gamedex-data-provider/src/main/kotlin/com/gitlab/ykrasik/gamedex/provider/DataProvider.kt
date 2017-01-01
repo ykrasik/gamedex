@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider
 
+import com.github.ykrasik.gamedex.datamodel.DataProviderType
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.ImageData
 
 /**
  * User: ykrasik
@@ -14,3 +16,9 @@ interface DataProvider {
 
     fun fetch(searchResult: SearchResult): ProviderGameData
 }
+
+class DataProviderInfo(
+    val name: String,
+    val type: DataProviderType,
+    val logo: ImageData
+)

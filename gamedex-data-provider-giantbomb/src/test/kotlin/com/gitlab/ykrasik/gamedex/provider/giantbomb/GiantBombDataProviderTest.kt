@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
+import com.github.ykrasik.gamedex.datamodel.DataProviderType
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
@@ -59,15 +61,18 @@ class GiantBombDataProviderTest : StringSpec() {
             val detailUrl = "http://www.giantbomb.com/api/game/3030-44656/"
             val response = provider.fetch(searchResult(detailUrl))
             response shouldBe ProviderGameData(
-                detailUrl = detailUrl,
                 name = "No Man's Sky",
                 description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
                 releaseDate = LocalDate.parse("2016-08-09"),
-                criticScore = null,
-                userScore = null,
                 thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
                 posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
-                genres = listOf("Simulation", "Action-Adventure")
+                genres = listOf("Simulation", "Action-Adventure"),
+                providerSpecificData = ProviderData(
+                    type = DataProviderType.GiantBomb,
+                    detailUrl = detailUrl,
+                    criticScore = null,
+                    userScore = null
+                )
             )
         }
 

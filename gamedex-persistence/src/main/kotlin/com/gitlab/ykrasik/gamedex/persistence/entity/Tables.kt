@@ -20,27 +20,36 @@ object Libraries : Table() {
 object Games : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
+    val lastModified = datetime("last_modified")
+    val library = reference("library_id", Libraries.id)
+
     val name = varchar("name", 255)
-
-    val releaseDate = date("release_date").nullable()
     val description = varchar("description", 255).nullable()
-
+    val releaseDate = date("release_date").nullable()
     val criticScore = decimal("critic_score", 9, 1).nullable()
     val userScore = decimal("user_score", 9, 1).nullable()
 
-    // TODO: Remove this, make this a one to many.
+    val providerData = varchar("provider_data", 8192)
+}
+
+object Images : Table("") {
+    val game = reference("game_id", Games.id).primaryKey()
+
     val thumbnail = blob("thumbnail").nullable()
     val poster = blob("poster").nullable()
 
-    val lastModified = datetime("last_modified")
+    val screenshot1 = blob("screenshot1").nullable()
+    val screenshot2 = blob("screenshot2").nullable()
+    val screenshot3 = blob("screenshot3").nullable()
+    val screenshot4 = blob("screenshot4").nullable()
+    val screenshot5 = blob("screenshot5").nullable()
+    val screenshot6 = blob("screenshot6").nullable()
+    val screenshot7 = blob("screenshot7").nullable()
+    val screenshot8 = blob("screenshot8").nullable()
+    val screenshot9 = blob("screenshot9").nullable()
+    val screenshot10 = blob("screenshot10").nullable()
 
-    val providerSpecificData = varchar("provider_specific_data", 64000)
-
-    val library = reference("library_id", Libraries.id)
-
-    // Extensions
-    // TODO: Remove this, make this a one to many.
-    val withoutBlobs = columns - arrayOf(thumbnail, poster)
+    val imageData = varchar("image_data", 8192)
 }
 
 object Genres : Table() {

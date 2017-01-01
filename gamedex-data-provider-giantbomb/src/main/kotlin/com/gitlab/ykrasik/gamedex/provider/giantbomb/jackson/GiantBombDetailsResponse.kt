@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
-import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
 import org.joda.time.LocalDate
 
 /**
@@ -33,21 +32,7 @@ data class GiantBombDetailsResult(
     val originalReleaseDate: LocalDate?,
     val image: GiantBombDetailsImage,
     val genres: List<GiantBombGenre>
-) {
-    fun toProviderGameData(detailUrl: String): ProviderGameData {
-        return ProviderGameData(
-            detailUrl = detailUrl,
-            name = this.name,
-            description = this.deck,
-            releaseDate = this.originalReleaseDate,
-            criticScore = null,
-            userScore = null,
-            thumbnailUrl = this.image.thumbUrl,
-            posterUrl = this.image.superUrl,
-            genres = this.genres.map { it.name }
-        )
-    }
-}
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GiantBombGenre(

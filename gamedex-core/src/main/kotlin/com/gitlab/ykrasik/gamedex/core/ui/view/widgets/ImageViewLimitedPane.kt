@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view.widgets
 
 import com.gitlab.ykrasik.gamedex.core.util.ImageDisplayType
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -16,8 +15,8 @@ import javafx.scene.layout.Pane
  * Date: 25/12/2016
  * Time: 17:36
  */
-class ImageViewLimitedPane(val imageView: ImageView) : Pane() {
-    val imageDisplayTypeProperty: ObjectProperty<ImageDisplayType> = SimpleObjectProperty<ImageDisplayType>()
+class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
+    val imageDisplayTypeProperty = SimpleObjectProperty<ImageDisplayType>()
 
     init {
         super.getChildren().add(imageView)
@@ -43,7 +42,7 @@ class ImageViewLimitedPane(val imageView: ImageView) : Pane() {
             ImageDisplayType.fit -> fitImage(true)
             ImageDisplayType.stretch -> stretchImage()
 //            case ENLARGE: enlargeImage(); break;
-            else -> throw IllegalArgumentException("Invalid imageDisplayType: ${imageDisplayTypeProperty.get()}")
+            else -> null//throw IllegalArgumentException("Invalid imageDisplayType: ${imageDisplayTypeProperty.get()}")
         }
     }
 
@@ -71,8 +70,8 @@ class ImageViewLimitedPane(val imageView: ImageView) : Pane() {
         val stretchWidthRatio = cellWidth / imageFitWidth
         val stretchRatio = Math.max(stretchHeightRatio, stretchWidthRatio)
 
-        // If stretchRatio isn't bigger then MAX_STRETCH, stretch the image.
-        val preserveRatio = Math.abs(stretchRatio - 1) > MAX_STRETCH
+        // If stretchRatio isn't bigger than maxStretch, stretch the image.
+        val preserveRatio = Math.abs(stretchRatio - 1) > maxStretch
         fitImage(preserveRatio)
     }
 
@@ -126,6 +125,6 @@ class ImageViewLimitedPane(val imageView: ImageView) : Pane() {
 
     companion object {
         // TODO: Property
-        private val MAX_STRETCH = 0.5
+        private val maxStretch = 0.5
     }
 }

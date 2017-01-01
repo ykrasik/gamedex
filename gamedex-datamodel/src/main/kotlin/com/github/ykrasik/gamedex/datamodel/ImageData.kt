@@ -1,7 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import javafx.scene.image.Image
-import java.io.ByteArrayInputStream
+import com.github.ykrasik.gamedex.common.getResourceAsByteArray
 
 /**
  * User: ykrasik
@@ -9,11 +8,13 @@ import java.io.ByteArrayInputStream
  * Time: 14:02
  */
 class ImageData(
-    val rawData: ByteArray,
-    val image: Image    // FIXME: Doesn't belong here.
+    val rawData: ByteArray
 ) {
+//    val image: Image by lazy { Image(ByteArrayInputStream(rawData)) }
 
     companion object {
-        operator fun invoke(rawData: ByteArray): ImageData = ImageData(rawData, Image(ByteArrayInputStream(rawData)))
+        fun fromFile(fileName: String): ImageData = ImageData(getResourceAsByteArray(fileName))
+//        fun fromUrl(url: URL): ImageData = ImageData(Resources.toByteArray(url))
+//        fun fromUrl(url: String): ImageData = fromUrl(URL(url))
     }
 }

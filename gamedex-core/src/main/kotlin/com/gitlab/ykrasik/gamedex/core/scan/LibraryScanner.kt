@@ -4,12 +4,10 @@ import com.github.ykrasik.gamedex.common.collapseSpaces
 import com.github.ykrasik.gamedex.common.emptyToNull
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
-import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import javafx.concurrent.Task
 import java.nio.file.Path
 import javax.inject.Inject
@@ -32,6 +30,9 @@ class LibraryScanner @Inject constructor(
 
     fun refresh(library: Library): Task<Unit> = object : Task<Unit>() {
         init {
+            setOnFailed {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), exception)
+            }
             messageProperty().addListener { observableValue, oldValue, newValue ->
                 log.info { newValue }
             }
@@ -53,32 +54,11 @@ class LibraryScanner @Inject constructor(
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
-//            val gameData = providerService.fetch(name, platform) { results ->
-//                chooseSearchResult(results)
-//            } ?: return null
+            val gameData = providerService.fetch(name, platform) ?: return null
 
-            // FIXME: TEMP!!!
-            val d = GameData(
-                path = path,
-                name = name,
-                description = null,
-                releaseDate = null,
-                criticScore = null,
-                userScore = null,
-                thumbnail = null,
-                poster = null,
-                genres = emptyList(),
-                providerSpecificData = emptyList()
-            )
-
-            val game = gamesModel.add(d, path, library)
+            val game = gamesModel.add(gameData, path, library)
             updateMessage("[$path] Done: $game")
             return game
-        }
-
-        private fun chooseSearchResult(results: List<SearchResult>): SearchResult? {
-            // TODO: Display dialog
-            return results.first()
         }
 
         private fun isStopped(): Boolean = this.isCancelled || Thread.interrupted()

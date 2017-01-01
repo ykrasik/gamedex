@@ -3,19 +3,13 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 import com.github.ykrasik.gamedex.common.*
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.jackson.readList
-import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameData
-import com.github.ykrasik.gamedex.datamodel.Genre
-import com.github.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.persistence.entity.Games
-import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
-import com.gitlab.ykrasik.gamedex.persistence.entity.selectBy
-import com.gitlab.ykrasik.gamedex.persistence.entity.toBlob
+import com.github.ykrasik.gamedex.datamodel.*
+import com.gitlab.ykrasik.gamedex.persistence.entity.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.math.BigDecimal
 import java.nio.file.Path
+import java.sql.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +23,7 @@ interface GameDao {
     fun get(id: Id<Game>): Game     // TODO: Under which circumstance is this needed?
     fun exists(path: Path): Boolean
 
-    fun add(gameData: GameData, path: Path, library: Library): Game
+    fun add(gameData: GameDataDto, path: Path, library: Library): Game
 
     fun delete(game: Game)
     fun deleteByLibrary(library: Library)
@@ -45,7 +39,7 @@ class GameDaoImpl @Inject constructor(
 ) : GameDao {
     private val log by logger()
 
-    private val baseQuery = (Games innerJoin Libraries).slice(Games.withoutBlobs + Libraries.columns)
+    private val baseQuery = (Games innerJoin Images innerJoin Libraries).slice(Games.columns + Libraries.columns + listOf(Images.thumbnail, Images.poster))
 
     override val all: List<Game> get() {
         log.info { "Fetching all..." }
@@ -77,38 +71,55 @@ class GameDaoImpl @Inject constructor(
         return exists
     }
 
-    override fun add(gameData: GameData, path: Path, library: Library): Game {
+    override fun add(gameData: GameDataDto, path: Path, library: Library): Game {
         log.info { "Inserting game: $gameData..." }
         val lastModified = timeProvider.now()
         val id = transaction {
-            Games.insert {
+            val id = Games.insert {
                 it[Games.path] = path.toString()
+                it[Games.lastModified] = lastModified
+                it[Games.library] = library.id.id
                 it[name] = gameData.name
                 it[releaseDate] = gameData.releaseDate?.toDateTimeAtStartOfDay()
                 it[description] = gameData.description
-                it[criticScore] = gameData.criticScore?.let(::BigDecimal)
-                it[userScore] = gameData.userScore?.let(::BigDecimal)
+                it[providerData] = objectMapper.writeValueAsString(gameData.providerData)
+            } get Games.id
+
+            Images.insert {
+                it[game] = id
                 it[thumbnail] = gameData.thumbnail?.rawData?.let { it.toBlob() }
                 it[poster] = gameData.poster?.rawData?.let { it.toBlob() }
-                it[Games.lastModified] = lastModified
-                it[providerSpecificData] = objectMapper.writeValueAsString(gameData.providerSpecificData)
-                it[Games.library] = library.id.id
-            } get Games.id
+                it[imageData] = ""
+                // TODO: Add gameData (json containing image urls). Probably don't need to pre-fetch poster. Also screenshots.
+            }
+
+            id
         }.toId<Game>()
 
         // Insert all new genres.
         // TODO: Room for optimization - do one inList bulk fetch for existing genres.
         // FIXME: Is adding genres part of the responsibilities of this DAO? that's probably more in the Manager domain.
-        val genres = gameData.genres.map { genreDao.getOrAdd(it.name) }
+        val genres = gameData.genres.map { genreDao.getOrAdd(it) }
 
         // Link genres to game.
         genreDao.linkedGames.link(id, genres)
 
         val game = Game(
             id = id,
+            path = path,
             lastModified = lastModified,
             library = library,
-            data = gameData
+            data = GameData(
+                name = gameData.name,
+                description = gameData.description,
+                releaseDate = gameData.releaseDate,
+                criticScore = gameData.criticScore,
+                userScore = gameData.userScore,
+                thumbnail = gameData.thumbnail,
+                poster = gameData.poster,
+                genres = genres,
+                providerData = gameData.providerData
+            )
         )
         log.info { "Result: $game." }
         return game
@@ -154,22 +165,24 @@ class GameDaoImpl @Inject constructor(
         val library = this.toLibrary()
         return Game(
             id = this[Games.id].toId(),
+            path = this[Games.path].toPath(),
             lastModified = this[Games.lastModified],
             library = library,
             data = GameData(
-                path = this[Games.path].toPath(),
                 name = this[Games.name],
                 description = this[Games.description],
                 releaseDate = this[Games.releaseDate]?.toLocalDate(),
                 criticScore = this[Games.criticScore]?.toDouble(),
                 userScore = this[Games.userScore]?.toDouble(),
-                thumbnail = null,
-                poster = null,
+                thumbnail = this[Images.thumbnail].toImageData(),
+                poster = this[Images.poster].toImageData(),
                 genres = genres,
-                providerSpecificData = objectMapper.readList(this[Games.providerSpecificData])
+                providerData = objectMapper.readList(this[Games.providerData])
             )
         )
     }
+
+    private fun Blob?.toImageData(): ImageData? = this?.let { ImageData(it.bytes) }
 
 //    override fun getThumbnail(id: Int): ImageData? {
 //        val result = Games.slice(Games.thumbnail).select { Games.id.eq(id) }.first()

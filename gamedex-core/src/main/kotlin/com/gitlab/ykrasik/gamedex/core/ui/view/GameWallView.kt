@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.core.ui.gridView
 import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
 import com.gitlab.ykrasik.gamedex.core.ui.view.widgets.ImageViewLimitedPane
 import javafx.event.EventHandler
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.util.Callback
@@ -13,6 +14,7 @@ import org.controlsfx.control.GridCell
 import tornadofx.View
 import tornadofx.addClass
 import java.awt.Desktop
+import java.io.ByteArrayInputStream
 import java.net.URL
 import java.net.URLEncoder
 
@@ -97,11 +99,12 @@ class GameWallCell : GridCell<Game>() {
 
         if (!empty) {
 //            fetchImage(item)
-//            graphic = imageViewLimitedPane
-            text = item?.name
+            item?.thumbnail?.let {
+                imageView.image = Image(ByteArrayInputStream(it.rawData))
+            }
+            graphic = imageViewLimitedPane
         } else {
-//            graphic = null
-            text = ""
+            graphic = null
         }
     }
 

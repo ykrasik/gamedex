@@ -4,15 +4,17 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.getResourceAsByteArray
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
+import com.github.ykrasik.gamedex.datamodel.DataProviderType
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
 import com.gitlab.ykrasik.gamedex.provider.SearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResponse
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombSearchResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombStatus
 import javax.inject.Inject
@@ -27,7 +29,11 @@ import javax.inject.Singleton
 class GiantBombDataProvider @Inject constructor(private val config: GiantBombConfig) : DataProvider {
     private val log by logger()
 
-    override val info = DataProviderInfo("GiantBomb", false, this.getResourceAsByteArray("logo.png"))
+    override val info = DataProviderInfo(
+        name = "GiantBomb",
+        type = DataProviderType.GiantBomb,
+        logo = ImageData.fromFile("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png")
+    )
 
     private val searchFields = listOf("api_detail_url", "name", "original_release_date", "image").joinToString(",")
     private val fetchDetailsFields = listOf("name", "deck", "original_release_date", "image", "genres").joinToString(",")
@@ -99,4 +105,17 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
             objectMapper.readValue(value, clazz)
         }
     }
+
+    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String): ProviderGameData = ProviderGameData(
+        type = DataProviderType.GiantBomb,
+        name = name,
+        description = deck,
+        releaseDate = originalReleaseDate,
+        thumbnailUrl = image.thumbUrl,
+        posterUrl = image.superUrl,
+        genres = genres.map { it.name },
+        detailUrl = detailUrl,
+        criticScore = null,
+        userScore = null
+    )
 }

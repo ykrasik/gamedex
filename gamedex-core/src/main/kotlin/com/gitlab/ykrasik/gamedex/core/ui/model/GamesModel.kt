@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameData
+import com.github.ykrasik.gamedex.datamodel.GameDataDto
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.persistence.dao.GameDao
 import javafx.beans.property.SimpleListProperty
@@ -26,7 +26,7 @@ class GamesModel @Inject constructor(
 
     fun contains(path: Path): Boolean = all.any { it.path == path }
 
-    fun add(gameData: GameData, path: Path, library: Library): Game {
+    fun add(gameData: GameDataDto, path: Path, library: Library): Game {
         val game = gameDao.add(gameData, path, library)
         all += game
         return game

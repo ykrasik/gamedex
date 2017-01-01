@@ -136,7 +136,7 @@ class GenreDaoImpl @Inject constructor() : GenreDao {
             log.info { "Linking gameId=$id with genres: $genres" }
             transaction {
                 for (genre in genres) {
-                    log.debug { "Linking gameId=$id with genre=${GameGenres.genre}..." }
+                    log.debug { "Linking gameId=$id with genre=$genre..." }
                     GameGenres.insert {
                         it[GameGenres.game] = id.id
                         it[GameGenres.genre] = genre.id.id
