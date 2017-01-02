@@ -8,13 +8,17 @@ import com.github.ykrasik.gamedex.common.getResourceAsByteArray
  * Time: 14:02
  */
 class ImageData(
-    val rawData: ByteArray
+    val rawData: ByteArray?,
+    val url: String?
 ) {
-//    val image: Image by lazy { Image(ByteArrayInputStream(rawData)) }
+    override fun toString() = url ?: "Empty"
 
     companion object {
-        fun fromFile(fileName: String): ImageData = ImageData(getResourceAsByteArray(fileName))
-//        fun fromUrl(url: URL): ImageData = ImageData(Resources.toByteArray(url))
-//        fun fromUrl(url: String): ImageData = fromUrl(URL(url))
+        val empty = ImageData(rawData = null, url = null)
+
+        fun fromFile(fileName: String): ImageData = ImageData(
+            rawData = getResourceAsByteArray(fileName),
+            url = fileName
+        )
     }
 }

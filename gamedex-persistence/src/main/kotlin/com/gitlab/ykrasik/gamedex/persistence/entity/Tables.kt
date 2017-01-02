@@ -26,6 +26,7 @@ object Games : Table() {
     val name = varchar("name", 255)
     val description = varchar("description", 255).nullable()
     val releaseDate = date("release_date").nullable()
+
     val criticScore = decimal("critic_score", 9, 1).nullable()
     val userScore = decimal("user_score", 9, 1).nullable()
 
@@ -35,21 +36,44 @@ object Games : Table() {
 object Images : Table("") {
     val game = reference("game_id", Games.id).primaryKey()
 
-    val thumbnail = blob("thumbnail").nullable()
-    val poster = blob("poster").nullable()
+    val thumbnail = image("thumbnail")
+    val thumbnailUrl = imageUrl("thumbnail_url")
 
-    val screenshot1 = blob("screenshot1").nullable()
-    val screenshot2 = blob("screenshot2").nullable()
-    val screenshot3 = blob("screenshot3").nullable()
-    val screenshot4 = blob("screenshot4").nullable()
-    val screenshot5 = blob("screenshot5").nullable()
-    val screenshot6 = blob("screenshot6").nullable()
-    val screenshot7 = blob("screenshot7").nullable()
-    val screenshot8 = blob("screenshot8").nullable()
-    val screenshot9 = blob("screenshot9").nullable()
-    val screenshot10 = blob("screenshot10").nullable()
+    val poster = image("poster")
+    val posterUrl = imageUrl("poster_url")
 
-    val imageData = varchar("image_data", 8192)
+    val screenshot1 = image("screenshot1")
+    val screenshot1Url = imageUrl("screenshot1_url")
+
+    val screenshot2 = image("screenshot2")
+    val screenshot2Url = imageUrl("screenshot2_url")
+
+    val screenshot3 = image("screenshot3")
+    val screenshot3Url = imageUrl("screenshot3_url")
+
+    val screenshot4 = image("screenshot4")
+    val screenshot4Ulr = imageUrl("screenshot4_url")
+
+    val screenshot5 = image("screenshot5")
+    val screenshot5Url = imageUrl("screenshot5_url")
+
+    val screenshot6 = image("screenshot6")
+    val screenshot6Url = imageUrl("screenshot6_url")
+
+    val screenshot7 = image("screenshot7")
+    val screenshot7Url = imageUrl("screenshot7_url")
+
+    val screenshot8 = image("screenshot8")
+    val screenshot8Url = imageUrl("screenshot8_url")
+
+    val screenshot9 = image("screenshot9")
+    val screenshot9Url = imageUrl("screenshot9_url")
+
+    val screenshot10 = image("screenshot10")
+    val screenshot10Url = imageUrl("screenshot10_url")
+
+    private fun image(name: String) = blob(name).nullable()
+    private fun imageUrl(name: String) = varchar(name, 256).nullable()
 }
 
 object Genres : Table() {

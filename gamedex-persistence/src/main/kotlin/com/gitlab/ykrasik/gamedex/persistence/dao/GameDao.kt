@@ -7,7 +7,10 @@ import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.persistence.entity.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.statements.InsertStatement
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
+import java.math.BigDecimal
 import java.nio.file.Path
 import java.sql.Blob
 import javax.inject.Inject
@@ -39,7 +42,8 @@ class GameDaoImpl @Inject constructor(
 ) : GameDao {
     private val log by logger()
 
-    private val baseQuery = (Games innerJoin Images innerJoin Libraries).slice(Games.columns + Libraries.columns + listOf(Images.thumbnail, Images.poster))
+    // TODO: Do not pre-fetch images, maybe only the thumbnail.
+    private val baseQuery = (Games innerJoin Images innerJoin Libraries).slice(Games.columns + Libraries.columns + Images.columns)
 
     override val all: List<Game> get() {
         log.info { "Fetching all..." }
@@ -71,59 +75,78 @@ class GameDaoImpl @Inject constructor(
         return exists
     }
 
-    override fun add(gameData: GameDataDto, path: Path, library: Library): Game {
+    override fun add(gameData: GameDataDto, path: Path, library: Library): Game = transaction {
+        val (id, lastModified) = insert(gameData, path, library)
+        val genres = insertGenres(gameData.genresNames, id)
+        val game = gameData.toGame(id, path, lastModified, library, genres)
+        log.info { "Result: $game." }
+        game
+    }
+
+    private fun insert(gameData: GameDataDto, path: Path, library: Library): Pair<Id<Game>, DateTime> {
         log.info { "Inserting game: $gameData..." }
         val lastModified = timeProvider.now()
-        val id = transaction {
-            val id = Games.insert {
-                it[Games.path] = path.toString()
-                it[Games.lastModified] = lastModified
-                it[Games.library] = library.id.id
-                it[name] = gameData.name
-                it[releaseDate] = gameData.releaseDate?.toDateTimeAtStartOfDay()
-                it[description] = gameData.description
-                it[providerData] = objectMapper.writeValueAsString(gameData.providerData)
-            } get Games.id
+        val id = insertGame(gameData, path, library, lastModified)
+        insertImage(gameData.imageData, id)
+        return Pair(id.toId<Game>(), lastModified)
+    }
 
-            Images.insert {
-                it[game] = id
-                it[thumbnail] = gameData.thumbnail?.rawData?.let { it.toBlob() }
-                it[poster] = gameData.poster?.rawData?.let { it.toBlob() }
-                it[imageData] = ""
-                // TODO: Add gameData (json containing image urls). Probably don't need to pre-fetch poster. Also screenshots.
-            }
+    private fun insertGame(gameData: GameDataDto, path: Path, library: Library, lastModified: DateTime): Int = Games.insert {
+        it[Games.path] = path.toString()
+        it[Games.lastModified] = lastModified
+        it[Games.library] = library.id.id
+        gameData.basicData.fillBasicData(it)
+        gameData.scoreData.fillScoreData(it)
+        it[providerData] = objectMapper.writeValueAsString(gameData.providerData)
+    } get Games.id
 
-            id
-        }.toId<Game>()
+    private fun GameBasicData.fillBasicData(table: InsertStatement<Number>) {
+        table[Games.name] = name
+        table[Games.releaseDate] = releaseDate?.toDateTimeAtStartOfDay()
+        table[Games.description] = description
+    }
 
+    private fun GameScoreData.fillScoreData(table: InsertStatement<Number>) {
+        table[Games.criticScore] = criticScore?.let(::BigDecimal)
+        table[Games.userScore] = userScore?.let(::BigDecimal)
+    }
+
+    private fun insertImage(imageData: GameImageData, id: Int) = Images.insert {
+        it[game] = id
+        imageData.thumbnail.fillData(it, thumbnail, thumbnailUrl)
+        imageData.poster.fillData(it, poster, posterUrl)
+        // TODO: Probably don't need to pre-fetch poster. Add screenshots.
+    }
+
+    private fun ImageData?.fillData(table: InsertStatement<Number>, dataColumn: Column<Blob?>, urlColumn: Column<String?>) {
+        table[dataColumn] = this?.rawData?.toBlob()
+        table[urlColumn] = this?.url
+    }
+
+    private fun insertGenres(genreNames: List<String>, id: Id<Game>): List<Genre> {
         // Insert all new genres.
         // TODO: Room for optimization - do one inList bulk fetch for existing genres.
         // FIXME: Is adding genres part of the responsibilities of this DAO? that's probably more in the Manager domain.
-        val genres = gameData.genres.map { genreDao.getOrAdd(it) }
+        val genres = genreNames.map { genreDao.getOrAdd(it) }
 
         // Link genres to game.
         genreDao.linkedGames.link(id, genres)
-
-        val game = Game(
-            id = id,
-            path = path,
-            lastModified = lastModified,
-            library = library,
-            data = GameData(
-                name = gameData.name,
-                description = gameData.description,
-                releaseDate = gameData.releaseDate,
-                criticScore = gameData.criticScore,
-                userScore = gameData.userScore,
-                thumbnail = gameData.thumbnail,
-                poster = gameData.poster,
-                genres = genres,
-                providerData = gameData.providerData
-            )
-        )
-        log.info { "Result: $game." }
-        return game
+        return genres
     }
+
+    private fun GameDataDto.toGame(id: Id<Game>, path: Path, lastModified: DateTime, library: Library, genres: List<Genre>) = Game(
+        id = id,
+        path = path,
+        lastModified = lastModified,
+        library = library,
+        data = GameData(
+            basicData = basicData,
+            scoreData = scoreData,
+            imageData = imageData,
+            genres = genres,
+            providerData = providerData
+        )
+    )
 
     override fun delete(game: Game) {
         log.info { "Deleting: $game..." }
@@ -169,37 +192,33 @@ class GameDaoImpl @Inject constructor(
             lastModified = this[Games.lastModified],
             library = library,
             data = GameData(
-                name = this[Games.name],
-                description = this[Games.description],
-                releaseDate = this[Games.releaseDate]?.toLocalDate(),
-                criticScore = this[Games.criticScore]?.toDouble(),
-                userScore = this[Games.userScore]?.toDouble(),
-                thumbnail = this[Images.thumbnail].toImageData(),
-                poster = this[Images.poster].toImageData(),
+                basicData = this.toGameBasicData(),
+                scoreData = this.toGameScoreData(),
+                imageData = this.toGameImageData(),
                 genres = genres,
                 providerData = objectMapper.readList(this[Games.providerData])
             )
         )
     }
 
-    private fun Blob?.toImageData(): ImageData? = this?.let { ImageData(it.bytes) }
+    private fun ResultRow.toGameBasicData(): GameBasicData = GameBasicData(
+        name = this[Games.name],
+        description = this[Games.description],
+        releaseDate = this[Games.releaseDate]?.toLocalDate()
+    )
 
-//    override fun getThumbnail(id: Int): ImageData? {
-//        val result = Games.slice(Games.thumbnail).select { Games.id.eq(id) }.first()
-//        return result[Games.thumbnail]?.let { ImageData(it.bytes) }
-//    }
-//
-//    override fun getPoster(id: Int): ImageData? {
-//        val result = Games.slice(Games.poster).select { Games.id.eq(id) }.first()
-//        return result[Games.poster]?.let { ImageData(it.bytes) }
-//    }
+    private fun ResultRow.toGameScoreData(): GameScoreData = GameScoreData(
+        criticScore = this[Games.criticScore]?.toDouble(),
+        userScore = this[Games.userScore]?.toDouble()
+    )
 
-//    override fun getByLibrary(libraryId: Int): List<Int> {
-//        log.info { "Fetching games of library: $libraryId" }
-//        val ids = Games.select { Games.library.eq(libraryId) }.map {
-//            it[Games.id]
-//        }
-//        log.info { "Fetched ${ids.size} games." }
-//        return ids
-//    }
+    private fun ResultRow.toGameImageData(): GameImageData = GameImageData(
+        thumbnail = toImageData(Images.thumbnail, Images.thumbnailUrl),
+        poster = toImageData(Images.poster, Images.posterUrl)
+    )
+
+    private fun ResultRow.toImageData(dataColumn: Column<Blob?>, urlColumn: Column<String?>): ImageData = ImageData(
+        rawData = this[dataColumn]?.bytes,
+        url = this[urlColumn]
+    )
 }

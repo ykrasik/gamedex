@@ -2,12 +2,8 @@ package com.gitlab.ykrasik.gamedex.provider
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.firstNotNull
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.datamodel.GameDataDto
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.ImageData
-import com.github.ykrasik.gamedex.datamodel.ProviderData
+import com.github.ykrasik.gamedex.datamodel.*
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,29 +39,42 @@ class DataProviderServiceImpl @Inject constructor(
     private fun List<ProviderGameData>.merge(gameName: String): GameDataDto {
         check(this.isNotEmpty()) { "No provider managed to return any GameData!" }
 
-        val basicData = this.sortedBy { it.type.basicDataPriority }
-        val scoreData = this.sortedBy { it.type.scorePriority }
-        val imageData = this.sortedBy { it.type.imagePriorty }
-
         return GameDataDto(
-            name = basicData.first().name,
-            description = basicData.findFirst(gameName, "description") { it.description },
-            releaseDate = basicData.findFirst(gameName, "releaseDate") { it.releaseDate },
-
-            criticScore = scoreData.findFirst(gameName, "criticScore") { it.criticScore },
-            userScore = scoreData.findFirst(gameName, "userScore") { it.userScore },
-
-            thumbnail = imageData.firstNotNull { it.fetchThumbnail() },
-            poster = imageData.firstNotNull { it.fetchPoster() },
-
-            genres = this.flatMapTo(mutableSetOf<String>()) { it.genres }.toList(),
-
+            basicData = createBasicData(gameName),
+            scoreData = createScoreData(gameName),
+            imageData = createImageData(gameName),
+            genresNames = this.flatMapTo(mutableSetOf<String>()) { it.genres }.toList(),
             providerData = this.map {
                 ProviderData(
                     type = it.type,
                     detailUrl = it.detailUrl
                 )
             }
+        )
+    }
+
+    private fun List<ProviderGameData>.createBasicData(gameName: String): GameBasicData {
+        val basicData = this.sortedBy { it.type.basicDataPriority }
+        return GameBasicData(
+            name = basicData.first().name,
+            description = basicData.findFirst(gameName, "description") { it.description },
+            releaseDate = basicData.findFirst(gameName, "releaseDate") { it.releaseDate }
+        )
+    }
+
+    private fun List<ProviderGameData>.createScoreData(gameName: String): GameScoreData {
+        val scoreData = this.sortedBy { it.type.scorePriority }
+        return GameScoreData(
+            criticScore = scoreData.findFirst(gameName, "criticScore") { it.criticScore },
+            userScore = scoreData.findFirst(gameName, "userScore") { it.userScore }
+        )
+    }
+
+    private fun List<ProviderGameData>.createImageData(gameName: String): GameImageData {
+        val imageData = this.sortedBy { it.type.imagePriorty }
+        return GameImageData(
+            thumbnail = imageData.findFirst(gameName, "thumbnail") { it.thumbnailUrl?.fetchImage() } ?: ImageData.empty,
+            poster = imageData.findFirst(gameName, "poster") { it.posterUrl?.fetchImage() } ?: ImageData.empty
         )
     }
 
@@ -81,20 +90,12 @@ class DataProviderServiceImpl @Inject constructor(
         }
     }
 
-    private fun ProviderGameData.fetchThumbnail(): ImageData? = thumbnailUrl?.let {
-        log.debug { "[$name][$type] Fetching thumbnail: '$it'..." }
-        fetchImage(it)
-    }
-
-    private fun ProviderGameData.fetchPoster(): ImageData? = posterUrl?.let {
-        log.debug { "[$name][$type] Fetching poster: '$it'..." }
-        fetchImage(it)
-    }
-
     // FIXME: Add progress listeners.
-    private fun fetchImage(url: String): ImageData? {
+    private fun String.fetchImage(): ImageData {
+        // FIXME: Remove the try, only for debugging.
         try {
-            val (request, response, result) = Fuel.download(url)
+            // FIXME: Create a rest client api. Or use TornadoFX.
+            val (request, response, result) = Fuel.download(this)
                 .destination { response, url ->
                     File.createTempFile("temp", ".tmp")
                 }
@@ -106,9 +107,9 @@ class DataProviderServiceImpl @Inject constructor(
 
             val imageData = when (result) {
                 is Result.Failure -> throw result.error
-                is Result.Success -> ImageData(result.value)
+                is Result.Success -> ImageData(result.value, this)
             }
-            log.info { "Done. Size: ${imageData.rawData.size}" }
+            log.info { "Done. Size: ${imageData.rawData!!.size}" }
             return imageData
         } catch (e: Exception) {
             throw e
