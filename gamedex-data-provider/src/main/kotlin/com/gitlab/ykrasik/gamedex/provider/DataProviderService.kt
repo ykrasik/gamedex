@@ -1,10 +1,11 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.datamodel.*
-import java.io.File
+import com.github.ykrasik.gamedex.datamodel.GameData
+import com.github.ykrasik.gamedex.datamodel.GameImageData
+import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.ProviderData
+import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +15,8 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface DataProviderService {
-    fun fetch(name: String, platform: GamePlatform): GameDataDto?
+    // TODO: Create an object for this?
+    fun fetch(name: String, platform: GamePlatform, path: Path): Pair<GameData, GameImageData>?
 }
 
 @Singleton
@@ -24,26 +26,34 @@ class DataProviderServiceImpl @Inject constructor(
 ) : DataProviderService {
     private val log by logger()
 
-    override fun fetch(name: String, platform: GamePlatform): GameDataDto? {
+    override fun fetch(name: String, platform: GamePlatform, path: Path): Pair<GameData, GameImageData>? {
         check(providers.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
 
-        val context = SearchContext()
-        val providerGameData = providers.map { provider ->
+        val context = SearchContext(name, path)
+        val fetchResults = providers.map { provider ->
             val results = provider.search(name, platform)
-            val result = chooser.choose(results, context) ?: return null
+            val result = chooser.choose(provider.info, results, context) ?: return null
             provider.fetch(result)
         }
-        return providerGameData.merge(name)
+        return fetchResults.merge(name)
     }
 
-    private fun List<ProviderGameData>.merge(gameName: String): GameDataDto {
+    private fun List<ProviderFetchResult>.merge(gameName: String): Pair<GameData, GameImageData>? {
         check(this.isNotEmpty()) { "No provider managed to return any GameData!" }
 
-        return GameDataDto(
-            basicData = createBasicData(gameName),
-            scoreData = createScoreData(gameName),
-            imageData = createImageData(gameName),
-            genresNames = this.flatMapTo(mutableSetOf<String>()) { it.genres }.toList(),
+        val basicData = this.sortedBy { it.type.basicDataPriority }
+        val scoreData = this.sortedBy { it.type.scorePriority }
+        val imageData = this.sortedBy { it.type.imagePriorty }
+
+        val gameData = GameData(
+            name = basicData.first().name,
+            description = basicData.findFirst(gameName, "description") { it.description },
+            releaseDate = basicData.findFirst(gameName, "releaseDate") { it.releaseDate },
+
+            criticScore = scoreData.findFirst(gameName, "criticScore") { it.criticScore },
+            userScore = scoreData.findFirst(gameName, "userScore") { it.userScore },
+
+            genres = this.flatMapTo(mutableSetOf<String>()) { it.genres }.toList(),
             providerData = this.map {
                 ProviderData(
                     type = it.type,
@@ -51,34 +61,18 @@ class DataProviderServiceImpl @Inject constructor(
                 )
             }
         )
-    }
 
-    private fun List<ProviderGameData>.createBasicData(gameName: String): GameBasicData {
-        val basicData = this.sortedBy { it.type.basicDataPriority }
-        return GameBasicData(
-            name = basicData.first().name,
-            description = basicData.findFirst(gameName, "description") { it.description },
-            releaseDate = basicData.findFirst(gameName, "releaseDate") { it.releaseDate }
+        // TODO: Maybe there's a better way of doing this?
+        val gameImageData = GameImageData(
+            thumbnailUrl = imageData.findFirst(gameName, "thumbnail") { it.imageData.thumbnailUrl },
+            posterUrl = imageData.findFirst(gameName, "poster") { it.imageData.posterUrl },
+            screenshotUrls = emptyList()    // TODO: Support screenshots.
         )
+
+        return Pair(gameData, gameImageData)
     }
 
-    private fun List<ProviderGameData>.createScoreData(gameName: String): GameScoreData {
-        val scoreData = this.sortedBy { it.type.scorePriority }
-        return GameScoreData(
-            criticScore = scoreData.findFirst(gameName, "criticScore") { it.criticScore },
-            userScore = scoreData.findFirst(gameName, "userScore") { it.userScore }
-        )
-    }
-
-    private fun List<ProviderGameData>.createImageData(gameName: String): GameImageData {
-        val imageData = this.sortedBy { it.type.imagePriorty }
-        return GameImageData(
-            thumbnail = imageData.findFirst(gameName, "thumbnail") { it.thumbnailUrl?.fetchImage() } ?: ImageData.empty,
-            poster = imageData.findFirst(gameName, "poster") { it.posterUrl?.fetchImage() } ?: ImageData.empty
-        )
-    }
-
-    private fun <T> List<ProviderGameData>.findFirst(gameName: String, field: String, extractor: (ProviderGameData) -> T?): T? {
+    private fun <T> List<ProviderFetchResult>.findFirst(gameName: String, field: String, extractor: (ProviderFetchResult) -> T?): T? {
         val providerData = this.firstOrNull { extractor(it) != null }
         return if (providerData != null) {
             val value = extractor(providerData)
@@ -87,32 +81,6 @@ class DataProviderServiceImpl @Inject constructor(
         } else {
             log.debug { "[$gameName][$field]: Empty." }
             null
-        }
-    }
-
-    // FIXME: Add progress listeners.
-    private fun String.fetchImage(): ImageData {
-        // FIXME: Remove the try, only for debugging.
-        try {
-            // FIXME: Create a rest client api. Or use TornadoFX.
-            val (request, response, result) = Fuel.download(this)
-                .destination { response, url ->
-                    File.createTempFile("temp", ".tmp")
-                }
-                .header("User-Agent" to "Kotlin-Fuel")
-                .progress { readBytes, totalBytes ->
-                    val progress = readBytes.toFloat() / totalBytes.toFloat()
-                    log.info { "Progress: $progress" }
-                }.response()
-
-            val imageData = when (result) {
-                is Result.Failure -> throw result.error
-                is Result.Success -> ImageData(result.value, this)
-            }
-            log.info { "Done. Size: ${imageData.rawData!!.size}" }
-            return imageData
-        } catch (e: Exception) {
-            throw e
         }
     }
 }

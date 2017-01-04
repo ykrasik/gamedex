@@ -1,15 +1,15 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.Id
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.toId
 import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,9 +20,6 @@ import javax.inject.Singleton
  */
 interface LibraryDao {
     val all: List<Library>
-    fun get(id: Id<Library>): Library  // TODO: Under which circumstances is this call needed?
-
-    fun exists(path: Path): Boolean   // TODO: Under which circumstances is this call needed?
 
     fun add(data: LibraryData): Library
 
@@ -42,25 +39,6 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
         return libraries
     }
 
-    override fun get(id: Id<Library>): Library {
-        log.info { "Fetching: id=$id..." }
-        val library = transaction {
-            val library = Libraries.select { Libraries.id.eq(id.id) }.firstOrNull()
-            requireNotNull(library) { "Library doesn't exist: $id!" }.toLibrary()
-        }
-        log.info { "Result: $library." }
-        return library
-    }
-
-    override fun exists(path: Path): Boolean {
-        log.debug { "Checking if exists: '$path'..." }
-        val exists = transaction {
-            !Libraries.select { Libraries.path.eq(path.toString()) }.empty()
-        }
-        log.debug { "Result: $exists." }
-        return exists
-    }
-
     override fun add(data: LibraryData): Library {
         log.info { "Inserting: $data..." }
         val id = transaction {
@@ -70,7 +48,7 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
                 it[Libraries.platform] = data.platform
             } get Libraries.id
         }
-        val library = Library(id.toId(), data)
+        val library = Library(id, data)
         log.info { "Result: $library." }
         return library
     }
@@ -78,7 +56,7 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
     override fun delete(library: Library) {
         log.info { "Deleting library: $library..." }
         val amount = transaction {
-            Libraries.deleteWhere { Libraries.id.eq(library.id.id) }
+            Libraries.deleteWhere { Libraries.id.eq(library.id) }
         }
         require(amount == 1) { "Library doesn't exist: $library" }
         log.info { "Done." }
@@ -87,7 +65,7 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
 
 // FIXME: Hide this somehow.
 inline fun ResultRow.toLibrary(): Library = Library(
-    id = this[Libraries.id].toId(),
+    id = this[Libraries.id],
     data = LibraryData(
         path = this[Libraries.path].toPath(),
         name = this[Libraries.name],

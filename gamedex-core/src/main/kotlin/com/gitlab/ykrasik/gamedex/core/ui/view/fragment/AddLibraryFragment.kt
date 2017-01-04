@@ -48,8 +48,7 @@ class AddLibraryFragment : Fragment("Add Library") {
 
     private fun browse() {
         val path = chooseDirectory("Add Library") {
-            val prevDirectory: Path? = preferences.prevDirectory?.let(Path::existsOrNull) ?: null
-            initialDirectory = prevDirectory?.toFile()
+            initialDirectory = preferences.prevDirectory?.let(Path::existsOrNull)?.toFile()
         } ?: return
         preferences.prevDirectory = path
         libraryData.path = path.toString()

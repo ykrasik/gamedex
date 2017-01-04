@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core.ui.controller
 
-import com.gitlab.ykrasik.gamedex.core.ui.model.ExcludedPathsModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.ExcludedPathRepository
 import tornadofx.Controller
 
 /**
@@ -9,7 +9,7 @@ import tornadofx.Controller
  * Time: 13:32
  */
 class ExcludedPathController : Controller() {
-    private val model: ExcludedPathsModel by di()
+    private val excludedPathRepository: ExcludedPathRepository by di()
 
     fun add() {
         TODO()  // TODO: Implement

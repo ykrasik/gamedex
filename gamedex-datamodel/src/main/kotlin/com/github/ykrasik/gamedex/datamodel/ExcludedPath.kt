@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import com.github.ykrasik.gamedex.common.Id
 import java.nio.file.Path
 
 /**
@@ -9,6 +8,6 @@ import java.nio.file.Path
  * Time: 12:08
  */
 data class ExcludedPath(
-    val id: Id<ExcludedPath>,
+    val id: Int,
     val path: Path
 )

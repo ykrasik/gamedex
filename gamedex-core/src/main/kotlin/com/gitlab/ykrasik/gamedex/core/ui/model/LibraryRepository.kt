@@ -3,9 +3,9 @@ package com.gitlab.ykrasik.gamedex.core.ui.model
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.dao.LibraryDao
+import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import tornadofx.getValue
 import tornadofx.observable
 import java.nio.file.Path
 import javax.inject.Inject
@@ -17,11 +17,11 @@ import javax.inject.Singleton
  * Time: 19:47
  */
 @Singleton
-class LibrariesModel @Inject constructor(
+class LibraryRepository @Inject constructor(
     private val libraryDao: LibraryDao
 ) {
-    val allProperty = SimpleListProperty(libraryDao.all.observable())
-    val all: ObservableList<Library> by allProperty
+    val all: ObservableList<Library> = libraryDao.all.observable()
+    val allProperty: ListProperty<Library> = SimpleListProperty(libraryDao.all.observable())
 
     fun contains(path: Path): Boolean = all.any { it.path == path }
 

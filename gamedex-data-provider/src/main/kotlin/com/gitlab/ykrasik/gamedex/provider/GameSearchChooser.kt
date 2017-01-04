@@ -1,14 +1,16 @@
 package com.gitlab.ykrasik.gamedex.provider
 
+import java.nio.file.Path
+
 /**
  * User: ykrasik
  * Date: 30/12/2016
  * Time: 22:01
  */
 interface GameSearchChooser {
-    fun choose(results: List<SearchResult>, context: SearchContext): SearchResult?
+    fun choose(info: DataProviderInfo, providerSearchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
 }
 
-class SearchContext {
-    val discardedResults = setOf<SearchResult>()
+class SearchContext(val searchedName: String, val path: Path) {
+    val discardedResults = setOf<ProviderSearchResult>()
 }

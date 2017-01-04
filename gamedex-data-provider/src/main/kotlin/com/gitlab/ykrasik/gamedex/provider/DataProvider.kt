@@ -12,9 +12,9 @@ import com.github.ykrasik.gamedex.datamodel.ImageData
 interface DataProvider {
     val info: DataProviderInfo
 
-    fun search(name: String, platform: GamePlatform): List<SearchResult>
+    fun search(name: String, platform: GamePlatform): List<ProviderSearchResult>
 
-    fun fetch(searchResult: SearchResult): ProviderGameData
+    fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult
 }
 
 class DataProviderInfo(

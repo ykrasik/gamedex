@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence.entity
 
+import com.github.ykrasik.gamedex.common.kb
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import org.jetbrains.exposed.sql.Table
 
@@ -21,20 +22,13 @@ object Games : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
     val lastModified = datetime("last_modified")
-    val library = reference("library_id", Libraries.id)
+    val libraryId = reference("library_id", Libraries.id)
 
-    val name = varchar("name", 255)
-    val description = varchar("description", 255).nullable()
-    val releaseDate = date("release_date").nullable()
-
-    val criticScore = decimal("critic_score", 9, 1).nullable()
-    val userScore = decimal("user_score", 9, 1).nullable()
-
-    val providerData = varchar("provider_data", 8192)
+    val data = varchar("data", 16.kb)
 }
 
 object Images : Table("") {
-    val game = reference("game_id", Games.id).primaryKey()
+    val gameId = reference("game_id", Games.id).primaryKey()
 
     val thumbnail = image("thumbnail")
     val thumbnailUrl = imageUrl("thumbnail_url")
@@ -76,17 +70,7 @@ object Images : Table("") {
     private fun imageUrl(name: String) = varchar(name, 256).nullable()
 }
 
-object Genres : Table() {
-    val id = integer("id").autoIncrement().primaryKey()
-    val name = varchar("name", 255).uniqueIndex()
-}
-
-object GameGenres : Table("game_genres") {
-    val id = integer("id").autoIncrement().primaryKey()
-    val game = reference("game_id", Games.id)
-    val genre = reference("genre_id", Genres.id)
-}
-
+// TODO: This table probably isn't needed, figure this one out.
 object ExcludedPaths : Table("excluded_paths") {
     val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()

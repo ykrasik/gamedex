@@ -7,12 +7,13 @@ import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.DataProviderType
+import com.github.ykrasik.gamedex.datamodel.GameImageData
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
-import com.gitlab.ykrasik.gamedex.provider.SearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombSearchResponse
@@ -38,7 +39,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     private val searchFields = listOf("api_detail_url", "name", "original_release_date", "image").joinToString(",")
     private val fetchDetailsFields = listOf("name", "deck", "original_release_date", "image", "genres").joinToString(",")
 
-    override fun search(name: String, platform: GamePlatform): List<SearchResult> {
+    override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
         log.info { "Search: name='$name', platform=$platform..." }
         val response = doSearch(name, platform)
         log.debug { "Response: $response" }
@@ -58,7 +59,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return result.fromJson(GiantBombSearchResponse::class.java)
     }
 
-    override fun fetch(searchResult: SearchResult): ProviderGameData {
+    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
         log.info { "Fetch: $searchResult..." }
         val detailUrl = searchResult.detailUrl
         val response = doFetch(detailUrl)
@@ -106,16 +107,23 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         }
     }
 
-    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String): ProviderGameData = ProviderGameData(
+    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String): ProviderFetchResult = ProviderFetchResult(
         type = DataProviderType.GiantBomb,
+        detailUrl = detailUrl,
+
         name = name,
         description = deck,
         releaseDate = originalReleaseDate,
-        thumbnailUrl = image.thumbUrl,
-        posterUrl = image.superUrl,
-        genres = genres.map { it.name },
-        detailUrl = detailUrl,
+
         criticScore = null,
-        userScore = null
+        userScore = null,
+
+        genres = genres.map { it.name },
+
+        imageData = GameImageData(
+            thumbnailUrl = image.thumbUrl,
+            posterUrl = image.superUrl,
+            screenshotUrls = emptyList()    // TODO: Support screenshots
+        )
     )
 }

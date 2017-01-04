@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.ui.controller
 
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import tornadofx.Controller
 
 /**
@@ -10,10 +10,10 @@ import tornadofx.Controller
  * Time: 14:39
  */
 class GameController : Controller() {
-    private val model: GamesModel by di()
+    private val gameRepository: GameRepository by di()
 
     fun delete(game: Game) {
-        model.delete(game)
+        gameRepository.delete(game)
     }
 
     fun filterGenres() {

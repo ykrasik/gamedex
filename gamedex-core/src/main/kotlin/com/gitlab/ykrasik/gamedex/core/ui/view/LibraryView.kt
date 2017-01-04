@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.ui.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.core.ui.model.LibrariesModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.LibraryRepository
 import tornadofx.*
 
 /**
@@ -12,7 +12,7 @@ import tornadofx.*
  */
 class LibraryView : View("Libraries") {
     private val controller: LibraryController by di()
-    private val model: LibrariesModel by di()
+    private val model: LibraryRepository by di()
 
     override val root = tableview<Library> {
         isEditable = false

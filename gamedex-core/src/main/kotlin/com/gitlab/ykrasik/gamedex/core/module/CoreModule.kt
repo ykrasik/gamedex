@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.core.scan.GameSearchChooserImpl
+import com.gitlab.ykrasik.gamedex.core.GameSearchChooserImpl
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferencesService
 import com.gitlab.ykrasik.gamedex.provider.GameSearchChooser

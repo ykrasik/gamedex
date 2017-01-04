@@ -4,4 +4,6 @@ mainClassName = "com.gitlab.ykrasik.gamedex.Main"
 dependencies {
     compile project(":gamedex-core")
     compile project(":gamedex-data-provider-giantbomb")
+
+    compile slf4j.julBridge
 }

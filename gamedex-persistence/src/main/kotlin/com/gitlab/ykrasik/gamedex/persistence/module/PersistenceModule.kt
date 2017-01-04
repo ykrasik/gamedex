@@ -17,8 +17,8 @@ class PersistenceModule : AbstractModule() {
         bind(PersistenceConfig::class.java).toInstance(PersistenceConfig())
 
         bind(GameDao::class.java).to(GameDaoImpl::class.java)
-        bind(GenreDao::class.java).to(GenreDaoImpl::class.java)
         bind(LibraryDao::class.java).to(LibraryDaoImpl::class.java)
         bind(ExcludedPathDao::class.java).to(ExcludedPathDaoImpl::class.java)
+        bind(ImageDao::class.java).to(ImageDaoImpl::class.java)
     }
 }

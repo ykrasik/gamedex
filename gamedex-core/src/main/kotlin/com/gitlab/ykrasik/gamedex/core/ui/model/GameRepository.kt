@@ -1,12 +1,13 @@
 package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameDataDto
+import com.github.ykrasik.gamedex.datamodel.GameData
+import com.github.ykrasik.gamedex.datamodel.GameImageData
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.persistence.dao.GameDao
+import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import tornadofx.getValue
 import tornadofx.observable
 import java.nio.file.Path
 import javax.inject.Inject
@@ -18,16 +19,16 @@ import javax.inject.Singleton
  * Time: 19:18
  */
 @Singleton
-class GamesModel @Inject constructor(
+class GameRepository @Inject constructor(
     private val gameDao: GameDao
 ) {
-    val allProperty = SimpleListProperty(gameDao.all.observable())
-    val all: ObservableList<Game> by allProperty
+    val all: ObservableList<Game> = gameDao.all.observable()
+    val allProperty: ListProperty<Game> = SimpleListProperty(all)
 
     fun contains(path: Path): Boolean = all.any { it.path == path }
 
-    fun add(gameData: GameDataDto, path: Path, library: Library): Game {
-        val game = gameDao.add(gameData, path, library)
+    fun add(gameData: GameData, imageData: GameImageData,  path: Path, library: Library): Game {
+        val game = gameDao.add(gameData, imageData, path, library)
         all += game
         return game
     }

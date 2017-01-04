@@ -2,10 +2,9 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.github.ykrasik.gamedex.datamodel.DataProviderType
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
-import com.gitlab.ykrasik.gamedex.provider.ProviderGameData
-import com.gitlab.ykrasik.gamedex.provider.SearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombStatus
 import io.kotlintest.specs.StringSpec
 import org.joda.time.LocalDate
@@ -22,7 +21,7 @@ class GiantBombDataProviderTest : StringSpec() {
         "Retrieve a single search result" {
             val response = provider.search("no man's sky", GamePlatform.PC)
             response shouldBe listOf(
-                SearchResult(
+                ProviderSearchResult(
                     detailUrl = "http://www.giantbomb.com/api/game/3030-44656/",
                     name = "No Man's Sky",
                     releaseDate = LocalDate.parse("2016-08-09"),
@@ -35,14 +34,14 @@ class GiantBombDataProviderTest : StringSpec() {
         "Retrieve multiple search results" {
             val response = provider.search("tItaN QUEST", GamePlatform.PC)
             response shouldBe listOf(
-                SearchResult(
+                ProviderSearchResult(
                     detailUrl = "http://www.giantbomb.com/api/game/3030-8638/",
                     name = "Titan Quest",
                     releaseDate = LocalDate.parse("2006-06-26"),
                     score = null,
                     thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/301069-titan_quest_pc.jpg"
                 ),
-                SearchResult(
+                ProviderSearchResult(
                     detailUrl = "http://www.giantbomb.com/api/game/3030-13762/",
                     name = "Titan Quest: Immortal Throne",
                     releaseDate = LocalDate.parse("2007-03-08"),
@@ -54,25 +53,25 @@ class GiantBombDataProviderTest : StringSpec() {
 
         "Not find any search results" {
             val response = provider.search("not found", GamePlatform.PC)
-            response shouldBe emptyList<SearchResult>()
+            response shouldBe emptyList<ProviderSearchResult>()
         }
 
         "Fetch a valid game details url" {
             val detailUrl = "http://www.giantbomb.com/api/game/3030-44656/"
             val response = provider.fetch(searchResult(detailUrl))
-            response shouldBe ProviderGameData(
+            response shouldBe ProviderFetchResult(
+                type = DataProviderType.GiantBomb,
+                detailUrl = detailUrl,
+
                 name = "No Man's Sky",
                 description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
                 releaseDate = LocalDate.parse("2016-08-09"),
+                criticScore = null,
+                userScore = null,
+
                 thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
                 posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
-                genres = listOf("Simulation", "Action-Adventure"),
-                providerSpecificData = ProviderData(
-                    type = DataProviderType.GiantBomb,
-                    detailUrl = detailUrl,
-                    criticScore = null,
-                    userScore = null
-                )
+                genres = listOf("Simulation", "Action-Adventure")
             )
         }
 
@@ -91,7 +90,7 @@ class GiantBombDataProviderTest : StringSpec() {
         }
     }
 
-    private fun searchResult(detailUrl: String) = SearchResult(
+    private fun searchResult(detailUrl: String) = ProviderSearchResult(
         detailUrl = detailUrl, name = "", releaseDate = null, score = null, thumbnailUrl = null
     )
 }

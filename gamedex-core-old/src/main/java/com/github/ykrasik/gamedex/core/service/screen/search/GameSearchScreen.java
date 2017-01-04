@@ -4,7 +4,7 @@ import com.github.ykrasik.gamedex.core.manager.stage.StageManager;
 import com.github.ykrasik.gamedex.core.ui.UIResources;
 import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo;
-import com.gitlab.ykrasik.gamedex.provider.SearchResult;
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -43,17 +43,17 @@ public class GameSearchScreen {
     @FXML private CheckBox multipleResultsCheckBox;
     @FXML private CheckBox autoContinueCheckBox;
 
-    @FXML private TableView<SearchResult> searchResultsTable;
-    @FXML private TableColumn<SearchResult, Boolean> checkColumn;
-    @FXML private TableColumn<SearchResult, String> nameColumn;
-    @FXML private TableColumn<SearchResult, String> scoreColumn;
-    @FXML private TableColumn<SearchResult, String> releaseDateColumn;
+    @FXML private TableView<ProviderSearchResult> searchResultsTable;
+    @FXML private TableColumn<ProviderSearchResult, Boolean> checkColumn;
+    @FXML private TableColumn<ProviderSearchResult, String> nameColumn;
+    @FXML private TableColumn<ProviderSearchResult, String> scoreColumn;
+    @FXML private TableColumn<ProviderSearchResult, String> releaseDateColumn;
 
     @FXML private Button proceedAnywayButton;
     @FXML private Button okButton;
 
     private final Stage stage = new Stage();
-    private final ListProperty<SearchResult> searchResultsProperty = new SimpleListProperty<>(FXCollections.emptyObservableList());
+    private final ListProperty<ProviderSearchResult> providerSearchResultsProperty = new SimpleListProperty<>(FXCollections.emptyObservableList());
 
     private final StageManager stageManager;
 
@@ -82,7 +82,7 @@ public class GameSearchScreen {
     private void initialize() {
         initSearchResultsTable();
 
-        searchResultsCountLabel.textProperty().bind(searchResultsProperty.sizeProperty().asString("Results: %d"));
+        searchResultsCountLabel.textProperty().bind(providerSearchResultsProperty.sizeProperty().asString("Results: %d"));
 
         searchButton.defaultButtonProperty().bind(searchTextField.focusedProperty());
         okButton.defaultButtonProperty().bind(searchButton.defaultButtonProperty().not());
@@ -96,7 +96,7 @@ public class GameSearchScreen {
         releaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
         scoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getScore())));
 
-        searchResultsTable.itemsProperty().bind(searchResultsProperty);
+        searchResultsTable.itemsProperty().bind(providerSearchResultsProperty);
         searchResultsTable.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 setResultFromSelection();
@@ -109,7 +109,7 @@ public class GameSearchScreen {
         });
     }
 
-    public GameSearchChoice show(String searchedName, Path path, DataProviderInfo info, ImmutableList<SearchResult> searchResults) {
+    public GameSearchChoice show(String searchedName, Path path, DataProviderInfo info, ImmutableList<ProviderSearchResult> searchResults) {
         logoImageView.setImage(info.getLogo());
         pathLabel.setText(path.toString());
         searchTextField.setText(searchedName);
@@ -121,7 +121,7 @@ public class GameSearchScreen {
         return result;
     }
 
-    private String getErrorLabel(String searchedName, ImmutableList<SearchResult> searchResults) {
+    private String getErrorLabel(String searchedName, ImmutableList<ProviderSearchResult> searchResults) {
         if (searchResults.isEmpty()) {
             return String.format("No search results for '%s'!", searchedName);
         } else {
@@ -129,12 +129,12 @@ public class GameSearchScreen {
         }
     }
 
-    private void setSearchResults(ImmutableList<SearchResult> searchResults) {
-        searchResultsProperty.set(FXCollections.observableArrayList(searchResults.castToList()));
+    private void setSearchResults(ImmutableList<ProviderSearchResult> searchResults) {
+        providerSearchResultsProperty.set(FXCollections.observableArrayList(searchResults.castToList()));
     }
 
     private void setResultFromSelection() {
-        final SearchResult selectedItem = searchResultsTable.getSelectionModel().getSelectedItem();
+        final ProviderSearchResult selectedItem = searchResultsTable.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             setResult(GameSearchChoice.select(selectedItem));
         }

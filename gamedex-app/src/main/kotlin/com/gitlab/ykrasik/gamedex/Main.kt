@@ -11,6 +11,7 @@ import com.google.inject.Guice
 import com.google.inject.Module
 import javafx.application.Application
 import javafx.stage.Stage
+import org.slf4j.bridge.SLF4JBridgeHandler
 import tornadofx.App
 import tornadofx.DIContainer
 import tornadofx.FX
@@ -23,9 +24,6 @@ import kotlin.reflect.KClass
  */
 class Main : App(MainView::class, Styles::class) {
     init {
-        // Import a file based stylesheet
-//        importStylesheet(Styles::class)
-
         FX.dicontainer = GuiceDiContainer(
             CommonModule(),
             PersistenceModule(),
@@ -33,6 +31,9 @@ class Main : App(MainView::class, Styles::class) {
             DataProviderModule(),
             GiantBombProviderModule()
         )
+
+        SLF4JBridgeHandler.removeHandlersForRootLogger()
+        SLF4JBridgeHandler.install()
     }
 
     override fun start(stage: Stage) {

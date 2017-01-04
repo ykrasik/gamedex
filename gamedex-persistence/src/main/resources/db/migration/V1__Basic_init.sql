@@ -11,13 +11,7 @@ CREATE TABLE IF NOT EXISTS games(
     last_modified DATETIME NOT NULL,
     library_id INT NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
 
-    name VARCHAR(255) NOT NULL,
-    description VARCHAR(255) NULL,
-    release_date DATE NULL,
-    critic_score DECIMAL(9, 1) NULL,
-    user_score DECIMAL(9, 1) NULL,
-
-    provider_data VARCHAR(8192) NOT NULL
+    data VARCHAR(16384) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS images(

@@ -2,9 +2,9 @@ package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.ExcludedPath
 import com.gitlab.ykrasik.gamedex.persistence.dao.ExcludedPathDao
+import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
-import tornadofx.getValue
 import tornadofx.observable
 import java.nio.file.Path
 import javax.inject.Inject
@@ -16,11 +16,11 @@ import javax.inject.Singleton
  * Time: 20:12
  */
 @Singleton
-class ExcludedPathsModel @Inject constructor(
+class ExcludedPathRepository @Inject constructor(
     private val excludedPathDao: ExcludedPathDao
 ) {
-    val allProperty = SimpleListProperty(excludedPathDao.all.observable())
-    val all: ObservableList<ExcludedPath> by allProperty
+    val all: ObservableList<ExcludedPath> = excludedPathDao.all.observable()
+    val allProperty: ListProperty<ExcludedPath> = SimpleListProperty(all)
 
     fun contains(path: Path): Boolean = all.any { it.path == path }
 

@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.core.ui.dialog;
 
-import com.gitlab.ykrasik.gamedex.provider.SearchResult;
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
@@ -18,7 +18,7 @@ import static com.github.ykrasik.gamedex.core.util.StringUtils.toStringOrUnavail
 /**
  * @author Yevgeny Krasik
  */
-public class SearchResultsDialog extends AbstractSearchableTableViewDialog<SearchResult> {
+public class SearchResultsDialog extends AbstractSearchableTableViewDialog<ProviderSearchResult> {
     private final Path path;
 
     public SearchResultsDialog(@NonNull String providerName,
@@ -29,26 +29,26 @@ public class SearchResultsDialog extends AbstractSearchableTableViewDialog<Searc
     }
 
     @Override
-    protected Collection<? extends TableColumn<SearchResult, ?>> getColumns() {
-        final TableColumn<SearchResult, String> nameColumn = new TableColumn<>("Name");
+    protected Collection<? extends TableColumn<ProviderSearchResult, ?>> getColumns() {
+        final TableColumn<ProviderSearchResult, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getName()));
 
-        final TableColumn<SearchResult, String> releaseDateColumn = new TableColumn<>("Release Date");
+        final TableColumn<ProviderSearchResult, String> releaseDateColumn = new TableColumn<>("Release Date");
         releaseDateColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getReleaseDate())));
 
-        final TableColumn<SearchResult, String> scoreColumn = new TableColumn<>("Score");
+        final TableColumn<ProviderSearchResult, String> scoreColumn = new TableColumn<>("Score");
         scoreColumn.setCellValueFactory(e -> new SimpleStringProperty(toStringOrUnavailable(e.getValue().getScore())));
 
         return Arrays.asList(nameColumn, releaseDateColumn, scoreColumn);
     }
 
     @Override
-    protected boolean doesItemMatchSearch(SearchResult item, String search) {
+    protected boolean doesItemMatchSearch(ProviderSearchResult item, String search) {
         return StringUtils.containsIgnoreCase(item.getName(), search);
     }
 
     @Override
-    protected Dialog createDialog(ObservableList<SearchResult> items) {
+    protected Dialog createDialog(ObservableList<ProviderSearchResult> items) {
         final Label pathLabel = new Label();
         pathLabel.setText(path.toString());
 

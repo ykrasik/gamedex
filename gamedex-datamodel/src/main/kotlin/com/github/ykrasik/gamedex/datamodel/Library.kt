@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import com.github.ykrasik.gamedex.common.Id
 import java.nio.file.Path
 
 /**
@@ -8,19 +7,16 @@ import java.nio.file.Path
  * Date: 25/05/2016
  * Time: 11:29
  */
-data class Library(val id: Id<Library>, val data: LibraryData) : Comparable<Library> {
-    override fun compareTo(other: Library) = data.compareTo(other.data)
+data class Library(
+    val id: Int,
+    val data: LibraryData
+) : Comparable<Library> {
 
-    // FIXME: Find a less verbose way
     val name: String get() = data.name
     val path: Path get() = data.path
     val platform: GamePlatform get() = data.platform
 
-    companion object {
-        operator fun invoke(id: Id<Library>, path: Path, name: String, platform: GamePlatform): Library = Library(
-            id, LibraryData(path, name, platform)
-        )
-    }
+    override fun compareTo(other: Library) = data.compareTo(other.data)
 }
 
 data class LibraryData(

@@ -1,20 +1,17 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.gridView
-import com.gitlab.ykrasik.gamedex.core.ui.model.GamesModel
+import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.view.widgets.ImageViewLimitedPane
-import javafx.event.EventHandler
-import javafx.scene.image.Image
+import javafx.concurrent.Task
 import javafx.scene.image.ImageView
-import javafx.scene.input.MouseEvent
-import javafx.util.Callback
 import org.controlsfx.control.GridCell
 import tornadofx.View
 import tornadofx.addClass
 import java.awt.Desktop
-import java.io.ByteArrayInputStream
 import java.net.URL
 import java.net.URLEncoder
 
@@ -25,7 +22,8 @@ import java.net.URLEncoder
  */
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
-    private val model: GamesModel by di()
+    private val gameRepository: GameRepository by di()
+    private val imageLoader: ImageLoader by di()
 
     override val root = gridView<Game> {
         cellHeight = 192.0
@@ -33,9 +31,9 @@ class GameWallView : View("Games Wall") {
         horizontalCellSpacing = 3.0
         verticalCellSpacing = 3.0
 
-        cellFactory = Callback { gridView ->
-            val cell = GameWallCell()
-            cell.onMouseClicked = EventHandler<MouseEvent> { e ->
+        setCellFactory {
+            val cell = GameWallCell(imageLoader)
+            cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
                     val search = URLEncoder.encode("${cell.item!!.name} pc gameplay")
                     val url = URL("https://www.youtube.com/results?search_query=$search")
@@ -45,15 +43,15 @@ class GameWallView : View("Games Wall") {
             cell
         }
 
-        itemsProperty().bind(model.allProperty)
+        itemsProperty().bind(gameRepository.allProperty)
     }
 }
 
-class GameWallCell : GridCell<Game>() {
+class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
     private val imageView = ImageView()
     private val imageViewLimitedPane = ImageViewLimitedPane(imageView)
 
-//    private var loadingTask = Opt.none()
+    private var loadingTask: Task<*>? = null
 
     init {
 
@@ -90,35 +88,27 @@ class GameWallCell : GridCell<Game>() {
 
         addClass(Styles.gameTile, Styles.card)
         addClass("image-grid-cell") //$NON-NLS-1$
-        text = ""
+        graphic = imageViewLimitedPane
     }
 
     override fun updateItem(item: Game?, empty: Boolean) {
-//        cancelPrevTask()
         super.updateItem(item, empty)
 
+        // FIXME: this is called multiple times during initialization. Figure out why and how to bypass!!
+//        cancelPrevTask()
         if (!empty) {
-//            fetchImage(item)
-            item?.thumbnail?.let {
-                imageView.image = Image(ByteArrayInputStream(it.rawData))
-            }
-            graphic = imageViewLimitedPane
+            fetchImage(item!!)
         } else {
-            graphic = null
+            imageView.image = null
         }
     }
 
-//    private fun fetchImage(game: Game) {
-//        loadingTask = Opt.some(imageService.fetchThumbnail(game.id, imageView))
-//    }
-//
-//    private fun cancelPrevTask() {
-//        if (loadingTask.isDefined()) {
-//            val task = loadingTask.get()
-//            if (task.getState() != Worker.State.SUCCEEDED && task.getState() != Worker.State.FAILED) {
-//                task.cancel()
-//            }
-//        }
-//        loadingTask = Opt.none()
-//    }
+    private fun fetchImage(game: Game) {
+        loadingTask = imageLoader.loadThumbnail(game.id, imageView)
+    }
+
+    private fun cancelPrevTask() {
+        loadingTask?.let(Task<*>::cancel)
+        loadingTask = null
+    }
 }

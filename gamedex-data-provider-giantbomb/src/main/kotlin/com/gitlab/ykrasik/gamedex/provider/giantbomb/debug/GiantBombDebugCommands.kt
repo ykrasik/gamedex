@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb.debug
 import com.github.ykrasik.gamedex.common.DebugCommands
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.jaci.api.*
-import com.gitlab.ykrasik.gamedex.provider.SearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,7 +27,7 @@ class GiantBombDebugCommands @Inject constructor(
 
     @Command
     fun fetch(@StringParam("url") url: String) {
-        val searchResult = SearchResult(
+        val searchResult = ProviderSearchResult(
             detailUrl = url,
             name = "",
             releaseDate = null,

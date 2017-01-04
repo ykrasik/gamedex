@@ -30,7 +30,7 @@ class GameView : View("Games") {
                     hgap = 2.0
                     row {
                         textfield { promptText = "Search" }
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/display/x-small-icon.png"))
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
                     }
                 }
 
@@ -41,7 +41,7 @@ class GameView : View("Games") {
                     row {
                         button("Genre Filter") { setOnAction { gameController.filterGenres() } }
                         readOnlyTextField()
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/display/x-small-icon.png"))
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
                     }
                 }
 
@@ -52,7 +52,7 @@ class GameView : View("Games") {
                     row {
                         button("Library Filter") { setOnAction { gameController.filterLibraries() } }
                         readOnlyTextField()
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/display/x-small-icon.png"))
+                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
                     }
                 }
 

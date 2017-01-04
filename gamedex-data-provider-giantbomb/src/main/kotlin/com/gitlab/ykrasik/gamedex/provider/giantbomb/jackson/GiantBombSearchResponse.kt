@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
-import com.gitlab.ykrasik.gamedex.provider.SearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import org.joda.time.LocalDate
 
 /**
@@ -30,7 +30,7 @@ data class GiantBombSearchResult(
     val originalReleaseDate: LocalDate?,
     val image: GiantBombSearchImage
 ) {
-    fun toSearchResult() = SearchResult(
+    fun toSearchResult() = ProviderSearchResult(
         detailUrl = this.apiDetailUrl,
         name = this.name,
         releaseDate = this.originalReleaseDate,

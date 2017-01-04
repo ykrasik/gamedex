@@ -7,7 +7,7 @@ import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchChoice;
 import com.github.ykrasik.gamedex.core.service.screen.search.GameSearchScreen;
 import com.github.ykrasik.yava.option.Opt;
 import com.gitlab.ykrasik.gamedex.provider.DataProvider;
-import com.gitlab.ykrasik.gamedex.provider.SearchResult;
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult;
 import com.gs.collections.api.list.ImmutableList;
 import javafx.beans.property.*;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
 
     private Opt<GameInfo> doFetchGameInfo(String name, SearchContext context) throws Exception {
         assertNotStopped();
-        final ImmutableList<SearchResult> searchResults = searchGames(name, context);
+        final ImmutableList<ProviderSearchResult> searchResults = searchGames(name, context);
         assertNotStopped();
 
         if (searchResults.size() == 1) {
@@ -55,19 +55,19 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         final GameSearchChoice choice = gameSearchScreen.show(name, context.path(), gameInfoProvider.getInfo(), searchResults);
         switch (choice.type()) {
             case SELECT_RESULT:
-                final SearchResult selectedResult = choice.searchResult().get();
+                final ProviderSearchResult selectedResult = choice.searchResult().get();
                 log.info("Result selected: {}", selectedResult);
 
                 // Add all search results except the selected one to excluded list.
-                final ImmutableList<SearchResult> resultsToExclude = searchResults.newWithout(selectedResult);
-                context.addExcludedNames(resultsToExclude.collect(SearchResult::getName));
+                final ImmutableList<ProviderSearchResult> resultsToExclude = searchResults.newWithout(selectedResult);
+                context.addExcludedNames(resultsToExclude.collect(ProviderSearchResult::getName));
                 return Opt.some(fetchGameInfoFromSearchResult(selectedResult));
 
             case NEW_NAME:
                 log.info("New name requested: {}", choice.newName().get());
 
                 // Add all current search results to excluded list.
-                context.addExcludedNames(searchResults.collect(SearchResult::getName));
+                context.addExcludedNames(searchResults.collect(ProviderSearchResult::getName));
                 return doFetchGameInfo(choice.newName().get(), context);
 
             case SKIP: log.info("Skip selected."); throw new SkipException();
@@ -77,10 +77,10 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
     }
 
-    private ImmutableList<SearchResult> searchGames(String name, SearchContext context) throws Exception {
+    private ImmutableList<ProviderSearchResult> searchGames(String name, SearchContext context) throws Exception {
         message("Searching '%s'...", name);
         fetchingProperty.set(true);
-        final ImmutableList<SearchResult> searchResults;
+        final ImmutableList<ProviderSearchResult> searchResults;
         try {
             searchResults = gameInfoProvider.search(name, context.platform());
         } finally {
@@ -94,7 +94,7 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
 
         message("Filtering previously encountered search results...");
-        final ImmutableList<SearchResult> filteredSearchResults = searchResults.select(result -> !excludedNames.contains(result.getName()));
+        final ImmutableList<ProviderSearchResult> filteredSearchResults = searchResults.select(result -> !excludedNames.contains(result.getName()));
         if (!filteredSearchResults.isEmpty()) {
             message("%d remaining results.", filteredSearchResults.size());
             return filteredSearchResults;
@@ -104,11 +104,11 @@ public class GameInfoProviderManagerImpl implements GameInfoProviderManager {
         }
     }
 
-    private GameInfo fetchGameInfoFromSearchResult(SearchResult searchResult) throws Exception {
+    private GameInfo fetchGameInfoFromSearchResult(ProviderSearchResult providerSearchResult) throws Exception {
         fetchingProperty.set(true);
         try {
-            message("Fetching '%s'...", searchResult.getName());
-            final GameInfo gameInfo = gameInfoProvider.fetch(searchResult);
+            message("Fetching '%s'...", providerSearchResult.getName());
+            final GameInfo gameInfo = gameInfoProvider.fetch(providerSearchResult);
             message("Done.");
             return gameInfo;
         } finally {
