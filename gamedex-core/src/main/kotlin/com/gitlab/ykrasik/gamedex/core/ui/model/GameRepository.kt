@@ -3,13 +3,13 @@ package com.gitlab.ykrasik.gamedex.core.ui.model
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.GameImageData
-import com.github.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.persistence.dao.GameDao
+import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
+import tornadofx.getValue
 import tornadofx.observable
-import java.nio.file.Path
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,28 +20,28 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameRepository @Inject constructor(
-    private val gameDao: GameDao
+    private val persistenceService: PersistenceService
 ) {
-    val all: ObservableList<Game> = gameDao.all.observable()
-    val allProperty: ListProperty<Game> = SimpleListProperty(all)
+    val allProperty: ListProperty<Game> = SimpleListProperty(persistenceService.games.all.observable())
+    val all: ObservableList<Game> by allProperty
 
-    fun contains(path: Path): Boolean = all.any { it.path == path }
+    fun contains(path: File): Boolean = all.any { it.path == path }
 
-    fun add(gameData: GameData, imageData: GameImageData,  path: Path, library: Library): Game {
-        val game = gameDao.add(gameData, imageData, path, library)
+    fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game {
+        val game = persistenceService.games.add(gameData, imageData, path, libraryId)
         all += game
         return game
     }
 
     fun delete(game: Game) {
-        gameDao.delete(game)
+        persistenceService.games.delete(game)
         check(all.remove(game)) { "Error! Didn't contain game: $game" }
     }
 
-    fun deleteByLibrary(library: Library) {
-        gameDao.deleteByLibrary(library)
-        all.removeAll { it.library == library }
+    fun deleteByLibrary(libraryId: Int) {
+        persistenceService.games.deleteByLibrary(libraryId)
+        all.removeAll { it.libraryId == libraryId }
     }
 
-    fun getByLibrary(library: Library): ObservableList<Game> = all.filtered { it.library == library }
+    fun getByLibrary(libraryId: Int): ObservableList<Game> = all.filtered { it.libraryId == libraryId }
 }

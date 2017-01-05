@@ -1,13 +1,10 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.github.ykrasik.gamedex.common.children
-import com.github.ykrasik.gamedex.common.exists
-import com.github.ykrasik.gamedex.common.isDirectory
 import com.github.ykrasik.gamedex.common.logger
 import com.gitlab.ykrasik.gamedex.core.ui.model.ExcludedPathRepository
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.model.LibraryRepository
-import java.nio.file.Path
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,13 +27,13 @@ class PathDetector @Inject constructor(
 ) {
     private val log by logger()
 
-    fun detectNewPaths(path: Path): List<Path> {
-        if (!path.exists) {
+    fun detectNewPaths(path: File): List<File> {
+        if (!path.exists()) {
             log.warn { "Path doesn't exist: $path" }
             return emptyList()
         }
 
-        val children = path.children
+        val children = path.listFiles()
         val shouldScanRecursively = shouldScanRecursively(children)
         return if (shouldScanRecursively) {
             children.flatMap { detectNewPaths(it) }
@@ -50,9 +47,9 @@ class PathDetector @Inject constructor(
     }
 
     // Scan children recursively if all children are directories.
-    private fun shouldScanRecursively(children: List<Path>): Boolean = children.isNotEmpty() && children.all(Path::isDirectory)
+    private fun shouldScanRecursively(children: Array<File>): Boolean = children.isNotEmpty() && children.all(File::isDirectory)
 
-    fun isPathKnown(path: Path): Boolean {
+    fun isPathKnown(path: File): Boolean {
         if (gameRepository.contains(path)) {
             log.debug { "[$path] is an already mapped game." }
             return true

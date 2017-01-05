@@ -1,6 +1,7 @@
 package com.github.ykrasik.gamedex.common.jackson
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.datatype.joda.JodaModule
@@ -17,6 +18,7 @@ val objectMapper: ObjectMapper by lazy {
         .registerModule(KotlinModule())
         .registerModule(JodaModule())
         .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+        .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
 }
 

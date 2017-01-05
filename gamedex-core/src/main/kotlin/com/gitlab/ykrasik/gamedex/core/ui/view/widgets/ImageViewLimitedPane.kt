@@ -1,22 +1,25 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view.widgets
 
+import com.github.ykrasik.gamedex.common.unmodifiable
 import com.gitlab.ykrasik.gamedex.core.util.ImageDisplayType
-import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.FXCollections
+import javafx.beans.property.ObjectProperty
 import javafx.collections.ObservableList
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
+import tornadofx.onChange
 
 /**
  * User: ykrasik
  * Date: 25/12/2016
  * Time: 17:36
  */
-class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
-    val imageDisplayTypeProperty = SimpleObjectProperty<ImageDisplayType>()
+class ImageViewLimitedPane(
+    private val imageView: ImageView,
+    private val imageDisplayType: ObjectProperty<ImageDisplayType>
+) : Pane() {
 
     init {
         super.getChildren().add(imageView)
@@ -28,7 +31,7 @@ class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
         imageView.fitHeightProperty().bind(maxHeightProperty())
         imageView.fitWidthProperty().bind(maxWidthProperty())
 
-        imageDisplayTypeProperty.addListener { observable, oldValue, newValue -> requestParentLayout() }
+        imageDisplayType.onChange { requestParentLayout() }
     }
 
     override fun layoutChildren() {
@@ -38,11 +41,10 @@ class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
     override fun resize(width: Double, height: Double) {
         super.resize(maxWidth, maxHeight)
 
-        when (imageDisplayTypeProperty.get()) {
+        when (imageDisplayType.get()) {
             ImageDisplayType.fit -> fitImage(true)
             ImageDisplayType.stretch -> stretchImage()
-//            case ENLARGE: enlargeImage(); break;
-            else -> null//throw IllegalArgumentException("Invalid imageDisplayType: ${imageDisplayTypeProperty.get()}")
+            else -> throw IllegalArgumentException("Invalid imageDisplayType: ${imageDisplayType.get()}")
         }
     }
 
@@ -51,6 +53,8 @@ class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
     }
 
     private fun stretchImage() {
+        if (imageView.image == null) return
+
         val cellHeight = height
         val cellWidth = width
 
@@ -120,7 +124,7 @@ class ImageViewLimitedPane(private val imageView: ImageView) : Pane() {
 
     @Deprecated("")
     override fun getChildren(): ObservableList<Node> {
-        return FXCollections.unmodifiableObservableList(super.getChildren())
+        return super.getChildren().unmodifiable()
     }
 
     companion object {

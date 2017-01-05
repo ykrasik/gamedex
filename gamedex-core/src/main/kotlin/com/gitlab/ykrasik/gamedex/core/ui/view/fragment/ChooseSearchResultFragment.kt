@@ -4,8 +4,9 @@ import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import javafx.collections.ObservableList
 import javafx.scene.control.ButtonBar
+import javafx.scene.control.TableView
 import tornadofx.*
-import java.nio.file.Path
+import java.io.File
 
 /**
  * User: ykrasik
@@ -14,15 +15,17 @@ import java.nio.file.Path
  */
 class ChooseSearchResultFragment(
     private val searchedName: String,
-    private val path: Path,
+    private val path: File,
     private val info: DataProviderInfo,
     private val providerSearchResults: ObservableList<ProviderSearchResult>
 ) : Fragment("Choose Search Result") {
+    private lateinit var tableView: TableView<ProviderSearchResult>
+    private var accept = false
 
     override val root = borderpane {
         top {
             vbox {
-                label(path.toString())
+                label(path.path)
                 imageview {
                     image = info.logo.toImage()
                     fitHeight = 200.0
@@ -35,7 +38,7 @@ class ChooseSearchResultFragment(
             }
         }
         center {
-            tableview(providerSearchResults) {
+            tableView = tableview(providerSearchResults) {
                 // FIXME: Add thumbnail.
                 column("Name", ProviderSearchResult::name)
                 column("Release Date", ProviderSearchResult::releaseDate)
@@ -56,12 +59,20 @@ class ChooseSearchResultFragment(
             buttonbar {
                 button("Cancel", type = ButtonBar.ButtonData.CANCEL_CLOSE) {
                     isCancelButton = true
+                    setOnAction {
+                        accept = false
+                        closeModal()
+                    }
                 }
                 button("Proceed Anyway") {
                     // TODO: Figure this one out.
                 }
                 button("OK", type = ButtonBar.ButtonData.OK_DONE) {
                     isDefaultButton = true
+                    setOnAction {
+                        accept = true
+                        closeModal()
+                    }
                 }
             }
         }
@@ -69,7 +80,11 @@ class ChooseSearchResultFragment(
 
     fun show(): ProviderSearchResult? {
         openModal(block = true)
-        return null // TODO
+        return if (accept) {
+            tableView.selectedItem
+        } else {
+            null
+        }
     }
 }
 

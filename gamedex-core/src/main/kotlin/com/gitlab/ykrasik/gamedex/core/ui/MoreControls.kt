@@ -6,8 +6,7 @@ import javafx.scene.control.*
 import javafx.stage.DirectoryChooser
 import javafx.stage.Window
 import tornadofx.*
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.io.File
 
 /**
  * User: ykrasik
@@ -31,20 +30,20 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>?
     return combobox(property, enumValues, op)
 }
 
-fun chooseDirectory(title: String? = null, owner: Window? = null, op: (DirectoryChooser.() -> Unit)? = null): Path? {
+fun chooseDirectory(title: String? = null, owner: Window? = null, op: (DirectoryChooser.() -> Unit)? = null): File? {
     val chooser = DirectoryChooser()
     if (title != null) chooser.title = title
     op?.invoke(chooser)
-    val result = chooser.showDialog(owner)
-    return result?.let { Paths.get(it.toURI()) }
+    return chooser.showDialog(owner)
 }
 
 fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
-    var ok = false
     val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.OK, ButtonType.CANCEL)
     alert.headerText = "Are You Sure?"
-    op?.let { it(alert) }
+    op?.invoke(alert)
     val buttonClicked = alert.showAndWait()
+
+    var ok = false
     buttonClicked.ifPresent {
         when(it) {
             ButtonType.OK -> ok = true

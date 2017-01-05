@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.core.GameSearchChooserImpl
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
-import com.gitlab.ykrasik.gamedex.core.util.UserPreferencesService
 import com.gitlab.ykrasik.gamedex.provider.GameSearchChooser
 import com.google.inject.AbstractModule
 
@@ -13,7 +12,7 @@ import com.google.inject.AbstractModule
  */
 class CoreModule : AbstractModule() {
     override fun configure() {
-        bind(UserPreferences::class.java).toInstance(UserPreferencesService.preferences())
+        bind(UserPreferences::class.java).toInstance(UserPreferences())
         bind(GameSearchChooser::class.java).to(GameSearchChooserImpl::class.java)
     }
 }

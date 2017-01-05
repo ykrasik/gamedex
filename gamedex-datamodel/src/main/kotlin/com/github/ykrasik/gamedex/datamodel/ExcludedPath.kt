@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import java.nio.file.Path
+import java.io.File
 
 /**
  * User: ykrasik
@@ -9,5 +9,5 @@ import java.nio.file.Path
  */
 data class ExcludedPath(
     val id: Int,
-    val path: Path
+    val path: File
 )

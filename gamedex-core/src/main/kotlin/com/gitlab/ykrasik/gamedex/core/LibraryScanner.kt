@@ -10,7 +10,7 @@ import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import javafx.concurrent.Task
-import java.nio.file.Path
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,24 +37,24 @@ class LibraryScanner @Inject constructor(
                 if (isStopped) return@mapIndexedNotNull
 
                 updateProgress(i.toLong(), newPaths.size.toLong())
-                processPath(path, library)
+                processPath(path, library.id)
             }
             updateMessage("Done refreshing library: '$library'. Added ${newGames.size} new games.")
         }
 
-        private fun processPath(path: Path, library: Library): Game? {
+        private fun processPath(path: File, libraryId: Int): Game? {
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
             val (gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
 
-            val game = gameRepository.add(gameData, imageData, path, library)
+            val game = gameRepository.add(gameData, imageData, path, libraryId)
             updateMessage("[$path] Done: $game")
             return game
         }
 
         // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-        private fun Path.normalizeName(): String = metaDataRegex.replace(fileName.toString(), "").collapseSpaces()
+        private fun File.normalizeName(): String = metaDataRegex.replace(name, "").collapseSpaces()
     }
 
 //    @Throws(Exception::class)

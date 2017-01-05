@@ -11,8 +11,6 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.sql.Blob
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -24,9 +22,7 @@ interface ImageDao {
     fun updateThumbnail(gameId: Int, data: ImageData): Unit
 }
 
-@Singleton
-class ImageDaoImpl @Inject constructor(
-) : ImageDao {
+class ImageDaoImpl : ImageDao {
     private val log by logger()
 
     override fun fetchThumbnail(gameId: Int): ImageData {

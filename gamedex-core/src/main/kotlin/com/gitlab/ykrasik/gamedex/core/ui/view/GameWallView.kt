@@ -6,7 +6,7 @@ import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.gridView
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.view.widgets.ImageViewLimitedPane
-import javafx.beans.value.ChangeListener
+import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import javafx.concurrent.Task
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
@@ -26,6 +26,7 @@ class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
     private val gameRepository: GameRepository by di()
     private val imageLoader: ImageLoader by di()
+    private val userPreferences: UserPreferences by di()
 
     override val root = gridView<Game> {
         cellHeight = 192.0
@@ -34,7 +35,7 @@ class GameWallView : View("Games Wall") {
         verticalCellSpacing = 3.0
 
         setCellFactory {
-            val cell = GameWallCell(imageLoader)
+            val cell = GameWallCell(imageLoader, userPreferences)
             cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
                     val search = URLEncoder.encode("${cell.item!!.name} pc gameplay")
@@ -49,9 +50,9 @@ class GameWallView : View("Games Wall") {
     }
 }
 
-class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
+class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPreferences) : GridCell<Game>() {
     private val imageView = ImageView()
-    private val imageViewLimitedPane = ImageViewLimitedPane(imageView)
+    private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
 
     private var loadingTask: Task<*>? = null
 
@@ -62,20 +63,7 @@ class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
 
         imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
         imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
-
-        // Clip the cell's corners to be round after the cell's size is calculated.
-        val clip = Rectangle()
-        clip.x = 1.0
-        clip.y = 1.0
-        clip.arcWidth = 20.0
-        clip.arcHeight = 20.0
-        val clipListener = ChangeListener<Number> { observable, oldValue, newValue ->
-            clip.width = imageViewLimitedPane.width - 2
-            clip.height = imageViewLimitedPane.height - 2
-        }
-        imageViewLimitedPane.clip = clip
-        imageViewLimitedPane.heightProperty().addListener(clipListener)
-        imageViewLimitedPane.widthProperty().addListener(clipListener)
+        imageViewLimitedPane.clip = createClippingArea()
 
 //        val binding = MoreBindings.transformBinding(configService.gameWallImageDisplayProperty(), { imageDisplay ->
 //            val image = imageView.image
@@ -91,6 +79,17 @@ class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
         addClass(Styles.gameTile, Styles.card)
         addClass("image-grid-cell") //$NON-NLS-1$
         graphic = imageViewLimitedPane
+    }
+
+    private fun createClippingArea(): Rectangle {
+        val clip = Rectangle()
+        clip.x = 1.0
+        clip.y = 1.0
+        clip.arcWidth = 20.0
+        clip.arcHeight = 20.0
+        clip.heightProperty().bind(imageViewLimitedPane.heightProperty().subtract(2))
+        clip.widthProperty().bind(imageViewLimitedPane.widthProperty().subtract(2))
+        return clip
     }
 
     override fun updateItem(item: Game?, empty: Boolean) {

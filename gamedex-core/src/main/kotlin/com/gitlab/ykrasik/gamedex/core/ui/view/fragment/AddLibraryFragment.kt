@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view.fragment
 
-import com.github.ykrasik.gamedex.common.existsOrNull
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.core.model.LibraryDataModel
@@ -8,7 +7,6 @@ import com.gitlab.ykrasik.gamedex.core.ui.chooseDirectory
 import com.gitlab.ykrasik.gamedex.core.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import tornadofx.*
-import java.nio.file.Path
 
 /**
  * User: ykrasik
@@ -47,12 +45,12 @@ class AddLibraryFragment : Fragment("Add Library") {
     }
 
     private fun browse() {
-        val path = chooseDirectory("Add Library") {
-            initialDirectory = preferences.prevDirectory?.let(Path::existsOrNull)?.toFile()
+        val directory = chooseDirectory("Add Library") {
+            initialDirectoryProperty().bind(preferences.prevDirectoryProperty)
         } ?: return
-        preferences.prevDirectory = path
-        libraryData.path = path.toString()
-        libraryData.name = path.fileName.toString()
+        preferences.prevDirectory = directory
+        libraryData.path = directory.path
+        libraryData.name = directory.name
     }
 
     fun show(): LibraryData? {

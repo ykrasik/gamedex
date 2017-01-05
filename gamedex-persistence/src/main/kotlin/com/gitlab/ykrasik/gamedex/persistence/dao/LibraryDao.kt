@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.toPath
+import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
@@ -10,8 +10,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -26,8 +24,7 @@ interface LibraryDao {
     fun delete(library: Library)
 }
 
-@Singleton
-class LibraryDaoImpl @Inject constructor() : LibraryDao {
+class LibraryDaoImpl : LibraryDao {
     private val log by logger()
 
     override val all: List<Library> get() {
@@ -61,14 +58,13 @@ class LibraryDaoImpl @Inject constructor() : LibraryDao {
         require(amount == 1) { "Library doesn't exist: $library" }
         log.info { "Done." }
     }
-}
 
-// FIXME: Hide this somehow.
-inline fun ResultRow.toLibrary(): Library = Library(
-    id = this[Libraries.id],
-    data = LibraryData(
-        path = this[Libraries.path].toPath(),
-        name = this[Libraries.name],
-        platform = this[Libraries.platform]
+    private fun ResultRow.toLibrary(): Library = Library(
+        id = this[Libraries.id],
+        data = LibraryData(
+            path = this[Libraries.path].toFile(),
+            name = this[Libraries.name],
+            platform = this[Libraries.platform]
+        )
     )
-)
+}

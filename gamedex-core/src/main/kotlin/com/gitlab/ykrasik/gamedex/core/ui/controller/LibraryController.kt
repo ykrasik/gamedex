@@ -31,13 +31,13 @@ class LibraryController : Controller() {
     fun delete(library: Library) {
         if (!confirmDelete(library)) return
 
-        gameRepository.deleteByLibrary(library)
+        gameRepository.deleteByLibrary(library.id)
         libraryRepository.delete(library)
     }
 
     private fun confirmDelete(library: Library): Boolean {
         val baseMessage = "Delete library '${library.name}'?"
-        val gamesToBeDeleted = gameRepository.getByLibrary(library)
+        val gamesToBeDeleted = gameRepository.getByLibrary(library.id)
         return areYouSureDialog {
             if (gamesToBeDeleted.size > 0) {
                 dialogPane.content = vbox {

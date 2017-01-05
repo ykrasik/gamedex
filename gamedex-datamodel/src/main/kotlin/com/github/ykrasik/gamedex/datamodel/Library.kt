@@ -1,6 +1,6 @@
 package com.github.ykrasik.gamedex.datamodel
 
-import java.nio.file.Path
+import java.io.File
 
 /**
  * User: ykrasik
@@ -13,14 +13,14 @@ data class Library(
 ) : Comparable<Library> {
 
     val name: String get() = data.name
-    val path: Path get() = data.path
+    val path: File get() = data.path
     val platform: GamePlatform get() = data.platform
 
     override fun compareTo(other: Library) = data.compareTo(other.data)
 }
 
 data class LibraryData(
-    val path: Path,
+    val path: File,
     val name: String,
     val platform: GamePlatform
 ) : Comparable<LibraryData> {

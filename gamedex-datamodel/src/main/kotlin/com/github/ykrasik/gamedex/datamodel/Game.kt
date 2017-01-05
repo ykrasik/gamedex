@@ -2,7 +2,7 @@ package com.github.ykrasik.gamedex.datamodel
 
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import java.nio.file.Path
+import java.io.File
 
 /**
  * User: ykrasik
@@ -11,9 +11,9 @@ import java.nio.file.Path
  */
 data class Game(
     val id: Int,
-    val path: Path,
+    val path: File,
     val lastModified: DateTime,
-    val library: Library,  // TODO: Is this needed? It holds no interesting information, can probably save just the Id.
+    val libraryId: Int,
     val data: GameData
 ) {
     val name: String get() = data.name

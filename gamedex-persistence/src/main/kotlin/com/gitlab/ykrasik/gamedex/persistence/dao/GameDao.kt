@@ -3,11 +3,10 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 import com.github.ykrasik.gamedex.common.TimeProvider
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.toPath
+import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.GameImageData
-import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.persistence.entity.Games
 import com.gitlab.ykrasik.gamedex.persistence.entity.Images
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
@@ -17,9 +16,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
-import java.nio.file.Path
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.io.File
 
 /**
  * User: ykrasik
@@ -29,16 +26,13 @@ import javax.inject.Singleton
 interface GameDao {
     val all: List<Game>
 
-    fun add(gameData: GameData, imageData: GameImageData, path: Path, library: Library): Game
+    fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game
 
     fun delete(game: Game)
-    fun deleteByLibrary(library: Library)
+    fun deleteByLibrary(libraryId: Int)
 }
 
-@Singleton
-class GameDaoImpl @Inject constructor(
-    private val timeProvider: TimeProvider
-) : GameDao {
+class GameDaoImpl(private val timeProvider: TimeProvider) : GameDao {
     private val log by logger()
 
     // TODO: Why fetch the library? For the platform? that can be saved in the data.
@@ -53,20 +47,20 @@ class GameDaoImpl @Inject constructor(
         return games
     }
 
-    override fun add(gameData: GameData, imageData: GameImageData, path: Path, library: Library): Game = transaction {
+    override fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game = transaction {
         val lastModified = timeProvider.now()
         log.info { "Inserting game: $gameData..." }
-        val id = insertGame(path, lastModified, library, gameData)
+        val id = insertGame(path, lastModified, libraryId, gameData)
         insertImage(imageData, id)
-        val game = gameData.toGame(id, path, lastModified, library)
+        val game = gameData.toGame(id, path, lastModified, libraryId)
         log.info { "Result: $game." }
         game
     }
 
-    private fun insertGame(path: Path, lastModified: DateTime, library: Library, gameData: GameData): Int = Games.insert {
-        it[Games.path] = path.toString()
+    private fun insertGame(path: File, lastModified: DateTime, libraryId: Int, gameData: GameData): Int = Games.insert {
+        it[Games.path] = path.path
         it[Games.lastModified] = lastModified
-        it[Games.libraryId] = library.id
+        it[Games.libraryId] = libraryId
         it[Games.data] = objectMapper.writeValueAsString(gameData)
     } get Games.id
 
@@ -77,11 +71,11 @@ class GameDaoImpl @Inject constructor(
         // FIXME: Add screenshots
     }
 
-    private fun GameData.toGame(id: Int, path: Path, lastModified: DateTime, library: Library) = Game(
+    private fun GameData.toGame(id: Int, path: File, lastModified: DateTime, libraryId: Int) = Game(
         id = id,
         path = path,
         lastModified = lastModified,
-        library = library,
+        libraryId = libraryId,
         data = this
     )
 
@@ -94,17 +88,16 @@ class GameDaoImpl @Inject constructor(
         log.info { "Done." }
     }
 
-    override fun deleteByLibrary(library: Library) {
+    override fun deleteByLibrary(libraryId: Int) {
         TODO("deleteByLibrary")  // TODO: Implement
     }
 
     private fun ResultRow.toGame(): Game {
-        val library = this.toLibrary()
         return Game(
             id = this[Games.id],
-            path = this[Games.path].toPath(),
+            path = this[Games.path].toFile(),
             lastModified = this[Games.lastModified],
-            library = library,
+            libraryId = this[Games.libraryId],
             data = objectMapper.readValue(this[Games.data], GameData::class.java)
         )
     }

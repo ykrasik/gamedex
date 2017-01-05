@@ -7,7 +7,7 @@ import com.github.ykrasik.gamedex.common.toImage
 import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.gitlab.ykrasik.gamedex.core.ui.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.ui.UIResources
-import com.gitlab.ykrasik.gamedex.persistence.dao.ImageDao
+import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.inject.Inject
@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor
 // FIXME: Have a look at JavaFX Service.
 @Singleton
 class ImageLoader @Inject constructor(
-    private val dao: ImageDao
+    private val persistenceService: PersistenceService
 ) {
     private val log by logger()
 
@@ -53,7 +53,7 @@ class ImageLoader @Inject constructor(
         return submitTask(into) {
             object : GamedexTask<ByteArray>(log) {
                 override fun call(): ByteArray {
-                    val imageData = dao.fetchThumbnail(gameId)
+                    val imageData = persistenceService.images.fetchThumbnail(gameId)
                     val bytes = if (imageData.bytes != null) {
                         imageData.bytes!!
                     } else {
@@ -66,7 +66,7 @@ class ImageLoader @Inject constructor(
                         downloadTask.run()
                         val bytes = downloadTask.get()
                         executorService.execute {
-                            dao.updateThumbnail(gameId, ImageData(bytes, url))
+                            persistenceService.images.updateThumbnail(gameId, ImageData(bytes, url))
                         }
                         bytes
                     }

@@ -1,72 +1,80 @@
 package com.gitlab.ykrasik.gamedex.core.util
 
+import com.github.ykrasik.gamedex.common.create
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import com.github.ykrasik.gamedex.common.toFile
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleObjectProperty
+import tornadofx.getValue
+import tornadofx.onChange
+import tornadofx.setValue
+import java.io.File
 
 /**
  * User: ykrasik
  * Date: 11/10/2016
  * Time: 10:34
  */
-class UserPreferences {
-    private var update = false
+class UserPreferences private constructor() {
+    // Jackson constructs the objects by calling it's setters on the properties. Calling a setter = write to file.
+    // Disable writing the object to the file while it is being constructed.
+    @Transient
+    private var updateEnable = false
 
-    var autoSkip: Boolean = false
-        set(value) { field = value; update() }
+    @Transient
+    val autoSkipProperty: ObjectProperty<Boolean> = UserPreferencesProperty(false)
+    var autoSkip by autoSkipProperty
 
-    var showLog: Boolean = true
-        set(value) { field = value; update() }
+    @Transient
+    val showLogProperty: ObjectProperty<Boolean> = UserPreferencesProperty(true)
+    var showLog by showLogProperty
 
-    var logDividerPosition: Double = 0.98
-        set(value) { field = value; update() }
+    @Transient
+    val logDividerPositionProperty: ObjectProperty<Double> = UserPreferencesProperty(0.98)
+    var logDividerPosition by logDividerPositionProperty
 
-    var gameWallImageDisplay: GameWallImageDisplay = GameWallImageDisplay.fit
-        set(value) { field = value; update() }
+    @Transient
+    val gameWallImageDisplayTypeProperty: ObjectProperty<ImageDisplayType> = UserPreferencesProperty(ImageDisplayType.stretch)
+    var gameWallImageDisplayType by gameWallImageDisplayTypeProperty
 
-    var gameSort: GameSort = GameSort.nameAsc
-        set(value) { field = value; update() }
+    @Transient
+    val gameSortProperty: ObjectProperty<GameSort> = UserPreferencesProperty(GameSort.nameAsc)
+    var gameSort by gameSortProperty
 
-    var prevDirectory: Path? = null
-        set(value) { field = value; update() }
+    @Transient
+    val prevDirectoryProperty: ObjectProperty<File?> = UserPreferencesProperty(null)
+    var prevDirectory by prevDirectoryProperty
 
-    private fun update() {
-        if (update) {
-            UserPreferencesService.update(this)
+    companion object {
+        private val file = "conf/conf.json".toFile()
+
+        operator fun invoke(): UserPreferences {
+            val p = if (file.exists()) {
+                objectMapper.readValue(file, UserPreferences::class.java)
+            } else {
+                file.create()
+                UserPreferences().apply {
+                    objectMapper.writeValue(file, this)
+                }
+            }
+            p.updateEnable = true
+            return p
+        }
+
+        private fun update(p: UserPreferences) {
+            val json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(p)
+            file.writeText(json)
         }
     }
 
-    internal fun enableUpdates(): UserPreferences {
-        update = true
-        return this
-    }
-}
-
-internal object UserPreferencesService {
-    private val fileName = "conf/user.json"
-    private val file = Paths.get(fileName).let {
-        val path = if (Files.exists(it)) {
-            it
-        } else {
-            Files.createDirectories(it.parent)
-            Files.createFile(it)
+    private inner class UserPreferencesProperty<T>(initialValue: T) : SimpleObjectProperty<T>(initialValue) {
+        init {
+            this.onChange {
+                if (updateEnable) {
+                    update(this@UserPreferences)
+                }
+            }
         }
-        path.toFile()
-    }
-
-    fun preferences(): UserPreferences = file.readText().let {
-        val p = if (it.isEmpty()) {
-            UserPreferences()
-        } else {
-            objectMapper.readValue(it, UserPreferences::class.java)
-        }
-        p.enableUpdates()
-    }
-
-    fun update(p: UserPreferences) {
-        val json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(p)
-        file.writeText(json)
     }
 }
 
@@ -74,15 +82,6 @@ enum class ImageDisplayType {
     fit,
     stretch
 //    enlarge
-}
-
-// TODO: Why 2 enums?
-enum class GameWallImageDisplay constructor(val imageDisplayType: ImageDisplayType, val displayName: String) {
-    //    enlarge(ImageDisplayType.ENLARGE, "Enlarge Image");
-    fit(ImageDisplayType.fit, "Fit Image"),
-    stretch(ImageDisplayType.stretch, "Stretch Image");
-
-    override fun toString() = displayName
 }
 
 // TODO: I don't like displayName on the enum.

@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.core.model
 
+import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.LibraryData
 import tornadofx.getProperty
 import tornadofx.property
-import java.nio.file.Paths
 
 /**
  * User: ykrasik
@@ -23,7 +23,7 @@ class LibraryDataModel {
 
     val notAllFieldsSet = pathProperty().isNull.or(nameProperty().isNull).or(platformProperty().isNull)
 
-    fun toLibraryData() = LibraryData(Paths.get(path), name, platform)
+    fun toLibraryData() = LibraryData(path.toFile(), name, platform)
 
     override fun toString() = name
 }

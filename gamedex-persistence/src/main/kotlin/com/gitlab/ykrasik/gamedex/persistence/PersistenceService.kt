@@ -1,8 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.gitlab.ykrasik.gamedex.persistence.dao.ExcludedPathDao
-import com.gitlab.ykrasik.gamedex.persistence.dao.GameDao
-import com.gitlab.ykrasik.gamedex.persistence.dao.LibraryDao
+import com.github.ykrasik.gamedex.common.TimeProvider
+import com.gitlab.ykrasik.gamedex.persistence.dao.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,6 +13,7 @@ import javax.inject.Singleton
 // FIXME: There is no need for individual DAO objects. It's ok for namespace segregation, but the whole code can be contained in this class.
 interface PersistenceService {
     val games: GameDao
+    val images: ImageDao
     val libraries: LibraryDao
     val excludedPaths: ExcludedPathDao
 }
@@ -21,10 +21,13 @@ interface PersistenceService {
 @Singleton
 class PersistenceServiceImpl @Inject constructor(
     initializer: DbInitializer,
-    override val games: GameDao,
-    override val libraries: LibraryDao,
-    override val excludedPaths: ExcludedPathDao
+    timeProvider: TimeProvider
 ) : PersistenceService {
+
+    override val games = GameDaoImpl(timeProvider)
+    override val images = ImageDaoImpl()
+    override val libraries = LibraryDaoImpl()
+    override val excludedPaths = ExcludedPathDaoImpl()
 
     init {
         initializer.init()

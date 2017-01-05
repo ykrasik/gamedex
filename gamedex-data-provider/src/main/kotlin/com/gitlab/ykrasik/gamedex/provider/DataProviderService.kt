@@ -5,7 +5,7 @@ import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.GameImageData
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.ProviderData
-import java.nio.file.Path
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +16,7 @@ import javax.inject.Singleton
  */
 interface DataProviderService {
     // TODO: Create an object for this?
-    fun fetch(name: String, platform: GamePlatform, path: Path): Pair<GameData, GameImageData>?
+    fun fetch(name: String, platform: GamePlatform, path: File): Pair<GameData, GameImageData>?
 }
 
 @Singleton
@@ -26,7 +26,7 @@ class DataProviderServiceImpl @Inject constructor(
 ) : DataProviderService {
     private val log by logger()
 
-    override fun fetch(name: String, platform: GamePlatform, path: Path): Pair<GameData, GameImageData>? {
+    override fun fetch(name: String, platform: GamePlatform, path: File): Pair<GameData, GameImageData>? {
         check(providers.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
 
         val context = SearchContext(name, path)
