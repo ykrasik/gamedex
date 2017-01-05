@@ -6,8 +6,10 @@ import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.gridView
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.view.widgets.ImageViewLimitedPane
+import javafx.beans.value.ChangeListener
 import javafx.concurrent.Task
 import javafx.scene.image.ImageView
+import javafx.scene.shape.Rectangle
 import org.controlsfx.control.GridCell
 import tornadofx.View
 import tornadofx.addClass
@@ -55,25 +57,25 @@ class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
 
     init {
 
-//        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
-//        imageViewLimitedPane.translateX = -1.0
-//
-//        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
-//        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
-//
-//        // Clip the cell's corners to be round after the cell's size is calculated.
-//        val clip = Rectangle()
-//        clip.x = 1.0
-//        clip.y = 1.0
-//        clip.arcWidth = 20.0
-//        clip.arcHeight = 20.0
-//        val clipListener = ChangeListener<Number> { observable, oldValue, newValue ->
-//            clip.width = imageViewLimitedPane.width - 2
-//            clip.height = imageViewLimitedPane.height - 2
-//        }
-//        imageViewLimitedPane.clip = clip
-//        imageViewLimitedPane.heightProperty().addListener(clipListener)
-//        imageViewLimitedPane.widthProperty().addListener(clipListener)
+        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
+        imageViewLimitedPane.translateX = -1.0
+
+        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
+        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
+
+        // Clip the cell's corners to be round after the cell's size is calculated.
+        val clip = Rectangle()
+        clip.x = 1.0
+        clip.y = 1.0
+        clip.arcWidth = 20.0
+        clip.arcHeight = 20.0
+        val clipListener = ChangeListener<Number> { observable, oldValue, newValue ->
+            clip.width = imageViewLimitedPane.width - 2
+            clip.height = imageViewLimitedPane.height - 2
+        }
+        imageViewLimitedPane.clip = clip
+        imageViewLimitedPane.heightProperty().addListener(clipListener)
+        imageViewLimitedPane.widthProperty().addListener(clipListener)
 
 //        val binding = MoreBindings.transformBinding(configService.gameWallImageDisplayProperty(), { imageDisplay ->
 //            val image = imageView.image
@@ -94,10 +96,9 @@ class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
     override fun updateItem(item: Game?, empty: Boolean) {
         super.updateItem(item, empty)
 
-        // FIXME: this is called multiple times during initialization. Figure out why and how to bypass!!
-//        cancelPrevTask()
-        if (!empty) {
-            fetchImage(item!!)
+        cancelPrevTask()
+        if (item != null) {
+            fetchImage(item)
         } else {
             imageView.image = null
         }
@@ -108,7 +109,7 @@ class GameWallCell(private val imageLoader: ImageLoader) : GridCell<Game>() {
     }
 
     private fun cancelPrevTask() {
-        loadingTask?.let(Task<*>::cancel)
+        loadingTask?.cancel(false)
         loadingTask = null
     }
 }

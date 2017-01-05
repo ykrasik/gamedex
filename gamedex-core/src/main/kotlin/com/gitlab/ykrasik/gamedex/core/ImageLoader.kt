@@ -8,6 +8,7 @@ import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.gitlab.ykrasik.gamedex.core.ui.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.ui.UIResources
 import com.gitlab.ykrasik.gamedex.persistence.dao.ImageDao
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -20,6 +21,7 @@ import tornadofx.seconds
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 
 /**
  * User: ykrasik
@@ -34,9 +36,9 @@ class ImageLoader @Inject constructor(
     private val log by logger()
 
     // TODO: More threads?
-    private val executorService: ExecutorService = Executors.newFixedThreadPool(
+    private val executorService: ExecutorService = MoreExecutors.getExitingExecutorService(Executors.newFixedThreadPool(
         1, ThreadFactoryBuilder().setNameFormat("image-fetcher-%d").build()
-    )
+    ) as ThreadPoolExecutor)
 
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
