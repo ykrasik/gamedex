@@ -4,12 +4,13 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import com.github.ykrasik.gamedex.common.getResourceAsByteArray
 import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
+import com.github.ykrasik.gamedex.common.toImage
 import com.github.ykrasik.gamedex.datamodel.DataProviderType
 import com.github.ykrasik.gamedex.datamodel.GameImageData
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.ImageData
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
@@ -33,7 +34,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     override val info = DataProviderInfo(
         name = "GiantBomb",
         type = DataProviderType.GiantBomb,
-        logo = ImageData.fromFile("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png")
+        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
     )
 
     private val searchFields = listOf("api_detail_url", "name", "original_release_date", "image").joinToString(",")

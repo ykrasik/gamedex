@@ -4,7 +4,8 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toImage
-import com.github.ykrasik.gamedex.datamodel.ImageData
+import com.github.ykrasik.gamedex.datamodel.GameImage
+import com.github.ykrasik.gamedex.datamodel.GameImageId
 import com.gitlab.ykrasik.gamedex.core.ui.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.ui.UIResources
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
@@ -41,52 +42,38 @@ class ImageLoader @Inject constructor(
         1, ThreadFactoryBuilder().setNameFormat("image-fetcher-%d").build()
     ) as ThreadPoolExecutor)
 
+    private val downloadTaskCache = mutableMapOf<String, DownloadImageTask>()
+    private val fetchTaskCache = mutableMapOf<GameImageId, FetchImageTask>()
+
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
-    private val downloadTaskCache = mutableMapOf<String, Task<ByteArray>>()
+    fun loadUrl(url: String, into: ImageView): Task<*> =
+        submitTask(newDownloadImageTask(url), into)
 
-    fun loadUrl(url: String, into: ImageView): Task<*> {
-        return submitTask(into) {
-            createDownloadImageTask(url)
+    fun loadImage(id: GameImageId, into: ImageView): Task<*> =
+        submitTask(newFetchImageTask(id), into)
+
+    private fun newDownloadImageTask(url: String): DownloadImageTask = createTask(downloadTaskCache, url) {
+        DownloadImageTask(url)
+    }
+
+    private fun newFetchImageTask(id: GameImageId): FetchImageTask = createTask(fetchTaskCache, id) {
+        FetchImageTask(id)
+    }
+
+    private fun <K, T> createTask(cache: MutableMap<K, T>, key: K, ctor: () -> T): T = synchronized(cache) {
+        cache[key]?.let {
+            log.debug { "Task already in progress: $it" }
+            return it
+        }
+        return ctor().apply {
+            log.debug { "Created new task: $this" }
+            cache[key] = this
         }
     }
 
-    fun loadThumbnail(gameId: Int, into: ImageView): Task<*> {
-        return submitTask(into) {
-            object : GamedexTask<ByteArray>(log) {
-                override fun call(): ByteArray {
-                    val imageData = persistenceService.images.fetchThumbnail(gameId)
-                    val bytes = if (imageData.bytes != null) {
-                        imageData.bytes!!
-                    } else {
-                        val url = checkNotNull(imageData.url) { "No thumbnail saved, and no url to download it from!" }
-                        val downloadTask = createDownloadImageTask(url)
-                        downloadTask.progressProperty().onChange {
-//                            log.info { "Progress: $it" }
-                            // TODO: Test the progress property.
-                            updateProgress(it, 1.0)
-                        }
-                        downloadTask.run()
-                        val bytes = downloadTask.get()
-                        executorService.execute {
-                            persistenceService.images.updateThumbnail(gameId, ImageData(bytes, url))
-                        }
-                        bytes
-                    }
-                    return bytes
-                }
-            }
-        }
-    }
-
-    fun loadPoster(gameId: Int, into: ImageView): Task<*> {
-        TODO("loadPoster")
-    }
-
-    private fun submitTask(into: ImageView, taskFactory: () -> Task<ByteArray>): Task<*> {
-        val task = taskFactory()
-
+    private fun submitTask(task: Task<ByteArray>, into: ImageView): Task<*> {
         // Set imageView to a "loading" image.
         into.image = UIResources.Images.loading
 
@@ -114,17 +101,20 @@ class ImageLoader @Inject constructor(
         return fadeTransition
     }
 
-    private fun createDownloadImageTask(url: String): Task<ByteArray> = synchronized(downloadTaskCache) {
-        downloadTaskCache[url]?.let {
-            log.debug { "Download already in progress: $url" }
-            return it
-        }
-        return DownloadImageTask(url).apply {
-            downloadTaskCache[url] = this
-        }
+    private inner abstract class CachedImageTask<Task, K>(
+        private val cache: MutableMap<K, Task>,
+        private val cacheKey: K
+    ) : GamedexTask<ByteArray>(log) {
+
+        override fun succeeded() { cache.remove(cacheKey) }
+        override fun failed() = succeeded()
+        override fun cancelled() = succeeded()
     }
 
-    private inner class DownloadImageTask(private val url: String) : GamedexTask<ByteArray>(log) {
+    private inner class DownloadImageTask(
+        private val url: String
+    ) : CachedImageTask<DownloadImageTask, String>(downloadTaskCache, url) {
+
         override fun call(): ByteArray {
             log.info { "Downloading: $url..." }
 
@@ -135,18 +125,47 @@ class ImageLoader @Inject constructor(
                 .progress { readBytes, totalBytes -> updateProgress(readBytes, totalBytes) }
                 .response()
 
-            val imageData = when (result) {
+            val bytes = when (result) {
                 is Result.Failure -> throw result.error
                 is Result.Success -> result.value
             }
-            log.info { "Done. Size: ${imageData.size}" }
-            return imageData
+            log.info { "Done. Size: ${bytes.size}" }
+            return bytes
         }
 
-        override fun succeeded() {
-            downloadTaskCache.remove(url)
+        override fun toString() = "DownloadImageTask($url)"
+    }
+
+    private inner class FetchImageTask(
+        private val id: GameImageId
+    ) : CachedImageTask<FetchImageTask, GameImageId>(fetchTaskCache, id) {
+
+        override fun call(): ByteArray {
+            val image = persistenceService.images.fetchImage(id)
+            if (image.bytes != null) {
+                return image.bytes!!
+            }
+
+            // TODO: If download task fails, call updater with null url to remove it.
+            val url = checkNotNull(image.url) { "${image.id} has no url to download an image from!" }
+            val bytes = downloadImage(url)
+            executorService.execute {
+                // Save downloaded image in a different thread.
+                persistenceService.images.updateImage(GameImage(id, url, bytes))
+            }
+            return bytes
         }
-        override fun failed() = succeeded()
-        override fun cancelled() = succeeded()
+
+        private fun downloadImage(url: String): ByteArray {
+            val downloadTask = newDownloadImageTask(url)
+            downloadTask.progressProperty().onChange {
+                // TODO: Test the progress property.
+                updateProgress(it, 1.0)
+            }
+            downloadTask.run()
+            return downloadTask.get()
+        }
+
+        override fun toString() = "FetchImageTask($id)"
     }
 }

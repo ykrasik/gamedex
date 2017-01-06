@@ -32,7 +32,7 @@ class ChooseSearchResultFragment(
             vbox {
                 label(path.path)
                 imageview {
-                    image = info.logo.toImage()
+                    image = info.logo
                     fitHeight = 200.0
                     fitWidth = 500.0
                     isPickOnBounds = true   // TODO: What is this?

@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.GameImageId
+import com.github.ykrasik.gamedex.datamodel.GameImageType
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.gridView
@@ -104,7 +106,7 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
     }
 
     private fun fetchImage(game: Game) {
-        loadingTask = imageLoader.loadThumbnail(game.id, imageView)
+        loadingTask = imageLoader.loadImage(GameImageId(game.id, GameImageType.Thumbnail), imageView)
     }
 
     private fun cancelPrevTask() {
