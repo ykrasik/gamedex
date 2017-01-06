@@ -21,18 +21,18 @@ import javax.inject.Singleton
 class LibraryRepository @Inject constructor(
     private val persistenceService: PersistenceService
 ) {
-    val allProperty: ListProperty<Library> = SimpleListProperty(persistenceService.libraries.all.observable())
-    val all: ObservableList<Library> by allProperty
+    val librariesProperty: ListProperty<Library> = SimpleListProperty(persistenceService.libraries.all.observable())
+    val libraries: ObservableList<Library> by librariesProperty
 
-    fun contains(path: File): Boolean = all.any { it.path == path }
+    fun contains(path: File): Boolean = libraries.any { it.path == path }
 
     fun add(libraryData: LibraryData) {
         val library = persistenceService.libraries.add(libraryData)
-        all += library
+        libraries += library
     }
 
     fun delete(library: Library) {
         persistenceService.libraries.delete(library)
-        check(all.remove(library)) { "Error! Didn't contain library: $library" }
+        check(libraries.remove(library)) { "Error! Didn't contain library: $library" }
     }
 }

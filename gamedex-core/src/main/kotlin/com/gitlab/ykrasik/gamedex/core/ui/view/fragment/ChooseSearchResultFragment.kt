@@ -1,10 +1,13 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view.fragment
 
+import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import javafx.collections.ObservableList
 import javafx.scene.control.ButtonBar
+import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
+import javafx.scene.image.ImageView
 import tornadofx.*
 import java.io.File
 
@@ -19,6 +22,8 @@ class ChooseSearchResultFragment(
     private val info: DataProviderInfo,
     private val providerSearchResults: ObservableList<ProviderSearchResult>
 ) : Fragment("Choose Search Result") {
+    private val imageLoader: ImageLoader by di()
+
     private lateinit var tableView: TableView<ProviderSearchResult>
     private var accept = false
 
@@ -39,7 +44,24 @@ class ChooseSearchResultFragment(
         }
         center {
             tableView = tableview(providerSearchResults) {
-                // FIXME: Add thumbnail.
+                makeIndexColumn()
+                column("thumbnail", ProviderSearchResult::thumbnailUrl) {
+                    setCellFactory {
+                        object : TableCell<ProviderSearchResult, String?>() {
+                            private val imageView = ImageView()
+                            override fun updateItem(thumbnailUrl: String?, empty: Boolean) {
+                                if (empty) {
+                                    graphic = null
+                                } else {
+                                    thumbnailUrl?.let {
+                                        graphic = imageView
+                                        imageLoader.loadUrl(it, imageView)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 column("Name", ProviderSearchResult::name)
                 column("Release Date", ProviderSearchResult::releaseDate)
                 column("Score", ProviderSearchResult::score)

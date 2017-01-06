@@ -20,10 +20,10 @@ import javax.inject.Singleton
 class ExcludedPathRepository @Inject constructor(
     private val persistenceService: PersistenceService
 ) {
-    val allProperty: ListProperty<ExcludedPath> = SimpleListProperty(persistenceService.excludedPaths.all.observable())
-    val all: ObservableList<ExcludedPath> by allProperty
+    val excludedPathsProperty: ListProperty<ExcludedPath> = SimpleListProperty(persistenceService.excludedPaths.all.observable())
+    val excludedPaths: ObservableList<ExcludedPath> by excludedPathsProperty
 
-    fun contains(path: File): Boolean = all.any { it.path == path }
+    fun contains(path: File): Boolean = excludedPaths.any { it.path == path }
 
     fun add() {
         TODO()  // TODO: Implement

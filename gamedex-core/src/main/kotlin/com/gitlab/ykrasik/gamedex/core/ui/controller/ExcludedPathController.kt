@@ -8,6 +8,7 @@ import tornadofx.Controller
  * Date: 10/10/2016
  * Time: 13:32
  */
+// TODO: This class is redundant, the logic can sit in the view.
 class ExcludedPathController : Controller() {
     private val excludedPathRepository: ExcludedPathRepository by di()
 

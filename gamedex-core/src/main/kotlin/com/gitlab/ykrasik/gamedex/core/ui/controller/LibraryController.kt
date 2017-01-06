@@ -16,6 +16,7 @@ import tornadofx.vbox
  * Date: 10/10/2016
  * Time: 13:25
  */
+// TODO: This class is redundant, the logic can sit in the view.
 class LibraryController : Controller() {
     private val libraryScanner: LibraryScanner by di()
 
@@ -54,7 +55,7 @@ class LibraryController : Controller() {
 
     fun refreshLibraries() {
         // FIXME: Run in a different thread.
-        libraryRepository.all.forEach {
+        libraryRepository.libraries.forEach {
             val task = libraryScanner.refresh(it)
             task.run()
         }

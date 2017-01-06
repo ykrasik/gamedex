@@ -15,10 +15,10 @@ class LibraryView : View("Libraries") {
     private val model: LibraryRepository by di()
 
     override val root = tableview<Library> {
+        itemsProperty().bind(model.librariesProperty)
+
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
-
-        itemsProperty().bind(model.allProperty)
 
         column("Name", Library::name) {
             isSortable = false

@@ -22,26 +22,26 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService
 ) {
-    val allProperty: ListProperty<Game> = SimpleListProperty(persistenceService.games.all.observable())
-    val all: ObservableList<Game> by allProperty
+    val gamesProperty: ListProperty<Game> = SimpleListProperty(persistenceService.games.all.observable())
+    val games: ObservableList<Game> by gamesProperty
 
-    fun contains(path: File): Boolean = all.any { it.path == path }
+    fun contains(path: File): Boolean = games.any { it.path == path }
 
     fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game {
         val game = persistenceService.games.add(gameData, imageData, path, libraryId)
-        all += game
+        games += game
         return game
     }
 
     fun delete(game: Game) {
         persistenceService.games.delete(game)
-        check(all.remove(game)) { "Error! Didn't contain game: $game" }
+        check(games.remove(game)) { "Error! Didn't contain game: $game" }
     }
 
     fun deleteByLibrary(libraryId: Int) {
         persistenceService.games.deleteByLibrary(libraryId)
-        all.removeAll { it.libraryId == libraryId }
+        games.removeAll { it.libraryId == libraryId }
     }
 
-    fun getByLibrary(libraryId: Int): ObservableList<Game> = all.filtered { it.libraryId == libraryId }
+    fun getByLibrary(libraryId: Int): ObservableList<Game> = games.filtered { it.libraryId == libraryId }
 }

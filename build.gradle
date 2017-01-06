@@ -1,7 +1,7 @@
 buildscript {
     ext {
         kotlin = [:].with {
-            v = '1.0.4'
+            v = '1.0.6'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]

@@ -46,7 +46,7 @@ class GameWallView : View("Games Wall") {
             cell
         }
 
-        itemsProperty().bind(gameRepository.allProperty)
+        itemsProperty().bind(gameRepository.gamesProperty)
     }
 }
 

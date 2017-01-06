@@ -16,6 +16,7 @@ import javafx.animation.FadeTransition
 import javafx.application.Platform.runLater
 import javafx.concurrent.Task
 import javafx.scene.image.ImageView
+import tornadofx.fade
 import tornadofx.onChange
 import tornadofx.seconds
 import java.io.File
@@ -43,6 +44,8 @@ class ImageLoader @Inject constructor(
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
+    private val downloadTaskCache = mutableMapOf<String, Task<ByteArray>>()
+
     fun loadUrl(url: String, into: ImageView): Task<*> {
         return submitTask(into) {
             createDownloadImageTask(url)
@@ -60,7 +63,8 @@ class ImageLoader @Inject constructor(
                         val url = checkNotNull(imageData.url) { "No thumbnail saved, and no url to download it from!" }
                         val downloadTask = createDownloadImageTask(url)
                         downloadTask.progressProperty().onChange {
-                            log.info { "Progress: $it" }
+//                            log.info { "Progress: $it" }
+                            // TODO: Test the progress property.
                             updateProgress(it, 1.0)
                         }
                         downloadTask.run()
@@ -84,54 +88,65 @@ class ImageLoader @Inject constructor(
         val task = taskFactory()
 
         // Set imageView to a "loading" image.
-        runLater {
-            into.image = UIResources.Images.loading
-        }
+        into.image = UIResources.Images.loading
 
-        prepareTransition(task, into)
+        val transition = createTransition(task, into)
+        task.setOnSucceeded {
+            runLater {
+                transition.play()
+            }
+        }
 
         executorService.execute(task)
         return task
     }
 
-    private fun prepareTransition(task: Task<ByteArray>, into: ImageView) {
-        val fadeIn = FadeTransition(fadeInDuration, into)
-        fadeIn.fromValue = 0.0
-        fadeIn.toValue = 1.0
-
-        val fadeOut = FadeTransition(fadeOutDuration, into)
-        fadeOut.fromValue = 1.0
-        fadeOut.toValue = 0.0
-        fadeOut.setOnFinished {
+    private fun createTransition(task: Task<ByteArray>, into: ImageView): FadeTransition {
+        val fadeTransition = FadeTransition(fadeOutDuration, into)
+        fadeTransition.fromValue = 1.0
+        fadeTransition.toValue = 0.0
+        fadeTransition.setOnFinished {
             into.image = task.value.toImage()
-            fadeIn.play()
-        }
-
-        task.setOnSucceeded {
-            runLater {
-                fadeOut.play()
+            into.fade(fadeInDuration, 1.0, play = true) {
+                fromValue = 0.0
             }
+        }
+        return fadeTransition
+    }
+
+    private fun createDownloadImageTask(url: String): Task<ByteArray> = synchronized(downloadTaskCache) {
+        downloadTaskCache[url]?.let {
+            log.debug { "Download already in progress: $url" }
+            return it
+        }
+        return DownloadImageTask(url).apply {
+            downloadTaskCache[url] = this
         }
     }
 
-    private fun createDownloadImageTask(url: String): Task<ByteArray> {
-        // FIXME: Create a rest client api. Or use TornadoFX.
-        return object : GamedexTask<ByteArray>(log) {
-            override fun call(): ByteArray {
-                log.info { "Downloading: $url..." }
-                val (request, response, result) = Fuel.download(url)
-                    .header("User-Agent" to "Kotlin-Fuel")
-                    .destination { response, url -> File.createTempFile("temp", ".tmp") }
-                    .progress { readBytes, totalBytes -> updateProgress(readBytes, totalBytes) }
-                    .response()
+    private inner class DownloadImageTask(private val url: String) : GamedexTask<ByteArray>(log) {
+        override fun call(): ByteArray {
+            log.info { "Downloading: $url..." }
 
-                val imageData = when (result) {
-                    is Result.Failure -> throw result.error
-                    is Result.Success -> result.value
-                }
-                log.info { "Done. Size: ${imageData.size}" }
-                return imageData
+            // FIXME: Create a rest client api. Or use TornadoFX.
+            val (request, response, result) = Fuel.download(url)
+                .header("User-Agent" to "Kotlin-Fuel")
+                .destination { response, url -> File.createTempFile("temp", ".tmp") }
+                .progress { readBytes, totalBytes -> updateProgress(readBytes, totalBytes) }
+                .response()
+
+            val imageData = when (result) {
+                is Result.Failure -> throw result.error
+                is Result.Success -> result.value
             }
+            log.info { "Done. Size: ${imageData.size}" }
+            return imageData
         }
+
+        override fun succeeded() {
+            downloadTaskCache.remove(url)
+        }
+        override fun failed() = succeeded()
+        override fun cancelled() = succeeded()
     }
 }

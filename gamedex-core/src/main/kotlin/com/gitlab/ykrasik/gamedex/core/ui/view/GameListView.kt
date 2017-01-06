@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.core.ui.view
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.gitlab.ykrasik.gamedex.core.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ui.dividerPosition
+import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.padding
 import com.gitlab.ykrasik.gamedex.core.ui.readOnlyTextArea
 import com.gitlab.ykrasik.gamedex.core.ui.readOnlyTextField
@@ -19,11 +20,14 @@ import tornadofx.*
  */
 class GameListView : View("Game List") {
     private val controller: GameController by di()
+    private val gameRepository: GameRepository by di()
 
     override val root = splitpane {
         dividerPosition = 0.69
 
         tableview<Game> {
+            itemsProperty().bind(gameRepository.gamesProperty)
+
             isEditable = false
             columnResizePolicy = SmartResize.POLICY
 

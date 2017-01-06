@@ -9,6 +9,7 @@ import tornadofx.Controller
  * Date: 09/10/2016
  * Time: 14:39
  */
+// TODO: This class is redundant, the logic can sit in the view.
 class GameController : Controller() {
     private val gameRepository: GameRepository by di()
 
