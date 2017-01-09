@@ -33,7 +33,7 @@ class PathDetector @Inject constructor(
             return emptyList()
         }
 
-        val children = path.listFiles()
+        val children = path.listFiles().filter { !it.isHidden }
         val shouldScanRecursively = shouldScanRecursively(children)
         return if (shouldScanRecursively) {
             children.flatMap { detectNewPaths(it) }
@@ -47,7 +47,7 @@ class PathDetector @Inject constructor(
     }
 
     // Scan children recursively if all children are directories.
-    private fun shouldScanRecursively(children: Array<File>): Boolean = children.isNotEmpty() && children.all(File::isDirectory)
+    private fun shouldScanRecursively(children: List<File>): Boolean = children.isNotEmpty() && children.all(File::isDirectory)
 
     fun isPathKnown(path: File): Boolean {
         if (gameRepository.contains(path)) {

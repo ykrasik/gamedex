@@ -5,8 +5,8 @@ import com.github.ykrasik.gamedex.common.emptyToNull
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.core.ui.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
+import com.gitlab.ykrasik.gamedex.core.util.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import javafx.concurrent.Task

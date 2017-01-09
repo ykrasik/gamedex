@@ -6,22 +6,19 @@ import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toImage
 import com.github.ykrasik.gamedex.datamodel.GameImage
 import com.github.ykrasik.gamedex.datamodel.GameImageId
-import com.gitlab.ykrasik.gamedex.core.ui.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.ui.UIResources
+import com.gitlab.ykrasik.gamedex.core.util.GamedexTask
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import javafx.animation.FadeTransition
-import javafx.application.Platform.runLater
+import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 import javafx.scene.image.ImageView
-import tornadofx.fade
-import tornadofx.onChange
-import tornadofx.seconds
+import tornadofx.*
 import java.io.File
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 
@@ -30,15 +27,14 @@ import java.util.concurrent.ThreadPoolExecutor
  * Date: 02/01/2017
  * Time: 18:30
  */
-// FIXME: Have a look at JavaFX Service.
 @Singleton
 class ImageLoader @Inject constructor(
     private val persistenceService: PersistenceService
 ) {
     private val log by logger()
 
-    // TODO: More threads?
-    private val executorService: ExecutorService = MoreExecutors.getExitingExecutorService(Executors.newFixedThreadPool(
+    // TODO: More threads? Split into 2 executors - fetch & download?
+    private val executorService = MoreExecutors.getExitingExecutorService(Executors.newFixedThreadPool(
         1, ThreadFactoryBuilder().setNameFormat("image-fetcher-%d").build()
     ) as ThreadPoolExecutor)
 
@@ -48,73 +44,82 @@ class ImageLoader @Inject constructor(
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
-    fun loadUrl(url: String, into: ImageView): Task<*> =
-        submitTask(newDownloadImageTask(url), into)
+    fun loadUrl(url: String, into: ImageView): Task<*> = submitTask(downloadImageTask(url, into))
+    fun loadImage(id: GameImageId, into: ImageView): Task<*> = submitTask(fetchImageTask(id, into))
 
-    fun loadImage(id: GameImageId, into: ImageView): Task<*> =
-        submitTask(newFetchImageTask(id), into)
+    private fun downloadImageTask(url: String, imageView: ImageView?): DownloadImageTask =
+        createTask(downloadTaskCache, url, imageView) { DownloadImageTask(url) }
 
-    private fun newDownloadImageTask(url: String): DownloadImageTask = createTask(downloadTaskCache, url) {
-        DownloadImageTask(url)
-    }
+    private fun fetchImageTask(id: GameImageId, imageView: ImageView): FetchImageTask =
+        createTask(fetchTaskCache, id, imageView) { FetchImageTask(id) }
 
-    private fun newFetchImageTask(id: GameImageId): FetchImageTask = createTask(fetchTaskCache, id) {
-        FetchImageTask(id)
-    }
-
-    private fun <K, T> createTask(cache: MutableMap<K, T>, key: K, ctor: () -> T): T = synchronized(cache) {
-        cache[key]?.let {
-            log.debug { "Task already in progress: $it" }
-            return it
-        }
-        return ctor().apply {
-            log.debug { "Created new task: $this" }
+    private fun <K, T : ImageTask> createTask(cache: MutableMap<K, T>,
+                                              key: K,
+                                              imageView: ImageView?,
+                                              ctor: () -> T): T = synchronized(cache) {
+        val task = cache[key]?.apply {
+            log.debug { "Task already in progress: $this" }
+        } ?: ctor().apply {
+            log.info { "Created new task: $this" }
             cache[key] = this
+            this.onSucceeded {
+                log.info { "Removing completed task: ${this@apply}" }
+                cache.remove(key)
+            }
         }
+        imageView?.let {
+            task.imageView = it
+        }
+        task
     }
 
-    private fun submitTask(task: Task<ByteArray>, into: ImageView): Task<*> {
-        // Set imageView to a "loading" image.
-        into.image = UIResources.Images.loading
+    private fun submitTask(task: GamedexTask<ByteArray>): Task<ByteArray> = task.apply {
+        executorService.execute(this)
+    }
 
-        val transition = createTransition(task, into)
-        task.setOnSucceeded {
-            runLater {
-                transition.play()
+    private inner abstract class ImageTask() : GamedexTask<ByteArray>(log) {
+        val imageViewProperty = SimpleObjectProperty<ImageView>()
+        var imageView: ImageView? by imageViewProperty
+
+        init {
+            imageViewProperty.addListener { value, old, new ->
+                if (isCompleted) {
+                    // For edge cases where the task is completed, but still in the cache.
+                    setImage()
+                } else if (!isStopped && old != new) {
+                    setLoading()
+                }
             }
         }
 
-        executorService.execute(task)
-        return task
-    }
-
-    private fun createTransition(task: Task<ByteArray>, into: ImageView): FadeTransition {
-        val fadeTransition = FadeTransition(fadeOutDuration, into)
-        fadeTransition.fromValue = 1.0
-        fadeTransition.toValue = 0.0
-        fadeTransition.setOnFinished {
-            into.image = task.value.toImage()
-            into.fade(fadeInDuration, 1.0, play = true) {
-                fromValue = 0.0
-            }
+        override fun succeeded() {
+            setImage()
         }
-        return fadeTransition
+
+        private fun setLoading() {
+            imageView?.image = UIResources.Images.loading
+        }
+
+        private fun setImage() {
+            val transition = createTransition()
+            transition?.play()
+        }
+
+        private fun createTransition(): FadeTransition? = imageView?.let { imageView ->
+            val fadeTransition = FadeTransition(fadeOutDuration, imageView)
+            fadeTransition.fromValue = 1.0
+            fadeTransition.toValue = 0.0
+            fadeTransition.setOnFinished {
+                imageView.image = value.toImage()
+                imageView.fade(fadeInDuration, 1.0, play = true) {
+                    fromValue = 0.0
+                }
+            }
+            return fadeTransition
+        }
     }
 
-    private inner abstract class CachedImageTask<Task, K>(
-        private val cache: MutableMap<K, Task>,
-        private val cacheKey: K
-    ) : GamedexTask<ByteArray>(log) {
-
-        override fun succeeded() { cache.remove(cacheKey) }
-        override fun failed() = succeeded()
-        override fun cancelled() = succeeded()
-    }
-
-    private inner class DownloadImageTask(
-        private val url: String
-    ) : CachedImageTask<DownloadImageTask, String>(downloadTaskCache, url) {
-
+    private inner class DownloadImageTask(private val url: String) : ImageTask() {
         override fun call(): ByteArray {
             log.info { "Downloading: $url..." }
 
@@ -136,10 +141,7 @@ class ImageLoader @Inject constructor(
         override fun toString() = "DownloadImageTask($url)"
     }
 
-    private inner class FetchImageTask(
-        private val id: GameImageId
-    ) : CachedImageTask<FetchImageTask, GameImageId>(fetchTaskCache, id) {
-
+    private inner class FetchImageTask(private val id: GameImageId) : ImageTask() {
         override fun call(): ByteArray {
             val image = persistenceService.images.fetchImage(id)
             if (image.bytes != null) {
@@ -147,6 +149,7 @@ class ImageLoader @Inject constructor(
             }
 
             // TODO: If download task fails, call updater with null url to remove it.
+            log.info { "Image $id does not exist in db." }
             val url = checkNotNull(image.url) { "${image.id} has no url to download an image from!" }
             val bytes = downloadImage(url)
             executorService.execute {
@@ -157,7 +160,9 @@ class ImageLoader @Inject constructor(
         }
 
         private fun downloadImage(url: String): ByteArray {
-            val downloadTask = newDownloadImageTask(url)
+            // TODO: Calling with imageView = null to avoid it playing the transition when done download.
+            // TODO: Yes, this is a dirty hack.
+            val downloadTask = downloadImageTask(url, imageView = null)
             downloadTask.progressProperty().onChange {
                 // TODO: Test the progress property.
                 updateProgress(it, 1.0)

@@ -46,7 +46,7 @@ object Images : Table("") {
     val screenshot3Url = imageUrl("screenshot3_url")
 
     val screenshot4 = image("screenshot4")
-    val screenshot4Ulr = imageUrl("screenshot4_url")
+    val screenshot4Url = imageUrl("screenshot4_url")
 
     val screenshot5 = image("screenshot5")
     val screenshot5Url = imageUrl("screenshot5_url")

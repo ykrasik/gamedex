@@ -8,7 +8,6 @@ import com.gitlab.ykrasik.gamedex.persistence.entity.Images
 import com.gitlab.ykrasik.gamedex.persistence.entity.bytes
 import com.gitlab.ykrasik.gamedex.persistence.entity.toBlob
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -37,16 +36,12 @@ class ImageDaoImpl : ImageDao {
 
     private fun fetchImage(id: GameImageId, dataColumn: Column<Blob?>, urlColumn: Column<String?>): GameImage = transaction {
         val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId) }.first()
-        result.toGameImage(id, dataColumn, urlColumn)
+        GameImage(
+            id = id,
+            bytes = result[dataColumn]?.bytes,
+            url = result[urlColumn]
+        )
     }
-
-    private fun ResultRow.toGameImage(id: GameImageId,
-                                      dataColumn: Column<Blob?>,
-                                      urlColumn: Column<String?>) = GameImage(
-        id = id,
-        bytes = this[dataColumn]?.bytes,
-        url = this[urlColumn]
-    )
 
     override fun updateImage(image: GameImage) {
         log.debug { "Updating: image..." }
@@ -66,6 +61,16 @@ class ImageDaoImpl : ImageDao {
     private fun GameImageId.toColumns(): Pair<Column<Blob?>, Column<String?>> = when(this.type) {
         GameImageType.Thumbnail -> Pair(Images.thumbnail, Images.thumbnailUrl)
         GameImageType.Poster -> Pair(Images.poster, Images.posterUrl)
+        GameImageType.Screenshot1 -> Pair(Images.screenshot1, Images.screenshot1Url)
+        GameImageType.Screenshot2 -> Pair(Images.screenshot2, Images.screenshot2Url)
+        GameImageType.Screenshot3 -> Pair(Images.screenshot3, Images.screenshot3Url)
+        GameImageType.Screenshot4 -> Pair(Images.screenshot4, Images.screenshot4Url)
+        GameImageType.Screenshot5 -> Pair(Images.screenshot5, Images.screenshot5Url)
+        GameImageType.Screenshot6 -> Pair(Images.screenshot6, Images.screenshot6Url)
+        GameImageType.Screenshot7 -> Pair(Images.screenshot7, Images.screenshot7Url)
+        GameImageType.Screenshot8 -> Pair(Images.screenshot8, Images.screenshot8Url)
+        GameImageType.Screenshot9 -> Pair(Images.screenshot9, Images.screenshot9Url)
+        GameImageType.Screenshot10 -> Pair(Images.screenshot10, Images.screenshot10Url)
         else -> throw IllegalArgumentException("Invalid gameImageType: ${this.type}!")
     }
 }

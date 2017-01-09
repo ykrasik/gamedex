@@ -12,8 +12,4 @@ class MainController : Controller() {
     fun cleanup() {
         TODO()  // TODO: Implement
     }
-
-    fun showSettings() {
-        TODO()  // TODO: Implement
-    }
 }

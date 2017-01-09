@@ -97,7 +97,8 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
     override fun updateItem(item: Game?, empty: Boolean) {
         super.updateItem(item, empty)
 
-        cancelPrevTask()
+        // FIXME: This could create race condition when an un-cancelled task finishes after the new task and overrides the cell's image.
+//        cancelPrevTask()
         if (item != null) {
             fetchImage(item)
         } else {

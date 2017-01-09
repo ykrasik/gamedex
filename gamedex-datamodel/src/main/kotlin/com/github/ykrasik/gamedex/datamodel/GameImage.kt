@@ -20,6 +20,15 @@ data class GameImageId(
 
 enum class GameImageType {
     Thumbnail,
-    Poster
-    // TODO: Add screenshots.
+    Poster,
+    Screenshot1,
+    Screenshot2,
+    Screenshot3,
+    Screenshot4,
+    Screenshot5,
+    Screenshot6,
+    Screenshot7,
+    Screenshot8,
+    Screenshot9,
+    Screenshot10
 }

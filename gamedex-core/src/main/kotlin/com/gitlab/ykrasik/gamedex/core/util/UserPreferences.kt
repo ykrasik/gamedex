@@ -70,6 +70,7 @@ class UserPreferences private constructor() {
     private inner class UserPreferencesProperty<T>(initialValue: T) : SimpleObjectProperty<T>(initialValue) {
         init {
             this.onChange {
+                // TODO: This can probably be achieved by comparing oldValue != newValue
                 if (updateEnable) {
                     update(this@UserPreferences)
                 }

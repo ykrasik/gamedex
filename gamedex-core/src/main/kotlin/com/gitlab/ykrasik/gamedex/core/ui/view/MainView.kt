@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.core.ui.view
 
 import com.gitlab.ykrasik.gamedex.core.ui.*
 import com.gitlab.ykrasik.gamedex.core.ui.controller.MainController
+import com.gitlab.ykrasik.gamedex.core.ui.view.fragment.SettingsFragment
 import javafx.geometry.Orientation
 import javafx.scene.control.TextArea
 import tornadofx.*
@@ -32,7 +33,7 @@ class MainView : View("Main") {
                 }
                 menu("Settings") {
                     isMnemonicParsing = false
-                    menuitem("Settings") { controller.showSettings() }
+                    menuitem("Settings") { showSettings() }
                 }
             }
         }
@@ -77,5 +78,9 @@ class MainView : View("Main") {
                 }
             }
         }
+    }
+
+    private fun showSettings() {
+        SettingsFragment().show()
     }
 }

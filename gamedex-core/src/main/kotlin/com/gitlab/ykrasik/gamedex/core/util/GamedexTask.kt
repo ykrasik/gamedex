@@ -1,7 +1,8 @@
-package com.gitlab.ykrasik.gamedex.core.ui
+package com.gitlab.ykrasik.gamedex.core.util
 
 import com.github.ykrasik.gamedex.common.KLogger
 import javafx.concurrent.Task
+import javafx.concurrent.Worker
 
 /**
  * User: ykrasik
@@ -21,4 +22,14 @@ abstract class GamedexTask<T>(log: KLogger? = null) : Task<T>() {
     }
 
     protected val isStopped: Boolean get() = this.isCancelled || Thread.interrupted()
+    protected val isCompleted: Boolean get() = state == Worker.State.SUCCEEDED
+
+    // Composable, may be called multiple times.
+    fun onSucceeded(f: (T) -> Unit) {
+        val current = onSucceeded
+        setOnSucceeded { e ->
+            current?.handle(e)
+            f(value)
+        }
+    }
 }
