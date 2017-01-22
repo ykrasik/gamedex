@@ -11,11 +11,13 @@ import java.io.File
  */
 data class Game(
     val id: Int,
-    val path: File,
-    val lastModified: DateTime,
-    val libraryId: Int,
-    val data: GameData
+    private val metaData: GameMetaData,
+    private val data: GameData
 ) {
+    val libraryId: Int get() = metaData.libraryId
+    val path: File get() = metaData.path
+    val lastModified: DateTime get() = metaData.lastModified
+
     val name: String get() = data.name
     val description: String? get() = data.description
     val releaseDate: LocalDate? get() = data.releaseDate
@@ -25,24 +27,32 @@ data class Game(
 
     val genres: List<String> get() = data.genres
 
-    val providerData: List<ProviderData> get() = data.providerData
-
     override fun toString() = "Game(id = $id, name = $name, path = $path)"
 }
+
+data class GameMetaData(
+    val libraryId: Int,
+    val path: File,
+    val lastModified: DateTime
+)
 
 data class GameData(
     val name: String,
     val description: String?,
     val releaseDate: LocalDate?,
+
     val criticScore: Double?,
     val userScore: Double?,
-    val genres: List<String>,
-    val providerData: List<ProviderData>
+
+    val genres: List<String>
 )
 
-data class ProviderData(
+data class ProviderGameData(
     val type: DataProviderType,
-    val detailUrl: String
+    val detailUrl: String,
+
+    val data: GameData,
+    val imageData: GameImageData
 )
 
 data class GameImageData(

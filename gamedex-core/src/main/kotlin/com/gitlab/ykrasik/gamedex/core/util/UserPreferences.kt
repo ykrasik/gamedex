@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.util
 
 import com.github.ykrasik.gamedex.common.create
-import com.github.ykrasik.gamedex.common.jackson.objectMapper
+import com.github.ykrasik.gamedex.common.objectMapper
 import com.github.ykrasik.gamedex.common.toFile
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty

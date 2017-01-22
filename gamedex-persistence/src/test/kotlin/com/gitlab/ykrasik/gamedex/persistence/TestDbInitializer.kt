@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * Time: 21:18
  */
 object TestDbInitializer {
-    private val initializer: DbInitializer = DbInitializer(PersistenceConfig(
+    val initializer: DbInitializer = DbInitializer(PersistenceConfig(
         dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
         driver = "org.h2.Driver",
         user = "sa",

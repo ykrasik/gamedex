@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.core.ui.model
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.Library
+import com.gitlab.ykrasik.gamedex.core.ProviderGameDataHandler
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
@@ -21,14 +22,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameRepository @Inject constructor(
-    private val persistenceService: PersistenceService
+    private val persistenceService: PersistenceService,
+    private val providerGameDataHandler: ProviderGameDataHandler
 ) : Iterable<Game> {
     private val log by logger()
 
     val gamesProperty: ReadOnlyListProperty<Game> = run {
-        log.info { "Fetching all games..." }
-        val games = persistenceService.fetchAllGames()
-        log.info { "Result: ${games.size} games." }
+        val games = persistenceService.fetchAllGames().map { providerGameDataHandler.createGame(it) }
         SimpleListProperty(games.observable())
     }
     private val games: ObservableList<Game> by gamesProperty
@@ -36,11 +36,8 @@ class GameRepository @Inject constructor(
     override fun iterator() = games.iterator()
 
     fun add(request: AddGameRequest): Game {
-        log.info { "$request..." }
-        val id = persistenceService.insert(request)
-        val game = Game(id, request.path, request.lastModified, request.libraryId, request.gameData)
+        val game = providerGameDataHandler.createGame(persistenceService.insert(request))
         games += game       // FIXME: Should this be runLater?
-        log.info { "Result: $game." }
         return game
     }
 

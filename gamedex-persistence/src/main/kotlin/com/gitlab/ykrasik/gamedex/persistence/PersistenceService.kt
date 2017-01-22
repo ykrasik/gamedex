@@ -1,14 +1,10 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.jackson.fromJson
-import com.github.ykrasik.gamedex.common.jackson.toJsonStr
-import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.toFile
+import com.github.ykrasik.gamedex.common.*
 import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.persistence.entity.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.joda.time.DateTime
 import java.io.File
 import java.sql.Blob
 import javax.inject.Inject
@@ -22,11 +18,12 @@ import javax.inject.Singleton
 // FIXME: There is no need for individual DAO objects. It's ok for namespace segregation, but the whole code can be contained in this class.
 interface PersistenceService {
     fun fetchAllLibraries(): List<Library>
-    fun insert(request: AddLibraryRequest): Int
+    fun insert(request: AddLibraryRequest): Library
     fun deleteLibrary(id: Int)
 
-    fun fetchAllGames(): List<Game>
-    fun insert(request: AddGameRequest): Int
+    // TODO: Should this return a Game, and handle all the sort stuff internally?
+    fun fetchAllGames(): List<RawGame>
+    fun insert(request: AddGameRequest): RawGame
     fun deleteGame(id: Int)
 
     fun fetchImage(id: GameImageId): GameImage
@@ -39,12 +36,18 @@ data class AddLibraryRequest(
 )
 
 data class AddGameRequest(
-    val libraryId: Int,
-    val path: File,
-    val lastModified: DateTime,
-    val gameData: GameData,
+    val metaData: GameMetaData,
+    val providerData: List<ProviderGameData>,
     val imageData: GameImageData
 )
+
+data class RawGame(
+    val id: Int,
+    val metaData: GameMetaData,
+    val providerData: List<ProviderGameData>
+) {
+    override fun toString() = "RawGame(id = $id, path = ${metaData.path})"
+}
 
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
@@ -55,7 +58,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     private val log by logger()
 
     override fun fetchAllLibraries(): List<Library> = transaction {
-        log.debug { "Fetching all libraries..." }
+        log.info { "Fetching all libraries..." }
         val libraries = Libraries.selectAll().map {
             Library(
                 id = it[Libraries.id],
@@ -63,18 +66,19 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                 data = it[Libraries.data].fromJson()
             )
         }
-        log.debug { "Result: ${libraries.size} libraries." }
+        log.info { "Result: ${libraries.size} libraries." }
         libraries
     }
 
-    override fun insert(request: AddLibraryRequest): Int = transaction {
-        log.debug { "Inserting: $request..." }
+    override fun insert(request: AddLibraryRequest): Library = transaction {
+        log.info { "Inserting: $request..." }
         val id = Libraries.insert {
             it[path] = request.path.toString()
             it[data] = request.data.toJsonStr()
         } get Libraries.id
-        log.debug { "Result: Library($id)." }
-        id
+        val library = Library(id, request.path, request.data)
+        log.info { "Result: $library." }
+        library
     }
 
     override fun deleteLibrary(id: Int) = transaction {
@@ -84,43 +88,55 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         log.debug { "Done." }
     }
 
-    override fun fetchAllGames(): List<Game> = transaction {
-        log.debug { "Fetching all games..." }
+    override fun fetchAllGames(): List<RawGame> = transaction {
+        log.info { "Fetching all games..." }
         val games = Games.selectAll().map {
-            Game(
+            RawGame(
                 id = it[Games.id],
-                path = it[Games.path].toFile(),
-                lastModified = it[Games.lastModified],
-                libraryId = it[Games.libraryId],
-                data = it[Games.data].fromJson()
+                metaData = GameMetaData(
+                    path = it[Games.path].toFile(),
+                    lastModified = it[Games.lastModified],
+                    libraryId = it[Games.libraryId]
+                ),
+                providerData = it[Games.data].listFromJson()
             )
         }
-        log.debug { "Result: ${games.size} games." }
+        log.info { "Result: ${games.size} games." }
         games
     }
 
-    override fun insert(request: AddGameRequest): Int = transaction {
-        log.debug { "Inserting: $request..." }
+    override fun insert(request: AddGameRequest): RawGame = transaction {
+        log.info { "Inserting: $request..." }
 
-        val id = insertGame(request)
+        val id = insertGame(request.metaData, request.providerData)
         insertImage(id, request.imageData)
 
-        log.debug { "Result: Game($id)." }
-        id
+        val game = RawGame(id, request.metaData, request.providerData)
+        log.info { "Result: $game." }
+        game
     }
 
-    private fun insertGame(request: AddGameRequest): Int = Games.insert {
-        it[Games.libraryId] = request.libraryId
-        it[Games.path] = request.path.path
-        it[Games.lastModified] = request.lastModified
-        it[Games.data] = request.gameData.toJsonStr()
+    private fun insertGame(metaData: GameMetaData, providerData: List<ProviderGameData>): Int = Games.insert {
+        it[Games.libraryId] = metaData.libraryId
+        it[Games.path] = metaData.path.path
+        it[Games.lastModified] = metaData.lastModified
+        it[Games.data] = providerData.toJsonStr()
     } get Games.id
 
     private fun insertImage(id: Int, imageData: GameImageData) = Images.insert {
         it[gameId] = id
         it[thumbnailUrl] = imageData.thumbnailUrl
         it[posterUrl] = imageData.posterUrl
-        // FIXME: Add screenshots
+        it[screenshot1Url] = imageData.screenshot1Url
+        it[screenshot2Url] = imageData.screenshot2Url
+        it[screenshot3Url] = imageData.screenshot3Url
+        it[screenshot4Url] = imageData.screenshot4Url
+        it[screenshot5Url] = imageData.screenshot5Url
+        it[screenshot6Url] = imageData.screenshot6Url
+        it[screenshot7Url] = imageData.screenshot7Url
+        it[screenshot8Url] = imageData.screenshot8Url
+        it[screenshot9Url] = imageData.screenshot9Url
+        it[screenshot10Url] = imageData.screenshot10Url
     }
 
     override fun deleteGame(id: Int) = transaction {

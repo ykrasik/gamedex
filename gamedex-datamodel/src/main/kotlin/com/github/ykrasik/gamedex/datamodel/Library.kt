@@ -20,6 +20,6 @@ data class Library(
 }
 
 data class LibraryData(
-    val name: String,
-    val platform: GamePlatform
+    val platform: GamePlatform,
+    val name: String
 )

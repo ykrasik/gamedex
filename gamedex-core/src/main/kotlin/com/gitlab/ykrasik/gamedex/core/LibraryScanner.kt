@@ -5,6 +5,7 @@ import com.github.ykrasik.gamedex.common.collapseSpaces
 import com.github.ykrasik.gamedex.common.emptyToNull
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.github.ykrasik.gamedex.datamodel.GameMetaData
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.util.GamedexTask
@@ -27,6 +28,7 @@ class LibraryScanner @Inject constructor(
     private val pathDetector: PathDetector,
     private val gameRepository: GameRepository,
     private val providerService: DataProviderService,
+    private val providerGameDataHandler: ProviderGameDataHandler,
     private val timeProvider: TimeProvider
 ) {
     private val log by logger()
@@ -49,9 +51,17 @@ class LibraryScanner @Inject constructor(
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
-            val (gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
+            val providerData = providerService.fetch(name, platform, path) ?: return null
 
-            val request = AddGameRequest(libraryId, path, timeProvider.now(), gameData, imageData)
+            val request = AddGameRequest(
+                metaData = GameMetaData(
+                    libraryId = libraryId,
+                    path = path,
+                    lastModified = timeProvider.now()
+                ),
+                providerData = providerData,
+                imageData = providerGameDataHandler.chooseGameImageData(name, providerData)
+            )
             val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")
             return game

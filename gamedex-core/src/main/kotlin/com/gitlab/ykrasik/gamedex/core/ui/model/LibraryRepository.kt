@@ -25,22 +25,14 @@ class LibraryRepository @Inject constructor(
 ) : Iterable<Library> {
     private val log by logger()
 
-    val librariesProperty: ReadOnlyListProperty<Library> = run {
-        log.info { "Fetching all libraries..." }
-        val libraries = persistenceService.fetchAllLibraries()
-        log.info { "Result: ${libraries.size} libraries." }
-        SimpleListProperty(libraries.observable())
-    }
+    val librariesProperty: ReadOnlyListProperty<Library> = SimpleListProperty(persistenceService.fetchAllLibraries().observable())
     private val libraries: ObservableList<Library> by librariesProperty
 
     override fun iterator() = libraries.iterator()
 
     fun add(request: AddLibraryRequest): Library {
-        log.info { "$request..."}
-        val id = persistenceService.insert(request)
-        val library = Library(id, request.path, request.data)
+        val library = persistenceService.insert(request)
         libraries += library        // FIXME: Should this be runLater?
-        log.info { "Result: $library." }
         return library
     }
 

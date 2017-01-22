@@ -24,7 +24,7 @@ class LibraryDataModel {
 
     val notAllFieldsSet = pathProperty().isNull.or(nameProperty().isNull).or(platformProperty().isNull)
 
-    fun toRequest() = AddLibraryRequest(path = path.toFile(), data = LibraryData(name, platform))
+    fun toRequest() = AddLibraryRequest(path = path.toFile(), data = LibraryData(platform, name))
 
     override fun toString() = name
 }

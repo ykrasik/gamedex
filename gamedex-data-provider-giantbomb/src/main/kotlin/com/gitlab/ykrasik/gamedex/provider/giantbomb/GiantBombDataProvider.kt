@@ -5,15 +5,12 @@ import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import com.github.ykrasik.gamedex.common.getResourceAsByteArray
-import com.github.ykrasik.gamedex.common.jackson.objectMapper
 import com.github.ykrasik.gamedex.common.logger
+import com.github.ykrasik.gamedex.common.objectMapper
 import com.github.ykrasik.gamedex.common.toImage
-import com.github.ykrasik.gamedex.datamodel.DataProviderType
-import com.github.ykrasik.gamedex.datamodel.GameImageData
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResult
@@ -60,7 +57,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return result.fromJson(GiantBombSearchResponse::class.java)
     }
 
-    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
+    override fun fetch(searchResult: ProviderSearchResult): ProviderGameData {
         log.info { "Fetch: $searchResult..." }
         val detailUrl = searchResult.detailUrl
         val response = doFetch(detailUrl)
@@ -108,19 +105,17 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         }
     }
 
-    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String): ProviderFetchResult = ProviderFetchResult(
+    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String) = ProviderGameData(
         type = DataProviderType.GiantBomb,
         detailUrl = detailUrl,
-
-        name = name,
-        description = deck,
-        releaseDate = originalReleaseDate,
-
-        criticScore = null,
-        userScore = null,
-
-        genres = genres.map { it.name },
-
+        data = GameData(
+            name = name,
+            description = deck,
+            releaseDate = originalReleaseDate,
+            criticScore = null,
+            userScore = null,
+            genres = genres.map { it.name }
+        ),
         imageData = GameImageData(
             thumbnailUrl = image.thumbUrl,
             posterUrl = image.superUrl,

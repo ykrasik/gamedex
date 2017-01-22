@@ -1,4 +1,4 @@
-package com.github.ykrasik.gamedex.common.jackson
+package com.github.ykrasik.gamedex.common
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
@@ -25,7 +25,7 @@ val objectMapper: ObjectMapper by lazy {
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 inline fun <reified T : Any> String.fromJson(): T = objectMapper.readValue(this, T::class.java)
 
-inline fun <reified T : Any> ObjectMapper.readList(src: String): List<T> {
-    val type = this.typeFactory.constructCollectionType(List::class.java, T::class.java)
-    return this.readValue(src, type)
+inline fun <reified T : Any> String.listFromJson(): List<T> {
+    val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)
+    return objectMapper.readValue(this, type)
 }
