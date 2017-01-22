@@ -48,14 +48,15 @@ class PathDetector @Inject constructor(
     private fun shouldScanRecursively(children: List<File>): Boolean = children.isNotEmpty() && children.all(File::isDirectory)
 
     fun isPathKnown(path: File): Boolean {
-        if (gameRepository.contains(path)) {
-            log.debug { "[$path] is an already mapped game." }
+        val game = gameRepository.getByPath(path)
+        if (game != null) {
+            log.debug { "[$path] is an already mapped game: $game" }
             return true
         }
 
-        val library = libraryRepository.libraries.find { it.path == path }
+        val library = libraryRepository.getByPath(path)
         if (library != null) {
-            log.debug { "[$path][${library.platform}] is an already mapped library." }
+            log.debug { "[$path] is an already mapped library: $library" }
             return true
         }
 

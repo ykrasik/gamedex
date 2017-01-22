@@ -31,10 +31,9 @@ class LibraryController : Controller() {
     }
 
     fun delete(library: Library) {
-        if (!confirmDelete(library)) return
-
-        gameRepository.deleteByLibrary(library.id)
-        libraryRepository.delete(library)
+        if (confirmDelete(library)) {
+            libraryRepository.delete(library)
+        }
     }
 
     private fun confirmDelete(library: Library): Boolean {
@@ -56,7 +55,7 @@ class LibraryController : Controller() {
 
     fun refreshLibraries() {
         // FIXME: Run in a different thread.
-        libraryRepository.libraries.forEach { library ->
+        libraryRepository.forEach { library ->
             if (library.platform != GamePlatform.excluded) {
                 val task = libraryScanner.refresh(library)
                 task.run()

@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.ui.controller
 
 import com.github.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.core.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import tornadofx.Controller
 
@@ -14,8 +15,12 @@ class GameController : Controller() {
     private val gameRepository: GameRepository by di()
 
     fun delete(game: Game) {
-        gameRepository.delete(game)
+        if (confirmDelete(game)) {
+            gameRepository.delete(game)
+        }
     }
+
+    private fun confirmDelete(game: Game): Boolean = areYouSureDialog("Delete game '${game.name}'?")
 
     fun filterGenres() {
         TODO()  // TODO: Implement

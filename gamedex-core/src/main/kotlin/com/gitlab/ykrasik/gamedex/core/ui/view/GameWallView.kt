@@ -15,6 +15,8 @@ import javafx.scene.shape.Rectangle
 import org.controlsfx.control.GridCell
 import tornadofx.View
 import tornadofx.addClass
+import tornadofx.contextmenu
+import tornadofx.menuitem
 import java.awt.Desktop
 import java.net.URL
 import java.net.URLEncoder
@@ -26,11 +28,13 @@ import java.net.URLEncoder
  */
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
-    private val gameRepository: GameRepository by di()
+    private val repository: GameRepository by di()
     private val imageLoader: ImageLoader by di()
     private val userPreferences: UserPreferences by di()
 
     override val root = gridView<Game> {
+        itemsProperty().bind(repository.gamesProperty)
+
         cellHeight = 192.0
         cellWidth = 136.0
         horizontalCellSpacing = 3.0
@@ -45,10 +49,11 @@ class GameWallView : View("Games Wall") {
                     Desktop.getDesktop().browse(url.toURI())
                 }
             }
+            cell.contextmenu {
+                menuitem("Delete") { controller.delete(cell.item) }
+            }
             cell
         }
-
-        itemsProperty().bind(gameRepository.gamesProperty)
     }
 }
 

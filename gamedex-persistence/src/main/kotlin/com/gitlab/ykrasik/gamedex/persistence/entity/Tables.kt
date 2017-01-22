@@ -14,7 +14,7 @@ object Libraries : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
 
-    val data = Games.varchar("data", 16.kb)
+    val data = varchar("data", 16.kb)
 }
 
 object Games : Table() {

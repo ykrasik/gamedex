@@ -60,10 +60,10 @@ class ImageLoader @Inject constructor(
         val task = cache[key]?.apply {
             log.debug { "Task already in progress: $this" }
         } ?: ctor().apply {
-            log.info { "Created new task: $this" }
+            log.debug { "Created new task: $this" }
             cache[key] = this
             this.onSucceeded {
-                log.info { "Removing completed task: ${this@apply}" }
+                log.debug { "Removing completed task: ${this@apply}" }
                 cache.remove(key)
             }
         }
@@ -143,18 +143,18 @@ class ImageLoader @Inject constructor(
 
     private inner class FetchImageTask(private val id: GameImageId) : ImageTask() {
         override fun call(): ByteArray {
-            val image = persistenceService.images.fetchImage(id)
+            val image = persistenceService.fetchImage(id)
             if (image.bytes != null) {
                 return image.bytes!!
             }
 
             // TODO: If download task fails, call updater with null url to remove it.
-            log.info { "Image $id does not exist in db." }
+            log.debug { "Image $id does not exist in db." }
             val url = checkNotNull(image.url) { "${image.id} has no url to download an image from!" }
             val bytes = downloadImage(url)
             executorService.execute {
                 // Save downloaded image in a different thread.
-                persistenceService.images.updateImage(GameImage(id, url, bytes))
+                persistenceService.updateImage(GameImage(id, url, bytes))
             }
             return bytes
         }

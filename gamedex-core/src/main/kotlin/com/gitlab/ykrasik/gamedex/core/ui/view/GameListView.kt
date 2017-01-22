@@ -20,13 +20,13 @@ import tornadofx.*
  */
 class GameListView : View("Game List") {
     private val controller: GameController by di()
-    private val gameRepository: GameRepository by di()
+    private val repository: GameRepository by di()
 
     override val root = splitpane {
         dividerPosition = 0.69
 
         tableview<Game> {
-            itemsProperty().bind(gameRepository.gamesProperty)
+            itemsProperty().bind(repository.gamesProperty)
 
             isEditable = false
             columnResizePolicy = SmartResize.POLICY

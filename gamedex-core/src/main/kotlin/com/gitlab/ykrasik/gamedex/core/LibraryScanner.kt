@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
+import com.github.ykrasik.gamedex.common.TimeProvider
 import com.github.ykrasik.gamedex.common.collapseSpaces
 import com.github.ykrasik.gamedex.common.emptyToNull
 import com.github.ykrasik.gamedex.common.logger
@@ -25,7 +26,8 @@ class LibraryScanner @Inject constructor(
     private val userPreferences: UserPreferences,
     private val pathDetector: PathDetector,
     private val gameRepository: GameRepository,
-    private val providerService: DataProviderService
+    private val providerService: DataProviderService,
+    private val timeProvider: TimeProvider
 ) {
     private val log by logger()
     private val metaDataRegex = "(\\[.*?\\])|(-)".toRegex()
@@ -49,14 +51,14 @@ class LibraryScanner @Inject constructor(
 
             val (gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
 
-            val request = AddGameRequest(libraryId, path, gameData, imageData)
+            val request = AddGameRequest(libraryId, path, timeProvider.now(), gameData, imageData)
             val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")
             return game
         }
 
         // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-        private fun File.normalizeName(): String = metaDataRegex.replace(name, "").collapseSpaces()
+        private fun File.normalizeName(): String = name.replace(metaDataRegex, "").collapseSpaces()
     }
 
 //    @Throws(Exception::class)
