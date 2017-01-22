@@ -78,7 +78,7 @@ public class DialogServiceImpl implements DialogService {
     @SneakyThrows
     private Opt<LibraryDef> createLibraryFromPath(Path path) {
         final ImmutableList<Path> children = FileUtils.listFirstChildDirectories(path, 10).newWith(Paths.get("..."));
-        return createLibraryDialog(path, children, GamePlatform.PC);
+        return createLibraryDialog(path, children, GamePlatform.pc);
     }
 
     @Override

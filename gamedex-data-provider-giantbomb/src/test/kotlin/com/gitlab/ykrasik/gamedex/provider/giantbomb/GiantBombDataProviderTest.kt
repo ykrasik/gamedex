@@ -19,7 +19,7 @@ class GiantBombDataProviderTest : StringSpec() {
 
     init {
         "Retrieve a single search result" {
-            val response = provider.search("no man's sky", GamePlatform.PC)
+            val response = provider.search("no man's sky", GamePlatform.pc)
             response shouldBe listOf(
                 ProviderSearchResult(
                     detailUrl = "http://www.giantbomb.com/api/game/3030-44656/",
@@ -32,7 +32,7 @@ class GiantBombDataProviderTest : StringSpec() {
         }
 
         "Retrieve multiple search results" {
-            val response = provider.search("tItaN QUEST", GamePlatform.PC)
+            val response = provider.search("tItaN QUEST", GamePlatform.pc)
             response shouldBe listOf(
                 ProviderSearchResult(
                     detailUrl = "http://www.giantbomb.com/api/game/3030-8638/",
@@ -52,7 +52,7 @@ class GiantBombDataProviderTest : StringSpec() {
         }
 
         "Not find any search results" {
-            val response = provider.search("not found", GamePlatform.PC)
+            val response = provider.search("not found", GamePlatform.pc)
             response shouldBe emptyList<ProviderSearchResult>()
         }
 

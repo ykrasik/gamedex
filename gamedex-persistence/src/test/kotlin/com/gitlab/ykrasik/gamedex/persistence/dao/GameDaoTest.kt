@@ -1,10 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.toId
-import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.Genre
 import com.github.ykrasik.gamedex.datamodel.Library
 import org.h2.jdbc.JdbcSQLException
 import org.joda.time.LocalDate
@@ -144,7 +141,7 @@ class GameDaoTest : DaoTest() {
         }
 
         "Throw an exception when trying to insert a game for a non-existing library" {
-            val library = Library(2.toId(), "".toPath(), "", GamePlatform.PC)
+            val library = Library(2.toId(), "".toPath(), "", GamePlatform.pc)
 
             shouldThrow<JdbcSQLException> {
                 // Too much typing... so we called this method again.

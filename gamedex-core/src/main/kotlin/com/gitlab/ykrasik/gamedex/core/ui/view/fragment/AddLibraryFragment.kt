@@ -1,11 +1,11 @@
 package com.gitlab.ykrasik.gamedex.core.ui.view.fragment
 
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.core.model.LibraryDataModel
 import com.gitlab.ykrasik.gamedex.core.ui.chooseDirectory
 import com.gitlab.ykrasik.gamedex.core.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
+import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import tornadofx.*
 
 /**
@@ -30,7 +30,7 @@ class AddLibraryFragment : Fragment("Add Library") {
             field("Name") {
                 textfield().bind(libraryData.nameProperty())
             }
-            field("Platform") { enumComboBox<GamePlatform>(libraryData.platformProperty()) { value = GamePlatform.PC } }
+            field("Platform") { enumComboBox<GamePlatform>(libraryData.platformProperty()) { value = GamePlatform.pc } }
         }
 
         button("Add") {
@@ -53,10 +53,10 @@ class AddLibraryFragment : Fragment("Add Library") {
         libraryData.name = directory.name
     }
 
-    fun show(): LibraryData? {
+    fun show(): AddLibraryRequest? {
         openModal(block = true)
         return if (save && !libraryData.notAllFieldsSet.value) {
-            libraryData.toLibraryData()
+            libraryData.toRequest()
         } else {
             null
         }

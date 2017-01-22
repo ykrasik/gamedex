@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.core.model
 import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import tornadofx.getProperty
 import tornadofx.property
 
@@ -23,7 +24,7 @@ class LibraryDataModel {
 
     val notAllFieldsSet = pathProperty().isNull.or(nameProperty().isNull).or(platformProperty().isNull)
 
-    fun toLibraryData() = LibraryData(path.toFile(), name, platform)
+    fun toRequest() = AddLibraryRequest(path = path.toFile(), data = LibraryData(name, platform))
 
     override fun toString() = name
 }

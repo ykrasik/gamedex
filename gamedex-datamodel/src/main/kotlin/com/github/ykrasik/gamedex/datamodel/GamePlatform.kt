@@ -7,11 +7,12 @@ import com.github.ykrasik.gamedex.common.IdentifiableEnum
  * @author Yevgeny Krasik
  */
 enum class GamePlatform constructor(override val key: String) : IdentifiableEnum<String> {
-    PC("PC"),
-    XBOX_360("Xbox 360"),
-    XBOX_ONE("Xbox One"),
-    PS3("PlayStation 3"),
-    PS4("PlayStation 4");
+    pc("PC"),
+    xbox360("Xbox 360"),
+    xboxOne("Xbox One"),
+    ps3("PlayStation 3"),
+    ps4("PlayStation 4"),
+    excluded("Excluded");
 
     override fun toString() = key
 

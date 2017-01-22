@@ -124,7 +124,17 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         imageData = GameImageData(
             thumbnailUrl = image.thumbUrl,
             posterUrl = image.superUrl,
-            screenshotUrls = emptyList()    // TODO: Support screenshots
+            screenshot1Url = null,
+            screenshot2Url = null,
+            screenshot3Url = null,
+            screenshot4Url = null,
+            screenshot5Url = null,
+            screenshot6Url = null,
+            screenshot7Url = null,
+            screenshot8Url = null,
+            screenshot9Url = null,
+            screenshot10Url = null
+            // TODO: Support screenshots
         )
     )
 }

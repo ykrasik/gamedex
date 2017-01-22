@@ -15,7 +15,6 @@ interface PersistenceService {
     val games: GameDao
     val images: ImageDao
     val libraries: LibraryDao
-    val excludedPaths: ExcludedPathDao
 }
 
 @Singleton
@@ -27,7 +26,6 @@ class PersistenceServiceImpl @Inject constructor(
     override val games = GameDaoImpl(timeProvider)
     override val images = ImageDaoImpl()
     override val libraries = LibraryDaoImpl()
-    override val excludedPaths = ExcludedPathDaoImpl()
 
     init {
         initializer.init()

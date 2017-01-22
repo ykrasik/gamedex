@@ -8,6 +8,7 @@ import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.util.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.util.UserPreferences
+import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import javafx.concurrent.Task
 import java.io.File
@@ -48,7 +49,8 @@ class LibraryScanner @Inject constructor(
 
             val (gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
 
-            val game = gameRepository.add(gameData, imageData, path, libraryId)
+            val request = AddGameRequest(libraryId, path, gameData, imageData)
+            val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")
             return game
         }

@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.github.ykrasik.gamedex.common.logger
-import com.gitlab.ykrasik.gamedex.core.ui.model.ExcludedPathRepository
 import com.gitlab.ykrasik.gamedex.core.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.core.ui.model.LibraryRepository
 import java.io.File
@@ -22,8 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class PathDetector @Inject constructor(
     private val gameRepository: GameRepository,
-    private val libraryRepository: LibraryRepository,
-    private val excludedPathRepository: ExcludedPathRepository
+    private val libraryRepository: LibraryRepository
 ) {
     private val log by logger()
 
@@ -54,12 +52,10 @@ class PathDetector @Inject constructor(
             log.debug { "[$path] is an already mapped game." }
             return true
         }
-        if (libraryRepository.contains(path)) {
-            log.debug { "[$path] is an already mapped library." }
-            return true
-        }
-        if (excludedPathRepository.contains(path)) {
-            log.debug { "[$path] is an already excluded path." }
+
+        val library = libraryRepository.libraries.find { it.path == path }
+        if (library != null) {
+            log.debug { "[$path][${library.platform}] is an already mapped library." }
             return true
         }
 

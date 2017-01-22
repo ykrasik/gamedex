@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS libraries(
     id IDENTITY PRIMARY KEY,
     path VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    platform INT NOT NULL
+
+    data VARCHAR(16384) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS games(
     id IDENTITY PRIMARY KEY,
+    library_id INT NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
     path VARCHAR(255) NOT NULL UNIQUE,
     last_modified DATETIME NOT NULL,
-    library_id INT NOT NULL REFERENCES libraries(id) ON DELETE CASCADE,
 
     data VARCHAR(16384) NOT NULL
 );
@@ -52,21 +52,4 @@ CREATE TABLE IF NOT EXISTS images(
 
     screenshot10 BLOB NULL,
     screenshot10_url VARCHAR(256) NULL,
-);
-
-CREATE TABLE IF NOT EXISTS genres(
-    id IDENTITY PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS game_genres(
-    id IDENTITY PRIMARY KEY,
-    game_id INT NOT NULL REFERENCES games(id),
-    genre_id INT NOT NULL REFERENCES genres(id)
-);
-CREATE UNIQUE INDEX game_genres_unique ON game_genres(game_id, genre_id);
-
-CREATE TABLE IF NOT EXISTS excluded_paths(
-    id IDENTITY PRIMARY KEY,
-    path VARCHAR(255) NOT NULL UNIQUE
 );

@@ -66,7 +66,17 @@ class DataProviderServiceImpl @Inject constructor(
         val gameImageData = GameImageData(
             thumbnailUrl = imageData.findFirst(gameName, "thumbnail") { it.imageData.thumbnailUrl },
             posterUrl = imageData.findFirst(gameName, "poster") { it.imageData.posterUrl },
-            screenshotUrls = emptyList()    // TODO: Support screenshots.
+            screenshot1Url = null,
+            screenshot2Url = null,
+            screenshot3Url = null,
+            screenshot4Url = null,
+            screenshot5Url = null,
+            screenshot6Url = null,
+            screenshot7Url = null,
+            screenshot8Url = null,
+            screenshot9Url = null,
+            screenshot10Url = null
+            // TODO: Support screenshots
         )
 
         return Pair(gameData, gameImageData)

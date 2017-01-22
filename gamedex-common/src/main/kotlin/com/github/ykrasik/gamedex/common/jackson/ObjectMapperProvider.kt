@@ -22,6 +22,9 @@ val objectMapper: ObjectMapper by lazy {
         .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
 }
 
+fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
+inline fun <reified T : Any> String.fromJson(): T = objectMapper.readValue(this, T::class.java)
+
 inline fun <reified T : Any> ObjectMapper.readList(src: String): List<T> {
     val type = this.typeFactory.constructCollectionType(List::class.java, T::class.java)
     return this.readValue(src, type)

@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence.entity
 
 import com.github.ykrasik.gamedex.common.kb
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import org.jetbrains.exposed.sql.Table
 
 /**
@@ -14,15 +13,15 @@ import org.jetbrains.exposed.sql.Table
 object Libraries : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val path = varchar("path", 255).uniqueIndex()
-    val name = varchar("name", 255)
-    val platform = enumeration("platform", GamePlatform::class.java)
+
+    val data = Games.varchar("data", 16.kb)
 }
 
 object Games : Table() {
     val id = integer("id").autoIncrement().primaryKey()
+    val libraryId = reference("library_id", Libraries.id)
     val path = varchar("path", 255).uniqueIndex()
     val lastModified = datetime("last_modified")
-    val libraryId = reference("library_id", Libraries.id)
 
     val data = varchar("data", 16.kb)
 }
@@ -68,10 +67,4 @@ object Images : Table("") {
 
     private fun image(name: String) = blob(name).nullable()
     private fun imageUrl(name: String) = varchar(name, 256).nullable()
-}
-
-// TODO: This table probably isn't needed, figure this one out.
-object ExcludedPaths : Table("excluded_paths") {
-    val id = integer("id").autoIncrement().primaryKey()
-    val path = varchar("path", 255).uniqueIndex()
 }

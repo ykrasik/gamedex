@@ -17,7 +17,6 @@ class MainView : View("Main") {
 
     private val gameView: GameView by inject()
     private val libraryView: LibraryView by inject()
-    private val excludedPathView: ExcludedPathView by inject()
 
     private var logTextArea: TextArea by singleAssign()
 
@@ -45,7 +44,6 @@ class MainView : View("Main") {
                 tabpane {
                     nonClosableTab("Games") { content = gameView.root }
                     nonClosableTab("Libraries") { content = libraryView.root }
-                    nonClosableTab("Excluded Paths") { content = excludedPathView.root }
                 }
                 logTextArea = readOnlyTextArea { isWrapText = true }
             }

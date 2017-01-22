@@ -1,22 +1,20 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.TimeProvider
-import com.github.ykrasik.gamedex.common.jackson.objectMapper
+import com.github.ykrasik.gamedex.common.jackson.fromJson
+import com.github.ykrasik.gamedex.common.jackson.toJsonStr
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameData
 import com.github.ykrasik.gamedex.datamodel.GameImageData
+import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.entity.Games
 import com.gitlab.ykrasik.gamedex.persistence.entity.Images
-import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
-import java.io.File
 
 /**
  * User: ykrasik
@@ -26,7 +24,7 @@ import java.io.File
 interface GameDao {
     val all: List<Game>
 
-    fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game
+    fun add(request: AddGameRequest): Game
 
     fun delete(game: Game)
     fun deleteByLibrary(libraryId: Int)
@@ -35,49 +33,55 @@ interface GameDao {
 class GameDaoImpl(private val timeProvider: TimeProvider) : GameDao {
     private val log by logger()
 
-    // TODO: Why fetch the library? For the platform? that can be saved in the data.
-    private val baseQuery = (Games innerJoin Libraries).slice(Games.columns + Libraries.columns)
-
     override val all: List<Game> get() {
         log.info { "Fetching all..." }
         val games = transaction {
-            baseQuery.selectAll().map { it.toGame() }
+            Games.selectAll().map {
+                Game(
+                    id = it[Games.id],
+                    path = it[Games.path].toFile(),
+                    lastModified = it[Games.lastModified],
+                    libraryId = it[Games.libraryId],
+                    data = it[Games.data].fromJson()
+                )
+            }
         }
         log.info { "Result: ${games.size} games." }
         return games
     }
 
-    override fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game = transaction {
+    override fun add(request: AddGameRequest): Game = transaction {
+        log.info { "Inserting: $request..." }
+
         val lastModified = timeProvider.now()
-        log.info { "Inserting game: $gameData..." }
-        val id = insertGame(path, lastModified, libraryId, gameData)
-        insertImage(imageData, id)
-        val game = gameData.toGame(id, path, lastModified, libraryId)
+        val id = insertGame(request, lastModified)
+        insertImage(id, request.imageData)
+
+        val game = Game(
+            id = id,
+            path = request.path,
+            lastModified = lastModified,
+            libraryId = request.libraryId,
+            data = request.gameData
+        )
+
         log.info { "Result: $game." }
         game
     }
 
-    private fun insertGame(path: File, lastModified: DateTime, libraryId: Int, gameData: GameData): Int = Games.insert {
-        it[Games.path] = path.path
+    private fun insertGame(request: AddGameRequest, lastModified: DateTime): Int = Games.insert {
+        it[Games.libraryId] = request.libraryId
+        it[Games.path] = request.path.path
         it[Games.lastModified] = lastModified
-        it[Games.libraryId] = libraryId
-        it[Games.data] = objectMapper.writeValueAsString(gameData)
+        it[Games.data] = request.gameData.toJsonStr()
     } get Games.id
 
-    private fun insertImage(imageData: GameImageData, id: Int) = Images.insert {
+    private fun insertImage(id: Int, imageData: GameImageData) = Images.insert {
         it[gameId] = id
         it[thumbnailUrl] = imageData.thumbnailUrl
         it[posterUrl] = imageData.posterUrl
         // FIXME: Add screenshots
     }
-
-    private fun GameData.toGame(id: Int, path: File, lastModified: DateTime, libraryId: Int) = Game(
-        id = id,
-        path = path,
-        lastModified = lastModified,
-        libraryId = libraryId,
-        data = this
-    )
 
     override fun delete(game: Game) {
         log.info { "Deleting: $game..." }
@@ -90,15 +94,5 @@ class GameDaoImpl(private val timeProvider: TimeProvider) : GameDao {
 
     override fun deleteByLibrary(libraryId: Int) {
         TODO("deleteByLibrary")  // TODO: Implement
-    }
-
-    private fun ResultRow.toGame(): Game {
-        return Game(
-            id = this[Games.id],
-            path = this[Games.path].toFile(),
-            lastModified = this[Games.lastModified],
-            libraryId = this[Games.libraryId],
-            data = objectMapper.readValue(this[Games.data], GameData::class.java)
-        )
     }
 }

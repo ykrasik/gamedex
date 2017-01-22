@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.github.ykrasik.gamedex.common.TimeProvider
-import com.github.ykrasik.gamedex.common.toId
-import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.persistence.TestDbInitializer
 import com.nhaarman.mockito_kotlin.atLeast
@@ -36,7 +34,7 @@ abstract class DaoTest : StringSpec() {
         TestDbInitializer.reload()
     }
 
-    fun givenLibraryExists(id: Int, rawPath: String, platform: GamePlatform = GamePlatform.PC, name: String = rawPath): Library {
+    fun givenLibraryExists(id: Int, rawPath: String, platform: GamePlatform = GamePlatform.pc, name: String = rawPath): Library {
         val path = rawPath.toPath()
         val library = libraryDao.add(LibraryData(path, name, platform))
         library shouldBe Library(id.toId(), path, name, platform)

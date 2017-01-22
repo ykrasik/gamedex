@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.github.ykrasik.gamedex.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
@@ -26,8 +26,8 @@ class LibraryRepository @Inject constructor(
 
     fun contains(path: File): Boolean = libraries.any { it.path == path }
 
-    fun add(libraryData: LibraryData) {
-        val library = persistenceService.libraries.add(libraryData)
+    fun add(request: AddLibraryRequest) {
+        val library = persistenceService.libraries.add(request)
         libraries += library
     }
 

@@ -1,8 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core.ui.model
 
 import com.github.ykrasik.gamedex.datamodel.Game
-import com.github.ykrasik.gamedex.datamodel.GameData
-import com.github.ykrasik.gamedex.datamodel.GameImageData
+import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ListProperty
 import javafx.beans.property.SimpleListProperty
@@ -27,8 +26,8 @@ class GameRepository @Inject constructor(
 
     fun contains(path: File): Boolean = games.any { it.path == path }
 
-    fun add(gameData: GameData, imageData: GameImageData, path: File, libraryId: Int): Game {
-        val game = persistenceService.games.add(gameData, imageData, path, libraryId)
+    fun add(request: AddGameRequest): Game {
+        val game = persistenceService.games.add(request)
         games += game
         return game
     }

@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core.ui.controller
 
+import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.ui.areYouSureDialog
@@ -24,8 +25,8 @@ class LibraryController : Controller() {
     private val gameRepository: GameRepository by di()
 
     fun add(): Boolean {
-        val libraryData = AddLibraryFragment().show() ?: return false
-        libraryRepository.add(libraryData)
+        val request = AddLibraryFragment().show() ?: return false
+        libraryRepository.add(request)
         return true
     }
 
@@ -55,9 +56,11 @@ class LibraryController : Controller() {
 
     fun refreshLibraries() {
         // FIXME: Run in a different thread.
-        libraryRepository.libraries.forEach {
-            val task = libraryScanner.refresh(it)
-            task.run()
+        libraryRepository.libraries.forEach { library ->
+            if (library.platform != GamePlatform.excluded) {
+                val task = libraryScanner.refresh(library)
+                task.run()
+            }
         }
     }
 }

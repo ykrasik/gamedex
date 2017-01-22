@@ -1,11 +1,12 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
+import com.github.ykrasik.gamedex.common.jackson.fromJson
+import com.github.ykrasik.gamedex.common.jackson.toJsonStr
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.common.toFile
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.github.ykrasik.gamedex.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.entity.Libraries
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
@@ -19,7 +20,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 interface LibraryDao {
     val all: List<Library>
 
-    fun add(data: LibraryData): Library
+    fun add(request: AddLibraryRequest): Library
 
     fun delete(library: Library)
 }
@@ -30,22 +31,27 @@ class LibraryDaoImpl : LibraryDao {
     override val all: List<Library> get() {
         log.info { "Fetching all..." }
         val libraries = transaction {
-            Libraries.selectAll().map { it.toLibrary() }
+            Libraries.selectAll().map {
+                Library(
+                    id = it[Libraries.id],
+                    path = it[Libraries.path].toFile(),
+                    data = it[Libraries.data].fromJson()
+                )
+            }
         }
         log.info { "Result: ${libraries.size} libraries." }
         return libraries
     }
 
-    override fun add(data: LibraryData): Library {
-        log.info { "Inserting: $data..." }
+    override fun add(request: AddLibraryRequest): Library {
+        log.info { "Inserting: $request..." }
         val id = transaction {
             Libraries.insert {
-                it[Libraries.path] = data.path.toString()
-                it[Libraries.name] = data.name
-                it[Libraries.platform] = data.platform
+                it[Libraries.path] = request.path.toString()
+                it[Libraries.data] = request.data.toJsonStr()
             } get Libraries.id
         }
-        val library = Library(id, data)
+        val library = Library(id, request.path, request.data)
         log.info { "Result: $library." }
         return library
     }
@@ -59,12 +65,5 @@ class LibraryDaoImpl : LibraryDao {
         log.info { "Done." }
     }
 
-    private fun ResultRow.toLibrary(): Library = Library(
-        id = this[Libraries.id],
-        data = LibraryData(
-            path = this[Libraries.path].toFile(),
-            name = this[Libraries.name],
-            platform = this[Libraries.platform]
-        )
-    )
+    private fun AddLibraryRequest.toLibrary(id: Int) = Library(id, path, data)
 }

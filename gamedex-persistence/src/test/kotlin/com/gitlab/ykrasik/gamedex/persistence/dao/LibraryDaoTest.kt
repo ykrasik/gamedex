@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.toId
-import com.github.ykrasik.gamedex.common.toPath
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.GamePlatform
 import com.github.ykrasik.gamedex.datamodel.Library
@@ -70,16 +68,16 @@ class LibraryDaoTest : DaoTest() {
             givenLibraryExists(1, "library1")
 
             shouldThrow<IllegalArgumentException> {
-                val invalidLibrary = Library(2.toId(), "".toPath(), "", GamePlatform.PC)
+                val invalidLibrary = Library(2.toId(), "".toPath(), "", GamePlatform.pc)
                 dao.delete(invalidLibrary)
             }
         }
 
         "Throw an exception when trying to insert a library at the same path twice" {
-            givenLibraryExists(1, "path1", GamePlatform.PC, "library1")
+            givenLibraryExists(1, "path1", GamePlatform.pc, "library1")
 
             shouldThrow<JdbcSQLException> {
-                dao.add(LibraryData("path1".toPath(), "library2", GamePlatform.XBOX_360))
+                dao.add(LibraryData("path1".toPath(), "library2", GamePlatform.xbox360))
             }
         }
     }

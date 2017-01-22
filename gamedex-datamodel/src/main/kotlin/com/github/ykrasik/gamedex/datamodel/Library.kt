@@ -9,21 +9,17 @@ import java.io.File
  */
 data class Library(
     val id: Int,
+    val path: File,
     val data: LibraryData
 ) : Comparable<Library> {
 
     val name: String get() = data.name
-    val path: File get() = data.path
     val platform: GamePlatform get() = data.platform
 
-    override fun compareTo(other: Library) = data.compareTo(other.data)
+    override fun compareTo(other: Library) = name.compareTo(other.name)
 }
 
 data class LibraryData(
-    val path: File,
     val name: String,
     val platform: GamePlatform
-) : Comparable<LibraryData> {
-
-    override fun compareTo(other: LibraryData) = name.compareTo(other.name)
-}
+)
