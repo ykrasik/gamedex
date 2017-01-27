@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.datamodel.DataProviderType
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.ProviderGameData
+import com.github.ykrasik.gamedex.datamodel.*
 import javafx.scene.image.Image
 import org.joda.time.LocalDate
 
@@ -16,7 +14,7 @@ interface DataProvider {
 
     fun search(name: String, platform: GamePlatform): List<ProviderSearchResult>
 
-    fun fetch(searchResult: ProviderSearchResult): ProviderGameData
+    fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult
 }
 
 class DataProviderInfo(
@@ -31,4 +29,10 @@ data class ProviderSearchResult(
     val releaseDate: LocalDate?,
     val score: Double?,
     val thumbnailUrl: String?
+)
+
+data class ProviderFetchResult(
+    val providerData: GameProviderData,
+    val gameData: GameData,
+    val imageData: GameImageData
 )

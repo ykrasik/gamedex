@@ -11,6 +11,7 @@ import com.github.ykrasik.gamedex.common.toImage
 import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResponse
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombDetailsResult
@@ -57,7 +58,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return result.fromJson(GiantBombSearchResponse::class.java)
     }
 
-    override fun fetch(searchResult: ProviderSearchResult): ProviderGameData {
+    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
         log.info { "Fetch: $searchResult..." }
         val detailUrl = searchResult.detailUrl
         val response = doFetch(detailUrl)
@@ -67,7 +68,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         // When result is found - GiantBomb returns a Json object.
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
-        val gameData = response.results.first().toProviderGameData(detailUrl)
+        val gameData = response.results.first().toProviderFetchResult(detailUrl)
         log.info { "Done: $gameData." }
         return gameData
     }
@@ -105,10 +106,12 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         }
     }
 
-    private fun GiantBombDetailsResult.toProviderGameData(detailUrl: String) = ProviderGameData(
-        type = DataProviderType.GiantBomb,
-        detailUrl = detailUrl,
-        data = GameData(
+    private fun GiantBombDetailsResult.toProviderFetchResult(detailUrl: String) = ProviderFetchResult(
+        providerData = GameProviderData(
+            type = DataProviderType.GiantBomb,
+            detailUrl = detailUrl
+        ),
+        gameData = GameData(
             name = name,
             description = deck,
             releaseDate = originalReleaseDate,

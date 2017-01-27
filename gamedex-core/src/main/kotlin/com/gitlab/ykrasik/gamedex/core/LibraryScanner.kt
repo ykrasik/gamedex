@@ -28,7 +28,6 @@ class LibraryScanner @Inject constructor(
     private val pathDetector: PathDetector,
     private val gameRepository: GameRepository,
     private val providerService: DataProviderService,
-    private val providerGameDataHandler: ProviderGameDataHandler,
     private val timeProvider: TimeProvider
 ) {
     private val log by logger()
@@ -51,16 +50,13 @@ class LibraryScanner @Inject constructor(
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
-            val providerData = providerService.fetch(name, platform, path) ?: return null
+            val (providerData, gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
 
             val request = AddGameRequest(
-                metaData = GameMetaData(
-                    libraryId = libraryId,
-                    path = path,
-                    lastModified = timeProvider.now()
-                ),
+                metaData = GameMetaData(libraryId, path, lastModified = timeProvider.now()),
+                gameData = gameData,
                 providerData = providerData,
-                imageData = providerGameDataHandler.chooseGameImageData(name, providerData)
+                imageData = imageData
             )
             val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")

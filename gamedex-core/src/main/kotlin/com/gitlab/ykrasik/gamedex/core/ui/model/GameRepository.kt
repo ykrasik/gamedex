@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.core.ui.model
 import com.github.ykrasik.gamedex.common.logger
 import com.github.ykrasik.gamedex.datamodel.Game
 import com.github.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.core.ProviderGameDataHandler
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
@@ -22,21 +21,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameRepository @Inject constructor(
-    private val persistenceService: PersistenceService,
-    private val providerGameDataHandler: ProviderGameDataHandler
+    private val persistenceService: PersistenceService
 ) : Iterable<Game> {
     private val log by logger()
 
-    val gamesProperty: ReadOnlyListProperty<Game> = run {
-        val games = persistenceService.fetchAllGames().map { providerGameDataHandler.createGame(it) }
-        SimpleListProperty(games.observable())
-    }
+    val gamesProperty: ReadOnlyListProperty<Game> = SimpleListProperty(persistenceService.fetchAllGames().observable())
     private val games: ObservableList<Game> by gamesProperty
 
     override fun iterator() = games.iterator()
 
     fun add(request: AddGameRequest): Game {
-        val game = providerGameDataHandler.createGame(persistenceService.insert(request))
+        val game = persistenceService.insert(request)
         games += game       // FIXME: Should this be runLater?
         return game
     }

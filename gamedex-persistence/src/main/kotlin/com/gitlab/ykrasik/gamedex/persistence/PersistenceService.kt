@@ -1,6 +1,9 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.*
+import com.github.ykrasik.gamedex.common.fromJson
+import com.github.ykrasik.gamedex.common.logger
+import com.github.ykrasik.gamedex.common.toFile
+import com.github.ykrasik.gamedex.common.toJsonStr
 import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.persistence.entity.*
 import org.jetbrains.exposed.sql.*
@@ -22,8 +25,8 @@ interface PersistenceService {
     fun deleteLibrary(id: Int)
 
     // TODO: Should this return a Game, and handle all the sort stuff internally?
-    fun fetchAllGames(): List<RawGame>
-    fun insert(request: AddGameRequest): RawGame
+    fun fetchAllGames(): List<Game>
+    fun insert(request: AddGameRequest): Game
     fun deleteGame(id: Int)
 
     fun fetchImage(id: GameImageId): GameImage
@@ -37,17 +40,10 @@ data class AddLibraryRequest(
 
 data class AddGameRequest(
     val metaData: GameMetaData,
-    val providerData: List<ProviderGameData>,
+    val gameData: GameData,
+    val providerData: List<GameProviderData>,
     val imageData: GameImageData
 )
-
-data class RawGame(
-    val id: Int,
-    val metaData: GameMetaData,
-    val providerData: List<ProviderGameData>
-) {
-    override fun toString() = "RawGame(id = $id, path = ${metaData.path})"
-}
 
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
@@ -88,39 +84,41 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         log.debug { "Done." }
     }
 
-    override fun fetchAllGames(): List<RawGame> = transaction {
+    override fun fetchAllGames(): List<Game> = transaction {
         log.info { "Fetching all games..." }
         val games = Games.selectAll().map {
-            RawGame(
+            val serializedData: SerializedGameData = it[Games.data].fromJson()
+            Game(
                 id = it[Games.id],
                 metaData = GameMetaData(
                     path = it[Games.path].toFile(),
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId]
                 ),
-                providerData = it[Games.data].listFromJson()
+                providerData = serializedData.providerData,
+                gameData = serializedData.gameData
             )
         }
         log.info { "Result: ${games.size} games." }
         games
     }
 
-    override fun insert(request: AddGameRequest): RawGame = transaction {
+    override fun insert(request: AddGameRequest): Game = transaction {
         log.info { "Inserting: $request..." }
 
-        val id = insertGame(request.metaData, request.providerData)
+        val id = insertGame(request.metaData, request.gameData, request.providerData)
         insertImage(id, request.imageData)
 
-        val game = RawGame(id, request.metaData, request.providerData)
+        val game = Game(id, request.metaData, request.gameData, request.providerData)
         log.info { "Result: $game." }
         game
     }
 
-    private fun insertGame(metaData: GameMetaData, providerData: List<ProviderGameData>): Int = Games.insert {
+    private fun insertGame(metaData: GameMetaData, gameData: GameData, providerData: List<GameProviderData>): Int = Games.insert {
         it[Games.libraryId] = metaData.libraryId
         it[Games.path] = metaData.path.path
         it[Games.lastModified] = metaData.lastModified
-        it[Games.data] = providerData.toJsonStr()
+        it[Games.data] = SerializedGameData(gameData, providerData).toJsonStr()
     } get Games.id
 
     private fun insertImage(id: Int, imageData: GameImageData) = Images.insert {
@@ -155,7 +153,8 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     }
 
     private fun fetchImage(id: GameImageId, dataColumn: Column<Blob?>, urlColumn: Column<String?>): GameImage {
-        val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId) }.first()
+        val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId) }.firstOrNull() ?:
+            throw IllegalArgumentException("Game(${id.gameId} doesn't exist!")
         return GameImage(
             id = id,
             bytes = result[dataColumn]?.bytes,
@@ -193,4 +192,9 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         GameImageType.Screenshot10 -> Pair(Images.screenshot10, Images.screenshot10Url)
         else -> throw IllegalArgumentException("Invalid gameImageType: ${this.type}!")
     }
+
+    private data class SerializedGameData(
+        val gameData: GameData,
+        val providerData: List<GameProviderData>
+    )
 }
