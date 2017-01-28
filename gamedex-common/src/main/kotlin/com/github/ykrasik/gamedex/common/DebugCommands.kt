@@ -7,6 +7,4 @@ package com.github.ykrasik.gamedex.common
  *
  * Marker.
  */
-interface DebugCommands {
-
-}
+interface DebugCommands

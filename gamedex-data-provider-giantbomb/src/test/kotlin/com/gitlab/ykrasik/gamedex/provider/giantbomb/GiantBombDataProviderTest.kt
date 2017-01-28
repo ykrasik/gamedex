@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.ykrasik.gamedex.datamodel.DataProviderType
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -60,18 +59,32 @@ class GiantBombDataProviderTest : StringSpec() {
             val detailUrl = "http://www.giantbomb.com/api/game/3030-44656/"
             val response = provider.fetch(searchResult(detailUrl))
             response shouldBe ProviderFetchResult(
+                providerData = GameProviderData(
                 type = DataProviderType.GiantBomb,
-                detailUrl = detailUrl,
-
+                detailUrl = detailUrl
+                ),
+                gameData = GameData(
                 name = "No Man's Sky",
                 description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
                 releaseDate = LocalDate.parse("2016-08-09"),
                 criticScore = null,
                 userScore = null,
-
+                    genres = listOf("Simulation", "Action-Adventure")
+                ),
+                imageData = GameImageData(
                 thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
                 posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
-                genres = listOf("Simulation", "Action-Adventure")
+                    screenshot1Url = null,
+                    screenshot2Url = null,
+                    screenshot3Url = null,
+                    screenshot4Url = null,
+                    screenshot5Url = null,
+                    screenshot6Url = null,
+                    screenshot7Url = null,
+                    screenshot8Url = null,
+                    screenshot9Url = null,
+                    screenshot10Url = null
+                )
             )
         }
 

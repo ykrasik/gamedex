@@ -28,6 +28,9 @@ class GameRepository @Inject constructor(
     val gamesProperty: ReadOnlyListProperty<Game> = SimpleListProperty(persistenceService.fetchAllGames().observable())
     private val games: ObservableList<Game> by gamesProperty
 
+    val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
+    private val genres: ObservableList<String> by genresProperty
+
     override fun iterator() = games.iterator()
 
     fun add(request: AddGameRequest): Game {
