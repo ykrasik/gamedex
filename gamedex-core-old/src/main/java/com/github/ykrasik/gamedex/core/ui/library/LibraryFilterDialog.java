@@ -1,7 +1,7 @@
 package com.github.ykrasik.gamedex.core.ui.library;
 
 import com.github.ykrasik.gamedex.core.ui.dialog.AbstractSearchableTableViewDialog;
-import com.github.ykrasik.gamedex.datamodel.Library;
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import org.apache.commons.lang3.StringUtils;

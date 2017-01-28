@@ -4,11 +4,11 @@ import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.HttpException
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.getResourceAsByteArray
-import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.objectMapper
-import com.github.ykrasik.gamedex.common.toImage
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
+import com.github.ykrasik.gamedex.common.util.getResourceAsByteArray
+import com.github.ykrasik.gamedex.common.util.logger
+import com.github.ykrasik.gamedex.common.util.objectMapper
+import com.github.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult

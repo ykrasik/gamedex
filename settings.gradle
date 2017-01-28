@@ -2,19 +2,12 @@ rootProject.name = 'gamedex'
 
 include "gamedex-common"
 
-include "gamedex-datamodel"
+include "gamedex-persistence"
 
 include "gamedex-data-provider"
 include "gamedex-data-provider-giantbomb"
 
-include "gamedex-persistence"
-
-include "gamedex-core"
-
 include "gamedex-app"
-
-// TODO: Remove
-include "gamedex-core-old"
 
 // All projects must be defined above this line, this must be the last piece of code.
 rootProject.children.each { project ->

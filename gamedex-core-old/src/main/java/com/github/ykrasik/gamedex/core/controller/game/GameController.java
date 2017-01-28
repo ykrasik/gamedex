@@ -11,7 +11,7 @@ import com.github.ykrasik.gamedex.core.ui.dialog.GenreFilterDialog;
 import com.github.ykrasik.gamedex.core.ui.library.LibraryFilterDialog;
 import com.github.ykrasik.gamedex.core.util.StringUtils;
 import com.github.ykrasik.gamedex.datamodel.Genre;
-import com.github.ykrasik.gamedex.datamodel.Library;
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import com.github.ykrasik.yava.option.Opt;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;

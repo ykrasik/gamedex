@@ -3,7 +3,7 @@ package com.github.ykrasik.gamedex.core.service.action;
 import com.github.ykrasik.gamedex.core.manager.Messageable;
 import com.github.ykrasik.gamedex.datamodel.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.Game;
-import com.github.ykrasik.gamedex.datamodel.Library;
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.ObservableList;

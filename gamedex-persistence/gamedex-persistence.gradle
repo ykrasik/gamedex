@@ -1,6 +1,5 @@
 dependencies {
     compile project(":gamedex-common")
-    compile project(":gamedex-datamodel")
 
     compile h2
     compile exposed

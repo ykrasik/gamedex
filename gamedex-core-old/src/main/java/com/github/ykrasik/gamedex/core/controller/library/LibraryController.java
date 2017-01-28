@@ -3,7 +3,7 @@ package com.github.ykrasik.gamedex.core.controller.library;
 import com.github.ykrasik.gamedex.core.controller.Controller;
 import com.github.ykrasik.gamedex.core.manager.library.LibraryManager;
 import com.github.ykrasik.gamedex.core.service.action.ActionService;
-import com.github.ykrasik.gamedex.datamodel.Library;
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;

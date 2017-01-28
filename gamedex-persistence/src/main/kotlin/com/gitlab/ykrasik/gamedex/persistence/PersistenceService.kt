@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.fromJson
-import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.common.toFile
-import com.github.ykrasik.gamedex.common.toJsonStr
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
+import com.github.ykrasik.gamedex.common.util.fromJson
+import com.github.ykrasik.gamedex.common.util.logger
+import com.github.ykrasik.gamedex.common.util.toFile
+import com.github.ykrasik.gamedex.common.util.toJsonStr
 import com.gitlab.ykrasik.gamedex.persistence.entity.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction

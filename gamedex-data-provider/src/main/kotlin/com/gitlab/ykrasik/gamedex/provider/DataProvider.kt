@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
 import javafx.scene.image.Image
 import org.joda.time.LocalDate
 

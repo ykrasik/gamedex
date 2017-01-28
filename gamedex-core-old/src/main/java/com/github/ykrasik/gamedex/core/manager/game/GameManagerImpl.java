@@ -1,9 +1,9 @@
 package com.github.ykrasik.gamedex.core.manager.game;
 
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import com.github.ykrasik.gamedex.core.exception.GameDexException;
 import com.github.ykrasik.gamedex.core.persistence.Id;
 import com.github.ykrasik.gamedex.core.service.AbstractService;
-import com.github.ykrasik.gamedex.datamodel.*;
 import com.github.ykrasik.gamedex.persistence.PersistenceService;
 import com.github.ykrasik.yava.javafx.JavaFxUtils;
 import com.gs.collections.impl.map.mutable.MutableMapFactoryImpl;

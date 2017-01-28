@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.toFile
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
+import com.github.ykrasik.gamedex.common.util.toFile
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceServiceImpl

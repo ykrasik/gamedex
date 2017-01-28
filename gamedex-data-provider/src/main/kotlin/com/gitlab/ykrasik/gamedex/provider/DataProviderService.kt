@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.common.logger
-import com.github.ykrasik.gamedex.datamodel.GameData
-import com.github.ykrasik.gamedex.datamodel.GameImageData
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.datamodel.GameProviderData
+import com.github.ykrasik.gamedex.common.datamodel.GameData
+import com.github.ykrasik.gamedex.common.datamodel.GameImageData
+import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.common.datamodel.GameProviderData
+import com.github.ykrasik.gamedex.common.util.logger
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

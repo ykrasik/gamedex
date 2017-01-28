@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.github.ykrasik.gamedex.common.EnumIdConverter
-import com.github.ykrasik.gamedex.common.IdentifiableEnum
+import com.github.ykrasik.gamedex.common.util.EnumIdConverter
+import com.github.ykrasik.gamedex.common.util.IdentifiableEnum
 
 /**
  * User: ykrasik

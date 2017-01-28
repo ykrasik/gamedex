@@ -1,5 +1,6 @@
 package com.github.ykrasik.gamedex.common
 
+import com.github.ykrasik.gamedex.common.util.logger
 import java.net.URI
 import java.net.URL
 import java.nio.file.*

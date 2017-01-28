@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
 
 /**
  * User: ykrasik

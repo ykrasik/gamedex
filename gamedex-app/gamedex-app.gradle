@@ -2,8 +2,15 @@ apply plugin: "application"
 mainClassName = "com.gitlab.ykrasik.gamedex.Main"
 
 dependencies {
-    compile project(":gamedex-core")
+    compile project(":gamedex-common")
+    compile project(":gamedex-persistence")
+
+    compile project(":gamedex-data-provider")
     compile project(":gamedex-data-provider-giantbomb")
 
     compile slf4j.julBridge
+
+    compile controlsFx
+    compile tornadoFx.core
+    compile tornadoFx.controls
 }

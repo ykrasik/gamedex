@@ -51,7 +51,7 @@ buildscript {
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
         tornadoFx = [:].with {
-            core = [group: 'no.tornado', name: 'tornadofx', version: '1.5.9']
+            core = [group: 'no.tornado', name: 'tornadofx', version: '1.6.1']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.5']
             delegate
         }

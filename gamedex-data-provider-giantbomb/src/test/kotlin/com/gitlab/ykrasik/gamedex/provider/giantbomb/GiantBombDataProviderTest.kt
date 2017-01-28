@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.ykrasik.gamedex.datamodel.*
+import com.github.ykrasik.gamedex.common.datamodel.*
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult

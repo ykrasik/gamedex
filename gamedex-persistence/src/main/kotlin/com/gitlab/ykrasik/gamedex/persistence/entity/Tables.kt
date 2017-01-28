@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence.entity
 
-import com.github.ykrasik.gamedex.common.kb
+import com.github.ykrasik.gamedex.common.util.kb
 import org.jetbrains.exposed.sql.Table
 
 /**

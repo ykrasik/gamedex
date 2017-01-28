@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.logger
+import com.github.ykrasik.gamedex.common.util.logger
 import com.google.common.annotations.VisibleForTesting
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database

@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.ykrasik.gamedex.common.defaultConfig
-import com.github.ykrasik.gamedex.common.getObjectMap
-import com.github.ykrasik.gamedex.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.common.util.defaultConfig
+import com.github.ykrasik.gamedex.common.util.getObjectMap
 import com.typesafe.config.Config
 
 /**

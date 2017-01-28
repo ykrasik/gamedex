@@ -17,7 +17,7 @@ import com.github.ykrasik.gamedex.core.ui.library.LibraryDef;
 import com.github.ykrasik.gamedex.core.util.FileUtils;
 import com.github.ykrasik.gamedex.datamodel.ExcludedPath;
 import com.github.ykrasik.gamedex.datamodel.Game;
-import com.github.ykrasik.gamedex.datamodel.Library;
+import com.github.ykrasik.gamedex.common.datamodel.Library;
 import com.github.ykrasik.yava.option.Opt;
 import com.github.ykrasik.yava.util.RunnableX;
 import com.gs.collections.api.list.ImmutableList;
