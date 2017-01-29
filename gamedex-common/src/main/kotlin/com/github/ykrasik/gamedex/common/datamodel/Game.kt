@@ -51,6 +51,7 @@ data class GameData(
 data class GameProviderData(
     val type: DataProviderType,
     val detailUrl: String
+    // TODO: Add provider url.
 )
 
 data class GameImageData(

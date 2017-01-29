@@ -4,7 +4,6 @@ import com.github.ykrasik.gamedex.common.datamodel.*
 import com.gitlab.ykrasik.gamedex.provider.DataProviderException
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.jackson.GiantBombStatus
 import io.kotlintest.specs.StringSpec
 import org.joda.time.LocalDate
 
@@ -56,17 +55,19 @@ class GiantBombDataProviderTest : StringSpec() {
         }
 
         "Fetch a valid game details url" {
+            val name = "No Man's Sky"
+            val releaseDate = LocalDate.parse("2016-08-09")
             val detailUrl = "http://www.giantbomb.com/api/game/3030-44656/"
-            val response = provider.fetch(searchResult(detailUrl))
+            val response = provider.fetch(searchResult(detailUrl, name, releaseDate))
             response shouldBe ProviderFetchResult(
                 providerData = GameProviderData(
                 type = DataProviderType.GiantBomb,
                 detailUrl = detailUrl
                 ),
                 gameData = GameData(
-                name = "No Man's Sky",
+                name = name,
                 description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
-                releaseDate = LocalDate.parse("2016-08-09"),
+                releaseDate = releaseDate,
                 criticScore = null,
                 userScore = null,
                     genres = listOf("Simulation", "Action-Adventure")
@@ -103,7 +104,7 @@ class GiantBombDataProviderTest : StringSpec() {
         }
     }
 
-    private fun searchResult(detailUrl: String) = ProviderSearchResult(
-        detailUrl = detailUrl, name = "", releaseDate = null, score = null, thumbnailUrl = null
+    private fun searchResult(detailUrl: String, name: String = "", releaseDate: LocalDate? = null) = ProviderSearchResult(
+        detailUrl = detailUrl, name = name, releaseDate = releaseDate, score = null, thumbnailUrl = null
     )
 }

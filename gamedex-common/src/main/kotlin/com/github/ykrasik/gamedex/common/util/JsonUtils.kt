@@ -23,7 +23,9 @@ val objectMapper: ObjectMapper by lazy {
 }
 
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
+
 inline fun <reified T : Any> String.fromJson(): T = objectMapper.readValue(this, T::class.java)
+inline fun <reified T : Any> ByteArray.fromJson(): T = objectMapper.readValue(this, T::class.java)
 
 inline fun <reified T : Any> String.listFromJson(): List<T> {
     val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)
