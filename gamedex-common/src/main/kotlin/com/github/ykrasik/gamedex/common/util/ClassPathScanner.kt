@@ -1,6 +1,5 @@
-package com.github.ykrasik.gamedex.common
+package com.github.ykrasik.gamedex.common.util
 
-import com.github.ykrasik.gamedex.common.util.logger
 import java.net.URI
 import java.net.URL
 import java.nio.file.*
@@ -54,11 +53,8 @@ object ClassPathScanner {
         }
     }
 
-    fun <T> Enumeration<T>.iterator(): Iterator<T> {
-        val self = this
-        return object : Iterator<T> {
-            override operator fun hasNext() = self.hasMoreElements()
-            override operator fun next() = self.nextElement()
-        }
+    private fun <T> Enumeration<T>.iterator(): Iterator<T> = object : Iterator<T> {
+        override operator fun hasNext() = this@iterator.hasMoreElements()
+        override operator fun next() = this@iterator.nextElement()
     }
 }

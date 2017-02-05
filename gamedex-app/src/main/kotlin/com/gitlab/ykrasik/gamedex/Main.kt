@@ -4,6 +4,7 @@ import com.github.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.module.AppModule
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
+import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderModule
 import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
@@ -29,7 +30,8 @@ class Main : App(MainView::class, Styles::class) {
             PersistenceModule(),
             AppModule(),
             DataProviderModule(),
-            GiantBombProviderModule()
+            GiantBombProviderModule(),
+            IgdbProviderModule()
         )
 
         SLF4JBridgeHandler.removeHandlersForRootLogger()

@@ -5,6 +5,7 @@ include "gamedex-common"
 include "gamedex-persistence"
 
 include "gamedex-data-provider"
+include "gamedex-data-provider-igdb"
 include "gamedex-data-provider-giantbomb"
 
 include "gamedex-app"

@@ -20,3 +20,5 @@ val String.isUnavailable: Boolean get() = this == NOT_AVAILABLE
 fun String.collapseSpaces(): String = "\\s+".toRegex().replace(this, " ")
 
 fun String.emptyToNull(): String? = if (isNullOrEmpty()) null else this
+
+fun String.containsIgnoreCase(str: String): Boolean = this.toLowerCase().contains(str.toLowerCase())

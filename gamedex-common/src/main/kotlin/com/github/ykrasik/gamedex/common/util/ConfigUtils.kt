@@ -1,6 +1,5 @@
 package com.github.ykrasik.gamedex.common.util
 
-import com.github.ykrasik.gamedex.common.ClassPathScanner
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
@@ -9,8 +8,7 @@ import com.typesafe.config.ConfigFactory
  * Date: 01/10/2016
  * Time: 21:56
  */
-// TODO: Are global variables like this lazy by default?
-val defaultConfig: Config by lazy {
+val defaultConfig: Config = run {
     val configurationFiles = ClassPathScanner.scanPackage("") {
         it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
     }

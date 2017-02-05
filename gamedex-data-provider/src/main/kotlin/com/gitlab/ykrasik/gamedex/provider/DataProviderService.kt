@@ -60,6 +60,7 @@ class DataProviderServiceImpl @Inject constructor(
         )
 
         // TODO: Maybe there's a better way of doing this?
+        // FIXME: Merge screenshots, so the first ones are from the first priority provider, then fill out with screenshots from other providers
         val gameImageData = GameImageData(
             thumbnailUrl = imageData.findFirst(gameName, "thumbnail") { it.imageData.thumbnailUrl },
             posterUrl = imageData.findFirst(gameName, "poster") { it.imageData.posterUrl },

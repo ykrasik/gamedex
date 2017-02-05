@@ -41,25 +41,24 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         }
 
         val results = response.results.map { it.toSearchResult() }
-        log.info { "Done: $results." }
+        log.info { "Done(${results.size}): $results." }
         return results
     }
 
     private fun doSearch(name: String, platform: GamePlatform): GiantBombSearchResponse {
-        val platformId = config.getPlatformId(platform)
         val (request, response, result) = getRequest(endpoint,
-            "filter" to "name:$name,platforms:$platformId",
+            "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFields
         )
         return result.fromJson()
     }
 
     private fun GiantBombSearchResult.toSearchResult() = ProviderSearchResult(
-        detailUrl = apiDetailUrl,
         name = name,
         releaseDate = originalReleaseDate,
         score = null,
-        thumbnailUrl = image.thumbUrl
+        thumbnailUrl = image.thumbUrl,
+        detailUrl = apiDetailUrl
     )
 
     override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
@@ -125,12 +124,14 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         )
     )
 
-    private fun getRequest(path: String, vararg elements: Pair<String, Any?>) = path.httpGet(params(elements))
+    private val GamePlatform.id: Int get() = config.getPlatformId(this)
+
+    private fun getRequest(path: String, vararg parameters: Pair<String, Any?>) = path.httpGet(params(parameters))
         .header("User-Agent" to "Kotlin-Fuel")
         .response()
 
-    private fun params(elements: Array<out Pair<String, Any?>>): List<Pair<String, Any?>> = mutableListOf(
+    private fun params(extraParameters: Array<out Pair<String, Any?>>): List<Pair<String, Any?>> = mutableListOf(
         "api_key" to config.applicationKey,
         "format" to "json"
-    ) + elements
+    ) + extraParameters
 }

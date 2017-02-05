@@ -61,20 +61,20 @@ class GiantBombDataProviderTest : StringSpec() {
             val response = provider.fetch(searchResult(detailUrl, name, releaseDate))
             response shouldBe ProviderFetchResult(
                 providerData = GameProviderData(
-                type = DataProviderType.GiantBomb,
-                detailUrl = detailUrl
+                    type = DataProviderType.GiantBomb,
+                    detailUrl = detailUrl
                 ),
                 gameData = GameData(
-                name = name,
-                description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
-                releaseDate = releaseDate,
-                criticScore = null,
-                userScore = null,
+                    name = name,
+                    description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger.",
+                    releaseDate = releaseDate,
+                    criticScore = null,
+                    userScore = null,
                     genres = listOf("Simulation", "Action-Adventure")
                 ),
                 imageData = GameImageData(
-                thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
-                posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
+                    thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
+                    posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
                     screenshot1Url = null,
                     screenshot2Url = null,
                     screenshot3Url = null,

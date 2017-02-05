@@ -14,6 +14,7 @@ interface DataProvider {
 
     fun search(name: String, platform: GamePlatform): List<ProviderSearchResult>
 
+    // TODO: Find a way for providers to fetch from their native SearchResults, and not from the generic one.
     fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult
 }
 
@@ -24,11 +25,11 @@ class DataProviderInfo(
 )
 
 data class ProviderSearchResult(
-    val detailUrl: String,
     val name: String,
     val releaseDate: LocalDate?,
     val score: Double?,
-    val thumbnailUrl: String?
+    val thumbnailUrl: String?,
+    val detailUrl: String
 )
 
 data class ProviderFetchResult(

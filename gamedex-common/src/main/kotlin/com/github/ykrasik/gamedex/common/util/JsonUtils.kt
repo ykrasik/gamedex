@@ -31,6 +31,10 @@ inline fun <reified T : Any> String.listFromJson(): List<T> {
     val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)
     return objectMapper.readValue(this, type)
 }
+inline fun <reified T : Any> ByteArray.listFromJson(): List<T> {
+    val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)
+    return objectMapper.readValue(this, type)
+}
 
 inline fun <reified K : Any, reified V: Any> String.mapFromJson(): Map<K, V> {
     val type = objectMapper.typeFactory.constructMapType(Map::class.java, K::class.java, V::class.java)
