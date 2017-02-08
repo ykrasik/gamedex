@@ -41,6 +41,7 @@ data class GiantBombDetailsResponse(
 )
 
 data class GiantBombDetailsResult(
+    val siteDetailUrl: String,
     val deck: String?,
     val image: GiantBombDetailsImage,
     val genres: List<GiantBombGenre>

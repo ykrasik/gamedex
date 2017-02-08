@@ -24,7 +24,7 @@ class ChooseSearchResultFragment(
 ) : Fragment("Choose Search Result") {
     private val imageLoader: ImageLoader by di()
 
-    private lateinit var tableView: TableView<ProviderSearchResult>
+    private var tableView: TableView<ProviderSearchResult> by singleAssign()
     private var accept = false
 
     override val root = borderpane {

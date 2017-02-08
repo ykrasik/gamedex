@@ -39,10 +39,10 @@ data class AddLibraryRequest(
 )
 
 data class AddGameRequest(
-    val metaData: GameMetaData,
+    val metaData: MetaData,
     val gameData: GameData,
-    val providerData: List<GameProviderData>,
-    val imageData: GameImageData
+    val providerData: List<ProviderData>,
+    val imageData: ImageData
 )
 
 @Singleton
@@ -90,7 +90,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             val serializedData: SerializedGameData = it[Games.data].fromJson()
             Game(
                 id = it[Games.id],
-                metaData = GameMetaData(
+                metaData = MetaData(
                     path = it[Games.path].toFile(),
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId]
@@ -114,14 +114,14 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         game
     }
 
-    private fun insertGame(metaData: GameMetaData, gameData: GameData, providerData: List<GameProviderData>): Int = Games.insert {
+    private fun insertGame(metaData: MetaData, gameData: GameData, providerData: List<ProviderData>): Int = Games.insert {
         it[Games.libraryId] = metaData.libraryId
         it[Games.path] = metaData.path.path
         it[Games.lastModified] = metaData.lastModified
         it[Games.data] = SerializedGameData(gameData, providerData).toJsonStr()
     } get Games.id
 
-    private fun insertImage(id: Int, imageData: GameImageData) = Images.insert {
+    private fun insertImage(id: Int, imageData: ImageData) = Images.insert {
         it[gameId] = id
         it[thumbnailUrl] = imageData.thumbnailUrl
         it[posterUrl] = imageData.posterUrl
@@ -195,6 +195,6 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
 
     private data class SerializedGameData(
         val gameData: GameData,
-        val providerData: List<GameProviderData>
+        val providerData: List<ProviderData>
     )
 }

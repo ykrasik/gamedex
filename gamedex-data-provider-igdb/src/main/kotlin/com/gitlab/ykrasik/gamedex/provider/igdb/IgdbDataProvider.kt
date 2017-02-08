@@ -41,6 +41,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     ).joinToString(",")
 
     private val fetchDetailsFields = listOf(
+        "url",
         "summary",
         "aggregated_rating",
         "rating",
@@ -71,7 +72,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun IgdbSearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
-        detailUrl = "$endpoint$id",
+        apiUrl = "$endpoint$id",
         name = name,
         releaseDate = findReleaseDate(platform),
         score = aggregatedRating,
@@ -111,16 +112,17 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun doFetch(searchResult: ProviderSearchResult): IgdbDetailsResult {
-        val (request, response, result) = getRequest(searchResult.detailUrl, "fields" to fetchDetailsFields)
+        val (request, response, result) = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
         response.assertOk()
         // IGDB returns a list, even though we're fetching by id :/
         return result.listFromJson<IgdbDetailsResult>().first()
     }
 
     private fun IgdbDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
-        providerData = GameProviderData(
+        providerData = ProviderData(
             type = DataProviderType.Igdb,
-            detailUrl = searchResult.detailUrl
+            apiUrl = searchResult.apiUrl,
+            url = url
         ),
         gameData = GameData(
             name = searchResult.name,
@@ -130,7 +132,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
             userScore = rating,
             genres = genres?.map { it.genreName } ?: emptyList()
         ),
-        imageData = GameImageData(
+        imageData = ImageData(
             thumbnailUrl = searchResult.thumbnailUrl,
             posterUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.screenshot_huge) },
             screenshot1Url = null,

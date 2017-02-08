@@ -13,3 +13,5 @@ fun File.create() {
     parentFile.mkdirs()
     createNewFile()
 }
+
+fun File.existsOrNull(): File? = if (exists()) this else null

@@ -11,9 +11,9 @@ import java.io.File
  */
 data class Game(
     val id: Int,
-    private val metaData: GameMetaData,
+    private val metaData: MetaData,
     private val gameData: GameData,
-    val providerData: List<GameProviderData>
+    val providerData: List<ProviderData>
 ) {
     val libraryId: Int get() = metaData.libraryId
     val path: File get() = metaData.path
@@ -31,7 +31,7 @@ data class Game(
     override fun toString() = "Game(id = $id, name = $name, path = $path)"
 }
 
-data class GameMetaData(
+data class MetaData(
     val libraryId: Int,
     val path: File,
     val lastModified: DateTime
@@ -48,13 +48,13 @@ data class GameData(
     val genres: List<String>
 )
 
-data class GameProviderData(
+data class ProviderData(
     val type: DataProviderType,
-    val detailUrl: String
-    // TODO: Add provider url.
+    val apiUrl: String,
+    val url: String
 )
 
-data class GameImageData(
+data class ImageData(
     val thumbnailUrl: String?,
     val posterUrl: String?,
     val screenshot1Url: String?,

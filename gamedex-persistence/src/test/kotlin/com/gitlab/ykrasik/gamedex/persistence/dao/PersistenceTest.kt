@@ -23,7 +23,7 @@ abstract class PersistenceTest : StringSpec() {
 
     val now = DateTime.now()
 
-    val imageData = GameImageData(
+    val imageData = ImageData(
         thumbnailUrl = "someThumbnailUrl",
         posterUrl = "somePosterUrl",
         screenshot1Url = "someScreenshot1Url",
@@ -38,9 +38,10 @@ abstract class PersistenceTest : StringSpec() {
         screenshot10Url = "someScreenshot10Url"
     )
 
-    val gameProviderData = GameProviderData(
+    val providerData = ProviderData(
         type = DataProviderType.GiantBomb,
-        detailUrl = "someDetailUrl"
+        apiUrl = "someDetailUrl",
+        url = "someUrl"
     )
 
     val gameData = GameData(
@@ -63,8 +64,8 @@ abstract class PersistenceTest : StringSpec() {
     fun givenGameExists(id: Int,
                         library: Library,
                         path: String = id.toString()): Game {
-        val metaData = GameMetaData(library.id, path.toFile(), lastModified = now)
-        val providerData = listOf(gameProviderData)
+        val metaData = MetaData(library.id, path.toFile(), lastModified = now)
+        val providerData = listOf(this.providerData)
         val game = persistenceService.insert(AddGameRequest(
             metaData = metaData,
             gameData = gameData,

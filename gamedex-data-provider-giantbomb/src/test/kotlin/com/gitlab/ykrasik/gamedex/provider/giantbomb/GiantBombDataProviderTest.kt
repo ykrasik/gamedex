@@ -20,7 +20,7 @@ class GiantBombDataProviderTest : StringSpec() {
             val response = provider.search("no man's sky", GamePlatform.pc)
             response shouldBe listOf(
                 ProviderSearchResult(
-                    detailUrl = "http://www.giantbomb.com/api/game/3030-44656/",
+                    apiUrl = "http://www.giantbomb.com/api/game/3030-44656/",
                     name = "No Man's Sky",
                     releaseDate = LocalDate.parse("2016-08-09"),
                     score = null,
@@ -33,14 +33,14 @@ class GiantBombDataProviderTest : StringSpec() {
             val response = provider.search("tItaN QUEST", GamePlatform.pc)
             response shouldBe listOf(
                 ProviderSearchResult(
-                    detailUrl = "http://www.giantbomb.com/api/game/3030-8638/",
+                    apiUrl = "http://www.giantbomb.com/api/game/3030-8638/",
                     name = "Titan Quest",
                     releaseDate = LocalDate.parse("2006-06-26"),
                     score = null,
                     thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/301069-titan_quest_pc.jpg"
                 ),
                 ProviderSearchResult(
-                    detailUrl = "http://www.giantbomb.com/api/game/3030-13762/",
+                    apiUrl = "http://www.giantbomb.com/api/game/3030-13762/",
                     name = "Titan Quest: Immortal Throne",
                     releaseDate = LocalDate.parse("2007-03-08"),
                     score = null,
@@ -60,9 +60,10 @@ class GiantBombDataProviderTest : StringSpec() {
             val detailUrl = "http://www.giantbomb.com/api/game/3030-44656/"
             val response = provider.fetch(searchResult(detailUrl, name, releaseDate))
             response shouldBe ProviderFetchResult(
-                providerData = GameProviderData(
+                providerData = ProviderData(
                     type = DataProviderType.GiantBomb,
-                    detailUrl = detailUrl
+                    apiUrl = detailUrl,
+                    url = "http://www.giantbomb.com/no-mans-sky/3030-44656/"
                 ),
                 gameData = GameData(
                     name = name,
@@ -72,7 +73,7 @@ class GiantBombDataProviderTest : StringSpec() {
                     userScore = null,
                     genres = listOf("Simulation", "Action-Adventure")
                 ),
-                imageData = GameImageData(
+                imageData = ImageData(
                     thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
                     posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
                     screenshot1Url = null,
@@ -105,6 +106,6 @@ class GiantBombDataProviderTest : StringSpec() {
     }
 
     private fun searchResult(detailUrl: String, name: String = "", releaseDate: LocalDate? = null) = ProviderSearchResult(
-        detailUrl = detailUrl, name = name, releaseDate = releaseDate, score = null, thumbnailUrl = null
+        apiUrl = detailUrl, name = name, releaseDate = releaseDate, score = null, thumbnailUrl = null
     )
 }

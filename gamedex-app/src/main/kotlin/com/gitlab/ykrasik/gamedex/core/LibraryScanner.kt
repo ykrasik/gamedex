@@ -2,8 +2,8 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.github.ykrasik.gamedex.common.TimeProvider
 import com.github.ykrasik.gamedex.common.datamodel.Game
-import com.github.ykrasik.gamedex.common.datamodel.GameMetaData
 import com.github.ykrasik.gamedex.common.datamodel.Library
+import com.github.ykrasik.gamedex.common.datamodel.MetaData
 import com.github.ykrasik.gamedex.common.util.collapseSpaces
 import com.github.ykrasik.gamedex.common.util.emptyToNull
 import com.github.ykrasik.gamedex.common.util.logger
@@ -50,13 +50,13 @@ class LibraryScanner @Inject constructor(
             val name = path.normalizeName().emptyToNull() ?: return null
             val platform = library.platform
 
-            val (providerData, gameData, imageData) = providerService.fetch(name, platform, path) ?: return null
+            val providerGame = providerService.fetch(name, platform, path) ?: return null
 
             val request = AddGameRequest(
-                metaData = GameMetaData(libraryId, path, lastModified = timeProvider.now()),
-                gameData = gameData,
-                providerData = providerData,
-                imageData = imageData
+                metaData = MetaData(libraryId, path, lastModified = timeProvider.now()),
+                gameData = providerGame.gameData,
+                providerData = providerGame.providerData,
+                imageData = providerGame.imageData
             )
             val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")

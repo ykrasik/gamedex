@@ -62,15 +62,13 @@ class UserPreferences private constructor() {
         }
 
         private fun update(p: UserPreferences) {
-            val json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(p)
-            file.writeText(json)
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, p)
         }
     }
 
     private inner class UserPreferencesProperty<T>(initialValue: T) : SimpleObjectProperty<T>(initialValue) {
         init {
             this.onChange {
-                // TODO: This can probably be achieved by comparing oldValue != newValue
                 if (updateEnable) {
                     update(this@UserPreferences)
                 }

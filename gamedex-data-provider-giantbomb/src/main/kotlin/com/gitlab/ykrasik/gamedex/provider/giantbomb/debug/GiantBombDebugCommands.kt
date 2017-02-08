@@ -28,7 +28,7 @@ class GiantBombDebugCommands @Inject constructor(
     @Command
     fun fetch(@StringParam("url") url: String) {
         val searchResult = ProviderSearchResult(
-            detailUrl = url,
+            apiUrl = url,
             name = "",
             releaseDate = null,
             score = null,

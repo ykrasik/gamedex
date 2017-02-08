@@ -28,8 +28,20 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     )
 
     private val endpoint = "http://www.giantbomb.com/api/games"
-    private val searchFields = listOf("api_detail_url", "name", "original_release_date", "image").joinToString(",")
-    private val fetchDetailsFields = listOf("deck", "image", "genres").joinToString(",")
+
+    private val searchFields = listOf(
+        "api_detail_url",
+        "name",
+        "original_release_date",
+        "image"
+    ).joinToString(",")
+
+    private val fetchDetailsFields = listOf(
+        "site_detail_url",
+        "deck",
+        "image",
+        "genres"
+    ).joinToString(",")
 
     override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
         log.info { "Searching: name='$name', platform=$platform..." }
@@ -58,12 +70,12 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         releaseDate = originalReleaseDate,
         score = null,
         thumbnailUrl = image.thumbUrl,
-        detailUrl = apiDetailUrl
+        apiUrl = apiDetailUrl
     )
 
     override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
         log.info { "Fetching: $searchResult..." }
-        val response = doFetch(searchResult.detailUrl)
+        val response = doFetch(searchResult.apiUrl)
         log.debug { "Response: $response" }
 
         if (response.statusCode != GiantBombStatus.ok) {
@@ -95,9 +107,10 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     }
 
     private fun GiantBombDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
-        providerData = GameProviderData(
+        providerData = ProviderData(
             type = DataProviderType.GiantBomb,
-            detailUrl = searchResult.detailUrl
+            apiUrl = searchResult.apiUrl,
+            url = siteDetailUrl
         ),
         gameData = GameData(
             name = searchResult.name,
@@ -107,7 +120,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
             userScore = null,
             genres = genres.map { it.name }
         ),
-        imageData = GameImageData(
+        imageData = ImageData(
             thumbnailUrl = image.thumbUrl,
             posterUrl = image.superUrl,
             screenshot1Url = null,

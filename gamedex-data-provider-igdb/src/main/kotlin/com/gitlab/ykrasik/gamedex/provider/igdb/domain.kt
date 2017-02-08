@@ -41,6 +41,7 @@ data class IgdbReleaseDate(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IgdbDetailsResult(
+    val url: String,
     val summary: String?,
     val aggregatedRating: Double?,
     val rating: Double?,

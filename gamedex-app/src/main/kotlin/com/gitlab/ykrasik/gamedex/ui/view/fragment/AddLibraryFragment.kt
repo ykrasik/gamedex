@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.github.ykrasik.gamedex.common.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.model.LibraryDataModel
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
@@ -44,9 +45,7 @@ class AddLibraryFragment : Fragment("Add Library") {
     }
 
     private fun browse() {
-        val directory = chooseDirectory("Add Library") {
-            initialDirectoryProperty().bind(preferences.prevDirectoryProperty)
-        } ?: return
+        val directory = chooseDirectory("Add Library", initialDirectory = preferences.prevDirectory?.existsOrNull()) ?: return
         preferences.prevDirectory = directory
         libraryData.path = directory.path
         libraryData.name = directory.name
