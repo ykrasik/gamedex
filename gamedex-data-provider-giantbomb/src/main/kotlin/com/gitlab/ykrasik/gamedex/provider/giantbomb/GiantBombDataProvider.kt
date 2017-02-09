@@ -120,19 +120,10 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
             userScore = null,
             genres = genres.map { it.name }
         ),
-        imageData = ImageData(
+        imageUrls = ImageUrls(
             thumbnailUrl = image.thumbUrl,
             posterUrl = image.superUrl,
-            screenshot1Url = null,
-            screenshot2Url = null,
-            screenshot3Url = null,
-            screenshot4Url = null,
-            screenshot5Url = null,
-            screenshot6Url = null,
-            screenshot7Url = null,
-            screenshot8Url = null,
-            screenshot9Url = null,
-            screenshot10Url = null
+            screenshotUrls = emptyList()
             // TODO: Support screenshots
         )
     )

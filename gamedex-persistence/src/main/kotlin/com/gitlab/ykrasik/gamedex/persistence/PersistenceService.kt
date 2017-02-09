@@ -19,7 +19,6 @@ import javax.sql.rowset.serial.SerialBlob
  * Date: 02/10/2016
  * Time: 15:10
  */
-// FIXME: There is no need for individual DAO objects. It's ok for namespace segregation, but the whole code can be contained in this class.
 interface PersistenceService {
     fun fetchAllLibraries(): List<Library>
     fun insert(request: AddLibraryRequest): Library
@@ -29,7 +28,7 @@ interface PersistenceService {
     fun insert(request: AddGameRequest): Game
     fun deleteGame(id: Int)
 
-    fun fetchImage(id: GameImageId): GameImage
+    fun fetchImage(id: Int): GameImage
     fun updateImage(image: GameImage): Unit
 }
 
@@ -42,7 +41,7 @@ data class AddGameRequest(
     val metaData: MetaData,
     val gameData: GameData,
     val providerData: List<ProviderData>,
-    val imageData: ImageData
+    val imageUrls: ImageUrls
 )
 
 @Singleton
@@ -87,29 +86,50 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     override fun fetchAllGames(): List<Game> = transaction {
         log.info { "Fetching all games..." }
         val games = Games.selectAll().map {
+            val gameId = it[Games.id].value
+            val imageIds = fetchImageIds(gameId)
             val serializedData: SerializedGameData = it[Games.data].fromJson()
             Game(
-                id = it[Games.id].value,
+                id = gameId,
                 metaData = MetaData(
                     path = it[Games.path].toFile(),
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId].value
                 ),
+                gameData = serializedData.gameData,
                 providerData = serializedData.providerData,
-                gameData = serializedData.gameData
+                imageIds = imageIds
             )
         }
         log.info { "Result: ${games.size} games." }
         games
     }
 
+    private fun fetchImageIds(gameId: Int): ImageIds {
+        val images = Images.slice(Images.id, Images.type).select { Images.gameId.eq(gameId.toGameId()) }.map {
+            it[Images.type] to it[Images.id]
+        }.groupBy(keySelector = { it.first }, valueTransform = { it.second.value })
+
+        return ImageIds(
+            thumbnailId = images[GameImageType.Thumbnail]?.first(),
+            posterId = images[GameImageType.Poster]?.first(),
+            screenshotIds = images[GameImageType.Screenshot] ?: emptyList()
+        )
+    }
+
     override fun insert(request: AddGameRequest): Game = transaction {
         log.info { "Inserting: $request..." }
 
         val id = insertGame(request.metaData, request.gameData, request.providerData)
-        insertImage(id, request.imageData)
+        val imageIds = insertImages(id, request.imageUrls)
 
-        val game = Game(id, request.metaData, request.gameData, request.providerData)
+        val game = Game(
+            id = id,
+            metaData = request.metaData,
+            gameData = request.gameData,
+            providerData = request.providerData,
+            imageIds = imageIds
+        )
         log.info { "Result: $game." }
         game
     }
@@ -121,20 +141,20 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         it[Games.data] = SerializedGameData(gameData, providerData).toJsonStr()
     }!!.value
 
-    private fun insertImage(id: Int, imageData: ImageData) = Images.insert {
-        it[gameId] = id.toGameId()
-        it[thumbnailUrl] = imageData.thumbnailUrl
-        it[posterUrl] = imageData.posterUrl
-        it[screenshot1Url] = imageData.screenshot1Url
-        it[screenshot2Url] = imageData.screenshot2Url
-        it[screenshot3Url] = imageData.screenshot3Url
-        it[screenshot4Url] = imageData.screenshot4Url
-        it[screenshot5Url] = imageData.screenshot5Url
-        it[screenshot6Url] = imageData.screenshot6Url
-        it[screenshot7Url] = imageData.screenshot7Url
-        it[screenshot8Url] = imageData.screenshot8Url
-        it[screenshot9Url] = imageData.screenshot9Url
-        it[screenshot10Url] = imageData.screenshot10Url
+    private fun insertImages(gameId: Int, imageUrls: ImageUrls): ImageIds {
+        val thumbnailId = insertImage(gameId, GameImageType.Thumbnail, imageUrls.thumbnailUrl)
+        val posterId = insertImage(gameId, GameImageType.Poster, imageUrls.posterUrl)
+        val screenshotIds = imageUrls.screenshotUrls.mapNotNull { insertImage(gameId, GameImageType.Screenshot, it) }
+        return ImageIds(thumbnailId, posterId, screenshotIds)
+    }
+
+    private fun insertImage(gameId: Int, type: GameImageType, url: String?): Int? {
+        if (url == null) return null
+        return Images.insertAndGetId {
+            it[Images.gameId] = gameId.toGameId()
+            it[Images.type] = type
+            it[Images.url] = url
+        }!!.value
     }
 
     override fun deleteGame(id: Int) = transaction {
@@ -144,65 +164,36 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         log.debug { "Done." }
     }
 
-    override fun fetchImage(id: GameImageId): GameImage = transaction {
-        log.debug { "Fetching: $id..." }
-        val (dataColumn, urlColumn) = id.toColumns()
-        val data = fetchImage(id, dataColumn, urlColumn)
-        log.debug { "Result: $data." }
-        data
-    }
-
-    private fun fetchImage(id: GameImageId, dataColumn: Column<Blob?>, urlColumn: Column<String?>): GameImage {
-        val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId.toGameId()) }.firstOrNull() ?:
-            throw IllegalArgumentException("Game(${id.gameId} doesn't exist!")
-        return GameImage(
-            id = id,
-            bytes = result[dataColumn]?.bytes,
-            url = result[urlColumn]
-        )
+    override fun fetchImage(id: Int): GameImage = transaction {
+        Images.select { Images.id.eq(id.toImageId()) }.map {
+            GameImage(
+                id = it[Images.id].value,
+                url = it[Images.url],
+                bytes = it[Images.bytes]?.bytes
+            )
+        }.first()
     }
 
     override fun updateImage(image: GameImage) = transaction {
         log.debug { "Updating: $image..." }
-        val (dataColumn, urlColumn) = image.id.toColumns()
-        updateImage(image, dataColumn, urlColumn)
+        val count = Images.update(where = { Images.id.eq(image.id.toImageId()) }) {
+            it[Images.url] = image.url
+            it[Images.bytes] = image.bytes?.toBlob()
+        }
+        check(count == 1) { "Updated invalid amount of rows ($count) when updating image for $image!" }
         log.debug { "Done." }
     }
 
-    private fun updateImage(image: GameImage, dataColumn: Column<Blob?>, urlColumn: Column<String?>) {
-        val count = Images.update(where = { Images.gameId.eq(image.id.gameId.toGameId()) }) {
-            it[dataColumn] = image.bytes?.toBlob()
-            it[urlColumn] = image.url
-        }
-        check(count == 1) { "Updated invalid amount of rows ($count) when updating image for $image!" }
-    }
+    private fun Int.toLibraryId() = EntityID(this, Libraries)
+    private fun Int.toGameId() = EntityID(this, Games)
+    private fun Int.toImageId() = EntityID(this, Images)
 
-    private fun GameImageId.toColumns(): Pair<Column<Blob?>, Column<String?>> = when (this.type) {
-        GameImageType.Thumbnail -> Pair(Images.thumbnail, Images.thumbnailUrl)
-        GameImageType.Poster -> Pair(Images.poster, Images.posterUrl)
-        GameImageType.Screenshot1 -> Pair(Images.screenshot1, Images.screenshot1Url)
-        GameImageType.Screenshot2 -> Pair(Images.screenshot2, Images.screenshot2Url)
-        GameImageType.Screenshot3 -> Pair(Images.screenshot3, Images.screenshot3Url)
-        GameImageType.Screenshot4 -> Pair(Images.screenshot4, Images.screenshot4Url)
-        GameImageType.Screenshot5 -> Pair(Images.screenshot5, Images.screenshot5Url)
-        GameImageType.Screenshot6 -> Pair(Images.screenshot6, Images.screenshot6Url)
-        GameImageType.Screenshot7 -> Pair(Images.screenshot7, Images.screenshot7Url)
-        GameImageType.Screenshot8 -> Pair(Images.screenshot8, Images.screenshot8Url)
-        GameImageType.Screenshot9 -> Pair(Images.screenshot9, Images.screenshot9Url)
-        GameImageType.Screenshot10 -> Pair(Images.screenshot10, Images.screenshot10Url)
-        else -> throw IllegalArgumentException("Invalid gameImageType: ${this.type}!")
-    }
+    // TODO: stream the blob & report progress instead?
+    private val Blob.bytes: ByteArray get() = getBytes(0, length().toInt())
+    private fun ByteArray.toBlob(): Blob = SerialBlob(this)
 
     private data class SerializedGameData(
         val gameData: GameData,
         val providerData: List<ProviderData>
     )
-
-    private fun Int.toLibraryId() = EntityID(this, Libraries)
-    private fun Int.toGameId() = EntityID(this, Games)
-
-    // TODO: don't use this, stream the blob & report progress.
-    private val Blob.bytes: ByteArray get() = getBytes(0, length().toInt())
-
-    private fun ByteArray.toBlob(): Blob = SerialBlob(this)
 }

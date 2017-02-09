@@ -56,7 +56,7 @@ class LibraryScanner @Inject constructor(
                 metaData = MetaData(libraryId, path, lastModified = timeProvider.now()),
                 gameData = providerGame.gameData,
                 providerData = providerGame.providerData,
-                imageData = providerGame.imageData
+                imageUrls = providerGame.imageUrls
             )
             val game = gameRepository.add(request)
             updateMessage("[$path] Done: $game")

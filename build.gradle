@@ -46,7 +46,7 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.192']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.7.6']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.7.4']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
         tornadoFx = [:].with {

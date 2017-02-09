@@ -132,19 +132,10 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
             userScore = rating,
             genres = genres?.map { it.genreName } ?: emptyList()
         ),
-        imageData = ImageData(
+        imageUrls = ImageUrls(
             thumbnailUrl = searchResult.thumbnailUrl,
             posterUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.screenshot_huge) },
-            screenshot1Url = null,
-            screenshot2Url = null,
-            screenshot3Url = null,
-            screenshot4Url = null,
-            screenshot5Url = null,
-            screenshot6Url = null,
-            screenshot7Url = null,
-            screenshot8Url = null,
-            screenshot9Url = null,
-            screenshot10Url = null
+            screenshotUrls = emptyList()
             // TODO: Support screenshots
         )
     )

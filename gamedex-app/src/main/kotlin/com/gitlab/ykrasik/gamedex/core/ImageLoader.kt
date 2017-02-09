@@ -2,8 +2,6 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.datamodel.GameImage
-import com.github.ykrasik.gamedex.common.datamodel.GameImageId
 import com.github.ykrasik.gamedex.common.util.logger
 import com.github.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
@@ -28,9 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor
  * Time: 18:30
  */
 @Singleton
-class ImageLoader @Inject constructor(
-    private val persistenceService: PersistenceService
-) {
+class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log by logger()
 
     // TODO: More threads? Split into 2 executors - fetch & download?
@@ -39,18 +35,18 @@ class ImageLoader @Inject constructor(
     ) as ThreadPoolExecutor)
 
     private val downloadTaskCache = mutableMapOf<String, DownloadImageTask>()
-    private val fetchTaskCache = mutableMapOf<GameImageId, FetchImageTask>()
+    private val fetchTaskCache = mutableMapOf<Int, FetchImageTask>()
 
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
     fun loadUrl(url: String, into: ImageView): Task<*> = submitTask(downloadImageTask(url, into))
-    fun loadImage(id: GameImageId, into: ImageView): Task<*> = submitTask(fetchImageTask(id, into))
+    fun loadImage(id: Int, into: ImageView): Task<*> = submitTask(fetchImageTask(id, into))
 
     private fun downloadImageTask(url: String, imageView: ImageView?): DownloadImageTask =
         createTask(downloadTaskCache, url, imageView) { DownloadImageTask(url) }
 
-    private fun fetchImageTask(id: GameImageId, imageView: ImageView): FetchImageTask =
+    private fun fetchImageTask(id: Int, imageView: ImageView): FetchImageTask =
         createTask(fetchTaskCache, id, imageView) { FetchImageTask(id) }
 
     private fun <K, T : ImageTask> createTask(cache: MutableMap<K, T>,
@@ -141,20 +137,17 @@ class ImageLoader @Inject constructor(
         override fun toString() = "DownloadImageTask($url)"
     }
 
-    private inner class FetchImageTask(private val id: GameImageId) : ImageTask() {
+    private inner class FetchImageTask(private val id: Int) : ImageTask() {
         override fun call(): ByteArray {
             val image = persistenceService.fetchImage(id)
-            if (image.bytes != null) {
-                return image.bytes!!
-            }
+            image.bytes?.let { return it }
 
             // TODO: If download task fails, call updater with null url to remove it.
             log.debug { "Image $id does not exist in db." }
-            val url = checkNotNull(image.url) { "${image.id} has no url to download an image from!" }
-            val bytes = downloadImage(url)
+            val bytes = downloadImage(image.url)
             executorService.execute {
                 // Save downloaded image in a different thread.
-                persistenceService.updateImage(GameImage(id, url, bytes))
+                persistenceService.updateImage(image.copy(bytes = bytes))
             }
             return bytes
         }

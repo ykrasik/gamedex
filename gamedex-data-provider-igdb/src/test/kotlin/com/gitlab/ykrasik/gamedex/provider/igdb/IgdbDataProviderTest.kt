@@ -74,19 +74,10 @@ class IgdbDataProviderTest : StringSpec() {
                     userScore = 63.6072343203806,
                     genres = listOf("Shooter", "Role-playing (RPG)", "Simulator", "Adventure", "Indie")
                 ),
-                imageData = ImageData(
+                imageUrls = ImageUrls(
                     thumbnailUrl = thumbnailUrl,
                     posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/sixpdbypwojsyly22a1l.png",
-                    screenshot1Url = null,
-                    screenshot2Url = null,
-                    screenshot3Url = null,
-                    screenshot4Url = null,
-                    screenshot5Url = null,
-                    screenshot6Url = null,
-                    screenshot7Url = null,
-                    screenshot8Url = null,
-                    screenshot9Url = null,
-                    screenshot10Url = null
+                    screenshotUrls = emptyList()
                 )
             )
         }

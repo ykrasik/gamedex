@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.github.ykrasik.gamedex.common.datamodel.Game
-import com.github.ykrasik.gamedex.common.datamodel.GameImageId
-import com.github.ykrasik.gamedex.common.datamodel.GameImageType
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.gridView
@@ -105,14 +103,16 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
         // FIXME: This could create race condition when an un-cancelled task finishes after the new task and overrides the cell's image.
 //        cancelPrevTask()
         if (item != null) {
-            fetchImage(item)
+            fetchThumbnail(item)
         } else {
             imageView.image = null
         }
     }
 
-    private fun fetchImage(game: Game) {
-        loadingTask = imageLoader.loadImage(GameImageId(game.id, GameImageType.Thumbnail), imageView)
+    private fun fetchThumbnail(game: Game) {
+        game.imageIds.thumbnailId?.let { thumbnailId ->
+            loadingTask = imageLoader.loadImage(thumbnailId, imageView)
+        }
     }
 
     private fun cancelPrevTask() {

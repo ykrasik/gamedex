@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider
 
 import com.github.ykrasik.gamedex.common.datamodel.GameData
-import com.github.ykrasik.gamedex.common.datamodel.ImageData
+import com.github.ykrasik.gamedex.common.datamodel.ImageUrls
 import com.github.ykrasik.gamedex.common.datamodel.ProviderData
 import org.joda.time.LocalDate
 
@@ -21,11 +21,11 @@ data class ProviderSearchResult(
 data class ProviderFetchResult(
     val providerData: ProviderData,
     val gameData: GameData,
-    val imageData: ImageData
+    val imageUrls: ImageUrls
 )
 
 data class ProviderGame(
     val gameData: GameData,
-    val imageData: ImageData,
+    val imageUrls: ImageUrls,
     val providerData: List<ProviderData>
 )

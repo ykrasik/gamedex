@@ -13,7 +13,8 @@ data class Game(
     val id: Int,
     private val metaData: MetaData,
     private val gameData: GameData,
-    val providerData: List<ProviderData>
+    val providerData: List<ProviderData>,
+    val imageIds: ImageIds
 ) {
     val libraryId: Int get() = metaData.libraryId
     val path: File get() = metaData.path
@@ -52,19 +53,4 @@ data class ProviderData(
     val type: DataProviderType,
     val apiUrl: String,
     val url: String
-)
-
-data class ImageData(
-    val thumbnailUrl: String?,
-    val posterUrl: String?,
-    val screenshot1Url: String?,
-    val screenshot2Url: String?,
-    val screenshot3Url: String?,
-    val screenshot4Url: String?,
-    val screenshot5Url: String?,
-    val screenshot6Url: String?,
-    val screenshot7Url: String?,
-    val screenshot8Url: String?,
-    val screenshot9Url: String?,
-    val screenshot10Url: String?
 )

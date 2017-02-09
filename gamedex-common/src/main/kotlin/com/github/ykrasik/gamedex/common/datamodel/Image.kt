@@ -8,8 +8,8 @@ import java.util.*
  * Time: 20:22
  */
 data class GameImage(
-    val id: GameImageId,
-    val url: String?,
+    val id: Int,
+    val url: String,
     val bytes: ByteArray?
 ) {
     override fun equals(other: Any?): Boolean {
@@ -21,25 +21,17 @@ data class GameImage(
         return Objects.hash(id, url) + Objects.hash(bytes)
     }
 
-    override fun toString() = "GameImage(id = $id, url = $url, bytes = ${if (bytes != null) "Present" else "Empty"})"
+    override fun toString() = "GameImage(id=$id, url=$url, bytes=${if (bytes != null) "Present" else "Empty"})"
 }
 
-data class GameImageId(
-    val gameId: Int,
-    val type: GameImageType
+data class ImageUrls(
+    val thumbnailUrl: String?,
+    val posterUrl: String?,
+    val screenshotUrls: List<String>
 )
 
-enum class GameImageType {
-    Thumbnail,
-    Poster,
-    Screenshot1,
-    Screenshot2,
-    Screenshot3,
-    Screenshot4,
-    Screenshot5,
-    Screenshot6,
-    Screenshot7,
-    Screenshot8,
-    Screenshot9,
-    Screenshot10
-}
+data class ImageIds(
+    val thumbnailId: Int?,
+    val posterId: Int?,
+    val screenshotIds: List<Int>
+)

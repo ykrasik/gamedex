@@ -17,25 +17,19 @@ import org.joda.time.DateTime
 abstract class PersistenceTest : StringSpec() {
     val persistenceService = PersistenceServiceImpl(TestDbInitializer)
 
+    private var imageId = 1
+
     override fun beforeEach() {
         TestDbInitializer.reload()
+        imageId = 1
     }
 
     val now = DateTime.now()
 
-    val imageData = ImageData(
+    val imageUrls = ImageUrls(
         thumbnailUrl = "someThumbnailUrl",
         posterUrl = "somePosterUrl",
-        screenshot1Url = "someScreenshot1Url",
-        screenshot2Url = "someScreenshot2Url",
-        screenshot3Url = "someScreenshot3Url",
-        screenshot4Url = "someScreenshot4Url",
-        screenshot5Url = "someScreenshot5Url",
-        screenshot6Url = "someScreenshot6Url",
-        screenshot7Url = "someScreenshot7Url",
-        screenshot8Url = "someScreenshot8Url",
-        screenshot9Url = "someScreenshot9Url",
-        screenshot10Url = "someScreenshot10Url"
+        screenshotUrls = listOf("someScreenshotUrl1", "someScreenshotUrl2")
     )
 
     val providerData = ProviderData(
@@ -63,17 +57,33 @@ abstract class PersistenceTest : StringSpec() {
 
     fun givenGameExists(id: Int,
                         library: Library,
-                        path: String = id.toString()): Game {
+                        path: String = id.toString(),
+                        imageUrls: ImageUrls = this.imageUrls): Game {
         val metaData = MetaData(library.id, path.toFile(), lastModified = now)
         val providerData = listOf(this.providerData)
         val game = persistenceService.insert(AddGameRequest(
             metaData = metaData,
             gameData = gameData,
             providerData = providerData,
-            imageData = imageData
+            imageUrls = imageUrls
         ))
 
-        game shouldBe Game(id, metaData, gameData, providerData)
+        val imageIds = expectedImageIds(imageUrls)
+
+        game shouldBe Game(id, metaData, gameData, providerData, imageIds)
         return game
+    }
+
+    private fun expectedImageIds(imageUrls: ImageUrls): ImageIds {
+        val thumbnailId = imageUrls.thumbnailUrl?.run { nextImageId }
+        val posterId = imageUrls.posterUrl?.run { nextImageId }
+        val screenshotIds = imageUrls.screenshotUrls.mapNotNull { nextImageId }
+        return ImageIds(thumbnailId, posterId, screenshotIds)
+    }
+
+    private val nextImageId: Int get() {
+        val id = imageId
+        imageId += 1
+        return id
     }
 }

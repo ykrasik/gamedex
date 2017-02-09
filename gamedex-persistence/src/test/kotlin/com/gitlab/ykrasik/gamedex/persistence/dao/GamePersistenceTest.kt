@@ -28,7 +28,7 @@ class GamePersistenceTest : PersistenceTest() {
             persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
         }
 
-        "Delete a game" {
+        "Delete games" {
             val game1 = givenGameExists(1, library)
             val game2 = givenGameExists(2, library)
 

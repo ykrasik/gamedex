@@ -73,19 +73,10 @@ class GiantBombDataProviderTest : StringSpec() {
                     userScore = null,
                     genres = listOf("Simulation", "Action-Adventure")
                 ),
-                imageData = ImageData(
+                imageUrls = ImageUrls(
                     thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2876765-no%20man%27s%20sky%20v5.jpg",
                     posterUrl = "http://www.giantbomb.com/api/image/scale_large/2876765-no%20man%27s%20sky%20v5.jpg",
-                    screenshot1Url = null,
-                    screenshot2Url = null,
-                    screenshot3Url = null,
-                    screenshot4Url = null,
-                    screenshot5Url = null,
-                    screenshot6Url = null,
-                    screenshot7Url = null,
-                    screenshot8Url = null,
-                    screenshot9Url = null,
-                    screenshot10Url = null
+                    screenshotUrls = emptyList()
                 )
             )
         }
