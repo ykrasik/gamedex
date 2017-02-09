@@ -3,5 +3,4 @@ dependencies {
 
     compile h2
     compile exposed
-    compile flyway
 }

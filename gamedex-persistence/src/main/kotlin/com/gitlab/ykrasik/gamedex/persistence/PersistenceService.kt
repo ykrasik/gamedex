@@ -5,13 +5,14 @@ import com.github.ykrasik.gamedex.common.util.fromJson
 import com.github.ykrasik.gamedex.common.util.logger
 import com.github.ykrasik.gamedex.common.util.toFile
 import com.github.ykrasik.gamedex.common.util.toJsonStr
-import com.gitlab.ykrasik.gamedex.persistence.entity.*
+import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.sql.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.sql.rowset.serial.SerialBlob
 
 /**
  * User: ykrasik
@@ -24,7 +25,6 @@ interface PersistenceService {
     fun insert(request: AddLibraryRequest): Library
     fun deleteLibrary(id: Int)
 
-    // TODO: Should this return a Game, and handle all the sort stuff internally?
     fun fetchAllGames(): List<Game>
     fun insert(request: AddGameRequest): Game
     fun deleteGame(id: Int)
@@ -48,7 +48,7 @@ data class AddGameRequest(
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
     init {
-        initializer.init()
+        initializer.create()
     }
 
     private val log by logger()
@@ -57,7 +57,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         log.info { "Fetching all libraries..." }
         val libraries = Libraries.selectAll().map {
             Library(
-                id = it[Libraries.id],
+                id = it[Libraries.id].value,
                 path = it[Libraries.path].toFile(),
                 data = it[Libraries.data].fromJson()
             )
@@ -68,10 +68,10 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
 
     override fun insert(request: AddLibraryRequest): Library = transaction {
         log.info { "Inserting: $request..." }
-        val id = Libraries.insert {
+        val id = Libraries.insertAndGetId {
             it[path] = request.path.toString()
             it[data] = request.data.toJsonStr()
-        } get Libraries.id
+        }!!.value
         val library = Library(id, request.path, request.data)
         log.info { "Result: $library." }
         library
@@ -79,7 +79,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
 
     override fun deleteLibrary(id: Int) = transaction {
         log.debug { "Deleting Library($id)..." }
-        val amount = Libraries.deleteWhere { Libraries.id.eq(id) }
+        val amount = Libraries.deleteWhere { Libraries.id.eq(id.toLibraryId()) }
         require(amount == 1) { "Doesn't exist: Library($id)" }
         log.debug { "Done." }
     }
@@ -89,11 +89,11 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         val games = Games.selectAll().map {
             val serializedData: SerializedGameData = it[Games.data].fromJson()
             Game(
-                id = it[Games.id],
+                id = it[Games.id].value,
                 metaData = MetaData(
                     path = it[Games.path].toFile(),
                     lastModified = it[Games.lastModified],
-                    libraryId = it[Games.libraryId]
+                    libraryId = it[Games.libraryId].value
                 ),
                 providerData = serializedData.providerData,
                 gameData = serializedData.gameData
@@ -114,15 +114,15 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         game
     }
 
-    private fun insertGame(metaData: MetaData, gameData: GameData, providerData: List<ProviderData>): Int = Games.insert {
-        it[Games.libraryId] = metaData.libraryId
+    private fun insertGame(metaData: MetaData, gameData: GameData, providerData: List<ProviderData>): Int = Games.insertAndGetId {
+        it[Games.libraryId] = metaData.libraryId.toLibraryId()
         it[Games.path] = metaData.path.path
         it[Games.lastModified] = metaData.lastModified
         it[Games.data] = SerializedGameData(gameData, providerData).toJsonStr()
-    } get Games.id
+    }!!.value
 
     private fun insertImage(id: Int, imageData: ImageData) = Images.insert {
-        it[gameId] = id
+        it[gameId] = id.toGameId()
         it[thumbnailUrl] = imageData.thumbnailUrl
         it[posterUrl] = imageData.posterUrl
         it[screenshot1Url] = imageData.screenshot1Url
@@ -139,7 +139,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
 
     override fun deleteGame(id: Int) = transaction {
         log.debug { "Deleting Game($id)..." }
-        val amount = Games.deleteWhere { Games.id.eq(id) }
+        val amount = Games.deleteWhere { Games.id.eq(id.toGameId()) }
         require(amount == 1) { "Doesn't exist: Game($id)" }
         log.debug { "Done." }
     }
@@ -153,7 +153,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     }
 
     private fun fetchImage(id: GameImageId, dataColumn: Column<Blob?>, urlColumn: Column<String?>): GameImage {
-        val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId) }.firstOrNull() ?:
+        val result = Images.slice(dataColumn, urlColumn).select { Images.gameId.eq(id.gameId.toGameId()) }.firstOrNull() ?:
             throw IllegalArgumentException("Game(${id.gameId} doesn't exist!")
         return GameImage(
             id = id,
@@ -170,7 +170,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     }
 
     private fun updateImage(image: GameImage, dataColumn: Column<Blob?>, urlColumn: Column<String?>) {
-        val count = Images.update(where = { Images.gameId.eq(image.id.gameId) }) {
+        val count = Images.update(where = { Images.gameId.eq(image.id.gameId.toGameId()) }) {
             it[dataColumn] = image.bytes?.toBlob()
             it[urlColumn] = image.url
         }
@@ -197,4 +197,12 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         val gameData: GameData,
         val providerData: List<ProviderData>
     )
+
+    private fun Int.toLibraryId() = EntityID(this, Libraries)
+    private fun Int.toGameId() = EntityID(this, Games)
+
+    // TODO: don't use this, stream the blob & report progress.
+    private val Blob.bytes: ByteArray get() = getBytes(0, length().toInt())
+
+    private fun ByteArray.toBlob(): Blob = SerialBlob(this)
 }

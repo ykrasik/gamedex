@@ -15,7 +15,7 @@ import org.joda.time.DateTime
  * Time: 20:55
  */
 abstract class PersistenceTest : StringSpec() {
-    val persistenceService = PersistenceServiceImpl(TestDbInitializer.initializer)
+    val persistenceService = PersistenceServiceImpl(TestDbInitializer)
 
     override fun beforeEach() {
         TestDbInitializer.reload()

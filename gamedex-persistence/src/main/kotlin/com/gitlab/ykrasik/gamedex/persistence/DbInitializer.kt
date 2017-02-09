@@ -1,9 +1,8 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
 import com.github.ykrasik.gamedex.common.util.logger
-import com.google.common.annotations.VisibleForTesting
-import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,37 +12,17 @@ import javax.inject.Singleton
  * Time: 18:20
  */
 @Singleton
-class DbInitializer @Inject constructor(private val config: PersistenceConfig) {
+open class DbInitializer @Inject constructor(private val config: PersistenceConfig) {
     private val log by logger()
 
-    private val flyway = Flyway().let {
-        it.setDataSource(config.dbUrl, config.user, config.password)
-        it.isBaselineOnMigrate = true
-        it.isCleanDisabled = true
-        it
-    }
-
-    fun init() {
-        connect()
-        migrate()
-    }
-
-    fun connect() {
+    init {
         log.debug { "Connection url: ${config.dbUrl}" }
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
     }
 
-    fun migrate() {
-        flyway.migrate()
-    }
-
-    @VisibleForTesting
-    internal fun enableDestroy() {
-        flyway.isCleanDisabled = false
-    }
-
-    @VisibleForTesting
-    internal fun destroy() {
-        flyway.clean()
+    fun create() = transaction {
+        org.jetbrains.exposed.sql.SchemaUtils.create(
+            Libraries, Games, Images
+        )
     }
 }

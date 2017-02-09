@@ -1,6 +1,8 @@
-package com.gitlab.ykrasik.gamedex.persistence.entity
+package com.gitlab.ykrasik.gamedex.persistence
 
 import com.github.ykrasik.gamedex.common.util.kb
+import org.jetbrains.exposed.dao.IntIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 
 /**
@@ -8,26 +10,20 @@ import org.jetbrains.exposed.sql.Table
  * Date: 25/05/2016
  * Time: 08:51
  */
-// TODO: Why doesn't extending IntIdTable work?
-
-object Libraries : Table() {
-    val id = integer("id").autoIncrement().primaryKey()
+internal object Libraries : IntIdTable() {
     val path = varchar("path", 255).uniqueIndex()
-
     val data = varchar("data", 16.kb)
 }
 
-object Games : Table() {
-    val id = integer("id").autoIncrement().primaryKey()
-    val libraryId = reference("library_id", Libraries.id)
+internal object Games : IntIdTable() {
+    val libraryId = reference("library_id", Libraries, onDelete = ReferenceOption.CASCADE)
     val path = varchar("path", 255).uniqueIndex()
     val lastModified = datetime("last_modified")
-
     val data = varchar("data", 16.kb)
 }
 
-object Images : Table("") {
-    val gameId = reference("game_id", Games.id).primaryKey()
+internal object Images : Table("") {
+    val gameId = reference("game_id", Games, onDelete = ReferenceOption.CASCADE).primaryKey()
 
     val thumbnail = image("thumbnail")
     val thumbnailUrl = imageUrl("thumbnail_url")
