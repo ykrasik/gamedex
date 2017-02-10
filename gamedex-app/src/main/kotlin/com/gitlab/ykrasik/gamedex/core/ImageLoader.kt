@@ -12,7 +12,6 @@ import com.google.inject.Inject
 import com.google.inject.Singleton
 import javafx.animation.FadeTransition
 import javafx.beans.property.SimpleObjectProperty
-import javafx.concurrent.Task
 import javafx.scene.image.ImageView
 import tornadofx.*
 import java.util.concurrent.Executors
@@ -38,8 +37,8 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
-    fun loadUrl(url: String, into: ImageView): Task<*> = submitTask(downloadImageTask(url, into))
-    fun loadImage(id: Int, into: ImageView): Task<*> = submitTask(fetchImageTask(id, into))
+    fun loadUrl(url: String, into: ImageView): GamedexTask<ByteArray> = submitTask(downloadImageTask(url, into))
+    fun loadImage(id: Int, into: ImageView): GamedexTask<ByteArray> = submitTask(fetchImageTask(id, into))
 
     private fun downloadImageTask(url: String, imageView: ImageView?): DownloadImageTask =
         createTask(downloadTaskCache, url, imageView) { DownloadImageTask(url) }
@@ -67,11 +66,11 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
         task
     }
 
-    private fun submitTask(task: GamedexTask<ByteArray>): Task<ByteArray> = task.apply {
+    private fun submitTask(task: GamedexTask<ByteArray>): GamedexTask<ByteArray> = task.apply {
         executorService.execute(this)
     }
 
-    private inner abstract class ImageTask() : GamedexTask<ByteArray>(log) {
+    private inner abstract class ImageTask : GamedexTask<ByteArray>(log) {
         val imageViewProperty = SimpleObjectProperty<ImageView>()
         var imageView: ImageView? by imageViewProperty
 

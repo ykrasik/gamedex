@@ -17,6 +17,6 @@ import javax.inject.Singleton
 @Singleton
 class GameSearchChooserImpl @Inject constructor() : GameSearchChooser {
     override fun choose(info: DataProviderInfo, providerSearchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult? {
-        return ChooseSearchResultFragment(context.searchedName, context.path, info, providerSearchResults.observable()).show()
+        return ChooseSearchResultFragment(context, info, providerSearchResults.observable()).show()
     }
 }

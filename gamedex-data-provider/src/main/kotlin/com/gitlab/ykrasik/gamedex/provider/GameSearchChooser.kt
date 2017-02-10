@@ -13,4 +13,6 @@ interface GameSearchChooser {
 
 class SearchContext(val searchedName: String, val path: File) {
     val discardedResults = setOf<ProviderSearchResult>()
+
+    val thumbnailCache = mutableMapOf<String, ByteArray>()
 }

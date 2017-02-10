@@ -22,7 +22,7 @@ internal object Games : IntIdTable() {
 }
 
 internal object Images : IntIdTable() {
-    val gameId = optReference("game_id", Games, onDelete = ReferenceOption.CASCADE)
+    val gameId = reference("game_id", Games, onDelete = ReferenceOption.CASCADE)
     val type = enumeration("type", GameImageType::class.java)
     val url = varchar("url", length = 2084) // FIXME: check for uniqueness
     val bytes = blob("bytes").nullable()

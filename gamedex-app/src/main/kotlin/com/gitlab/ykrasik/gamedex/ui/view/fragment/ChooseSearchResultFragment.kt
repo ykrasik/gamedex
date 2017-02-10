@@ -1,15 +1,17 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
+import com.gitlab.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.SearchContext
 import javafx.collections.ObservableList
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
 import tornadofx.*
-import java.io.File
+import kotlin.collections.set
 
 /**
  * User: ykrasik
@@ -17,8 +19,7 @@ import java.io.File
  * Time: 15:54
  */
 class ChooseSearchResultFragment(
-    private val searchedName: String,
-    private val path: File,
+    private val context: SearchContext,
     private val info: DataProviderInfo,
     private val providerSearchResults: ObservableList<ProviderSearchResult>
 ) : Fragment("Choose Search Result") {
@@ -30,7 +31,7 @@ class ChooseSearchResultFragment(
     override val root = borderpane {
         top {
             vbox {
-                label(path.path)
+                label(context.path.path)
                 imageview {
                     image = info.logo
                     fitHeight = 200.0
@@ -53,9 +54,16 @@ class ChooseSearchResultFragment(
                                 if (empty) {
                                     graphic = null
                                 } else {
-                                    thumbnailUrl?.let {
+                                    thumbnailUrl?.let { url ->
                                         graphic = imageView
-                                        imageLoader.loadUrl(it, imageView)
+                                        val thumbnail = context.thumbnailCache[url]
+                                        if (thumbnail != null) {
+                                            imageView.image = thumbnail.toImage()
+                                        } else {
+                                            imageLoader.loadUrl(url, imageView).onSucceeded {
+                                                context.thumbnailCache[url] = it
+                                            }
+                                        }
                                     }
                                 }
                             }
