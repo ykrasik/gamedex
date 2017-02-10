@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.common.datamodel.DataProviderType
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.DataProviderType
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
 import javafx.scene.image.Image
 
 /**

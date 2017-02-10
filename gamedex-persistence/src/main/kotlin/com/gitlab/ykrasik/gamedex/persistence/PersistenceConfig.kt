@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.util.defaultConfig
+import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
 import com.typesafe.config.Config
 
 /**

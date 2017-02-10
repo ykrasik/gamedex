@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.common.util.defaultConfig
-import com.github.ykrasik.gamedex.common.util.getObjectMap
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
+import com.gitlab.ykrasik.gamedex.common.util.getObjectMap
 import com.typesafe.config.Config
 
 /**

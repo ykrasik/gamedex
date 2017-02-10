@@ -1,14 +1,15 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.kittinunf.fuel.core.FuelError
-import com.github.kittinunf.fuel.core.HttpException
-import com.github.kittinunf.fuel.httpGet
-import com.github.ykrasik.gamedex.common.datamodel.*
-import com.github.ykrasik.gamedex.common.util.getResourceAsByteArray
-import com.github.ykrasik.gamedex.common.util.logger
-import com.github.ykrasik.gamedex.common.util.toImage
-import com.gitlab.ykrasik.gamedex.provider.*
-import com.gitlab.ykrasik.gamedex.provider.util.fromJson
+import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
+import com.gitlab.ykrasik.gamedex.common.util.fromJson
+import com.gitlab.ykrasik.gamedex.common.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.util.toImage
+import com.gitlab.ykrasik.gamedex.provider.DataProvider
+import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,9 +49,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         val response = doSearch(name, platform)
         log.debug { "Response: $response" }
 
-        if (response.statusCode != GiantBombStatus.ok) {
-            throw DataProviderException("Invalid statusCode: ${response.statusCode}")
-        }
+        assertOk(response.statusCode)
 
         val results = response.results.map { it.toSearchResult() }
         log.info { "Done(${results.size}): $results." }
@@ -58,11 +57,11 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     }
 
     private fun doSearch(name: String, platform: GamePlatform): GiantBombSearchResponse {
-        val (request, response, result) = getRequest(endpoint,
+        val response = getRequest(endpoint,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFields
         )
-        return result.fromJson()
+        return response.fromJson()
     }
 
     private fun GiantBombSearchResult.toSearchResult() = ProviderSearchResult(
@@ -78,9 +77,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         val response = doFetch(searchResult.apiUrl)
         log.debug { "Response: $response" }
 
-        if (response.statusCode != GiantBombStatus.ok) {
-            throw DataProviderException("Invalid statusCode: ${response.statusCode}")
-        }
+        assertOk(response.statusCode)
 
         // When result is found - GiantBomb returns a Json object.
         // When result is not found, GiantBomb returns an empty Json array [].
@@ -90,20 +87,9 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return gameData
     }
 
-    private fun doFetch(detailUrl: String): GiantBombDetailsResponse = try {
-        val (request, response, result) = getRequest(detailUrl, "field_list" to fetchDetailsFields)
-        result.fromJson()
-    } catch (e: FuelError) {
-        e.exception.let {
-            when (it) {
-                is HttpException -> if (it.httpCode == 404) {
-                    GiantBombDetailsResponse(statusCode = GiantBombStatus.notFound, results = emptyList())
-                } else {
-                    throw e
-                }
-                else -> throw e
-            }
-        }
+    private fun doFetch(detailUrl: String): GiantBombDetailsResponse {
+        val response = getRequest(detailUrl, "field_list" to fetchDetailsFields)
+        return response.fromJson()
     }
 
     private fun GiantBombDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
@@ -130,12 +116,13 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
 
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
 
-    private fun getRequest(path: String, vararg parameters: Pair<String, Any?>) = path.httpGet(params(parameters))
-        .header("User-Agent" to "Kotlin-Fuel")
-        .response()
+    private fun assertOk(status: GiantBombStatus) {
+        if (status != GiantBombStatus.ok) {
+            throw GameDexException("Invalid statusCode: $status")
+        }
+    }
 
-    private fun params(extraParameters: Array<out Pair<String, Any?>>): List<Pair<String, Any?>> = mutableListOf(
-        "api_key" to config.applicationKey,
-        "format" to "json"
-    ) + extraParameters
+    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
+        params = mapOf("api_key" to config.applicationKey, "format" to "json", *parameters)
+    )
 }

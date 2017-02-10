@@ -1,9 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.result.Result
-import com.github.ykrasik.gamedex.common.util.logger
-import com.github.ykrasik.gamedex.common.util.toImage
+import com.gitlab.ykrasik.gamedex.common.util.download
+import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.ui.UIResources
 import com.gitlab.ykrasik.gamedex.util.GamedexTask
@@ -16,7 +15,6 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.concurrent.Task
 import javafx.scene.image.ImageView
 import tornadofx.*
-import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 
@@ -119,16 +117,9 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
         override fun call(): ByteArray {
             log.info { "Downloading: $url..." }
 
-            // FIXME: Create a rest client api. Or use TornadoFX.
-            val (request, response, result) = Fuel.download(url)
-                .header("User-Agent" to "Kotlin-Fuel")
-                .destination { response, url -> File.createTempFile("temp", ".tmp") }
-                .progress { readBytes, totalBytes -> updateProgress(readBytes, totalBytes) }
-                .response()
-
-            val bytes = when (result) {
-                is Result.Failure -> throw result.error
-                is Result.Success -> result.value
+            // FIXME: Create a rest client api for unit tests.
+            val bytes = download(url, stream = true) { downloaded, total ->
+                updateProgress(downloaded.toLong(), total.toLong())
             }
             log.info { "Done. Size: ${bytes.size}" }
             return bytes

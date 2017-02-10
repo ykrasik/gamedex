@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.github.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.dividerPosition
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository

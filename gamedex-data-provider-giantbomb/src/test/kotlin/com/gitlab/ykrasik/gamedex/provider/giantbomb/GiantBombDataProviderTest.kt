@@ -1,9 +1,10 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.github.ykrasik.gamedex.common.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.DataProviderException
+import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import io.kotlintest.matchers.have
 import io.kotlintest.specs.StringSpec
 import org.joda.time.LocalDate
 
@@ -82,17 +83,17 @@ class GiantBombDataProviderTest : StringSpec() {
         }
 
         "Fail to fetch an invalid game details url" {
-            val e = shouldThrow<DataProviderException> {
+            val e = shouldThrow<GameDexException> {
                 provider.fetch(searchResult("http://www.giantbomb.com/api/game/3030-446567/"))
             }
             e.message shouldBe "Invalid statusCode: ${GiantBombStatus.notFound}"
         }
 
         "Fail to fetch a non-existing game details url" {
-            val e = shouldThrow<DataProviderException> {
+            val e = shouldThrow<GameDexException> {
                 provider.fetch(searchResult("http://www.giantbomb.com/api/game/3030-44656-7/"))
             }
-            e.message shouldBe "Invalid statusCode: ${GiantBombStatus.notFound}"
+            e.message!! should have substring "404"
         }
     }
 

@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.github.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.util.logger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import javax.inject.Inject

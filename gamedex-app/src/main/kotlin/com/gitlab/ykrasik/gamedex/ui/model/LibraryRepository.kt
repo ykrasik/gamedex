@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.model
 
-import com.github.ykrasik.gamedex.common.datamodel.Library
-import com.github.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty

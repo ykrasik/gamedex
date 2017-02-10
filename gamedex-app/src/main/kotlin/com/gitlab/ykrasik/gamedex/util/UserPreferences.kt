@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.github.ykrasik.gamedex.common.util.create
-import com.github.ykrasik.gamedex.common.util.objectMapper
-import com.github.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.common.util.create
+import com.gitlab.ykrasik.gamedex.common.util.objectMapper
+import com.gitlab.ykrasik.gamedex.common.util.toFile
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue

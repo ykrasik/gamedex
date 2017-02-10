@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.debug
 
-import com.github.ykrasik.gamedex.common.DebugCommands
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
 import com.github.ykrasik.jaci.api.*
+import com.gitlab.ykrasik.gamedex.common.DebugCommands
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
 import javax.inject.Inject

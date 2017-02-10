@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.common.datamodel.GameData
-import com.github.ykrasik.gamedex.common.datamodel.ImageUrls
-import com.github.ykrasik.gamedex.common.datamodel.ProviderData
+import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
+import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.common.datamodel.ProviderData
 import org.joda.time.LocalDate
 
 /**

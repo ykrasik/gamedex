@@ -35,7 +35,7 @@ buildscript {
 
         jaci = [group: 'com.github.ykrasik', name: 'jaci-javafx-cli', version: '0.4.0']
 
-        fuel = [group: 'com.github.kittinunf.fuel', name: 'fuel', version: '1.3.1']
+        khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: '-SNAPSHOT']
 
         jackson = [:].with {
             v = '2.8.3'
@@ -87,6 +87,7 @@ allprojects {
         mavenCentral()
         jcenter()
         maven { url "http://dl.bintray.com/kotlin/exposed" }
+        maven { url "https://jitpack.io" }
     }
 }
 

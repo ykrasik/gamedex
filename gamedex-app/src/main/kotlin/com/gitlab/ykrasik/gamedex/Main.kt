@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.github.ykrasik.gamedex.common.module.CommonModule
+import com.gitlab.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.module.AppModule
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule

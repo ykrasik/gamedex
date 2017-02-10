@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.github.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import java.io.File

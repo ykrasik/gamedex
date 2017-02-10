@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.github.ykrasik.gamedex.common.util.KLogger
+import com.gitlab.ykrasik.gamedex.common.util.KLogger
 import javafx.concurrent.Task
 import javafx.concurrent.Worker
 

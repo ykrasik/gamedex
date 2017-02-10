@@ -11,6 +11,8 @@ dependencies {
 
     compile jaci
 
+    compile khttp
+    
     compile jackson.core
     compile jackson.kotlin
     compile jackson.joda

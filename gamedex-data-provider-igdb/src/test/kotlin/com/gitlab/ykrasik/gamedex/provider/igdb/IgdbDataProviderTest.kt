@@ -1,9 +1,10 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.github.ykrasik.gamedex.common.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.DataProviderException
+import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import io.kotlintest.matchers.have
 import io.kotlintest.specs.StringSpec
 import org.joda.time.LocalDate
 
@@ -83,10 +84,10 @@ class IgdbDataProviderTest : StringSpec() {
         }
 
         "Fail to fetch an invalid game details url" {
-            val e = shouldThrow<DataProviderException> {
-                provider.fetch(searchResult("https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225-1"))
+            val e = shouldThrow<GameDexException> {
+                provider.fetch(searchResult("https://igdbcom-internet-game-database-v1.p.mashape.com/games/32251"))
             }
-            e.message shouldBe "Bad Request"
+            e.message!! should have substring("400: Not found!")
         }
     }
 

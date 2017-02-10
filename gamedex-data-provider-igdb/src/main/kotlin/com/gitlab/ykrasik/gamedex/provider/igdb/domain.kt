@@ -54,3 +54,8 @@ data class IgdbDetailsResult(
 data class IgdbImage(
     val cloudinaryId: String?
 )
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class IgdbError(
+    val error: List<String>
+)

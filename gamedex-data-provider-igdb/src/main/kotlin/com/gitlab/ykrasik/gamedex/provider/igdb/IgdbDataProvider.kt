@@ -1,14 +1,11 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.github.kittinunf.fuel.core.Response
-import com.github.kittinunf.fuel.httpGet
-import com.github.ykrasik.gamedex.common.datamodel.*
-import com.github.ykrasik.gamedex.common.util.containsIgnoreCase
-import com.github.ykrasik.gamedex.common.util.getResourceAsByteArray
-import com.github.ykrasik.gamedex.common.util.logger
-import com.github.ykrasik.gamedex.common.util.toImage
-import com.gitlab.ykrasik.gamedex.provider.*
-import com.gitlab.ykrasik.gamedex.provider.util.listFromJson
+import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.util.*
+import com.gitlab.ykrasik.gamedex.provider.DataProvider
+import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,14 +58,13 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun doSearch(name: String, platform: GamePlatform): List<IgdbSearchResult> {
-        val (request, response, result) = getRequest(endpoint,
+        val response = getRequest(endpoint,
             "search" to name,
-            "filter[release_dates.platform][eq]" to platform.id,
-            "limit" to 20,
+            "filter[release_dates.platform][eq]" to platform.id.toString(),
+            "limit" to 20.toString(),
             "fields" to searchFields
         )
-        response.assertOk()
-        return result.listFromJson()
+        return response.listFromJson()
     }
 
     private fun IgdbSearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
@@ -112,10 +108,14 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun doFetch(searchResult: ProviderSearchResult): IgdbDetailsResult {
-        val (request, response, result) = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
-        response.assertOk()
+        val response = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
         // IGDB returns a list, even though we're fetching by id :/
-        return result.listFromJson<IgdbDetailsResult>().first()
+        return response.listFromJson<IgdbDetailsResult> { parseError(it) }.first()
+    }
+
+    private fun parseError(raw: String): String {
+        val errors: List<IgdbError> = raw.listFromJson()
+        return errors.first().error.first()
     }
 
     private fun IgdbDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
@@ -140,14 +140,13 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         )
     )
 
-    private fun getRequest(path: String, vararg parameters: Pair<String, Any?>) = path.httpGet(parameters.toList())
-        .header("Accept" to "application/json")
-        .header("X-Mashape-Key" to config.apiKey)
-        .response()
-
-    private fun Response.assertOk() {
-        if (httpStatusCode != 200) throw DataProviderException(httpResponseMessage)
-    }
+    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
+        params = parameters.toMap(),
+        headers = mapOf(
+            "Accept" to "application/json",
+            "X-Mashape-Key" to config.apiKey
+        )
+    )
 
     private fun imageUrl(hash: String, type: IgdbImageType, x2: Boolean = false) =
         "$baseImageUrl/t_$type${if (x2) "_2x" else ""}/$hash.png"

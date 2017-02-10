@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.github.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.ui.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import tornadofx.*

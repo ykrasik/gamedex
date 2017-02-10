@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.controller
 
-import com.github.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import tornadofx.Controller

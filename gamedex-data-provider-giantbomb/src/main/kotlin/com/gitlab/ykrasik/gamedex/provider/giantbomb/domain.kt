@@ -3,8 +3,8 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.github.ykrasik.gamedex.common.util.EnumIdConverter
-import com.github.ykrasik.gamedex.common.util.IdentifiableEnum
+import com.gitlab.ykrasik.gamedex.common.util.EnumIdConverter
+import com.gitlab.ykrasik.gamedex.common.util.IdentifiableEnum
 import org.joda.time.LocalDate
 
 /**

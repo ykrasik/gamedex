@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.github.ykrasik.gamedex.common.datamodel.GameData
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.common.datamodel.ImageUrls
-import com.github.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.common.util.logger
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.common.util.existsOrNull
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.model.LibraryDataModel
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox

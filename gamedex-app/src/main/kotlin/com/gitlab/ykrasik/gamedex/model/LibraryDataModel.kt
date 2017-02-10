@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.model
 
-import com.github.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.github.ykrasik.gamedex.common.datamodel.LibraryData
-import com.github.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.common.util.toFile
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import tornadofx.getProperty
 import tornadofx.property

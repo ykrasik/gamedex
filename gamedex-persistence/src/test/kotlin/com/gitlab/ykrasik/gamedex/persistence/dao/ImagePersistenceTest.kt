@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.github.ykrasik.gamedex.common.datamodel.Game
-import com.github.ykrasik.gamedex.common.datamodel.GameImage
-import com.github.ykrasik.gamedex.common.datamodel.ImageUrls
-import com.github.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.GameImage
+import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import org.h2.jdbc.JdbcSQLException
 import java.util.*
 

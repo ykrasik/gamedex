@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.github.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.gridView
@@ -15,8 +16,6 @@ import tornadofx.View
 import tornadofx.addClass
 import tornadofx.contextmenu
 import tornadofx.menuitem
-import java.awt.Desktop
-import java.net.URL
 import java.net.URLEncoder
 
 /**
@@ -42,9 +41,8 @@ class GameWallView : View("Games Wall") {
             val cell = GameWallCell(imageLoader, userPreferences)
             cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
-                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay")
-                    val url = URL("https://www.youtube.com/results?search_query=$search")
-                    Desktop.getDesktop().browse(url.toURI())
+                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
+                    "https://www.youtube.com/results?search_query=$search".browseToUrl()
                 }
             }
             cell.contextmenu {

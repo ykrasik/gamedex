@@ -1,12 +1,12 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.github.ykrasik.gamedex.common.TimeProvider
-import com.github.ykrasik.gamedex.common.datamodel.Game
-import com.github.ykrasik.gamedex.common.datamodel.Library
-import com.github.ykrasik.gamedex.common.datamodel.MetaData
-import com.github.ykrasik.gamedex.common.util.collapseSpaces
-import com.github.ykrasik.gamedex.common.util.emptyToNull
-import com.github.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.common.TimeProvider
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.common.datamodel.MetaData
+import com.gitlab.ykrasik.gamedex.common.util.collapseSpaces
+import com.gitlab.ykrasik.gamedex.common.util.emptyToNull
+import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
