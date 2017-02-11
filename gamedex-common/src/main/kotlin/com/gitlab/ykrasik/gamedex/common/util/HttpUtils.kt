@@ -42,12 +42,9 @@ fun download(url: String,
         if (stream) {
             val contentLength = response.headers["Content-Length"]?.toInt() ?: 32.kb
             val os = ByteArrayOutputStream(contentLength)
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var bytes = response.raw.read(buffer)
-            while (bytes >= 0) {
-                os.write(buffer, 0, bytes)
+            for (chunk in response.contentIterator(8.kb)) {
+                os.write(chunk)
                 progress(os.size(), contentLength)
-                bytes = response.raw.read(buffer)
             }
             os.toByteArray()
         } else {

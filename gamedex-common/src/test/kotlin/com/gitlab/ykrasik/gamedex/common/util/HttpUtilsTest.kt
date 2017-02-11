@@ -11,8 +11,10 @@ class HttpUtilsTest : StringSpec() {
     init {
         "Stream download" {
             for (i in 1..5) {
+                var chunks = 0
                 val bytes = download("http://www.giantbomb.com/api/image/scale_avatar/2739447-assassins-creed-unity-china-chronicles-1.jpg", stream = true) { downloaded, total ->
-                    println("Download progress: $downloaded/$total")
+                    chunks += 1
+                    println("[$chunks] Download progress: $downloaded/$total")
                 }
                 assert(bytes.size == 11731) { "Invalid size: ${bytes.size}, expected = 11731"}
                 println("*******************************")
