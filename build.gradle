@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin = [:].with {
+        ktlin = [:].with {
             v = '1.0.6'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -71,8 +71,8 @@ buildscript {
     }
 
     dependencies {
-        classpath kotlin.gradle
-        classpath kotlin.dokka
+        classpath ktlin.gradle
+        classpath ktlin.dokka
     }
 }
 
@@ -96,8 +96,8 @@ subprojects {
     apply plugin: 'org.jetbrains.dokka'
 
     dependencies {
-        compile kotlin.std
-        compile kotlin.reflect
+        compile ktlin.std
+        compile ktlin.reflect
 
         compile slf4j.api
 
