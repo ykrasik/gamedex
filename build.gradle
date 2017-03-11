@@ -116,3 +116,72 @@ subprojects {
         processConfigurations = ['compile']
     }
 }
+
+project("gamedex-app") {
+    apply plugin: "application"
+    mainClassName = "com.gitlab.ykrasik.gamedex.Main"
+
+    dependencies {
+        compile project(":gamedex-common")
+        compile project(":gamedex-persistence")
+
+        compile project(":gamedex-data-provider")
+        compile project(":gamedex-data-provider-giantbomb")
+        compile project(":gamedex-data-provider-igdb")
+
+        compile slf4j.julBridge
+
+        compile controlsFx
+        compile tornadoFx.core
+        compile tornadoFx.controls
+    }
+}
+
+project("gamedex-common") {
+    dependencies {
+        compile groovy
+        compile logback
+
+        compile config
+
+        compile guava
+        compile commonsLang3
+
+        compile jodaTime
+
+        compile jaci
+
+        compile khttp
+
+        compile jackson.core
+        compile jackson.kotlin
+        compile jackson.joda
+    }
+}
+
+project("gamedex-persistence") {
+    dependencies {
+        compile project(":gamedex-common")
+
+        compile h2
+        compile exposed
+    }
+}
+
+project("gamedex-data-provider") {
+    dependencies {
+        compile project(":gamedex-common")
+    }
+}
+
+project("gamedex-data-provider-giantbomb") {
+    dependencies {
+        compile project(":gamedex-data-provider")
+    }
+}
+
+project("gamedex-data-provider-igdb") {
+    dependencies {
+        compile project(":gamedex-data-provider")
+    }
+}

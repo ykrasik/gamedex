@@ -1,6 +1,0 @@
-dependencies {
-    compile project(":gamedex-common")
-
-    compile h2
-    compile exposed
-}
