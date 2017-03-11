@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.util
 import com.gitlab.ykrasik.gamedex.common.util.KLogger
 import javafx.concurrent.Task
 import javafx.concurrent.Worker
+import tornadofx.onChange
 
 /**
  * User: ykrasik
@@ -15,8 +16,8 @@ abstract class GamedexTask<T>(log: KLogger? = null) : Task<T>() {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), exception)
         }
         if (log != null) {
-            messageProperty().addListener { observableValue, oldValue, newValue ->
-                log.info { newValue }
+            messageProperty().onChange {
+                log.info { it!! }
             }
         }
     }

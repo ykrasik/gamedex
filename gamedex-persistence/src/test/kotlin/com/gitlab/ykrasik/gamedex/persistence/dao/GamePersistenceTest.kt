@@ -29,7 +29,7 @@ class GamePersistenceTest : PersistenceTest() {
         }
 
         "Delete games" {
-            val game1 = givenGameExists(1, library)
+            givenGameExists(1, library)
             val game2 = givenGameExists(2, library)
 
             persistenceService.deleteGame(1)

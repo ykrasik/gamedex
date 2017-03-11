@@ -39,7 +39,7 @@ class AddLibraryFragment : Fragment("Add Library") {
             disableProperty().bind(libraryData.notAllFieldsSet)
             setOnAction {
                 save = true
-                closeModal()
+                close()
             }
         }
     }

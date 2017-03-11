@@ -36,7 +36,7 @@ fun download(url: String,
              stream: Boolean = true,
              params: Map<String, String> = emptyMap(),
              headers: Map<String, String> = emptyMap(),
-             progress: (downloaded: Int, total: Int) -> Unit = { ignored, ignored2 -> }): ByteArray {
+             progress: (downloaded: Int, total: Int) -> Unit = { _, _ -> }): ByteArray {
     val response = get(url, params = params, headers = headers, stream = stream)
     return response.doIfOk {
         if (stream) {

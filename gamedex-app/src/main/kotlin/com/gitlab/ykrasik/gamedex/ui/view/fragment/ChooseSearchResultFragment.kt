@@ -91,7 +91,7 @@ class ChooseSearchResultFragment(
                     isCancelButton = true
                     setOnAction {
                         accept = false
-                        closeModal()
+                        close()
                     }
                 }
                 button("Proceed Anyway") {
@@ -101,7 +101,7 @@ class ChooseSearchResultFragment(
                     isDefaultButton = true
                     setOnAction {
                         accept = true
-                        closeModal()
+                        close()
                     }
                 }
             }

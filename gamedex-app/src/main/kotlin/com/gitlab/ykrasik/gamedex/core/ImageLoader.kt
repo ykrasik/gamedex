@@ -75,7 +75,7 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
         var imageView: ImageView? by imageViewProperty
 
         init {
-            imageViewProperty.addListener { value, old, new ->
+            imageViewProperty.addListener { _, old, new ->
                 if (isCompleted) {
                     // For edge cases where the task is completed, but still in the cache.
                     setImage()

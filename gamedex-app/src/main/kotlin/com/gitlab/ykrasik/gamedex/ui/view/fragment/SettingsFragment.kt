@@ -31,13 +31,13 @@ class SettingsFragment : Fragment() {
                 button("Cancel", type = ButtonBar.ButtonData.CANCEL_CLOSE) {
                     isCancelButton = true
                     setOnAction {
-                        closeModal()
+                        close()
                     }
                 }
                 button("OK", type = ButtonBar.ButtonData.OK_DONE) {
                     isDefaultButton = true
                     setOnAction {
-                        closeModal()
+                        close()
                     }
                 }
             }
