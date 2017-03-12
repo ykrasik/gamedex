@@ -8,11 +8,9 @@ import java.io.File
  * Time: 22:01
  */
 interface GameSearchChooser {
-    fun choose(info: DataProviderInfo, providerSearchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
+    fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
 }
 
 class SearchContext(val searchedName: String, val path: File) {
     val discardedResults = setOf<ProviderSearchResult>()
-
-    val thumbnailCache = mutableMapOf<String, ByteArray>()
 }

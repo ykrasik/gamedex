@@ -1,17 +1,17 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.common.util.toImage
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.common.util.clearSelection
+import com.gitlab.ykrasik.gamedex.common.util.sizeProperty
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
+import com.gitlab.ykrasik.gamedex.ui.padding
 import javafx.collections.ObservableList
 import javafx.scene.control.ButtonBar
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
 import tornadofx.*
-import kotlin.collections.set
 
 /**
  * User: ykrasik
@@ -21,17 +21,20 @@ import kotlin.collections.set
 class ChooseSearchResultFragment(
     private val context: SearchContext,
     private val info: DataProviderInfo,
-    private val providerSearchResults: ObservableList<ProviderSearchResult>
+    private val searchResults: ObservableList<ProviderSearchResultView>
 ) : Fragment("Choose Search Result") {
-    private val imageLoader: ImageLoader by di()
+    private var tableView: TableView<ProviderSearchResultView> by singleAssign()
 
-    private var tableView: TableView<ProviderSearchResult> by singleAssign()
     private var accept = false
 
     override val root = borderpane {
+        minWidth = 620.0 // TODO: Make it fit the content.
+        paddingAll = 20
         top {
             vbox {
-                label(context.path.path)
+                label("Path: ${context.path.path}") {
+                    paddingBottom = 10
+                }
                 imageview {
                     image = info.logo
                     fitHeight = 200.0
@@ -39,40 +42,29 @@ class ChooseSearchResultFragment(
                     isPickOnBounds = true   // TODO: What is this?
                     isPreserveRatio = true
                 }
-                label("This displays errors")
-                label("Results: ${providerSearchResults.size}")
+                label {
+                    padding { top = 10; bottom = 10 }
+                    textProperty().bind(
+                        searchResults.sizeProperty().asString("Search results for '${context.searchedName}': %d.")
+                    )
+                }
             }
         }
         center {
-            tableView = tableview(providerSearchResults) {
+            tableView = tableview(searchResults) {
                 makeIndexColumn()
-                column("thumbnail", ProviderSearchResult::thumbnailUrl) {
+                column("Thumbnail", ProviderSearchResultView::thumbnail) {
                     setCellFactory {
-                        object : TableCell<ProviderSearchResult, String?>() {
-                            private val imageView = ImageView()
-                            override fun updateItem(thumbnailUrl: String?, empty: Boolean) {
-                                if (empty) {
-                                    graphic = null
-                                } else {
-                                    thumbnailUrl?.let { url ->
-                                        graphic = imageView
-                                        val thumbnail = context.thumbnailCache[url]
-                                        if (thumbnail != null) {
-                                            imageView.image = thumbnail.toImage()
-                                        } else {
-                                            imageLoader.loadUrl(url, imageView).onSucceeded {
-                                                context.thumbnailCache[url] = it
-                                            }
-                                        }
-                                    }
-                                }
+                        object : TableCell<ProviderSearchResultView, ImageView>() {
+                            override fun updateItem(thumbnail: ImageView?, empty: Boolean) {
+                                if (empty) graphic = null else graphic = thumbnail
                             }
                         }
                     }
                 }
-                column("Name", ProviderSearchResult::name)
-                column("Release Date", ProviderSearchResult::releaseDate)
-                column("Score", ProviderSearchResult::score)
+                column("Name", ProviderSearchResultView::name)
+                column("Release Date", ProviderSearchResultView::releaseDate)
+                column("Score", ProviderSearchResultView::score)
 
                 setOnMouseClicked { e ->
                     if (e.clickCount == 2) {
@@ -87,19 +79,24 @@ class ChooseSearchResultFragment(
         }
         bottom {
             buttonbar {
-                button("Cancel", type = ButtonBar.ButtonData.CANCEL_CLOSE) {
+                paddingTop = 20
+                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
+                    isDefaultButton = true
+                    setOnAction {
+                        accept = true
+                        close()
+                    }
+                }
+                button("Cancel", type = ButtonBar.ButtonData.LEFT) {
                     isCancelButton = true
                     setOnAction {
                         accept = false
                         close()
                     }
                 }
-                button("Proceed Anyway") {
-                    // TODO: Figure this one out.
-                }
-                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
-                    isDefaultButton = true
+                button("Proceed Without") {
                     setOnAction {
+                        tableView.clearSelection()
                         accept = true
                         close()
                     }
@@ -108,7 +105,7 @@ class ChooseSearchResultFragment(
         }
     }
 
-    fun show(): ProviderSearchResult? {
+    fun show(): ProviderSearchResultView? {
         openModal(block = true)
         return if (accept) {
             tableView.selectedItem
@@ -118,130 +115,13 @@ class ChooseSearchResultFragment(
     }
 }
 
-//class GameSearchScreen
-//@SneakyThrows
-//constructor(@NonNull private val stageManager: StageManager) {
-//    @FXML private val pathLabel: Label? = null
-//    @FXML private val logoImageView: ImageView? = null
-//    @FXML private val errorLabel: Label? = null
-//
-//    @FXML private val searchTextField: TextField? = null
-//    @FXML private val searchButton: Button? = null
-//    @FXML private val searchResultsCountLabel: Label? = null
-//
-//    @FXML private val multipleResultsCheckBox: CheckBox? = null
-//    @FXML private val autoContinueCheckBox: CheckBox? = null
-//
-//    @FXML private val searchResultsTable: TableView<SearchResult>? = null
-//    @FXML private val checkColumn: TableColumn<SearchResult, Boolean>? = null
-//    @FXML private val nameColumn: TableColumn<SearchResult, String>? = null
-//    @FXML private val scoreColumn: TableColumn<SearchResult, String>? = null
-//    @FXML private val releaseDateColumn: TableColumn<SearchResult, String>? = null
-//
-//    @FXML private val proceedAnywayButton: Button? = null
-//    @FXML private val okButton: Button? = null
-//
-//    private val stage = Stage()
-//    private val searchResultsProperty = SimpleListProperty(FXCollections.emptyObservableList<SearchResult>())
-//
-//    private var result: GameSearchChoice? = null
-//
-//    init {
-//
-//        val loader = FXMLLoader(UIResources.gameSearchScreenFxml())
-//        loader.setController(this)
-//        val root = loader.load()
-//
-//        val scene = Scene(root, Color.TRANSPARENT)
-//        scene.stylesheets.addAll(UIResources.mainCss(), UIResources.gameSearchScreenCss())
-//
-//        stage.initStyle(StageStyle.UNDECORATED)
-//        stage.initModality(Modality.APPLICATION_MODAL)
-//        stage.scene = scene
-//
-//        // Make the stage draggable by clicking anywhere.
-//        JavaFxUtils.makeStageDraggable(stage, root)
-//    }
-//
-//    @FXML
-//    private fun initialize() {
-//        initSearchResultsTable()
-//
-//        searchResultsCountLabel!!.textProperty().bind(searchResultsProperty.sizeProperty().asString("Results: %d"))
-//
-//        searchButton!!.defaultButtonProperty().bind(searchTextField!!.focusedProperty())
-//        okButton!!.defaultButtonProperty().bind(searchButton.defaultButtonProperty().not())
-//        okButton.disableProperty().bind(searchResultsTable!!.selectionModel.selectedItemProperty().isNull)
-//        okButton.setOnAction { e -> setResultFromSelection() }
-//    }
-//
-//    private fun initSearchResultsTable() {
-//        checkColumn!!.setCellFactory { param -> CheckBoxTableCell<SearchResult, Boolean>() }
-//        nameColumn!!.setCellValueFactory { e -> SimpleStringProperty(e.value.name) }
-//        releaseDateColumn!!.setCellValueFactory { e -> SimpleStringProperty(toStringOrUnavailable(e.value.releaseDate)) }
-//        scoreColumn!!.setCellValueFactory { e -> SimpleStringProperty(toStringOrUnavailable(e.value.score)) }
-//
-//        searchResultsTable!!.itemsProperty().bind(searchResultsProperty)
-//        searchResultsTable.setOnMouseClicked { e ->
-//            if (e.clickCount == 2) {
-//                setResultFromSelection()
-//            }
-//        }
-//
-//        searchButton!!.setOnAction { e ->
-//            val newName = searchTextField!!.text
-//            setResult(GameSearchChoice.newName(newName))
-//        }
-//    }
-//
-//    fun show(searchedName: String, path: Path, info: DataProviderInfo, searchResults: ImmutableList<SearchResult>): GameSearchChoice {
-//        logoImageView!!.setImage(info.logo)
-//        pathLabel!!.text = path.toString()
-//        searchTextField!!.text = searchedName
-//        errorLabel!!.text = getErrorLabel(searchedName, searchResults)
-//        setSearchResults(searchResults)
-//        proceedAnywayButton!!.isDisable = info.isRequired()
-//
-//        stageManager.runWithBlur(RunnableX { stage.showAndWait() })
-//        return result
-//    }
-//
-//    private fun getErrorLabel(searchedName: String, searchResults: ImmutableList<SearchResult>): String {
-//        if (searchResults.isEmpty()) {
-//            return String.format("No search results for '%s'!", searchedName)
-//        } else {
-//            return String.format("Too many search results for '%s'!", searchedName)
-//        }
-//    }
-//
-//    private fun setSearchResults(searchResults: ImmutableList<SearchResult>) {
-//        searchResultsProperty.set(FXCollections.observableArrayList<SearchResult>(searchResults.castToList()))
-//    }
-//
-//    private fun setResultFromSelection() {
-//        val selectedItem = searchResultsTable!!.selectionModel.selectedItem
-//        if (selectedItem != null) {
-//            setResult(GameSearchChoice.select(selectedItem))
-//        }
-//    }
-//
-//    @FXML
-//    private fun skip() {
-//        setResult(GameSearchChoice.skip())
-//    }
-//
-//    @FXML
-//    private fun exclude() {
-//        setResult(GameSearchChoice.exclude())
-//    }
-//
-//    @FXML
-//    private fun proceedAnyway() {
-//        setResult(GameSearchChoice.proceedAnyway())
-//    }
-//
-//    private fun setResult(choice: GameSearchChoice) {
-//        this.result = choice
-//        stage.hide()
-//    }
-//}
+class ProviderSearchResultView(
+    val searchResult: ProviderSearchResult,
+    val thumbnail: ImageView
+) {
+    val name get() = searchResult.name
+    val releaseDate get() = searchResult.releaseDate
+    val score get() = searchResult.score
+
+    override fun toString() = searchResult.toString()
+}

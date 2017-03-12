@@ -96,7 +96,7 @@ class GameListView : View("Game List") {
                         isPreserveRatio = true
                         isPickOnBounds = true
 
-                        padding { bottom = 5.0; left = 5.0; right = 5.0 }
+                        padding { bottom = 5; left = 5; right = 5 }
                     }
                     fieldset("Details") {
                         field("Path") { readOnlyTextField() }

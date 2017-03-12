@@ -32,13 +32,13 @@ private fun statusBarItems(op: (Node.() -> Unit), items: ObservableList<Node>) {
 fun Region.padding(op: (InsetBuilder.() -> Unit)) {
     val builder = InsetBuilder(this)
     op(builder)
-    padding = Insets(builder.top, builder.right, builder.bottom, builder.left)
+    padding = Insets(builder.top.toDouble(), builder.right.toDouble(), builder.bottom.toDouble(), builder.left.toDouble())
 }
 class InsetBuilder(region: Region) {
-    var top: Double = region.padding.top
-    var bottom: Double = region.padding.bottom
-    var right: Double = region.padding.right
-    var left: Double = region.padding.left
+    var top: Number = region.padding.top
+    var bottom: Number = region.padding.bottom
+    var right: Number = region.padding.right
+    var left: Number = region.padding.left
 }
 
 fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {

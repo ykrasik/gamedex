@@ -60,9 +60,9 @@ class MainView : View("Main") {
                         logTextArea.visibleProperty().bind(selectedProperty())
                     }
                     verticalSeparator(10.0)
-                    label("Games: 0") { padding { top = 4.0 } }
+                    label("Games: 0") { paddingTop = 4}
                     verticalSeparator(10.0)
-                    label("Libraries: 0") { padding { top = 4.0 } }
+                    label("Libraries: 0") { paddingTop = 4 }
                     verticalSeparator(10.0)
                 }
 
