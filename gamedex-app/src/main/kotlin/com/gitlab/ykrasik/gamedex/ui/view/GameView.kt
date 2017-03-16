@@ -1,11 +1,18 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.model.GameSort
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
-import com.gitlab.ykrasik.gamedex.ui.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
+import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
 /**
@@ -15,7 +22,10 @@ import tornadofx.*
  */
 class GameView : View("Games") {
     private val gameController: GameController by di()
-    private val libraryController: LibraryController by di()
+    private val libraryScanner: LibraryScanner by di()
+
+    private val libraryRepository: LibraryRepository by di()
+    private val gameRepository: GameRepository by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -80,7 +90,7 @@ class GameView : View("Games") {
                     isMnemonicParsing = false
                     minWidth = Double.NEGATIVE_INFINITY // TODO: Why?
 
-                    setOnAction { libraryController.refreshLibraries() }
+                    setOnAction { refreshLibraries() }
                 }
             }
         }
@@ -91,5 +101,22 @@ class GameView : View("Games") {
                 nonClosableTab("List") { content = gameListView.root }
             }
         }
+    }
+
+    private fun refreshLibraries() = launch(CommonPool) {
+        val excludedPaths =
+            libraryRepository.libraries.map(Library::path).toSet() +
+                gameRepository.games.map(Game::path).toSet()
+
+        libraryRepository.libraries.asSequence()
+            .filter { it.platform != GamePlatform.excluded }
+            .forEach { library ->
+                val (job, notification) = libraryScanner.refresh(library, excludedPaths, context)
+                // FIXME: Bind notifications
+                for (addGameRequest in job.channel) {
+                    val game = gameRepository.add(addGameRequest)
+                    notification.message = "[${addGameRequest.metaData.path}] Done: $game"
+                }
+            }
     }
 }

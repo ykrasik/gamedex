@@ -68,17 +68,6 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
         imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
         imageViewLimitedPane.clip = createClippingArea()
 
-//        val binding = MoreBindings.transformBinding(configService.gameWallImageDisplayProperty(), { imageDisplay ->
-//            val image = imageView.image
-//            if (image === UIResources.loading() || image === UIResources.notAvailable()) {
-//                return@MoreBindings.transformBinding ImageDisplayType . FIT
-//            } else {
-//                return@MoreBindings.transformBinding imageDisplay . getImageDisplayType ()
-//            }
-//        })
-//        imageView.imageProperty().addListener { observable, oldValue, newValue -> binding.invalidate() }
-//        imageViewLimitedPane.imageDisplayTypeProperty().bind(binding)
-
         addClass(Styles.gameTile, Styles.card)
         addClass("image-grid-cell") //$NON-NLS-1$
         graphic = imageViewLimitedPane

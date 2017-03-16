@@ -1,8 +1,14 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.Library
-import com.gitlab.ykrasik.gamedex.ui.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
+import com.gitlab.ykrasik.gamedex.ui.view.fragment.AddLibraryFragment
+import kotlinx.coroutines.experimental.Unconfined
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.run
 import tornadofx.*
 
 /**
@@ -11,11 +17,11 @@ import tornadofx.*
  * Time: 22:17
  */
 class LibraryView : View("Libraries") {
-    private val controller: LibraryController by di()
-    private val repository: LibraryRepository by di()
+    private val libraryRepository: LibraryRepository by di()
+    private val gameRepository: GameRepository by di()
 
     override val root = tableview<Library> {
-        itemsProperty().bind(repository.librariesProperty)
+        itemsProperty().bind(libraryRepository.librariesProperty)
 
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
@@ -37,13 +43,40 @@ class LibraryView : View("Libraries") {
         contextmenu {
             menuitem("Add") { addLibrary() }
             separator()
-            menuitem("Delete") { selectedItem?.let { controller.delete(it) } }
+            menuitem("Delete") { selectedItem?.let { deleteLibrary(it) } }
         }
     }
 
     private fun addLibrary() {
-        if (controller.add()) {
-            root.resizeColumnsToFitContent()
+        val request = AddLibraryFragment().show() ?: return
+        launch(Unconfined) {
+            libraryRepository.add(request)
+            run(JavaFx) {
+                root.resizeColumnsToFitContent()
+            }
+        }
+    }
+
+    fun deleteLibrary(library: Library) {
+        if (confirmDelete(library)) {
+            libraryRepository.delete(library)
+        }
+    }
+
+    private fun confirmDelete(library: Library): Boolean {
+        val baseMessage = "Delete library '${library.name}'?"
+        val gamesToBeDeleted = gameRepository.getByLibrary(library.id)
+        return areYouSureDialog {
+            if (gamesToBeDeleted.size > 0) {
+                dialogPane.content = vbox {
+                    text("$baseMessage The following ${gamesToBeDeleted.size} games will also be deleted!")
+                    listview(gamesToBeDeleted) {
+                        maxHeight = 400.0
+                    }
+                }
+            } else {
+                contentText = baseMessage
+            }
         }
     }
 }
