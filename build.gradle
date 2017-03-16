@@ -1,11 +1,14 @@
 buildscript {
     ext {
+        kotlin_version = '1.1.0'
         ktlin = [:].with {
             v = '1.1.0'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
             dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.7']
+            coroutinesCore = [group: 'org.jetbrains.kotlinx', name:'kotlinx-coroutines-core', version:'0.13']
+            coroutinesJavaFx = [group: 'org.jetbrains.kotlinx', name:'kotlinx-coroutines-javafx', version:'0.13']
             delegate
         }
 
@@ -98,6 +101,8 @@ subprojects {
     dependencies {
         compile ktlin.std
         compile ktlin.reflect
+        compile ktlin.coroutinesCore
+        compile ktlin.coroutinesJavaFx
 
         compile slf4j.api
 
@@ -114,6 +119,12 @@ subprojects {
         outputFormat = 'javadoc'
         outputDirectory = "$buildDir/javadoc"
         processConfigurations = ['compile']
+    }
+
+    kotlin {
+        experimental {
+            coroutines 'enable'
+        }
     }
 }
 
