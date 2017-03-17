@@ -7,10 +7,11 @@ import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.gridView
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewLimitedPane
+import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
-import javafx.concurrent.Task
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
+import kotlinx.coroutines.experimental.Job
 import org.controlsfx.control.GridCell
 import tornadofx.View
 import tornadofx.addClass
@@ -57,7 +58,7 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
     private val imageView = ImageView()
     private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
 
-    private var loadingTask: Task<*>? = null
+    private var loadingTask: NotifiableJob<Job>? = null
 
     init {
 
@@ -98,12 +99,12 @@ class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPr
 
     private fun fetchThumbnail(game: Game) {
         game.imageIds.thumbnailId?.let { thumbnailId ->
-            loadingTask = imageLoader.loadImage(thumbnailId, imageView)
+            loadingTask = imageLoader.fetchImage(thumbnailId, imageView)
         }
     }
 
     private fun cancelPrevTask() {
-        loadingTask?.cancel(false)
+        loadingTask?.job?.cancel()
         loadingTask = null
     }
 }

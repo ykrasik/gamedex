@@ -11,6 +11,8 @@ import javafx.scene.control.ButtonBar
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.runBlocking
 import tornadofx.*
 
 /**
@@ -105,9 +107,9 @@ class ChooseSearchResultFragment(
         }
     }
 
-    fun show(): ProviderSearchResultView? {
+    fun show(): ProviderSearchResultView? = runBlocking(JavaFx) {
         openModal(block = true)
-        return if (accept) {
+        if (accept) {
             tableView.selectedItem
         } else {
             null

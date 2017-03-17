@@ -5,7 +5,7 @@ import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.AddLibraryFragment
-import kotlinx.coroutines.experimental.Unconfined
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
@@ -49,7 +49,7 @@ class LibraryView : View("Libraries") {
 
     private fun addLibrary() {
         val request = AddLibraryFragment().show() ?: return
-        launch(Unconfined) {
+        launch(CommonPool) {
             libraryRepository.add(request)
             run(JavaFx) {
                 root.resizeColumnsToFitContent()
@@ -59,13 +59,15 @@ class LibraryView : View("Libraries") {
 
     fun deleteLibrary(library: Library) {
         if (confirmDelete(library)) {
-            libraryRepository.delete(library)
+            launch(CommonPool) {
+                libraryRepository.delete(library)
+            }
         }
     }
 
     private fun confirmDelete(library: Library): Boolean {
         val baseMessage = "Delete library '${library.name}'?"
-        val gamesToBeDeleted = gameRepository.getByLibrary(library.id)
+        val gamesToBeDeleted = gameRepository.games.filtered { it.libraryId == library.id }
         return areYouSureDialog {
             if (gamesToBeDeleted.size > 0) {
                 dialogPane.content = vbox {

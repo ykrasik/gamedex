@@ -3,7 +3,9 @@ package com.gitlab.ykrasik.gamedex.common.util
 import javafx.application.Platform
 import javafx.application.Platform.runLater
 import javafx.beans.property.ReadOnlyIntegerProperty
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.scene.control.TableView
@@ -26,16 +28,6 @@ fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
 fun Image.toImageView(): ImageView = ImageView(this)
 
-//fun <T, R> ObservableValue<T>.map(f: (T) -> R): Binding<R> = object : ObjectBinding<R>() {
-//    init {
-//        super.bind(this)
-//    }
-//
-//    override fun computeValue(): R {
-//        return f(this@map.value)
-//    }
-//}
-
 fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
 fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
     val p = SimpleIntegerProperty(this.size)
@@ -44,3 +36,14 @@ fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
 }
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
+
+class ThreadAwareStringProperty : SimpleStringProperty() {
+    override fun fireValueChangedEvent() {
+        runLaterIfNecessary { super.fireValueChangedEvent() }
+    }
+}
+class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
+    override fun fireValueChangedEvent() {
+        runLaterIfNecessary { super.fireValueChangedEvent() }
+    }
+}

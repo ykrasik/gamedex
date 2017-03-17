@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
+import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.model.GameSort
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
@@ -26,6 +27,8 @@ class GameView : View("Games") {
 
     private val libraryRepository: LibraryRepository by di()
     private val gameRepository: GameRepository by di()
+
+    private val notificationManager: NotificationManager by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -81,16 +84,13 @@ class GameView : View("Games") {
 
                 spacer()
 
-                checkbox("Don't bother me") { isMnemonicParsing = false }
+                checkbox("Don't bother me")
 
                 verticalSeparator(10.0)
 
-                button("Refresh Libraries") {
+                button("Refresh Games") {
                     isDefaultButton = true
-                    isMnemonicParsing = false
-                    minWidth = Double.NEGATIVE_INFINITY // TODO: Why?
-
-                    setOnAction { refreshLibraries() }
+                    setOnAction { refreshGames() }
                 }
             }
         }
@@ -103,7 +103,7 @@ class GameView : View("Games") {
         }
     }
 
-    private fun refreshLibraries() = launch(CommonPool) {
+    private fun refreshGames() = launch(CommonPool) {
         val excludedPaths =
             libraryRepository.libraries.map(Library::path).toSet() +
                 gameRepository.games.map(Game::path).toSet()
@@ -112,7 +112,7 @@ class GameView : View("Games") {
             .filter { it.platform != GamePlatform.excluded }
             .forEach { library ->
                 val (job, notification) = libraryScanner.refresh(library, excludedPaths, context)
-                // FIXME: Bind notifications
+                notificationManager.bind(notification)
                 for (addGameRequest in job.channel) {
                     val game = gameRepository.add(addGameRequest)
                     notification.message = "[${addGameRequest.metaData.path}] Done: $game"

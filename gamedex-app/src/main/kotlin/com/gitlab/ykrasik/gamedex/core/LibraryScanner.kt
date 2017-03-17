@@ -39,7 +39,7 @@ class LibraryScanner @Inject constructor(
             val newGames = newPaths.mapIndexedNotNull { i, path ->
                 if (!isActive) return@mapIndexedNotNull
 
-                notification.updateProgress(i, newPaths.size)
+                notification.progress(i, newPaths.size)
                 val addGameRequest = processPath(path, library)
                 addGameRequest?.let { send(it) }
             }

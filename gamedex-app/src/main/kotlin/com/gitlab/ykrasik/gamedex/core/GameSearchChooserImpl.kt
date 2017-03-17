@@ -28,7 +28,7 @@ class GameSearchChooserImpl @Inject constructor(private val imageLoader: ImageLo
         val imageView = ImageView()
         val url = thumbnailUrl
         if (url != null) {
-            imageLoader.loadUrl(url, imageView)
+            imageLoader.downloadImage(url, imageView)
         } else {
             // TODO: Consider moving this logic into the imageLoader.
             imageView.image = UIResources.Images.notAvailable
