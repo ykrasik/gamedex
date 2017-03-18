@@ -1,12 +1,20 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.common.util.existsOrNull
-import com.gitlab.ykrasik.gamedex.model.LibraryDataModel
+import com.gitlab.ykrasik.gamedex.common.util.toFile
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
+import javafx.scene.control.ButtonBar
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.run
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
@@ -16,47 +24,78 @@ import tornadofx.*
 class AddLibraryFragment : Fragment("Add Library") {
     private val preferences: UserPreferences by di()
 
-    private val libraryData = LibraryDataModel()
-    private var save = false
+    private val model = AddLibraryViewModel()
+    private var accept = false
 
     override val root = form {
         minWidth = 600.0
 
         fieldset("Add Library") {
             field("Path") {
-                textfield().bind(libraryData.pathProperty())
+                textfield(model.pathProperty).validator {
+                    if (it.isNullOrBlank()) error("Path is required!")
+                    else if (!File(it).isDirectory) error("Path doesn't exist!")
+                    else null
+                }
                 button("Browse") { setOnAction { browse() } }
             }
-            field("Name") {
-                textfield().bind(libraryData.nameProperty())
-            }
-            field("Platform") { enumComboBox<GamePlatform>(libraryData.platformProperty()) { value = GamePlatform.pc } }
+            field("Name") { textfield(model.nameProperty).required() }
+            field("Platform") { enumComboBox<GamePlatform>(model.platformProperty) { value = GamePlatform.pc } }
         }
 
-        button("Add") {
-            isDefaultButton = true
-
-            disableProperty().bind(libraryData.notAllFieldsSet)
-            setOnAction {
-                save = true
-                close()
+        buttonbar {
+            button("Add", type = ButtonBar.ButtonData.OK_DONE) {
+                isDefaultButton = true
+                enableWhen { model.valid }
+                setOnAction { close(accept = true) }
             }
+            cancelButton { setOnAction { close(accept = false) } }
         }
+    }
+    
+    init {
+        model.validate(decorateErrors = false)
     }
 
     private fun browse() {
-        val directory = chooseDirectory("Add Library", initialDirectory = preferences.prevDirectory?.existsOrNull()) ?: return
+        val directory = chooseDirectory("Browse Library Path...", initialDirectory = preferences.prevDirectory?.existsOrNull()) ?: return
         preferences.prevDirectory = directory
-        libraryData.path = directory.path
-        libraryData.name = directory.name
+        model.path = directory.path
+        model.name = directory.name
     }
 
-    fun show(): AddLibraryRequest? {
+    private fun close(accept: Boolean) {
+        this.accept = accept
+        close()
+    }
+
+    suspend fun show(): AddLibraryRequest? = run(JavaFx) {
         openModal(block = true)
-        return if (save && !libraryData.notAllFieldsSet.value) {
-            libraryData.toRequest()
+        if (accept && model.commit()) {
+            model.toRequest()
         } else {
             null
         }
     }
+}
+
+private class AddLibraryViewModel : ViewModel() {
+    val pathProperty = bind { SimpleStringProperty() }
+    var path by pathProperty
+
+    val nameProperty = bind { SimpleStringProperty() }
+    var name by nameProperty
+
+    val platformProperty = bind { SimpleObjectProperty<GamePlatform>() }
+    var platform by platformProperty
+
+    fun toRequest() = AddLibraryRequest(
+        path = path.toFile(),
+        data = LibraryData(
+            platform = platform,
+            name = name
+        )
+    )
+
+    override fun toString() = "AddLibraryViewModel(name = $name, platform = $platform, path = $path)"
 }

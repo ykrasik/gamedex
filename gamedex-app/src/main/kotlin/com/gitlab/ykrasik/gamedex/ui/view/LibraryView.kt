@@ -48,8 +48,8 @@ class LibraryView : View("Libraries") {
     }
 
     private fun addLibrary() {
-        val request = AddLibraryFragment().show() ?: return
         launch(CommonPool) {
+            val request = AddLibraryFragment().show() ?: return@launch
             libraryRepository.add(request)
             run(JavaFx) {
                 root.resizeColumnsToFitContent()

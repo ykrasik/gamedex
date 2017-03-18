@@ -8,7 +8,7 @@ import java.io.File
  * Time: 22:01
  */
 interface GameSearchChooser {
-    fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
+    suspend fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
 }
 
 class SearchContext(val searchedName: String, val path: File) {

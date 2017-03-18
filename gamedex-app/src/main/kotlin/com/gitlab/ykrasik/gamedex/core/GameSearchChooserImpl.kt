@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameSearchChooserImpl @Inject constructor(private val imageLoader: ImageLoader) : GameSearchChooser {
-    override fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult? {
+    override suspend fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult? {
         val resultViews = searchResults.map { it.toView() }.observable()
         return ChooseSearchResultFragment(context, info, resultViews).show()?.searchResult
     }

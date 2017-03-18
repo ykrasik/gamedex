@@ -125,7 +125,6 @@ createLogger(
     "persistence",
     [
         "com.gitlab.ykrasik.gamedex.persistence": log.PERSISTENCE,
-        "org.flywaydb": log.SQL,
         "Exposed": log.SQL
     ]
 )

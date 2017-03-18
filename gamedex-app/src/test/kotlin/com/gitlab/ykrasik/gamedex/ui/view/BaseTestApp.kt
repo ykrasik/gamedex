@@ -1,8 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.Main
 import javafx.application.Application
 import javafx.scene.Parent
 import tornadofx.App
+import tornadofx.FX
 import tornadofx.View
 import tornadofx.vbox
 
@@ -12,12 +14,18 @@ import tornadofx.vbox
  * Time: 13:53
  */
 abstract class BaseTestApp {
-    class TestApplication : App(TestView::class)
+    class TestApplication : App(TestView::class) {
+        init {
+            FX.dicontainer = Main.GuiceDiContainer
+        }
+    }
+
     class TestView : View("Test") {
         override val root: Parent = vbox {
             BaseTestApp.initializer()
         }
     }
+    
     init {
         BaseTestApp.initializer = this::init
         Application.launch(TestApplication::class.java)

@@ -29,7 +29,7 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>?
 
 fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
     // TODO: TornadoFx has a built-in 'confirm' method.
-    val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.OK, ButtonType.CANCEL)
+    val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.CANCEL, ButtonType.OK)
     alert.headerText = "Are You Sure?"
     op?.invoke(alert)
     val buttonClicked = alert.showAndWait()
@@ -55,6 +55,6 @@ fun ButtonBar.okButton(op: (Button.() -> Unit)? = null): Button {
 fun ButtonBar.cancelButton(op: (Button.() -> Unit)? = null): Button {
     return button("Cancel", type = ButtonBar.ButtonData.LEFT) {
         op?.invoke(this)
-        isDefaultButton = true
+        isCancelButton = true
     }
 }

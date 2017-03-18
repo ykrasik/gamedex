@@ -14,7 +14,7 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface DataProviderService {
-    fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame?
+    suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame?
 }
 
 @Singleton
@@ -26,7 +26,7 @@ class DataProviderServiceImpl @Inject constructor(
 
     private val maxScreenshots = 10
 
-    override fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame? {
+    override suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame? {
         val providers = sortProviders()
 
         val context = SearchContext(name, path)

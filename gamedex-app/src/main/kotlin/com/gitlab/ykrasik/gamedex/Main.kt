@@ -9,7 +9,7 @@ import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.google.inject.Guice
-import com.google.inject.Module
+import com.google.inject.Stage.PRODUCTION
 import javafx.application.Application
 import javafx.stage.Stage
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -25,14 +25,7 @@ import kotlin.reflect.KClass
  */
 class Main : App(MainView::class, Styles::class) {
     init {
-        FX.dicontainer = GuiceDiContainer(
-            CommonModule(),
-            PersistenceModule(),
-            AppModule(),
-            DataProviderModule(),
-            GiantBombProviderModule(),
-            IgdbProviderModule()
-        )
+        FX.dicontainer = GuiceDiContainer
 
         SLF4JBridgeHandler.removeHandlersForRootLogger()
         SLF4JBridgeHandler.install()
@@ -43,9 +36,17 @@ class Main : App(MainView::class, Styles::class) {
         super.start(stage)
     }
 
-    private class GuiceDiContainer(vararg modules: Module) : DIContainer {
-        private val guice = Guice.createInjector(com.google.inject.Stage.PRODUCTION, *modules)
-        override fun <T : Any> getInstance(type: KClass<T>) = guice.getInstance(type.java)
+    object GuiceDiContainer : DIContainer {
+        private val injector = Guice.createInjector(PRODUCTION,
+            AppModule(),
+            CommonModule(),
+            PersistenceModule(),
+            DataProviderModule(),
+            GiantBombProviderModule(),
+            IgdbProviderModule()
+        )
+
+        override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
     }
 
     companion object {

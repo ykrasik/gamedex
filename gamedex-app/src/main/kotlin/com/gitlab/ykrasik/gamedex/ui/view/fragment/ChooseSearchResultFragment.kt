@@ -5,14 +5,15 @@ import com.gitlab.ykrasik.gamedex.common.util.sizeProperty
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
+import com.gitlab.ykrasik.gamedex.ui.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.okButton
 import com.gitlab.ykrasik.gamedex.ui.padding
 import javafx.collections.ObservableList
-import javafx.scene.control.ButtonBar
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.ImageView
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.run
 import tornadofx.*
 
 /**
@@ -72,7 +73,7 @@ class ChooseSearchResultFragment(
                     if (e.clickCount == 2) {
                         val selectedItem = selectionModel.selectedItem
                         if (selectedItem != null) {
-                            // TODO: Select clicked item & exit.
+                            close(accept = true)
                         }
                     }
                 }
@@ -82,38 +83,30 @@ class ChooseSearchResultFragment(
         bottom {
             buttonbar {
                 paddingTop = 20
-                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
-                    isDefaultButton = true
-                    setOnAction {
-                        accept = true
-                        close()
-                    }
-                }
-                button("Cancel", type = ButtonBar.ButtonData.LEFT) {
-                    isCancelButton = true
-                    setOnAction {
-                        accept = false
-                        close()
-                    }
-                }
+                okButton { setOnAction { close(accept = true) } }
+                cancelButton { setOnAction { close(accept = false) } }
                 button("Proceed Without") {
                     setOnAction {
                         tableView.clearSelection()
-                        accept = true
-                        close()
+                        close(accept = true)
                     }
                 }
             }
         }
     }
 
-    fun show(): ProviderSearchResultView? = runBlocking(JavaFx) {
+    suspend fun show(): ProviderSearchResultView? = run(JavaFx) {
         openModal(block = true)
         if (accept) {
             tableView.selectedItem
         } else {
             null
         }
+    }
+
+    private fun close(accept: Boolean) {
+        this.accept = accept
+        close()
     }
 }
 

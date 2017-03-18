@@ -9,6 +9,8 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
 import com.gitlab.ykrasik.gamedex.ui.UIResources
 import com.gitlab.ykrasik.gamedex.ui.view.BaseTestApp
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import org.joda.time.LocalDate
 import tornadofx.observable
 
@@ -45,8 +47,10 @@ class ChooseSearchResultFragmentTestApp : BaseTestApp() {
             ), getResourceAsByteArray("ac3.jpg").toImageView())
 
         ).observable()
-        println("Result: " + ChooseSearchResultFragment(context, info, results).show())
-        System.exit(0)
+        launch(CommonPool) {
+            println("Result: " + ChooseSearchResultFragment(context, info, results).show())
+            System.exit(0)
+        }
     }
 
     companion object {

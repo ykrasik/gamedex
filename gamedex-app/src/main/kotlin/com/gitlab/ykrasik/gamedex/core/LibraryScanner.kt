@@ -48,7 +48,7 @@ class LibraryScanner @Inject constructor(
         }
     }
 
-    private fun processPath(path: File, library: Library): AddGameRequest? {
+    private suspend fun processPath(path: File, library: Library): AddGameRequest? {
         val name = path.normalizeName().emptyToNull() ?: return null
         val platform = library.platform
 
