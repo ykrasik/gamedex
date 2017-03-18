@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.common.util
 
 import java.io.File
+import java.net.URI
 
 /**
  * User: ykrasik
@@ -8,6 +9,7 @@ import java.io.File
  * Time: 19:52
  */
 fun String.toFile(): File = File(this)
+fun URI.toFile(): File = File(this)
 
 fun File.create() {
     parentFile.mkdirs()

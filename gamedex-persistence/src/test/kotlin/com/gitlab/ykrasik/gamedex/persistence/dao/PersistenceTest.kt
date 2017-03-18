@@ -2,10 +2,7 @@ package com.gitlab.ykrasik.gamedex.persistence.dao
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.*
 import com.gitlab.ykrasik.gamedex.common.util.toFile
-import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
-import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.persistence.PersistenceServiceImpl
-import com.gitlab.ykrasik.gamedex.persistence.TestDbInitializer
+import com.gitlab.ykrasik.gamedex.persistence.*
 import io.kotlintest.specs.StringSpec
 import org.joda.time.DateTime
 
@@ -15,12 +12,18 @@ import org.joda.time.DateTime
  * Time: 20:55
  */
 abstract class PersistenceTest : StringSpec() {
-    val persistenceService = PersistenceServiceImpl(TestDbInitializer)
+    val initializer = DbInitializer(PersistenceConfig(
+        dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
+        driver = "org.h2.Driver",
+        user = "sa",
+        password = ""
+    ))
+    val persistenceService = PersistenceServiceImpl(initializer)
 
     private var imageId = 1
 
     override fun beforeEach() {
-        TestDbInitializer.reload()
+        initializer.reload()
         imageId = 1
     }
 

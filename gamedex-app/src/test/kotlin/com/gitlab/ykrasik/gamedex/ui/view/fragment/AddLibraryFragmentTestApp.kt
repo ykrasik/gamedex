@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.ui.view.BaseTestApp
+import com.gitlab.ykrasik.gamedex.BaseTestApp
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 
@@ -9,7 +9,7 @@ import kotlinx.coroutines.experimental.launch
  * Date: 18/03/2017
  * Time: 17:11
  */
-class AddLibraryFragmentTestApp : BaseTestApp() {
+object AddLibraryFragmentTestApp : BaseTestApp() {
     override fun init() {
         launch(CommonPool) {
             println("Result: " + AddLibraryFragment().show())
@@ -17,7 +17,5 @@ class AddLibraryFragmentTestApp : BaseTestApp() {
         }
     }
 
-    companion object {
-        @JvmStatic fun main(args: Array<String>) { AddLibraryFragmentTestApp() }
-    }
+    @JvmStatic fun main(args: Array<String>) {  }
 }

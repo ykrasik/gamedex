@@ -11,6 +11,7 @@ import javafx.collections.ObservableList
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Region
 import java.io.ByteArrayInputStream
 
 /**
@@ -46,4 +47,16 @@ class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }
+}
+
+fun Region.debugWidth(name: String) {
+    println("$name minWidth = $minWidth")
+    println("$name maxWidth = $maxWidth")
+    println("$name prefWidth = $prefWidth")
+    println("$name width = $width")
+
+    minWidthProperty().addListener { _, o, v -> println("$name minWidth changed: $o -> $v") }
+    maxWidthProperty().addListener { _, o, v -> println("$name maxWidth changed: $o -> $v") }
+    prefWidthProperty().addListener { _, o, v -> println("$name prefWidth changed: $o -> $v") }
+    widthProperty().addListener { _, o, v -> println("$name width changed: $o -> $v") }
 }

@@ -20,6 +20,19 @@ class KLogger(loggerName: String) {
     inline fun debug(crossinline msg: () -> String): Unit { if (logger.isDebugEnabled) logger.debug(msg()) }
     inline fun trace(crossinline msg: () -> String): Unit { if (logger.isTraceEnabled) logger.trace(msg()) }
 
+    inline fun <T> logIfError(crossinline f: () -> T): T = try {
+        f()
+    } catch (t: Throwable) {
+        error(t)
+        throw t
+    }
+
+    suspend fun <T> logIfErrorSuspend(f: suspend () -> T): T = try {
+        f()
+    } catch (t: Throwable) {
+        error(t)
+        throw t
+    }
 
     // For delegation access.
     operator fun getValue(thisRef: Any, property: KProperty<*>) = this

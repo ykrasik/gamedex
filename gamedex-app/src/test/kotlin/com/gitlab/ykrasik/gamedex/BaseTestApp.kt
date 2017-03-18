@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view
+package com.gitlab.ykrasik.gamedex
 
 import com.gitlab.ykrasik.gamedex.Main
 import javafx.application.Application
@@ -22,12 +22,12 @@ abstract class BaseTestApp {
 
     class TestView : View("Test") {
         override val root: Parent = vbox {
-            BaseTestApp.initializer()
+            initializer()
         }
     }
     
     init {
-        BaseTestApp.initializer = this::init
+        initializer = this::init
         Application.launch(TestApplication::class.java)
     }
 

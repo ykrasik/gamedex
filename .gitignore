@@ -99,3 +99,6 @@ build/
 gradle-app.setting
 
 
+classes/
+*.h2.db
+conf.json

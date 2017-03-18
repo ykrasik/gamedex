@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.persistence
 
 import com.gitlab.ykrasik.gamedex.common.util.logger
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,8 +22,19 @@ open class DbInitializer @Inject constructor(private val config: PersistenceConf
     }
 
     fun create() = transaction {
-        org.jetbrains.exposed.sql.SchemaUtils.create(
+        SchemaUtils.create(
             Libraries, Games, Images
         )
+    }
+
+    fun drop() = transaction {
+        SchemaUtils.drop(
+            Libraries, Games, Images
+        )
+    }
+
+    fun reload() {
+        drop()
+        create()
     }
 }

@@ -11,7 +11,7 @@ import com.typesafe.config.ConfigFactory
 val defaultConfig: Config = run {
     val configurationFiles = ClassPathScanner.scanPackage("") {
         it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
-    }
+    }.sortedByDescending { it.file.split("/").last() }
 
     // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
     configurationFiles.fold(ConfigFactory.load()) { current, url ->
