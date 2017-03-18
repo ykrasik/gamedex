@@ -44,3 +44,17 @@ fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): 
     }
     return ok
 }
+
+fun ButtonBar.okButton(op: (Button.() -> Unit)? = null): Button {
+    return button("OK", type = ButtonBar.ButtonData.OK_DONE) {
+        op?.invoke(this)
+        isDefaultButton = true
+    }
+}
+
+fun ButtonBar.cancelButton(op: (Button.() -> Unit)? = null): Button {
+    return button("Cancel", type = ButtonBar.ButtonData.LEFT) {
+        op?.invoke(this)
+        isDefaultButton = true
+    }
+}

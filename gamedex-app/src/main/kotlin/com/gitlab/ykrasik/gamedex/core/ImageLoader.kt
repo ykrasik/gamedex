@@ -34,9 +34,18 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
     private val fadeInDuration = 0.02.seconds
     private val fadeOutDuration = 0.05.seconds
 
-    fun downloadImage(url: String, into: ImageView): NotifiableJob<Job> = downloadJobCache.getOrPut(url) {
-        createJob { notification ->
-            downloadImage(url, into, notification)
+    fun downloadImage(url: String?, into: ImageView): NotifiableJob<Job> {
+        if (url == null) {
+            return createJob {
+                launch(JavaFx) {
+                    into.image = UIResources.Images.notAvailable
+                }
+            }
+        }
+        return downloadJobCache.getOrPut(url) {
+            createJob { notification ->
+                downloadImage(url, into, notification)
+            }
         }
     }
 
@@ -86,8 +95,14 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
             imageView.image = UIResources.Images.loading
         }
 
-        val bytes = f()
-        val image = bytes.toImage()
+        val bytes = try {
+            f()
+        } catch (e: Exception) {
+            log.error(e)
+            ByteArray(0)
+        }
+
+        val image = if (bytes.isNotEmpty()) bytes.toImage() else UIResources.Images.notAvailable
 
         val fadeTransition = FadeTransition(fadeOutDuration, imageView)
         fadeTransition.fromValue = 1.0

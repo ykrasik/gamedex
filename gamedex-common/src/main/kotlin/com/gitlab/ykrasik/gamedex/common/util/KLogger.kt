@@ -13,11 +13,13 @@ import kotlin.reflect.full.companionObject
 class KLogger(loggerName: String) {
     val logger: Logger = LoggerFactory.getLogger(if (loggerName.endsWith("Impl")) loggerName.dropLast(4) else loggerName)
 
-    inline fun error(msg: () -> String): Unit { if (logger.isErrorEnabled) logger.error(msg()) }
-    inline fun warn(msg: () -> String): Unit { if (logger.isWarnEnabled) logger.warn(msg()) }
-    inline fun info(msg: () -> String): Unit { if (logger.isInfoEnabled) logger.info(msg()) }
-    inline fun debug(msg: () -> String): Unit { if (logger.isDebugEnabled) logger.debug(msg()) }
-    inline fun trace(msg: () -> String): Unit { if (logger.isTraceEnabled) logger.trace(msg()) }
+    inline fun error(crossinline msg: () -> String): Unit { if (logger.isErrorEnabled) logger.error(msg()) }
+    fun error(t: Throwable, msg: () -> String = { "Error!" }): Unit { logger.error(msg(), t) }
+    inline fun warn(crossinline msg: () -> String): Unit { if (logger.isWarnEnabled) logger.warn(msg()) }
+    inline fun info( crossinline msg: () -> String): Unit { if (logger.isInfoEnabled) logger.info(msg()) }
+    inline fun debug(crossinline msg: () -> String): Unit { if (logger.isDebugEnabled) logger.debug(msg()) }
+    inline fun trace(crossinline msg: () -> String): Unit { if (logger.isTraceEnabled) logger.trace(msg()) }
+
 
     // For delegation access.
     operator fun getValue(thisRef: Any, property: KProperty<*>) = this

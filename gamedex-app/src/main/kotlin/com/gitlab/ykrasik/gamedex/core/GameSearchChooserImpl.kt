@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.GameSearchChooser
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
-import com.gitlab.ykrasik.gamedex.ui.UIResources
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.ProviderSearchResultView
 import javafx.scene.image.ImageView
@@ -26,13 +25,7 @@ class GameSearchChooserImpl @Inject constructor(private val imageLoader: ImageLo
 
     private fun ProviderSearchResult.toView(): ProviderSearchResultView {
         val imageView = ImageView()
-        val url = thumbnailUrl
-        if (url != null) {
-            imageLoader.downloadImage(url, imageView)
-        } else {
-            // TODO: Consider moving this logic into the imageLoader.
-            imageView.image = UIResources.Images.notAvailable
-        }
+        imageLoader.downloadImage(thumbnailUrl, imageView)
         return ProviderSearchResultView(this, imageView)
     }
 }

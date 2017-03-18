@@ -15,7 +15,7 @@ abstract class BaseTestApp {
     class TestApplication : App(TestView::class)
     class TestView : View("Test") {
         override val root: Parent = vbox {
-            initializer()
+            BaseTestApp.initializer()
         }
     }
     init {
