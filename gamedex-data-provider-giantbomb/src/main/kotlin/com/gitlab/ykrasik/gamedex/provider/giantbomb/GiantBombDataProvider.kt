@@ -22,8 +22,6 @@ import javax.inject.Singleton
 class GiantBombDataProvider @Inject constructor(private val config: GiantBombConfig) : DataProvider {
     private val log by logger()
 
-    private val endpoint = "http://www.giantbomb.com/api/games"
-
     private val searchFields = listOf(
         "api_detail_url",
         "name",
@@ -51,7 +49,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     }
 
     private fun doSearch(name: String, platform: GamePlatform): GiantBombSearchResponse {
-        val response = getRequest(endpoint,
+        val response = getRequest(config.endpoint,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFields
         )

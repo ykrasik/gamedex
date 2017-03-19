@@ -13,7 +13,7 @@ import java.util.*
 val rnd = Random()
 
 val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-fun randomString(length: Int = 20, variance: Int = 0): String {
+fun randomString(length: Int = 8, variance: Int = 2): String {
     val str = StringBuilder()
     repeat(length.withVariance(variance)) {
         str.append(chars[rnd.nextInt(chars.length)])
@@ -21,12 +21,13 @@ fun randomString(length: Int = 20, variance: Int = 0): String {
     return str.toString()
 }
 
-fun randomSentence(maxWords: Int = 10, avgWordLength: Int = 20, variance: Int = 5, delimiter: String = " "): String {
+fun randomSentence(maxWords: Int = 5, avgWordLength: Int = 8, variance: Int = 2, delimiter: String = " "): String {
     val str = StringBuilder()
     repeat(maxOf(rnd.nextInt(maxWords), 3)) {
         str.append(randomString(avgWordLength, variance))
         str.append(delimiter)
     }
+    str.deleteCharAt(str.length - 1)
     return str.toString()
 }
 
@@ -38,12 +39,13 @@ fun Int.withVariance(variance: Int): Int =
         if (rnd.nextBoolean()) (this * multiplier) else (this / multiplier)
     }
 
-fun randomSlashDelimitedString(): String = randomSentence(maxWords = 7, avgWordLength = 5, delimiter = "/")
+fun randomSlashDelimitedString(): String = randomSentence(maxWords = 7, delimiter = "/")
 fun randomFile() = File(randomSlashDelimitedString())
-fun randomUrl() = "http://${randomSentence(maxWords = 3, avgWordLength = 5, variance = 2, delimiter = ".")}/${randomSlashDelimitedString()}/${randomString(length = 5, variance = 3)}"
+fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${randomSlashDelimitedString()}/${randomString()}"
+fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
 fun randomScore() = rnd.nextDouble() * 100
 
-fun randomDateTime(): DateTime = DateTime(rnd.nextLong())
+fun randomDateTime(): DateTime = DateTime.now().plusMillis((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt())
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()

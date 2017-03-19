@@ -27,11 +27,11 @@ private fun randomMetaData() = MetaData(
 
 private fun randomGameData() = GameData(
     name = randomString(),
-    description = randomSentence(),
+    description = randomSentence(maxWords = 10),
     releaseDate = randomLocalDate(),
     criticScore = randomScore(),
     userScore = randomScore(),
-    genres = List(rnd.nextInt(4)) { randomString(length = 4, variance = 4) }
+    genres = List(rnd.nextInt(4)) { randomString() }
 )
 
 private fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType.values().size)) {
@@ -55,13 +55,13 @@ fun randomGameImage(id: Int) = GameImage(
 )
 
 fun randomSearchContext() = SearchContext(
-    searchedName = randomString(10, variance = 3),
+    searchedName = randomName(),
     path = randomFile()
 )
 
 fun randomSearchResults(amount: Int) = List(amount) {
     ProviderSearchResultView(ProviderSearchResult(
-        name = randomSentence(maxWords = 4, avgWordLength = 10, variance = 2),
+        name = randomName(),
         releaseDate = randomLocalDate(),
         score = randomScore(),
         thumbnailUrl = randomUrl(),

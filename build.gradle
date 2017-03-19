@@ -39,6 +39,12 @@ buildscript {
         jaci = [group: 'com.github.ykrasik', name: 'jaci-javafx-cli', version: '0.4.0']
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: '-SNAPSHOT']
+        ktor = [:].with {
+            v = '0.3.0'
+            core = [group: 'org.jetbrains.ktor', name: 'ktor-core', version: v]
+            netty = [group: 'org.jetbrains.ktor', name: 'ktor-netty', version: v]
+            delegate
+        }
 
         jackson = [:].with {
             v = '2.8.3'
@@ -91,6 +97,7 @@ allprojects {
         jcenter()
         maven { url "http://dl.bintray.com/kotlin/exposed" }
         maven { url "https://jitpack.io" }
+        maven { url "http://dl.bintray.com/kotlin/ktor" }
     }
 }
 
@@ -159,7 +166,6 @@ project("gamedex-app") {
         compile tornadoFx.core
         compile tornadoFx.controls
 
-        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
         testCompile project(path: ":gamedex-data-provider-giantbomb", configuration: 'testArtifacts')
         testCompile project(path: ":gamedex-data-provider-igdb", configuration: 'testArtifacts')
     }
@@ -199,6 +205,10 @@ project("gamedex-persistence") {
 project("gamedex-data-provider") {
     dependencies {
         compile project(":gamedex-common")
+
+        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
+        testCompile ktor.core
+        testCompile ktor.netty
     }
 }
 

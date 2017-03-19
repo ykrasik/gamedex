@@ -11,6 +11,7 @@ import com.typesafe.config.Config
  * Time: 10:53
  */
 data class GiantBombConfig(
+    val endpoint: String,
     val applicationKey: String,
     private val platforms: Map<GamePlatform, Int>
 ) {
@@ -20,6 +21,7 @@ data class GiantBombConfig(
         operator fun invoke(config: Config = ConfigProvider.config): GiantBombConfig =
             config.getConfig("gameDex.provider.giantBomb").let { config ->
                 GiantBombConfig(
+                    endpoint = config.getString("endpoint"),
                     applicationKey = config.getString("applicationKey"),
                     platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int })
                 )

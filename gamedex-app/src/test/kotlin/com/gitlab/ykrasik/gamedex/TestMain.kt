@@ -8,6 +8,7 @@ import com.gitlab.ykrasik.gamedex.common.util.toFile
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomAddGameRequest
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomGameImage
 import com.typesafe.config.ConfigValueFactory
@@ -21,17 +22,23 @@ import kotlinx.coroutines.experimental.runBlocking
  * Time: 21:59
  */
 object TestMain {
+    val numGames = 1000
+    val giantBombPort = 9001
+
     @JvmStatic fun main(args: Array<String>) {
         ConfigProvider.setConfig(defaultConfig
             .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:./test"))
+            .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef("http://localhost:$giantBombPort/"))
         )
 
-        generateDb(1000)
+        GiantBombEmbeddedServer(giantBombPort).start()
+
+//        generateDb()
 
         Main.main(args)
     }
 
-    private fun generateDb(numGames: Int) {
+    private fun generateDb() {
         Main.GuiceDiContainer.getInstance(DbInitializer::class).reload()
         
         val persistenceService = Main.GuiceDiContainer.getInstance(PersistenceService::class)
