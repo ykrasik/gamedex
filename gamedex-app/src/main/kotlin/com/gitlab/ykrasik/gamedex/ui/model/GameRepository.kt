@@ -49,7 +49,7 @@ class GameRepository @Inject constructor(
             persistenceService.deleteGame(game.id)
         }
         run(JavaFx) {
-            check(games.remove(game)) { "Error! Game doesn't exist: $game" }
+            check(games.removeIf { it.id == game.id }) { "Error! Game doesn't exist: $game" }
         }
         log.info { "Done." }
     }

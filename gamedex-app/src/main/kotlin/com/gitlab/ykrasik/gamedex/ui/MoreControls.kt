@@ -3,6 +3,8 @@ package com.gitlab.ykrasik.gamedex.ui
 import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.control.*
+import javafx.scene.image.ImageView
+import javafx.util.Duration
 import tornadofx.*
 
 /**
@@ -36,7 +38,7 @@ fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): 
 
     var ok = false
     buttonClicked.ifPresent {
-        when(it) {
+        when (it) {
             ButtonType.OK -> ok = true
             ButtonType.CANCEL -> ok = false
             else -> error("Unexpected buttonType: $it")
@@ -57,4 +59,13 @@ fun ButtonBar.cancelButton(op: (Button.() -> Unit)? = null): Button {
         op?.invoke(this)
         isCancelButton = true
     }
+}
+
+fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView {
+    imageProperty().onChange {
+        fade(fadeInDuration, 1.0, play = true) {
+            fromValue = 0.0
+        }
+    }
+    return this
 }
