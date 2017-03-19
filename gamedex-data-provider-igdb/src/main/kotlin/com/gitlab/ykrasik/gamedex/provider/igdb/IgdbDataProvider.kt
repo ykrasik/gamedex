@@ -19,7 +19,6 @@ import javax.inject.Singleton
 class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : DataProvider {
     private val log by logger()
 
-    private val endpoint = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/"
     private val baseImageUrl = "http://images.igdb.com/igdb/image/upload"
 
     private val searchFields = listOf(
@@ -52,7 +51,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun doSearch(name: String, platform: GamePlatform): List<IgdbSearchResult> {
-        val response = getRequest(endpoint,
+        val response = getRequest(config.endpoint,
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
             "limit" to 20.toString(),
@@ -62,11 +61,11 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     }
 
     private fun IgdbSearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
-        apiUrl = "$endpoint$id",
+        apiUrl = "${config.endpoint}$id",
         name = name,
         releaseDate = findReleaseDate(platform),
         score = aggregatedRating,
-        thumbnailUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.thumb) }
+        thumbnailUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.thumb, x2 = true) }
     )
 
     private fun IgdbSearchResult.findReleaseDate(platform: GamePlatform): LocalDate? {
@@ -81,9 +80,9 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         // IGBD search sucks. It returns way more results then it should.
         // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
         val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
-        return response.asSequence().filter { result ->
+        return response.asSequence().filter { (_, name) ->
             searchWords.all { word ->
-                result.name.containsIgnoreCase(word)
+                name.containsIgnoreCase(word)
             }
         }.map { it.toSearchResult(platform) }.toList()
     }

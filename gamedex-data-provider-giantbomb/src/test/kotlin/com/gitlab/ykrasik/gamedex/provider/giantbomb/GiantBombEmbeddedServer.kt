@@ -1,12 +1,14 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.common.testkit.*
+import kotlinx.coroutines.experimental.delay
 import org.jetbrains.ktor.application.call
 import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.netty.embeddedNettyServer
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.get
 import org.jetbrains.ktor.routing.routing
+import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
@@ -28,6 +30,7 @@ class GiantBombEmbeddedServer(port: Int) {
                 call.respondText(randomSearchResponse(), ContentType.Application.Json)
             }
             get(imagePath) {
+                delay(rnd.nextInt(1000).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
             }
             get(apiDetailPath) {
