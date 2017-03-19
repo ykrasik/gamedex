@@ -5,12 +5,12 @@ import com.gitlab.ykrasik.gamedex.common.util.sizeProperty
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
-import com.gitlab.ykrasik.gamedex.ui.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.okButton
-import com.gitlab.ykrasik.gamedex.ui.padding
+import com.gitlab.ykrasik.gamedex.ui.*
+import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -56,11 +56,15 @@ class ChooseSearchResultFragment(
         center {
             tableView = tableview(searchResults) {
                 makeIndexColumn()
-                column("Thumbnail", ProviderSearchResultView::thumbnail) {
-                    setCellFactory {
-                        object : TableCell<ProviderSearchResultView, ImageView>() {
-                            override fun updateItem(thumbnail: ImageView?, empty: Boolean) {
-                                if (empty) graphic = null else graphic = thumbnail
+                customColumn("Thumbnail", ProviderSearchResultView::thumbnail) {
+                    object : TableCell<ProviderSearchResultView, ReadOnlyObjectProperty<Image>>() {
+                        private val imageView = ImageView().fadeOnImageChange()
+                        init { graphic = imageView }
+                        override fun updateItem(thumbnail: ReadOnlyObjectProperty<Image>?, empty: Boolean) {
+                            if (empty) {
+                                imageView.imageProperty().unbind()
+                            } else {
+                                imageView.imageProperty().cleanBind(thumbnail!!)
                             }
                         }
                     }
@@ -112,7 +116,7 @@ class ChooseSearchResultFragment(
 
 class ProviderSearchResultView(
     val searchResult: ProviderSearchResult,
-    val thumbnail: ImageView
+    val thumbnail: ReadOnlyObjectProperty<Image>
 ) {
     val name get() = searchResult.name
     val releaseDate get() = searchResult.releaseDate

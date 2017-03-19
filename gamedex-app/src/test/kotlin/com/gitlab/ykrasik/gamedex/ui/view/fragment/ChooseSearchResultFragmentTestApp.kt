@@ -1,13 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.common.datamodel.DataProviderType
-import com.gitlab.ykrasik.gamedex.common.util.toFile
-import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.SearchContext
-import com.gitlab.ykrasik.gamedex.ui.UIResources
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import tornadofx.observable
 
 /**
  * User: ykrasik
@@ -16,10 +13,8 @@ import kotlinx.coroutines.experimental.launch
  */
 object ChooseSearchResultFragmentTestApp : BaseTestApp() {
     override fun init() {
-        val context = SearchContext("Assassin's Creed", "somePath".toFile())
-        val info = DataProviderInfo("Some Provider", DataProviderType.GiantBomb, UIResources.Images.notAvailable)
         launch(CommonPool) {
-            println("Result: " + ChooseSearchResultFragment(context, info, testSearchResults).show())
+            println("Result: " + ChooseSearchResultFragment(randomSearchContext(), GiantBombDataProvider.info, randomSearchResults(10).observable()).show())
             System.exit(0)
         }
     }

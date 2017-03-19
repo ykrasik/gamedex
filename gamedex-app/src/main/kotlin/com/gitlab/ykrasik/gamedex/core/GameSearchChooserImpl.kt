@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.ProviderSearchResultView
-import javafx.scene.image.ImageView
 import tornadofx.observable
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,8 +23,7 @@ class GameSearchChooserImpl @Inject constructor(private val imageLoader: ImageLo
     }
 
     private fun ProviderSearchResult.toView(): ProviderSearchResultView {
-        val imageView = ImageView()
-        imageLoader.downloadImage(thumbnailUrl, imageView)
-        return ProviderSearchResultView(this, imageView)
+        val thumbnail = imageLoader.downloadImage(thumbnailUrl)
+        return ProviderSearchResultView(this, thumbnail)
     }
 }

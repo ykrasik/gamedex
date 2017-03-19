@@ -19,12 +19,6 @@ import javax.inject.Singleton
 class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : DataProvider {
     private val log by logger()
 
-    override val info = DataProviderInfo(
-        name = "IGDB",
-        type = DataProviderType.GiantBomb,
-        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/igdb/igdb.png").toImage()
-    )
-
     private val endpoint = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/"
     private val baseImageUrl = "http://images.igdb.com/igdb/image/upload"
 
@@ -164,4 +158,14 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
 
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
+
+    override val info = IgdbDataProvider.info
+
+    companion object {
+        val info = DataProviderInfo(
+            name = "IGDB",
+            type = DataProviderType.GiantBomb,
+            logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/igdb/igdb.png").toImage()
+        )
+    }
 }

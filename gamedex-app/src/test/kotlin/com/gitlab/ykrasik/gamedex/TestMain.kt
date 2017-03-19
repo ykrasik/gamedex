@@ -19,7 +19,7 @@ import kotlinx.coroutines.experimental.runBlocking
  */
 object TestMain {
     @JvmStatic fun main(args: Array<String>) {
-        generateDb(1000)
+//        generateDb(1000)
 
         Main.main(args)
     }

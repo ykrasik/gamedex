@@ -2,21 +2,16 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.common.util.mapped
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
-import com.gitlab.ykrasik.gamedex.ui.gridView
+import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewLimitedPane
-import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
-import kotlinx.coroutines.experimental.Job
-import org.controlsfx.control.GridCell
-import tornadofx.View
-import tornadofx.addClass
-import tornadofx.contextmenu
-import tornadofx.menuitem
+import tornadofx.*
 import java.net.URLEncoder
 
 /**
@@ -27,84 +22,71 @@ import java.net.URLEncoder
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
     private val repository: GameRepository by di()
-    private val imageLoader: ImageLoader by di()
     private val userPreferences: UserPreferences by di()
+    private val imageLoader: ImageLoader by di()
 
-    override val root = gridView<Game> {
-        itemsProperty().bind(repository.gamesProperty)
+    private val gameViewProperty = repository.gamesProperty.mapped { GameViewItem(it) }
 
+    override val root = datagrid(gameViewProperty) {
         cellHeight = 192.0
         cellWidth = 136.0
         horizontalCellSpacing = 3.0
         verticalCellSpacing = 3.0
 
-        setCellFactory {
-            val cell = GameWallCell(imageLoader, userPreferences)
+        cellFactory = {
+            val cell = GameWallCell(userPreferences)
             cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
-                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
+                    val search = URLEncoder.encode("${cell.item!!.game.name} pc gameplay", "utf-8")
                     "https://www.youtube.com/results?search_query=$search".browseToUrl()
                 }
             }
             cell.contextmenu {
-                menuitem("Delete") { controller.delete(cell.item) }
+                menuitem("Delete") { controller.delete(cell.item.game) }
             }
             cell
         }
     }
-}
 
-class GameWallCell(private val imageLoader: ImageLoader, userPreferences: UserPreferences) : GridCell<Game>() {
-    private val imageView = ImageView()
-    private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
+    inner class GameWallCell(userPreferences: UserPreferences) : DataGridCell<GameViewItem>(root) {
+        private val imageView = ImageView().fadeOnImageChange()
+        private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
 
-    private var loadingTask: NotifiableJob<Job>? = null
+        init {
+            // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
+            imageViewLimitedPane.translateX = -1.0
 
-    init {
+            imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
+            imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
+            imageViewLimitedPane.clip = createClippingArea()
 
-        // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
-        imageViewLimitedPane.translateX = -1.0
+            addClass(Styles.gameTile, Styles.card)
+            graphic = imageViewLimitedPane
+        }
 
-        imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
-        imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
-        imageViewLimitedPane.clip = createClippingArea()
+        private fun createClippingArea(): Rectangle {
+            val clip = Rectangle()
+            clip.x = 1.0
+            clip.y = 1.0
+            clip.arcWidth = 20.0
+            clip.arcHeight = 20.0
+            clip.heightProperty().bind(imageViewLimitedPane.heightProperty().subtract(2))
+            clip.widthProperty().bind(imageViewLimitedPane.widthProperty().subtract(2))
+            return clip
+        }
 
-        addClass(Styles.gameTile, Styles.card)
-        addClass("image-grid-cell") //$NON-NLS-1$
-        graphic = imageViewLimitedPane
-    }
+        override fun updateItem(item: GameViewItem?, empty: Boolean) {
+            super.updateItem(item, empty)
 
-    private fun createClippingArea(): Rectangle {
-        val clip = Rectangle()
-        clip.x = 1.0
-        clip.y = 1.0
-        clip.arcWidth = 20.0
-        clip.arcHeight = 20.0
-        clip.heightProperty().bind(imageViewLimitedPane.heightProperty().subtract(2))
-        clip.widthProperty().bind(imageViewLimitedPane.widthProperty().subtract(2))
-        return clip
-    }
-
-    override fun updateItem(item: Game?, empty: Boolean) {
-        super.updateItem(item, empty)
-
-        // FIXME: This could create race condition when an un-cancelled task finishes after the new task and overrides the cell's image.
-//        cancelPrevTask()
-        if (item != null) {
-            fetchThumbnail(item)
-        } else {
-            imageView.image = null
+            if (item != null) {
+                imageView.imageProperty().bind(item.thumbnailProperty)
+            } else {
+                imageView.image = null
+            }
         }
     }
 
-    private fun fetchThumbnail(game: Game) {
-        game.imageIds.thumbnailId?.let { thumbnailId ->
-            loadingTask = imageLoader.fetchImage(thumbnailId, imageView)
-        }
-    }
-
-    private fun cancelPrevTask() {
-        loadingTask?.job?.cancel()
-        loadingTask = null
+    inner class GameViewItem(val game: Game) {
+        val thumbnailProperty by lazy { imageLoader.fetchImage(game.imageIds.thumbnailId) }
     }
 }

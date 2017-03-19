@@ -4,8 +4,10 @@ import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
+import javafx.util.Callback
 import javafx.util.Duration
 import tornadofx.*
+import kotlin.reflect.KProperty1
 
 /**
  * User: ykrasik
@@ -27,6 +29,16 @@ fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(tex
 inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: (ComboBox<T>.() -> Unit)? = null): ComboBox<T> {
     val enumValues = T::class.java.enumConstants.asList().observable<T>()
     return combobox(property, enumValues, op)
+}
+
+inline fun <reified S, T> TableView<S>.customColumn(title: String,
+                                                    prop: KProperty1<S, T>,
+                                                    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
+    val column = TableColumn<S, T>(title)
+    addColumnInternal(column)
+    column.cellValueFactory = Callback { observable(it.value, prop) }
+    column.setCellFactory { cellFactory(it) }
+    return column
 }
 
 fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {

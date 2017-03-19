@@ -1,19 +1,25 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.*
-import com.gitlab.ykrasik.gamedex.common.util.*
+import com.gitlab.ykrasik.gamedex.common.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import javafx.scene.image.ImageView
+import com.gitlab.ykrasik.gamedex.provider.SearchContext
+import javafx.beans.property.SimpleObjectProperty
+import javafx.scene.image.Image
+import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import tornadofx.observable
 import java.io.File
+import java.util.*
 
 /**
  * User: ykrasik
  * Date: 18/03/2017
  * Time: 20:48
  */
+private val rnd = Random()
+
 object TestImages {
     private fun loadImage(name: String) = getResourceAsByteArray(name)
 
@@ -25,32 +31,8 @@ object TestImages {
         }
     }
 
-    fun randomImage(): ImageView = images.randomElement().toImageView()
+    fun randomImage(): Image = images.randomElement().toImage()
 }
-
-val testSearchResults = listOf(
-    ProviderSearchResultView(ProviderSearchResult(
-        name = "Assassin's Creed",
-        releaseDate = LocalDate.parse("2007-11-13"),
-        score = 89.1,
-        thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2843355-ac.jpg",
-        apiUrl = "http://www.giantbomb.com/api/game/3030-2950/"
-    ), TestImages.randomImage()),
-    ProviderSearchResultView(ProviderSearchResult(
-        name = "Assassin's Creed II",
-        releaseDate = LocalDate.parse("2009-11-17"),
-        score = 86.7,
-        thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2392977-assassins_creed_ii_05_artwork.jpg",
-        apiUrl = "http://www.giantbomb.com/api/game/3030-22928/"
-    ), TestImages.randomImage()),
-    ProviderSearchResultView(ProviderSearchResult(
-        name = "Assassin's Creed: Brotherhood",
-        releaseDate = LocalDate.parse("2010-11-16"),
-        score = 84.3,
-        thumbnailUrl = "http://www.giantbomb.com/api/image/scale_avatar/2843337-acbro.jpg",
-        apiUrl = "http://www.giantbomb.com/api/game/3030-31001/"
-    ), TestImages.randomImage())
-).observable()
 
 fun randomAddGameRequest() = AddGameRequest(
     metaData = randomMetaData(),
@@ -61,7 +43,7 @@ fun randomAddGameRequest() = AddGameRequest(
 
 private fun randomMetaData() = MetaData(
     libraryId = 1,
-    path = File(randomSlashDelimitedString()),
+    path = randomFile(),
     lastModified = randomDateTime()
 )
 
@@ -69,16 +51,16 @@ private fun randomGameData() = GameData(
     name = randomString(),
     description = randomSentence(),
     releaseDate = randomLocalDate(),
-    criticScore = rnd.nextDouble() * 10,
-    userScore = rnd.nextDouble() * 10,
+    criticScore = randomScore(),
+    userScore = randomScore(),
     genres = List(rnd.nextInt(4)) { randomString(length = 4, variance = 4) }
 )
 
 private fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType.values().size)) {
     ProviderData(
         type = randomEnum(),
-        apiUrl = randomSlashDelimitedString(),
-        url = randomSlashDelimitedString()
+        apiUrl = randomUrl(),
+        url = randomUrl()
     )
 }
 
@@ -94,4 +76,56 @@ fun randomGameImage(id: Int) = GameImage(
     bytes = TestImages.images.randomElement()
 )
 
-private fun randomSlashDelimitedString(): String = randomSentence(maxWords = 5, avgWordLength = 5, delimiter = "/")
+fun randomSearchContext() = SearchContext(
+    searchedName = randomString(10, variance = 3),
+    path = randomFile()
+)
+
+fun randomSearchResults(amount: Int) = List(amount) {
+    ProviderSearchResultView(ProviderSearchResult(
+        name = randomSentence(maxWords = 4, avgWordLength = 10, variance = 2),
+        releaseDate = randomLocalDate(),
+        score = randomScore(),
+        thumbnailUrl = randomUrl(),
+        apiUrl = randomUrl()
+    ), SimpleObjectProperty(TestImages.randomImage()))
+}
+
+private fun randomSlashDelimitedString(): String = randomSentence(maxWords = 7, avgWordLength = 5, delimiter = "/")
+private fun randomFile() = File(randomSlashDelimitedString())
+private fun randomUrl() = "http://${randomSentence(maxWords = 3, avgWordLength = 5, variance = 2, delimiter = ".")}/${randomSlashDelimitedString()}/${randomString(length = 5, variance = 3)}"
+private fun randomScore() = rnd.nextDouble() * 100
+
+private val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+private fun randomString(length: Int = 20, variance: Int = 0): String {
+    val str = StringBuilder()
+    repeat(length.withVariance(variance)) {
+        str.append(chars[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(chars.length)])
+    }
+    return str.toString()
+}
+
+private fun randomSentence(maxWords: Int = 10, avgWordLength: Int = 20, variance: Int = 5, delimiter: String = " "): String {
+    val str = StringBuilder()
+    repeat(maxOf(com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(maxWords), 3)) {
+        str.append(randomString(avgWordLength, variance))
+        str.append(delimiter)
+    }
+    return str.toString()
+}
+
+private fun Int.withVariance(variance: Int): Int =
+    if (variance == 0) {
+        this
+    } else {
+        val multiplier: Int = com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(variance) + 1
+        if (com.gitlab.ykrasik.gamedex.common.util.rnd.nextBoolean()) (this * multiplier) else (this / multiplier)
+    }
+
+private fun randomDateTime(): DateTime = DateTime(com.gitlab.ykrasik.gamedex.common.util.rnd.nextLong())
+private fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
+
+private inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
+
+private fun <T> List<T>.randomElement(): T = this[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(size)]
+private fun <T> Array<T>.randomElement(): T = this[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(size)]

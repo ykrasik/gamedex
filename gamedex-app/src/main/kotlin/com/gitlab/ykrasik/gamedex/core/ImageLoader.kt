@@ -5,16 +5,15 @@ import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.common.util.toImage
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.ui.UIResources
-import com.gitlab.ykrasik.gamedex.util.NotifiableJob
-import com.gitlab.ykrasik.gamedex.util.notifiableJob
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import javafx.animation.FadeTransition
-import javafx.scene.image.ImageView
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.SimpleObjectProperty
+import javafx.scene.image.Image
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import tornadofx.fade
-import tornadofx.seconds
+import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
@@ -25,98 +24,55 @@ import tornadofx.seconds
 class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log by logger()
 
-    // TODO: More threads? Split into 2 contexts - fetch & download?
-    private val context = newSingleThreadContext("image-loader")
+    private val downloadContext = newFixedThreadPoolContext(1, "image-downloader")
+    private val fetchContext = newFixedThreadPoolContext(1, "image-fetcher")
 
-    private val downloadJobCache = mutableMapOf<String, NotifiableJob<Job>>()
-    private val fetchJobCache = mutableMapOf<Int, NotifiableJob<Job>>()
+    private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
-    private val fadeInDuration = 0.02.seconds
-    private val fadeOutDuration = 0.05.seconds
-
-    fun downloadImage(url: String?, into: ImageView): NotifiableJob<Job> {
-        if (url == null) {
-            return createJob {
-                launch(JavaFx) {
-                    into.image = UIResources.Images.notAvailable
-                }
-            }
-        }
-        return downloadJobCache.getOrPut(url) {
-            createJob { notification ->
-                downloadImage(url, into, notification)
-            }
+    fun fetchImage(id: Int?): ReadOnlyObjectProperty<Image> {
+        if (id == null) return notAvailable
+        return loadImage(fetchContext) {
+            fetchOrDownloadImage(id)
         }
     }
 
-    fun fetchImage(id: Int, into: ImageView): NotifiableJob<Job> = fetchJobCache.getOrPut(id) {
-        createJob { notification ->
-            fetchImage(id, into, notification)
+    fun downloadImage(url: String?): ReadOnlyObjectProperty<Image> {
+        if (url == null) return notAvailable
+        return loadImage(downloadContext) {
+            downloadImage(url)
         }
     }
 
-    private inline fun createJob(crossinline f: (Notification) -> Unit): NotifiableJob<Job> =
-        notifiableJob { notification ->
-            launch(context) {
-                f(notification)
-            }
-        }
-
-    private fun downloadImage(url: String, imageView: ImageView, notification: Notification): ByteArray {
-        return loadImage(imageView) {
-            // FIXME: Create a rest client api for unit tests.
-            log.info { "Downloading: $url..." }
-            val bytes = download(url, stream = true) { downloaded, total ->
-                notification.progress(downloaded, total)
-            }
-            log.info { "Done. Size: ${bytes.size}" }
-            bytes
-        }
-    }
-
-    private fun fetchImage(id: Int, imageView: ImageView, notification: Notification) {
-        loadImage(imageView) {
-            val image = persistenceService.fetchImage(id)
-            image.bytes?.let { return@loadImage it  }
-
-            log.debug { "Image $id does not exist in db." }
-            val bytes = downloadImage(image.url, imageView, notification)
-
-            async(CommonPool) {
-                // Save downloaded image in a different thread.
-                persistenceService.updateImage(image.copy(bytes = bytes))
-            }
-            bytes
-        }
-    }
-
-    private inline fun loadImage(imageView: ImageView, crossinline f: () -> ByteArray): ByteArray {
+    private fun loadImage(context: CoroutineContext, f: suspend () -> ByteArray): ObjectProperty<Image> {
+        val imageProperty = SimpleObjectProperty<Image>()
         async(JavaFx) {
-            imageView.image = UIResources.Images.loading
+            imageProperty.value = UIResources.Images.loading
         }
-
-        val bytes = try {
-            f()
-        } catch (e: Exception) {
-            log.error(e)
-            ByteArray(0)
-        }
-
-        val image = if (bytes.isNotEmpty()) bytes.toImage() else UIResources.Images.notAvailable
-
-        val fadeTransition = FadeTransition(fadeOutDuration, imageView)
-        fadeTransition.fromValue = 1.0
-        fadeTransition.toValue = 0.0
-        fadeTransition.setOnFinished {
-            imageView.image = image
-            imageView.fade(fadeInDuration, 1.0, play = true) {
-                fromValue = 0.0
+        launch(context) {
+            val image = f().toImage()
+            run(JavaFx) {
+                imageProperty.value = image
             }
         }
-        async(JavaFx) {
-            fadeTransition.play()
-        }
+        return imageProperty
+    }
 
-        return bytes
+    private suspend fun fetchOrDownloadImage(id: Int): ByteArray {
+        val image = persistenceService.fetchImage(id)
+        image.bytes?.let { return it  }
+
+        val downloadedImage = downloadImage(image.url)
+        async(CommonPool) {
+            // Save downloaded image in a different thread.
+            persistenceService.updateImage(image.copy(bytes = downloadedImage))
+        }
+        return downloadedImage
+    }
+
+    private suspend fun downloadImage(url: String): ByteArray = run(downloadContext) {
+        log.info { "Downloading: $url..." }
+        val bytes = download(url, stream = true) { _, _ -> }
+        log.info { "Done. Size: ${bytes.size}" }
+        bytes
     }
 }

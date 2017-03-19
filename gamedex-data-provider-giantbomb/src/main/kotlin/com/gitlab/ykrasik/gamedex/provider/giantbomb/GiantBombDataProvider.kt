@@ -22,12 +22,6 @@ import javax.inject.Singleton
 class GiantBombDataProvider @Inject constructor(private val config: GiantBombConfig) : DataProvider {
     private val log by logger()
 
-    override val info = DataProviderInfo(
-        name = "GiantBomb",
-        type = DataProviderType.GiantBomb,
-        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
-    )
-
     private val endpoint = "http://www.giantbomb.com/api/games"
 
     private val searchFields = listOf(
@@ -125,4 +119,14 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
         params = mapOf("api_key" to config.applicationKey, "format" to "json", *parameters)
     )
+
+    override val info = GiantBombDataProvider.info
+
+    companion object {
+        val info = DataProviderInfo(
+            name = "GiantBomb",
+            type = DataProviderType.GiantBomb,
+            logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
+        )
+    }
 }
