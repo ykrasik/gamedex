@@ -26,7 +26,7 @@ object TestMain {
             .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:./test"))
         )
 
-//        generateDb(1000)
+        generateDb(1000)
 
         Main.main(args)
     }

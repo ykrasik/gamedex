@@ -98,6 +98,19 @@ subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'org.jetbrains.dokka'
 
+    configurations {
+        testArtifacts.extendsFrom testRuntime
+    }
+    
+    task testJar(type: Jar) {
+        classifier "test"
+        from sourceSets.test.output
+    }
+    
+    artifacts {
+        testArtifacts testJar
+    }
+    
     dependencies {
         compile ktlin.std
         compile ktlin.reflect
@@ -145,6 +158,10 @@ project("gamedex-app") {
         compile controlsFx
         compile tornadoFx.core
         compile tornadoFx.controls
+
+        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
+        testCompile project(path: ":gamedex-data-provider-giantbomb", configuration: 'testArtifacts')
+        testCompile project(path: ":gamedex-data-provider-igdb", configuration: 'testArtifacts')
     }
 }
 
@@ -188,11 +205,13 @@ project("gamedex-data-provider") {
 project("gamedex-data-provider-giantbomb") {
     dependencies {
         compile project(":gamedex-data-provider")
+        testCompile project(path: ":gamedex-data-provider", configuration: 'testArtifacts')
     }
 }
 
 project("gamedex-data-provider-igdb") {
     dependencies {
         compile project(":gamedex-data-provider")
+        testCompile project(path: ":gamedex-data-provider", configuration: 'testArtifacts')
     }
 }
