@@ -100,14 +100,14 @@ private val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 private fun randomString(length: Int = 20, variance: Int = 0): String {
     val str = StringBuilder()
     repeat(length.withVariance(variance)) {
-        str.append(chars[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(chars.length)])
+        str.append(chars[rnd.nextInt(chars.length)])
     }
     return str.toString()
 }
 
 private fun randomSentence(maxWords: Int = 10, avgWordLength: Int = 20, variance: Int = 5, delimiter: String = " "): String {
     val str = StringBuilder()
-    repeat(maxOf(com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(maxWords), 3)) {
+    repeat(maxOf(rnd.nextInt(maxWords), 3)) {
         str.append(randomString(avgWordLength, variance))
         str.append(delimiter)
     }
@@ -118,14 +118,14 @@ private fun Int.withVariance(variance: Int): Int =
     if (variance == 0) {
         this
     } else {
-        val multiplier: Int = com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(variance) + 1
-        if (com.gitlab.ykrasik.gamedex.common.util.rnd.nextBoolean()) (this * multiplier) else (this / multiplier)
+        val multiplier: Int = rnd.nextInt(variance) + 1
+        if (rnd.nextBoolean()) (this * multiplier) else (this / multiplier)
     }
 
-private fun randomDateTime(): DateTime = DateTime(com.gitlab.ykrasik.gamedex.common.util.rnd.nextLong())
+private fun randomDateTime(): DateTime = DateTime(rnd.nextLong())
 private fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 
 private inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 
-private fun <T> List<T>.randomElement(): T = this[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(size)]
-private fun <T> Array<T>.randomElement(): T = this[com.gitlab.ykrasik.gamedex.common.util.rnd.nextInt(size)]
+private fun <T> List<T>.randomElement(): T = this[rnd.nextInt(size)]
+private fun <T> Array<T>.randomElement(): T = this[rnd.nextInt(size)]

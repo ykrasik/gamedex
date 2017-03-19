@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.common.util
 
+import com.google.common.annotations.VisibleForTesting
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 
@@ -8,10 +9,22 @@ import com.typesafe.config.ConfigFactory
  * Date: 01/10/2016
  * Time: 21:56
  */
+object ConfigProvider {
+    private var _config: Config = defaultConfig
+
+    // TODO: Find a cleaner solution.
+    @VisibleForTesting
+    fun setConfig(config: Config) {
+        _config = config
+    }
+
+    val config: Config get() = _config
+}
+
 val defaultConfig: Config = run {
     val configurationFiles = ClassPathScanner.scanPackage("") {
         it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
-    }.sortedByDescending { it.file.split("/").last() }
+    }
 
     // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
     configurationFiles.fold(ConfigFactory.load()) { current, url ->
