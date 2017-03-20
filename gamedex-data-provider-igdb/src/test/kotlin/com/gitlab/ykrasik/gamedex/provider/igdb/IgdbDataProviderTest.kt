@@ -24,8 +24,8 @@ class IgdbDataProviderTest : StringSpec() {
                     apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225",
                     name = "No Man's Sky",
                     releaseDate = LocalDate.parse("2016-08-12"),
-                    score = 71.75,
-                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb/sixpdbypwojsyly22a1l.png"
+                    score = 72.5555555555556,
+                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.png"
                 )
             )
         }
@@ -38,14 +38,14 @@ class IgdbDataProviderTest : StringSpec() {
                     name = "Titan Quest",
                     releaseDate = LocalDate.parse("2006-06-26"),
                     score = 83.3333333333333,
-                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb/yqxdf0umlkvw6iqg0rll.png"
+                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/yqxdf0umlkvw6iqg0rll.png"
                 ),
                 ProviderSearchResult(
                     apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/8312",
                     name = "Titan Quest: Immortal Throne",
                     releaseDate = LocalDate.parse("2007-03-05"),
                     score = 76.6666666666667,
-                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb/ijhkjs299feklpg2ne9f.png"
+                    thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/ijhkjs299feklpg2ne9f.png"
                 )
             )
         }
@@ -58,7 +58,7 @@ class IgdbDataProviderTest : StringSpec() {
         "Fetch a valid game details url" {
             val name = "No Man's Sky"
             val releaseDate = LocalDate.parse("2016-08-09")
-            val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb/sixpdbypwojsyly22a1l.png"
+            val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.png"
             val apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225"
             val response = provider.fetch(searchResult(apiUrl, name, releaseDate, thumbnailUrl))
             response shouldBe ProviderFetchResult(
@@ -71,8 +71,8 @@ class IgdbDataProviderTest : StringSpec() {
                     name = name,
                     description = "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action. \n\nIn No Man's Sky, every star is the light of a distant sun, each orbited by planets filled with life, and you can go to any of them you choose. Fly smoothly from deep space to planetary surfaces, with no loading screens, and no limits. In this infinite procedurally generated universe, you'll discover places and creatures that no other players have seen before - and perhaps never will again.",
                     releaseDate = releaseDate,
-                    criticScore = 71.75,
-                    userScore = 63.6072343203806,
+                    criticScore = 72.5555555555556,
+                    userScore = 62.8707346675691,
                     genres = listOf("Shooter", "Role-playing (RPG)", "Simulator", "Adventure", "Indie")
                 ),
                 imageUrls = ImageUrls(

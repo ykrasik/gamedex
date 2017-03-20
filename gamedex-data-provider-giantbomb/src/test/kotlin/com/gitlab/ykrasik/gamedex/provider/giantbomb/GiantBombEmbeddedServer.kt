@@ -30,7 +30,7 @@ class GiantBombEmbeddedServer(port: Int) {
                 call.respondText(randomSearchResponse(), ContentType.Application.Json)
             }
             get(imagePath) {
-                delay(rnd.nextInt(1000).toLong(), TimeUnit.MILLISECONDS)
+                delay(rnd.nextInt(700).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
             }
             get(apiDetailPath) {

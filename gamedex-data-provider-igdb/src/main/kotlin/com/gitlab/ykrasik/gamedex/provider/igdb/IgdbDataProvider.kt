@@ -19,8 +19,6 @@ import javax.inject.Singleton
 class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : DataProvider {
     private val log by logger()
 
-    private val baseImageUrl = "http://images.igdb.com/igdb/image/upload"
-
     private val searchFields = listOf(
         "name",
         "aggregated_rating",
@@ -142,7 +140,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     )
 
     private fun imageUrl(hash: String, type: IgdbImageType, x2: Boolean = false) =
-        "$baseImageUrl/t_$type${if (x2) "_2x" else ""}/$hash.png"
+        "${config.baseImageUrl}/t_$type${if (x2) "_2x" else ""}/$hash.png"
 
     private enum class IgdbImageType {
         micro, // 35 x 35

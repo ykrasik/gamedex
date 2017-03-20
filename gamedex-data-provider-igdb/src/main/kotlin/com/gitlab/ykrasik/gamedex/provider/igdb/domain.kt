@@ -10,7 +10,7 @@ import org.joda.time.format.DateTimeFormat
  * Time: 11:24
  */
 data class IgdbSearchResult(
-    val id: String,
+    val id: Int,
     val name: String,
     val aggregatedRating: Double?,
     val releaseDates: List<IgdbReleaseDate>?,

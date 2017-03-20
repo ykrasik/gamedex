@@ -9,6 +9,7 @@ import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
+import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbEmbeddedServer
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomAddGameRequest
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomGameImage
 import com.typesafe.config.ConfigValueFactory
@@ -24,14 +25,18 @@ import kotlinx.coroutines.experimental.runBlocking
 object TestMain {
     val numGames = 1000
     val giantBombPort = 9001
+    val igdbPort = 9002
 
     @JvmStatic fun main(args: Array<String>) {
         ConfigProvider.setConfig(defaultConfig
             .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:./test"))
             .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef("http://localhost:$giantBombPort/"))
+            .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef("http://localhost:$igdbPort/"))
+            .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef("http://localhost:$igdbPort/images"))
         )
 
         GiantBombEmbeddedServer(giantBombPort).start()
+        IgdbEmbeddedServer(igdbPort).start()
 
 //        generateDb()
 

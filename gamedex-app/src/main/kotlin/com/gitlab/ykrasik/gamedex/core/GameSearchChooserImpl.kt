@@ -23,6 +23,7 @@ class GameSearchChooserImpl @Inject constructor(private val imageLoader: ImageLo
     }
 
     private fun ProviderSearchResult.toView(): ProviderSearchResultView {
+        // TODO: Cancel running download jobs when search result screen is closed.
         val thumbnail = imageLoader.downloadImage(thumbnailUrl)
         return ProviderSearchResultView(this, thumbnail)
     }
