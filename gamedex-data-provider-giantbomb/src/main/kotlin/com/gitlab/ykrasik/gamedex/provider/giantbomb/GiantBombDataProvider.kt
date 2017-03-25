@@ -115,7 +115,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
     }
 
     private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = mapOf("api_key" to config.applicationKey, "format" to "json", *parameters)
+        params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)
     )
 
     override val info = GiantBombDataProvider.info

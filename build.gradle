@@ -45,6 +45,7 @@ buildscript {
             netty = [group: 'org.jetbrains.ktor', name: 'ktor-netty', version: v]
             delegate
         }
+        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.5.1']
 
         jackson = [:].with {
             v = '2.8.3'
@@ -207,6 +208,7 @@ project("gamedex-data-provider") {
         compile project(":gamedex-common")
 
         testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
+        testCompile wiremock
         testCompile ktor.core
         testCompile ktor.netty
     }

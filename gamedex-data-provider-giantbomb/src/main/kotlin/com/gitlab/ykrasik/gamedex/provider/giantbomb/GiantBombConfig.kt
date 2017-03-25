@@ -12,7 +12,7 @@ import com.typesafe.config.Config
  */
 data class GiantBombConfig(
     val endpoint: String,
-    val applicationKey: String,
+    val apiKey: String,
     private val platforms: Map<GamePlatform, Int>
 ) {
     fun getPlatformId(platform: GamePlatform) = platforms[platform]!!
@@ -22,7 +22,7 @@ data class GiantBombConfig(
             config.getConfig("gameDex.provider.giantBomb").let { config ->
                 GiantBombConfig(
                     endpoint = config.getString("endpoint"),
-                    applicationKey = config.getString("applicationKey"),
+                    apiKey = config.getString("apiKey"),
                     platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int })
                 )
             }
