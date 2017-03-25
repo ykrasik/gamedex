@@ -50,15 +50,34 @@ class IgdbEmbeddedServer(port: Int) {
         id = apiDetailPath,
         name = "$name ${randomName()}",
         aggregatedRating = randomScore(),
-        releaseDates = List(rnd.nextInt(4)) { IgdbReleaseDate(
-            category = 0,
-            platform = listOf(6, 9, 12, 48, 49).randomElement(),
-            human = randomLocalDate().toString("YYYY-MMM-dd")
-        )},
+        releaseDates = List(rnd.nextInt(4)) { randomReleaseDate() },
         cover = IgdbImage(
             cloudinaryId = image
         )
     ) }.toJsonStr()
+
+    private fun randomReleaseDate(): IgdbReleaseDate {
+        val category = rnd.nextInt(8)
+        val date = randomLocalDate()
+        val human = when(category) {
+            0 -> date.toString("YYYY-MMM-dd")
+            1 -> date.toString("YYYY-MMM")
+            2 -> date.toString("YYYY")
+            3 -> date.toString("YYYY-'Q1'")
+            4 -> date.toString("YYYY-'Q2'")
+            5 -> date.toString("YYYY-'Q3'")
+            6 -> date.toString("YYYY-'Q4'")
+            7 -> "TBD"
+            else -> TODO()
+        }
+        return IgdbReleaseDate(
+            platform = randomPlatform(),
+            category = category,
+            human = human
+        )
+    }
+
+    private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
     private fun randomDetailResponse(): String = listOf(IgdbDetailsResult(
         url = randomUrl(),

@@ -45,7 +45,7 @@ fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${ran
 fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
 fun randomScore() = rnd.nextDouble() * 100
 
-fun randomDateTime(): DateTime = DateTime.now().plusMillis((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt())
+fun randomDateTime(): DateTime = DateTime.now().plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
