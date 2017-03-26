@@ -1,17 +1,23 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.common.util.clearSelection
-import com.gitlab.ykrasik.gamedex.common.util.sizeProperty
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchContext
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.customColumn
+import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.ui.okButton
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.collections.ObservableList
+import javafx.geometry.HPos
+import javafx.geometry.VPos
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Priority
+import javafx.scene.text.Font
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
 import tornadofx.*
@@ -25,37 +31,41 @@ class ChooseSearchResultFragment(
     private val context: SearchContext,
     private val info: DataProviderInfo,
     private val searchResults: ObservableList<ProviderSearchResultView>
-) : Fragment("Choose Search Result") {
+) : Fragment("Choose Search Result for '${context.searchedName}'") {
     private var tableView: TableView<ProviderSearchResultView> by singleAssign()
 
     private var accept = false
 
     override val root = borderpane {
-        minWidth = 620.0 // TODO: Make it fit the content.
         paddingAll = 20
         top {
-            vbox {
-                label("Path: ${context.path.path}") {
-                    paddingBottom = 10
+            gridpane {
+                label(context.path.path) {
+                    gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
+                    font = Font.font(20.0)
                 }
+                region { gridpaneConstraints { columnIndex = 1; rowSpan = 2; hGrow = Priority.ALWAYS } }
                 imageview {
+                    gridpaneConstraints { columnIndex = 2; vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                     image = info.logo
-                    fitHeight = 200.0
-                    fitWidth = 500.0
-                    isPickOnBounds = true   // TODO: What is this?
+                    fitHeight = 100.0
+                    fitWidth = 100.0
                     isPreserveRatio = true
                 }
-                label {
-                    padding { top = 10; bottom = 10 }
-                    textProperty().bind(
-                        searchResults.sizeProperty().asString("Search results for '${context.searchedName}': %d.")
-                    )
+                label(context.searchedName) {
+                    gridpaneConstraints { rowIndex = 1; vAlignment = VPos.BOTTOM; hAlignment = HPos.LEFT }
+                    font = Font.font(20.0)
                 }
+                label("Search results: ${searchResults.size}.") {
+                    gridpaneConstraints { rowIndex = 1; columnIndex = 2; vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
+                    font = Font.font(20.0)
+                }
+                paddingBottom = 10
             }
         }
         center {
             tableView = tableview(searchResults) {
-                makeIndexColumn()
+                val indexColumn = makeIndexColumn()
                 customColumn("Thumbnail", ProviderSearchResultView::thumbnail) {
                     object : TableCell<ProviderSearchResultView, ReadOnlyObjectProperty<Image>>() {
                         private val imageView = ImageView().fadeOnImageChange()
@@ -73,14 +83,12 @@ class ChooseSearchResultFragment(
                 column("Release Date", ProviderSearchResultView::releaseDate)
                 column("Score", ProviderSearchResultView::score)
 
-                setOnMouseClicked { e ->
-                    if (e.clickCount == 2) {
-                        val selectedItem = selectionModel.selectedItem
-                        if (selectedItem != null) {
-                            close(accept = true)
-                        }
-                    }
+                val minTableWidth = contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
+                    binding.add(column.widthProperty())
                 }
+                minWidthProperty().bind(minTableWidth)
+
+                onUserSelect(clickCount = 2) { close(accept = true) }
             }
             // FIXME: Add a search-again-with-new-name button.
         }
@@ -97,6 +105,11 @@ class ChooseSearchResultFragment(
                 }
             }
         }
+    }
+
+    override fun onDock() {
+        tableView.resizeColumnsToFitContent()
+        modalStage!!.minWidthProperty().bind(tableView.minWidthProperty().add(60))
     }
 
     suspend fun show(): ProviderSearchResultView? = run(JavaFx) {

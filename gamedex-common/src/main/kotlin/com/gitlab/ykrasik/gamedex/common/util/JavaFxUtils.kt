@@ -4,14 +4,17 @@ import javafx.application.Platform
 import javafx.application.Platform.runLater
 import javafx.beans.binding.ListExpression
 import javafx.beans.property.*
+import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.transformation.TransformationList
+import javafx.scene.control.TableColumnBase
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
+import javafx.stage.Stage
 import java.io.ByteArrayInputStream
 import java.util.*
 
@@ -50,17 +53,36 @@ class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
     }
 }
 
-fun Region.debugWidth(name: String) {
-    println("$name minWidth = $minWidth")
-    println("$name maxWidth = $maxWidth")
-    println("$name prefWidth = $prefWidth")
-    println("$name width = $width")
-
-    minWidthProperty().addListener { _, o, v -> println("$name minWidth changed: $o -> $v") }
-    maxWidthProperty().addListener { _, o, v -> println("$name maxWidth changed: $o -> $v") }
-    prefWidthProperty().addListener { _, o, v -> println("$name prefWidth changed: $o -> $v") }
-    widthProperty().addListener { _, o, v -> println("$name width changed: $o -> $v") }
+fun Region.printWidth(id: String) {
+    printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())
 }
+
+fun <S, T> TableColumnBase<S, T>.printWidth(id: String) {
+    printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())
+}
+
+fun Stage.printWidth(id: String) {
+    printSize(id, "width", minWidthProperty(), maxWidthProperty(), null, widthProperty())
+}
+
+private fun printSize(id: String,
+              sizeName: String,
+              min: ObservableValue<Number>,
+              max: ObservableValue<Number>,
+              pref: ObservableValue<Number>?,
+              actual: ObservableValue<Number>) {
+    println("$id min-$sizeName = ${min.value}")
+    println("$id max-$sizeName = ${max.value}")
+    pref?.let { println("$id pref-$sizeName = ${it.value}") }
+    println("$id $sizeName = ${actual.value}")
+
+    min.printChanges("$id min-$sizeName")
+    max.printChanges("$id max-$sizeName")
+    pref?.printChanges("$id pref-$sizeName")
+    actual.printChanges("$id $sizeName")
+}
+
+fun <T> ObservableValue<T>.printChanges(id: String) = addListener { _, o, v -> println("$id changed: $o -> $v") }
 
 fun <E, F> ListExpression<E>.mapped(f: (E) -> F): ListProperty<F> = SimpleListProperty(this.value.mapped(f))
 fun <E, F> ObservableList<E>.mapped(f: (E) -> F): ObservableList<F> = MappedList(this, f)
