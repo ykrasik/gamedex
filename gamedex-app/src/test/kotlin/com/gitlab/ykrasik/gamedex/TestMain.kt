@@ -1,17 +1,16 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.testkit.*
 import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
 import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
 import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbEmbeddedServer
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomAddGameRequest
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.randomGameImage
 import com.typesafe.config.ConfigValueFactory
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
@@ -62,4 +61,46 @@ object TestMain {
             }.forEach { it.await() }
         }
     }
+
+    private fun randomAddGameRequest() = AddGameRequest(
+        metaData = randomMetaData(),
+        gameData = randomGameData(),
+        providerData = randomProviderData(),
+        imageUrls = randomImageUrls()
+    )
+
+    private fun randomMetaData() = MetaData(
+        libraryId = 1,
+        path = randomFile(),
+        lastModified = randomDateTime()
+    )
+
+    private fun randomGameData() = GameData(
+        name = randomString(),
+        description = randomSentence(maxWords = 10),
+        releaseDate = randomLocalDate(),
+        criticScore = randomScore(),
+        userScore = randomScore(),
+        genres = List(rnd.nextInt(4)) { randomString() }
+    )
+
+    private fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType.values().size)) {
+        ProviderData(
+            type = randomEnum(),
+            apiUrl = randomUrl(),
+            url = randomUrl()
+        )
+    }
+
+    private fun randomImageUrls() = ImageUrls(
+        thumbnailUrl = randomSlashDelimitedString(),
+        posterUrl = null,
+        screenshotUrls = emptyList()
+    )
+
+    private fun randomGameImage(id: Int) = GameImage(
+        id = id,
+        url = randomSlashDelimitedString(),
+        bytes = TestImages.randomImageBytes()
+    )
 }

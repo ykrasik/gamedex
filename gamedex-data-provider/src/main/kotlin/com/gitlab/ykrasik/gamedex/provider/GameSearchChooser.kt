@@ -8,9 +8,20 @@ import java.io.File
  * Time: 22:01
  */
 interface GameSearchChooser {
-    suspend fun choose(info: DataProviderInfo, searchResults: List<ProviderSearchResult>, context: SearchContext): ProviderSearchResult?
+    suspend fun choose(data: ChooseSearchResultData): SearchResultChoice
 }
 
-class SearchContext(val searchedName: String, val path: File) {
-    val discardedResults = setOf<ProviderSearchResult>()
+data class ChooseSearchResultData(
+    val name: String,
+    val path: File,
+    val info: DataProviderInfo,
+    val searchResults: List<ProviderSearchResult>,
+    val canProceedWithout: Boolean
+)
+
+sealed class SearchResultChoice {
+    data class Ok(val result: ProviderSearchResult) : SearchResultChoice()
+    data class NewSearch(val newSearch: String) : SearchResultChoice()
+    object Cancel : SearchResultChoice()
+    object ProceedWithout : SearchResultChoice()
 }
