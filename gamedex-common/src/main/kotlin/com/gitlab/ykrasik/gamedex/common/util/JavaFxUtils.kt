@@ -2,7 +2,9 @@ package com.gitlab.ykrasik.gamedex.common.util
 
 import javafx.application.Platform
 import javafx.application.Platform.runLater
+import javafx.beans.binding.Binding
 import javafx.beans.binding.ListExpression
+import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.*
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
@@ -47,6 +49,7 @@ class ThreadAwareStringProperty : SimpleStringProperty() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }
 }
+
 class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
@@ -66,11 +69,11 @@ fun Stage.printWidth(id: String) {
 }
 
 private fun printSize(id: String,
-              sizeName: String,
-              min: ObservableValue<Number>,
-              max: ObservableValue<Number>,
-              pref: ObservableValue<Number>?,
-              actual: ObservableValue<Number>) {
+                      sizeName: String,
+                      min: ObservableValue<Number>,
+                      max: ObservableValue<Number>,
+                      pref: ObservableValue<Number>?,
+                      actual: ObservableValue<Number>) {
     println("$id min-$sizeName = ${min.value}")
     println("$id max-$sizeName = ${max.value}")
     pref?.let { println("$id pref-$sizeName = ${it.value}") }
@@ -145,4 +148,12 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override fun get(index: Int): E = mapped[index]
 
     override val size: Int get() = mapped.size
+}
+
+fun <T, R> ObservableValue<T>.map(f: (T) -> R): Binding<R> = object : ObjectBinding<R>() {
+    init {
+        super.bind(this)
+    }
+
+    override fun computeValue(): R = f(this@map.value)
 }

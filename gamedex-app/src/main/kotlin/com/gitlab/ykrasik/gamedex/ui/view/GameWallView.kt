@@ -2,13 +2,14 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
-import com.gitlab.ykrasik.gamedex.common.util.mapped
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewLimitedPane
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
+import javafx.beans.property.ReadOnlyProperty
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
 import tornadofx.*
@@ -25,9 +26,9 @@ class GameWallView : View("Games Wall") {
     private val userPreferences: UserPreferences by di()
     private val imageLoader: ImageLoader by di()
 
-    private val gameViewProperty = repository.gamesProperty.mapped { GameViewItem(it) }
+    private val thumbnailCache = mutableMapOf<Int, ReadOnlyProperty<Image>>()
 
-    override val root = datagrid(gameViewProperty) {
+    override val root = datagrid(repository.gamesProperty) {
         cellHeight = 192.0
         cellWidth = 136.0
         horizontalCellSpacing = 3.0
@@ -37,18 +38,18 @@ class GameWallView : View("Games Wall") {
             val cell = GameWallCell(userPreferences)
             cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
-                    val search = URLEncoder.encode("${cell.item!!.game.name} pc gameplay", "utf-8")
+                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
                     "https://www.youtube.com/results?search_query=$search".browseToUrl()
                 }
             }
             cell.contextmenu {
-                menuitem("Delete") { controller.delete(cell.item.game) }
+                menuitem("Delete") { controller.delete(cell.item) }
             }
             cell
         }
     }
 
-    inner class GameWallCell(userPreferences: UserPreferences) : DataGridCell<GameViewItem>(root) {
+    inner class GameWallCell(userPreferences: UserPreferences) : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
 
@@ -75,18 +76,16 @@ class GameWallView : View("Games Wall") {
             return clip
         }
 
-        override fun updateItem(item: GameViewItem?, empty: Boolean) {
+        override fun updateItem(item: Game?, empty: Boolean) {
             super.updateItem(item, empty)
 
             if (item != null) {
-                imageView.imageProperty().bind(item.thumbnailProperty)
+                val thumbnailId = item.imageIds.thumbnailId!!
+                val image = thumbnailCache.getOrPut(thumbnailId) { imageLoader.fetchImage(thumbnailId) }
+                imageView.imageProperty().bind(image)
             } else {
                 imageView.image = null
             }
         }
-    }
-
-    inner class GameViewItem(val game: Game) {
-        val thumbnailProperty by lazy { imageLoader.fetchImage(game.imageIds.thumbnailId) }
     }
 }

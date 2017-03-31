@@ -43,9 +43,9 @@ object TestMain {
     }
 
     private fun generateDb() {
-        Main.GuiceDiContainer.getInstance(DbInitializer::class).reload()
+        Main.MainDiContainer.getInstance(DbInitializer::class).reload()
         
-        val persistenceService = Main.GuiceDiContainer.getInstance(PersistenceService::class)
+        val persistenceService = Main.MainDiContainer.getInstance(PersistenceService::class)
 
         persistenceService.insert(AddLibraryRequest(
             path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(GamePlatform.pc, "Test Games")

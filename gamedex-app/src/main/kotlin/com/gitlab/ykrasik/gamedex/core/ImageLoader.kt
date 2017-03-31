@@ -21,7 +21,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Time: 18:30
  */
 @Singleton
-class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
+open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log by logger()
 
     private val downloadContext = newFixedThreadPoolContext(1, "image-downloader")
@@ -36,7 +36,7 @@ class ImageLoader @Inject constructor(private val persistenceService: Persistenc
         }
     }
 
-    fun downloadImage(url: String?): ReadOnlyObjectProperty<Image> {
+    open fun downloadImage(url: String?): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
         return loadImage(downloadContext) {
             downloadImage(url)

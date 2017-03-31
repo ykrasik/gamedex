@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.provider.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.SearchResultChoice
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
@@ -10,7 +11,6 @@ import com.gitlab.ykrasik.gamedex.ui.okButton
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleDoubleProperty
-import javafx.collections.ObservableList
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.control.TableCell
@@ -22,38 +22,34 @@ import javafx.scene.text.Font
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
 import tornadofx.*
-import java.io.File
 
 /**
  * User: ykrasik
  * Date: 02/01/2017
  * Time: 15:54
  */
-class ChooseSearchResultFragment(
-    private val searchedName: String,
-    private val path: File,
-    private val info: DataProviderInfo,
-    private val searchResults: ObservableList<ProviderSearchResultWithThumbnail>,
-    private val canProceedWithout: Boolean
-) : Fragment("Choose Search Result for '$searchedName'") {
-    private var tableView: TableView<ProviderSearchResultWithThumbnail> by singleAssign()
+class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choose Search Result for '${data.name}'") {
+    private val imageLoader: ImageLoader by di()
     private val minTableWidth: DoubleProperty = SimpleDoubleProperty()
+    private var tableView: TableView<ProviderSearchResult> by singleAssign()
 
     private var choice: SearchResultChoice = SearchResultChoice.Cancel
+
+    private val thumbnailCache = mutableMapOf<String, ReadOnlyObjectProperty<Image>>()
 
     override val root = borderpane {
         paddingAll = 20
         top {
             gridpane {
                 row {
-                    label(path.path) {
+                    label(data.path.path) {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
                         font = Font.font(14.0)
                     }
                     region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
                     imageview {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                        image = info.logo
+                        image = data.info.logo
                         fitHeight = 100.0
                         fitWidth = 100.0
                         isPreserveRatio = true
@@ -64,7 +60,7 @@ class ChooseSearchResultFragment(
                         hgap = 10.0
                         gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.LEFT }
                         row {
-                            val newSearch = textfield(searchedName) {
+                            val newSearch = textfield(data.name) {
                                 prefWidthProperty().bind(minTableWidth.subtract(230))
                                 tooltip("You can edit the name and click 'Search Again' to search for a new value")
                                 font = Font.font(16.0)
@@ -78,7 +74,7 @@ class ChooseSearchResultFragment(
                         }
                     }
                     region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
-                    label("Search results: ${searchResults.size}") {
+                    label("Search results: ${data.searchResults.size}") {
                         gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                         font = Font.font(16.0)
                     }
@@ -87,24 +83,25 @@ class ChooseSearchResultFragment(
             }
         }
         center {
-            tableView = tableview(searchResults) {
+            tableView = tableview(data.searchResults.observable()) {
                 val indexColumn = makeIndexColumn()
-                customColumn("Thumbnail", ProviderSearchResultWithThumbnail::thumbnail) {
-                    object : TableCell<ProviderSearchResultWithThumbnail, ReadOnlyObjectProperty<Image>>() {
+                customColumn("Thumbnail", ProviderSearchResult::thumbnailUrl) {
+                    object : TableCell<ProviderSearchResult, String?>() {
                         private val imageView = ImageView().fadeOnImageChange()
                         init { graphic = imageView }
-                        override fun updateItem(thumbnail: ReadOnlyObjectProperty<Image>?, empty: Boolean) {
+                        override fun updateItem(thumbnailUrl: String?, empty: Boolean) {
                             if (empty) {
                                 imageView.imageProperty().unbind()
                             } else {
-                                imageView.imageProperty().cleanBind(thumbnail!!)
+                                val thumbnail = thumbnailCache.getOrPut(thumbnailUrl!!) { imageLoader.downloadImage(thumbnailUrl) }
+                                imageView.imageProperty().cleanBind(thumbnail)
                             }
                         }
                     }
                 }
-                column("Name", ProviderSearchResultWithThumbnail::name)
-                column("Release Date", ProviderSearchResultWithThumbnail::releaseDate)
-                column("Score", ProviderSearchResultWithThumbnail::score)
+                column("Name", ProviderSearchResult::name)
+                column("Release Date", ProviderSearchResult::releaseDate)
+                column("Score", ProviderSearchResult::score)
 
                 minTableWidth.bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
                     binding.add(column.widthProperty())
@@ -123,7 +120,7 @@ class ChooseSearchResultFragment(
                     setOnAction { close(choice = okResult) }
                 }
                 cancelButton { setOnAction { close(choice = SearchResultChoice.Cancel) } }
-                if (canProceedWithout) {
+                if (data.canProceedWithout) {
                     button("Proceed Without") { setOnAction { close(choice = SearchResultChoice.ProceedWithout) } }
                 }
             }
@@ -145,16 +142,5 @@ class ChooseSearchResultFragment(
         close()
     }
 
-    private val okResult get() = SearchResultChoice.Ok(tableView.selectedItem!!.searchResult)
-}
-
-class ProviderSearchResultWithThumbnail(
-    val searchResult: ProviderSearchResult,
-    val thumbnail: ReadOnlyObjectProperty<Image>
-) {
-    val name get() = searchResult.name
-    val releaseDate get() = searchResult.releaseDate
-    val score get() = searchResult.score
-
-    override fun toString() = searchResult.toString()
+    private val okResult get() = SearchResultChoice.Ok(tableView.selectedItem!!)
 }

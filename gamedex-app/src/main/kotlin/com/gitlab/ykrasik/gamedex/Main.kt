@@ -9,6 +9,7 @@ import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.google.inject.Guice
+import com.google.inject.Module
 import com.google.inject.Stage.PRODUCTION
 import javafx.application.Application
 import javafx.stage.Stage
@@ -25,7 +26,7 @@ import kotlin.reflect.KClass
  */
 class Main : App(MainView::class, Styles::class) {
     init {
-        FX.dicontainer = GuiceDiContainer
+        FX.dicontainer = MainDiContainer
 
         SLF4JBridgeHandler.removeHandlersForRootLogger()
         SLF4JBridgeHandler.install()
@@ -36,8 +37,14 @@ class Main : App(MainView::class, Styles::class) {
         super.start(stage)
     }
 
-    object GuiceDiContainer : DIContainer {
-        private val injector = Guice.createInjector(PRODUCTION,
+    class GuiceDiContainer(vararg modules: Module) : DIContainer {
+        private val injector = Guice.createInjector(PRODUCTION, *modules)
+
+        override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
+    }
+
+    companion object {
+        val MainDiContainer = GuiceDiContainer(
             AppModule(),
             CommonModule(),
             PersistenceModule(),
@@ -46,10 +53,6 @@ class Main : App(MainView::class, Styles::class) {
             IgdbProviderModule()
         )
 
-        override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
-    }
-
-    companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             Application.launch(Main::class.java, *args)

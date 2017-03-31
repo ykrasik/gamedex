@@ -1,12 +1,8 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.Main
 import javafx.application.Application
 import javafx.scene.Parent
-import tornadofx.App
-import tornadofx.FX
-import tornadofx.View
-import tornadofx.vbox
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -14,26 +10,25 @@ import tornadofx.vbox
  * Time: 13:53
  */
 abstract class BaseTestApp {
-    class TestApplication : App(TestView::class) {
-        init {
-            FX.dicontainer = Main.GuiceDiContainer
-        }
-    }
-
-    class TestView : View("Test") {
-        override val root: Parent = vbox {
-            initializer()
-        }
-    }
-    
     init {
+        FX.dicontainer = diContainer()
         initializer = this::init
         Application.launch(TestApplication::class.java)
     }
 
+    open fun diContainer(): DIContainer = Main.MainDiContainer
+
     protected abstract fun init(): Unit
 
-    private companion object {
+    companion object {
         var initializer: () -> Unit = { }
+
+        class TestApplication : App(TestView::class)
+
+        class TestView : View("Test") {
+            override val root: Parent = vbox {
+                initializer()
+            }
+        }
     }
 }
