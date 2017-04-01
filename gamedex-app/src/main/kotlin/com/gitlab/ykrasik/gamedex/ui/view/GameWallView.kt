@@ -1,11 +1,11 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
-import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
+import com.gitlab.ykrasik.gamedex.ui.view.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewLimitedPane
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import javafx.beans.property.ReadOnlyProperty
@@ -13,7 +13,6 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
 import tornadofx.*
-import java.net.URLEncoder
 
 /**
  * User: ykrasik
@@ -38,8 +37,9 @@ class GameWallView : View("Games Wall") {
             val cell = GameWallCell(userPreferences)
             cell.setOnMouseClicked { e ->
                 if (e.clickCount == 2) {
-                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
-                    "https://www.youtube.com/results?search_query=$search".browseToUrl()
+                    GameDetailsFragment(cell.item).show()
+//                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
+//                    "https://www.youtube.com/results?search_query=$search".browseToUrl()
                 }
             }
             cell.contextmenu {

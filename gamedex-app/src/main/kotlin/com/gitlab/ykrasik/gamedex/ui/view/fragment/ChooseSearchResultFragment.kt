@@ -110,7 +110,6 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
 
                 onUserSelect(clickCount = 2) { close(choice = okResult) }
             }
-            // FIXME: Add a search-again-with-new-name button.
         }
         bottom {
             buttonbar {

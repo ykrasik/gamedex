@@ -1,9 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
+import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
+import com.gitlab.ykrasik.gamedex.ui.okButton
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
-import javafx.scene.control.ButtonBar
 import tornadofx.*
 
 /**
@@ -28,18 +29,8 @@ class SettingsFragment : Fragment() {
         }
         bottom {
             buttonbar {
-                button("Cancel", type = ButtonBar.ButtonData.CANCEL_CLOSE) {
-                    isCancelButton = true
-                    setOnAction {
-                        close()
-                    }
-                }
-                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
-                    isDefaultButton = true
-                    setOnAction {
-                        close()
-                    }
-                }
+                cancelButton { setOnAction { close() } }
+                okButton { setOnAction { close() } }
             }
         }
     }

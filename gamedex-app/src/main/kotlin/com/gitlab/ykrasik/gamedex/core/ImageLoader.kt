@@ -29,7 +29,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
 
     private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
-    fun fetchImage(id: Int?): ReadOnlyObjectProperty<Image> {
+    open fun fetchImage(id: Int?): ReadOnlyObjectProperty<Image> {
         if (id == null) return notAvailable
         return loadImage(fetchContext) {
             fetchOrDownloadImage(id)

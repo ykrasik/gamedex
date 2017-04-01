@@ -1,11 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.widgets
 
-import com.gitlab.ykrasik.gamedex.common.util.unmodifiable
-import javafx.collections.ObservableList
 import javafx.geometry.HPos
 import javafx.geometry.Orientation
 import javafx.geometry.VPos
-import javafx.scene.Node
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
 
@@ -15,7 +12,6 @@ import javafx.scene.layout.Pane
  * Time: 08:36
  */
 class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
-
     init {
         children += imageView
     }
@@ -26,10 +22,8 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
 
     override fun resize(width: Double, height: Double) {
         val image = imageView.image
-        val imageWidth = image.width
-        val imageHeight = image.height
-        val normalizedWidth = Math.min(width, imageWidth * maxEnlargeRatio)
-        val normalizedHeight = Math.min(height, imageHeight * maxEnlargeRatio)
+        val normalizedWidth = Math.min(width, image.width * maxEnlargeRatio)
+        val normalizedHeight = Math.min(height, image.height * maxEnlargeRatio)
 
         imageView.fitHeight = normalizedHeight
         imageView.fitWidth = normalizedWidth
@@ -66,14 +60,9 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
 
     override fun getContentBias(): Orientation = Orientation.VERTICAL
 
-    @Deprecated("")
-    override fun getChildren(): ObservableList<Node> = super.getChildren().unmodifiable()
-
     private val imageRatio: Double get() {
         val image = imageView.image
-        val height = image.height
-        val width = image.width
-        return height / width
+        return image.height / image.width
     }
 
     private fun limitByMaxWidth(width: Double) = limitIfApplicable(width, maxWidth)
@@ -81,6 +70,6 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
     private fun limitIfApplicable(value: Double, max: Double) = if (max > 0) Math.min(value, max) else value
 
     companion object {
-        private val maxEnlargeRatio = 2.0    // FIXME: Property
+        private val maxEnlargeRatio = 10.0    // FIXME: Property
     }
 }

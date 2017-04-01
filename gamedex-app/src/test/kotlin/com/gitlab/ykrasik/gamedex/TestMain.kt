@@ -1,7 +1,11 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.*
-import com.gitlab.ykrasik.gamedex.common.testkit.*
+import com.gitlab.ykrasik.gamedex.common.datamodel.GameImage
+import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
+import com.gitlab.ykrasik.gamedex.common.testkit.TestImages
+import com.gitlab.ykrasik.gamedex.common.testkit.randomSlashDelimitedString
 import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
 import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
 import com.gitlab.ykrasik.gamedex.common.util.toFile
@@ -69,38 +73,15 @@ object TestMain {
         imageUrls = randomImageUrls()
     )
 
-    private fun randomMetaData() = MetaData(
-        libraryId = 1,
-        path = randomFile(),
-        lastModified = randomDateTime()
+    private fun randomGameImage(id: Int) = GameImage(
+        id = id,
+        url = randomSlashDelimitedString(),
+        bytes = TestImages.randomImageBytes()
     )
-
-    private fun randomGameData() = GameData(
-        name = randomString(),
-        description = randomSentence(maxWords = 10),
-        releaseDate = randomLocalDate(),
-        criticScore = randomScore(),
-        userScore = randomScore(),
-        genres = List(rnd.nextInt(4)) { randomString() }
-    )
-
-    private fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType.values().size)) {
-        ProviderData(
-            type = randomEnum(),
-            apiUrl = randomUrl(),
-            url = randomUrl()
-        )
-    }
 
     private fun randomImageUrls() = ImageUrls(
         thumbnailUrl = randomSlashDelimitedString(),
         posterUrl = null,
         screenshotUrls = emptyList()
-    )
-
-    private fun randomGameImage(id: Int) = GameImage(
-        id = id,
-        url = randomSlashDelimitedString(),
-        bytes = TestImages.randomImageBytes()
     )
 }
