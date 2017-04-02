@@ -128,12 +128,19 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "version" to "1.0"
     )
 
-    private fun GiantBombSearchResult.toMap() = mapOf(
-        "api_detail_url" to apiDetailUrl,
-        "image" to image.toMap(),
-        "name" to name,
-        "original_release_date" to "$originalReleaseDate 00:00:00"
-    )
+    private fun GiantBombSearchResult.toMap(): Map<String, Any> {
+        val map = mutableMapOf<String, Any>(
+            "api_detail_url" to apiDetailUrl,
+            "name" to name
+        )
+        if (originalReleaseDate != null) {
+            map += ("original_release_date" to "$originalReleaseDate 00:00:00")
+        }
+        if (image != null) {
+            map += ("image" to image!!.toMap())
+        }
+        return map
+    }
 
     private fun GiantBombSearchImage.toMap() = mapOf(
         "icon_url" to randomUrl(),
@@ -156,12 +163,21 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "version" to "1.0"
     )
 
-    private fun GiantBombDetailsResult.toMap() = mapOf(
-        "deck" to deck,
-        "image" to image.toMap(),
-        "site_detail_url" to siteDetailUrl,
-        "genres" to genres.map { it.toMap() }
-    )
+    private fun GiantBombDetailsResult.toMap(): Map<String, Any> {
+        val map = mutableMapOf<String, Any>(
+            "site_detail_url" to siteDetailUrl
+        )
+        if (deck != null) {
+            map += ("deck" to deck!!)
+        }
+        if (image != null) {
+            map += ("image" to image!!.toMap())
+        }
+        if (genres != null) {
+            map += ("genres" to genres!!.map { it.toMap() })
+        }
+        return map.toMap()
+    }
 
     private fun GiantBombDetailsImage.toMap() = mapOf(
         "icon_url" to randomUrl(),

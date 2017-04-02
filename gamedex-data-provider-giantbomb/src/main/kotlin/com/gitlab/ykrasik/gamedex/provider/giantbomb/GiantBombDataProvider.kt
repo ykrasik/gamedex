@@ -60,7 +60,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         name = name,
         releaseDate = originalReleaseDate,
         score = null,
-        thumbnailUrl = image.thumbUrl,
+        thumbnailUrl = image?.thumbUrl,
         apiUrl = apiDetailUrl
     )
 
@@ -96,11 +96,11 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
             releaseDate = searchResult.releaseDate,
             criticScore = null,
             userScore = null,
-            genres = genres.map { it.name }
+            genres = genres?.map { it.name } ?: emptyList()
         ),
         imageUrls = ImageUrls(
-            thumbnailUrl = image.thumbUrl,
-            posterUrl = image.superUrl,
+            thumbnailUrl = image?.thumbUrl,
+            posterUrl = image?.superUrl,
             screenshotUrls = emptyList()
             // TODO: Support screenshots
         )

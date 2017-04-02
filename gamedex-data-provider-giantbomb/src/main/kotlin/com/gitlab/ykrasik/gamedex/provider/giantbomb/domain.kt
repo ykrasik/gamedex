@@ -23,7 +23,7 @@ data class GiantBombSearchResult(
     val name: String,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     val originalReleaseDate: LocalDate?,
-    val image: GiantBombSearchImage
+    val image: GiantBombSearchImage?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,8 +43,8 @@ data class GiantBombDetailsResponse(
 data class GiantBombDetailsResult(
     val siteDetailUrl: String,
     val deck: String?,
-    val image: GiantBombDetailsImage,
-    val genres: List<GiantBombGenre>
+    val image: GiantBombDetailsImage?,
+    val genres: List<GiantBombGenre>?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

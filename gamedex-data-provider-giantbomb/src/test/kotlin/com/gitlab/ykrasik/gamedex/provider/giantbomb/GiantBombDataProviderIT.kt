@@ -107,6 +107,30 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                 )
             }
 
+            "retrieve a single search result with null fields".inScope(Scope()) {
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
+                    statusCode = GiantBombStatus.ok,
+                    results = listOf(GiantBombSearchResult(
+                        apiDetailUrl = apiUrl,
+                        name = name,
+                        originalReleaseDate = null,
+                        image = null
+                    ))
+                )
+
+                val response = provider.search(name, platform)
+
+                response shouldBe listOf(
+                    ProviderSearchResult(
+                        apiUrl = apiUrl,
+                        name = name,
+                        releaseDate = null,
+                        score = null,
+                        thumbnailUrl = null
+                    )
+                )
+            }
+
             "not find any search results".inScope(Scope()) {
                 server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
                     statusCode = GiantBombStatus.ok,
@@ -182,6 +206,50 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                     imageUrls = ImageUrls(
                         thumbnailUrl = thumbnailUrl,
                         posterUrl = superUrl,
+                        screenshotUrls = emptyList()
+                    )
+                )
+            }
+
+            "retrieve a search result's detailUrl with null fields".inScope(Scope()) {
+                val fullApiUrl = "http://localhost:$port/$apiUrl"
+                val searchResult = ProviderSearchResult(
+                    apiUrl = fullApiUrl,
+                    name = name,
+                    releaseDate = null,
+                    score = null,
+                    thumbnailUrl = null
+                )
+
+                server.fetchRequest(apiKey, apiUrl) willReturn GiantBombDetailsResponse(
+                    statusCode = GiantBombStatus.ok,
+                    results = listOf(GiantBombDetailsResult(
+                        siteDetailUrl = siteDetailUrl,
+                        deck = null,
+                        genres = null,
+                        image = null
+                    ))
+                )
+
+                val response = provider.fetch(searchResult)
+
+                response shouldBe ProviderFetchResult(
+                    providerData = ProviderData(
+                        type = DataProviderType.GiantBomb,
+                        apiUrl = fullApiUrl,
+                        url = siteDetailUrl
+                    ),
+                    gameData = GameData(
+                        name = name,
+                        description = null,
+                        releaseDate = null,
+                        criticScore = null,
+                        userScore = null,
+                        genres = emptyList()
+                    ),
+                    imageUrls = ImageUrls(
+                        thumbnailUrl = null,
+                        posterUrl = null,
                         screenshotUrls = emptyList()
                     )
                 )
