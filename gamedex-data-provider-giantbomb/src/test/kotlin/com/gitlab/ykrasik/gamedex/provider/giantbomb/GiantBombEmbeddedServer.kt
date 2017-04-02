@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.gitlab.ykrasik.gamedex.common.testkit.*
 import com.gitlab.ykrasik.gamedex.common.util.toJsonStr
 import com.gitlab.ykrasik.gamedex.provider.aJsonResponse
+import com.gitlab.ykrasik.gamedex.provider.withQueryParam
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.ktor.application.call
 import org.jetbrains.ktor.http.ContentType
@@ -46,18 +47,6 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         }
     }
 
-    fun start(isFakeProd: Boolean = false): GiantBombEmbeddedServer = apply {
-        if (isFakeProd) {
-            ktor.start()
-        } else {
-            wiremock.start()
-        }
-    }
-
-    fun reset() {
-        wiremock.resetAll()
-    }
-
     private fun randomSearchResponse() = GiantBombSearchResponse(
         statusCode = GiantBombStatus.ok,
         results = List(rnd.nextInt(20)) {
@@ -97,10 +86,10 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         }
 
         private val aSearchRequest get() = get(urlPathEqualTo("/"))
-            .withQueryParam("api_key", equalTo(apiKey))
-            .withQueryParam("format", equalTo("json"))
-            .withQueryParam("filter", equalTo("name:$name,platforms:$platform"))
-            .withQueryParam("field_list", equalTo(searchFields))
+            .withQueryParam("api_key", apiKey)
+            .withQueryParam("format", "json")
+            .withQueryParam("filter", "name:$name,platforms:$platform")
+            .withQueryParam("field_list", searchFields)
     }
 
     inner class fetchRequest(private val apiKey: String, private val apiUrl: String) {
@@ -113,8 +102,8 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         }
 
         private val aFetchRequest get() = get(urlPathEqualTo("/$apiUrl"))
-            .withQueryParam("api_key", equalTo(apiKey))
-            .withQueryParam("field_list", equalTo(fetchDetailsFields))
+            .withQueryParam("api_key", apiKey)
+            .withQueryParam("field_list", fetchDetailsFields)
     }
 
     private fun GiantBombSearchResponse.toMap() = mapOf(
@@ -197,6 +186,18 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
     )
 
     private fun GiantBombStatus.asString() = this.toString().toUpperCase()
+
+    fun start(isFakeProd: Boolean = false): GiantBombEmbeddedServer = apply {
+        if (isFakeProd) {
+            ktor.start()
+        } else {
+            wiremock.start()
+        }
+    }
+
+    fun reset() {
+        wiremock.resetAll()
+    }
 
     override fun close() {
         ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)

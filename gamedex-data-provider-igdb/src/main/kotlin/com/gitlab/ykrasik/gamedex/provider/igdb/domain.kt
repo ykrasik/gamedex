@@ -43,7 +43,6 @@ data class IgdbReleaseDate(
 data class IgdbDetailsResult(
     val url: String,
     val summary: String?,
-    val aggregatedRating: Double?,
     val rating: Double?,
     val cover: IgdbImage?,
     val screenshots: List<IgdbImage>?,

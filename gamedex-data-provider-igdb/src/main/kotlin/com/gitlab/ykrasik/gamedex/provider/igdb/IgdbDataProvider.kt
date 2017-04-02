@@ -31,7 +31,6 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     private val fetchDetailsFields = listOf(
         "url",
         "summary",
-        "aggregated_rating",
         "rating",
         "cover.cloudinary_id",
         "screenshots.cloudinary_id",
@@ -52,7 +51,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         val response = getRequest(config.endpoint,
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
-            "limit" to 20.toString(),
+            "limit" to config.maxSearchResults.toString(),
             "fields" to searchFields
         )
         return response.listFromJson()
@@ -73,7 +72,6 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         return releaseDate.toLocalDate()
     }
 
-    // TODO: Unit test this.
     private fun toSearchResults(response: List<IgdbSearchResult>, name: String, platform: GamePlatform): List<ProviderSearchResult> {
         // IGBD search sucks. It returns way more results then it should.
         // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
@@ -119,7 +117,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
             name = searchResult.name,
             description = summary,
             releaseDate = searchResult.releaseDate,
-            criticScore = aggregatedRating,
+            criticScore = searchResult.score,
             userScore = rating,
             genres = genres?.map { it.genreName } ?: emptyList()
         ),

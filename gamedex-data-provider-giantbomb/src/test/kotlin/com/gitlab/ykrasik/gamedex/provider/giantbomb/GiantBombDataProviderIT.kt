@@ -66,6 +66,7 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
 
             "retrieve multiple search results".inScope(Scope()) {
                 val apiUrl2 = randomUrl()
+                val name2 = "$name ${randomString()}"
                 val releaseDate2 = randomLocalDate()
                 val thumbnailUrl2 = randomUrl()
 
@@ -80,7 +81,7 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                         ),
                         GiantBombSearchResult(
                             apiDetailUrl = apiUrl2,
-                            name = name,
+                            name = name2,
                             originalReleaseDate = releaseDate2,
                             image = GiantBombSearchImage(thumbUrl = thumbnailUrl2)
                         )
@@ -99,7 +100,7 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                     ),
                     ProviderSearchResult(
                         apiUrl = apiUrl2,
-                        name = name,
+                        name = name2,
                         releaseDate = releaseDate2,
                         score = null,
                         thumbnailUrl = thumbnailUrl2

@@ -14,6 +14,7 @@ data class IgdbConfig(
     val endpoint: String,
     val baseImageUrl: String,
     val apiKey: String,
+    val maxSearchResults: Int,
     private val platforms: Map<GamePlatform, Int>,
     private val genres: Map<Int, String>
 ) {
@@ -27,6 +28,7 @@ data class IgdbConfig(
                     endpoint = config.getString("endpoint"),
                     baseImageUrl = config.getString("baseImageUrl"),
                     apiKey = config.getString("apiKey"),
+                    maxSearchResults = config.getInt("maxSearchResults"),
                     platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int }),
                     genres = config.getObjectMap("genres", String::toInt, Any::toString)
                 )
