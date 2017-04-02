@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.model
 
+import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
@@ -56,4 +57,6 @@ class LibraryRepository @Inject constructor(
         }
         log.info { "Done" }
     }
+
+    fun libraryForGame(game: Game): Library = libraries.find { it.id == game.libraryId } ?: throw IllegalStateException("No library found for game: $game!")
 }

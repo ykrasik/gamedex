@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.common.datamodel.MetaData
 import com.gitlab.ykrasik.gamedex.common.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.common.util.emptyToNull
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
-import com.gitlab.ykrasik.gamedex.provider.DataProviderService
 import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.notifiableJob
 import kotlinx.coroutines.experimental.channels.ProducerJob
@@ -62,5 +61,5 @@ class LibraryScanner @Inject constructor(
     }
 
     // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-    private fun File.normalizeName(): String = name.replace(metaDataRegex, "").collapseSpaces()
+    private fun File.normalizeName(): String = name.replace(metaDataRegex, "").collapseSpaces().trim()
 }

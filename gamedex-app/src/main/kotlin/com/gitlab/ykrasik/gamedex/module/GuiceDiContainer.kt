@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderModule
-import com.gitlab.ykrasik.gamedex.provider.module.DataProviderModule
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.google.inject.Stage
@@ -25,10 +24,9 @@ class GuiceDiContainer(modules: List<Module>) : DIContainer {
 open class DefaultGuiceModuleConfiguration {
     open val common: Module get() = CommonModule()
     open val persistence: Module get() = PersistenceModule()
-    open val dataProvider: Module get() = DataProviderModule()
     open val giantBomb: Module get() = GiantBombProviderModule()
     open val igdb: Module get() = IgdbProviderModule()
     open val app: Module get() = AppModule()
 
-    val modules get() = listOf(common, persistence, dataProvider, giantBomb, igdb, app)
+    val modules get() = listOf(common, persistence, giantBomb, igdb, app)
 }

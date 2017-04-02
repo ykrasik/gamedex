@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.fragment
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
 import javafx.scene.image.ImageView
@@ -19,6 +20,7 @@ import java.net.URLEncoder
  */
 class GameDetailsFragment(game: Game) : Fragment(game.name) {
     private val imageLoader: ImageLoader by di()
+    private val libraryRepository: LibraryRepository by di()
 
     private var accept = false
 
@@ -85,7 +87,8 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
                     separator { padding { top = 10; bottom = 10 } }
                     webview {
                         vgrow = Priority.ALWAYS
-                        val search = URLEncoder.encode("${game.name} pc gameplay", "utf-8")
+                        val platform = libraryRepository.libraryForGame(game).platform
+                        val search = URLEncoder.encode("${game.name} $platform gameplay", "utf-8")
                         val url = "https://www.youtube.com/results?search_query=$search"
                         engine.load(url)
                     }

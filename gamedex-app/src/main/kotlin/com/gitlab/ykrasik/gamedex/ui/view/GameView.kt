@@ -12,6 +12,7 @@ import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import javafx.beans.property.ReadOnlyListProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
@@ -30,6 +31,7 @@ class GameView : View("Games") {
     private val gameRepository: GameRepository by di()
 
     private val notificationManager: NotificationManager by di()
+    private val userPreferences: UserPreferences by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -88,7 +90,7 @@ class GameView : View("Games") {
 
                 spacer()
 
-                checkbox("Don't bother me")
+                checkbox("Hands Free Mode", userPreferences.handsFreeModeProperty)
 
                 verticalSeparator(10.0)
 

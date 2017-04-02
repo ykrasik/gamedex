@@ -1,9 +1,6 @@
 package com.gitlab.ykrasik.gamedex.module
 
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.core.LibraryScanner
-import com.gitlab.ykrasik.gamedex.core.UIGameSearchChooser
-import com.gitlab.ykrasik.gamedex.provider.GameSearchChooser
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
@@ -17,6 +14,7 @@ import com.google.inject.AbstractModule
 class AppModule : AbstractModule() {
     override fun configure() {
         bind(UserPreferences::class.java).toInstance(UserPreferences())
+        bind(DataProviderService::class.java).to(DataProviderServiceImpl::class.java)
         bind(GameSearchChooser::class.java).to(UIGameSearchChooser::class.java)
 
         // Instruct Guice to eagerly create these classes

@@ -129,6 +129,6 @@ class ImageViewLimitedPane(
 
     companion object {
         // TODO: Property
-        private val maxStretch = 0.5
+        private val maxStretch = 0.2
     }
 }

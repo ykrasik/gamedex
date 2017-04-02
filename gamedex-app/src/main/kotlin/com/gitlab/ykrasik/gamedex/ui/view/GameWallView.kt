@@ -28,8 +28,8 @@ class GameWallView : View("Games Wall") {
     private val thumbnailCache = mutableMapOf<Int, ReadOnlyProperty<Image>>()
 
     override val root = datagrid(repository.gamesProperty) {
-        cellHeight = 192.0
-        cellWidth = 136.0
+        cellHeight = 202.0
+        cellWidth = 140.0
         horizontalCellSpacing = 3.0
         verticalCellSpacing = 3.0
 
@@ -82,8 +82,9 @@ class GameWallView : View("Games Wall") {
             if (item != null) {
                 val thumbnailId = item.imageIds.thumbnailId!!
                 val image = thumbnailCache.getOrPut(thumbnailId) { imageLoader.fetchImage(thumbnailId) }
-                imageView.imageProperty().bind(image)
+                imageView.imageProperty().cleanBind(image)
             } else {
+                imageView.imageProperty().unbind()
                 imageView.image = null
             }
         }

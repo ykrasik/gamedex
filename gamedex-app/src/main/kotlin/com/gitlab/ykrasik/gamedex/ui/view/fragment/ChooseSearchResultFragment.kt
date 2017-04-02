@@ -7,7 +7,6 @@ import com.gitlab.ykrasik.gamedex.provider.SearchResultChoice
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -31,13 +30,14 @@ import tornadofx.*
  */
 class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choose Search Result for '${data.name}'") {
     private val imageLoader: ImageLoader by di()
-    private val minTableWidth: DoubleProperty = SimpleDoubleProperty()
-    private var tableView: TableView<ProviderSearchResult> by singleAssign()
 
+    private val minTableWidth = SimpleDoubleProperty()
     private val defaultButtonIsSearch = SimpleBooleanProperty(false)
-    private var choice: SearchResultChoice = SearchResultChoice.Cancel
 
-    private val thumbnailCache = mutableMapOf<String, ReadOnlyObjectProperty<Image>>()
+    private var tableView: TableView<ProviderSearchResult> by singleAssign()
+    private val thumbnailCache = mutableMapOf<String?, ReadOnlyObjectProperty<Image>>()
+
+    private var choice: SearchResultChoice = SearchResultChoice.Cancel
 
     override val root = borderpane {
         paddingAll = 20
@@ -100,7 +100,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                             if (empty) {
                                 imageView.imageProperty().unbind()
                             } else {
-                                val thumbnail = thumbnailCache.getOrPut(thumbnailUrl!!) { imageLoader.downloadImage(thumbnailUrl) }
+                                val thumbnail = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.downloadImage(thumbnailUrl) }
                                 imageView.imageProperty().cleanBind(thumbnail)
                             }
                         }

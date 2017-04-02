@@ -7,10 +7,6 @@ import java.io.File
  * Date: 30/12/2016
  * Time: 22:01
  */
-interface GameSearchChooser {
-    suspend fun choose(data: ChooseSearchResultData): SearchResultChoice
-}
-
 data class ChooseSearchResultData(
     val name: String,
     val path: File,

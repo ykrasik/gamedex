@@ -1,9 +1,10 @@
-package com.gitlab.ykrasik.gamedex.provider
+package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
 import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
 import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.provider.*
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -123,7 +124,6 @@ class DataProviderServiceImpl @Inject constructor(
                 }
                 SearchResultChoice.ProceedWithout -> {
                     assert(canProceedWithout) { "Cannot proceed without results from '${provider.info.name}'!" }
-                    previouslyDiscardedResults += filteredResults
                     null
                 }
                 SearchResultChoice.Cancel -> throw CancelSearchException()

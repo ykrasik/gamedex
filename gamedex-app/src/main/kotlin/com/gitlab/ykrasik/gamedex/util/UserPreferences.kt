@@ -43,6 +43,10 @@ class UserPreferences private constructor() {
     val prevDirectoryProperty: ObjectProperty<File?> = UserPreferencesProperty(null)
     var prevDirectory by prevDirectoryProperty
 
+    @Transient
+    val handsFreeModeProperty: ObjectProperty<Boolean> = UserPreferencesProperty(false)
+    var handsFreeMode by handsFreeModeProperty
+
     companion object {
         private val file = "conf/conf.json".toFile()
 
