@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.common.util.logger
 import java.io.File
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -15,28 +14,28 @@ import javax.inject.Singleton
  * This is a simple algorithm that doesn't check file extensions, if it proves to be too simple (stupid), update this
  * class to only consider file extensions.
  */
-@Singleton
-class PathDetector {
+class PathDetector(private val excludedPaths: Set<File>) {
     private val log by logger()
+    private val newPaths = mutableListOf<File>()
 
-    fun detectNewPaths(path: File, excludedPaths: Set<File>): List<File> {
-        val newPaths = mutableListOf<File>()
-        detectNewPathsRec(path, excludedPaths, newPaths)
+    fun detectNewPaths(path: File): List<File> {
+        detectNewPathsRec(path)
         return newPaths
     }
 
-    private fun detectNewPathsRec(path: File, excludedPaths: Set<File>, newPaths: MutableList<File>) {
+    private fun detectNewPathsRec(path: File) {
         if (!path.exists()) {
             log.warn { "Path doesn't exist: $path" }
             return
         }
+        if (path.isExcluded) return
 
         val children = path.listFiles().filter { !it.isHidden }
         val shouldScanRecursively = shouldScanRecursively(children)
         if (shouldScanRecursively) {
-            children.forEach { detectNewPathsRec(it, excludedPaths, newPaths) }
+            children.forEach { detectNewPathsRec(it) }
         } else {
-            if (path !in excludedPaths) {
+            if (!path.isExcluded) {
                 log.info { "[$path] is a new path!" }
                 newPaths += path
             }
@@ -45,4 +44,6 @@ class PathDetector {
 
     // Scan children recursively if all children are directories.
     private fun shouldScanRecursively(children: List<File>): Boolean = children.isNotEmpty() && children.all(File::isDirectory)
+
+    private val File.isExcluded get() = this in excludedPaths
 }

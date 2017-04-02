@@ -23,7 +23,6 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 @Singleton
 class LibraryScanner @Inject constructor(
-    private val pathDetector: PathDetector,
     private val providerService: DataProviderService,
     private val timeProvider: TimeProvider
 ) {
@@ -33,7 +32,7 @@ class LibraryScanner @Inject constructor(
                 excludedPaths: Set<File>,
                 context: CoroutineContext): NotifiableJob<ProducerJob<AddGameRequest>> = notifiableJob { notification ->
         notification.message = "Refreshing library: '$library'..."
-        val newPaths = pathDetector.detectNewPaths(library.path, excludedPaths)
+        val newPaths = PathDetector(excludedPaths).detectNewPaths(library.path)
 
         produce<AddGameRequest>(context) {
             val newGames = newPaths.mapIndexedNotNull { i, path ->

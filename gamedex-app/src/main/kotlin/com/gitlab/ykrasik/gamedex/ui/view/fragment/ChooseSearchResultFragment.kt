@@ -7,12 +7,13 @@ import com.gitlab.ykrasik.gamedex.provider.SearchResultChoice
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.ui.okButton
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.HPos
 import javafx.geometry.VPos
+import javafx.scene.control.ButtonBar
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
 import javafx.scene.image.Image
@@ -33,6 +34,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
     private val minTableWidth: DoubleProperty = SimpleDoubleProperty()
     private var tableView: TableView<ProviderSearchResult> by singleAssign()
 
+    private val defaultButtonIsSearch = SimpleBooleanProperty(false)
     private var choice: SearchResultChoice = SearchResultChoice.Cancel
 
     private val thumbnailCache = mutableMapOf<String, ReadOnlyObjectProperty<Image>>()
@@ -65,8 +67,13 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                                 tooltip("You can edit the name and click 'Search Again' to search for a new value")
                                 font = Font.font(16.0)
                                 isFocusTraversable = false
+
+                                // "Search Again" becomes the new default button when this textfield has focus.
+                                defaultButtonIsSearch.bind(focusedProperty())
                             }
                             button("Search Again") {
+                                enableWhen { newSearch.textProperty().isNotEqualTo(data.name) }
+                                defaultButtonProperty().bind(defaultButtonIsSearch)
                                 prefHeightProperty().bind(newSearch.heightProperty())
                                 tooltip("Search for a new name, enter new name in the name field")
                                 setOnAction { close(choice = SearchResultChoice.NewSearch(newSearch.text)) }
@@ -114,8 +121,9 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
         bottom {
             buttonbar {
                 paddingTop = 20
-                okButton { 
+                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
                     enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
+                    defaultButtonProperty().bind(defaultButtonIsSearch.not())
                     setOnAction { close(choice = okResult) }
                 }
                 cancelButton { setOnAction { close(choice = SearchResultChoice.Cancel) } }

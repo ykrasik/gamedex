@@ -114,7 +114,7 @@ class GameView : View("Games") {
         libraryRepository.libraries.asSequence()
             .filter { it.platform != GamePlatform.excluded }
             .forEach { library ->
-                val (job, notification) = libraryScanner.refresh(library, excludedPaths, context)
+                val (job, notification) = libraryScanner.refresh(library, excludedPaths - library.path, context)
                 notificationManager.bind(notification)
                 for (addGameRequest in job.channel) {
                     val game = gameRepository.add(addGameRequest)

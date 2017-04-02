@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.module
 
+import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.UIGameSearchChooser
 import com.gitlab.ykrasik.gamedex.provider.GameSearchChooser
@@ -23,5 +24,6 @@ class AppModule : AbstractModule() {
         bind(GameRepository::class.java)
         bind(LibraryRepository::class.java)
         bind(LibraryScanner::class.java)
+        bind(ImageLoader::class.java)
     }
 }
