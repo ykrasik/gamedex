@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.model
 
 import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
@@ -23,11 +24,15 @@ import javax.inject.Singleton
 @Singleton
 class LibraryRepository @Inject constructor(
     private val persistenceService: PersistenceService,
-    private val gameRepository: GameRepository
+    private val gameRepository: GameRepository,
+    private val notificationManager: NotificationManager
 ) {
     private val log by logger()
 
-    val librariesProperty: ReadOnlyListProperty<Library> = SimpleListProperty(persistenceService.fetchAllLibraries().observable())
+    val librariesProperty: ReadOnlyListProperty<Library> = run {
+        notificationManager.message("Fetching libraries...")
+        SimpleListProperty(persistenceService.fetchAllLibraries().observable())
+    }
     val libraries: ObservableList<Library> by librariesProperty
 
     suspend fun add(request: AddLibraryRequest): Library {

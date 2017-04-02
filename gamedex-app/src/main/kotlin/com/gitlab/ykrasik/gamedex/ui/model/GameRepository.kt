@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.model
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
@@ -23,11 +24,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameRepository @Inject constructor(
-    private val persistenceService: PersistenceService
+    private val persistenceService: PersistenceService,
+    private val notificationManager: NotificationManager
 ) {
     private val log by logger()
 
-    val gamesProperty: ReadOnlyListProperty<Game> = SimpleListProperty(persistenceService.fetchAllGames().observable())
+    val gamesProperty: ReadOnlyListProperty<Game> = run {
+        notificationManager.message("Fetching games...")
+        SimpleListProperty(persistenceService.fetchAllGames().observable())
+    }
     val games: ObservableList<Game> by gamesProperty
 
     val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
@@ -44,14 +49,14 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun delete(game: Game) {
-        log.info { "Deleting $game..." }
+        notificationManager.message("Deleting '${game.name}'...")
         run(CommonPool) {
             persistenceService.deleteGame(game.id)
         }
         run(JavaFx) {
             check(games.removeIf { it.id == game.id }) { "Error! Game doesn't exist: $game" }
         }
-        log.info { "Done." }
+        notificationManager.message("Deleted '${game.name}'.")
     }
 
     suspend fun deleteByLibrary(library: Library) {

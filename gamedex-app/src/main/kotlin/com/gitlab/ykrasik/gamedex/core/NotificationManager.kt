@@ -21,12 +21,21 @@ class NotificationManager {
     val messageProperty: ReadOnlyStringProperty get() = notification.messageProperty
     val progressProperty: ReadOnlyDoubleProperty get() = notification.progressProperty
 
+    fun message(message: String) {
+        notification.messageProperty.value = message
+    }
+
+    fun progress(done: Int, total: Int) {
+        notification.progress(done, total)
+    }
+
     fun bind(notification: Notification) {
         this.notification.messageProperty.bind(notification.messageProperty)
         this.notification.progressProperty.bind(notification.progressProperty)
     }
 }
 
+// TODO: Look at the use cases of this class and consider if this is even required.
 data class Notification(
     val messageProperty: StringProperty = ThreadAwareStringProperty(),
     val progressProperty: DoubleProperty = ThreadAwareDoubleProperty()

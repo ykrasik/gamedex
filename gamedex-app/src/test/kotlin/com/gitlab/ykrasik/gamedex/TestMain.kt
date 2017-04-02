@@ -9,10 +9,12 @@ import com.gitlab.ykrasik.gamedex.common.testkit.randomSlashDelimitedString
 import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
 import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
 import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbEmbeddedServer
 import com.typesafe.config.ConfigValueFactory
@@ -47,9 +49,10 @@ object TestMain {
     }
 
     private fun generateDb() {
-        Main.MainDiContainer.getInstance(DbInitializer::class).reload()
+        val diContainer = GuiceDiContainer(listOf(PersistenceModule()))
+        diContainer.getInstance(DbInitializer::class).reload()
         
-        val persistenceService = Main.MainDiContainer.getInstance(PersistenceService::class)
+        val persistenceService = diContainer.getInstance(PersistenceService::class)
 
         persistenceService.insert(AddLibraryRequest(
             path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(GamePlatform.pc, "Test Games")

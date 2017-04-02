@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import java.io.File
 
 /**
  * User: ykrasik
@@ -26,6 +27,9 @@ fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 
 inline fun <reified T : Any> String.fromJson(): T = objectMapper.readValue(this, T::class.java)
 inline fun <reified T : Any> ByteArray.fromJson(): T = objectMapper.readValue(this, T::class.java)
+inline fun <reified T : Any> File.readJson(): T = objectMapper.readValue(this, T::class.java)
+
+fun File.writeJson(data: Any) = objectMapper.writeValue(this, data)
 
 inline fun <reified T : Any> String.listFromJson(): List<T> {
     val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)

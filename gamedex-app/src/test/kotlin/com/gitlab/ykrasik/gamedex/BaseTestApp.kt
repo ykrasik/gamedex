@@ -1,5 +1,7 @@
 package com.gitlab.ykrasik.gamedex
 
+import com.gitlab.ykrasik.gamedex.module.DefaultGuiceModuleConfiguration
+import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import javafx.application.Application
 import javafx.scene.Parent
 import tornadofx.*
@@ -16,7 +18,7 @@ abstract class BaseTestApp {
         Application.launch(TestApplication::class.java)
     }
 
-    open fun diContainer(): DIContainer = Main.MainDiContainer
+    open fun diContainer(): DIContainer = GuiceDiContainer(DefaultGuiceModuleConfiguration().modules)
 
     protected abstract fun init(): Unit
 

@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.common.util.create
-import com.gitlab.ykrasik.gamedex.common.util.objectMapper
-import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.common.util.*
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
@@ -50,11 +48,11 @@ class UserPreferences private constructor() {
 
         operator fun invoke(): UserPreferences {
             val p = if (file.exists()) {
-                objectMapper.readValue(file, UserPreferences::class.java)
+                file.readJson<UserPreferences>()
             } else {
                 file.create()
                 UserPreferences().apply {
-                    objectMapper.writeValue(file, this)
+                    file.writeJson(this)
                 }
             }
             p.updateEnable = true

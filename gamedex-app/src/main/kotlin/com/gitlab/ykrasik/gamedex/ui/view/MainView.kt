@@ -21,7 +21,6 @@ class MainView : View("Main") {
     private var logTextArea: TextArea by singleAssign()
 
     override val root = borderpane {
-
         top {
             menubar {
                 menu("Game") {
@@ -36,7 +35,6 @@ class MainView : View("Main") {
                 }
             }
         }
-
         center {
             splitpane {
                 dividerPosition = 0.98
@@ -48,7 +46,6 @@ class MainView : View("Main") {
                 logTextArea = readOnlyTextArea { isWrapText = true }
             }
         }
-
         bottom {
             statusBar {
                 text = "Welcome to GameDex!"
@@ -80,5 +77,10 @@ class MainView : View("Main") {
 
     private fun showSettings() {
         SettingsFragment().show()
+    }
+
+    override fun onDock() {
+        primaryStage.isMaximized = true
+        root.fade(0.5.seconds, 0.0, reversed = true)
     }
 }

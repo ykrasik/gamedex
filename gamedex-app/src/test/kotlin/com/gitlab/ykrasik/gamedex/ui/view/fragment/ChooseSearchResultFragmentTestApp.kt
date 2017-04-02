@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.Main
 import com.gitlab.ykrasik.gamedex.common.testkit.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.provider.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
@@ -26,11 +26,11 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
             on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
         }
 
-        return Main.GuiceDiContainer(object : AbstractModule() {
+        return GuiceDiContainer(listOf(object : AbstractModule() {
             override fun configure() {
                 bind(ImageLoader::class.java).toInstance(imageLoader)
             }
-        })
+        }))
     }
 
     override fun init() {
