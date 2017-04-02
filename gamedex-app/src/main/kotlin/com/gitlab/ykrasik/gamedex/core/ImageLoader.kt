@@ -44,10 +44,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private fun loadImage(context: CoroutineContext, f: suspend () -> ByteArray): ObjectProperty<Image> {
-        val imageProperty = SimpleObjectProperty<Image>()
-        async(JavaFx) {
-            imageProperty.value = UIResources.Images.loading
-        }
+        val imageProperty = SimpleObjectProperty<Image>(UIResources.Images.loading)
         launch(context) {
             val image = f().toImage()
             run(JavaFx) {

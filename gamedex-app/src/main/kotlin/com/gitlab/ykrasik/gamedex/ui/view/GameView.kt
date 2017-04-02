@@ -12,6 +12,7 @@ import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import javafx.beans.property.ReadOnlyListProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
@@ -33,8 +34,11 @@ class GameView : View("Games") {
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
 
-    override val root = borderpane {
+    private val xIcon = resources.imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png")
 
+    val gamesProperty: ReadOnlyListProperty<Game> get() = gameRepository.gamesProperty
+
+    override val root = borderpane {
         top {
             toolbar {
                 prefHeight = 40.0
@@ -43,7 +47,7 @@ class GameView : View("Games") {
                     hgap = 2.0
                     row {
                         textfield { promptText = "Search" }
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
+                        button(graphic = xIcon)
                     }
                 }
 
@@ -54,7 +58,7 @@ class GameView : View("Games") {
                     row {
                         button("Genre Filter") { setOnAction { gameController.filterGenres() } }
                         readOnlyTextField()
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
+                        button(graphic = xIcon)
                     }
                 }
 
@@ -65,7 +69,7 @@ class GameView : View("Games") {
                     row {
                         button("Library Filter") { setOnAction { gameController.filterLibraries() } }
                         readOnlyTextField()
-                        button(graphic = imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png"))
+                        button(graphic = xIcon)
                     }
                 }
 
@@ -94,7 +98,6 @@ class GameView : View("Games") {
                 }
             }
         }
-
         center {
             tabpane {
                 nonClosableTab("Wall") { content = gameWallView.root }

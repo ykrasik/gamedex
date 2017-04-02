@@ -1,15 +1,16 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
+
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.ui.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.okButton
-import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
 import javafx.scene.image.ImageView
+import javafx.scene.layout.Priority
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
-import javafx.stage.StageStyle
 import tornadofx.*
+import java.net.URLEncoder
 
 /**
  * User: ykrasik
@@ -25,7 +26,8 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
         top {
             vbox {
                 buttonbar {
-                    minHeight = 80.0
+                    padding { right = 10; left = 10 }
+                    minHeight = 40.0
                     okButton { setOnAction { close(accept = true) } }
                     cancelButton { setOnAction { close(accept = false) } }
 
@@ -39,16 +41,16 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
             }
         }
         center {
+            paddingAll = 10
+            val screenWidth = Screen.getPrimary().bounds.width
             hbox {
+                // Left
                 stackpane {
-                    style {
-                        styleClass += "card"     // TODO: Type-safety!
-                    }
-                    paddingAll = 5
-
-                    val screenWidth = Screen.getPrimary().bounds.width
+                    addClass(Styles.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
+                    poster.imageProperty().bind(imageLoader.fetchImage(game.imageIds.posterId))
+                    
                     val posterPane = ImageViewResizingPane(poster)  // TODO: Add syntactic sugar for this.
                     posterPane.maxWidth = screenWidth * maxPosterWidthPercent
 
@@ -60,11 +62,34 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
                     posterPane.widthProperty().onChange { clip.width = it }
                     posterPane.clip = clip
 
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.imageIds.posterId))
-
                     children += posterPane
                 }
+
                 verticalSeparator(padding = 10.0)
+
+                // Right
+                vbox {
+                    hgrow = Priority.ALWAYS
+                    form {
+                        fieldset {
+                            field("Path") { readOnlyTextField(game.path.path) }
+                            field("Name") { readOnlyTextField(game.name) }
+                            field("Description") { readOnlyTextArea(game.description) { isWrapText = true } }
+                            field("Release Date") { readOnlyTextField(game.releaseDate.toString()) }
+                            field("Critic Score") { readOnlyTextField(game.criticScore.toString()) }
+                            field("User Score") { readOnlyTextField(game.userScore.toString()) }
+                            field("Genres") { readOnlyTextField(game.genres.joinToString(", ")) }
+//                            field("URL") { hyperlink(game.u) }
+                        }
+                    }
+                    separator { padding { top = 10; bottom = 10 } }
+                    webview {
+                        vgrow = Priority.ALWAYS
+                        val search = URLEncoder.encode("${game.name} pc gameplay", "utf-8")
+                        val url = "https://www.youtube.com/results?search_query=$search"
+                        engine.load(url)
+                    }
+                }
             }
         }
     }
@@ -74,7 +99,7 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
     }
 
     fun show(): Boolean {
-        openModal(block = true, stageStyle = StageStyle.TRANSPARENT)
+        openModal(block = true, owner = null)
         return accept
     }
 

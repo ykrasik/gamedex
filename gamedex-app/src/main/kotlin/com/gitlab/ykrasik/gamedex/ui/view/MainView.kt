@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.controller.MainController
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.SettingsFragment
@@ -12,7 +13,9 @@ import tornadofx.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : View("Main") {
+class MainView : View("Gamedex") {
+    private val notificationManager: NotificationManager by di()
+
     private val controller: MainController by inject()
 
     private val gameView: GameView by inject()
@@ -48,7 +51,7 @@ class MainView : View("Main") {
         }
         bottom {
             statusBar {
-                text = "Welcome to GameDex!"
+                textProperty().bind(notificationManager.messageProperty)
 
                 left {
                     togglebutton("Log") {
@@ -57,9 +60,10 @@ class MainView : View("Main") {
                         logTextArea.visibleProperty().bind(selectedProperty())
                     }
                     verticalSeparator(10.0)
-                    label("Games: 0") { paddingTop = 4}
-                    verticalSeparator(10.0)
-                    label("Libraries: 0") { paddingTop = 4 }
+                    label { 
+                        paddingTop = 4
+                        textProperty().bind(gameView.gamesProperty.sizeProperty().asString("Games: %d"))
+                    }
                     verticalSeparator(10.0)
                 }
 
