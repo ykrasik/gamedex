@@ -40,12 +40,14 @@ object TestMain {
             .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef("http://localhost:$igdbPort/images"))
         )
 
-        GiantBombEmbeddedServer(giantBombPort).start(isFakeProd = true)
-        IgdbEmbeddedServer(igdbPort).start()
+        val giantBombServer = GiantBombEmbeddedServer(giantBombPort).start(isFakeProd = true)
+        val igdbServer = IgdbEmbeddedServer(igdbPort).start()
 
 //        generateDb()
 
         Main.main(args)
+        igdbServer.close()
+        giantBombServer.close()
     }
 
     private fun generateDb() {

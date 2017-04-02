@@ -9,6 +9,7 @@ import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.netty.embeddedNettyServer
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.*
+import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
 /**
@@ -16,15 +17,15 @@ import java.util.concurrent.TimeUnit
  * Date: 19/03/2017
  * Time: 16:48
  */
-class IgdbEmbeddedServer(port: Int) {
+class IgdbEmbeddedServer(port: Int) : Closeable {
     private val apiDetailPath = 1
     private val image = "image"
 
-    fun start() {
-        server.start(wait = false)
+    fun start(): IgdbEmbeddedServer = apply {
+        ktor.start(wait = false)
     }
 
-    private val server = embeddedNettyServer(port) {
+    private val ktor = embeddedNettyServer(port) {
         routing {
             route("/") {
                 method(HttpMethod.Get) {
@@ -92,4 +93,8 @@ class IgdbEmbeddedServer(port: Int) {
     )).toJsonStr()
 
     // TODO: Allow configuring responses for ITs
+
+    override fun close() {
+        ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+    }
 }

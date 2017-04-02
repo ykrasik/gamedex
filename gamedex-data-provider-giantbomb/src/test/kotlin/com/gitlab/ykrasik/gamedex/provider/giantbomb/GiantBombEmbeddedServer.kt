@@ -12,6 +12,7 @@ import org.jetbrains.ktor.netty.embeddedNettyServer
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.get
 import org.jetbrains.ktor.routing.routing
+import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
 /**
@@ -19,7 +20,7 @@ import java.util.concurrent.TimeUnit
  * Date: 19/03/2017
  * Time: 13:14
  */
-class GiantBombEmbeddedServer(port: Int) {
+class GiantBombEmbeddedServer(port: Int) : Closeable {
     private val baseUrl = "http://localhost:$port"
     private val apiDetailPath = "details"
     private val apiDetailUrl = "$baseUrl/$apiDetailPath"
@@ -45,7 +46,7 @@ class GiantBombEmbeddedServer(port: Int) {
         }
     }
 
-    fun start(isFakeProd: Boolean = false) {
+    fun start(isFakeProd: Boolean = false): GiantBombEmbeddedServer = apply {
         if (isFakeProd) {
             ktor.start()
         } else {
@@ -180,4 +181,9 @@ class GiantBombEmbeddedServer(port: Int) {
     )
 
     private fun GiantBombStatus.asString() = this.toString().toUpperCase()
+
+    override fun close() {
+        ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+        wiremock.stop()
+    }
 }
