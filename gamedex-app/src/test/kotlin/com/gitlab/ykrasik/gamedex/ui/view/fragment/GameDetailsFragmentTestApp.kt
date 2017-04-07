@@ -47,7 +47,7 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
                 screenshotIds = List(rnd.nextInt(10)) { rnd.nextInt() }
             )
         )
-        println("Result: " + GameDetailsFragment(game).show())
+        println("Result: " + GameDetailsFragment(game, displayVideos = false).show())
         System.exit(0)
     }
 

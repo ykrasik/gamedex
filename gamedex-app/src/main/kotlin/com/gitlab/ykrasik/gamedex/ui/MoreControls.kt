@@ -1,11 +1,14 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.ui.view.widgets.FixedRatingSkin
+import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
 import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
 import javafx.util.Callback
 import javafx.util.Duration
+import org.controlsfx.control.Rating
 import tornadofx.*
 import kotlin.reflect.KProperty1
 
@@ -81,3 +84,11 @@ fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageVi
     }
     return this
 }
+
+fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() -> Unit)? = null) = opcr(this, Rating(max), op).apply {
+    isPartialRating = isPartial
+    skin = FixedRatingSkin(this)
+}
+
+fun EventTarget.imageViewResizingPane(imageView: ImageView, op: (ImageViewResizingPane.() -> Unit)? = null) =
+    opcr(this, ImageViewResizingPane(imageView), op)

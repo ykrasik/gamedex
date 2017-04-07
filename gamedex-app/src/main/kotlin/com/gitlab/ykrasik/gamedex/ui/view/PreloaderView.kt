@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
-import com.gitlab.ykrasik.gamedex.module.DefaultGuiceModuleConfiguration
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.util.ProgramData
 import com.google.inject.AbstractModule
@@ -74,9 +73,7 @@ class PreloaderView : View("Gamedex") {
         val provisionListener = GamedexProvisionListener(programData.amountOfDiComponents)
 
         FX.dicontainer = GuiceDiContainer(
-            DefaultGuiceModuleConfiguration().modules +
-                LifecycleModule(provisionListener) +
-                NotificationModule()
+            GuiceDiContainer.defaultModules + LifecycleModule(provisionListener) + NotificationModule()
         )
 
         notificationManager.message("Done loading.")

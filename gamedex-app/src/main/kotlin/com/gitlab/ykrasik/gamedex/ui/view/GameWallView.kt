@@ -83,6 +83,7 @@ class GameWallView : View("Games Wall") {
                 val thumbnailId = item.imageIds.thumbnailId!!
                 val image = thumbnailCache.getOrPut(thumbnailId) { imageLoader.fetchImage(thumbnailId) }
                 imageView.imageProperty().cleanBind(image)
+                tooltip(item.name)
             } else {
                 imageView.imageProperty().unbind()
                 imageView.image = null

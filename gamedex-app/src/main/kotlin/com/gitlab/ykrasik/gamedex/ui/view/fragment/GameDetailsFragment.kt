@@ -5,9 +5,14 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
-import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
+import javafx.scene.effect.BlurType
+import javafx.scene.effect.DropShadow
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
+import javafx.scene.paint.Color
+import javafx.scene.paint.CycleMethod
+import javafx.scene.paint.LinearGradient
+import javafx.scene.paint.Stop
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
 import tornadofx.*
@@ -18,13 +23,14 @@ import java.net.URLEncoder
  * Date: 30/03/2017
  * Time: 18:17
  */
-class GameDetailsFragment(game: Game) : Fragment(game.name) {
+class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val imageLoader: ImageLoader by di()
     private val libraryRepository: LibraryRepository by di()
 
     private var accept = false
 
     override val root = borderpane {
+        setId(Style.gameDetailView)
         top {
             vbox {
                 buttonbar {
@@ -33,6 +39,7 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
                     okButton { setOnAction { close(accept = true) } }
                     cancelButton { setOnAction { close(accept = false) } }
 
+                    // TODO: Implement.
                     button("Change Thumbnail")
                     button("Change Poster")
                     button("Refresh")
@@ -52,19 +59,18 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
 
                     val poster = ImageView()
                     poster.imageProperty().bind(imageLoader.fetchImage(game.imageIds.posterId))
-                    
-                    val posterPane = ImageViewResizingPane(poster)  // TODO: Add syntactic sugar for this.
-                    posterPane.maxWidth = screenWidth * maxPosterWidthPercent
 
-                    // Clip the posterPane's corners to be round after the posterPane's size is calculated.
-                    val clip = Rectangle()
-                    clip.arcWidth = 20.0
-                    clip.arcHeight = 20.0
-                    posterPane.heightProperty().onChange { clip.height = it }
-                    posterPane.widthProperty().onChange { clip.width = it }
-                    posterPane.clip = clip
+                    imageViewResizingPane(poster) {
+                        maxWidth = screenWidth * maxPosterWidthPercent
 
-                    children += posterPane
+                        // Clip the posterPane's corners to be round after the posterPane's size is calculated.
+                        clip = Rectangle().apply {
+                            arcWidth = 20.0
+                            arcHeight = 20.0
+                            heightProperty().bind(this@imageViewResizingPane.heightProperty())
+                            widthProperty().bind(this@imageViewResizingPane.widthProperty())
+                        }
+                    }
                 }
 
                 verticalSeparator(padding = 10.0)
@@ -72,25 +78,61 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
                 // Right
                 vbox {
                     hgrow = Priority.ALWAYS
+
+                    // Top
+                    hbox {
+                        horizontalExpander()
+                        label(game.name) { setId(Style.nameLabel) }
+                        horizontalExpander()
+                    }
                     form {
                         fieldset {
-                            field("Path") { readOnlyTextField(game.path.path) }
-                            field("Name") { readOnlyTextField(game.name) }
-                            field("Description") { readOnlyTextArea(game.description) { isWrapText = true } }
-                            field("Release Date") { readOnlyTextField(game.releaseDate.toString()) }
-                            field("Critic Score") { readOnlyTextField(game.criticScore.toString()) }
-                            field("User Score") { readOnlyTextField(game.userScore.toString()) }
-                            field("Genres") { readOnlyTextField(game.genres.joinToString(", ")) }
+                            field("Path") { label (game.path.path) { addClass(Style.details) } }
+                            // TODO: Long description doesn't wrap to next line.
+                            field("Description") { label(game.description.toDisplayString()) { isWrapText = true; addClass(Style.details) } }
+                            field("Release Date") { label(game.releaseDate.toDisplayString()) { addClass(Style.details) } }
+                            field("Critic Score") {
+                                gridpane {
+                                    hgap = 5.0
+                                    fixedRating(10) { rating = game.criticScore?.let { it / 10 } ?: 0.0 }
+                                    label(game.criticScore.toDisplayString()) {
+                                        addClass(Style.details)
+                                        gridpaneConstraints { columnIndex = 1; }
+                                    }
+                                }
+                            }
+                            field("User Score") {
+                                gridpane {
+                                    hgap = 5.0
+                                    fixedRating(10) { rating = game.userScore?.let { it / 10 } ?: 0.0 }
+                                    label(game.userScore.toDisplayString()) {
+                                        addClass(Style.details)
+                                        gridpaneConstraints { columnIndex = 1; }
+                                    }
+                                }
+                            }
+                            field("Genres") {
+                                game.genres.forEach {
+                                    // TODO: Make clicking a genre change main view to only show these genres
+                                    label(it) { addClass(Style.details, Style.genre) }
+                                    paddingRight = 5.0
+                                }
+                            }
+                            // TODO: Show url per provider.
 //                            field("URL") { hyperlink(game.u) }
                         }
                     }
-                    separator { padding { top = 10; bottom = 10 } }
-                    webview {
-                        vgrow = Priority.ALWAYS
-                        val platform = libraryRepository.libraryForGame(game).platform
-                        val search = URLEncoder.encode("${game.name} $platform gameplay", "utf-8")
-                        val url = "https://www.youtube.com/results?search_query=$search"
-                        engine.load(url)
+
+                    // Bottom
+                    if (displayVideos) {
+                        separator { padding { top = 10; bottom = 10 } }
+                        webview {
+                            vgrow = Priority.ALWAYS
+                            val platform = libraryRepository.libraryForGame(game).platform
+                            val search = URLEncoder.encode("${game.name} $platform gameplay", "utf-8")
+                            val url = "https://www.youtube.com/results?search_query=$search"
+                            engine.load(url)
+                        }
                     }
                 }
             }
@@ -111,84 +153,55 @@ class GameDetailsFragment(game: Game) : Fragment(game.name) {
         close()
     }
 
+    private fun Any?.toDisplayString() = this?.toString() ?: "NA"
+
     companion object {
-        private val maxPosterWidthPercent = 0.5
+        private val maxPosterWidthPercent = 0.44
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val gameDetailView by cssid()
+            val details by cssclass()
+            val nameLabel by cssid()
+            val genre by cssclass()
+        }
+
+        init {
+            gameDetailView {
+                backgroundColor = multi(
+                    LinearGradient(0.0, 1.0, 0.0, 1.0, false, CycleMethod.NO_CYCLE,
+                        Stop(0.0, Color.web("#f2f2f2")), Stop(1.0, Color.web("#d6d6d6"))),
+                    LinearGradient(0.0, 1.0, 0.0, 1.0, false, CycleMethod.NO_CYCLE,
+                        Stop(0.0, Color.web("#fcfcfc")), Stop(0.2, Color.web("#d9d9d9")), Stop(1.0, Color.web("#d6d6d6"))),
+                    LinearGradient(0.0, 1.0, 0.0, 1.0, false, CycleMethod.NO_CYCLE,
+                        Stop(0.0, Color.web("#dddddd")), Stop(0.5, Color.web("#f6f6f6")))
+                )
+                backgroundRadius = multi(box(8.px, 7.px, 6.px, 0.px))
+                backgroundInsets = multi(box(0.px, 1.px, 2.px, 0.px))
+                textFill = Color.BLACK
+                effect = DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.6), 5.0, 0.0, 0.0, 1.0)
+            }
+            details {
+                borderRadius = multi(box(3.px))
+                backgroundColor = multi(Color.LIGHTGRAY)
+                backgroundRadius = multi(box(3.px))
+                padding = box(vertical = 5.px, horizontal = 10.px)
+                fillWidth = true
+                wrapText = true
+            }
+
+            nameLabel {
+                fontSize = 20.px
+            }
+
+            genre {
+                and(hover) {
+                    translateX = 1.px
+                    translateY = 1.px
+                    effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
+                }
+            }
+        }
     }
 }
-
-//
-//<BorderPane fx:id="container" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-//<center>
-//<HBox>
-//<children>
-//<StackPane fx:id="posterContainer" styleClass="card" HBox.hgrow="SOMETIMES">
-//<BorderPane.margin>
-//<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-//</BorderPane.margin>
-//<HBox.margin>
-//<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-//</HBox.margin>
-//</StackPane>
-//<VBox alignment="TOP_RIGHT" styleClass="card" HBox.hgrow="ALWAYS">
-//<children>
-//<GridPane fx:id="attributes" alignment="TOP_RIGHT" hgap="5.0" vgap="8.0" BorderPane.alignment="CENTER" StackPane.alignment="CENTER_RIGHT">
-//<children>
-//<Label text="Description:" GridPane.rowIndex="4" />
-//<TextArea fx:id="description" wrapText="true" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
-//<Label text="Platform:" GridPane.rowIndex="5" />
-//<TextField fx:id="platform" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-//<Label text="Release Date:" GridPane.rowIndex="6" />
-//<TextField fx:id="releaseDate" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-//<Label text="Critic Score:" GridPane.rowIndex="7" />
-//<HBox fx:id="criticScoreContainer" GridPane.columnIndex="1" GridPane.rowIndex="7">
-//<children>
-//<TextField fx:id="criticScore" GridPane.columnIndex="1" GridPane.rowIndex="6" HBox.hgrow="ALWAYS">
-//<HBox.margin>
-//<Insets right="20.0" />
-//</HBox.margin>
-//</TextField>
-//</children>
-//</HBox>
-//<Label text="User Score:" GridPane.rowIndex="8" />
-//<TextField fx:id="userScore" GridPane.columnIndex="1" GridPane.rowIndex="8" />
-//<TextField fx:id="genres" GridPane.columnIndex="1" GridPane.rowIndex="9" />
-//<Label text="Genres:" GridPane.rowIndex="9" />
-//<Label text="URL:" GridPane.rowIndex="10" />
-//<Hyperlink fx:id="url" GridPane.columnIndex="1" GridPane.rowIndex="10" />
-//<Label id="nameLabel" fx:id="nameLabel" text="Name" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
-//<Label id="pathLabel" fx:id="pathLabel" text="Path" wrapText="true" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
-//</children>
-//<columnConstraints>
-//<ColumnConstraints fillWidth="false" halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
-//<ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
-//</columnConstraints>
-//<rowConstraints>
-//<RowConstraints fillHeight="false" maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="ALWAYS" />
-//<RowConstraints fillHeight="false" minHeight="10.0" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" minHeight="100.0" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//<RowConstraints fillHeight="false" vgrow="SOMETIMES" />
-//</rowConstraints>
-//<BorderPane.margin>
-//<Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
-//</BorderPane.margin>
-//</GridPane>
-//</children>
-//<padding>
-//<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-//</padding>
-//<HBox.margin>
-//<Insets bottom="10.0" right="10.0" top="10.0" />
-//</HBox.margin>
-//</VBox>
-//</children>
-//</HBox>
-//</center>
-//</BorderPane>

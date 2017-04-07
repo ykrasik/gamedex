@@ -8,11 +8,11 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.Separator
 import javafx.scene.control.SplitPane
+import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import org.controlsfx.control.GridView
 import org.controlsfx.control.StatusBar
-import tornadofx.opcr
-import tornadofx.separator
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -52,3 +52,8 @@ fun <T> EventTarget.gridView(op: (GridView<T>.() -> Unit)? = null) = opcr(this, 
 var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
+
+fun EventTarget.horizontalExpander(): Region = region {
+    hgrow = Priority.ALWAYS
+    gridpaneConstraints { hGrow = Priority.ALWAYS }
+}

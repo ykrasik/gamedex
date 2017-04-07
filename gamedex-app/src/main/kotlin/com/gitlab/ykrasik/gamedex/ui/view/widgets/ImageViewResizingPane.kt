@@ -70,6 +70,6 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
     private fun limitIfApplicable(value: Double, max: Double) = if (max > 0) Math.min(value, max) else value
 
     companion object {
-        private val maxEnlargeRatio = 1.6    // FIXME: Property
+        private val maxEnlargeRatio = 2    // FIXME: Property
     }
 }
