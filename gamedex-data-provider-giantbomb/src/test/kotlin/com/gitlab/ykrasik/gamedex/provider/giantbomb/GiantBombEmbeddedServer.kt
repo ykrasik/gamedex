@@ -47,37 +47,37 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         }
     }
 
-    private fun randomSearchResponse() = GiantBombSearchResponse(
-        statusCode = GiantBombStatus.ok,
+    private fun randomSearchResponse() = GiantBomb.SearchResponse(
+        statusCode = GiantBomb.Status.ok,
         results = List(rnd.nextInt(20)) {
-            GiantBombSearchResult(
+            GiantBomb.SearchResult(
                 apiDetailUrl = apiDetailUrl,
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBombSearchImage(
+                image = GiantBomb.SearchImage(
                     thumbUrl = imageUrl
                 )
             )
         }
     )
 
-    private fun randomDetailResponse() = GiantBombDetailsResponse(
-        statusCode = GiantBombStatus.ok,
-        results = listOf(GiantBombDetailsResult(
+    private fun randomDetailResponse() = GiantBomb.DetailsResponse(
+        statusCode = GiantBomb.Status.ok,
+        results = listOf(GiantBomb.DetailsResult(
             siteDetailUrl = randomUrl(),
             deck = randomSentence(maxWords = 15),
-            image = GiantBombDetailsImage(
+            image = GiantBomb.DetailsImage(
                 thumbUrl = imageUrl,
                 superUrl = imageUrl   // TODO: Support once implemented
             ),
             genres = List(rnd.nextInt(4)) {
-                GiantBombGenre(name = randomString())
+                GiantBomb.Genre(name = randomString())
             }
         ))
     )
 
     inner class searchRequest(private val apiKey: String, private val name: String, private val platform: Int) {
-        infix fun willReturn(response: GiantBombSearchResponse) {
+        infix fun willReturn(response: GiantBomb.SearchResponse) {
             wiremock.givenThat(aSearchRequest.willReturn(aJsonResponse(response.toMap())))
         }
 
@@ -93,7 +93,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
     }
 
     inner class fetchRequest(private val apiKey: String, private val apiUrl: String) {
-        infix fun willReturn(response: GiantBombDetailsResponse) {
+        infix fun willReturn(response: GiantBomb.DetailsResponse) {
             wiremock.givenThat(aFetchRequest.willReturn(aJsonResponse(response.toMap())))
         }
 
@@ -106,7 +106,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
             .withQueryParam("field_list", fetchDetailsFields)
     }
 
-    private fun GiantBombSearchResponse.toMap() = mapOf(
+    private fun GiantBomb.SearchResponse.toMap() = mapOf(
         "error" to statusCode.asString(),
         "limit" to 100,
         "offset" to 0,
@@ -117,7 +117,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "version" to "1.0"
     )
 
-    private fun GiantBombSearchResult.toMap(): Map<String, Any> {
+    private fun GiantBomb.SearchResult.toMap(): Map<String, Any> {
         val map = mutableMapOf<String, Any>(
             "api_detail_url" to apiDetailUrl,
             "name" to name
@@ -131,7 +131,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         return map
     }
 
-    private fun GiantBombSearchImage.toMap() = mapOf(
+    private fun GiantBomb.SearchImage.toMap() = mapOf(
         "icon_url" to randomUrl(),
         "medium_url" to randomUrl(),
         "screen_url" to randomUrl(),
@@ -141,7 +141,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "tiny_url" to randomUrl()
     )
 
-    private fun GiantBombDetailsResponse.toMap() = mapOf(
+    private fun GiantBomb.DetailsResponse.toMap() = mapOf(
         "error" to statusCode.asString(),
         "limit" to 1,
         "offset" to 0,
@@ -152,7 +152,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "version" to "1.0"
     )
 
-    private fun GiantBombDetailsResult.toMap(): Map<String, Any> {
+    private fun GiantBomb.DetailsResult.toMap(): Map<String, Any> {
         val map = mutableMapOf<String, Any>(
             "site_detail_url" to siteDetailUrl
         )
@@ -168,7 +168,7 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         return map.toMap()
     }
 
-    private fun GiantBombDetailsImage.toMap() = mapOf(
+    private fun GiantBomb.DetailsImage.toMap() = mapOf(
         "icon_url" to randomUrl(),
         "medium_url" to randomUrl(),
         "screen_url" to randomUrl(),
@@ -178,14 +178,14 @@ class GiantBombEmbeddedServer(port: Int) : Closeable {
         "tiny_url" to randomUrl()
     )
 
-    private fun GiantBombGenre.toMap() = mapOf(
+    private fun GiantBomb.Genre.toMap() = mapOf(
         "api_detail_url" to randomUrl(),
         "id" to rnd.nextInt(100),
         "name" to name,
         "site_detail_url" to randomUrl()
     )
 
-    private fun GiantBombStatus.asString() = this.toString().toUpperCase()
+    private fun GiantBomb.Status.asString() = this.toString().toUpperCase()
 
     fun start(isFakeProd: Boolean = false): GiantBombEmbeddedServer = apply {
         if (isFakeProd) {

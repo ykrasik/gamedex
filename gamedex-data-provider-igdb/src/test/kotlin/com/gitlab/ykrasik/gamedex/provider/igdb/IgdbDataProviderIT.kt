@@ -48,7 +48,7 @@ class IgdbDataProviderIT : ScopedWordSpec() {
         fun apiUrl(gameId: Int) = "$baseUrl$gameId"
         fun thumbnailUrl(imageId: String) = "$baseImageUrl/t_thumb_2x/$imageId.png"
         fun posterUrl(imageId: String) = "$baseImageUrl/t_screenshot_huge/$imageId.png"
-        fun LocalDate.toIgdbReleaseDate(platformId: Int) = IgdbReleaseDate(
+        fun LocalDate.toIgdbReleaseDate(platformId: Int) = Igdb.ReleaseDate(
             platform = platformId,
             category = 0,
             human = this.toString("YYYY-MMM-dd")
@@ -60,12 +60,12 @@ class IgdbDataProviderIT : ScopedWordSpec() {
     init {
         "IgdbProvider.search" should {
             "retrieve a single search result".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(IgdbSearchResult(
+                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(Igdb.SearchResult(
                     id = id,
                     name = name,
                     aggregatedRating = aggregatedRating,
                     releaseDates = listOf(releaseDate.toIgdbReleaseDate(platformId)),
-                    cover = IgdbImage(cloudinaryId = thumbnailId)
+                    cover = Igdb.Image(cloudinaryId = thumbnailId)
                 ))
 
                 val response = provider.search(name, platform)
@@ -89,19 +89,19 @@ class IgdbDataProviderIT : ScopedWordSpec() {
                 val thumbnailId2 = randomString()
 
                 server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id,
                         name = name,
                         aggregatedRating = aggregatedRating,
                         releaseDates = listOf(releaseDate.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId)
                     ),
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id2,
                         name = name2,
                         aggregatedRating = aggregatedRating2,
                         releaseDates = listOf(releaseDate2.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId2)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId2)
                     )
                 )
 
@@ -146,40 +146,40 @@ class IgdbDataProviderIT : ScopedWordSpec() {
                 val thumbnailId5 = randomString()
 
                 server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id,
                         name = "must contain all",
                         aggregatedRating = aggregatedRating,
                         releaseDates = listOf(releaseDate.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId)
                     ),
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id2,
                         name = "contain all words",
                         aggregatedRating = aggregatedRating2,
                         releaseDates = listOf(releaseDate2.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId2)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId2)
                     ),
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id3,
                         name = "must all words",
                         aggregatedRating = aggregatedRating3,
                         releaseDates = listOf(releaseDate3.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId3)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId3)
                     ),
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id4,
                         name = "must contain",
                         aggregatedRating = aggregatedRating4,
                         releaseDates = listOf(releaseDate4.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId4)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId4)
                     ),
-                    IgdbSearchResult(
+                    Igdb.SearchResult(
                         id = id5,
                         name = chosenName,
                         aggregatedRating = aggregatedRating5,
                         releaseDates = listOf(releaseDate5.toIgdbReleaseDate(platformId)),
-                        cover = IgdbImage(cloudinaryId = thumbnailId5)
+                        cover = Igdb.Image(cloudinaryId = thumbnailId5)
                     )
                 )
 
@@ -197,7 +197,7 @@ class IgdbDataProviderIT : ScopedWordSpec() {
             }
 
             "retrieve a single search result with null fields".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(IgdbSearchResult(
+                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(Igdb.SearchResult(
                     id = id,
                     name = name,
                     aggregatedRating = null,
@@ -219,12 +219,12 @@ class IgdbDataProviderIT : ScopedWordSpec() {
             }
 
             "retrieve a single search result with null cover cloudinaryId".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(IgdbSearchResult(
+                server.searchRequest(apiKey, name, platformId, maxSearchResults) willReturn listOf(Igdb.SearchResult(
                     id = id,
                     name = name,
                     aggregatedRating = aggregatedRating,
                     releaseDates = listOf(releaseDate.toIgdbReleaseDate(platformId)),
-                    cover = IgdbImage(cloudinaryId = null)
+                    cover = Igdb.Image(cloudinaryId = null)
                 ))
 
                 val response = provider.search(name, platform)
@@ -269,12 +269,12 @@ class IgdbDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = thumbnailUrl(thumbnailId)
                 )
 
-                server.fetchRequest(apiKey, id) willReturn IgdbDetailsResult(
+                server.fetchRequest(apiKey, id) willReturn Igdb.DetailsResult(
                     url = siteDetailUrl,
                     summary = summary,
                     rating = rating,
-                    cover = IgdbImage(cloudinaryId = posterId),
-                    screenshots = emptyList<IgdbImage>(),   // TODO: Support screenshots
+                    cover = Igdb.Image(cloudinaryId = posterId),
+                    screenshots = emptyList<Igdb.Image>(),   // TODO: Support screenshots
                     genres = listOf(genreId)
                 )
 
@@ -312,12 +312,12 @@ class IgdbDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = null
                 )
 
-                server.fetchRequest(apiKey, id) willReturn IgdbDetailsResult(
+                server.fetchRequest(apiKey, id) willReturn Igdb.DetailsResult(
                     url = siteDetailUrl,
                     summary = null,
                     rating = null,
                     cover = null,
-                    screenshots = emptyList<IgdbImage>(),   // TODO: Support screenshots
+                    screenshots = emptyList<Igdb.Image>(),   // TODO: Support screenshots
                     genres = null
                 )
 
@@ -355,12 +355,12 @@ class IgdbDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = thumbnailUrl(thumbnailId)
                 )
 
-                server.fetchRequest(apiKey, id) willReturn IgdbDetailsResult(
+                server.fetchRequest(apiKey, id) willReturn Igdb.DetailsResult(
                     url = siteDetailUrl,
                     summary = summary,
                     rating = rating,
-                    cover = IgdbImage(cloudinaryId = null),
-                    screenshots = emptyList<IgdbImage>(),   // TODO: Support screenshots
+                    cover = Igdb.Image(cloudinaryId = null),
+                    screenshots = emptyList<Igdb.Image>(),   // TODO: Support screenshots
                     genres = listOf(genreId)
                 )
 

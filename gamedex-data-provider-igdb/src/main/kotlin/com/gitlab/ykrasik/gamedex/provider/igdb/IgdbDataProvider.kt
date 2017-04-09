@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.common.datamodel.*
 import com.gitlab.ykrasik.gamedex.common.util.*
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
@@ -7,6 +8,7 @@ import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +49,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         return results
     }
 
-    private fun doSearch(name: String, platform: GamePlatform): List<IgdbSearchResult> {
+    private fun doSearch(name: String, platform: GamePlatform): List<Igdb.SearchResult> {
         val response = getRequest(config.endpoint,
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
@@ -57,7 +59,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         return response.listFromJson()
     }
 
-    private fun IgdbSearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
+    private fun Igdb.SearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
         apiUrl = "${config.endpoint}$id",
         name = name,
         releaseDate = findReleaseDate(platform),
@@ -65,14 +67,14 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         thumbnailUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.thumb, x2 = true) }
     )
 
-    private fun IgdbSearchResult.findReleaseDate(platform: GamePlatform): LocalDate? {
+    private fun Igdb.SearchResult.findReleaseDate(platform: GamePlatform): LocalDate? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.
         val releaseDates = this.releaseDates ?: return null
         val releaseDate = releaseDates.find { it.platform == platform.id } ?: return null
         return releaseDate.toLocalDate()
     }
 
-    private fun toSearchResults(response: List<IgdbSearchResult>, name: String, platform: GamePlatform): List<ProviderSearchResult> {
+    private fun toSearchResults(response: List<Igdb.SearchResult>, name: String, platform: GamePlatform): List<ProviderSearchResult> {
         // IGBD search sucks. It returns way more results then it should.
         // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
         val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
@@ -96,18 +98,18 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         return gameData
     }
 
-    private fun doFetch(searchResult: ProviderSearchResult): IgdbDetailsResult {
+    private fun doFetch(searchResult: ProviderSearchResult): Igdb.DetailsResult {
         val response = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
         // IGDB returns a list, even though we're fetching by id :/
-        return response.listFromJson<IgdbDetailsResult> { parseError(it) }.first()
+        return response.listFromJson<Igdb.DetailsResult> { parseError(it) }.first()
     }
 
     private fun parseError(raw: String): String {
-        val errors: List<IgdbError> = raw.listFromJson()
+        val errors: List<Igdb.Error> = raw.listFromJson()
         return errors.first().error.first()
     }
 
-    private fun IgdbDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
+    private fun Igdb.DetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
         providerData = ProviderData(
             type = DataProviderType.Igdb,
             apiUrl = searchResult.apiUrl,
@@ -154,13 +156,63 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val info = IgdbDataProvider.info
+    override val info = Igdb.info
+}
 
-    companion object {
-        val info = DataProviderInfo(
-            name = "IGDB",
-            type = DataProviderType.GiantBomb,
-            logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/igdb/igdb.png").toImage()
-        )
+object Igdb {
+    val info = DataProviderInfo(
+        name = "IGDB",
+        type = DataProviderType.Igdb,
+        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/igdb/igdb.png").toImage()
+    )
+
+    data class SearchResult(
+        val id: Int,
+        val name: String,
+        val aggregatedRating: Double?,
+        val releaseDates: List<ReleaseDate>?,
+        val cover: Image?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class ReleaseDate(
+        val platform: Int,
+        val category: Int,
+        val human: String
+    ) {
+        fun toLocalDate(): LocalDate? {
+            val format = when (category) {
+                0 -> DateTimeFormat.forPattern("YYYY-MMM-dd")
+                1 -> DateTimeFormat.forPattern("YYYY-MMM")
+                2 -> DateTimeFormat.forPattern("YYYY")
+                3 -> DateTimeFormat.forPattern("YYYY-'Q1'")
+                4 -> DateTimeFormat.forPattern("YYYY-'Q2'")
+                5 -> DateTimeFormat.forPattern("YYYY-'Q3'")
+                6 -> DateTimeFormat.forPattern("YYYY-'Q4'")
+                7 -> return null
+                else -> throw IllegalArgumentException("Invalid date category: $category!")
+            }
+            return format.parseLocalDate(human)
+        }
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class DetailsResult(
+        val url: String,
+        val summary: String?,
+        val rating: Double?,
+        val cover: Image?,
+        val screenshots: List<Image>?,
+        val genres: List<Int>?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Image(
+        val cloudinaryId: String?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Error(
+        val error: List<String>
+    )
 }

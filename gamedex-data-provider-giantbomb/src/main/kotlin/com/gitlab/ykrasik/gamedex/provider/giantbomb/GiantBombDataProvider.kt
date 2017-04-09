@@ -1,15 +1,16 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.common.datamodel.*
 import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
-import com.gitlab.ykrasik.gamedex.common.util.fromJson
-import com.gitlab.ykrasik.gamedex.common.util.getResourceAsByteArray
-import com.gitlab.ykrasik.gamedex.common.util.logger
-import com.gitlab.ykrasik.gamedex.common.util.toImage
+import com.gitlab.ykrasik.gamedex.common.util.*
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,7 +49,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return results
     }
 
-    private fun doSearch(name: String, platform: GamePlatform): GiantBombSearchResponse {
+    private fun doSearch(name: String, platform: GamePlatform): GiantBomb.SearchResponse {
         val response = getRequest(config.endpoint,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFields
@@ -56,7 +57,7 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return response.fromJson()
     }
 
-    private fun GiantBombSearchResult.toSearchResult() = ProviderSearchResult(
+    private fun GiantBomb.SearchResult.toSearchResult() = ProviderSearchResult(
         name = name,
         releaseDate = originalReleaseDate,
         score = null,
@@ -79,12 +80,12 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         return gameData
     }
 
-    private fun doFetch(detailUrl: String): GiantBombDetailsResponse {
+    private fun doFetch(detailUrl: String): GiantBomb.DetailsResponse {
         val response = getRequest(detailUrl, "field_list" to fetchDetailsFields)
         return response.fromJson()
     }
 
-    private fun GiantBombDetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
+    private fun GiantBomb.DetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
         providerData = ProviderData(
             type = DataProviderType.GiantBomb,
             apiUrl = searchResult.apiUrl,
@@ -108,8 +109,8 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
 
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
 
-    private fun assertOk(status: GiantBombStatus) {
-        if (status != GiantBombStatus.ok) {
+    private fun assertOk(status: GiantBomb.Status) {
+        if (status != GiantBomb.Status.ok) {
             throw GameDexException("Invalid statusCode: $status")
         }
     }
@@ -118,13 +119,79 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)
     )
 
-    override val info = GiantBombDataProvider.info
+    override val info = GiantBomb.info
+}
 
-    companion object {
-        val info = DataProviderInfo(
-            name = "GiantBomb",
-            type = DataProviderType.GiantBomb,
-            logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
-        )
+object GiantBomb {
+    val info = DataProviderInfo(
+        name = "GiantBomb",
+        type = DataProviderType.GiantBomb,
+        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class SearchResponse(
+        val statusCode: Status,
+        val results: List<SearchResult>
+    )
+
+    data class SearchResult(
+        val apiDetailUrl: String,
+        val name: String,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        val originalReleaseDate: LocalDate?,
+        val image: SearchImage?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class SearchImage(
+        val thumbUrl: String
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class DetailsResponse(
+        val statusCode: Status,
+
+        // When result is found - GiantBomb returns a Json object. When result is not found, GiantBomb returns an empty Json array []. Annoying.
+        @JsonFormat(with = arrayOf(JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY))
+        val results: List<DetailsResult>
+    )
+
+    data class DetailsResult(
+        val siteDetailUrl: String,
+        val deck: String?,
+        val image: DetailsImage?,
+        val genres: List<Genre>?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Genre(
+        val name: String
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class DetailsImage(
+        val thumbUrl: String,
+        val superUrl: String
+    )
+
+    enum class Status constructor(override val key: Int) : IdentifiableEnum<Int> {
+        ok(1),
+        invalidApiKey(100),
+        notFound(101),
+        badFormat(102),
+        jsonPNoCallback(103),
+        filterError(104),
+        videoOnlyForSubscribers(105);
+
+        override fun toString() = "$name($key)"
+
+        companion object {
+            private val values = EnumIdConverter(Status::class.java)
+
+            @JsonCreator
+            @JvmStatic
+            operator fun invoke(code: Int): Status = values[code]
+        }
     }
 }

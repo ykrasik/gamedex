@@ -3,15 +3,20 @@ package com.gitlab.ykrasik.gamedex.ui.view.fragment
 import com.gitlab.ykrasik.gamedex.BaseTestApp
 import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.datamodel.ImageIds
+import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.testkit.TestImages
 import com.gitlab.ykrasik.gamedex.common.testkit.rnd
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
+import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
+import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderModule
 import com.gitlab.ykrasik.gamedex.randomGameData
 import com.gitlab.ykrasik.gamedex.randomMetaData
 import com.gitlab.ykrasik.gamedex.randomProviderData
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.anyOrNull
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.DIContainer
@@ -27,12 +32,17 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
             on { fetchImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
         }
+        val persistenceService = mock<PersistenceService> {
+            on { fetchAllGames() } doReturn emptyList<Game>()
+            on { fetchAllLibraries() } doReturn emptyList<Library>()
+        }
 
         return GuiceDiContainer(listOf(object : AbstractModule() {
             override fun configure() {
                 bind(ImageLoader::class.java).toInstance(imageLoader)
+                bind(PersistenceService::class.java).toInstance(persistenceService)
             }
-        }))
+        }, GiantBombProviderModule(), IgdbProviderModule()))
     }
 
     override fun init() {

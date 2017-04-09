@@ -1,13 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
+import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.provider.ChooseSearchResultData
+import com.gitlab.ykrasik.gamedex.core.SearchResultChoice
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.SearchResultChoice
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.ui.horizontalExpander
+import com.gitlab.ykrasik.gamedex.ui.spacer
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -48,7 +48,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
                         font = Font.font(14.0)
                     }
-                    horizontalExpander()
+                    spacer()
                     imageview {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                         image = data.info.logo
@@ -80,7 +80,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                             }
                         }
                     }
-                    horizontalExpander()
+                    spacer()
                     label("Search results: ${data.searchResults.size}") {
                         gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                         font = Font.font(16.0)

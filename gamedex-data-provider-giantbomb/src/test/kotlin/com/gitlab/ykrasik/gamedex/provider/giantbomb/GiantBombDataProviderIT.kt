@@ -27,7 +27,7 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
         val superUrl = randomUrl()
         val siteDetailUrl = randomString()
         val deck = randomSentence()
-        val genres = List(4) { GiantBombGenre(name = randomString()) }
+        val genres = List(4) { GiantBomb.Genre(name = randomString()) }
 
         val provider = GiantBombDataProvider(GiantBombConfig(
             endpoint = "http://localhost:$port",
@@ -41,13 +41,13 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
     init {
         "GiantBombDataProvider.search" should {
             "retrieve a single search result".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
-                    statusCode = GiantBombStatus.ok,
-                    results = listOf(GiantBombSearchResult(
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBomb.SearchResponse(
+                    statusCode = GiantBomb.Status.ok,
+                    results = listOf(GiantBomb.SearchResult(
                         apiDetailUrl = apiUrl,
                         name = name,
                         originalReleaseDate = releaseDate,
-                        image = GiantBombSearchImage(thumbUrl = thumbnailUrl)
+                        image = GiantBomb.SearchImage(thumbUrl = thumbnailUrl)
                     ))
                 )
 
@@ -70,20 +70,20 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                 val releaseDate2 = randomLocalDate()
                 val thumbnailUrl2 = randomUrl()
 
-                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
-                    statusCode = GiantBombStatus.ok,
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBomb.SearchResponse(
+                    statusCode = GiantBomb.Status.ok,
                     results = listOf(
-                        GiantBombSearchResult(
+                        GiantBomb.SearchResult(
                             apiDetailUrl = apiUrl,
                             name = name,
                             originalReleaseDate = releaseDate,
-                            image = GiantBombSearchImage(thumbUrl = thumbnailUrl)
+                            image = GiantBomb.SearchImage(thumbUrl = thumbnailUrl)
                         ),
-                        GiantBombSearchResult(
+                        GiantBomb.SearchResult(
                             apiDetailUrl = apiUrl2,
                             name = name2,
                             originalReleaseDate = releaseDate2,
-                            image = GiantBombSearchImage(thumbUrl = thumbnailUrl2)
+                            image = GiantBomb.SearchImage(thumbUrl = thumbnailUrl2)
                         )
                     )
                 )
@@ -109,9 +109,9 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
             }
 
             "retrieve a single search result with null fields".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
-                    statusCode = GiantBombStatus.ok,
-                    results = listOf(GiantBombSearchResult(
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBomb.SearchResponse(
+                    statusCode = GiantBomb.Status.ok,
+                    results = listOf(GiantBomb.SearchResult(
                         apiDetailUrl = apiUrl,
                         name = name,
                         originalReleaseDate = null,
@@ -133,8 +133,8 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
             }
 
             "not find any search results".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
-                    statusCode = GiantBombStatus.ok,
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBomb.SearchResponse(
+                    statusCode = GiantBomb.Status.ok,
                     results = emptyList()
                 )
 
@@ -143,15 +143,15 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
             }
 
             "throw GameDexException on invalid GiantBomb status".inScope(Scope()) {
-                server.searchRequest(apiKey, name, platformId) willReturn GiantBombSearchResponse(
-                    statusCode = GiantBombStatus.notFound,
+                server.searchRequest(apiKey, name, platformId) willReturn GiantBomb.SearchResponse(
+                    statusCode = GiantBomb.Status.notFound,
                     results = emptyList()
                 )
 
                 val e = shouldThrow<GameDexException> {
                     provider.search(name, platform)
                 }
-                e.message shouldBe "Invalid statusCode: ${GiantBombStatus.notFound}"
+                e.message shouldBe "Invalid statusCode: ${GiantBomb.Status.notFound}"
             }
 
             "throw GameDexException on invalid http status".inScope(Scope()) {
@@ -175,13 +175,13 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = thumbnailUrl
                 )
 
-                server.fetchRequest(apiKey, apiUrl) willReturn GiantBombDetailsResponse(
-                    statusCode = GiantBombStatus.ok,
-                    results = listOf(GiantBombDetailsResult(
+                server.fetchRequest(apiKey, apiUrl) willReturn GiantBomb.DetailsResponse(
+                    statusCode = GiantBomb.Status.ok,
+                    results = listOf(GiantBomb.DetailsResult(
                         siteDetailUrl = siteDetailUrl,
                         deck = deck,
                         genres = genres,
-                        image = GiantBombDetailsImage(
+                        image = GiantBomb.DetailsImage(
                             thumbUrl = thumbnailUrl,
                             superUrl = superUrl
                         )
@@ -222,9 +222,9 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = null
                 )
 
-                server.fetchRequest(apiKey, apiUrl) willReturn GiantBombDetailsResponse(
-                    statusCode = GiantBombStatus.ok,
-                    results = listOf(GiantBombDetailsResult(
+                server.fetchRequest(apiKey, apiUrl) willReturn GiantBomb.DetailsResponse(
+                    statusCode = GiantBomb.Status.ok,
+                    results = listOf(GiantBomb.DetailsResult(
                         siteDetailUrl = siteDetailUrl,
                         deck = null,
                         genres = null,
@@ -266,15 +266,15 @@ class GiantBombDataProviderIT : ScopedWordSpec() {
                     thumbnailUrl = thumbnailUrl
                 )
 
-                server.fetchRequest(apiKey, apiUrl) willReturn GiantBombDetailsResponse(
-                    statusCode = GiantBombStatus.notFound,
+                server.fetchRequest(apiKey, apiUrl) willReturn GiantBomb.DetailsResponse(
+                    statusCode = GiantBomb.Status.notFound,
                     results = emptyList()
                 )
 
                 val e = shouldThrow<GameDexException> {
                     provider.fetch(searchResult)
                 }
-                e.message shouldBe "Invalid statusCode: ${GiantBombStatus.notFound}"
+                e.message shouldBe "Invalid statusCode: ${GiantBomb.Status.notFound}"
             }
 
             "throw GameDexException on invalid http status".inScope(Scope()) {

@@ -49,6 +49,7 @@ class GameWallView : View("Games Wall") {
         }
     }
 
+    // TODO: Allow to overlay the library name as a ribbon over the image.
     inner class GameWallCell(userPreferences: UserPreferences) : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)

@@ -56,9 +56,9 @@ class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
     }
 }
 
-fun Region.printWidth(id: String) {
-    printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())
-}
+fun Region.printSize(id: String) { printWidth(id); printHeight(id) }
+fun Region.printWidth(id: String) = printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())
+fun Region.printHeight(id: String) = printSize(id, "height", minHeightProperty(), maxHeightProperty(), prefHeightProperty(), heightProperty())
 
 fun <S, T> TableColumnBase<S, T>.printWidth(id: String) {
     printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())

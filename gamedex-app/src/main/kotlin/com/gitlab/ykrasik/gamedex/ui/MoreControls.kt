@@ -2,10 +2,15 @@ package com.gitlab.ykrasik.gamedex.ui
 
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
+import javafx.beans.binding.Bindings
+import javafx.beans.binding.NumberBinding
 import javafx.beans.property.Property
+import javafx.beans.value.ObservableNumberValue
 import javafx.event.EventTarget
+import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
+import javafx.scene.shape.Rectangle
 import javafx.util.Callback
 import javafx.util.Duration
 import org.controlsfx.control.Rating
@@ -92,3 +97,9 @@ fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() 
 
 fun EventTarget.imageViewResizingPane(imageView: ImageView, op: (ImageViewResizingPane.() -> Unit)? = null) =
     opcr(this, ImageViewResizingPane(imageView), op)
+
+fun Node.clipRectangle(op: Rectangle.() -> Unit) {
+    clip = Rectangle().apply(op)
+}
+
+fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)

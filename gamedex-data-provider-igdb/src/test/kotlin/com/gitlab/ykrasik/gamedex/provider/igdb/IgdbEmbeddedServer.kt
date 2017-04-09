@@ -67,17 +67,17 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
         }
     }
 
-    private fun randomSearchResults(name: String): String = List(rnd.nextInt(20)) { IgdbSearchResult(
+    private fun randomSearchResults(name: String): String = List(rnd.nextInt(20)) { Igdb.SearchResult(
         id = apiDetailPath,
         name = "$name ${randomName()}",
         aggregatedRating = randomScore(),
         releaseDates = List(rnd.nextInt(4)) { randomReleaseDate() },
-        cover = IgdbImage(
+        cover = Igdb.Image(
             cloudinaryId = image
         )
     ) }.toJsonStr()
 
-    private fun randomReleaseDate(): IgdbReleaseDate {
+    private fun randomReleaseDate(): Igdb.ReleaseDate {
         val category = rnd.nextInt(8)
         val date = randomLocalDate()
         val human = when(category) {
@@ -91,7 +91,7 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
             7 -> "TBD"
             else -> TODO()
         }
-        return IgdbReleaseDate(
+        return Igdb.ReleaseDate(
             platform = randomPlatform(),
             category = category,
             human = human
@@ -100,12 +100,12 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
-    private fun randomDetailResponse(): String = listOf(IgdbDetailsResult(
+    private fun randomDetailResponse(): String = listOf(Igdb.DetailsResult(
         url = randomUrl(),
         summary = randomSentence(maxWords = 50),
         rating = randomScore(),
-        cover = IgdbImage(cloudinaryId = image),
-        screenshots = List(rnd.nextInt(10)) { IgdbImage(cloudinaryId = image) },
+        cover = Igdb.Image(cloudinaryId = image),
+        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = image) },
         genres = List(rnd.nextInt(4)) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
         }
@@ -115,7 +115,7 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
                               private val name: String,
                               private val platform: Int,
                               private val maxSearchResults: Int) {
-        infix fun willReturn(results: List<IgdbSearchResult>) {
+        infix fun willReturn(results: List<Igdb.SearchResult>) {
             wiremock.givenThat(aSearchRequest.willReturn(aJsonResponse(results)))
         }
 
@@ -133,7 +133,7 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
     }
 
     inner class fetchRequest(private val apiKey: String, private val gameId: Int) {
-        infix fun willReturn(response: IgdbDetailsResult) {
+        infix fun willReturn(response: Igdb.DetailsResult) {
             wiremock.givenThat(aFetchRequest.willReturn(aJsonResponse(listOf(response))))
         }
 

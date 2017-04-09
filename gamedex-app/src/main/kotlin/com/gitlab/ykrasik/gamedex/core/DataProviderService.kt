@@ -4,7 +4,10 @@ import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
 import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
 import com.gitlab.ykrasik.gamedex.common.util.logger
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.DataProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderGame
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,23 +23,18 @@ interface DataProviderService {
 
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
-    allProviders: MutableSet<DataProvider>,
+    private val providerRepository: DataProviderRepository,
     private val chooser: GameSearchChooser
 ) : DataProviderService {
     private val log by logger()
 
     private val maxScreenshots = 10
 
-    // TODO: Allow enabling / disabling providers
-    private val providers = kotlin.run {
-        check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
-        allProviders.sortedBy { it.info.type.basicDataPriority }
-    }
-
     override suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame? {
         try {
             val context = SearchContext(name, platform, path)
             var hasAtLeastOneResult = false
+            val providers = providerRepository.providers
             val fetchResults = providers.mapIndexedNotNull { i, provider ->
                 val isLastProvider = i == (providers.size - 1)
                 val canProceedWithout = hasAtLeastOneResult || !isLastProvider
@@ -105,6 +103,7 @@ class DataProviderServiceImpl @Inject constructor(
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
+        // FIXME: Should always be able to proceed without, in which case we only have the game name.
         suspend fun fetch(provider: DataProvider, canProceedWithout: Boolean): ProviderFetchResult? {
             val results = provider.search(searchedName, platform)
             val filteredResults = filterResults(results)

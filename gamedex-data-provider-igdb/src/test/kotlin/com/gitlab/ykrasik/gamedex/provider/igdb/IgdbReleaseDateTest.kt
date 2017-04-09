@@ -49,5 +49,5 @@ class IgdbReleaseDateTest : StringSpec() {
         }
     }
 
-    private fun releaseDate(category: Int, str: String) = IgdbReleaseDate(platform = 0, category = category, human = str)
+    private fun releaseDate(category: Int, str: String) = Igdb.ReleaseDate(platform = 0, category = category, human = str)
 }

@@ -8,11 +8,14 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.Separator
 import javafx.scene.control.SplitPane
+import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
-import org.controlsfx.control.GridView
 import org.controlsfx.control.StatusBar
-import tornadofx.*
+import tornadofx.gridpaneConstraints
+import tornadofx.opcr
+import tornadofx.region
+import tornadofx.separator
 
 /**
  * User: ykrasik
@@ -47,13 +50,10 @@ fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> 
     }
 }
 
-fun <T> EventTarget.gridView(op: (GridView<T>.() -> Unit)? = null) = opcr(this, GridView(), op)
-
 var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
 
-fun EventTarget.horizontalExpander(): Region = region {
-    hgrow = Priority.ALWAYS
+fun GridPane.spacer(): Region = region {
     gridpaneConstraints { hGrow = Priority.ALWAYS }
 }
