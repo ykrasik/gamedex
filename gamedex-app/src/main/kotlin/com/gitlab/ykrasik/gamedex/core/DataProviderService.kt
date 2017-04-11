@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
-import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
 import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.datamodel.GameData
+import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.datamodel.ImageUrls
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderGame

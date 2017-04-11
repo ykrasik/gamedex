@@ -103,3 +103,6 @@ fun Node.clipRectangle(op: Rectangle.() -> Unit) {
 }
 
 fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
+
+// TODO: Temp until tornadofx fixes NPE
+fun Node.toggleButton(text: String = "", op: (ToggleButton.() -> Unit)? = null) = opcr(this, ToggleButton(text), op)

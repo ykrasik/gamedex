@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.common.TimeProvider
-import com.gitlab.ykrasik.gamedex.common.datamodel.Library
-import com.gitlab.ykrasik.gamedex.common.datamodel.MetaData
 import com.gitlab.ykrasik.gamedex.common.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.common.util.emptyToNull
+import com.gitlab.ykrasik.gamedex.datamodel.Library
+import com.gitlab.ykrasik.gamedex.datamodel.MetaData
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.notifiableJob

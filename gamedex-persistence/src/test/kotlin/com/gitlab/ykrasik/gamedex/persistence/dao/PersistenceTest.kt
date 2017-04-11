@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.*
+import com.gitlab.ykrasik.gamedex.common.testkit.ScopedStringSpec
 import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.datamodel.*
 import com.gitlab.ykrasik.gamedex.persistence.*
-import io.kotlintest.specs.StringSpec
 import org.joda.time.DateTime
 
 /**
@@ -11,7 +11,8 @@ import org.joda.time.DateTime
  * Date: 06/10/2016
  * Time: 20:55
  */
-abstract class PersistenceTest : StringSpec() {
+// FIXME: Use a WordSpec, and use scopes in tests.
+abstract class PersistenceTest : ScopedStringSpec() {
     val initializer = DbInitializer(PersistenceConfig(
         dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
         driver = "org.h2.Driver",

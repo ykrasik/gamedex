@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.persistence.dao
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.Game
-import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.common.datamodel.Library
-import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.datamodel.Library
+import com.gitlab.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import org.h2.jdbc.JdbcSQLException
 

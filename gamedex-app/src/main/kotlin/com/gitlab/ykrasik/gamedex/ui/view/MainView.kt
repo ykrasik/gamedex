@@ -54,7 +54,7 @@ class MainView : View("Gamedex") {
                 textProperty().bind(notificationManager.messageProperty)
 
                 left {
-                    togglebutton("Log") {
+                    toggleButton("Log") {
                         isSelected = true
                         prefWidth = 50.0
                         logTextArea.visibleProperty().bind(selectedProperty())

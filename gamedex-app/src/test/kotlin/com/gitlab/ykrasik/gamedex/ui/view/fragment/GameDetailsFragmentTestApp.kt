@@ -1,12 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.common.datamodel.Game
-import com.gitlab.ykrasik.gamedex.common.datamodel.ImageIds
-import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.testkit.TestImages
 import com.gitlab.ykrasik.gamedex.common.testkit.rnd
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.datamodel.ImageIds
+import com.gitlab.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule

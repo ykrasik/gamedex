@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.Library
+import com.gitlab.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository

@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.DataProviderType
+import com.gitlab.ykrasik.gamedex.datamodel.DataProviderType
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.Game
 import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.core.DataProviderRepository
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.datamodel.Game
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.Styles

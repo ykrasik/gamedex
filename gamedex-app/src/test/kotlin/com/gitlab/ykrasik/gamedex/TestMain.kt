@@ -1,14 +1,14 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.GameImage
-import com.gitlab.ykrasik.gamedex.common.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.common.datamodel.ImageUrls
-import com.gitlab.ykrasik.gamedex.common.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.common.testkit.TestImages
 import com.gitlab.ykrasik.gamedex.common.testkit.randomSlashDelimitedString
 import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
 import com.gitlab.ykrasik.gamedex.common.util.defaultConfig
 import com.gitlab.ykrasik.gamedex.common.util.toFile
+import com.gitlab.ykrasik.gamedex.datamodel.GameImage
+import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.datamodel.LibraryData
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
@@ -41,7 +41,7 @@ object TestMain {
         )
 
         val giantBombServer = GiantBombEmbeddedServer(giantBombPort).start(isFakeProd = true)
-        val igdbServer = IgdbEmbeddedServer(igdbPort).start()
+        val igdbServer = IgdbEmbeddedServer(igdbPort).start(isFakeProd = true)
 
 //        generateDb()
 

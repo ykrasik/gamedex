@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.model
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.Game
-import com.gitlab.ykrasik.gamedex.common.datamodel.Library
 import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
+import com.gitlab.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
@@ -63,6 +63,7 @@ class GameRepository @Inject constructor(
         log.debug { "Deleting all games by library: $library" }
         val sizeBefore = games.size
         run(JavaFx) {
+            // TODO: Instead of filtering in place, try re-setting to a filtered list (performance)
             games.removeAll { it.libraryId == library.id }
         }
         val removed = games.size - sizeBefore

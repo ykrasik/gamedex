@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.common.datamodel.DataProviderType
-import com.gitlab.ykrasik.gamedex.common.datamodel.GameData
-import com.gitlab.ykrasik.gamedex.common.datamodel.MetaData
-import com.gitlab.ykrasik.gamedex.common.datamodel.ProviderData
 import com.gitlab.ykrasik.gamedex.common.testkit.*
+import com.gitlab.ykrasik.gamedex.datamodel.DataProviderType
+import com.gitlab.ykrasik.gamedex.datamodel.GameData
+import com.gitlab.ykrasik.gamedex.datamodel.MetaData
+import com.gitlab.ykrasik.gamedex.datamodel.ProviderData
 
 /**
  * User: ykrasik

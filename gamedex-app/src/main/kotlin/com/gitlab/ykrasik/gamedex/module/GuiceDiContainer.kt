@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.module
 
-import com.gitlab.ykrasik.gamedex.common.module.CommonModule
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
 import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderModule
@@ -22,7 +21,7 @@ class GuiceDiContainer(modules: List<Module> = GuiceDiContainer.defaultModules) 
 
     companion object {
         val defaultModules = listOf(
-            CommonModule(), PersistenceModule(), GiantBombProviderModule(), IgdbProviderModule(), AppModule()
+            PersistenceModule(), GiantBombProviderModule(), IgdbProviderModule(), AppModule()
         )
     }
 }
