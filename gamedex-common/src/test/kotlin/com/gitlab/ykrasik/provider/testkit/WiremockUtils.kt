@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.common.util.toJsonStr
 
 /**
@@ -22,3 +23,6 @@ fun ResponseDefinitionBuilder.withContentTypeJson() = withHeader("Content-Type",
 fun ResponseDefinitionBuilder.withContentTypeBinary() = withHeader("Content-Type", "application/octet-stream")
 fun ResponseDefinitionBuilder.withStringBody(content: String) = withBody(content).withHeader("Content-Length", content.length.toString())
 fun ResponseDefinitionBuilder.withBinaryBody(content: ByteArray) = withBody(content).withHeader("Content-Length", content.size.toString())
+
+fun RequestPatternBuilder.withHeader(name: String, value: String) = withHeader(name, equalTo(value))
+fun RequestPatternBuilder.withQueryParam(name: String, value: String) = withQueryParam(name, equalTo(value))

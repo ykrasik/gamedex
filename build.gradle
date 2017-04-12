@@ -59,7 +59,7 @@ buildscript {
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
         tornadoFx = [:].with {
-            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.1']
+            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.2-SNAPSHOT']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.5']
             delegate
         }
@@ -98,6 +98,7 @@ allprojects {
         maven { url "http://dl.bintray.com/kotlin/exposed" }
         maven { url "https://jitpack.io" }
         maven { url "http://dl.bintray.com/kotlin/ktor" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
 

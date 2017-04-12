@@ -16,7 +16,7 @@ import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbEmbeddedServer
+import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.typesafe.config.ConfigValueFactory
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
@@ -41,7 +41,7 @@ object TestMain {
         )
 
         val giantBombServer = GiantBombEmbeddedServer(giantBombPort).start(isFakeProd = true)
-        val igdbServer = IgdbEmbeddedServer(igdbPort).start(isFakeProd = true)
+        val igdbServer = IgdbFakeServer(igdbPort).start()
 
 //        generateDb()
 

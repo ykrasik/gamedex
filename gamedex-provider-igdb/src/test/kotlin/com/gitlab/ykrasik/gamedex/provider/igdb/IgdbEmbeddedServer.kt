@@ -2,11 +2,10 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.common.testkit.*
 import com.gitlab.ykrasik.gamedex.common.util.toJsonStr
 import com.gitlab.ykrasik.provider.testkit.aJsonResponse
-import com.gitlab.ykrasik.provider.testkit.withHeader
-import com.gitlab.ykrasik.provider.testkit.withQueryParam
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.ktor.application.call
 import org.jetbrains.ktor.host.embeddedServer
@@ -23,29 +22,38 @@ import java.util.concurrent.TimeUnit
  * Date: 19/03/2017
  * Time: 16:48
  */
-class IgdbEmbeddedServer(port: Int) : Closeable {
+class IgdbMockServer(port: Int) : Closeable {
+    private val wiremock = WireMockServer(port)
+
+    fun start(): Unit = wiremock.start()
+    fun reset(): Unit = wiremock.resetAll()
+    override fun close(): Unit = wiremock.stop()
+
+    fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
+
+    inner abstract class BaseRequest {
+        infix fun willFailWith(status: Int) {
+            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status)))
+        }
+    }
+
+    inner class aSearchRequest : BaseRequest() {
+        infix fun willReturn(results: List<Igdb.SearchResult>) {
+            wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
+        }
+    }
+
+    inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
+        infix fun willReturn(response: Igdb.DetailsResult) {
+            wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(listOf(response))))
+        }
+    }
+}
+
+class IgdbFakeServer(port: Int) : Closeable {
     private val apiDetailPath = 1
     private val image = "image"
 
-    private val searchFields = listOf(
-        "name",
-        "aggregated_rating",
-        "release_dates.category",
-        "release_dates.human",
-        "release_dates.platform",
-        "cover.cloudinary_id"
-    ).joinToString(",")
-
-    private val fetchDetailsFields = listOf(
-        "url",
-        "summary",
-        "rating",
-        "cover.cloudinary_id",
-        "screenshots.cloudinary_id",
-        "genres"
-    ).joinToString(",")
-
-    private val wiremock = WireMockServer(port)
     private val ktor = embeddedServer(Netty, port) {
         routing {
             route("/") {
@@ -112,56 +120,11 @@ class IgdbEmbeddedServer(port: Int) : Closeable {
         }
     )).toJsonStr()
 
-    inner class searchRequest(private val apiKey: String,
-                              private val name: String,
-                              private val platform: Int,
-                              private val maxSearchResults: Int) {
-        infix fun willReturn(results: List<Igdb.SearchResult>) {
-            wiremock.givenThat(aSearchRequest.willReturn(aJsonResponse(results)))
-        }
-
-        infix fun willFailWith(status: Int) {
-            wiremock.givenThat(aSearchRequest.willReturn(aResponse().withStatus(status)))
-        }
-
-        private val aSearchRequest get() = get(urlPathEqualTo("/"))
-            .withHeader("Accept", "application/json")
-            .withHeader("X-Mashape-Key", apiKey)
-            .withQueryParam("search", name)
-            .withQueryParam("filter[release_dates.platform][eq]", platform.toString())
-            .withQueryParam("limit", maxSearchResults.toString())
-            .withQueryParam("fields", searchFields)
-    }
-
-    inner class fetchRequest(private val apiKey: String, private val gameId: Int) {
-        infix fun willReturn(response: Igdb.DetailsResult) {
-            wiremock.givenThat(aFetchRequest.willReturn(aJsonResponse(listOf(response))))
-        }
-
-        infix fun willFailWith(status: Int) {
-            wiremock.givenThat(aFetchRequest.willReturn(aResponse().withStatus(status)))
-        }
-
-        private val aFetchRequest get() = get(urlPathEqualTo("/$gameId"))
-            .withHeader("Accept", "application/json")
-            .withHeader("X-Mashape-Key", apiKey)
-            .withQueryParam("fields", fetchDetailsFields)
-    }
-
-    fun start(isFakeProd: Boolean = false): IgdbEmbeddedServer = apply {
-        if (isFakeProd) {
-            ktor.start(wait = false)
-        } else {
-            wiremock.start()
-        }
-    }
-
-    fun reset() {
-        wiremock.resetAll()
+    fun start() = apply {
+        ktor.start(wait = false)
     }
 
     override fun close() {
         ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
-        wiremock.stop()
     }
 }

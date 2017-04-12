@@ -18,7 +18,10 @@ import javax.inject.Singleton
  * Time: 11:14
  */
 @Singleton
-class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : DataProvider {
+class IgdbDataProvider @Inject constructor(
+    private val config: IgdbConfig,
+    private val resultAdapter: IgdbResultAdapter = IgdbResultAdapter(config)
+) : DataProvider {
     private val log by logger()
 
     private val searchFields = listOf(
@@ -41,10 +44,10 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
 
     override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
         log.info { "Searching: name='$name', platform=$platform..." }
-        val response = doSearch(name, platform)
-        log.debug { "Response: $response" }
+        val searchResults = doSearch(name, platform)
+        log.debug { "Results: $searchResults" }
 
-        val results = toSearchResults(response, name, platform)
+        val results = resultAdapter.toSearchResults(searchResults, name, platform)
         log.info { "Done(${results.size}): $results." }
         return results
     }
@@ -57,6 +60,55 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
             "fields" to searchFields
         )
         return response.listFromJson()
+    }
+
+    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
+        log.info { "Fetching: $searchResult..." }
+        val fetchResult = doFetch(searchResult)
+        log.debug { "Response: $fetchResult" }
+
+        // When result is found - GiantBomb returns a Json object.
+        // When result is not found, GiantBomb returns an empty Json array [].
+        // So 'results' can contain at most a single value.
+        val gameData = resultAdapter.toFetchResult(fetchResult, searchResult)
+        log.info { "Done: $gameData." }
+        return gameData
+    }
+
+    private fun doFetch(searchResult: ProviderSearchResult): Igdb.DetailsResult {
+        val response = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
+        // IGDB returns a list, even though we're fetching by id :/
+        return response.listFromJson<Igdb.DetailsResult> { parseError(it) }.first()
+    }
+
+    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
+        params = parameters.toMap(),
+        headers = mapOf(
+            "Accept" to "application/json",
+            "X-Mashape-Key" to config.apiKey
+        )
+    )
+
+    private fun parseError(raw: String): String {
+        val errors: List<Igdb.Error> = raw.listFromJson()
+        return errors.first().error.first()
+    }
+
+    private val GamePlatform.id: Int get() = config.getPlatformId(this)
+
+    override val info = Igdb.info
+}
+
+open class IgdbResultAdapter(private val config: IgdbConfig) {
+    fun toSearchResults(results: List<Igdb.SearchResult>, name: String, platform: GamePlatform): List<ProviderSearchResult> {
+        // IGBD search sucks. It returns way more results then it should.
+        // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
+        val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
+        return results.asSequence().filter { (_, name) ->
+            searchWords.all { word ->
+                name.containsIgnoreCase(word)
+            }
+        }.map { it.toSearchResult(platform) }.toList()
     }
 
     private fun Igdb.SearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
@@ -74,68 +126,25 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
         return releaseDate.toLocalDate()
     }
 
-    private fun toSearchResults(response: List<Igdb.SearchResult>, name: String, platform: GamePlatform): List<ProviderSearchResult> {
-        // IGBD search sucks. It returns way more results then it should.
-        // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
-        val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
-        return response.asSequence().filter { (_, name) ->
-            searchWords.all { word ->
-                name.containsIgnoreCase(word)
-            }
-        }.map { it.toSearchResult(platform) }.toList()
-    }
-
-    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
-        log.info { "Fetching: $searchResult..." }
-        val response = doFetch(searchResult)
-        log.debug { "Response: $response" }
-
-        // When result is found - GiantBomb returns a Json object.
-        // When result is not found, GiantBomb returns an empty Json array [].
-        // So 'results' can contain at most a single value.
-        val gameData = response.toFetchResult(searchResult)
-        log.info { "Done: $gameData." }
-        return gameData
-    }
-
-    private fun doFetch(searchResult: ProviderSearchResult): Igdb.DetailsResult {
-        val response = getRequest(searchResult.apiUrl, "fields" to fetchDetailsFields)
-        // IGDB returns a list, even though we're fetching by id :/
-        return response.listFromJson<Igdb.DetailsResult> { parseError(it) }.first()
-    }
-
-    private fun parseError(raw: String): String {
-        val errors: List<Igdb.Error> = raw.listFromJson()
-        return errors.first().error.first()
-    }
-
-    private fun Igdb.DetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
+    fun toFetchResult(fetchResult: Igdb.DetailsResult, searchResult: ProviderSearchResult) = ProviderFetchResult(
         providerData = ProviderData(
             type = DataProviderType.Igdb,
             apiUrl = searchResult.apiUrl,
-            url = url
+            url = fetchResult.url
         ),
         gameData = GameData(
             name = searchResult.name,
-            description = summary,
+            description = fetchResult.summary,
             releaseDate = searchResult.releaseDate,
             criticScore = searchResult.score,
-            userScore = rating,
-            genres = genres?.map { it.genreName } ?: emptyList()
+            userScore = fetchResult.rating,
+            genres = fetchResult.genres?.map { it.genreName } ?: emptyList()
         ),
         imageUrls = ImageUrls(
             thumbnailUrl = searchResult.thumbnailUrl,
-            posterUrl = cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.screenshot_huge) },
+            posterUrl = fetchResult.cover?.cloudinaryId?.let { imageUrl(it, IgdbImageType.screenshot_huge) },
             screenshotUrls = emptyList()
             // TODO: Support screenshots
-        )
-    )
-
-    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = parameters.toMap(),
-        headers = mapOf(
-            "Accept" to "application/json",
-            "X-Mashape-Key" to config.apiKey
         )
     )
 
@@ -155,8 +164,6 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig) : Dat
 
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
-
-    override val info = Igdb.info
 }
 
 object Igdb {
