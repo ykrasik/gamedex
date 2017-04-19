@@ -15,7 +15,7 @@ import com.gitlab.ykrasik.gamedex.persistence.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombEmbeddedServer
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.typesafe.config.ConfigValueFactory
 import kotlinx.coroutines.experimental.async
@@ -40,7 +40,7 @@ object TestMain {
             .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef("http://localhost:$igdbPort/images"))
         )
 
-        val giantBombServer = GiantBombEmbeddedServer(giantBombPort).start(isFakeProd = true)
+        val giantBombServer = GiantBombFakeServer(giantBombPort).start()
         val igdbServer = IgdbFakeServer(igdbPort).start()
 
 //        generateDb()

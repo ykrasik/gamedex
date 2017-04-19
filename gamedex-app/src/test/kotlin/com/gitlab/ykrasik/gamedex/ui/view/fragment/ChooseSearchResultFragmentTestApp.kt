@@ -6,7 +6,7 @@ import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBomb
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.mock
@@ -38,7 +38,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
             val data = ChooseSearchResultData(
                 name = randomName(),
                 path = randomFile(),
-                info = GiantBomb.info,
+                info = GiantBombDataProvider.info,
                 searchResults = List(10) {
                     ProviderSearchResult(
                         name = randomName(),

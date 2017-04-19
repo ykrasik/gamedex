@@ -20,44 +20,22 @@ import javax.inject.Singleton
  * Time: 10:53
  */
 @Singleton
-class GiantBombDataProvider @Inject constructor(private val config: GiantBombConfig) : DataProvider {
+class GiantBombDataProvider @Inject constructor(private val client: GiantBombClient) : DataProvider {
     private val log by logger()
 
-    private val searchFields = listOf(
-        "api_detail_url",
-        "name",
-        "original_release_date",
-        "image"
-    ).joinToString(",")
-
-    private val fetchDetailsFields = listOf(
-        "site_detail_url",
-        "deck",
-        "image",
-        "genres"
-    ).joinToString(",")
-
     override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
-        log.info { "Searching: name='$name', platform=$platform..." }
-        val response = doSearch(name, platform)
-        log.debug { "Response: $response" }
+        log.info { "[$platform] Searching: name='$name'..." }
+        val response = client.search(name, platform)
+        log.debug { "[$platform] Response: $response" }
 
         assertOk(response.statusCode)
 
-        val results = response.results.map { it.toSearchResult() }
-        log.info { "Done(${results.size}): $results." }
+        val results = response.results.map { it.toProviderSearchResult() }
+        log.info { "[$platform] Done(${results.size}): $results." }
         return results
     }
 
-    private fun doSearch(name: String, platform: GamePlatform): GiantBomb.SearchResponse {
-        val response = getRequest(config.endpoint,
-            "filter" to "name:$name,platforms:${platform.id}",
-            "field_list" to searchFields
-        )
-        return response.fromJson()
-    }
-
-    private fun GiantBomb.SearchResult.toSearchResult() = ProviderSearchResult(
+    private fun GiantBomb.SearchResult.toProviderSearchResult() = ProviderSearchResult(
         name = name,
         releaseDate = originalReleaseDate,
         score = null,
@@ -65,49 +43,41 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         apiUrl = apiDetailUrl
     )
 
-    override fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult {
-        log.info { "Fetching: $searchResult..." }
-        val response = doFetch(searchResult.apiUrl)
-        log.debug { "Response: $response" }
+    override fun fetch(apiUrl: String, platform: GamePlatform): ProviderFetchResult {
+        log.info { "[$platform] Fetching: $apiUrl..." }
+        val response = client.fetch(apiUrl)
+        log.debug { "[$platform] Response: $response" }
 
         assertOk(response.statusCode)
 
         // When result is found - GiantBomb returns a Json object.
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
-        val gameData = response.results.first().toFetchResult(searchResult)
-        log.info { "Done: $gameData." }
+        val gameData = response.results.first().toProviderFetchResult(apiUrl)
+        log.info { "[$platform] Done: $gameData." }
         return gameData
     }
 
-    private fun doFetch(detailUrl: String): GiantBomb.DetailsResponse {
-        val response = getRequest(detailUrl, "field_list" to fetchDetailsFields)
-        return response.fromJson()
-    }
-
-    private fun GiantBomb.DetailsResult.toFetchResult(searchResult: ProviderSearchResult) = ProviderFetchResult(
+    private fun GiantBomb.DetailsResult.toProviderFetchResult(apiUrl: String) = ProviderFetchResult(
         providerData = ProviderData(
             type = DataProviderType.GiantBomb,
-            apiUrl = searchResult.apiUrl,
-            url = siteDetailUrl
+            apiUrl = apiUrl,
+            url = this.siteDetailUrl
         ),
         gameData = GameData(
-            name = searchResult.name,
-            description = deck,
-            releaseDate = searchResult.releaseDate,
+            name = this.name,
+            description = this.description,
+            releaseDate = this.originalReleaseDate,
             criticScore = null,
             userScore = null,
-            genres = genres?.map { it.name } ?: emptyList()
+            genres = this.genres?.map { it.name } ?: emptyList()
         ),
         imageUrls = ImageUrls(
-            thumbnailUrl = image?.thumbUrl,
-            posterUrl = image?.superUrl,
-            screenshotUrls = emptyList()
-            // TODO: Support screenshots
+            thumbnailUrl = this.image?.thumbUrl,
+            posterUrl = this.image?.superUrl,
+            screenshotUrls = emptyList()    // TODO: Support screenshots
         )
     )
-
-    private val GamePlatform.id: Int get() = config.getPlatformId(this)
 
     private fun assertOk(status: GiantBomb.Status) {
         if (status != GiantBomb.Status.ok) {
@@ -115,20 +85,18 @@ class GiantBombDataProvider @Inject constructor(private val config: GiantBombCon
         }
     }
 
-    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)
-    )
+    override val info = GiantBombDataProvider.info
 
-    override val info = GiantBomb.info
+    companion object {
+        val info = DataProviderInfo(
+            name = "GiantBomb",
+            type = DataProviderType.GiantBomb,
+            logo = getResourceAsByteArray("giantbomb.png").toImage()
+        )
+    }
 }
 
 object GiantBomb {
-    val info = DataProviderInfo(
-        name = "GiantBomb",
-        type = DataProviderType.GiantBomb,
-        logo = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.png").toImage()
-    )
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class SearchResponse(
         val statusCode: Status,
@@ -159,7 +127,10 @@ object GiantBomb {
 
     data class DetailsResult(
         val siteDetailUrl: String,
-        val deck: String?,
+        val name: String,
+        val description: String?,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        val originalReleaseDate: LocalDate?,
         val image: DetailsImage?,
         val genres: List<Genre>?
     )
@@ -183,6 +154,8 @@ object GiantBomb {
         jsonPNoCallback(103),
         filterError(104),
         videoOnlyForSubscribers(105);
+
+        // TODO: Try adding a public getter for key with @JsonValue, will not need IdentifiableEnum then.
 
         override fun toString() = "$name($key)"
 

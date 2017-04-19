@@ -38,6 +38,7 @@ class KLogger(loggerName: String) {
     operator fun getValue(thisRef: Any, property: KProperty<*>) = this
 }
 
+// FIXME: Replace all logger calls with a GUI logger with togglable levels.
 fun <R : Any> R.logger() = KLogger(unwrapCompanionClass(this.javaClass).name)
 
 // unwrap companion class to enclosing class given a Java Class

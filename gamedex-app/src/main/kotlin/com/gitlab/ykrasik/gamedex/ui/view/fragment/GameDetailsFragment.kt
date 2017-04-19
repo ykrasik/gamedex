@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.common.util.toStringOr
 import com.gitlab.ykrasik.gamedex.core.DataProviderRepository
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.datamodel.Game
@@ -201,7 +202,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         close()
     }
 
-    private fun Any?.toDisplayString() = this?.toString() ?: "NA"
+    private fun Any?.toDisplayString() = toStringOr("NA")
 
     private fun EventTarget.detailsLabel(name: String) = label(name) {
         addClass(Style.detailsLabel)

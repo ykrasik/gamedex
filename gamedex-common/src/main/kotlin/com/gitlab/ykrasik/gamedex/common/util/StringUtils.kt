@@ -5,17 +5,7 @@ package com.gitlab.ykrasik.gamedex.common.util
  * Date: 02/10/2016
  * Time: 20:23
  */
-
-// FIXME: Doesn't belong here.
-private val NOT_AVAILABLE = "NA"
-
-fun <T> T?.toString(default: String): String = this?.toString() ?: default
-
-// FIXME: Doesn't belong here
-fun <T> T?.toStringOrUnavailable(): String = toString(NOT_AVAILABLE)
-
-// FIXME: Doesn't belong here.
-val String.isUnavailable: Boolean get() = this == NOT_AVAILABLE
+fun Any?.toStringOr(default: String): String = this?.toString() ?: default
 
 fun String.collapseSpaces(): String = "\\s+".toRegex().replace(this, " ")
 

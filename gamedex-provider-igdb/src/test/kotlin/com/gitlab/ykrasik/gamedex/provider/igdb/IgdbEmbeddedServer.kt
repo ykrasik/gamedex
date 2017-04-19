@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit
 class IgdbMockServer(port: Int) : Closeable {
     private val wiremock = WireMockServer(port)
 
-    fun start(): Unit = wiremock.start()
-    fun reset(): Unit = wiremock.resetAll()
-    override fun close(): Unit = wiremock.stop()
+    fun start() = wiremock.start()
+    fun reset() = wiremock.resetAll()
+    override fun close() = wiremock.stop()
 
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
@@ -37,13 +37,14 @@ class IgdbMockServer(port: Int) : Closeable {
         }
     }
 
-    inner class aSearchRequest : BaseRequest() {
+    inner class anySearchRequest : BaseRequest() {
         infix fun willReturn(results: List<Igdb.SearchResult>) {
             wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
         }
     }
 
     inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
+        // TODO: This style of 'willReturn' does not allow testing parsing failures.
         infix fun willReturn(response: Igdb.DetailsResult) {
             wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(listOf(response))))
         }
@@ -80,11 +81,29 @@ class IgdbFakeServer(port: Int) : Closeable {
         id = apiDetailPath,
         name = "$name ${randomName()}",
         aggregatedRating = randomScore(),
-        releaseDates = List(rnd.nextInt(4)) { randomReleaseDate() },
+        releaseDates = randomReleaseDates(),
         cover = Igdb.Image(
             cloudinaryId = image
         )
     ) }.toJsonStr()
+
+    private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
+
+    private fun randomDetailResponse(): String = listOf(Igdb.DetailsResult(
+        url = randomUrl(),
+        name = randomName(),
+        summary = randomSentence(maxWords = 50),
+        releaseDates = randomReleaseDates(),
+        aggregatedRating = randomScore(),
+        rating = randomScore(),
+        cover = Igdb.Image(cloudinaryId = image),
+        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = image) },
+        genres = List(rnd.nextInt(4)) {
+            listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
+        }
+    )).toJsonStr()
+
+    private fun randomReleaseDates() = List(rnd.nextInt(4)) { randomReleaseDate() }
 
     private fun randomReleaseDate(): Igdb.ReleaseDate {
         val category = rnd.nextInt(8)
@@ -106,19 +125,6 @@ class IgdbFakeServer(port: Int) : Closeable {
             human = human
         )
     }
-
-    private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
-
-    private fun randomDetailResponse(): String = listOf(Igdb.DetailsResult(
-        url = randomUrl(),
-        summary = randomSentence(maxWords = 50),
-        rating = randomScore(),
-        cover = Igdb.Image(cloudinaryId = image),
-        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = image) },
-        genres = List(rnd.nextInt(4)) {
-            listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
-        }
-    )).toJsonStr()
 
     fun start() = apply {
         ktor.start(wait = false)

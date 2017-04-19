@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider
 
-import com.gitlab.ykrasik.gamedex.datamodel.DataProviderType
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.datamodel.*
 import javafx.scene.image.Image
+import org.joda.time.LocalDate
 
 /**
  * User: ykrasik
@@ -14,8 +14,7 @@ interface DataProvider {
 
     fun search(name: String, platform: GamePlatform): List<ProviderSearchResult>
 
-    // TODO: Find a way for providers to fetch from their native SearchResults, and not from the generic one.
-    fun fetch(searchResult: ProviderSearchResult): ProviderFetchResult
+    fun fetch(apiUrl: String, platform: GamePlatform): ProviderFetchResult
 }
 
 class DataProviderInfo(
@@ -24,3 +23,16 @@ class DataProviderInfo(
     val logo: Image // TODO: Measure the performance cost of returning a byteArray and constructing an image out of it every time instead.
 )
 
+data class ProviderSearchResult(
+    val name: String,
+    val releaseDate: LocalDate?,
+    val score: Double?,
+    val thumbnailUrl: String?,
+    val apiUrl: String
+)
+
+data class ProviderFetchResult(
+    val providerData: ProviderData,
+    val gameData: GameData,
+    val imageUrls: ImageUrls
+)

@@ -13,15 +13,12 @@ import java.io.File
  * Date: 08/10/2016
  * Time: 09:21
  */
-// TODO: Are global variables like this lazy by default?
-val objectMapper: ObjectMapper by lazy {
-    ObjectMapper()
-        .registerModule(KotlinModule())
-        .registerModule(JodaModule())
-        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-        .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-        .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-}
+val objectMapper: ObjectMapper = ObjectMapper()
+    .registerModule(KotlinModule())
+    .registerModule(JodaModule())
+    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+    .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
+    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
 
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 

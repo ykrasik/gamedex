@@ -12,36 +12,25 @@ import org.joda.time.LocalDate
  * Time: 17:59
  */
 class GiantBombDataProviderRealIT : ScopedWordSpec() {
-    val provider = GiantBombDataProvider(GiantBombConfig())
-
-    class Scope {
-        val name = "No Man's Sky"
-        val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
-        val releaseDate = LocalDate.parse("2016-08-09")
-        val thumbnailUrl = "https://www.giantbomb.com/api/image/scale_avatar/2927125-no%20man%27s%20sky.jpg"
-        val posterUrl = "https://www.giantbomb.com/api/image/scale_large/2927125-no%20man%27s%20sky.jpg"
-        val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"
-        val description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
-        val genres = listOf("Simulation", "Action-Adventure")
-
-        val searchResult = ProviderSearchResult(
-            apiUrl = apiUrl,
-            name = name,
-            releaseDate = releaseDate,
-            score = null,
-            thumbnailUrl = thumbnailUrl
-        )
-    }
+    val provider = GiantBombDataProvider(GiantBombClient(GiantBombConfig()))
 
     init {
         "GiantBombDataProvider" should {
             "Search & retrieve a single search result".inScope(Scope()) {
                 val response = provider.search(name, GamePlatform.pc)
-                response shouldBe listOf(searchResult)
+
+                response shouldBe listOf(ProviderSearchResult(
+                    apiUrl = apiUrl,
+                    name = name,
+                    releaseDate = releaseDate,
+                    score = null,
+                    thumbnailUrl = thumbnailUrl
+                ))
             }
 
             "Fetch game details".inScope(Scope()) {
-                val response = provider.fetch(searchResult)
+                val response = provider.fetch(apiUrl, GamePlatform.pc)
+
                 response shouldBe ProviderFetchResult(
                     providerData = ProviderData(
                         type = DataProviderType.GiantBomb,
@@ -64,5 +53,16 @@ class GiantBombDataProviderRealIT : ScopedWordSpec() {
                 )
             }
         }
+    }
+
+    class Scope {
+        val name = "No Man's Sky"
+        val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
+        val releaseDate = LocalDate.parse("2016-08-09")
+        val thumbnailUrl = "https://www.giantbomb.com/api/image/scale_avatar/2927125-no%20man%27s%20sky.jpg"
+        val posterUrl = "https://www.giantbomb.com/api/image/scale_large/2927125-no%20man%27s%20sky.jpg"
+        val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"
+        val description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
+        val genres = listOf("Simulation", "Action-Adventure")
     }
 }

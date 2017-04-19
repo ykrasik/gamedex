@@ -4,9 +4,9 @@ import com.gitlab.ykrasik.gamedex.common.util.logger
 import com.gitlab.ykrasik.gamedex.datamodel.GameData
 import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
 import com.gitlab.ykrasik.gamedex.datamodel.ImageUrls
+import com.gitlab.ykrasik.gamedex.datamodel.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.DataProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderGame
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import java.io.File
 import javax.inject.Inject
@@ -20,6 +20,12 @@ import javax.inject.Singleton
 interface DataProviderService {
     suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame?
 }
+
+data class ProviderGame(
+    val gameData: GameData,
+    val imageUrls: ImageUrls,
+    val providerData: List<ProviderData>
+)
 
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
@@ -114,7 +120,7 @@ class DataProviderServiceImpl @Inject constructor(
                     val chosenResult = choice.result
                     previouslyDiscardedResults += filteredResults.filter { it != chosenResult }
                     previouslySelectedResults += chosenResult
-                    provider.fetch(chosenResult)
+                    provider.fetch(chosenResult.apiUrl, platform)
                 }
                 is SearchResultChoice.NewSearch -> {
                     searchedName = choice.newSearch
