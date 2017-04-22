@@ -16,9 +16,9 @@ interface DataProvider {
     fun fetch(apiUrl: String, platform: GamePlatform): ProviderFetchResult
 }
 
-enum class DataProviderType(val basicDataPriority: Int, val scorePriority: Int, val imagePriorty: Int) {
-    Igdb(basicDataPriority = 2, scorePriority = 1, imagePriorty = 2),
-    GiantBomb(basicDataPriority = 1, scorePriority = 999, imagePriorty = 1)
+enum class DataProviderType {
+    Igdb,
+    GiantBomb
 }
 
 class DataProviderInfo(

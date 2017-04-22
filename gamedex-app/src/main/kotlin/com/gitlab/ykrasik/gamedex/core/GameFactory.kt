@@ -1,14 +1,19 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.ProviderPriority
+import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 20/04/2017
  * Time: 20:35
  */
-class GameFactory {
+@Singleton
+class GameFactory @Inject constructor(private val userPreferences: UserPreferences) {
     private val maxScreenshots = 10
 
     fun create(rawGame: RawGame): Game {
@@ -25,28 +30,23 @@ class GameFactory {
         )
     }
 
-    private fun RawGame.toGameData(): GameData {
-        val dataByBasicPriority = this.providerDataBy { it.basicDataPriority }
-        val dataByScorePriority = this.providerDataBy { it.scorePriority }
+    private fun RawGame.toGameData(): GameData = GameData(
+        name = sortDataBy(userPreferences.providerNamePriority).findFirst { it.gameData.name } ?: metaData.path.name,
+        description = sortDataBy(userPreferences.providerDescriptionPriority).findFirst { it.gameData.description },
+        releaseDate = sortDataBy(userPreferences.providerReleaseDatePriority).findFirst { it.gameData.releaseDate },
 
-        return GameData(
-            name = dataByBasicPriority.findFirst { it.gameData.name } ?: metaData.path.name,
-            description = dataByBasicPriority.findFirst { it.gameData.description },
-            releaseDate = dataByBasicPriority.findFirst { it.gameData.releaseDate },
+        criticScore = sortDataBy(userPreferences.providerCriticScorePriority).findFirst { it.gameData.criticScore },
+        userScore = sortDataBy(userPreferences.providerUserScorePriority).findFirst { it.gameData.userScore },
 
-            criticScore = dataByScorePriority.findFirst { it.gameData.criticScore },
-            userScore = dataByScorePriority.findFirst { it.gameData.userScore },
-
-            genres = dataByBasicPriority.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()
-        )
-    }
+        genres = providerData.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()
+    )
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val dataByImagePriority = this.providerDataBy { it.imagePriorty }
+        val thumbnailUrl = sortDataBy(userPreferences.providerThumbnailPriority).findFirst { it.imageUrls.thumbnailUrl }
+        val posterUrl = sortDataBy(userPreferences.providerPosterPriority).findFirst { it.imageUrls.posterUrl }
+        val screenshotUrls = sortDataBy(userPreferences.providerScreenshotPriority)
+            .asSequence().flatMap { it.imageUrls.screenshotUrls.asSequence() }.take(maxScreenshots).toList()
 
-        val thumbnailUrl = dataByImagePriority.findFirst { it.imageUrls.thumbnailUrl }
-        val posterUrl = dataByImagePriority.findFirst { it.imageUrls.posterUrl }
-        val screenshotUrls = dataByImagePriority.asSequence().flatMap { it.imageUrls.screenshotUrls.asSequence() }.take(maxScreenshots).toList()
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,
             posterUrl = posterUrl ?: thumbnailUrl,
@@ -56,7 +56,9 @@ class GameFactory {
 
     private fun RawGame.toProviderData(): List<ProviderData> = this.providerData.map { it.providerData }
 
-    private fun RawGame.providerDataBy(f: (DataProviderType) -> Int) = providerData.sortedBy { f(it.providerData.type) }
+    private fun RawGame.sortDataBy(preference: ProviderPriority) = providerData.sortedByDescending {
+        preference[it.providerData.type]
+    }
 
     private fun <T> List<ProviderFetchResult>.findFirst(extractor: (ProviderFetchResult) -> T?): T? =
         this.asSequence().map(extractor).firstNotNull()

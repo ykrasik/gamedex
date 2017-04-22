@@ -15,7 +15,7 @@ class DataProviderRepository @Inject constructor(allProviders: MutableSet<DataPr
     // TODO: Allow enabling / disabling providers
     private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
-        allProviders.sortedBy { it.info.type.basicDataPriority }
+        allProviders.sortedBy { it.info.type.ordinal }
     }
 
     private val providersByType = allProviders.associateBy { it.info.type }
