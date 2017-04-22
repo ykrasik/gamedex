@@ -2,13 +2,15 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombClient.Companion.fetchDetailsFields
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombClient.Companion.searchFields
-import com.gitlab.ykrasik.provider.testkit.withQueryParam
-import io.kotlintest.matchers.have
+import com.gitlab.ykrasik.gamedex.GameDexException
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.test.*
+import io.kotlintest.Spec
+import io.kotlintest.TestCaseContext
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldHave
+import io.kotlintest.matchers.shouldThrow
+import io.kotlintest.matchers.substring
 import org.eclipse.jetty.http.HttpStatus
 
 /**
@@ -42,7 +44,7 @@ class GiantBombClientIT : ScopedWordSpec() {
                 val e = shouldThrow<GameDexException> {
                     client.search(name, platform)
                 }
-                e.message!! should have substring HttpStatus.BAD_REQUEST_400.toString()
+                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
         }
 
@@ -65,14 +67,14 @@ class GiantBombClientIT : ScopedWordSpec() {
                 val e = shouldThrow<GameDexException> {
                     client.fetch(detailUrl)
                 }
-                e.message!! should have substring HttpStatus.BAD_REQUEST_400.toString()
+                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
         }
     }
 
     inner class Scope {
         val baseUrl = "http://localhost:$port/"
-        val detailPath = randomSlashDelimitedString()
+        val detailPath = randomPath()
         val detailUrl = "$baseUrl$detailPath"
         val apiKey = randomString()
         val platform = randomEnum<GamePlatform>()
@@ -94,7 +96,7 @@ class GiantBombClientIT : ScopedWordSpec() {
             results = listOf(GiantBomb.DetailsResult(
                 siteDetailUrl = randomUrl(),
                 name = randomName(),
-                description = randomSentence(),
+                deck = randomSentence(),
                 originalReleaseDate = randomLocalDate(),
                 image = GiantBomb.DetailsImage(
                     thumbUrl = randomUrl(),
@@ -111,7 +113,17 @@ class GiantBombClientIT : ScopedWordSpec() {
         ))
     }
 
-    override fun beforeAll() = server.start()
-    override fun beforeEach() = server.reset()
-    override fun afterAll() = server.close()
+    val searchFields = listOf("api_detail_url", "name", "original_release_date", "image")
+    val fetchDetailsFields = searchFields - "api_detail_url" + listOf("site_detail_url", "deck", "genres")
+
+    override fun interceptSpec(context: Spec, spec: () -> Unit) {
+        server.start()
+        spec()
+        server.close()
+    }
+
+    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+        server.reset()
+        test()
+    }
 }

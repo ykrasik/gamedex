@@ -1,13 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.common.util.browseToUrl
-import com.gitlab.ykrasik.gamedex.common.util.toStringOr
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.DataProviderRepository
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.datamodel.Game
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
+import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
@@ -66,7 +66,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     addClass(Styles.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.imageIds.posterId))
+                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.imageUrls.posterUrl))
 
                     imageViewResizingPane(poster) {
                         maxWidth = screenWidth * maxPosterWidthPercent
@@ -162,8 +162,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                             fitWidth = 30.0
                                             image = provider.info.logo
                                         }
-                                        hyperlink(providerData.url) {
-                                            setOnAction { providerData.url.browseToUrl() }
+                                        hyperlink(providerData.siteUrl) {
+                                            setOnAction { providerData.siteUrl.browseToUrl() }
                                         }
                                     }
                                 }

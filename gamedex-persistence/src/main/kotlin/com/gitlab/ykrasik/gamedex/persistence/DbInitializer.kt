@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.util.logger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -21,16 +21,14 @@ open class DbInitializer @Inject constructor(private val config: PersistenceConf
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
     }
 
+    private val tables = arrayOf(Libraries, Games, Images)
+
     fun create() = transaction {
-        SchemaUtils.create(
-            Libraries, Games, Images
-        )
+        SchemaUtils.create(*tables)
     }
 
     fun drop() = transaction {
-        SchemaUtils.drop(
-            Libraries, Games, Images
-        )
+        SchemaUtils.drop(*tables)
     }
 
     fun reload() {

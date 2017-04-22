@@ -3,14 +3,12 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.common.util.toJsonStr
-import com.gitlab.ykrasik.provider.testkit.aJsonResponse
+import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.ktor.application.call
-import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.netty.embeddedNettyServer
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.get
 import org.jetbrains.ktor.routing.routing
@@ -57,12 +55,12 @@ class GiantBombFakeServer(port: Int) : Closeable {
     private val imagePath = "images"
     private val imageUrl = "$baseUrl/$imagePath"
 
-    private val ktor = embeddedServer(Netty, port) {
+    private val ktor = embeddedNettyServer(port) {
         routing {
             get("/") {
                 call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
             }
-            get(imagePath) {
+            get("$imagePath/{imageName}") {
                 delay(rnd.nextInt(700).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
             }
@@ -80,7 +78,7 @@ class GiantBombFakeServer(port: Int) : Closeable {
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
                 image = GiantBomb.SearchImage(
-                    thumbUrl = imageUrl
+                    thumbUrl = randomImageUrl()
                 )
             )
         }
@@ -91,17 +89,19 @@ class GiantBombFakeServer(port: Int) : Closeable {
         results = listOf(GiantBomb.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = randomName(),
-            description = randomSentence(maxWords = 15),
+            deck = randomSentence(maxWords = 15),
             originalReleaseDate = randomLocalDate(),
             image = GiantBomb.DetailsImage(
-                thumbUrl = imageUrl,
-                superUrl = imageUrl   // TODO: Support once implemented
+                thumbUrl = randomImageUrl(),
+                superUrl = randomImageUrl()   // TODO: Support once implemented
             ),
             genres = List(rnd.nextInt(4)) {
                 GiantBomb.Genre(name = randomString())
             }
         ))
     )
+
+    private fun randomImageUrl() = "$imageUrl/${randomString()}"
 
     fun start() = apply {
         ktor.start()
@@ -161,8 +161,8 @@ private fun GiantBomb.DetailsResult.toMap(): Map<String, Any> {
         "site_detail_url" to siteDetailUrl,
         "name" to name
     )
-    if (description != null) {
-        map += ("description" to description!!)
+    if (deck != null) {
+        map += ("deck" to deck!!)
     }
     if (originalReleaseDate != null) {
         map += ("original_release_date" to "$originalReleaseDate 00:00:00")

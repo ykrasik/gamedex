@@ -1,12 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.common.testkit.*
+import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
+import com.gitlab.ykrasik.gamedex.test.*
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.mock
@@ -47,8 +47,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
                         thumbnailUrl = randomUrl(),
                         apiUrl = randomUrl()
                     )
-                },
-                canProceedWithout = true
+                }
             )
             println("Result: " + ChooseSearchResultFragment(data).show())
             System.exit(0)

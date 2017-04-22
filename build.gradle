@@ -39,7 +39,7 @@ buildscript {
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: '-SNAPSHOT']
         ktor = [:].with {
-            v = '0.3.1'
+            v = '0.3.0'
             core = [group: 'org.jetbrains.ktor', name: 'ktor-core', version: v]
             netty = [group: 'org.jetbrains.ktor', name: 'ktor-netty', version: v]
             delegate
@@ -64,7 +64,7 @@ buildscript {
             delegate
         }
 
-        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '1.3.7']
+        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.0']
         junit = [group: 'junit', name: 'junit', version: '4.12']
         mockito = [:].with {
             core = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']

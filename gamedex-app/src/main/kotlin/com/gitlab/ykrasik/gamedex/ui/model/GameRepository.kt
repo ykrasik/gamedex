@@ -1,10 +1,11 @@
 package com.gitlab.ykrasik.gamedex.ui.model
 
-import com.gitlab.ykrasik.gamedex.common.util.logger
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.MetaData
+import com.gitlab.ykrasik.gamedex.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
-import com.gitlab.ykrasik.gamedex.datamodel.Game
-import com.gitlab.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import javafx.beans.property.ReadOnlyListProperty
 import javafx.beans.property.SimpleListProperty
@@ -25,48 +26,45 @@ import javax.inject.Singleton
 @Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
+    private val gameFactory: GameFactory,
     private val notificationManager: NotificationManager
 ) {
-    private val log by logger()
-
     val gamesProperty: ReadOnlyListProperty<Game> = run {
         notificationManager.message("Fetching games...")
-        SimpleListProperty(persistenceService.fetchAllGames().observable())
+        val rawGames = persistenceService.fetchAllGames()
+        val games = rawGames.map(gameFactory::create)
+        SimpleListProperty(games.observable())
     }
     val games: ObservableList<Game> by gamesProperty
 
     val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
     val genres: ObservableList<String> by genresProperty
 
-    suspend fun add(request: AddGameRequest): Game {
-        val game = run(CommonPool) {
-            persistenceService.insert(request)
-        }
+    suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
+        val rawGame = persistenceService.insertGame(request.metaData, request.providerData)
+        val game = gameFactory.create(rawGame)
         run(JavaFx) {
             games += game
         }
-        return game
+        game
     }
 
-    suspend fun delete(game: Game) {
+    suspend fun delete(game: Game) = run(JavaFx) {
         notificationManager.message("Deleting '${game.name}'...")
         run(CommonPool) {
             persistenceService.deleteGame(game.id)
         }
-        run(JavaFx) {
-            check(games.removeIf { it.id == game.id }) { "Error! Game doesn't exist: $game" }
-        }
+        check(games.removeIf { it.id == game.id }) { "Error! Game doesn't exist: $game" }
         notificationManager.message("Deleted '${game.name}'.")
     }
 
-    suspend fun deleteByLibrary(library: Library) {
-        log.debug { "Deleting all games by library: $library" }
-        val sizeBefore = games.size
-        run(JavaFx) {
-            // TODO: Instead of filtering in place, try re-setting to a filtered list (performance)
-            games.removeAll { it.libraryId == library.id }
-        }
-        val removed = games.size - sizeBefore
-        log.debug { "Done. Removed $removed games." }
+    suspend fun deleteByLibrary(library: Library) = run(JavaFx) {
+        // TODO: Instead of filtering in place, try re-setting to a filtered list (performance)
+        games.removeAll { it.libraryId == library.id }
     }
 }
+
+data class AddGameRequest(
+    val metaData: MetaData,
+    val providerData: List<ProviderFetchResult>
+)

@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.controller
 
-import com.gitlab.ykrasik.gamedex.datamodel.Game
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
 
@@ -18,7 +18,7 @@ class GameController : Controller() {
 
     fun delete(game: Game) {
         if (confirmDelete(game)) {
-            launch(CommonPool) {
+            launch(JavaFx) {
                 gameRepository.delete(game)
             }
         }

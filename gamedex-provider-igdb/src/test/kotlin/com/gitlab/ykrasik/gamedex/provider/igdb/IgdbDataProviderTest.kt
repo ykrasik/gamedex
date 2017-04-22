@@ -1,11 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import io.kotlintest.matchers.Matcher
-import io.kotlintest.matchers.Matchers
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.test.*
+import io.kotlintest.matchers.*
 import io.kotlintest.mock.`when`
 import io.kotlintest.mock.mock
 import org.joda.time.LocalDate
@@ -73,7 +70,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             "handle null aggregatedRating".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.score shouldBe null
                 }
             }
@@ -81,7 +78,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             "handle null releaseDates".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(releaseDates = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.releaseDate shouldBe null
                 }
             }
@@ -89,7 +86,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             "use null releaseDate when no releaseDate exists for given platform".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult(releaseDatePlatformId = platformId + 1)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.releaseDate shouldBe null
                 }
             }
@@ -97,7 +94,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             "handle null thumbnailId".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult(imageId = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
                 }
             }
@@ -105,7 +102,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             "handle null cover".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(cover = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
                 }
             }
@@ -121,7 +118,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
                     providerData = ProviderData(
                         type = DataProviderType.Igdb,
                         apiUrl = baseUrl,
-                        url = detailsResult.url
+                        siteUrl = detailsResult.url
                     ),
                     gameData = GameData(
                         name = detailsResult.name,
@@ -191,7 +188,7 @@ class IgdbDataProviderTest : ScopedWordSpec() {
         }
     }
 
-    class Scope : Matchers {
+    class Scope {
         val platform = randomEnum<GamePlatform>()
         val platformId = rnd.nextInt(100)
         val genreId = rnd.nextInt(100)
@@ -261,17 +258,19 @@ class IgdbDataProviderTest : ScopedWordSpec() {
             genres = mapOf(genreId to genre)
         ), client)
 
-        fun haveSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>) {
+        fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
+            override fun test(value: List<ProviderSearchResult>): Result {
                 value should haveSize(1)
                 f(value.first())
+                return Result(true, "")
             }
         }
 
         fun have2SearchResultsThat(f: (first: ProviderSearchResult, second: ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>) {
+            override fun test(value: List<ProviderSearchResult>): Result {
                 value should haveSize(2)
                 f(value[0], value[1])
+                return Result(true, "")
             }
         }
     }

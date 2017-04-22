@@ -3,13 +3,8 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
-import com.gitlab.ykrasik.gamedex.common.util.*
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.DataProvider
-import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +26,7 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
         assertOk(response.statusCode)
 
         val results = response.results.map { it.toProviderSearchResult() }
-        log.info { "[$platform] Done(${results.size}): $results." }
+        log.info { "[$platform] ${results.size} Search results: $results." }
         return results
     }
 
@@ -54,7 +49,7 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
         val gameData = response.results.first().toProviderFetchResult(apiUrl)
-        log.info { "[$platform] Done: $gameData." }
+        log.info { "[$platform] Result: $gameData." }
         return gameData
     }
 
@@ -62,11 +57,11 @@ class GiantBombDataProvider @Inject constructor(private val client: GiantBombCli
         providerData = ProviderData(
             type = DataProviderType.GiantBomb,
             apiUrl = apiUrl,
-            url = this.siteDetailUrl
+            siteUrl = this.siteDetailUrl
         ),
         gameData = GameData(
             name = this.name,
-            description = this.description,
+            description = this.deck,
             releaseDate = this.originalReleaseDate,
             criticScore = null,
             userScore = null,
@@ -128,7 +123,7 @@ object GiantBomb {
     data class DetailsResult(
         val siteDetailUrl: String,
         val name: String,
-        val description: String?,
+        val deck: String?,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         val originalReleaseDate: LocalDate?,
         val image: DetailsImage?,

@@ -1,10 +1,6 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.datamodel.DataProviderType
-import com.gitlab.ykrasik.gamedex.datamodel.GameData
-import com.gitlab.ykrasik.gamedex.datamodel.MetaData
-import com.gitlab.ykrasik.gamedex.datamodel.ProviderData
+import com.gitlab.ykrasik.gamedex.test.*
 
 /**
  * User: ykrasik
@@ -30,6 +26,6 @@ fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType
     ProviderData(
         type = randomEnum(),
         apiUrl = randomUrl(),
-        url = randomUrl()
+        siteUrl = randomUrl()
     )
 }

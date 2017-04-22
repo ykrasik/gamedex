@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.datamodel.Game
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
@@ -25,7 +25,7 @@ class GameWallView : View("Games Wall") {
     private val userPreferences: UserPreferences by di()
     private val imageLoader: ImageLoader by di()
 
-    private val thumbnailCache = mutableMapOf<Int, ReadOnlyProperty<Image>>()
+    private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
     override val root = datagrid(repository.gamesProperty) {
         cellHeight = 202.0
@@ -77,14 +77,14 @@ class GameWallView : View("Games Wall") {
             return clip
         }
 
-        override fun updateItem(item: Game?, empty: Boolean) {
-            super.updateItem(item, empty)
+        override fun updateItem(game: Game?, empty: Boolean) {
+            super.updateItem(game, empty)
 
-            if (item != null) {
-                val thumbnailId = item.imageIds.thumbnailId!!
-                val image = thumbnailCache.getOrPut(thumbnailId) { imageLoader.fetchImage(thumbnailId) }
+            if (game != null) {
+                val thumbnailUrl = game.imageUrls.thumbnailUrl
+                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl) }
                 imageView.imageProperty().cleanBind(image)
-                tooltip(item.name)
+                tooltip(game.name)
             } else {
                 imageView.imageProperty().unbind()
                 imageView.image = null

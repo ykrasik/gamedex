@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.common.testkit.ScopedWordSpec
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.util.appConfig
+import io.kotlintest.matchers.shouldBe
 import org.joda.time.LocalDate
 
 /**
@@ -12,12 +12,12 @@ import org.joda.time.LocalDate
  * Time: 10:03
  */
 class IgdbDataProviderRealIT : ScopedWordSpec() {
-    val config = IgdbConfig()
+    val config = IgdbConfig(appConfig)
     val provider = IgdbDataProvider(config, IgdbClient(config))
 
     init {
         "IgdbDataProvider" should {
-            "Search & retrieve a single search result".inScope(Scope()) {
+            "search & retrieve a single search result".inScope(Scope()) {
                 val response = provider.search(name, GamePlatform.pc)
 
                 response shouldBe listOf(ProviderSearchResult(
@@ -29,14 +29,14 @@ class IgdbDataProviderRealIT : ScopedWordSpec() {
                 ))
             }
 
-            "Fetch game details".inScope(Scope()) {
+            "fetch game details".inScope(Scope()) {
                 val response = provider.fetch(apiUrl, GamePlatform.pc)
                 
                 response shouldBe ProviderFetchResult(
                     providerData = ProviderData(
                         type = DataProviderType.Igdb,
                         apiUrl = apiUrl,
-                        url = url
+                        siteUrl = url
                     ),
                     gameData = GameData(
                         name = name,
@@ -61,7 +61,7 @@ class IgdbDataProviderRealIT : ScopedWordSpec() {
         val apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225"
         val releaseDate = LocalDate.parse("2016-08-12")
         val criticScore = 72.6428571428571
-        val userScore = 62.6626950050979
+        val userScore = 63.0478057301822
         val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.png"
         val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/sixpdbypwojsyly22a1l.png"
         val url = "https://www.igdb.com/games/no-man-s-sky"

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.common.util.listFromJson
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.util.listFromJson
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,7 +46,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
 
     private val GamePlatform.id: Int get() = config.getPlatformId(this)
 
-    companion object {
+    private companion object {
         val searchFields = listOf(
             "name",
             "aggregated_rating",
@@ -55,7 +55,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "release_dates.platform",
             "cover.cloudinary_id"
         )
-        private val searchFieldsStr = searchFields.joinToString(",")
+        val searchFieldsStr = searchFields.joinToString(",")
 
         val fetchDetailsFields = searchFields + listOf(
             "url",
@@ -64,6 +64,6 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "screenshots.cloudinary_id",
             "genres"
         )
-        private val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
+        val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
 }

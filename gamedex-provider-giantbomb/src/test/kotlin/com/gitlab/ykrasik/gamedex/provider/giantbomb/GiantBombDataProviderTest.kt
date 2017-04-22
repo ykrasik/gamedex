@@ -1,12 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.common.exception.GameDexException
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import io.kotlintest.matchers.Matcher
-import io.kotlintest.matchers.Matchers
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.test.*
+import io.kotlintest.matchers.*
 import io.kotlintest.mock.`when`
 import io.kotlintest.mock.mock
 
@@ -52,7 +48,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
             "handle null originalReleaseDate".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(originalReleaseDate = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.score shouldBe null
                 }
             }
@@ -60,7 +56,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
             "handle null image".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(image = null)))
 
-                search() should haveSearchResultThat {
+                search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
                 }
             }
@@ -84,11 +80,11 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
                     providerData = ProviderData(
                         type = DataProviderType.GiantBomb,
                         apiUrl = apiDetailUrl,
-                        url = detailsResult.siteDetailUrl
+                        siteUrl = detailsResult.siteDetailUrl
                     ),
                     gameData = GameData(
                         name = detailsResult.name,
-                        description = detailsResult.description,
+                        description = detailsResult.deck,
                         releaseDate = detailsResult.originalReleaseDate,
                         criticScore = null,
                         userScore = null,
@@ -102,8 +98,8 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
                 )
             }
 
-            "handle null description".inScope(Scope()) {
-                givenClientFetchReturns(detailsResult().copy(description = null))
+            "handle null deck".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(deck = null))
 
                 fetch().gameData.description shouldBe null
             }
@@ -137,9 +133,8 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
         }
     }
 
-    class Scope : Matchers {
+    class Scope {
         val platform = randomEnum<GamePlatform>()
-        val platformId = rnd.nextInt(100)
         val name = randomName()
         val apiDetailUrl = randomUrl()
 
@@ -153,7 +148,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
         fun detailsResult(name: String = this.name) = GiantBomb.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = name,
-            description = randomSentence(),
+            deck = randomSentence(),
             originalReleaseDate = randomLocalDate(),
             image = GiantBomb.DetailsImage(thumbUrl = randomUrl(), superUrl = randomUrl()),
             genres = listOf(GiantBomb.Genre(randomString()))
@@ -180,17 +175,19 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
         private val client = mock<GiantBombClient>()
         val provider = GiantBombDataProvider(client)
 
-        fun haveSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>) {
+        fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
+            override fun test(value: List<ProviderSearchResult>): Result {
                 value should haveSize(1)
                 f(value.first())
+                return Result(true, "")
             }
         }
 
         fun have2SearchResultsThat(f: (first: ProviderSearchResult, second: ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
-            override fun test(value: List<ProviderSearchResult>) {
+            override fun test(value: List<ProviderSearchResult>): Result {
                 value should haveSize(2)
                 f(value[0], value[1])
+                return Result(true, "")
             }
         }
     }

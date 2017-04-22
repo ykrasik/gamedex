@@ -1,13 +1,9 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.common.util.logger
-import com.gitlab.ykrasik.gamedex.datamodel.GameData
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.datamodel.ImageUrls
-import com.gitlab.ykrasik.gamedex.datamodel.ProviderData
-import com.gitlab.ykrasik.gamedex.provider.DataProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.DataProvider
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,102 +14,34 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface DataProviderService {
-    suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame?
+    suspend fun fetch(name: String, platform: GamePlatform, path: File): List<ProviderFetchResult>?
 }
-
-data class ProviderGame(
-    val gameData: GameData,
-    val imageUrls: ImageUrls,
-    val providerData: List<ProviderData>
-)
 
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
     private val providerRepository: DataProviderRepository,
     private val chooser: GameSearchChooser
 ) : DataProviderService {
-    private val log by logger()
 
-    private val maxScreenshots = 10
-
-    override suspend fun fetch(name: String, platform: GamePlatform, path: File): ProviderGame? {
+    override suspend fun fetch(name: String, platform: GamePlatform, path: File): List<ProviderFetchResult>? =
         try {
-            val context = SearchContext(name, platform, path)
-            var hasAtLeastOneResult = false
-            val providers = providerRepository.providers
-            val fetchResults = providers.mapIndexedNotNull { i, provider ->
-                val isLastProvider = i == (providers.size - 1)
-                val canProceedWithout = hasAtLeastOneResult || !isLastProvider
-                val result = context.fetch(provider, canProceedWithout)
-                if (result != null) hasAtLeastOneResult = true
-                result
-            }
-            return fetchResults.merge()
+            SearchContext(platform, path).fetch(name)
         } catch (e: CancelSearchException) {
-            return null
-        }
-    }
-
-    private fun List<ProviderFetchResult>.merge(): ProviderGame? {
-        check(this.isNotEmpty()) { "No provider managed to return any GameData!" }
-
-        val resultsByBasicPriority = this.sortedBy { it.providerData.type.basicDataPriority }
-        val resultsByScorePriority = this.sortedBy { it.providerData.type.scorePriority }
-        val resultsByImagePriority = this.sortedBy { it.providerData.type.imagePriorty }
-
-        val name = resultsByBasicPriority.first().gameData.name
-        log.debug { "Processing: '$name'..." }
-
-        val gameData = GameData(
-            name = name,
-            description = resultsByBasicPriority.findFirst("description") { it.gameData.description },
-            releaseDate = resultsByBasicPriority.findFirst("releaseDate") { it.gameData.releaseDate },
-
-            criticScore = resultsByScorePriority.findFirst("criticScore") { it.gameData.criticScore },
-            userScore = resultsByScorePriority.findFirst("userScore") { it.gameData.userScore },
-
-            genres = this.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()
-        )
-
-        val thumbnailUrl = resultsByImagePriority.findFirst("thumbnail") { it.imageUrls.thumbnailUrl }
-        val posterUrl = resultsByImagePriority.findFirst("poster") { it.imageUrls.posterUrl }
-        val screenshotUrls = resultsByImagePriority.asSequence().flatMap { it.imageUrls.screenshotUrls.asSequence() }.take(maxScreenshots).toList()
-        val imageData = ImageUrls(
-            thumbnailUrl = thumbnailUrl ?: posterUrl,
-            posterUrl = posterUrl ?: thumbnailUrl,
-            screenshotUrls = screenshotUrls
-        )
-
-        val providerData = this.map { it.providerData }
-
-        return ProviderGame(gameData, imageData, providerData)
-    }
-
-    private fun <T> List<ProviderFetchResult>.findFirst(field: String, extractor: (ProviderFetchResult) -> T?): T? {
-        val fetchResult = this.firstOrNull { extractor(it) != null }
-        return if (fetchResult != null) {
-            val value = extractor(fetchResult)
-            log.debug { "[$field][${fetchResult.providerData.type}]: $value" }
-            value
-        } else {
-            log.debug { "[$field]: Empty." }
             null
         }
-    }
 
-    private inner class SearchContext(
-        var searchedName: String,
-        val platform: GamePlatform,
-        val path: File
-    ) {
+    private inner class SearchContext(private val platform: GamePlatform, private val path: File) {
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
-        // FIXME: Should always be able to proceed without, in which case we only have the game name.
-        suspend fun fetch(provider: DataProvider, canProceedWithout: Boolean): ProviderFetchResult? {
+        suspend fun fetch(searchedName: String): List<ProviderFetchResult> {
+            return providerRepository.providers.mapNotNull { fetch(it, searchedName) }
+        }
+
+        private suspend fun fetch(provider: DataProvider, searchedName: String): ProviderFetchResult? {
             val results = provider.search(searchedName, platform)
             val filteredResults = filterResults(results)
-            val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults, canProceedWithout)
+            val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults)
             val choice = chooser.choose(chooseSearchResultData)
             return when (choice) {
                 is SearchResultChoice.Ok -> {
@@ -123,14 +51,10 @@ class DataProviderServiceImpl @Inject constructor(
                     provider.fetch(chosenResult.apiUrl, platform)
                 }
                 is SearchResultChoice.NewSearch -> {
-                    searchedName = choice.newSearch
                     previouslyDiscardedResults += filteredResults
-                    fetch(provider, canProceedWithout)
+                    fetch(provider, choice.newSearch)
                 }
-                SearchResultChoice.ProceedWithout -> {
-                    assert(canProceedWithout) { "Cannot proceed without results from '${provider.info.name}'!" }
-                    null
-                }
+                SearchResultChoice.ProceedWithout -> null
                 SearchResultChoice.Cancel -> throw CancelSearchException()
             }
         }

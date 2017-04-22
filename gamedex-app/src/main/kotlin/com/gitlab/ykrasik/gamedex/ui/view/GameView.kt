@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
-import com.gitlab.ykrasik.gamedex.datamodel.Game
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
-import com.gitlab.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.model.GameSort
 import com.gitlab.ykrasik.gamedex.ui.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
@@ -122,6 +122,7 @@ class GameView : View("Games") {
                     val game = gameRepository.add(addGameRequest)
                     notification.message = "[${addGameRequest.metaData.path}] Done: $game"
                 }
+                notificationManager.unbind()
             }
     }
 }

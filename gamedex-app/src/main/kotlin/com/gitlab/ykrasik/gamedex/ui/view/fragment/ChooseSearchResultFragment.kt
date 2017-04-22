@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
+import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchResultChoice
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
@@ -127,9 +127,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                     setOnAction { close(choice = okResult) }
                 }
                 cancelButton { setOnAction { close(choice = SearchResultChoice.Cancel) } }
-                if (data.canProceedWithout) {
-                    button("Proceed Without") { setOnAction { close(choice = SearchResultChoice.ProceedWithout) } }
-                }
+                button("Proceed Without") { setOnAction { close(choice = SearchResultChoice.ProceedWithout) } }
             }
         }
     }

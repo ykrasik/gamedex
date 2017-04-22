@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import java.io.File
@@ -36,8 +36,7 @@ data class ChooseSearchResultData(
     val name: String,
     val path: File,
     val info: DataProviderInfo,
-    val searchResults: List<ProviderSearchResult>,
-    val canProceedWithout: Boolean
+    val searchResults: List<ProviderSearchResult>
 )
 
 sealed class SearchResultChoice {

@@ -11,7 +11,7 @@ import com.google.inject.AbstractModule
  * Date: 11/10/2016
  * Time: 11:16
  */
-class AppModule : AbstractModule() {
+object AppModule : AbstractModule() {
     override fun configure() {
         bind(UserPreferences::class.java).toInstance(UserPreferences())
         bind(DataProviderService::class.java).to(DataProviderServiceImpl::class.java)

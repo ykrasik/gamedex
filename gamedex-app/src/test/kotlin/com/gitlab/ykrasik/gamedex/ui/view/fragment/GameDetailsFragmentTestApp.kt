@@ -1,20 +1,16 @@
 package com.gitlab.ykrasik.gamedex.ui.view.fragment
 
-import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.common.testkit.TestImages
-import com.gitlab.ykrasik.gamedex.common.testkit.rnd
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.datamodel.Game
-import com.gitlab.ykrasik.gamedex.datamodel.ImageIds
-import com.gitlab.ykrasik.gamedex.datamodel.Library
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderModule
-import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderModule
-import com.gitlab.ykrasik.gamedex.randomGameData
-import com.gitlab.ykrasik.gamedex.randomMetaData
-import com.gitlab.ykrasik.gamedex.randomProviderData
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombModule
+import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbModule
+import com.gitlab.ykrasik.gamedex.test.TestImages
+import com.gitlab.ykrasik.gamedex.test.randomUrl
+import com.gitlab.ykrasik.gamedex.test.rnd
 import com.google.inject.AbstractModule
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -30,10 +26,10 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
     override fun diContainer(): DIContainer {
         val imageLoader = mock<ImageLoader> {
             on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
-            on { fetchImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
+            on { fetchImage(any(), anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
         }
         val persistenceService = mock<PersistenceService> {
-            on { fetchAllGames() } doReturn emptyList<Game>()
+            on { fetchAllGames() } doReturn emptyList<RawGame>()
             on { fetchAllLibraries() } doReturn emptyList<Library>()
         }
 
@@ -42,7 +38,7 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
                 bind(ImageLoader::class.java).toInstance(imageLoader)
                 bind(PersistenceService::class.java).toInstance(persistenceService)
             }
-        }, GiantBombProviderModule(), IgdbProviderModule()))
+        }, GiantBombModule, IgdbModule))
     }
 
     override fun init() {
@@ -51,10 +47,10 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             metaData = randomMetaData(),
             gameData = randomGameData(),
             providerData = randomProviderData(),
-            imageIds = ImageIds(
-                thumbnailId = rnd.nextInt(),
-                posterId = rnd.nextInt(),
-                screenshotIds = List(rnd.nextInt(10)) { rnd.nextInt() }
+            imageUrls = ImageUrls(
+                thumbnailUrl = randomUrl(),
+                posterUrl = randomUrl(),
+                screenshotUrls = List(rnd.nextInt(10)) { randomUrl() }
             )
         )
         println("Result: " + GameDetailsFragment(game, displayVideos = false).show())

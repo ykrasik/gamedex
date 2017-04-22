@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.common.util.fromJson
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.util.fromJson
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,20 +31,20 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)
     )
 
-    companion object {
+    private companion object {
         val searchFields = listOf(
             "api_detail_url",
             "name",
             "original_release_date",
             "image"
         )
-        private val searchFieldsStr = searchFields.joinToString(",")
+        val searchFieldsStr = searchFields.joinToString(",")
 
-        val fetchDetailsFields = listOf(
+        val fetchDetailsFields = searchFields - "api_detail_url" + listOf(
             "site_detail_url",
-            "description",
+            "deck",
             "genres"
         )
-        private val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
+        val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
 }

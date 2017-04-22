@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.gitlab.ykrasik.gamedex.common.util.kb
+import com.gitlab.ykrasik.gamedex.util.kb
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
 
@@ -11,25 +11,18 @@ import org.jetbrains.exposed.sql.ReferenceOption
  */
 internal object Libraries : IntIdTable() {
     val path = varchar("path", 255).uniqueIndex()
-    val data = varchar("data", 16.kb)
+    val data = varchar("data", 1.kb)
 }
 
 internal object Games : IntIdTable() {
     val libraryId = reference("library_id", Libraries, onDelete = ReferenceOption.CASCADE)
     val path = varchar("path", 255).uniqueIndex()
     val lastModified = datetime("last_modified")
-    val data = varchar("data", 16.kb)
+    val data = varchar("data", 32.kb)
 }
 
 internal object Images : IntIdTable() {
     val gameId = reference("game_id", Games, onDelete = ReferenceOption.CASCADE)
-    val type = enumeration("type", GameImageType::class.java)
-    val url = varchar("url", length = 2084) // FIXME: check for uniqueness
-    val bytes = blob("bytes").nullable()
-}
-
-internal enum class GameImageType {
-    Thumbnail,
-    Poster,
-    Screenshot
+    val url = varchar("url", length = 255).uniqueIndex()
+    val bytes = blob("bytes")
 }

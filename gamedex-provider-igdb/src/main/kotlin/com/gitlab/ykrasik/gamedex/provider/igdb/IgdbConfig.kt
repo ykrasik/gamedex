@@ -1,8 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
-import com.gitlab.ykrasik.gamedex.common.util.getObjectMap
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.util.getObjectMap
 import com.typesafe.config.Config
 
 /**
@@ -22,7 +21,7 @@ data class IgdbConfig(
     fun getGenreName(genreId: Int): String = genres[genreId]!!
 
     companion object {
-        operator fun invoke(config: Config = ConfigProvider.config): IgdbConfig =
+        operator fun invoke(config: Config): IgdbConfig =
             config.getConfig("gameDex.provider.igdb").let { config ->
                 IgdbConfig(
                     endpoint = config.getString("endpoint"),

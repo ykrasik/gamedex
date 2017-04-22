@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.common.util.*
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue

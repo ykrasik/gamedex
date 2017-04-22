@@ -1,8 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
-import com.gitlab.ykrasik.gamedex.common.util.getObjectMap
-import com.gitlab.ykrasik.gamedex.datamodel.GamePlatform
+import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.util.getObjectMap
 import com.typesafe.config.Config
 
 /**
@@ -18,7 +17,7 @@ data class GiantBombConfig(
     fun getPlatformId(platform: GamePlatform) = platforms[platform]!!
 
     companion object {
-        operator fun invoke(config: Config = ConfigProvider.config): GiantBombConfig =
+        operator fun invoke(config: Config): GiantBombConfig =
             config.getConfig("gameDex.provider.giantBomb").let { config ->
                 GiantBombConfig(
                     endpoint = config.getString("endpoint"),

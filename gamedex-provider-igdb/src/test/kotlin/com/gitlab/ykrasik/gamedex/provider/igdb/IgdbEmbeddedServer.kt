@@ -3,15 +3,13 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
-import com.gitlab.ykrasik.gamedex.common.testkit.*
-import com.gitlab.ykrasik.gamedex.common.util.toJsonStr
-import com.gitlab.ykrasik.provider.testkit.aJsonResponse
+import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.ktor.application.call
-import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.netty.embeddedNettyServer
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.*
 import java.io.Closeable
@@ -53,9 +51,8 @@ class IgdbMockServer(port: Int) : Closeable {
 
 class IgdbFakeServer(port: Int) : Closeable {
     private val apiDetailPath = 1
-    private val image = "image"
 
-    private val ktor = embeddedServer(Netty, port) {
+    private val ktor = embeddedNettyServer(port) {
         routing {
             route("/") {
                 method(HttpMethod.Get) {
@@ -67,7 +64,7 @@ class IgdbFakeServer(port: Int) : Closeable {
                     }
                 }
             }
-            get("images/t_thumb_2x/$image.png") {
+            get("images/t_thumb_2x/{imageName}") {
                 delay(rnd.nextInt(700).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
             }
@@ -83,7 +80,7 @@ class IgdbFakeServer(port: Int) : Closeable {
         aggregatedRating = randomScore(),
         releaseDates = randomReleaseDates(),
         cover = Igdb.Image(
-            cloudinaryId = image
+            cloudinaryId = randomString()
         )
     ) }.toJsonStr()
 
@@ -96,8 +93,8 @@ class IgdbFakeServer(port: Int) : Closeable {
         releaseDates = randomReleaseDates(),
         aggregatedRating = randomScore(),
         rating = randomScore(),
-        cover = Igdb.Image(cloudinaryId = image),
-        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = image) },
+        cover = Igdb.Image(cloudinaryId = randomString()),
+        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = randomString()) },
         genres = List(rnd.nextInt(4)) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
         }

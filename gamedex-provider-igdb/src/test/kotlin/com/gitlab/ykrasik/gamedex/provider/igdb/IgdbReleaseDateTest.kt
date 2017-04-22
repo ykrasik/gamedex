@@ -1,5 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.specs.StringSpec
 import org.joda.time.LocalDate
 

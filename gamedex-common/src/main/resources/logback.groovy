@@ -2,10 +2,6 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.filter.ThresholdFilter
 import ch.qos.logback.classic.jul.LevelChangePropagator
-import ch.qos.logback.core.ConsoleAppender
-import ch.qos.logback.core.rolling.FixedWindowRollingPolicy
-import ch.qos.logback.core.rolling.RollingFileAppender
-import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 import java.nio.file.Paths
 import java.time.LocalDateTime
@@ -21,8 +17,6 @@ log = [
     PERSISTENCE: DEBUG,
     SQL: DEBUG,
 ]
-
-scan("30 seconds")
 
 // Bridge to java.util.log ( should update it configuration - fix performance issue)
 context = new LevelChangePropagator()
@@ -113,20 +107,20 @@ createLogger(
     ],
     new LoggerConfig(level: log.ROOT)
 )
-
-createLogger(
-    "provider",
-    [
-        "com.gitlab.ykrasik.gamedex.provider": log.DATA_PROVIDER,
-    ]
-)
-
-createLogger(
-    "persistence",
-    [
-        "com.gitlab.ykrasik.gamedex.persistence": log.PERSISTENCE,
-        "Exposed": log.SQL
-    ]
-)
+//
+//createLogger(
+//    "provider",
+//    [
+//        "com.gitlab.ykrasik.gamedex.provider": log.DATA_PROVIDER,
+//    ]
+//)
+//
+//createLogger(
+//    "persistence",
+//    [
+//        "com.gitlab.ykrasik.gamedex.persistence": log.PERSISTENCE,
+//        "Exposed": log.SQL
+//    ]
+//)
 
 println "Logging initialized."

@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.common.util.*
-
 /**
  * User: ykrasik
  * Date: 02/04/2017

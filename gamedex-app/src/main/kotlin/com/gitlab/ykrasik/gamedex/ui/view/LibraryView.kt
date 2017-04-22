@@ -1,14 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.datamodel.Library
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.fragment.AddLibraryFragment
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.run
 import tornadofx.*
 
 /**
@@ -48,18 +46,16 @@ class LibraryView : View("Libraries") {
     }
 
     private fun addLibrary() {
-        launch(CommonPool) {
+        launch(JavaFx) {
             val request = AddLibraryFragment().show() ?: return@launch
             libraryRepository.add(request)
-            run(JavaFx) {
-                root.resizeColumnsToFitContent()
-            }
+            root.resizeColumnsToFitContent()
         }
     }
 
     fun deleteLibrary(library: Library) {
         if (confirmDelete(library)) {
-            launch(CommonPool) {
+            launch(JavaFx) {
                 libraryRepository.delete(library)
             }
         }

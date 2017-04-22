@@ -1,15 +1,11 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.gitlab.ykrasik.gamedex.common.util.containsIgnoreCase
-import com.gitlab.ykrasik.gamedex.common.util.getResourceAsByteArray
-import com.gitlab.ykrasik.gamedex.common.util.logger
-import com.gitlab.ykrasik.gamedex.common.util.toImage
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.DataProvider
-import com.gitlab.ykrasik.gamedex.provider.DataProviderInfo
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.containsIgnoreCase
+import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.toImage
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
@@ -30,7 +26,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         log.debug { "[$platform] Results: $searchResults" }
 
         val results = searchResults.toProviderSearchResults(name, platform)
-        log.info { "[$platform] Done(${results.size}): $results." }
+        log.info { "[$platform] ${results.size} Search results: $results." }
         return results
     }
 
@@ -40,7 +36,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         log.debug { "[$platform] Response: $fetchResult" }
 
         val gameData = fetchResult.toProviderFetchResult(apiUrl, platform)
-        log.info { "[$platform] Done: $gameData." }
+        log.info { "[$platform] Result: $gameData." }
         return gameData
     }
 
@@ -68,7 +64,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         providerData = ProviderData(
             type = DataProviderType.Igdb,
             apiUrl = apiUrl,
-            url = this.url
+            siteUrl = this.url
         ),
         gameData = GameData(
             name = this.name,

@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
-import com.gitlab.ykrasik.gamedex.common.util.ConfigProvider
 import com.typesafe.config.Config
 
 /**
@@ -14,9 +13,8 @@ data class PersistenceConfig(
     val user: String,
     val password: String
 ) {
-
     companion object {
-        operator fun invoke(config: Config = ConfigProvider.config): PersistenceConfig =
+        operator fun invoke(config: Config): PersistenceConfig =
             config.getConfig("gameDex.persistence").let { config ->
                 PersistenceConfig(
                     dbUrl = config.getString("dbUrl"),

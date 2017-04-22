@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.datamodel.DataProviderType
-import com.gitlab.ykrasik.gamedex.provider.DataProvider
+import com.gitlab.ykrasik.gamedex.DataProvider
+import com.gitlab.ykrasik.gamedex.DataProviderType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,10 +16,6 @@ class DataProviderRepository @Inject constructor(allProviders: MutableSet<DataPr
     private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
         allProviders.sortedBy { it.info.type.basicDataPriority }
-    }
-
-    init {
-        println(allProviders)
     }
 
     private val providersByType = allProviders.associateBy { it.info.type }

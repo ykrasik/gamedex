@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.common.testkit.ScopedWordSpec
-import com.gitlab.ykrasik.gamedex.datamodel.*
-import com.gitlab.ykrasik.gamedex.provider.ProviderFetchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
+import com.gitlab.ykrasik.gamedex.util.appConfig
+import io.kotlintest.matchers.shouldBe
 import org.joda.time.LocalDate
 
 /**
@@ -12,11 +12,11 @@ import org.joda.time.LocalDate
  * Time: 17:59
  */
 class GiantBombDataProviderRealIT : ScopedWordSpec() {
-    val provider = GiantBombDataProvider(GiantBombClient(GiantBombConfig()))
+    val provider = GiantBombDataProvider(GiantBombClient(GiantBombConfig(appConfig)))
 
     init {
         "GiantBombDataProvider" should {
-            "Search & retrieve a single search result".inScope(Scope()) {
+            "search & retrieve a single search result".inScope(Scope()) {
                 val response = provider.search(name, GamePlatform.pc)
 
                 response shouldBe listOf(ProviderSearchResult(
@@ -28,18 +28,18 @@ class GiantBombDataProviderRealIT : ScopedWordSpec() {
                 ))
             }
 
-            "Fetch game details".inScope(Scope()) {
+            "fetch game details".inScope(Scope()) {
                 val response = provider.fetch(apiUrl, GamePlatform.pc)
 
                 response shouldBe ProviderFetchResult(
                     providerData = ProviderData(
                         type = DataProviderType.GiantBomb,
                         apiUrl = apiUrl,
-                        url = url
+                        siteUrl = url
                     ),
                     gameData = GameData(
                         name = name,
-                        description = description,
+                        description = deck,
                         releaseDate = releaseDate,
                         criticScore = null,
                         userScore = null,
@@ -62,7 +62,7 @@ class GiantBombDataProviderRealIT : ScopedWordSpec() {
         val thumbnailUrl = "https://www.giantbomb.com/api/image/scale_avatar/2927125-no%20man%27s%20sky.jpg"
         val posterUrl = "https://www.giantbomb.com/api/image/scale_large/2927125-no%20man%27s%20sky.jpg"
         val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"
-        val description = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
+        val deck = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
         val genres = listOf("Simulation", "Action-Adventure")
     }
 }

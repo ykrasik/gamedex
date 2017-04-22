@@ -1,15 +1,15 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.common.TimeProvider
-import com.gitlab.ykrasik.gamedex.common.util.collapseSpaces
-import com.gitlab.ykrasik.gamedex.common.util.emptyToNull
-import com.gitlab.ykrasik.gamedex.datamodel.Library
-import com.gitlab.ykrasik.gamedex.datamodel.MetaData
-import com.gitlab.ykrasik.gamedex.persistence.AddGameRequest
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.MetaData
+import com.gitlab.ykrasik.gamedex.ui.model.AddGameRequest
 import com.gitlab.ykrasik.gamedex.util.NotifiableJob
+import com.gitlab.ykrasik.gamedex.util.collapseSpaces
+import com.gitlab.ykrasik.gamedex.util.emptyToNull
 import com.gitlab.ykrasik.gamedex.util.notifiableJob
 import kotlinx.coroutines.experimental.channels.ProducerJob
 import kotlinx.coroutines.experimental.channels.produce
+import org.joda.time.DateTime
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,10 +21,9 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Time: 12:52
  */
 @Singleton
-class LibraryScanner @Inject constructor(
-    private val providerService: DataProviderService,
-    private val timeProvider: TimeProvider
-) {
+// TODO: Consider changing the structure, having a NewGameDetector that returns a stream of MetaData objects instead.
+// TODO: This will allow to move the notification logic outside the class, if this is what I want.
+class LibraryScanner @Inject constructor(private val providerService: DataProviderService) {
     private val metaDataRegex = "(\\[.*?\\])|(-)".toRegex()
 
     fun refresh(library: Library,
@@ -47,16 +46,13 @@ class LibraryScanner @Inject constructor(
     }
 
     private suspend fun processPath(path: File, library: Library): AddGameRequest? {
-        val name = path.normalizeName().emptyToNull() ?: return null
-        val platform = library.platform
+        val name = requireNotNull(path.normalizeName().emptyToNull()) { "Invalid folder name: '${path.name}'!"}
 
-        val providerGame = providerService.fetch(name, platform, path) ?: return null
+        val providerData = providerService.fetch(name, library.platform, path) ?: return null
 
         return AddGameRequest(
-            metaData = MetaData(library.id, path, lastModified = timeProvider.now()),
-            gameData = providerGame.gameData,
-            providerData = providerGame.providerData,
-            imageUrls = providerGame.imageUrls
+            metaData = MetaData(library.id, path, lastModified = DateTime.now()),
+            providerData = providerData
         )
     }
 

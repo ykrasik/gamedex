@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.common.util.ThreadAwareDoubleProperty
-import com.gitlab.ykrasik.gamedex.common.util.ThreadAwareStringProperty
+import com.gitlab.ykrasik.gamedex.util.ThreadAwareDoubleProperty
+import com.gitlab.ykrasik.gamedex.util.ThreadAwareStringProperty
 import com.google.inject.Singleton
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
@@ -29,9 +29,21 @@ class NotificationManager {
         notification.progress(done, total)
     }
 
+    fun <T> with(notification: Notification, f: Notification.() -> T): T {
+        bind(notification)
+        val retVal = f(notification)
+        unbind()
+        return retVal
+    }
+
     fun bind(notification: Notification) {
         this.notification.messageProperty.bind(notification.messageProperty)
         this.notification.progressProperty.bind(notification.progressProperty)
+    }
+
+    fun unbind() {
+        this.notification.messageProperty.unbind()
+        this.notification.progressProperty.unbind()
     }
 }
 
