@@ -1,12 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
-import com.gitlab.ykrasik.gamedex.util.toImage
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
 import javafx.scene.effect.BlurType
@@ -31,6 +31,7 @@ import java.net.URLEncoder
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()
+    private val gameController: GameController by di()
 
     private var webView: WebView by singleAssign()
 
@@ -47,7 +48,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     cancelButton { setOnAction { close(accept = false) } }
 
                     // TODO: Implement.
-                    button("Change Thumbnail")
+                    button("Change Thumbnail") { setOnAction { gameController.changeThumbnail(game) } }
                     button("Change Poster")
                     button("Refresh")
                     button("Search Again")
@@ -65,7 +66,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     addClass(Styles.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl))
+                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, saveIfAbsent = true))
 
                     imageViewResizingPane(poster) {
                         maxWidth = screenWidth * maxPosterWidthPercent
@@ -82,6 +83,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
 
                 verticalSeparator(padding = 10.0)
 
+                // TODO: Check if the new form can do what we did here manually.
                 // Right
                 vbox {
                     hgrow = Priority.ALWAYS
@@ -154,12 +156,11 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                             gridpane {
                                 hgap = 7.0
                                 game.providerData.forEach { providerData ->
-                                    val provider = providerRepository[providerData.type]!!
                                     row {
                                         imageview {
                                             fitHeight = 30.0
                                             fitWidth = 30.0
-                                            image = provider.info.logo.toImage()
+                                            image = providerRepository.logo(providerData)
                                         }
                                         hyperlink(providerData.siteUrl) {
                                             setOnAction { providerData.siteUrl.browseToUrl() }
@@ -217,6 +218,10 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
             val details by cssclass()
             val nameLabel by cssid()
             val genre by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
         }
 
         init {

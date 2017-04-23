@@ -1,13 +1,12 @@
 package com.gitlab.ykrasik.gamedex.controller
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GamePlatform
-import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -50,6 +49,14 @@ class GameController : Controller() {
             }
     }
 
+    fun changeThumbnail(game: Game) = launch(JavaFx) {
+        val (thumbnailOverride, newThumbnailUrl) = ChangeThumbnailFragment(game).show() ?: return@launch
+        if (newThumbnailUrl != game.thumbnailUrl) {
+            val newRawGame = game.rawGame.withPriorityOverride { it.copy(thumbnail = thumbnailOverride) }
+            gameRepository.update(game, newRawGame)
+        }
+    }
+
     fun filterGenres() {
         TODO()  // TODO: Implement
     }
@@ -57,4 +64,8 @@ class GameController : Controller() {
     fun filterLibraries() {
         TODO()  // TODO: Implement
     }
+
+    private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(
+        priorityOverride = f(this.priorityOverride ?: ProviderPriorityOverride())
+    )
 }

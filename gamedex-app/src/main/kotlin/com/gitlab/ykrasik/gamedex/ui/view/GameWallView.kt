@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
@@ -21,28 +20,25 @@ import tornadofx.*
  */
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
-    private val repository: GameRepository by di()
     private val userPreferences: UserPreferences by di()
     private val imageLoader: ImageLoader by di()
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
-    override val root = datagrid(repository.gamesProperty) {
+    override val root = datagrid(controller.gamesProperty) {
         cellHeight = 202.0
         cellWidth = 140.0
         horizontalCellSpacing = 3.0
         verticalCellSpacing = 3.0
 
         cellFactory = {
-            val cell = GameWallCell(userPreferences)
-            cell.setOnMouseClicked { e ->
-                if (e.clickCount == 2) {
-                    GameDetailsFragment(cell.item).show()
-//                    val search = URLEncoder.encode("${cell.item!!.name} pc gameplay", "utf-8")
-//                    "https://www.youtube.com/results?search_query=$search".browseToUrl()
-                }
+            val cell = GameWallCell()
+            cell.onDoubleClick {
+                GameDetailsFragment(cell.item).show()
             }
             cell.contextmenu {
+                menuitem("Change Thumbnail") { controller.changeThumbnail(cell.item) }
+                separator()
                 menuitem("Delete") { controller.delete(cell.item) }
             }
             cell
@@ -50,7 +46,7 @@ class GameWallView : View("Games Wall") {
     }
 
     // TODO: Allow to overlay the library name as a ribbon over the image.
-    inner class GameWallCell(userPreferences: UserPreferences) : DataGridCell<Game>(root) {
+    inner class GameWallCell : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
 
@@ -82,7 +78,7 @@ class GameWallView : View("Games Wall") {
 
             if (game != null) {
                 val thumbnailUrl = game.thumbnailUrl
-                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl) }
+                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl, saveIfAbsent = true) }
                 imageView.imageProperty().cleanBind(image)
                 tooltip(game.name)
             } else {

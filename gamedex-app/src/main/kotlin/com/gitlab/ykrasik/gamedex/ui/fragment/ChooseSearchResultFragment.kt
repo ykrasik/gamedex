@@ -4,11 +4,11 @@ import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchResultChoice
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.spacer
-import com.gitlab.ykrasik.gamedex.util.toImage
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -31,6 +31,7 @@ import tornadofx.*
  */
 class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choose Search Result for '${data.name}'") {
     private val imageLoader: ImageLoader by di()
+    private val providerRepository: GameProviderRepository by di()
 
     private val minTableWidth = SimpleDoubleProperty()
     private val defaultButtonIsSearch = SimpleBooleanProperty(false)
@@ -52,7 +53,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                     spacer()
                     imageview {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                        image = data.info.logo.toImage()
+                        image = providerRepository.logo(data.providerType)
                         fitHeight = 100.0
                         fitWidth = 100.0
                         isPreserveRatio = true

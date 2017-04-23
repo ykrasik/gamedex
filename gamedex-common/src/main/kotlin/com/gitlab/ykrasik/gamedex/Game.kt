@@ -43,7 +43,7 @@ data class RawGame(
     val id: Int,
     val metaData: MetaData,
     val rawGameData: List<RawGameData>,
-    val priorityOverride: ProviderPriorityOverride?
+    val priorityOverride: ProviderPriorityOverride?  // TODO: should this be nullable? Can be empty instead.
 )
 
 data class RawGameData(
@@ -80,14 +80,14 @@ data class MetaData(
 )
 
 data class ProviderPriorityOverride(
-    val name: GameProviderType?,
-    val description: GameProviderType?,
-    val releaseDate: GameProviderType?,
-    val criticScore: GameProviderType?,
-    val userScore: GameProviderType?,
+    val name: GameProviderType? = null,
+    val description: GameProviderType? = null,
+    val releaseDate: GameProviderType? = null,
+    val criticScore: GameProviderType? = null,
+    val userScore: GameProviderType? = null,
     // TODO: Consider adding priority overrides for genres as well.
-    val thumbnail: GameProviderType?,
-    val poster: GameProviderType?,
-    val screenshots: GameProviderType?
+    val thumbnail: GameProviderType? = null,
+    val poster: GameProviderType? = null,
+    val screenshots: GameProviderType? = null
     // TODO: This makes all screenshots come from a single provider. If needed, add more flexibility in the future - can use urls instead of Type.
 )

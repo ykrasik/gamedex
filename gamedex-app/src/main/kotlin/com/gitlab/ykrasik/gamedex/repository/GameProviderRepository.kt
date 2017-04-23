@@ -2,6 +2,8 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.util.toImage
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,6 +21,10 @@ class GameProviderRepository @Inject constructor(allProviders: MutableSet<GamePr
     }
 
     private val providersByType = allProviders.associateBy { it.info.type }
+    private val providerLogos = providersByType.mapValues { it.value.info.logo.toImage() }
 
-    operator fun get(type: GameProviderType) = providersByType[type]
+    operator fun get(type: GameProviderType) = providersByType[type]!!
+
+    fun logo(type: GameProviderType) = providerLogos[type]!!
+    fun logo(providerData: ProviderData) = logo(providerData.type)
 }

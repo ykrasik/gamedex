@@ -28,10 +28,10 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
 
     private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
-    open fun fetchImage(gameId: Int, url: String?): ReadOnlyObjectProperty<Image> {
+    open fun fetchImage(gameId: Int, url: String?, saveIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
         return loadImage {
-            fetchOrDownloadImage(gameId, url)
+            fetchOrDownloadImage(gameId, url, saveIfAbsent)
         }
     }
 
@@ -53,14 +53,16 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
         return imageProperty
     }
 
-    private suspend fun fetchOrDownloadImage(gameId: Int, url: String): ByteArray {
+    private suspend fun fetchOrDownloadImage(gameId: Int, url: String, saveIfAbsent: Boolean): ByteArray {
         val storedImage = persistenceService.fetchImage(url)
         if (storedImage != null) return storedImage
 
         val downloadedImage = downloadImage(url)
-        launch(CommonPool) {
-            // Save downloaded image asynchronously
-            persistenceService.insertImage(gameId, url, downloadedImage)
+        if (saveIfAbsent) {
+            launch(CommonPool) {
+                // Save downloaded image asynchronously
+                persistenceService.insertImage(gameId, url, downloadedImage)
+            }
         }
         return downloadedImage
     }

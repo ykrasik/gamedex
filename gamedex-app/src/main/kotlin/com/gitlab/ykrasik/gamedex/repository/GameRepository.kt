@@ -66,6 +66,14 @@ class GameRepository @Inject constructor(
         game
     }
 
+    suspend fun update(oldGame: Game, newRawGame: RawGame) = run(JavaFx) {
+        run(CommonPool) {
+            persistenceService.updateGame(newRawGame)
+        }
+        _games.remove(oldGame)
+        _games.add(newRawGame.toGame())
+    }
+
     suspend fun delete(game: Game) = run(JavaFx) {
         notificationManager.message("Deleting '${game.name}'...")
         run(CommonPool) {

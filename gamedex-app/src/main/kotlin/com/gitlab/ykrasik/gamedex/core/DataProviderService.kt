@@ -48,7 +48,7 @@ class DataProviderServiceImpl @Inject constructor(
                 if (filteredResults.size == 1) SearchResultChoice.Ok(filteredResults.first())
                 else SearchResultChoice.Cancel
             } else {
-                val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults)
+                val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, filteredResults)
                 chooser.choose(chooseSearchResultData)
             }
             return when (choice) {
