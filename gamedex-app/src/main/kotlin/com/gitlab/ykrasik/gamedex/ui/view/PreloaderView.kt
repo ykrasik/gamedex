@@ -21,7 +21,7 @@ import tornadofx.*
  * Time: 21:53
  */
 class PreloaderView : View("Gamedex") {
-    private var logo = resources.image("/com/gitlab/ykrasik/gamedex/core/ui/gamedex.png")
+    private var logo = resources.image("gamedex.png")
     private val notificationManager = NotificationManager()
 
     override val root = borderpane {

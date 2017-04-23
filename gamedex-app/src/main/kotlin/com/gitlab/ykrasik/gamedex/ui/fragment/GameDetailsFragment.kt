@@ -28,6 +28,7 @@ import java.net.URLEncoder
  * Date: 30/03/2017
  * Time: 18:17
  */
+// TODO: This will need to learn to refresh itself when data is updated.
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()

@@ -5,17 +5,13 @@ import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import javafx.beans.property.ReadOnlyListProperty
-import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
-import tornadofx.getValue
 import tornadofx.observable
 import tornadofx.onChange
-import tornadofx.setValue
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,19 +27,14 @@ class GameRepository @Inject constructor(
     userPreferences: UserPreferences,
     private val notificationManager: NotificationManager
 ) {
-    private val _gamesProperty = run {
+    val games: ObservableList<Game> = run {
         notificationManager.message("Fetching games...")
-        val rawGames = persistenceService.fetchAllGames()
-        val games = rawGames.map { it.toGame() }.observable()
-        SimpleListProperty(games.observable())
+        persistenceService.fetchAllGames().map { it.toGame() }.observable()
     }
-    private var _games: ObservableList<Game> by _gamesProperty
 
-    val gamesProperty: ReadOnlyListProperty<Game> = _gamesProperty
-    val games: ObservableList<Game> = _games
-
-    val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(_games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
-    val genres: ObservableList<String> by genresProperty
+    // TODO: Genres need to constantly flatMap from games, not just once.
+//    val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(this.games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
+//    val genres: ObservableList<String> by genresProperty
 
     init {
         // TODO: Find a more intelligent way
@@ -61,17 +52,17 @@ class GameRepository @Inject constructor(
         val rawGame = persistenceService.insertGame(request.metaData, request.rawGameData)
         val game = rawGame.toGame()
         run(JavaFx) {
-            _games.add(game)
+            games += game
         }
         game
     }
 
-    suspend fun update(oldGame: Game, newRawGame: RawGame) = run(JavaFx) {
+    suspend fun update(newRawGame: RawGame) = run(JavaFx) {
         run(CommonPool) {
             persistenceService.updateGame(newRawGame)
         }
-        _games.remove(oldGame)
-        _games.add(newRawGame.toGame())
+        removeGameById(newRawGame.id)
+        games += newRawGame.toGame()
     }
 
     suspend fun delete(game: Game) = run(JavaFx) {
@@ -79,22 +70,26 @@ class GameRepository @Inject constructor(
         run(CommonPool) {
             persistenceService.deleteGame(game.id)
         }
-        check(_games.removeIf { it.id == game.id }) { "Error! Game doesn't exist: $game" }
+        removeGameById(game.id)
         notificationManager.message("Deleted '${game.name}'.")
     }
 
     suspend fun deleteByLibrary(library: Library) = run(JavaFx) {
         // TODO: Instead of filtering in place, try re-setting to a filtered list (performance)
-        _games.removeAll { it.libraryId == library.id }
+        this.games.removeAll { it.libraryId == library.id }
     }
 
     private fun rebuildGames() {
-        _games = _games.map { it.rawGame.toGame() }.observable()
+        this.games.setAll(this.games.map { it.rawGame.toGame() }.observable())
     }
 
-    fun gamesForLibrary(library: Library): FilteredList<Game> = games.filtered { it.libraryId == library.id }
+    fun gamesForLibrary(library: Library): FilteredList<Game> = this.games.filtered { it.libraryId == library.id }
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
+
+    private fun removeGameById(id: Int) {
+        check(games.removeIf { it.id == id }) { "Error! Doesn't exist: Game($id)" }
+    }
 }
 
 data class AddGameRequest(

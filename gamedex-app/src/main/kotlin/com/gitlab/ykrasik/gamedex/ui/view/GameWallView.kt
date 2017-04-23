@@ -19,13 +19,13 @@ import tornadofx.*
  * Time: 15:03
  */
 class GameWallView : View("Games Wall") {
-    private val controller: GameController by di()
+    private val controller: GameController by inject()
     private val userPreferences: UserPreferences by di()
     private val imageLoader: ImageLoader by di()
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
-    override val root = datagrid(controller.gamesProperty) {
+    override val root = datagrid(controller.games) {
         cellHeight = 202.0
         cellWidth = 140.0
         horizontalCellSpacing = 3.0

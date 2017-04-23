@@ -8,10 +8,9 @@ import javafx.scene.image.Image
  * Time: 20:37
  */
 object UIResources {
-    private val basePath = "/com/gitlab/ykrasik/gamedex/core/ui/"
-
     object Images {
-        val notAvailable = Image(javaClass.getResourceAsStream(basePath + "no-image-available.png"))
-        val loading = Image(javaClass.getResourceAsStream(basePath + "spinner.gif"))
+        // TODO: Only used by ImageLoader, consider moving these resources there.
+        val notAvailable = Image(javaClass.getResourceAsStream("no-image-available.png"))
+        val loading = Image(javaClass.getResourceAsStream("spinner.gif"))
     }
 }

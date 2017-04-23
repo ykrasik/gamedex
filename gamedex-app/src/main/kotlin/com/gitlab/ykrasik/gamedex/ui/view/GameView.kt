@@ -7,6 +7,8 @@ import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.util.containsIgnoreCase
+import com.gitlab.ykrasik.gamedex.util.sizeProperty
 import tornadofx.*
 
 /**
@@ -15,15 +17,13 @@ import tornadofx.*
  * Time: 22:14
  */
 class GameView : View("Games") {
-    private val controller: GameController by di()
+    private val controller: GameController by inject()
     private val userPreferences: UserPreferences by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
 
-    private val xIcon = resources.imageview("/com/gitlab/ykrasik/gamedex/core/ui/x-small-icon.png")
-
-    val gamesProperty get() = controller.gamesProperty
+    private val xIcon = resources.imageview("x-small-icon.png")
 
     override val root = borderpane {
         top {
@@ -33,8 +33,14 @@ class GameView : View("Games") {
                 gridpane {
                     hgap = 2.0
                     row {
-                        textfield { promptText = "Search" }
-                        button(graphic = xIcon)
+                        val search = textfield { 
+                            promptText = "Search"
+                            controller.games.filterWhen(textProperty(), { query, game ->
+                                if (query.isEmpty()) true
+                                else game.name.containsIgnoreCase(query)
+                            })
+                        }
+                        button(graphic = xIcon) { setOnAction { search.clear() } }
                     }
                 }
 
@@ -92,4 +98,6 @@ class GameView : View("Games") {
             }
         }
     }
+
+    val gameSizeProperty = controller.games.filteredItems.sizeProperty().asString("Games: %d")
 }

@@ -7,10 +7,12 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
+import javafx.beans.property.SimpleListProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
+import tornadofx.SortedFilteredList
 
 /**
  * User: ykrasik
@@ -23,13 +25,8 @@ class GameController : Controller() {
     private val libraryScanner: LibraryScanner by di()
     private val notificationManager: NotificationManager by di()
 
-    val gamesProperty get() = gameRepository.gamesProperty
-
-    fun delete(game: Game) = launch(JavaFx) {
-        if (!areYouSureDialog("Delete game '${game.name}'?")) return@launch
-
-        gameRepository.delete(game)
-    }
+    val games: SortedFilteredList<Game> = SortedFilteredList(gameRepository.games)
+    val gamesProperty = SimpleListProperty(games)
 
     fun refreshGames() = launch(CommonPool) {
         val excludedPaths =
@@ -53,7 +50,13 @@ class GameController : Controller() {
         val (thumbnailOverride, newThumbnailUrl) = ChangeThumbnailFragment(game).show() ?: return@launch
         if (newThumbnailUrl != game.thumbnailUrl) {
             val newRawGame = game.rawGame.withPriorityOverride { it.copy(thumbnail = thumbnailOverride) }
-            gameRepository.update(game, newRawGame)
+            gameRepository.update(newRawGame)
+        }
+    }
+
+    fun delete(game: Game) = launch(JavaFx) {
+        if (areYouSureDialog("Delete game '${game.name}'?")) {
+            gameRepository.delete(game)
         }
     }
 

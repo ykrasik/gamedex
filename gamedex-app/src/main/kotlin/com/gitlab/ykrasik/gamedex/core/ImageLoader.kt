@@ -21,7 +21,7 @@ import kotlinx.coroutines.experimental.run
  * Date: 02/01/2017
  * Time: 18:30
  */
-// TODO: See if image caching can be moved into the ImageLoader.
+// TODO: See if image caching can be moved into the ImageLoader - Guava LRU cache?
 @Singleton
 open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log by logger()

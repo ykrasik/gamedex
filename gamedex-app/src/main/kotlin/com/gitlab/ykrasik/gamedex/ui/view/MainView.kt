@@ -61,7 +61,7 @@ class MainView : View("Gamedex") {
                     verticalSeparator(10.0)
                     label { 
                         paddingTop = 4
-                        textProperty().bind(gameView.gamesProperty.sizeProperty().asString("Games: %d"))
+                        textProperty().bind(gameView.gameSizeProperty)
                     }
                     verticalSeparator(10.0)
                 }

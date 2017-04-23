@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.module
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -22,8 +20,6 @@ object AppModule : AbstractModule() {
 
         // Instruct Guice to eagerly create these classes
         // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)
-        bind(GameController::class.java)
-        bind(LibraryController::class.java)
         bind(GameRepository::class.java)
         bind(LibraryRepository::class.java)
         bind(LibraryScanner::class.java)

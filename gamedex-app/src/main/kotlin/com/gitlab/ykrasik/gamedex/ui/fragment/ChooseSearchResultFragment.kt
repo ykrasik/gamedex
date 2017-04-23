@@ -135,6 +135,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
     }
 
     override fun onDock() {
+//        SmartResize.POLICY.requestResize(tableView)   // TODO: Experiment with this.
         tableView.resizeColumnsToFitContent()
         modalStage!!.minWidthProperty().bind(minTableWidth.add(60))
     }
