@@ -86,31 +86,31 @@ class IgdbClientIT : ScopedWordSpec() {
         val platformId = rnd.nextInt(100)
         val name = randomName()
 
-        val searchResult = Igdb.SearchResult(
+        val searchResult = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = randomName(),
             aggregatedRating = randomScore(),
-            releaseDates = listOf(Igdb.ReleaseDate(
+            releaseDates = listOf(IgdbClient.ReleaseDate(
                 platform = platformId,
                 category = 0,
                 human = randomLocalDate().toString("YYYY-MMM-dd")
             )),
-            cover = Igdb.Image(cloudinaryId = randomString())
+            cover = IgdbClient.Image(cloudinaryId = randomString())
         )
 
-        val detailsResult = Igdb.DetailsResult(
+        val detailsResult = IgdbClient.DetailsResult(
             url = randomString(),
             name = randomName(),
             summary = randomSentence(),
-            releaseDates = listOf(Igdb.ReleaseDate(
+            releaseDates = listOf(IgdbClient.ReleaseDate(
                 platform = platformId,
                 category = 0,
                 human = randomLocalDate().toString("YYYY-MMM-dd")
             )),
             aggregatedRating = randomScore(),
             rating = randomScore(),
-            cover = Igdb.Image(cloudinaryId = randomString()),
-            screenshots = emptyList<Igdb.Image>(), // TODO: Support screenshots
+            cover = IgdbClient.Image(cloudinaryId = randomString()),
+            screenshots = emptyList<IgdbClient.Image>(), // TODO: Support screenshots
             genres = listOf(rnd.nextInt(100))
         )
 

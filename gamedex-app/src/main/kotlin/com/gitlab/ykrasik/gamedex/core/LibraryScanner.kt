@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.MetaData
-import com.gitlab.ykrasik.gamedex.ui.model.AddGameRequest
+import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
@@ -52,7 +52,7 @@ class LibraryScanner @Inject constructor(private val providerService: DataProvid
 
         return AddGameRequest(
             metaData = MetaData(library.id, path, lastModified = DateTime.now()),
-            providerData = providerData
+            rawGameData = providerData
         )
     }
 

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui
 
-import com.gitlab.ykrasik.gamedex.ui.view.widgets.FixedRatingSkin
-import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewResizingPane
+import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
+import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.NumberBinding
 import javafx.beans.property.Property

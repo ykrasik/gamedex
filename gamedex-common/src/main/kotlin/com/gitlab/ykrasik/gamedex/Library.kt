@@ -15,8 +15,8 @@ data class Library(
     val data: LibraryData
 ) : Comparable<Library> {
 
-    val name: String get() = data.name
-    val platform: GamePlatform get() = data.platform
+    val name get() = data.name
+    val platform get() = data.platform
 
     override fun compareTo(other: Library) = name.compareTo(other.name)
 }

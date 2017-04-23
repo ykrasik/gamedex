@@ -10,53 +10,57 @@ import java.io.File
  * Time: 15:32
  */
 data class Game(
-    val id: Int,
-    private val metaData: MetaData,
+    val rawGame: RawGame,
+    private val library: Library,
     private val gameData: GameData,
     val providerData: List<ProviderData>,
-    val imageUrls: ImageUrls
+    private val imageUrls: ImageUrls
 ) {
-    val libraryId get() = metaData.libraryId
+    val id get() = rawGame.id
     val path get() = metaData.path
     val lastModified get() = metaData.lastModified
+    private val metaData get() = rawGame.metaData
+
+    val libraryId get() = library.id
+    val platform get() = library.platform
 
     val name get() = gameData.name
     val description get() = gameData.description
     val releaseDate get() = gameData.releaseDate
-
     val criticScore get() = gameData.criticScore
     val userScore get() = gameData.userScore
-
     val genres get() = gameData.genres
 
-    override fun toString() = "Game(id = $id, name = $name, path = $path)"
+    val thumbnailUrl get() = imageUrls.thumbnailUrl
+    val posterUrl get() = imageUrls.posterUrl
+    val screenshotUrls get() = imageUrls.screenshotUrls
+
+    override fun toString() = "[$id] Game(name = '$name')"
 }
 
 data class RawGame(
     val id: Int,
     val metaData: MetaData,
-    val providerData: List<ProviderFetchResult>
+    val rawGameData: List<RawGameData>
 )
 
-data class MetaData(
-    val libraryId: Int,
-    val path: File,
-    val lastModified: DateTime
+data class RawGameData(
+    val providerData: ProviderData,
+    val gameData: GameData,
+    val imageUrls: ImageUrls
 )
 
 data class GameData(
     val name: String,
     val description: String?,
     val releaseDate: LocalDate?,
-
     val criticScore: Double?,
     val userScore: Double?,
-
     val genres: List<String>
 )
 
 data class ProviderData(
-    val type: DataProviderType,
+    val type: GameProviderType,
     val apiUrl: String,
     val siteUrl: String
 )
@@ -65,4 +69,10 @@ data class ImageUrls(
     val thumbnailUrl: String?,
     val posterUrl: String?,
     val screenshotUrls: List<String>
+)
+
+data class MetaData(
+    val libraryId: Int,
+    val path: File,
+    val lastModified: DateTime
 )

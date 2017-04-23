@@ -1,6 +1,5 @@
-package com.gitlab.ykrasik.gamedex.ui.model
+package com.gitlab.ykrasik.gamedex.repository
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
@@ -26,7 +25,6 @@ import javax.inject.Singleton
 @Singleton
 class LibraryRepository @Inject constructor(
     private val persistenceService: PersistenceService,
-    private val gameRepository: GameRepository,
     private val notificationManager: NotificationManager
 ) {
     private val log by logger()
@@ -37,25 +35,27 @@ class LibraryRepository @Inject constructor(
     }
     val libraries: ObservableList<Library> by librariesProperty
 
-    suspend fun add(request: AddLibraryRequest): Library = run(JavaFx) {
+    suspend fun add(request: AddLibraryRequest): Library {
         val library = run(CommonPool) {
             persistenceService.insertLibrary(request.path, request.data)
         }
-        libraries += library
-        library
+        run(JavaFx) {
+            libraries += library
+        }
+        return library
     }
 
-    suspend fun delete(library: Library) = run(JavaFx) {
-        log.info { "Deleting $library..." }
+    suspend fun delete(library: Library) {
         run(CommonPool) {
             persistenceService.deleteLibrary(library.id)
         }
-        gameRepository.deleteByLibrary(library)
-        check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
+        run(JavaFx) {
+            check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
+        }
         log.info { "Done" }
     }
 
-    fun libraryForGame(game: Game): Library = libraries.find { it.id == game.libraryId } ?: throw IllegalStateException("No library found for game: $game!")
+    operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")
 }
 
 data class AddLibraryRequest(

@@ -1,13 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.ui.controller.GameController
+import com.gitlab.ykrasik.gamedex.core.UserPreferences
+import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.GameDetailsFragment
-import com.gitlab.ykrasik.gamedex.ui.view.widgets.ImageViewLimitedPane
-import com.gitlab.ykrasik.gamedex.util.UserPreferences
+import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.beans.property.ReadOnlyProperty
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -81,7 +81,7 @@ class GameWallView : View("Games Wall") {
             super.updateItem(game, empty)
 
             if (game != null) {
-                val thumbnailUrl = game.imageUrls.thumbnailUrl
+                val thumbnailUrl = game.thumbnailUrl
                 val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl) }
                 imageView.imageProperty().cleanBind(image)
                 tooltip(game.name)

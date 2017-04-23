@@ -1,6 +1,7 @@
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.DataProviderType
+import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.util.*
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
@@ -46,37 +47,37 @@ class UserPreferences private constructor() {
     @Transient
     val handsFreeModeProperty: ObjectProperty<Boolean> = UserPreferencesProperty(false)
     var handsFreeMode by handsFreeModeProperty
-    
+
     @Transient
-    val providerNamePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.GiantBomb))
+    val providerNamePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.GiantBomb))
     val providerNamePriority by providerNamePriorityProperty
 
     @Transient
-    val providerDescriptionPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.Igdb))
+    val providerDescriptionPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.Igdb))
     val providerDescriptionPriority by providerDescriptionPriorityProperty
 
     @Transient
-    val providerReleaseDatePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.GiantBomb))
+    val providerReleaseDatePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.GiantBomb))
     val providerReleaseDatePriority by providerReleaseDatePriorityProperty
 
     @Transient
-    val providerCriticScorePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.Igdb))
+    val providerCriticScorePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.Igdb))
     val providerCriticScorePriority by providerCriticScorePriorityProperty
 
     @Transient
-    val providerUserScorePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.Igdb))
+    val providerUserScorePriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.Igdb))
     val providerUserScorePriority by providerUserScorePriorityProperty
 
     @Transient
-    val providerThumbnailPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.GiantBomb))
+    val providerThumbnailPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.GiantBomb))
     val providerThumbnailPriority by providerThumbnailPriorityProperty
 
     @Transient
-    val providerPosterPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.GiantBomb))
+    val providerPosterPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.GiantBomb))
     val providerPosterPriority by providerPosterPriorityProperty
 
     @Transient
-    val providerScreenshotPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(DataProviderType.Igdb))
+    val providerScreenshotPriorityProperty: ObjectProperty<ProviderPriority> = UserPreferencesProperty(preferProvider(GameProviderType.Igdb))
     val providerScreenshotPriority by providerScreenshotPriorityProperty
 
     companion object {
@@ -104,18 +105,19 @@ class UserPreferences private constructor() {
         init {
             this.onChange {
                 if (updateEnable) {
-                    update(this@UserPreferences)
+                    com.gitlab.ykrasik.gamedex.core.UserPreferences.update(this@UserPreferences)
                 }
             }
         }
     }
 }
 
-typealias ProviderPriority = Map<DataProviderType, Int>
-fun preferProvider(type: DataProviderType): ProviderPriority =
-    DataProviderType.values().associate { it to it.ordinal } + (type to (DataProviderType.values().size + 1))
+// TODO: Sort this into a class
+typealias ProviderPriority = Map<GameProviderType, Int>
+fun preferProvider(type: GameProviderType): ProviderPriority =
+    GameProviderType.values().associate { it to it.ordinal } + (type to (GameProviderType.values().size + 1))
 
-fun preferredProviderFrom(priority: ProviderPriority): DataProviderType = priority.maxBy { it.value }!!.key
+fun preferredProviderFrom(priority: ProviderPriority): GameProviderType = priority.maxBy { it.value }!!.key
 
 enum class ImageDisplayType {
     fit,

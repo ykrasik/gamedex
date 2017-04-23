@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
@@ -6,9 +6,7 @@ import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombModule
 import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbModule
-import com.gitlab.ykrasik.gamedex.test.TestImages
-import com.gitlab.ykrasik.gamedex.test.randomUrl
-import com.gitlab.ykrasik.gamedex.test.rnd
+import com.gitlab.ykrasik.gamedex.test.*
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
@@ -43,8 +41,19 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
 
     override fun init() {
         val game = Game(
-            id = rnd.nextInt(),
-            metaData = randomMetaData(),
+            rawGame = RawGame(
+                id = rnd.nextInt(),
+                metaData = randomMetaData(),
+                rawGameData = emptyList()
+            ),
+            library = Library(
+                id = rnd.nextInt(),
+                path = randomFile(),
+                data = LibraryData(
+                    platform = randomEnum(),
+                    name = randomName()
+                )
+            ),
             gameData = randomGameData(),
             providerData = randomProviderData(),
             imageUrls = ImageUrls(

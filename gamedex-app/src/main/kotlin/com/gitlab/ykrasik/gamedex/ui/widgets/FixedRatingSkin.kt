@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.gitlab.ykrasik.gamedex.ui.view.widgets
+package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.sun.javafx.css.StyleManager
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase

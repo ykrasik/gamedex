@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.controller.MainController
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.controller.MainController
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.SettingsFragment
+import com.gitlab.ykrasik.gamedex.ui.fragment.SettingsFragment
 import javafx.geometry.Orientation
 import javafx.scene.control.TextArea
 import tornadofx.*

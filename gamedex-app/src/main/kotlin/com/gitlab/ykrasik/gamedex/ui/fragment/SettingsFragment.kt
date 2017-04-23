@@ -1,14 +1,14 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
-import com.gitlab.ykrasik.gamedex.DataProviderType
+import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.core.ProviderPriority
+import com.gitlab.ykrasik.gamedex.core.UserPreferences
+import com.gitlab.ykrasik.gamedex.core.preferProvider
+import com.gitlab.ykrasik.gamedex.core.preferredProviderFrom
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.okButton
-import com.gitlab.ykrasik.gamedex.util.ProviderPriority
-import com.gitlab.ykrasik.gamedex.util.UserPreferences
-import com.gitlab.ykrasik.gamedex.util.preferProvider
-import com.gitlab.ykrasik.gamedex.util.preferredProviderFrom
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
@@ -26,6 +26,7 @@ class SettingsFragment : Fragment() {
             tabpane {
                 nonClosableTab("Game Wall") {
                     form {
+                        paddingAll = 20
                         fieldset("Cell Image Display") {
                             field("Type") { enumComboBox(userPreferences.gameWallImageDisplayTypeProperty) }
                         }
@@ -33,6 +34,7 @@ class SettingsFragment : Fragment() {
                 }
                 nonClosableTab("Game Data") {
                     form {
+                        paddingAll = 20
                         fieldset("Preferred Provider for Game Data") {
                             field("Name") { enumComboBox(userPreferences.providerNamePriorityProperty.toPreferredProviderProperty()) }
                             field("Description") { enumComboBox(userPreferences.providerDescriptionPriorityProperty.toPreferredProviderProperty()) }
@@ -49,6 +51,7 @@ class SettingsFragment : Fragment() {
         }
         bottom {
             buttonbar {
+                paddingAll = 20
                 cancelButton { setOnAction { close() } }
                 okButton { setOnAction { close() } }
             }
@@ -59,7 +62,7 @@ class SettingsFragment : Fragment() {
         openModal(block = true)
     }
 
-    private fun ObjectProperty<ProviderPriority>.toPreferredProviderProperty(): ObjectProperty<DataProviderType> {
+    private fun ObjectProperty<ProviderPriority>.toPreferredProviderProperty(): ObjectProperty<GameProviderType> {
         val property = SimpleObjectProperty(preferredProviderFrom(this.get()))
         property.onChange {
             this@toPreferredProviderProperty.set(preferProvider(it!!))

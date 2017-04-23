@@ -22,7 +22,7 @@ interface PersistenceService {
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
-    fun insertGame(metaData: MetaData, providerData: List<ProviderFetchResult>): RawGame
+    fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame
     fun deleteGame(id: Int)
 
     fun fetchImage(url: String): ByteArray?
@@ -78,24 +78,24 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId].value
                 ),
-                providerData = it[Games.data].listFromJson()
+                rawGameData = it[Games.data].listFromJson()
             )
         }
         log.info { "Result: ${games.size} games." }
         games
     }
 
-    override fun insertGame(metaData: MetaData, providerData: List<ProviderFetchResult>): RawGame = transaction {
-        log.info { "Inserting game: metaData=$metaData, providerData=$providerData..." }
+    override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame = transaction {
+        log.info { "Inserting game: metaData=$metaData, rawGameData=$rawGameData..." }
 
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
             it[Games.path] = metaData.path.path
             it[Games.lastModified] = metaData.lastModified
-            it[Games.data] = providerData.toJsonStr()
+            it[Games.data] = rawGameData.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, providerData = providerData)
+        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData)
         log.info { "Result: $game." }
         game
     }

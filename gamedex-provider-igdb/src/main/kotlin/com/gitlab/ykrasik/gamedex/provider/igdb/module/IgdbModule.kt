@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb.module
 
-import com.gitlab.ykrasik.gamedex.DataProvider
+import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbConfig
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbDataProvider
 import com.google.inject.AbstractModule
@@ -16,7 +16,7 @@ import javax.inject.Singleton
  */
 object IgdbModule : AbstractModule() {
     override fun configure() {
-        Multibinder.newSetBinder(binder(), DataProvider::class.java).addBinding().to(IgdbDataProvider::class.java)
+        Multibinder.newSetBinder(binder(), GameProvider::class.java).addBinding().to(IgdbDataProvider::class.java)
     }
 
     @Provides

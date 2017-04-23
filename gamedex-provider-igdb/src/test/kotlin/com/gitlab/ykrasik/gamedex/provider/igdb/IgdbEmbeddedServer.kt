@@ -36,14 +36,14 @@ class IgdbMockServer(port: Int) : Closeable {
     }
 
     inner class anySearchRequest : BaseRequest() {
-        infix fun willReturn(results: List<Igdb.SearchResult>) {
+        infix fun willReturn(results: List<IgdbClient.SearchResult>) {
             wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
         }
     }
 
     inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
         // TODO: This style of 'willReturn' does not allow testing parsing failures.
-        infix fun willReturn(response: Igdb.DetailsResult) {
+        infix fun willReturn(response: IgdbClient.DetailsResult) {
             wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(listOf(response))))
         }
     }
@@ -74,27 +74,27 @@ class IgdbFakeServer(port: Int) : Closeable {
         }
     }
 
-    private fun randomSearchResults(name: String): String = List(rnd.nextInt(20)) { Igdb.SearchResult(
+    private fun randomSearchResults(name: String): String = List(rnd.nextInt(20)) { IgdbClient.SearchResult(
         id = apiDetailPath,
         name = "$name ${randomName()}",
         aggregatedRating = randomScore(),
         releaseDates = randomReleaseDates(),
-        cover = Igdb.Image(
+        cover = IgdbClient.Image(
             cloudinaryId = randomString()
         )
     ) }.toJsonStr()
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
-    private fun randomDetailResponse(): String = listOf(Igdb.DetailsResult(
+    private fun randomDetailResponse(): String = listOf(IgdbClient.DetailsResult(
         url = randomUrl(),
         name = randomName(),
         summary = randomSentence(maxWords = 50),
         releaseDates = randomReleaseDates(),
         aggregatedRating = randomScore(),
         rating = randomScore(),
-        cover = Igdb.Image(cloudinaryId = randomString()),
-        screenshots = List(rnd.nextInt(10)) { Igdb.Image(cloudinaryId = randomString()) },
+        cover = IgdbClient.Image(cloudinaryId = randomString()),
+        screenshots = List(rnd.nextInt(10)) { IgdbClient.Image(cloudinaryId = randomString()) },
         genres = List(rnd.nextInt(4)) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
         }
@@ -102,7 +102,7 @@ class IgdbFakeServer(port: Int) : Closeable {
 
     private fun randomReleaseDates() = List(rnd.nextInt(4)) { randomReleaseDate() }
 
-    private fun randomReleaseDate(): Igdb.ReleaseDate {
+    private fun randomReleaseDate(): IgdbClient.ReleaseDate {
         val category = rnd.nextInt(8)
         val date = randomLocalDate()
         val human = when(category) {
@@ -116,7 +116,7 @@ class IgdbFakeServer(port: Int) : Closeable {
             7 -> "TBD"
             else -> TODO()
         }
-        return Igdb.ReleaseDate(
+        return IgdbClient.ReleaseDate(
             platform = randomPlatform(),
             category = category,
             human = human

@@ -36,13 +36,13 @@ class GiantBombMockServer(port: Int) : Closeable {
     }
 
     inner class anySearchRequest : BaseRequest() {
-        infix fun willReturn(response: GiantBomb.SearchResponse) {
+        infix fun willReturn(response: GiantBombClient.SearchResponse) {
             wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(response.toMap())))
         }
     }
 
     inner class aFetchRequest(private val path: String) : BaseRequest() {
-        infix fun willReturn(response: GiantBomb.DetailsResponse) {
+        infix fun willReturn(response: GiantBombClient.DetailsResponse) {
             wiremock.givenThat(get(urlPathEqualTo("/$path")).willReturn(aJsonResponse(response.toMap())))
         }
     }
@@ -70,33 +70,33 @@ class GiantBombFakeServer(port: Int) : Closeable {
         }
     }
 
-    private fun randomSearchResponse() = GiantBomb.SearchResponse(
-        statusCode = GiantBomb.Status.ok,
+    private fun randomSearchResponse() = GiantBombClient.SearchResponse(
+        statusCode = GiantBombClient.Status.ok,
         results = List(rnd.nextInt(20)) {
-            GiantBomb.SearchResult(
+            GiantBombClient.SearchResult(
                 apiDetailUrl = apiDetailUrl,
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBomb.SearchImage(
+                image = GiantBombClient.SearchImage(
                     thumbUrl = randomImageUrl()
                 )
             )
         }
     )
 
-    private fun randomDetailResponse() = GiantBomb.DetailsResponse(
-        statusCode = GiantBomb.Status.ok,
-        results = listOf(GiantBomb.DetailsResult(
+    private fun randomDetailResponse() = GiantBombClient.DetailsResponse(
+        statusCode = GiantBombClient.Status.ok,
+        results = listOf(GiantBombClient.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = randomName(),
             deck = randomSentence(maxWords = 15),
             originalReleaseDate = randomLocalDate(),
-            image = GiantBomb.DetailsImage(
+            image = GiantBombClient.DetailsImage(
                 thumbUrl = randomImageUrl(),
                 superUrl = randomImageUrl()   // TODO: Support once implemented
             ),
             genres = List(rnd.nextInt(4)) {
-                GiantBomb.Genre(name = randomString())
+                GiantBombClient.Genre(name = randomString())
             }
         ))
     )
@@ -110,7 +110,7 @@ class GiantBombFakeServer(port: Int) : Closeable {
     override fun close() = ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
 }
 
-private fun GiantBomb.SearchResponse.toMap() = mapOf(
+private fun GiantBombClient.SearchResponse.toMap() = mapOf(
     "error" to statusCode.asString(),
     "limit" to 100,
     "offset" to 0,
@@ -121,7 +121,7 @@ private fun GiantBomb.SearchResponse.toMap() = mapOf(
     "version" to "1.0"
 )
 
-private fun GiantBomb.SearchResult.toMap(): Map<String, Any> {
+private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> {
     val map = mutableMapOf<String, Any>(
         "api_detail_url" to apiDetailUrl,
         "name" to name
@@ -135,7 +135,7 @@ private fun GiantBomb.SearchResult.toMap(): Map<String, Any> {
     return map
 }
 
-private fun GiantBomb.SearchImage.toMap() = mapOf(
+private fun GiantBombClient.SearchImage.toMap() = mapOf(
     "icon_url" to randomUrl(),
     "medium_url" to randomUrl(),
     "screen_url" to randomUrl(),
@@ -145,7 +145,7 @@ private fun GiantBomb.SearchImage.toMap() = mapOf(
     "tiny_url" to randomUrl()
 )
 
-private fun GiantBomb.DetailsResponse.toMap() = mapOf(
+private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
     "error" to statusCode.asString(),
     "limit" to 1,
     "offset" to 0,
@@ -156,7 +156,7 @@ private fun GiantBomb.DetailsResponse.toMap() = mapOf(
     "version" to "1.0"
 )
 
-private fun GiantBomb.DetailsResult.toMap(): Map<String, Any> {
+private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> {
     val map = mutableMapOf<String, Any>(
         "site_detail_url" to siteDetailUrl,
         "name" to name
@@ -176,7 +176,7 @@ private fun GiantBomb.DetailsResult.toMap(): Map<String, Any> {
     return map.toMap()
 }
 
-private fun GiantBomb.DetailsImage.toMap() = mapOf(
+private fun GiantBombClient.DetailsImage.toMap() = mapOf(
     "icon_url" to randomUrl(),
     "medium_url" to randomUrl(),
     "screen_url" to randomUrl(),
@@ -186,11 +186,11 @@ private fun GiantBomb.DetailsImage.toMap() = mapOf(
     "tiny_url" to randomUrl()
 )
 
-private fun GiantBomb.Genre.toMap() = mapOf(
+private fun GiantBombClient.Genre.toMap() = mapOf(
     "api_detail_url" to randomUrl(),
     "id" to rnd.nextInt(100),
     "name" to name,
     "site_detail_url" to randomUrl()
 )
 
-private fun GiantBomb.Status.asString() = this.toString().toUpperCase()
+private fun GiantBombClient.Status.asString() = this.toString().toUpperCase()

@@ -1,9 +1,10 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.DataProvider
 import com.gitlab.ykrasik.gamedex.GamePlatform
-import com.gitlab.ykrasik.gamedex.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,16 +15,16 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface DataProviderService {
-    suspend fun fetch(name: String, platform: GamePlatform, path: File): List<ProviderFetchResult>?
+    suspend fun fetch(name: String, platform: GamePlatform, path: File): List<RawGameData>?
 }
 
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
-    private val providerRepository: DataProviderRepository,
+    private val providerRepository: GameProviderRepository,
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
-    override suspend fun fetch(name: String, platform: GamePlatform, path: File): List<ProviderFetchResult>? =
+    override suspend fun fetch(name: String, platform: GamePlatform, path: File): List<RawGameData>? =
         try {
             SearchContext(platform, path).fetch(name)
         } catch (e: CancelSearchException) {
@@ -34,11 +35,11 @@ class DataProviderServiceImpl @Inject constructor(
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
-        suspend fun fetch(searchedName: String): List<ProviderFetchResult> {
+        suspend fun fetch(searchedName: String): List<RawGameData> {
             return providerRepository.providers.mapNotNull { fetch(it, searchedName) }
         }
 
-        private suspend fun fetch(provider: DataProvider, searchedName: String): ProviderFetchResult? {
+        private suspend fun fetch(provider: GameProvider, searchedName: String): RawGameData? {
             val results = provider.search(searchedName, platform)
             val filteredResults = filterResults(results)
             val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults)

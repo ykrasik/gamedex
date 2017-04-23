@@ -22,7 +22,7 @@ fun randomGameData() = GameData(
     genres = List(rnd.nextInt(4)) { randomString() }
 )
 
-fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(DataProviderType.values().size)) {
+fun randomProviderData(): List<ProviderData> = List(rnd.nextInt(GameProviderType.values().size)) {
     ProviderData(
         type = randomEnum(),
         apiUrl = randomUrl(),

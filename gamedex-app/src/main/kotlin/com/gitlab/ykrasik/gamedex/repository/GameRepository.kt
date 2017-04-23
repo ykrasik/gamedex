@@ -1,16 +1,17 @@
-package com.gitlab.ykrasik.gamedex.ui.model
+package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.MetaData
-import com.gitlab.ykrasik.gamedex.ProviderFetchResult
+import com.gitlab.ykrasik.gamedex.RawGameData
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
+import com.gitlab.ykrasik.gamedex.core.UserPreferences
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import javafx.beans.property.ReadOnlyListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
+import javafx.collections.transformation.FilteredList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -30,12 +31,13 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    private val userPreferences: UserPreferences,
+    userPreferences: UserPreferences,
     private val notificationManager: NotificationManager
 ) {
     private val _gamesProperty = run {
         notificationManager.message("Fetching games...")
-        val games = fetchAllGames()
+        val rawGames = persistenceService.fetchAllGames()
+        val games = rawGames.map(gameFactory::create).observable()
         SimpleListProperty(games.observable())
     }
     private var _games: ObservableList<Game> by _gamesProperty
@@ -47,18 +49,19 @@ class GameRepository @Inject constructor(
     val genres: ObservableList<String> by genresProperty
 
     init {
-        userPreferences.providerNamePriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerDescriptionPriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerReleaseDatePriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerCriticScorePriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerUserScorePriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerThumbnailPriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerPosterPriorityProperty.onChange { _games = fetchAllGames() }
-        userPreferences.providerScreenshotPriorityProperty.onChange { _games = fetchAllGames() }
+        // TODO: Find a more intelligent way
+        userPreferences.providerNamePriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerDescriptionPriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerReleaseDatePriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerCriticScorePriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerUserScorePriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerThumbnailPriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerPosterPriorityProperty.onChange { rebuildGames() }
+        userPreferences.providerScreenshotPriorityProperty.onChange { rebuildGames() }
     }
 
     suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
-        val rawGame = persistenceService.insertGame(request.metaData, request.providerData)
+        val rawGame = persistenceService.insertGame(request.metaData, request.rawGameData)
         val game = gameFactory.create(rawGame)
         run(JavaFx) {
             _games.add(game)
@@ -80,13 +83,14 @@ class GameRepository @Inject constructor(
         _games.removeAll { it.libraryId == library.id }
     }
 
-    private fun fetchAllGames(): ObservableList<Game> {
-        val rawGames = persistenceService.fetchAllGames()
-        return rawGames.map(gameFactory::create).observable()
+    private fun rebuildGames() {
+        _games = _games.map { gameFactory.create(it.rawGame) }.observable()
     }
+
+    fun gamesForLibrary(library: Library): FilteredList<Game> = games.filtered { it.libraryId == library.id }
 }
 
 data class AddGameRequest(
     val metaData: MetaData,
-    val providerData: List<ProviderFetchResult>
+    val rawGameData: List<RawGameData>
 )

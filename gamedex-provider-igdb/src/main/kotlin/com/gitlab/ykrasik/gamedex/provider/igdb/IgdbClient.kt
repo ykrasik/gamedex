@@ -1,7 +1,10 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.GamePlatform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
+import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
-    open fun search(name: String, platform: GamePlatform): List<Igdb.SearchResult> {
+    open fun search(name: String, platform: GamePlatform): List<SearchResult> {
         val response = getRequest(config.endpoint,
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
@@ -22,13 +25,13 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         return response.listFromJson()
     }
 
-    open fun fetch(url: String): Igdb.DetailsResult {
+    open fun fetch(url: String): DetailsResult {
         val response = getRequest(url,
             "fields" to fetchDetailsFieldsStr
         )
 
         // IGDB returns a list, even though we're fetching by id :/
-        return response.listFromJson<Igdb.DetailsResult> { parseError(it) }.first()
+        return response.listFromJson<DetailsResult> { parseError(it) }.first()
     }
 
     private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
@@ -40,7 +43,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     )
 
     private fun parseError(raw: String): String {
-        val errors: List<Igdb.Error> = raw.listFromJson()
+        val errors: List<Error> = raw.listFromJson()
         return errors.first().error.first()
     }
 
@@ -66,4 +69,57 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         )
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
+    
+    data class SearchResult(
+        val id: Int,
+        val name: String,
+        val aggregatedRating: Double?,
+        val releaseDates: List<ReleaseDate>?,
+        val cover: Image?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class ReleaseDate(
+        val platform: Int,
+        val category: Int,
+        val human: String
+    ) {
+        fun toLocalDate(): LocalDate? {
+            val format = when (category) {
+                0 -> DateTimeFormat.forPattern("YYYY-MMM-dd")
+                1 -> DateTimeFormat.forPattern("YYYY-MMM")
+                2 -> DateTimeFormat.forPattern("YYYY")
+                3 -> DateTimeFormat.forPattern("YYYY-'Q1'")
+                4 -> DateTimeFormat.forPattern("YYYY-'Q2'")
+                5 -> DateTimeFormat.forPattern("YYYY-'Q3'")
+                6 -> DateTimeFormat.forPattern("YYYY-'Q4'")
+                7 -> return null
+                else -> throw IllegalArgumentException("Invalid date category: $category!")
+            }
+            return format.parseLocalDate(human)
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class DetailsResult(
+        val url: String,
+        val name: String,
+        val summary: String?,
+        val releaseDates: List<ReleaseDate>?,
+        val aggregatedRating: Double?,
+        val rating: Double?,
+        val cover: Image?,
+        val screenshots: List<Image>?,
+        val genres: List<Int>?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Image(
+        val cloudinaryId: String?
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Error(
+        val error: List<String>
+    )
 }

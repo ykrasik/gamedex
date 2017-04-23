@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex
 
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
+import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.GameDetailsFragment
 import javafx.application.Application
 import javafx.scene.Parent
 import tornadofx.*

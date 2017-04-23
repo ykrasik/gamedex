@@ -12,7 +12,7 @@ import org.joda.time.LocalDate
  * Date: 16/04/2017
  * Time: 15:41
  */
-class IgdbDataProviderTest : ScopedWordSpec() {
+class IgdbProviderTest : ScopedWordSpec() {
     init {
         "IgdbDataProvider.search" should {
             "be able to return a single search result".inScope(Scope()) {
@@ -114,9 +114,9 @@ class IgdbDataProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
 
-                fetch(baseUrl) shouldBe ProviderFetchResult(
+                fetch(baseUrl) shouldBe RawGameData(
                     providerData = ProviderData(
-                        type = DataProviderType.Igdb,
+                        type = GameProviderType.Igdb,
                         apiUrl = baseUrl,
                         siteUrl = detailsResult.url
                     ),
@@ -206,41 +206,41 @@ class IgdbDataProviderTest : ScopedWordSpec() {
         fun searchResult(name: String = this.name,
                          releaseDate: LocalDate = randomLocalDate(),
                          imageId: String? = randomString(),
-                         releaseDatePlatformId: Int = this.platformId) = Igdb.SearchResult(
+                         releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = name,
             aggregatedRating = randomScore(),
-            releaseDates = listOf(Igdb.ReleaseDate(
+            releaseDates = listOf(IgdbClient.ReleaseDate(
                 platform = releaseDatePlatformId,
                 category = 0,
                 human = releaseDate.toString("YYYY-MMM-dd")
             )),
-            cover = Igdb.Image(cloudinaryId = imageId)
+            cover = IgdbClient.Image(cloudinaryId = imageId)
         )
 
         fun detailsResult(releaseDate: LocalDate = randomLocalDate(),
                           releaseDatePlatformId: Int = this.platformId,
-                          imageId: String? = randomString()) = Igdb.DetailsResult(
+                          imageId: String? = randomString()) = IgdbClient.DetailsResult(
             url = randomString(),
             name = name,
             summary = randomSentence(),
-            releaseDates = listOf(Igdb.ReleaseDate(
+            releaseDates = listOf(IgdbClient.ReleaseDate(
                 platform = releaseDatePlatformId,
                 category = 0,
                 human = releaseDate.toString("YYYY-MMM-dd")
             )),
             aggregatedRating = randomScore(),
             rating = randomScore(),
-            cover = Igdb.Image(cloudinaryId = imageId),
+            cover = IgdbClient.Image(cloudinaryId = imageId),
             screenshots = emptyList(), // TODO: Support screenshots
             genres = listOf(genreId)
         )
 
-        fun givenClientSearchReturns(results: List<Igdb.SearchResult>, name: String = this.name) {
+        fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
             `when`(client.search(name, platform)).thenReturn(results)
         }
 
-        fun givenClientFetchReturns(result: Igdb.DetailsResult, apiUrl: String = baseUrl) {
+        fun givenClientFetchReturns(result: IgdbClient.DetailsResult, apiUrl: String = baseUrl) {
             `when`(client.fetch(apiUrl)).thenReturn(result)
         }
 

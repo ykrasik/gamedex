@@ -1,12 +1,12 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.DataProviderRepository
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.model.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.util.toImage
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
 import javafx.scene.effect.BlurType
@@ -30,8 +30,7 @@ import java.net.URLEncoder
  */
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val imageLoader: ImageLoader by di()
-    private val libraryRepository: LibraryRepository by di()
-    private val providerRepository: DataProviderRepository by di()
+    private val providerRepository: GameProviderRepository by di()
 
     private var webView: WebView by singleAssign()
 
@@ -66,7 +65,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     addClass(Styles.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.imageUrls.posterUrl))
+                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl))
 
                     imageViewResizingPane(poster) {
                         maxWidth = screenWidth * maxPosterWidthPercent
@@ -160,7 +159,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                         imageview {
                                             fitHeight = 30.0
                                             fitWidth = 30.0
-                                            image = provider.info.logo
+                                            image = provider.info.logo.toImage()
                                         }
                                         hyperlink(providerData.siteUrl) {
                                             setOnAction { providerData.siteUrl.browseToUrl() }
@@ -176,8 +175,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     webView = webview {
                         if (displayVideos) {
                             vgrow = Priority.ALWAYS
-                            val platform = libraryRepository.libraryForGame(game).platform
-                            val search = URLEncoder.encode("${game.name} $platform gameplay", "utf-8")
+                            val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
                             val url = "https://www.youtube.com/results?search_query=$search"
                             engine.load(url)
                         }

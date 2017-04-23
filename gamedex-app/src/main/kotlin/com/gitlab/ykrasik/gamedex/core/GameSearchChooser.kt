@@ -1,9 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.DataProviderInfo
+import com.gitlab.ykrasik.gamedex.GameProviderInfo
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.ui.view.fragment.ChooseSearchResultFragment
-import com.gitlab.ykrasik.gamedex.util.UserPreferences
+import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,7 +34,7 @@ class UIGameSearchChooser @Inject constructor(private val userPreferences: UserP
 data class ChooseSearchResultData(
     val name: String,
     val path: File,
-    val info: DataProviderInfo,
+    val info: GameProviderInfo,
     val searchResults: List<ProviderSearchResult>
 )
 

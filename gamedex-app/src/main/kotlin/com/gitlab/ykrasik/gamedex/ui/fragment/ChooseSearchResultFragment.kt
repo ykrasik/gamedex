@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
@@ -8,6 +8,7 @@ import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.customColumn
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.spacer
+import com.gitlab.ykrasik.gamedex.util.toImage
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -51,7 +52,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                     spacer()
                     imageview {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                        image = data.info.logo
+                        image = data.info.logo.toImage()
                         fitHeight = 100.0
                         fitWidth = 100.0
                         isPreserveRatio = true

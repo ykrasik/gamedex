@@ -1,11 +1,11 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.GamePlatform
 import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.core.UserPreferences
+import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
-import com.gitlab.ykrasik.gamedex.ui.model.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.util.UserPreferences
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.SimpleObjectProperty

@@ -11,15 +11,13 @@ import org.joda.time.LocalDate
  * Date: 08/10/2016
  * Time: 17:59
  */
-class GiantBombDataProviderRealIT : ScopedWordSpec() {
-    val provider = GiantBombDataProvider(GiantBombClient(GiantBombConfig(appConfig)))
+class GiantBombProviderRealIT : ScopedWordSpec() {
+    val provider = GiantBombProvider(GiantBombClient(GiantBombConfig(appConfig)))
 
     init {
         "GiantBombDataProvider" should {
             "search & retrieve a single search result".inScope(Scope()) {
-                val response = provider.search(name, GamePlatform.pc)
-
-                response shouldBe listOf(ProviderSearchResult(
+                provider.search(name, GamePlatform.pc) shouldBe listOf(ProviderSearchResult(
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
@@ -29,11 +27,9 @@ class GiantBombDataProviderRealIT : ScopedWordSpec() {
             }
 
             "fetch game details".inScope(Scope()) {
-                val response = provider.fetch(apiUrl, GamePlatform.pc)
-
-                response shouldBe ProviderFetchResult(
+                provider.fetch(apiUrl, GamePlatform.pc) shouldBe RawGameData(
                     providerData = ProviderData(
-                        type = DataProviderType.GiantBomb,
+                        type = GameProviderType.GiantBomb,
                         apiUrl = apiUrl,
                         siteUrl = url
                     ),

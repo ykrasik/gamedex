@@ -1,11 +1,11 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombDataProvider
+import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombProvider
 import com.gitlab.ykrasik.gamedex.test.*
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.anyOrNull
@@ -38,7 +38,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
             val data = ChooseSearchResultData(
                 name = randomName(),
                 path = randomFile(),
-                info = GiantBombDataProvider.info,
+                info = GiantBombProvider.info,
                 searchResults = List(10) {
                     ProviderSearchResult(
                         name = randomName(),

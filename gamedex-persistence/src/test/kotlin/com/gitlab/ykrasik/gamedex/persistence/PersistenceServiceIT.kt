@@ -120,6 +120,7 @@ class PersistenceServiceIT : ScopedWordSpec() {
                 }
             }
 
+            @Suppress("UNUSED_VARIABLE")
             "delete all games belonging to a library when that library is deleted".inLazyScope({ GameScope() }) {
                 val game1 = givenGameExists(library = library)
                 val game2 = givenGameExists(library = library)
@@ -184,6 +185,7 @@ class PersistenceServiceIT : ScopedWordSpec() {
                 }
             }
 
+            @Suppress("UNUSED_VARIABLE")
             "delete a game's images when the game is deleted".inLazyScope({ ImageScope() }) {
                 val url1 = randomUrl()
                 val url2 = randomUrl()
@@ -206,7 +208,7 @@ class PersistenceServiceIT : ScopedWordSpec() {
                 val game2 = givenGameExists(library = library2)
                 val url = randomUrl()
 
-                val image1 = givenImageExists(game = game2, url = url)
+                givenImageExists(game = game2, url = url)
 
                 persistenceService.deleteLibrary(library2.id)
 
@@ -230,9 +232,9 @@ class PersistenceServiceIT : ScopedWordSpec() {
     inner open class GameScope : LibraryScope() {
         val library = givenLibraryExists()
 
-        private fun randomProviderFetchResult() = ProviderFetchResult(
+        private fun randomRawGameData() = RawGameData(
             providerData = ProviderData(
-                type = randomEnum<DataProviderType>(),
+                type = randomEnum<GameProviderType>(),
                 apiUrl = randomUrl(),
                 siteUrl = randomUrl()
             ),
@@ -254,10 +256,10 @@ class PersistenceServiceIT : ScopedWordSpec() {
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame {
             val metaData = MetaData(library.id, path.toFile(), lastModified = randomDateTime())
-            val providerData = listOf(randomProviderFetchResult(), randomProviderFetchResult())
+            val providerData = listOf(randomRawGameData(), randomRawGameData())
             val game = persistenceService.insertGame(metaData, providerData)
             game.metaData shouldBe metaData
-            game.providerData shouldBe providerData
+            game.rawGameData shouldBe providerData
             return game
         }
     }

@@ -67,13 +67,13 @@ object TestMain {
         runBlocking {
             (0..numGames-1).map {
                 async(context) {
-                    val providerTypes = mutableListOf(*DataProviderType.values())
+                    val providerTypes = mutableListOf(*GameProviderType.values())
                     persistenceService.insertGame(
                         metaData = randomMetaData(),
-                        providerData = List(rnd.nextInt(DataProviderType.values().size + 1)) {
+                        rawGameData = List(rnd.nextInt(GameProviderType.values().size + 1)) {
                             val type = providerTypes.randomElement()
                             providerTypes -= type
-                            randomProviderFetchResult(type)
+                            randomRawGameData(type)
                         }
                     )
                 }
@@ -82,28 +82,28 @@ object TestMain {
         executor.shutdownNow()
     }
 
-    private fun randomProviderFetchResult(type: DataProviderType) = ProviderFetchResult(
+    private fun randomRawGameData(type: GameProviderType) = RawGameData(
         providerData = randomProviderData(type),
         gameData = randomGameData(),
         imageUrls = imageUrls(type)
     )
 
-    private fun imageUrls(type: DataProviderType) = ImageUrls(
+    private fun imageUrls(type: GameProviderType) = ImageUrls(
         thumbnailUrl = imageUrl(type),
         posterUrl = imageUrl(type),
         screenshotUrls = List(rnd.nextInt(10)) { imageUrl(type) }
     )
 
-    private fun imageUrl(type: DataProviderType) = when (type) {
-        DataProviderType.GiantBomb -> "$giantBombImageUrl/${randomString()}"
-        DataProviderType.Igdb -> "$igdbImageUrl/t_thumb_2x/${randomString()}.png"
+    private fun imageUrl(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> "$giantBombImageUrl/${randomString()}"
+        GameProviderType.Igdb -> "$igdbImageUrl/t_thumb_2x/${randomString()}.png"
     }
 
-    private fun randomProviderData(type: DataProviderType) = ProviderData(
+    private fun randomProviderData(type: GameProviderType) = ProviderData(
         type = type,
         apiUrl = when(type) {
-            DataProviderType.GiantBomb -> giantBombUrl
-            DataProviderType.Igdb -> igdbUrl
+            GameProviderType.GiantBomb -> giantBombUrl
+            GameProviderType.Igdb -> igdbUrl
         },
         siteUrl = randomUrl()
     )

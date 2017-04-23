@@ -11,7 +11,7 @@ import io.kotlintest.mock.mock
  * Date: 19/04/2017
  * Time: 09:21
  */
-class GiantBombDataProviderTest : ScopedWordSpec() {
+class GiantBombProviderTest : ScopedWordSpec() {
     init {
         "GiantBombDataProvider.search" should {
             "be able to return a single search result".inScope(Scope()) {
@@ -62,7 +62,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
             }
 
             "throw GameDexException on invalid response status".inScope(Scope()) {
-                givenClientSearchReturns(GiantBomb.SearchResponse(GiantBomb.Status.badFormat, emptyList()))
+                givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.badFormat, emptyList()))
 
                 shouldThrow<GameDexException> {
                     search()
@@ -76,9 +76,9 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                fetch(apiDetailUrl) shouldBe ProviderFetchResult(
+                fetch(apiDetailUrl) shouldBe RawGameData(
                     providerData = ProviderData(
-                        type = DataProviderType.GiantBomb,
+                        type = GameProviderType.GiantBomb,
                         apiUrl = apiDetailUrl,
                         siteUrl = detailsResult.siteDetailUrl
                     ),
@@ -124,7 +124,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
             }
 
             "throw GameDexException on invalid response status".inScope(Scope()) {
-                givenClientFetchReturns(GiantBomb.DetailsResponse(GiantBomb.Status.badFormat, emptyList()))
+                givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
 
                 shouldThrow<GameDexException> {
                     fetch()
@@ -138,33 +138,33 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
         val name = randomName()
         val apiDetailUrl = randomUrl()
 
-        fun searchResult(name: String = this.name) = GiantBomb.SearchResult(
+        fun searchResult(name: String = this.name) = GiantBombClient.SearchResult(
             apiDetailUrl = randomUrl(),
             name = name,
             originalReleaseDate = randomLocalDate(),
-            image = GiantBomb.SearchImage(thumbUrl = randomUrl())
+            image = GiantBombClient.SearchImage(thumbUrl = randomUrl())
         )
 
-        fun detailsResult(name: String = this.name) = GiantBomb.DetailsResult(
+        fun detailsResult(name: String = this.name) = GiantBombClient.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = name,
             deck = randomSentence(),
             originalReleaseDate = randomLocalDate(),
-            image = GiantBomb.DetailsImage(thumbUrl = randomUrl(), superUrl = randomUrl()),
-            genres = listOf(GiantBomb.Genre(randomString()))
+            image = GiantBombClient.DetailsImage(thumbUrl = randomUrl(), superUrl = randomUrl()),
+            genres = listOf(GiantBombClient.Genre(randomString()))
         )
 
-        fun givenClientSearchReturns(results: List<GiantBomb.SearchResult>, name: String = this.name) =
-            givenClientSearchReturns(GiantBomb.SearchResponse(GiantBomb.Status.ok, results), name)
+        fun givenClientSearchReturns(results: List<GiantBombClient.SearchResult>, name: String = this.name) =
+            givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.ok, results), name)
 
-        fun givenClientSearchReturns(response: GiantBomb.SearchResponse, name: String = this.name) {
+        fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
             `when`(client.search(name, platform)).thenReturn(response)
         }
 
-        fun givenClientFetchReturns(result: GiantBomb.DetailsResult, apiUrl: String = apiDetailUrl) =
-            givenClientFetchReturns(GiantBomb.DetailsResponse(GiantBomb.Status.ok, listOf(result)), apiUrl)
+        fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
+            givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.ok, listOf(result)), apiUrl)
 
-        fun givenClientFetchReturns(response: GiantBomb.DetailsResponse, apiUrl: String = apiDetailUrl) {
+        fun givenClientFetchReturns(response: GiantBombClient.DetailsResponse, apiUrl: String = apiDetailUrl) {
             `when`(client.fetch(apiUrl)).thenReturn(response)
         }
 
@@ -173,7 +173,7 @@ class GiantBombDataProviderTest : ScopedWordSpec() {
         fun fetch(apiUrl: String = apiDetailUrl, platform: GamePlatform = this.platform) = provider.fetch(apiUrl, platform)
 
         private val client = mock<GiantBombClient>()
-        val provider = GiantBombDataProvider(client)
+        val provider = GiantBombProvider(client)
 
         fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
             override fun test(value: List<ProviderSearchResult>): Result {

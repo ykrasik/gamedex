@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view.fragment
+package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
 import kotlinx.coroutines.experimental.CommonPool

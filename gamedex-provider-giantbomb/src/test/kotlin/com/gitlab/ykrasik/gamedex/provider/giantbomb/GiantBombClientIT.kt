@@ -81,28 +81,28 @@ class GiantBombClientIT : ScopedWordSpec() {
         val platformId = rnd.nextInt(100)
         val name = randomName()
 
-        val searchResponse = GiantBomb.SearchResponse(
-            statusCode = GiantBomb.Status.ok,
-            results = listOf(GiantBomb.SearchResult(
+        val searchResponse = GiantBombClient.SearchResponse(
+            statusCode = GiantBombClient.Status.ok,
+            results = listOf(GiantBombClient.SearchResult(
                 apiDetailUrl = randomUrl(),
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBomb.SearchImage(thumbUrl = randomUrl())
+                image = GiantBombClient.SearchImage(thumbUrl = randomUrl())
             ))
         )
 
-        val detailsResponse = GiantBomb.DetailsResponse(
-            statusCode = GiantBomb.Status.ok,
-            results = listOf(GiantBomb.DetailsResult(
+        val detailsResponse = GiantBombClient.DetailsResponse(
+            statusCode = GiantBombClient.Status.ok,
+            results = listOf(GiantBombClient.DetailsResult(
                 siteDetailUrl = randomUrl(),
                 name = randomName(),
                 deck = randomSentence(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBomb.DetailsImage(
+                image = GiantBombClient.DetailsImage(
                     thumbUrl = randomUrl(),
                     superUrl = randomUrl()
                 ),
-                genres = listOf(GiantBomb.Genre(name = randomName()))
+                genres = listOf(GiantBombClient.Genre(name = randomName()))
             ))
         )
 

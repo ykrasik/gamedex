@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view.widgets
+package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import javafx.geometry.HPos
 import javafx.geometry.Orientation

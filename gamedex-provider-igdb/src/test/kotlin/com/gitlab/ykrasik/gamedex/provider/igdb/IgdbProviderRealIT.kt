@@ -11,16 +11,14 @@ import org.joda.time.LocalDate
  * Date: 12/04/2017
  * Time: 10:03
  */
-class IgdbDataProviderRealIT : ScopedWordSpec() {
+class IgdbProviderRealIT : ScopedWordSpec() {
     val config = IgdbConfig(appConfig)
     val provider = IgdbDataProvider(config, IgdbClient(config))
 
     init {
         "IgdbDataProvider" should {
             "search & retrieve a single search result".inScope(Scope()) {
-                val response = provider.search(name, GamePlatform.pc)
-
-                response shouldBe listOf(ProviderSearchResult(
+                provider.search(name, GamePlatform.pc) shouldBe listOf(ProviderSearchResult(
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
@@ -30,11 +28,9 @@ class IgdbDataProviderRealIT : ScopedWordSpec() {
             }
 
             "fetch game details".inScope(Scope()) {
-                val response = provider.fetch(apiUrl, GamePlatform.pc)
-                
-                response shouldBe ProviderFetchResult(
+                provider.fetch(apiUrl, GamePlatform.pc) shouldBe RawGameData(
                     providerData = ProviderData(
-                        type = DataProviderType.Igdb,
+                        type = GameProviderType.Igdb,
                         apiUrl = apiUrl,
                         siteUrl = url
                     ),

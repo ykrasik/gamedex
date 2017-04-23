@@ -1,9 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ui.controller.GameController
+import com.gitlab.ykrasik.gamedex.controller.GameController
+import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.dividerPosition
-import com.gitlab.ykrasik.gamedex.ui.model.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.padding
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextArea
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
