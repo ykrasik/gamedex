@@ -19,6 +19,7 @@ internal object Games : IntIdTable() {
     val path = varchar("path", 255).uniqueIndex()
     val lastModified = datetime("last_modified")
     val data = varchar("data", 32.kb)
+    val priorityOverride = varchar("priority_override", 1.kb).nullable()
 }
 
 internal object Images : IntIdTable() {

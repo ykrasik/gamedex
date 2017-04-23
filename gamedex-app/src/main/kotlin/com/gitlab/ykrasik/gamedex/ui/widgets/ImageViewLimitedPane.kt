@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
-import com.gitlab.ykrasik.gamedex.core.ImageDisplayType
+import com.gitlab.ykrasik.gamedex.preferences.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.util.unmodifiable
 import javafx.beans.property.ObjectProperty
 import javafx.collections.ObservableList

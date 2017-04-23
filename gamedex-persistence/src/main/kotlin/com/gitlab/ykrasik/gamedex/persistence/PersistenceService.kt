@@ -23,6 +23,7 @@ interface PersistenceService {
 
     fun fetchAllGames(): List<RawGame>
     fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame
+    fun updateGame(rawGame: RawGame): Unit
     fun deleteGame(id: Int)
 
     fun fetchImage(url: String): ByteArray?
@@ -78,7 +79,8 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId].value
                 ),
-                rawGameData = it[Games.data].listFromJson()
+                rawGameData = it[Games.data].listFromJson(),
+                priorityOverride = it[Games.priorityOverride]?.fromJson()
             )
         }
         log.info { "Result: ${games.size} games." }
@@ -95,15 +97,26 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             it[Games.data] = rawGameData.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData)
+        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, priorityOverride = null)
         log.info { "Result: $game." }
         game
     }
 
+    override fun updateGame(rawGame: RawGame) = transaction {
+        val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
+            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
+            it[Games.path] = rawGame.metaData.path.path
+            it[Games.lastModified] = rawGame.metaData.lastModified
+            it[Games.data] = rawGame.rawGameData.toJsonStr()
+            it[Games.priorityOverride] = rawGame.priorityOverride?.toJsonStr()
+        }
+        require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!"}
+    }
+
     override fun deleteGame(id: Int) = transaction {
         log.debug { "Deleting Game($id)..." }
-        val amount = Games.deleteWhere { Games.id.eq(id.toGameId()) }
-        require(amount == 1) { "Doesn't exist: Game($id)" }
+        val rowsDeleted = Games.deleteWhere { Games.id.eq(id.toGameId()) }
+        require(rowsDeleted == 1) { "Doesn't exist: Game($id)!" }
         log.debug { "Done." }
     }
 

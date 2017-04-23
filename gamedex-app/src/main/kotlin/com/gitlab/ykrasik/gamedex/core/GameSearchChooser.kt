@@ -17,18 +17,9 @@ interface GameSearchChooser {
 }
 
 @Singleton
-class UIGameSearchChooser @Inject constructor(private val userPreferences: UserPreferences) : GameSearchChooser {
-    override suspend fun choose(data: ChooseSearchResultData): SearchResultChoice {
-        return if (userPreferences.handsFreeMode) {
-            if (data.searchResults.size == 1) {
-                SearchResultChoice.Ok(data.searchResults.first())
-            } else {
-                SearchResultChoice.Cancel
-            }
-        } else {
-            ChooseSearchResultFragment(data).show()
-        }
-    }
+class UIGameSearchChooser @Inject constructor() : GameSearchChooser {
+    override suspend fun choose(data: ChooseSearchResultData): SearchResultChoice =
+        ChooseSearchResultFragment(data).show()
 }
 
 data class ChooseSearchResultData(
@@ -37,10 +28,3 @@ data class ChooseSearchResultData(
     val info: GameProviderInfo,
     val searchResults: List<ProviderSearchResult>
 )
-
-sealed class SearchResultChoice {
-    data class Ok(val result: ProviderSearchResult) : SearchResultChoice()
-    data class NewSearch(val newSearch: String) : SearchResultChoice()
-    object Cancel : SearchResultChoice()
-    object ProceedWithout : SearchResultChoice()
-}

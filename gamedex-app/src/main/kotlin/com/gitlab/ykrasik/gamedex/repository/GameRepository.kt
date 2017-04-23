@@ -1,13 +1,10 @@
 package com.gitlab.ykrasik.gamedex.repository
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.MetaData
-import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import javafx.beans.property.ReadOnlyListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
@@ -37,7 +34,7 @@ class GameRepository @Inject constructor(
     private val _gamesProperty = run {
         notificationManager.message("Fetching games...")
         val rawGames = persistenceService.fetchAllGames()
-        val games = rawGames.map(gameFactory::create).observable()
+        val games = rawGames.map { it.toGame() }.observable()
         SimpleListProperty(games.observable())
     }
     private var _games: ObservableList<Game> by _gamesProperty
@@ -62,7 +59,7 @@ class GameRepository @Inject constructor(
 
     suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
         val rawGame = persistenceService.insertGame(request.metaData, request.rawGameData)
-        val game = gameFactory.create(rawGame)
+        val game = rawGame.toGame()
         run(JavaFx) {
             _games.add(game)
         }
@@ -84,10 +81,12 @@ class GameRepository @Inject constructor(
     }
 
     private fun rebuildGames() {
-        _games = _games.map { gameFactory.create(it.rawGame) }.observable()
+        _games = _games.map { it.rawGame.toGame() }.observable()
     }
 
     fun gamesForLibrary(library: Library): FilteredList<Game> = games.filtered { it.libraryId == library.id }
+
+    private fun RawGame.toGame(): Game = gameFactory.create(this)
 }
 
 data class AddGameRequest(

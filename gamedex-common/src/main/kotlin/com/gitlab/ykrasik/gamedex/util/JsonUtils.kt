@@ -18,7 +18,7 @@ val objectMapper: ObjectMapper = ObjectMapper()
     .registerModule(JodaModule())
     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
     .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)   // FIXME: Why?
 
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 
@@ -26,7 +26,7 @@ inline fun <reified T : Any> String.fromJson(): T = objectMapper.readValue(this,
 inline fun <reified T : Any> ByteArray.fromJson(): T = objectMapper.readValue(this, T::class.java)
 inline fun <reified T : Any> File.readJson(): T = objectMapper.readValue(this, T::class.java)
 
-fun File.writeJson(data: Any) = objectMapper.writeValue(this, data)
+fun File.writeJson(data: Any) = objectMapper.writerWithDefaultPrettyPrinter().writeValue(this, data)
 
 inline fun <reified T : Any> String.listFromJson(): List<T> {
     val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)

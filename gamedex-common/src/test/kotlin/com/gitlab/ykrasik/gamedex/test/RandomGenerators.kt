@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.test
 
+import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import java.io.File
 import java.util.*
 
 /**
@@ -40,7 +40,7 @@ fun Int.withVariance(variance: Int): Int =
     }
 
 fun randomPath(): String = randomSentence(maxWords = 7, delimiter = "/")
-fun randomFile() = File(randomPath())
+fun randomFile() = randomPath().toFile()
 fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${randomPath()}}"
 fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
 fun randomScore() = rnd.nextDouble() * 100

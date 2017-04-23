@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.GamePlatform
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import java.io.File
 import javax.inject.Inject
@@ -21,6 +22,7 @@ interface DataProviderService {
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
+    private val userPreferences: UserPreferences,
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
@@ -42,8 +44,13 @@ class DataProviderServiceImpl @Inject constructor(
         private suspend fun fetch(provider: GameProvider, searchedName: String): RawGameData? {
             val results = provider.search(searchedName, platform)
             val filteredResults = filterResults(results)
-            val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults)
-            val choice = chooser.choose(chooseSearchResultData)
+            val choice = if (userPreferences.handsFreeMode) {
+                if (filteredResults.size == 1) SearchResultChoice.Ok(filteredResults.first())
+                else SearchResultChoice.Cancel
+            } else {
+                val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info, filteredResults)
+                chooser.choose(chooseSearchResultData)
+            }
             return when (choice) {
                 is SearchResultChoice.Ok -> {
                     val chosenResult = choice.result
@@ -73,4 +80,11 @@ class DataProviderServiceImpl @Inject constructor(
     }
 
     private class CancelSearchException : RuntimeException()
+}
+
+sealed class SearchResultChoice {
+    data class Ok(val result: ProviderSearchResult) : SearchResultChoice()
+    data class NewSearch(val newSearch: String) : SearchResultChoice()
+    object Cancel : SearchResultChoice()
+    object ProceedWithout : SearchResultChoice()
 }

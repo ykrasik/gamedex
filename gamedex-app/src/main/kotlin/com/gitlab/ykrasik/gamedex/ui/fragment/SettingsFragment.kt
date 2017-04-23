@@ -1,16 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.GameProviderType
-import com.gitlab.ykrasik.gamedex.core.ProviderPriority
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
-import com.gitlab.ykrasik.gamedex.core.preferProvider
-import com.gitlab.ykrasik.gamedex.core.preferredProviderFrom
+import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderPriority
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.okButton
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
 
 /**
@@ -36,14 +32,25 @@ class SettingsFragment : Fragment() {
                     form {
                         paddingAll = 20
                         fieldset("Preferred Provider for Game Data") {
-                            field("Name") { enumComboBox(userPreferences.providerNamePriorityProperty.toPreferredProviderProperty()) }
-                            field("Description") { enumComboBox(userPreferences.providerDescriptionPriorityProperty.toPreferredProviderProperty()) }
-                            field("Release Date") { enumComboBox(userPreferences.providerReleaseDatePriorityProperty.toPreferredProviderProperty()) }
-                            field("Critic Score") { enumComboBox(userPreferences.providerCriticScorePriorityProperty.toPreferredProviderProperty()) }
-                            field("User Score") { enumComboBox(userPreferences.providerUserScorePriorityProperty.toPreferredProviderProperty()) }
-                            field("Thumbnail") { enumComboBox(userPreferences.providerThumbnailPriorityProperty.toPreferredProviderProperty()) }
-                            field("Poster") { enumComboBox(userPreferences.providerPosterPriorityProperty.toPreferredProviderProperty()) }
-                            field("Screenshot") { enumComboBox(userPreferences.providerScreenshotPriorityProperty.toPreferredProviderProperty()) }
+                            listOf(
+                                "Name" to userPreferences.providerNamePriorityProperty,
+                                "Description" to userPreferences.providerDescriptionPriorityProperty,
+                                "Release Date" to userPreferences.providerReleaseDatePriorityProperty,
+                                "Critic Score" to userPreferences.providerCriticScorePriorityProperty,
+                                "User Score" to userPreferences.providerUserScorePriorityProperty,
+                                "Thumbnail" to userPreferences.providerThumbnailPriorityProperty,
+                                "Poster" to userPreferences.providerPosterPriorityProperty,
+                                "Screenshot" to userPreferences.providerScreenshotPriorityProperty
+                            ).forEach { (name, preferenceProperty) ->
+                                field(name) {
+                                    enumComboBox<GameProviderType> {
+                                        value = preferenceProperty.get().preferredProvider()
+                                        valueProperty().onChange {
+                                            preferenceProperty.set(DefaultProviderPriority.prefer(it!!))
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -60,14 +67,6 @@ class SettingsFragment : Fragment() {
 
     fun show() {
         openModal(block = true)
-    }
-
-    private fun ObjectProperty<ProviderPriority>.toPreferredProviderProperty(): ObjectProperty<GameProviderType> {
-        val property = SimpleObjectProperty(preferredProviderFrom(this.get()))
-        property.onChange {
-            this@toPreferredProviderProperty.set(preferProvider(it!!))
-        }
-        return property
     }
 }
 //

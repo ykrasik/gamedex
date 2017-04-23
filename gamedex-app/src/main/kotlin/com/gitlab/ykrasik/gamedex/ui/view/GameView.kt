@@ -1,8 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.UserPreferences
-import com.gitlab.ykrasik.gamedex.model.GameSort
+import com.gitlab.ykrasik.gamedex.preferences.GameSort
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
@@ -66,7 +67,7 @@ class GameView : View("Games") {
                     setMinSize(10.0, 10.0)
                     row {
                         label("Sort:")
-                        combobox<GameSort>()
+                        enumComboBox<GameSort>()
                     }
                 }
 

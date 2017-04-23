@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderPriority
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
 import javax.inject.Inject
@@ -34,20 +36,18 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        name = sortDataBy(userPreferences.providerNamePriority).findFirst { it.gameData.name } ?: metaData.path.name,
-        description = sortDataBy(userPreferences.providerDescriptionPriority).findFirst { it.gameData.description },
-        releaseDate = sortDataBy(userPreferences.providerReleaseDatePriority).findFirst { it.gameData.releaseDate },
-
-        criticScore = sortDataBy(userPreferences.providerCriticScorePriority).findFirst { it.gameData.criticScore },
-        userScore = sortDataBy(userPreferences.providerUserScorePriority).findFirst { it.gameData.userScore },
-
-        genres = rawGameData.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()
+        name = topPriority(userPreferences.providerNamePriority, priorityOverride?.name) { it.gameData.name } ?: metaData.path.name,
+        description = topPriority(userPreferences.providerDescriptionPriority, priorityOverride?.description) { it.gameData.description },
+        releaseDate = topPriority(userPreferences.providerReleaseDatePriority, priorityOverride?.releaseDate) { it.gameData.releaseDate },
+        criticScore = topPriority(userPreferences.providerCriticScorePriority, priorityOverride?.criticScore) { it.gameData.criticScore },
+        userScore = topPriority(userPreferences.providerUserScorePriority, priorityOverride?.userScore) { it.gameData.userScore },
+        genres = rawGameData.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()  // TODO: Consider limiting the max amount of genres to 5.
     )
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = sortDataBy(userPreferences.providerThumbnailPriority).findFirst { it.imageUrls.thumbnailUrl }
-        val posterUrl = sortDataBy(userPreferences.providerPosterPriority).findFirst { it.imageUrls.posterUrl }
-        val screenshotUrls = sortDataBy(userPreferences.providerScreenshotPriority)
+        val thumbnailUrl = topPriority(userPreferences.providerThumbnailPriority, priorityOverride?.thumbnail) { it.imageUrls.thumbnailUrl }
+        val posterUrl = topPriority(userPreferences.providerPosterPriority, priorityOverride?.poster) { it.imageUrls.posterUrl }
+        val screenshotUrls = sortDataBy(userPreferences.providerScreenshotPriority, priorityOverride?.screenshots)
             .asSequence().flatMap { it.imageUrls.screenshotUrls.asSequence() }.take(maxScreenshots).toList()
 
         return ImageUrls(
@@ -59,8 +59,16 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.toProviderData(): List<ProviderData> = this.rawGameData.map { it.providerData }
 
-    private fun RawGame.sortDataBy(priority: ProviderPriority) = rawGameData.sortedByDescending {
-        priority[it.providerData.type]
+    private fun <T> RawGame.topPriority(defaultPriority: DefaultProviderPriority, override: GameProviderType?, extractor: (RawGameData) -> T?): T? =
+        sortDataBy(defaultPriority, override).findFirst(extractor)
+
+    private fun RawGame.sortDataBy(priority: DefaultProviderPriority, override: GameProviderType?) = rawGameData.sortedByDescending {
+        val type = it.providerData.type
+        if (type == override) {
+            DefaultProviderPriority.maxPriority + 1
+        } else {
+            priority[type]
+        }
     }
 
     private fun <T> List<RawGameData>.findFirst(extractor: (RawGameData) -> T?): T? =

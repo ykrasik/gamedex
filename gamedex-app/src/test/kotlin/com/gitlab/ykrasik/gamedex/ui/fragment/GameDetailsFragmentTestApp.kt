@@ -2,15 +2,14 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.module.ConfigModule
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombModule
 import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbModule
 import com.gitlab.ykrasik.gamedex.test.*
 import com.google.inject.AbstractModule
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
-import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.DIContainer
@@ -26,17 +25,12 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
             on { fetchImage(any(), anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
         }
-        val persistenceService = mock<PersistenceService> {
-            on { fetchAllGames() } doReturn emptyList<RawGame>()
-            on { fetchAllLibraries() } doReturn emptyList<Library>()
-        }
 
         return GuiceDiContainer(listOf(object : AbstractModule() {
             override fun configure() {
                 bind(ImageLoader::class.java).toInstance(imageLoader)
-                bind(PersistenceService::class.java).toInstance(persistenceService)
             }
-        }, GiantBombModule, IgdbModule))
+        }, GiantBombModule, IgdbModule, ConfigModule))
     }
 
     override fun init() {
@@ -44,7 +38,8 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             rawGame = RawGame(
                 id = rnd.nextInt(),
                 metaData = randomMetaData(),
-                rawGameData = emptyList()
+                rawGameData = emptyList(),
+                priorityOverride = null
             ),
             library = Library(
                 id = rnd.nextInt(),

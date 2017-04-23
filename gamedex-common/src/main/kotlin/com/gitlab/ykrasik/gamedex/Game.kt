@@ -19,6 +19,7 @@ data class Game(
     val id get() = rawGame.id
     val path get() = metaData.path
     val lastModified get() = metaData.lastModified
+    val priorityOverride get() = rawGame.priorityOverride
     private val metaData get() = rawGame.metaData
 
     val libraryId get() = library.id
@@ -41,7 +42,8 @@ data class Game(
 data class RawGame(
     val id: Int,
     val metaData: MetaData,
-    val rawGameData: List<RawGameData>
+    val rawGameData: List<RawGameData>,
+    val priorityOverride: ProviderPriorityOverride?
 )
 
 data class RawGameData(
@@ -75,4 +77,17 @@ data class MetaData(
     val libraryId: Int,
     val path: File,
     val lastModified: DateTime
+)
+
+data class ProviderPriorityOverride(
+    val name: GameProviderType?,
+    val description: GameProviderType?,
+    val releaseDate: GameProviderType?,
+    val criticScore: GameProviderType?,
+    val userScore: GameProviderType?,
+    // TODO: Consider adding priority overrides for genres as well.
+    val thumbnail: GameProviderType?,
+    val poster: GameProviderType?,
+    val screenshots: GameProviderType?
+    // TODO: This makes all screenshots come from a single provider. If needed, add more flexibility in the future - can use urls instead of Type.
 )
