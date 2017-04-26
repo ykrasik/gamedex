@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.preferences.GameSort
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
@@ -16,6 +15,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
+// TODO: Should only be 1 view, that is changed through properties
 class GameView : View("Games") {
     private val controller: GameController by inject()
     private val userPreferences: UserPreferences by di()
@@ -73,7 +73,7 @@ class GameView : View("Games") {
                     setMinSize(10.0, 10.0)
                     row {
                         label("Sort:")
-                        enumComboBox<GameSort>()
+                        enumComboBox(userPreferences.gameSortProperty)
                     }
                 }
 
@@ -99,5 +99,5 @@ class GameView : View("Games") {
         }
     }
 
-    val gameSizeProperty = controller.games.filteredItems.sizeProperty().asString("Games: %d")
+    val gameSizeProperty = controller.games.sizeProperty().asString("Games: %d")
 }

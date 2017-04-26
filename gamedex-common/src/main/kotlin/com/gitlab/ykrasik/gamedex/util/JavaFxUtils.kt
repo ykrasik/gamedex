@@ -38,7 +38,7 @@ fun Image.toImageView(): ImageView = ImageView(this)
 fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
 fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
     val p = SimpleIntegerProperty(this.size)
-    p.addListener { _, _, newValue -> p.set(newValue.toInt()) }
+    this.addListener(ListChangeListener { p.set(this.size)})
     return p
 }
 

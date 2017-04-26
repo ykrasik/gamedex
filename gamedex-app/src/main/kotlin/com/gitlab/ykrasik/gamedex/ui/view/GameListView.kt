@@ -24,6 +24,7 @@ class GameListView : View("Game List") {
         dividerPosition = 0.69
 
         tableview(controller.games) {
+            controller.games.sortedItems.comparatorProperty().unbind()
             isEditable = false
             columnResizePolicy = SmartResize.POLICY
 

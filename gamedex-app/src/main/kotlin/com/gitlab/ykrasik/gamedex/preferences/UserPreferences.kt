@@ -37,7 +37,7 @@ class UserPreferences private constructor() {
     var gameWallImageDisplayType by gameWallImageDisplayTypeProperty
 
     @Transient
-    val gameSortProperty = preferenceProperty(GameSort.nameAsc)
+    val gameSortProperty = preferenceProperty(GameSort.criticScoreDesc)
     var gameSort by gameSortProperty
 
     @Transient
