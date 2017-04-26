@@ -25,34 +25,30 @@ import java.util.concurrent.Executors
  * Time: 21:59
  */
 object TestMain {
-    val numGames = 1000
-    val giantBombPort = 9001
-    val igdbPort = 9002
-
-    val giantBombUrl = "http://localhost:$giantBombPort/"
-    val giantBombImageUrl = "${giantBombUrl}images"
-
-    val igdbUrl = "http://localhost:$igdbPort/"
-    val igdbImageUrl = "${igdbUrl}images"
+    val giantBombServer = GiantBombFakeServer(9001)
+    val igdbServer = IgdbFakeServer(9002)
 
     @JvmStatic fun main(args: Array<String>) {
         appConfig = appConfig
             .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:./test"))
-            .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef(giantBombUrl))
-            .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef(igdbUrl))
-            .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef(igdbImageUrl))
+            .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef(giantBombServer.endpointUrl))
+            .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef(igdbServer.endpointUrl))
+            .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef(igdbServer.baseImageUrl))
 
-        val giantBombServer = GiantBombFakeServer(giantBombPort).start()
-        val igdbServer = IgdbFakeServer(igdbPort).start()
+        giantBombServer.start()
+        igdbServer.start()
 
 //        generateDb()
 
         Main.main(args)
+
         igdbServer.close()
         giantBombServer.close()
     }
 
     private fun generateDb() {
+        val numGames = 1000
+
         val guice = GuiceDiContainer(listOf(PersistenceModule, ConfigModule))
         guice.getInstance(DbInitializer::class).reload()
         
@@ -88,23 +84,35 @@ object TestMain {
         imageUrls = imageUrls(type)
     )
 
-    private fun imageUrls(type: GameProviderType) = ImageUrls(
-        thumbnailUrl = imageUrl(type),
-        posterUrl = imageUrl(type),
-        screenshotUrls = List(rnd.nextInt(10)) { imageUrl(type) }
-    )
-
-    private fun imageUrl(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> "$giantBombImageUrl/${randomString()}"
-        GameProviderType.Igdb -> "$igdbImageUrl/t_thumb_2x/${randomString()}.png"
-    }
-
     private fun randomProviderData(type: GameProviderType) = ProviderData(
         type = type,
-        apiUrl = when(type) {
-            GameProviderType.GiantBomb -> giantBombUrl
-            GameProviderType.Igdb -> igdbUrl
-        },
+        apiUrl = apiUrl(type),
         siteUrl = randomUrl()
     )
+
+    private fun apiUrl(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> giantBombServer.apiDetailsUrl
+        GameProviderType.Igdb -> "${igdbServer.endpointUrl}/${rnd.nextInt()}"
+    }
+
+    private fun imageUrls(type: GameProviderType) = ImageUrls(
+        thumbnailUrl = randomThumbnailUrl(type),
+        posterUrl = randomPosterUrl(type),
+        screenshotUrls = List(rnd.nextInt(10)) { randomScreenshotUrl(type) }
+    )
+
+    private fun randomThumbnailUrl(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> "${giantBombServer.thumbnailUrl}/${randomString()}.jpg"
+        GameProviderType.Igdb -> "${igdbServer.thumbnailUrl}/${randomString()}.png"
+    }
+
+    private fun randomPosterUrl(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> "${giantBombServer.superUrl}/${randomString()}.jpg"
+        GameProviderType.Igdb -> "${igdbServer.posterUrl}/${randomString()}.png"
+    }
+
+    private fun randomScreenshotUrl(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> "${giantBombServer.screenshotUrl}/${randomString()}.jpg"
+        GameProviderType.Igdb -> "${igdbServer.screenshotUrl}/${randomString()}.png"
+    }
 }

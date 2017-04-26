@@ -21,7 +21,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
                 search(name) shouldBe listOf(ProviderSearchResult(
-                    apiUrl = "$baseUrl${searchResult.id}",
+                    apiUrl = "$baseUrl/${searchResult.id}",
                     name = name,
                     releaseDate = releaseDate,
                     score = searchResult.aggregatedRating,

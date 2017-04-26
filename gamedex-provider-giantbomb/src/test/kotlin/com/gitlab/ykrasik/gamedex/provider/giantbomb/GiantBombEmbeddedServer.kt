@@ -49,20 +49,28 @@ class GiantBombMockServer(port: Int) : Closeable {
 }
 
 class GiantBombFakeServer(port: Int) : Closeable {
-    private val baseUrl = "http://localhost:$port"
     private val apiDetailPath = "details"
-    private val apiDetailUrl = "$baseUrl/$apiDetailPath"
-    private val imagePath = "images"
-    private val imageUrl = "$baseUrl/$imagePath"
+    private val thumbnailPath = "images/thumbnail"
+    private val superPath = "images/super"
+
+    val endpointUrl = "http://localhost:$port"
+    val apiDetailsUrl = "$endpointUrl/$apiDetailPath"
+    val thumbnailUrl = "$endpointUrl/$thumbnailPath"
+    val superUrl = "$endpointUrl/$superPath"
+    val screenshotUrl = superUrl
 
     private val ktor = embeddedNettyServer(port) {
         routing {
             get("/") {
                 call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
             }
-            get("$imagePath/{imageName}") {
-                delay(rnd.nextInt(700).toLong(), TimeUnit.MILLISECONDS)
+            get("$thumbnailPath/{imageName}") {
+                delay(rnd.nextInt(600).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
+            }
+            get("$superPath/{imageName}") {
+                delay(rnd.nextInt(1000).toLong(), TimeUnit.MILLISECONDS)
+                call.respond(TestImages.randomImageBytes())     // TODO: Return a different set of images
             }
             get(apiDetailPath) {
                 call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
@@ -72,14 +80,12 @@ class GiantBombFakeServer(port: Int) : Closeable {
 
     private fun randomSearchResponse() = GiantBombClient.SearchResponse(
         statusCode = GiantBombClient.Status.ok,
-        results = List(rnd.nextInt(20)) {
+        results = List(rnd.nextInt(10)) {
             GiantBombClient.SearchResult(
-                apiDetailUrl = apiDetailUrl,
+                apiDetailUrl = apiDetailsUrl,
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBombClient.SearchImage(
-                    thumbUrl = randomImageUrl()
-                )
+                image = randomImage()
             )
         }
     )
@@ -91,19 +97,20 @@ class GiantBombFakeServer(port: Int) : Closeable {
             name = randomName(),
             deck = randomSentence(maxWords = 15),
             originalReleaseDate = randomLocalDate(),
-            image = GiantBombClient.DetailsImage(
-                thumbUrl = randomImageUrl(),
-                superUrl = randomImageUrl()   // TODO: Support once implemented
-            ),
+            image = randomImage(),
+            images = List(rnd.nextInt(10)) { randomImage() },
             genres = List(rnd.nextInt(4)) {
                 GiantBombClient.Genre(name = randomString())
             }
         ))
     )
 
-    private fun randomImageUrl() = "$imageUrl/${randomString()}"
+    private fun randomImage() = GiantBombClient.Image(
+        thumbUrl = "$thumbnailUrl/${randomString()}",
+        superUrl = "$superUrl/${randomString()}"
+    )
 
-    fun start() = apply {
+    fun start() {
         ktor.start()
     }
 
@@ -135,16 +142,6 @@ private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> {
     return map
 }
 
-private fun GiantBombClient.SearchImage.toMap() = mapOf(
-    "icon_url" to randomUrl(),
-    "medium_url" to randomUrl(),
-    "screen_url" to randomUrl(),
-    "small_url" to randomUrl(),
-    "super_url" to randomUrl(),
-    "thumb_url" to thumbUrl,
-    "tiny_url" to randomUrl()
-)
-
 private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
     "error" to statusCode.asString(),
     "limit" to 1,
@@ -159,7 +156,8 @@ private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
 private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> {
     val map = mutableMapOf<String, Any>(
         "site_detail_url" to siteDetailUrl,
-        "name" to name
+        "name" to name,
+        "images" to images
     )
     if (deck != null) {
         map += ("deck" to deck!!)
@@ -176,7 +174,7 @@ private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> {
     return map.toMap()
 }
 
-private fun GiantBombClient.DetailsImage.toMap() = mapOf(
+private fun GiantBombClient.Image.toMap() = mapOf(
     "icon_url" to randomUrl(),
     "medium_url" to randomUrl(),
     "screen_url" to randomUrl(),

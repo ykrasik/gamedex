@@ -76,10 +76,10 @@ class IgdbClientIT : ScopedWordSpec() {
     }
 
     inner class Scope {
-        val baseUrl = "http://localhost:$port/"
+        val baseUrl = "http://localhost:$port"
         val baseImageUrl = "$baseUrl/images"
         val id = rnd.nextInt()
-        val detailUrl = "$baseUrl$id"
+        val detailUrl = "$baseUrl/$id"
         val apiKey = randomString()
         val maxSearchResults = rnd.nextInt()
         val platform = randomEnum<GamePlatform>()

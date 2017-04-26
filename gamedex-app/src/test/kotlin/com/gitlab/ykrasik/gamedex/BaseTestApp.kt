@@ -31,9 +31,6 @@ abstract class BaseTestApp {
     init {
         appConfig = appConfig
             .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"))
-            .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef(TestMain.giantBombUrl))
-            .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef(TestMain.igdbUrl))
-            .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef(TestMain.igdbImageUrl))
 
         initializer = this::init
         Application.launch(TestApplication::class.java)

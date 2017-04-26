@@ -81,13 +81,15 @@ class GiantBombClientIT : ScopedWordSpec() {
         val platformId = rnd.nextInt(100)
         val name = randomName()
 
+        private fun randomImage() =  GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
+
         val searchResponse = GiantBombClient.SearchResponse(
             statusCode = GiantBombClient.Status.ok,
             results = listOf(GiantBombClient.SearchResult(
                 apiDetailUrl = randomUrl(),
                 name = randomName(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBombClient.SearchImage(thumbUrl = randomUrl())
+                image = randomImage()
             ))
         )
 
@@ -98,10 +100,8 @@ class GiantBombClientIT : ScopedWordSpec() {
                 name = randomName(),
                 deck = randomSentence(),
                 originalReleaseDate = randomLocalDate(),
-                image = GiantBombClient.DetailsImage(
-                    thumbUrl = randomUrl(),
-                    superUrl = randomUrl()
-                ),
+                image = randomImage(),
+                images = listOf(randomImage(), randomImage()),
                 genres = listOf(GiantBombClient.Genre(name = randomName()))
             ))
         )
@@ -114,7 +114,7 @@ class GiantBombClientIT : ScopedWordSpec() {
     }
 
     val searchFields = listOf("api_detail_url", "name", "original_release_date", "image")
-    val fetchDetailsFields = searchFields - "api_detail_url" + listOf("site_detail_url", "deck", "genres")
+    val fetchDetailsFields = searchFields - "api_detail_url" + listOf("site_detail_url", "deck", "genres", "images")
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
         server.start()

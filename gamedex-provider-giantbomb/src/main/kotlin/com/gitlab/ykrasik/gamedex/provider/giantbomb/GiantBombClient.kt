@@ -49,7 +49,8 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val fetchDetailsFields = searchFields - "api_detail_url" + listOf(
             "site_detail_url",
             "deck",
-            "genres"
+            "genres",
+            "images"
         )
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
@@ -65,12 +66,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val name: String,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         val originalReleaseDate: LocalDate?,
-        val image: SearchImage?
-    )
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class SearchImage(
-        val thumbUrl: String
+        val image: Image?
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -88,7 +84,8 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val deck: String?,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         val originalReleaseDate: LocalDate?,
-        val image: DetailsImage?,
+        val image: Image?,
+        val images: List<Image>,
         val genres: List<Genre>?
     )
 
@@ -98,7 +95,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class DetailsImage(
+    data class Image(
         val thumbUrl: String,
         val superUrl: String
     )

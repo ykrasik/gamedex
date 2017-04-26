@@ -2,9 +2,9 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.ui.UIResources
+import com.gitlab.ykrasik.gamedex.ui.toImage
 import com.gitlab.ykrasik.gamedex.util.download
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.toImage
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import javafx.beans.property.ObjectProperty

@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     open fun search(name: String, platform: GamePlatform): List<SearchResult> {
-        val response = getRequest(config.endpoint,
+        val response = getRequest("${config.endpoint}/",
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
             "limit" to config.maxSearchResults.toString(),

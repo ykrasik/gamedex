@@ -93,7 +93,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                     imageUrls = ImageUrls(
                         thumbnailUrl = detailsResult.image!!.thumbUrl,
                         posterUrl = detailsResult.image!!.superUrl,
-                        screenshotUrls = emptyList()
+                        screenshotUrls = detailsResult.images.map { it.superUrl }
                     )
                 )
             }
@@ -138,11 +138,13 @@ class GiantBombProviderTest : ScopedWordSpec() {
         val name = randomName()
         val apiDetailUrl = randomUrl()
 
+        private fun randomImage() =  GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
+
         fun searchResult(name: String = this.name) = GiantBombClient.SearchResult(
             apiDetailUrl = randomUrl(),
             name = name,
             originalReleaseDate = randomLocalDate(),
-            image = GiantBombClient.SearchImage(thumbUrl = randomUrl())
+            image = randomImage()
         )
 
         fun detailsResult(name: String = this.name) = GiantBombClient.DetailsResult(
@@ -150,7 +152,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
             name = name,
             deck = randomSentence(),
             originalReleaseDate = randomLocalDate(),
-            image = GiantBombClient.DetailsImage(thumbUrl = randomUrl(), superUrl = randomUrl()),
+            image = randomImage(),
+            images = listOf(randomImage(), randomImage()),
             genres = listOf(GiantBombClient.Genre(randomString()))
         )
 

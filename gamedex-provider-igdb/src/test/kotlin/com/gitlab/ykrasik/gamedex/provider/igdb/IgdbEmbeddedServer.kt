@@ -50,7 +50,15 @@ class IgdbMockServer(port: Int) : Closeable {
 }
 
 class IgdbFakeServer(port: Int) : Closeable {
-    private val apiDetailPath = 1
+    private val imagePath = "images"
+    private val thumbnailPath = "t_thumb_2x"
+    private val posterPath = "screenshot_huge"
+
+    val endpointUrl = "http://localhost:$port"
+    val baseImageUrl = "$endpointUrl/$imagePath"
+    val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
+    val posterUrl = "$baseImageUrl/$posterPath"
+    val screenshotUrl = posterUrl
 
     private val ktor = embeddedNettyServer(port) {
         routing {
@@ -64,24 +72,26 @@ class IgdbFakeServer(port: Int) : Closeable {
                     }
                 }
             }
-            get("images/t_thumb_2x/{imageName}") {
-                delay(rnd.nextInt(700).toLong(), TimeUnit.MILLISECONDS)
+            get("/{id}") {
+                call.respondText(randomDetailResponse(), ContentType.Application.Json)
+            }
+            get("$imagePath/$thumbnailPath/{imageName}") {
+                delay(rnd.nextInt(600).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())
             }
-            get(apiDetailPath.toString()) {
-                call.respondText(randomDetailResponse(), ContentType.Application.Json)
+            get("$imagePath/$posterPath/{imageName}") {
+                delay(rnd.nextInt(1000).toLong(), TimeUnit.MILLISECONDS)
+                call.respond(TestImages.randomImageBytes())     // TODO: Use a different set of images
             }
         }
     }
 
-    private fun randomSearchResults(name: String): String = List(rnd.nextInt(20)) { IgdbClient.SearchResult(
-        id = apiDetailPath,
+    private fun randomSearchResults(name: String): String = List(rnd.nextInt(10)) { IgdbClient.SearchResult(
+        id = rnd.nextInt(),
         name = "$name ${randomName()}",
         aggregatedRating = randomScore(),
         releaseDates = randomReleaseDates(),
-        cover = IgdbClient.Image(
-            cloudinaryId = randomString()
-        )
+        cover = IgdbClient.Image(cloudinaryId = randomString())
     ) }.toJsonStr()
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
@@ -123,7 +133,7 @@ class IgdbFakeServer(port: Int) : Closeable {
         )
     }
 
-    fun start() = apply {
+    fun start() {
         ktor.start(wait = false)
     }
 

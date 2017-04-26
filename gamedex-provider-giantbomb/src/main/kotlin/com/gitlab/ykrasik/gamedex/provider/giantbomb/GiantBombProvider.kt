@@ -67,7 +67,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         imageUrls = ImageUrls(
             thumbnailUrl = this.image?.thumbUrl,
             posterUrl = this.image?.superUrl,
-            screenshotUrls = emptyList()    // TODO: Support screenshots
+            screenshotUrls = this.images.map { it.superUrl }
         )
     )
 

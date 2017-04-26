@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.repository
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamedex.util.toImage
+import com.gitlab.ykrasik.gamedex.ui.toImage
 import javax.inject.Inject
 import javax.inject.Singleton
 
