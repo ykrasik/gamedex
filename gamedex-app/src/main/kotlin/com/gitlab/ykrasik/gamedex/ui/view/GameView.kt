@@ -2,12 +2,8 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import com.gitlab.ykrasik.gamedex.ui.enumComboBox
-import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
-import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
-import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.util.containsIgnoreCase
-import com.gitlab.ykrasik.gamedex.util.sizeProperty
 import tornadofx.*
 
 /**

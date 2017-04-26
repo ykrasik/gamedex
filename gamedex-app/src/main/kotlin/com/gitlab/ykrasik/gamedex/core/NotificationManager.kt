@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.util.ThreadAwareDoubleProperty
-import com.gitlab.ykrasik.gamedex.util.ThreadAwareStringProperty
+import com.gitlab.ykrasik.gamedex.ui.ThreadAwareDoubleProperty
+import com.gitlab.ykrasik.gamedex.ui.ThreadAwareStringProperty
 import com.google.inject.Singleton
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty

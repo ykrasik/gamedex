@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
-import com.gitlab.ykrasik.gamedex.util.toImage
 import javafx.scene.image.Image
+import java.io.ByteArrayInputStream
 
 /**
  * User: ykrasik
@@ -21,5 +21,5 @@ object TestImages {
     }
 
     fun randomImageBytes(): ByteArray = images.randomElement()
-    fun randomImage(): Image = randomImageBytes().toImage()
+    fun randomImage(): Image = Image(ByteArrayInputStream(randomImageBytes()))
 }

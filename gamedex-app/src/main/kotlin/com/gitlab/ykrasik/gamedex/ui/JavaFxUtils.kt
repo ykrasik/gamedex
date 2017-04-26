@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.ui
 
 import javafx.application.Platform
 import javafx.application.Platform.runLater
