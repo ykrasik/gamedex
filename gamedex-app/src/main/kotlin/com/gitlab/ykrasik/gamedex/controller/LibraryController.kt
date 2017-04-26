@@ -11,15 +11,19 @@ import tornadofx.Controller
 import tornadofx.listview
 import tornadofx.text
 import tornadofx.vbox
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 23/04/2017
  * Time: 11:05
  */
-class LibraryController : Controller() {
-    private val libraryRepository: LibraryRepository by di()
-    private val gameRepository: GameRepository by di()
+@Singleton
+class LibraryController @Inject constructor(
+    private val libraryRepository: LibraryRepository,
+    private val gameRepository: GameRepository
+): Controller() {
 
     val librariesProperty get() = libraryRepository.librariesProperty
 

@@ -17,6 +17,7 @@ import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
 import tornadofx.SortedFilteredList
 import tornadofx.onChange
+import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -24,14 +25,14 @@ import javax.inject.Singleton
  * Date: 09/10/2016
  * Time: 14:39
  */
-// TODO: Move all controllers to be injected by di
 @Singleton
-class GameController : Controller() {
-    private val gameRepository: GameRepository by di()
-    private val libraryRepository: LibraryRepository by di()
-    private val libraryScanner: LibraryScanner by di()
-    private val notificationManager: NotificationManager by di()
-    private val userPreferences: UserPreferences by di()
+class GameController @Inject constructor(
+    private val gameRepository: GameRepository,
+    private val libraryRepository: LibraryRepository,
+    private val libraryScanner: LibraryScanner,
+    private val notificationManager: NotificationManager,
+    userPreferences: UserPreferences
+): Controller() {
 
     val games = SortedFilteredList(gameRepository.games)
 

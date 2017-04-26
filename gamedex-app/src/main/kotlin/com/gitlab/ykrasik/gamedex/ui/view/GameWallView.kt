@@ -19,7 +19,7 @@ import tornadofx.*
  * Time: 15:03
  */
 class GameWallView : View("Games Wall") {
-    private val controller: GameController by inject()
+    private val controller: GameController by di()
     private val userPreferences: UserPreferences by di()
     private val imageLoader: ImageLoader by di()
 

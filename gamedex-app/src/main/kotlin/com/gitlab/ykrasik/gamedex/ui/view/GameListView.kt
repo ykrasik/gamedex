@@ -18,13 +18,13 @@ import tornadofx.*
  * Time: 15:06
  */
 class GameListView : View("Game List") {
-    private val controller: GameController by inject()
+    private val controller: GameController by di()
 
     override val root = splitpane {
         dividerPosition = 0.69
 
-        tableview(controller.games) {
-            controller.games.sortedItems.comparatorProperty().unbind()
+        tableview<Game> {
+            items = controller.games
             isEditable = false
             columnResizePolicy = SmartResize.POLICY
 

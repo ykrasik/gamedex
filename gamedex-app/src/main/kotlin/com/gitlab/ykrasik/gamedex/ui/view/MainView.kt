@@ -13,9 +13,8 @@ import tornadofx.*
  * Time: 22:44
  */
 class MainView : View("Gamedex") {
+    private val controller: MainController by di()
     private val notificationManager: NotificationManager by di()
-
-    private val controller: MainController by inject()
 
     private val gameView: GameView by inject()
     private val libraryView: LibraryView by inject()

@@ -15,9 +15,9 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-// TODO: Should only be 1 view, that is changed through properties
+// TODO: Should only be 1 view (wall / table), view type is decided by settings
 class GameView : View("Games") {
-    private val controller: GameController by inject()
+    private val controller: GameController by di()
     private val userPreferences: UserPreferences by di()
 
     private val gameWallView: GameWallView by inject()
