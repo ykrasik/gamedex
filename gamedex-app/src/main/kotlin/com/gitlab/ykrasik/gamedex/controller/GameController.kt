@@ -24,6 +24,7 @@ import javax.inject.Singleton
  * Date: 09/10/2016
  * Time: 14:39
  */
+// TODO: Move all controllers to be injected by di
 @Singleton
 class GameController : Controller() {
     private val gameRepository: GameRepository by di()
