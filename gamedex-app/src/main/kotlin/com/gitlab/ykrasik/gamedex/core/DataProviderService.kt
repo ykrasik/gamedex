@@ -14,9 +14,9 @@ import javax.inject.Singleton
  */
 interface DataProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: GamePlatform, path: File): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File): List<RawGameData>?
 
-    fun fetch(providerData: List<ProviderData>, platform: GamePlatform): List<RawGameData>
+    fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData>
 }
 
 @Singleton
@@ -26,14 +26,14 @@ class DataProviderServiceImpl @Inject constructor(
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
-    override suspend fun search(name: String, platform: GamePlatform, path: File): List<RawGameData>? =
+    override suspend fun search(name: String, platform: Platform, path: File): List<RawGameData>? =
         try {
             SearchContext(platform, path).fetch(name)
         } catch (e: CancelSearchException) {
             null
         }
 
-    private inner class SearchContext(private val platform: GamePlatform, private val path: File) {
+    private inner class SearchContext(private val platform: Platform, private val path: File) {
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
@@ -79,7 +79,7 @@ class DataProviderServiceImpl @Inject constructor(
         }
     }
 
-    override fun fetch(providerData: List<ProviderData>, platform: GamePlatform): List<RawGameData> =
+    override fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData> =
         providerData.map { providerData ->
             val provider = providerRepository[providerData]
             provider.fetch(providerData.apiUrl, platform)

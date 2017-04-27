@@ -17,7 +17,7 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
     init {
         "GiantBombDataProvider" should {
             "search & retrieve a single search result" {
-                provider.search(name, GamePlatform.pc) shouldBe listOf(ProviderSearchResult(
+                provider.search(name, Platform.pc) shouldBe listOf(ProviderSearchResult(
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
@@ -27,7 +27,7 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
             }
 
             "fetch game details" {
-                provider.fetch(apiUrl, GamePlatform.pc) shouldBe RawGameData(
+                provider.fetch(apiUrl, Platform.pc) shouldBe RawGameData(
                     providerData = ProviderData(
                         type = GameProviderType.GiantBomb,
                         apiUrl = apiUrl,

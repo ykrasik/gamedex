@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.getObjectMap
 import com.typesafe.config.Config
 
@@ -14,10 +14,10 @@ data class IgdbConfig(
     val baseImageUrl: String,
     val apiKey: String,
     val maxSearchResults: Int,
-    private val platforms: Map<GamePlatform, Int>,
+    private val platforms: Map<Platform, Int>,
     private val genres: Map<Int, String>
 ) {
-    fun getPlatformId(platform: GamePlatform): Int = platforms[platform]!!
+    fun getPlatformId(platform: Platform): Int = platforms[platform]!!
     fun getGenreName(genreId: Int): String = genres[genreId]!!
 
     companion object {
@@ -28,7 +28,7 @@ data class IgdbConfig(
                     baseImageUrl = config.getString("baseImageUrl"),
                     apiKey = config.getString("apiKey"),
                     maxSearchResults = config.getInt("maxSearchResults"),
-                    platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int }),
+                    platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int }),
                     genres = config.getObjectMap("genres", String::toInt, Any::toString)
                 )
             }

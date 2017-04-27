@@ -15,7 +15,7 @@ import javax.inject.Singleton
 class GiantBombProvider @Inject constructor(private val client: GiantBombClient) : GameProvider {
     private val log by logger()
 
-    override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
+    override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
         log.info { "[$platform] Searching: name='$name'..." }
         val response = client.search(name, platform)
         log.debug { "[$platform] Response: $response" }
@@ -35,7 +35,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         apiUrl = apiDetailUrl
     )
 
-    override fun fetch(apiUrl: String, platform: GamePlatform): RawGameData {
+    override fun fetch(apiUrl: String, platform: Platform): RawGameData {
         log.info { "[$platform] Fetching: $apiUrl..." }
         val response = client.fetch(apiUrl)
         log.debug { "[$platform] Response: $response" }

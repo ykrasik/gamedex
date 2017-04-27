@@ -26,7 +26,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
     inner open class LibraryScope {
         fun randomLibraryDate() = LibraryData(
-            platform = randomEnum<GamePlatform>(),
+            platform = randomEnum<Platform>(),
             name = randomName()
         )
 

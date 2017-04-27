@@ -10,9 +10,9 @@ import org.joda.time.LocalDate
 interface GameProvider {
     val info: GameProviderInfo
 
-    fun search(name: String, platform: GamePlatform): List<ProviderSearchResult>
+    fun search(name: String, platform: Platform): List<ProviderSearchResult>
 
-    fun fetch(apiUrl: String, platform: GamePlatform): RawGameData
+    fun fetch(apiUrl: String, platform: Platform): RawGameData
 }
 
 enum class GameProviderType {

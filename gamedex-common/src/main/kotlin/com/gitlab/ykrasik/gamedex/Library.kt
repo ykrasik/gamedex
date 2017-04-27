@@ -22,12 +22,14 @@ data class Library(
 }
 
 data class LibraryData(
-    val platform: GamePlatform,
+    val platform: Platform,
     val name: String
 )
 
-enum class GamePlatform constructor(override val key: String) : IdentifiableEnum<String> {
+enum class Platform constructor(override val key: String) : IdentifiableEnum<String> {
     pc("PC"),
+    mac("Mac"),
+    android("Android"),
     xbox360("Xbox 360"),
     xboxOne("Xbox One"),
     ps3("PlayStation 3"),
@@ -37,8 +39,8 @@ enum class GamePlatform constructor(override val key: String) : IdentifiableEnum
     override fun toString() = key
 
     companion object {
-        private val values = EnumIdConverter(GamePlatform::class.java)
+        private val values = EnumIdConverter(Platform::class.java)
 
-        operator fun invoke(name: String): GamePlatform = values[name]
+        operator fun invoke(name: String): Platform = values[name]
     }
 }

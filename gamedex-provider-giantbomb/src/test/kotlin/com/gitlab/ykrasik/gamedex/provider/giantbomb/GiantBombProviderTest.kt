@@ -134,7 +134,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
     }
 
     class Scope {
-        val platform = randomEnum<GamePlatform>()
+        val platform = randomEnum<Platform>()
         val name = randomName()
         val apiDetailUrl = randomUrl()
 
@@ -173,7 +173,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
         fun search(name: String = this.name) = provider.search(name, platform)
 
-        fun fetch(apiUrl: String = apiDetailUrl, platform: GamePlatform = this.platform) = provider.fetch(apiUrl, platform)
+        fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform)
 
         private val client = mock<GiantBombClient>()
         val provider = GiantBombProvider(client)

@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.getObjectMap
 import com.typesafe.config.Config
 
@@ -12,9 +12,9 @@ import com.typesafe.config.Config
 data class GiantBombConfig(
     val endpoint: String,
     val apiKey: String,
-    private val platforms: Map<GamePlatform, Int>
+    private val platforms: Map<Platform, Int>
 ) {
-    fun getPlatformId(platform: GamePlatform) = platforms[platform]!!
+    fun getPlatformId(platform: Platform) = platforms[platform]!!
 
     companion object {
         operator fun invoke(config: Config): GiantBombConfig =
@@ -22,7 +22,7 @@ data class GiantBombConfig(
                 GiantBombConfig(
                     endpoint = config.getString("endpoint"),
                     apiKey = config.getString("apiKey"),
-                    platforms = config.getObjectMap("platforms", { GamePlatform.valueOf(it) }, { it as Int })
+                    platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int })
                 )
             }
     }

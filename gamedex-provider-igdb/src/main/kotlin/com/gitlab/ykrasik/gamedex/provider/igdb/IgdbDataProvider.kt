@@ -17,7 +17,7 @@ import javax.inject.Singleton
 class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
     private val log by logger()
 
-    override fun search(name: String, platform: GamePlatform): List<ProviderSearchResult> {
+    override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
         log.info { "[$platform] Searching: name='$name'..." }
         val searchResults = client.search(name, platform)
         log.debug { "[$platform] Results: $searchResults" }
@@ -27,7 +27,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         return results
     }
 
-    override fun fetch(apiUrl: String, platform: GamePlatform): RawGameData {
+    override fun fetch(apiUrl: String, platform: Platform): RawGameData {
         log.info { "[$platform] Fetching: $apiUrl..." }
         val fetchResult = client.fetch(apiUrl)
         log.debug { "[$platform] Response: $fetchResult" }
@@ -37,7 +37,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         return gameData
     }
 
-    private fun List<IgdbClient.SearchResult>.toProviderSearchResults(name: String, platform: GamePlatform): List<ProviderSearchResult> {
+    private fun List<IgdbClient.SearchResult>.toProviderSearchResults(name: String, platform: Platform): List<ProviderSearchResult> {
         // IGBD search sucks. It returns way more results then it should.
         // Since I couldn't figure out how to make it not return irrelevant results, I had to filter results myself.
         val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
@@ -49,7 +49,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         return filteredResults.map { it.toSearchResult(platform) }.toList()
     }
 
-    private fun IgdbClient.SearchResult.toSearchResult(platform: GamePlatform) = ProviderSearchResult(
+    private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
         apiUrl = "${config.endpoint}/$id",
         name = name,
         releaseDate = releaseDates?.findReleaseDate(platform),
@@ -57,7 +57,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(thumbnailImageType)
     )
 
-    private fun IgdbClient.DetailsResult.toRawGameData(apiUrl: String, platform: GamePlatform) = RawGameData(
+    private fun IgdbClient.DetailsResult.toRawGameData(apiUrl: String, platform: Platform) = RawGameData(
         providerData = ProviderData(
             type = GameProviderType.Igdb,
             apiUrl = apiUrl,
@@ -78,7 +78,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         )
     )
 
-    private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: GamePlatform): LocalDate? {
+    private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): LocalDate? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.
         val releaseDate = this.find { it.platform == platform.id } ?: return null
         return releaseDate.toLocalDate()
@@ -108,7 +108,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         screenshot_huge_2x  // 2560 x 1440
     }
 
-    private val GamePlatform.id: Int get() = config.getPlatformId(this)
+    private val Platform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
     override val info = IgdbDataProvider.info

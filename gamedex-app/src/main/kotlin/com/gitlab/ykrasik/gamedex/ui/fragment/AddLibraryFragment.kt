@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
-import com.gitlab.ykrasik.gamedex.GamePlatform
 import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
@@ -40,7 +40,7 @@ class AddLibraryFragment : Fragment("Add Library") {
                 button("Browse") { setOnAction { browse() } }
             }
             field("Name") { textfield(model.nameProperty).required() }
-            field("Platform") { enumComboBox<GamePlatform>(model.platformProperty) { value = GamePlatform.pc } }
+            field("Platform") { enumComboBox<Platform>(model.platformProperty) { value = Platform.pc } }
         }
 
         buttonbar {
@@ -86,7 +86,7 @@ private class AddLibraryViewModel : ViewModel() {
     val nameProperty = bind { SimpleStringProperty() }
     var name by nameProperty
 
-    val platformProperty = bind { SimpleObjectProperty<GamePlatform>() }
+    val platformProperty = bind { SimpleObjectProperty<Platform>() }
     var platform by platformProperty
 
     fun toRequest() = AddLibraryRequest(

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
-    open fun search(name: String, platform: GamePlatform): List<SearchResult> {
+    open fun search(name: String, platform: Platform): List<SearchResult> {
         val response = getRequest("${config.endpoint}/",
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
@@ -47,7 +47,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         return errors.first().error.first()
     }
 
-    private val GamePlatform.id: Int get() = config.getPlatformId(this)
+    private val Platform.id: Int get() = config.getPlatformId(this)
 
     private companion object {
         val searchFields = listOf(

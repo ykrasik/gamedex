@@ -208,7 +208,7 @@ class IgdbProviderTest : ScopedWordSpec() {
     }
 
     class Scope {
-        val platform = randomEnum<GamePlatform>()
+        val platform = randomEnum<Platform>()
         val platformId = rnd.nextInt(100)
         val genreId = rnd.nextInt(100)
         val genre = randomString()

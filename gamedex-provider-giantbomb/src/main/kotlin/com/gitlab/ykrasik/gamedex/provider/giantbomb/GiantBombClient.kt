@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.EnumIdConverter
 import com.gitlab.ykrasik.gamedex.util.IdentifiableEnum
 import com.gitlab.ykrasik.gamedex.util.fromJson
@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
-    open fun search(name: String, platform: GamePlatform): SearchResponse {
+    open fun search(name: String, platform: Platform): SearchResponse {
         val response = getRequest(config.endpoint,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFieldsStr
@@ -31,7 +31,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         return response.fromJson()
     }
 
-    private val GamePlatform.id: Int get() = config.getPlatformId(this)
+    private val Platform.id: Int get() = config.getPlatformId(this)
 
     private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
         params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)

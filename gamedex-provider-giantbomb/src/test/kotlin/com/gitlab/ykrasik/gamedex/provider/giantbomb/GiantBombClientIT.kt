@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GameDexException
-import com.gitlab.ykrasik.gamedex.GamePlatform
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -77,7 +77,7 @@ class GiantBombClientIT : ScopedWordSpec() {
         val detailPath = randomPath()
         val detailUrl = "$baseUrl$detailPath"
         val apiKey = randomString()
-        val platform = randomEnum<GamePlatform>()
+        val platform = randomEnum<Platform>()
         val platformId = rnd.nextInt(100)
         val name = randomName()
 

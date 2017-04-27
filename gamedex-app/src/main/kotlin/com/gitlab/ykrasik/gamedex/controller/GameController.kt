@@ -50,7 +50,7 @@ class GameController @Inject constructor(
                 gameRepository.games.map(Game::path).toSet()
 
         libraryRepository.libraries.asSequence()
-            .filter { it.platform != GamePlatform.excluded }
+            .filter { it.platform != Platform.excluded }
             .forEach { library ->
                 val (job, notification) = libraryScanner.refresh(library, excludedPaths - library.path, context)
                 notificationManager.bind(notification)

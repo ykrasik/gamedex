@@ -55,7 +55,7 @@ object TestMain {
         val persistenceService = guice.getInstance(PersistenceService::class)
 
         persistenceService.insertLibrary(
-            path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(GamePlatform.pc, "Test Games")
+            path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(Platform.pc, "Test Games")
         )
 
         val executor = Executors.newFixedThreadPool(10)
