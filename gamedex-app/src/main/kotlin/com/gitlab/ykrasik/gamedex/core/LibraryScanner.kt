@@ -48,7 +48,7 @@ class LibraryScanner @Inject constructor(private val providerService: DataProvid
     private suspend fun processPath(path: File, library: Library): AddGameRequest? {
         val name = requireNotNull(path.normalizeName().emptyToNull()) { "Invalid folder name: '${path.name}'!"}
 
-        val providerData = providerService.fetch(name, library.platform, path) ?: return null
+        val providerData = providerService.search(name, library.platform, path) ?: return null
 
         return AddGameRequest(
             metaData = MetaData(library.id, path, lastModified = DateTime.now()),

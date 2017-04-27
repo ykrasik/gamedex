@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.DataProviderService
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
@@ -14,6 +15,7 @@ import javafx.beans.property.SimpleObjectProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.run
 import tornadofx.Controller
 import tornadofx.SortedFilteredList
 import tornadofx.onChange
@@ -31,6 +33,7 @@ class GameController @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val libraryScanner: LibraryScanner,
     private val notificationManager: NotificationManager,
+    private val dataProviderService: DataProviderService,
     userPreferences: UserPreferences
 ): Controller() {
 
@@ -40,6 +43,7 @@ class GameController @Inject constructor(
         games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.toComparatorProperty())
     }
 
+    // TODO: Allow cancelling this
     fun refreshGames() = launch(CommonPool) {
         val excludedPaths =
             libraryRepository.libraries.map(Library::path).toSet() +
@@ -56,6 +60,19 @@ class GameController @Inject constructor(
                 }
                 notificationManager.unbind()
             }
+    }
+
+    // TODO: Allow cancelling this
+    fun refetchGames() = launch(JavaFx) {
+        if (!areYouSureDialog("Re-fetch all games? This could take a while...")) return@launch
+
+        run(CommonPool) {
+            games.forEach { game ->
+                val newRawGameData = dataProviderService.fetch(game.providerData, game.platform)
+                val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
+                gameRepository.update(newRawGame)
+            }
+        }
     }
 
     fun changeThumbnail(game: Game) = launch(JavaFx) {

@@ -24,6 +24,7 @@ class GameProviderRepository @Inject constructor(allProviders: MutableSet<GamePr
     private val providerLogos = providersByType.mapValues { it.value.info.logo.toImage() }
 
     operator fun get(type: GameProviderType) = providersByType[type]!!
+    operator fun get(providerData: ProviderData) = get(providerData.type)
 
     fun logo(type: GameProviderType) = providerLogos[type]!!
     fun logo(providerData: ProviderData) = logo(providerData.type)

@@ -1,9 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.GamePlatform
-import com.gitlab.ykrasik.gamedex.GameProvider
-import com.gitlab.ykrasik.gamedex.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import java.io.File
@@ -16,7 +13,10 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface DataProviderService {
-    suspend fun fetch(name: String, platform: GamePlatform, path: File): List<RawGameData>?
+    // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
+    suspend fun search(name: String, platform: GamePlatform, path: File): List<RawGameData>?
+
+    fun fetch(providerData: List<ProviderData>, platform: GamePlatform): List<RawGameData>
 }
 
 @Singleton
@@ -26,7 +26,7 @@ class DataProviderServiceImpl @Inject constructor(
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
-    override suspend fun fetch(name: String, platform: GamePlatform, path: File): List<RawGameData>? =
+    override suspend fun search(name: String, platform: GamePlatform, path: File): List<RawGameData>? =
         try {
             SearchContext(platform, path).fetch(name)
         } catch (e: CancelSearchException) {
@@ -78,6 +78,12 @@ class DataProviderServiceImpl @Inject constructor(
             }
         }
     }
+
+    override fun fetch(providerData: List<ProviderData>, platform: GamePlatform): List<RawGameData> =
+        providerData.map { providerData ->
+            val provider = providerRepository[providerData]
+            provider.fetch(providerData.apiUrl, platform)
+        }
 
     private class CancelSearchException : RuntimeException()
 }

@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.MainController
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.ui.*
@@ -13,7 +14,8 @@ import tornadofx.*
  * Time: 22:44
  */
 class MainView : View("Gamedex") {
-    private val controller: MainController by di()
+    private val mainController: MainController by di()
+    private val gameController: GameController by di()
     private val notificationManager: NotificationManager by di()
 
     private val gameView: GameView by inject()
@@ -26,13 +28,13 @@ class MainView : View("Gamedex") {
             menubar {
                 menu("Game") {
                     isMnemonicParsing = false
-                    menuitem("Cleanup") { controller.cleanup() }
+                    menuitem("Cleanup") { mainController.cleanup() }
                     separator()
-                    menuitem("Re-Fetch Games") { }
+                    menuitem("Re-Fetch Games") { gameController.refetchGames() }
                 }
                 menu("Settings") {
                     isMnemonicParsing = false
-                    menuitem("Settings") { controller.showSettings() }
+                    menuitem("Settings") { mainController.showSettings() }
                 }
             }
         }
@@ -60,7 +62,7 @@ class MainView : View("Gamedex") {
                     verticalSeparator(10.0)
                     label { 
                         paddingTop = 4
-                        textProperty().bind(gameView.gameSizeProperty)
+                        textProperty().bind(gameController.games.sizeProperty().asString("Games: %d"))
                     }
                     verticalSeparator(10.0)
                 }

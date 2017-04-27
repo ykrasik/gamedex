@@ -47,7 +47,7 @@ class NotificationManager {
     }
 }
 
-// TODO: Look at the use cases of this class and consider if this is even required.
+// TODO: Remove this class and just send messages to notificationManager.
 data class Notification(
     val messageProperty: StringProperty = ThreadAwareStringProperty(),
     val progressProperty: DoubleProperty = ThreadAwareDoubleProperty()

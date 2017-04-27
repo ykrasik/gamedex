@@ -10,6 +10,7 @@ import javafx.collections.transformation.FilteredList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
+import org.joda.time.DateTime
 import tornadofx.observable
 import tornadofx.onChange
 import javax.inject.Inject
@@ -49,7 +50,7 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
-        val rawGame = persistenceService.insertGame(request.metaData, request.rawGameData)
+        val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData)
         val game = rawGame.toGame()
         run(JavaFx) {
             games += game
@@ -59,7 +60,7 @@ class GameRepository @Inject constructor(
 
     suspend fun update(newRawGame: RawGame) = run(JavaFx) {
         run(CommonPool) {
-            persistenceService.updateGame(newRawGame)
+            persistenceService.updateGame(newRawGame.copy(metaData = newRawGame.metaData.updatedNow()))
         }
         removeGameById(newRawGame.id)
         games += newRawGame.toGame()
@@ -90,6 +91,8 @@ class GameRepository @Inject constructor(
     private fun removeGameById(id: Int) {
         check(games.removeIf { it.id == id }) { "Error! Doesn't exist: Game($id)" }
     }
+
+    private fun MetaData.updatedNow(): MetaData = copy(lastModified = DateTime.now())
 }
 
 data class AddGameRequest(
