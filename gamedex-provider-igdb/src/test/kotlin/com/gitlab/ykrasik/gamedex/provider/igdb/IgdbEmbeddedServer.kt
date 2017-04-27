@@ -86,13 +86,15 @@ class IgdbFakeServer(port: Int) : Closeable {
         }
     }
 
-    private fun randomSearchResults(name: String): String = List(rnd.nextInt(10)) { IgdbClient.SearchResult(
-        id = rnd.nextInt(),
-        name = "$name ${randomName()}",
-        aggregatedRating = randomScore(),
-        releaseDates = randomReleaseDates(),
-        cover = IgdbClient.Image(cloudinaryId = randomString())
-    ) }.toJsonStr()
+    private fun randomSearchResults(name: String): String = List(rnd.nextInt(10)) {
+        IgdbClient.SearchResult(
+            id = rnd.nextInt(),
+            name = "$name ${randomName()}",
+            aggregatedRating = randomScore(),
+            releaseDates = randomReleaseDates(),
+            cover = randomImage()
+        )
+    }.toJsonStr()
 
     private fun randomPlatform() = listOf(6, 9, 12, 48, 49).randomElement()
 
@@ -104,7 +106,7 @@ class IgdbFakeServer(port: Int) : Closeable {
         aggregatedRating = randomScore(),
         rating = randomScore(),
         cover = IgdbClient.Image(cloudinaryId = randomString()),
-        screenshots = List(rnd.nextInt(10)) { IgdbClient.Image(cloudinaryId = randomString()) },
+        screenshots = List(rnd.nextInt(10)) { randomImage() },
         genres = List(rnd.nextInt(4)) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
         }
@@ -115,7 +117,7 @@ class IgdbFakeServer(port: Int) : Closeable {
     private fun randomReleaseDate(): IgdbClient.ReleaseDate {
         val category = rnd.nextInt(8)
         val date = randomLocalDate()
-        val human = when(category) {
+        val human = when (category) {
             0 -> date.toString("YYYY-MMM-dd")
             1 -> date.toString("YYYY-MMM")
             2 -> date.toString("YYYY")
@@ -132,6 +134,8 @@ class IgdbFakeServer(port: Int) : Closeable {
             human = human
         )
     }
+
+    private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
 
     fun start() {
         ktor.start(wait = false)

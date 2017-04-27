@@ -90,29 +90,29 @@ class IgdbClientIT : ScopedWordSpec() {
             id = rnd.nextInt(),
             name = randomName(),
             aggregatedRating = randomScore(),
-            releaseDates = listOf(IgdbClient.ReleaseDate(
-                platform = platformId,
-                category = 0,
-                human = randomLocalDate().toString("YYYY-MMM-dd")
-            )),
-            cover = IgdbClient.Image(cloudinaryId = randomString())
+            releaseDates = listOf(randomReleaseDate()),
+            cover = randomImage()
         )
 
         val detailsResult = IgdbClient.DetailsResult(
             url = randomString(),
             name = randomName(),
             summary = randomSentence(),
-            releaseDates = listOf(IgdbClient.ReleaseDate(
-                platform = platformId,
-                category = 0,
-                human = randomLocalDate().toString("YYYY-MMM-dd")
-            )),
+            releaseDates = listOf(randomReleaseDate()),
             aggregatedRating = randomScore(),
             rating = randomScore(),
-            cover = IgdbClient.Image(cloudinaryId = randomString()),
-            screenshots = emptyList<IgdbClient.Image>(), // TODO: Support screenshots
+            cover = randomImage(),
+            screenshots = listOf(randomImage(), randomImage()),
             genres = listOf(rnd.nextInt(100))
         )
+
+        private fun randomReleaseDate() = IgdbClient.ReleaseDate(
+            platform = platformId,
+            category = 0,
+            human = randomLocalDate().toString("YYYY-MMM-dd")
+        )
+
+        private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
 
         val client = IgdbClient(IgdbConfig(
             endpoint = baseUrl,

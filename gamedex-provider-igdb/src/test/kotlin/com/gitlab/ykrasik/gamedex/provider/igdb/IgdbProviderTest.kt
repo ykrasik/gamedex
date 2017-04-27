@@ -16,7 +16,7 @@ class IgdbProviderTest : ScopedWordSpec() {
     init {
         "IgdbDataProvider.search" should {
             "be able to return a single search result".inScope(Scope()) {
-                val searchResult = searchResult(name = name, releaseDate = releaseDate, imageId = imageId)
+                val searchResult = searchResult(name = name, releaseDate = releaseDate)
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
@@ -25,7 +25,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                     name = name,
                     releaseDate = releaseDate,
                     score = searchResult.aggregatedRating,
-                    thumbnailUrl = thumbnailUrl(imageId)
+                    thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
                 ))
             }
 
@@ -91,8 +91,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null thumbnailId".inScope(Scope()) {
-                givenClientSearchReturns(listOf(searchResult(imageId = null)))
+            "handle null cover cloudinaryId".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult().copy(cover = image(cloudinaryId = null))))
 
                 search() should haveASingleSearchResultThat {
                     it.thumbnailUrl shouldBe null
@@ -110,7 +110,7 @@ class IgdbProviderTest : ScopedWordSpec() {
 
         "IgdbDataProvider.fetch" should {
             "fetch a search result".inScope(Scope()) {
-                val detailsResult = detailsResult(releaseDate = releaseDate, imageId = imageId)
+                val detailsResult = detailsResult(releaseDate = releaseDate)
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
 
@@ -129,9 +129,9 @@ class IgdbProviderTest : ScopedWordSpec() {
                         genres = listOf(genre)
                     ),
                     imageUrls = ImageUrls(
-                        thumbnailUrl = thumbnailUrl(imageId),
-                        posterUrl = posterUrl(imageId),
-                        screenshotUrls = emptyList()
+                        thumbnailUrl = thumbnailUrl(detailsResult.cover!!.cloudinaryId!!),
+                        posterUrl = posterUrl(detailsResult.cover!!.cloudinaryId!!),
+                        screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.cloudinaryId!!) }
                     )
                 )
             }
@@ -172,8 +172,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                 fetch().gameData.genres shouldBe emptyList<String>()
             }
 
-            "handle null imageId".inScope(Scope()) {
-                givenClientFetchReturns(detailsResult(imageId = null))
+            "handle null cover cloudinaryId".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(cover = image(cloudinaryId = null)))
 
                 fetch().imageUrls.thumbnailUrl shouldBe null
                 fetch().imageUrls.posterUrl shouldBe null
@@ -185,6 +185,25 @@ class IgdbProviderTest : ScopedWordSpec() {
                 fetch().imageUrls.thumbnailUrl shouldBe null
                 fetch().imageUrls.posterUrl shouldBe null
             }
+
+            "handle null screenshot cloudinaryId".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null))))
+
+                fetch().imageUrls.screenshotUrls shouldBe emptyList<String>()
+            }
+
+            "handle null & non-null screenshot cloudinaryId".inScope(Scope()) {
+                val image = image()
+                givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null), image)))
+
+                fetch().imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
+            }
+
+            "handle null screenshots".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(screenshots = null))
+
+                fetch().imageUrls.screenshotUrls shouldBe emptyList<String>()
+            }
         }
     }
 
@@ -195,46 +214,44 @@ class IgdbProviderTest : ScopedWordSpec() {
         val genre = randomString()
         val name = randomName()
         val releaseDate = randomLocalDate()
-        val imageId = randomString()
 
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
 
         fun thumbnailUrl(imageId: String) = "$baseImageUrl/t_thumb_2x/$imageId.png"
         fun posterUrl(imageId: String) = "$baseImageUrl/t_screenshot_huge/$imageId.png"
+        fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
         fun searchResult(name: String = this.name,
                          releaseDate: LocalDate = randomLocalDate(),
-                         imageId: String? = randomString(),
                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = name,
             aggregatedRating = randomScore(),
-            releaseDates = listOf(IgdbClient.ReleaseDate(
-                platform = releaseDatePlatformId,
-                category = 0,
-                human = releaseDate.toString("YYYY-MMM-dd")
-            )),
-            cover = IgdbClient.Image(cloudinaryId = imageId)
+            releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
+            cover = image()
         )
 
         fun detailsResult(releaseDate: LocalDate = randomLocalDate(),
-                          releaseDatePlatformId: Int = this.platformId,
-                          imageId: String? = randomString()) = IgdbClient.DetailsResult(
+                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.DetailsResult(
             url = randomString(),
             name = name,
             summary = randomSentence(),
-            releaseDates = listOf(IgdbClient.ReleaseDate(
-                platform = releaseDatePlatformId,
-                category = 0,
-                human = releaseDate.toString("YYYY-MMM-dd")
-            )),
+            releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
             aggregatedRating = randomScore(),
             rating = randomScore(),
-            cover = IgdbClient.Image(cloudinaryId = imageId),
-            screenshots = emptyList(), // TODO: Support screenshots
+            cover = image(),
+            screenshots = listOf(image(), image()),
             genres = listOf(genreId)
         )
+
+        private fun releaseDate(releaseDate: LocalDate, platformId: Int) = IgdbClient.ReleaseDate(
+            platform = platformId,
+            category = 0,
+            human = releaseDate.toString("YYYY-MMM-dd")
+        )
+
+        fun image(cloudinaryId: String? = randomString()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
             `when`(client.search(name, platform)).thenReturn(results)

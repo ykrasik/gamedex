@@ -72,9 +72,9 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
             genres = this.genres?.map { it.genreName } ?: emptyList()
         ),
         imageUrls = ImageUrls(
-            thumbnailUrl = this.cover?.cloudinaryId?.toImageUrl(thumbnailImageType),
-            posterUrl = this.cover?.cloudinaryId?.toImageUrl(posterImageType),
-            screenshotUrls = emptyList()    // TODO: Support screenshots
+            thumbnailUrl = this.cover?.cloudinaryId?.toThumbnailUrl(),
+            posterUrl = this.cover?.cloudinaryId?.toPosterUrl(),
+            screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
         )
     )
 
@@ -84,6 +84,9 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         return releaseDate.toLocalDate()
     }
 
+    private fun String.toThumbnailUrl() = toImageUrl(thumbnailImageType)
+    private fun String.toPosterUrl() = toImageUrl(posterImageType)
+    private fun String.toScreenshotUrl() = toImageUrl(screenshotImageType)
     private fun String.toImageUrl(type: IgdbImageType) = "${config.baseImageUrl}/t_$type/$this.png"
 
     private enum class IgdbImageType {
@@ -119,5 +122,6 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
 
         private val thumbnailImageType = IgdbImageType.thumb_2x
         private val posterImageType = IgdbImageType.screenshot_huge
+        private val screenshotImageType = IgdbImageType.screenshot_huge
     }
 }
