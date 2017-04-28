@@ -52,7 +52,7 @@ class LibraryRepository @Inject constructor(
         run(JavaFx) {
             check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
         }
-        log.info { "Done" }
+        log.info("Done")
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")

@@ -17,7 +17,7 @@ open class DbInitializer @Inject constructor(private val config: PersistenceConf
     private val log by logger()
 
     init {
-        log.debug { "Connection url: ${config.dbUrl}" }
+        log.debug("Connection url: ${config.dbUrl}")
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
     }
 

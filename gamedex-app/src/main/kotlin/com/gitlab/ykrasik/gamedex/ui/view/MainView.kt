@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.controller.MainController
 import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.geometry.Orientation
-import javafx.scene.control.TextArea
 import tornadofx.*
 
 /**
@@ -20,8 +19,7 @@ class MainView : View("Gamedex") {
 
     private val gameView: GameView by inject()
     private val libraryView: LibraryView by inject()
-
-    private var logTextArea: TextArea by singleAssign()
+    private val logView: LogView by inject()
 
     override val root = borderpane {
         top {
@@ -39,14 +37,15 @@ class MainView : View("Gamedex") {
             }
         }
         center {
+            // FIXME: This is no longer a splitpane. Decide how to display the log.
             splitpane {
-                dividerPosition = 0.98
+                dividerPosition = 0.5
                 orientation = Orientation.VERTICAL
                 tabpane {
                     nonClosableTab("Games") { content = gameView.root }
                     nonClosableTab("Libraries") { content = libraryView.root }
+                    nonClosableTab("Log") { content = logView.root }
                 }
-                logTextArea = readOnlyTextArea { isWrapText = true }
             }
         }
         bottom {
@@ -57,7 +56,7 @@ class MainView : View("Gamedex") {
                     togglebutton("Log") {
                         isSelected = true
                         prefWidth = 50.0
-                        logTextArea.visibleProperty().bind(selectedProperty())
+                        logView.root.visibleProperty().bind(selectedProperty())
                     }
                     verticalSeparator(10.0)
                     label { 

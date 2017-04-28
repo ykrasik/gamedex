@@ -68,9 +68,9 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private suspend fun downloadImage(url: String): ByteArray = run(CommonPool) {
-        log.info { "Downloading: $url..." }
+        log.info("Downloading: $url...")
         val bytes = download(url)
-        log.info { "Done. Size: ${bytes.size}" }
+        log.info("Done. Size: ${bytes.size}")
         bytes
     }
 }

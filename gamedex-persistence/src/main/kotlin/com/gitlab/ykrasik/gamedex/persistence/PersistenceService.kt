@@ -30,6 +30,7 @@ interface PersistenceService {
     fun insertImage(gameId: Int, url: String, data: ByteArray): Unit
 }
 
+// TODO: Change logs here to debug.
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
     init {
@@ -39,7 +40,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     private val log by logger()
 
     override fun fetchAllLibraries(): List<Library> = transaction {
-        log.info { "Fetching all libraries..." }
+        log.info("Fetching all libraries...")
         val libraries = Libraries.selectAll().map {
             Library(
                 id = it[Libraries.id].value,
@@ -47,30 +48,30 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                 data = it[Libraries.data].fromJson()
             )
         }
-        log.info { "Result: ${libraries.size} libraries." }
+        log.info("Result: ${libraries.size} libraries.")
         libraries
     }
 
     override fun insertLibrary(path: File, data: LibraryData): Library = transaction {
-        log.info { "Inserting library: path=$path, data=$data..." }
+        log.info("Inserting library: path=$path, data=$data...")
         val id = Libraries.insertAndGetId {
             it[Libraries.path] = path.toString()
             it[Libraries.data] = data.toJsonStr()
         }!!.value
         val library = Library(id, path, data)
-        log.info { "Result: $library." }
+        log.info("Result: $library.")
         library
     }
 
     override fun deleteLibrary(id: Int) = transaction {
-        log.debug { "Deleting Library($id)..." }
+        log.debug("Deleting Library($id)...")
         val amount = Libraries.deleteWhere { Libraries.id.eq(id.toLibraryId()) }
         require(amount == 1) { "Doesn't exist: Library($id)" }
-        log.debug { "Done." }
+        log.debug("Done.")
     }
 
     override fun fetchAllGames(): List<RawGame> = transaction {
-        log.info { "Fetching all games..." }
+        log.info("Fetching all games...")
         val games = Games.selectAll().map {
             RawGame(
                 id = it[Games.id].value,
@@ -83,12 +84,12 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                 priorityOverride = it[Games.priorityOverride]?.fromJson()
             )
         }
-        log.info { "Result: ${games.size} games." }
+        log.info("Result: ${games.size} games.")
         games
     }
 
     override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame = transaction {
-        log.info { "Inserting game: metaData=$metaData, rawGameData=$rawGameData..." }
+        log.info("Inserting game: metaData=$metaData, rawGameData=$rawGameData...")
 
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
@@ -98,7 +99,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         }!!.value
 
         val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, priorityOverride = null)
-        log.info { "Result: $game." }
+        log.info("Result: $game.")
         game
     }
 
@@ -114,10 +115,10 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     }
 
     override fun deleteGame(id: Int) = transaction {
-        log.debug { "Deleting Game($id)..." }
+        log.debug("Deleting Game($id)...")
         val rowsDeleted = Games.deleteWhere { Games.id.eq(id.toGameId()) }
         require(rowsDeleted == 1) { "Doesn't exist: Game($id)!" }
-        log.debug { "Done." }
+        log.debug("Done.")
     }
 
     override fun fetchImage(url: String): ByteArray? = transaction {

@@ -12,8 +12,6 @@ import java.util.*
  * Time: 16:23
  */
 object ClassPathScanner {
-    private val log by logger()
-
     fun scanPackage(packageName: String, predicate: (String) -> Boolean): List<URL> = scanPath(packageName.replace('.', '/'), predicate)
 
     fun scanPath(path: String, predicate: (String) -> Boolean): List<URL> {
@@ -46,7 +44,6 @@ object ClassPathScanner {
         override fun visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult {
             val fileName = path.fileName.toString()
             if (predicate(fileName)) {
-                log.debug { "Classpath scan hit: $path" }
                 resources.add(path.toUri().toURL())
             }
             return FileVisitResult.CONTINUE

@@ -76,6 +76,18 @@ class UserPreferences private constructor() {
     val providerScreenshotPriorityProperty = preferenceProperty(DefaultProviderPriority.prefer(GameProviderType.Igdb))
     var providerScreenshotPriority by providerScreenshotPriorityProperty
 
+    @Transient
+    val logFilterLevelProperty = preferenceProperty(LogLevel.info)
+    var logFilterLevel by logFilterLevelProperty
+
+    @Transient
+    val logShowTimestampProperty = preferenceProperty(true)
+    var logShowTimestamp by logShowTimestampProperty
+
+    @Transient
+    val logTailProperty = preferenceProperty(true)
+    var logTail by logTailProperty
+
     companion object {
         private val file = "conf/conf.json".toFile()
 

@@ -42,10 +42,10 @@ class LibraryController @Inject constructor(
         launch(JavaFx) {
             if (!confirmDelete(library)) return@launch
 
-            log.info { "Deleting $library..." }
+            log.info("Deleting $library...")
             libraryRepository.delete(library)
             gameRepository.deleteByLibrary(library)
-            log.info { "Done" }
+            log.info("Done")
             deleted = true
         }
         return deleted

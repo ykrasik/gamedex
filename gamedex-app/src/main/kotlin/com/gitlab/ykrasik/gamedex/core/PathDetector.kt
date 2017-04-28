@@ -25,7 +25,7 @@ class PathDetector(private val excludedPaths: Set<File>) {
 
     private fun detectNewPathsRec(path: File) {
         if (!path.exists()) {
-            log.warn { "Path doesn't exist: $path" }
+            log.warn("Path doesn't exist: $path")
             return
         }
         if (path.isExcluded) return
@@ -36,7 +36,7 @@ class PathDetector(private val excludedPaths: Set<File>) {
             children.forEach { detectNewPathsRec(it) }
         } else {
             if (!path.isExcluded) {
-                log.info { "[$path] is a new path!" }
+                log.debug("[$path] is a new path!")
                 newPaths += path
             }
         }

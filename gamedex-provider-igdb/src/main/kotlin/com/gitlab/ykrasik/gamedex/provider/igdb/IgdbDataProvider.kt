@@ -18,22 +18,22 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
     private val log by logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.info { "[$platform] Searching: name='$name'..." }
+        log.info("[$platform] Searching: name='$name'...")
         val searchResults = client.search(name, platform)
-        log.debug { "[$platform] Results: $searchResults" }
+        log.debug("[$platform] Results: $searchResults")
 
         val results = searchResults.toProviderSearchResults(name, platform)
-        log.info { "[$platform] ${results.size} Search results: $results." }
+        log.info("[$platform] ${results.size} Search results: $results.")
         return results
     }
 
     override fun fetch(apiUrl: String, platform: Platform): RawGameData {
-        log.info { "[$platform] Fetching: $apiUrl..." }
+        log.info("[$platform] Fetching: $apiUrl...")
         val fetchResult = client.fetch(apiUrl)
-        log.debug { "[$platform] Response: $fetchResult" }
+        log.debug("[$platform] Response: $fetchResult")
 
         val gameData = fetchResult.toRawGameData(apiUrl, platform)
-        log.info { "[$platform] Result: $gameData." }
+        log.info("[$platform] Result: $gameData.")
         return gameData
     }
 
