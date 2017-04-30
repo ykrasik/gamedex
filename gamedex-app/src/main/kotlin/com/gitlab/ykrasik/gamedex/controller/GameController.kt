@@ -1,24 +1,33 @@
 package com.gitlab.ykrasik.gamedex.controller
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
+import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.DataProviderService
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
-import com.gitlab.ykrasik.gamedex.core.NotificationManager
+import com.gitlab.ykrasik.gamedex.core.Notification
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.ui.UIResources
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
+import com.gitlab.ykrasik.gamedex.ui.toImageView
+import com.gitlab.ykrasik.gamedex.ui.widgets.Notifications
+import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.geometry.Pos
+import javafx.scene.layout.GridPane
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.ProducerJob
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
-import tornadofx.Controller
-import tornadofx.SortedFilteredList
-import tornadofx.onChange
+import tornadofx.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,10 +41,9 @@ class GameController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val libraryScanner: LibraryScanner,
-    private val notificationManager: NotificationManager,
     private val dataProviderService: DataProviderService,
     userPreferences: UserPreferences
-): Controller() {
+) : Controller() {
 
     val games = SortedFilteredList(gameRepository.games)
 
@@ -43,23 +51,59 @@ class GameController @Inject constructor(
         games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.toComparatorProperty())
     }
 
-    // TODO: Allow cancelling this
-    fun refreshGames() = launch(CommonPool) {
-        val excludedPaths =
-            libraryRepository.libraries.map(Library::path).toSet() +
-                gameRepository.games.map(Game::path).toSet()
+    fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }
 
-        libraryRepository.libraries.asSequence()
-            .filter { it.platform != Platform.excluded }
-            .forEach { library ->
-                val (job, notification) = libraryScanner.refresh(library, excludedPaths - library.path, context)
-                notificationManager.bind(notification)
+    inner class RefreshGamesTask {
+        private val log by logger()
+
+        private lateinit var job: ProducerJob<AddGameRequest>
+        private val jobNotification = Notification()
+
+        private val notification = Notifications()
+            .hideCloseButton()
+            .position(Pos.TOP_RIGHT)
+            .title("Refreshing games...")
+            .graphic(GridPane().apply {
+                hgap = 10.0
+                vgap = 5.0
+                row {
+                    progressbar(jobNotification.progressProperty) {
+                        minWidth = 500.0
+                    }
+                    button(graphic = UIResources.Images.error.toImageView()) {
+                        setOnAction { job.cancel() }
+                    }
+                }
+                row {
+                    text(jobNotification.messageProperty)
+                }
+            })
+
+        val runningProperty = SimpleBooleanProperty(false)
+
+        fun start() = launch(CommonPool) {
+            run(JavaFx) {
+                runningProperty.set(true)
+                notification.show()
+            }
+
+            val newGames = run(CommonPool) {
+                var newGames = 0
+                job = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, jobNotification)
                 for (addGameRequest in job.channel) {
                     val game = gameRepository.add(addGameRequest)
-                    notification.message = "[${addGameRequest.metaData.path}] Done: $game"
+                    jobNotification.message = "Added: '${game.name}"
+                    newGames += 1
                 }
-                notificationManager.unbind()
+                newGames
             }
+
+            run(JavaFx) {
+                log.info("Done refreshing games: Added $newGames new games.")
+                notification.hide()
+                runningProperty.set(false)
+            }
+        }
     }
 
     // TODO: Allow cancelling this
@@ -109,7 +153,7 @@ class GameController @Inject constructor(
         return property
     }
 
-    private fun GameSort.toComparator(): Comparator<Game>? = when(this) {
+    private fun GameSort.toComparator(): Comparator<Game>? = when (this) {
         GameSort.nameAsc -> nameComparator
         GameSort.nameDesc -> nameComparator.reversed()
         GameSort.criticScoreAsc -> criticScoreComparator

@@ -18,6 +18,7 @@ import tornadofx.setValue
 // TODO: This class should be able to display 2 types of notifications - FlashNotifications (which disappear after a second or 2)
 // TODO: And PersistentNotifications (which display ongoing job messages & progress).
 // TODO: Consider ControlsFx TaskProgressView for this.
+// FIXME: Delete this class.
 @Singleton
 class NotificationManager {
     private val notification = Notification()
@@ -50,7 +51,7 @@ class NotificationManager {
     }
 }
 
-// TODO: Remove this class and just send messages to notificationManager.
+// TODO: Rename this to TaskInfo?
 data class Notification(
     val messageProperty: StringProperty = ThreadAwareStringProperty(),
     val progressProperty: DoubleProperty = ThreadAwareDoubleProperty()

@@ -34,6 +34,7 @@ class SettingsFragment : Fragment() {
                         // TODO: Consider ControlsFx PropertySheet
                         fieldset("Preferred Provider for Game Data") {
                             listOf(
+                                "Search First" to userPreferences.providerSearchFirstProperty,
                                 "Name" to userPreferences.providerNamePriorityProperty,
                                 "Description" to userPreferences.providerDescriptionPriorityProperty,
                                 "Release Date" to userPreferences.providerReleaseDatePriorityProperty,

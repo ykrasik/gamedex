@@ -2,9 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui
 
 import javafx.application.Platform
 import javafx.application.Platform.runLater
-import javafx.beans.binding.Binding
 import javafx.beans.binding.ListExpression
-import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.*
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
@@ -17,6 +15,7 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
 import javafx.stage.Stage
+import tornadofx.onChange
 import java.io.ByteArrayInputStream
 import java.util.*
 
@@ -150,10 +149,8 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override val size: Int get() = mapped.size
 }
 
-fun <T, R> ObservableValue<T>.map(f: (T) -> R): Binding<R> = object : ObjectBinding<R>() {
-    init {
-        super.bind(this)
-    }
-
-    override fun computeValue(): R = f(this@map.value)
+fun <T, R> Property<T>.map(f: (T?) -> R): Property<R> {
+    val property = SimpleObjectProperty(f(this.value))
+    this.onChange { property.set(f(it)) }
+    return property
 }

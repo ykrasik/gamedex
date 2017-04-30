@@ -1,13 +1,13 @@
 package com.gitlab.ykrasik.gamedex.core
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.MetaData
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
-import com.gitlab.ykrasik.gamedex.util.NotifiableJob
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
-import com.gitlab.ykrasik.gamedex.util.notifiableJob
-import kotlinx.coroutines.experimental.channels.ProducerJob
+import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.channels.produce
 import org.joda.time.DateTime
 import java.io.File
@@ -23,35 +23,46 @@ import kotlin.coroutines.experimental.CoroutineContext
 @Singleton
 // TODO: Consider changing the structure, having a NewGameDetector that returns a stream of MetaData objects instead.
 // TODO: This will allow to move the notification logic outside the class, if this is what I want.
-class LibraryScanner @Inject constructor(private val providerService: DataProviderService) {
+// TODO: This class doesn't do much
+class LibraryScanner @Inject constructor(
+    private val newDirectoryDetector: NewDirectoryDetector,
+    private val providerService: DataProviderService
+) {
     private val metaDataRegex = "(\\[.*?\\])|(-)".toRegex()
 
-    fun refresh(library: Library,
-                excludedPaths: Set<File>,
-                context: CoroutineContext): NotifiableJob<ProducerJob<AddGameRequest>> = notifiableJob { notification ->
-        notification.message = "Refreshing library: '$library'..."
-        val newPaths = PathDetector(excludedPaths).detectNewPaths(library.path)
+    private val log by logger()
 
-        produce<AddGameRequest>(context) {
-            val newGames = newPaths.mapIndexedNotNull { i, path ->
-                if (!isActive) return@mapIndexedNotNull
+    fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, notification: Notification) = produce<AddGameRequest>(context) {
+        notification.message = "Scanning for new directories..."
 
-                notification.progress(i, newPaths.size)
-                val addGameRequest = processPath(path, library)
-                addGameRequest?.let { send(it) }
+        val excludedDirectories = libraries.map(Library::path).toSet() + games.map(Game::path).toSet()
+        val newDirectories = libraries.flatMap { library ->
+            val paths = if (library.platform != Platform.excluded) {
+                log.debug("Scanning library: $library")
+                newDirectoryDetector.detectNewDirectories(library.path, excludedDirectories - library.path)
+            } else {
+                emptyList()
             }
-            notification.message = "Done refreshing library: '$library'. Added ${newGames.size} new games."
-            channel.close()
+            paths.map { library to it }
         }
+
+        newDirectories.forEachIndexed { i, (library, directory) ->
+            if (!isActive) return@forEachIndexed
+
+            notification.progress(i, newDirectories.size)
+            val addGameRequest = processDirectory(directory, library, notification)
+            addGameRequest?.let { send(it) }
+        }
+        channel.close()
     }
 
-    private suspend fun processPath(path: File, library: Library): AddGameRequest? {
-        val name = requireNotNull(path.normalizeName().emptyToNull()) { "Invalid folder name: '${path.name}'!"}
+    private suspend fun processDirectory(directory: File, library: Library, notification: Notification): AddGameRequest? {
+        val name = requireNotNull(directory.normalizeName().emptyToNull()) { "Invalid directory name: '${directory.name}'!"}
 
-        val providerData = providerService.search(name, library.platform, path) ?: return null
+        val providerData = providerService.search(name, library.platform, directory, notification) ?: return null
 
         return AddGameRequest(
-            metaData = MetaData(library.id, path, lastModified = DateTime.now()),
+            metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
             rawGameData = providerData
         )
     }

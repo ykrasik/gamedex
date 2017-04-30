@@ -14,7 +14,7 @@ import javax.inject.Singleton
  */
 interface DataProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: Platform, path: File): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File, notification: Notification): List<RawGameData>?
 
     fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData>
 }
@@ -26,27 +26,36 @@ class DataProviderServiceImpl @Inject constructor(
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
-    override suspend fun search(name: String, platform: Platform, path: File): List<RawGameData>? =
+    override suspend fun search(name: String, platform: Platform, path: File, notification: Notification): List<RawGameData>? =
         try {
-            SearchContext(platform, path).fetch(name)
+            SearchContext(platform, path, notification, name).search()
         } catch (e: CancelSearchException) {
             null
         }
 
-    private inner class SearchContext(private val platform: Platform, private val path: File) {
+    private inner class SearchContext(
+        private val platform: Platform,
+        private val path: File,
+        private val notification: Notification,
+        private var searchedName: String
+    ) {
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
-        suspend fun fetch(searchedName: String): List<RawGameData> {
-            return providerRepository.providers.mapNotNull { fetch(it, searchedName) }
+        suspend fun search(): List<RawGameData> {
+            return providerRepository.providers.mapNotNull { search(it) }
         }
 
-        private suspend fun fetch(provider: GameProvider, searchedName: String): RawGameData? {
+        private suspend fun search(provider: GameProvider): RawGameData? {
+            notification.message = "[${provider.info.name}] Searching: '$searchedName'..."
             val results = provider.search(searchedName, platform)
+            notification.message = "[${provider.info.name}] Searching: '$searchedName': ${results.size} results."
+
             val filteredResults = filterResults(results)
-            val choice = if (userPreferences.handsFreeMode) {
-                if (filteredResults.size == 1) SearchResultChoice.Ok(filteredResults.first())
-                else SearchResultChoice.Cancel
+            val choice = if (filteredResults.size == 1) {
+                SearchResultChoice.Ok(filteredResults.first())
+            } else if (userPreferences.handsFreeMode) {
+                SearchResultChoice.Cancel
             } else {
                 val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, filteredResults)
                 chooser.choose(chooseSearchResultData)
@@ -60,7 +69,8 @@ class DataProviderServiceImpl @Inject constructor(
                 }
                 is SearchResultChoice.NewSearch -> {
                     previouslyDiscardedResults += filteredResults
-                    fetch(provider, choice.newSearch)
+                    searchedName = choice.newSearch
+                    search(provider)
                 }
                 SearchResultChoice.ProceedWithout -> null
                 SearchResultChoice.Cancel -> throw CancelSearchException()

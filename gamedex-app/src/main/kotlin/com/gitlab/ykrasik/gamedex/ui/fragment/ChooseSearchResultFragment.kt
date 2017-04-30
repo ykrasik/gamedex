@@ -141,7 +141,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
     }
 
     suspend fun show(): SearchResultChoice = run(JavaFx) {
-        openModal(block = true)
+        openWindow(block = true)
         choice
     }
 

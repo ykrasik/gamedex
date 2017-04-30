@@ -3,7 +3,11 @@ package com.gitlab.ykrasik.gamedex.repository
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.toImage
+import tornadofx.SortedFilteredList
+import tornadofx.observable
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,12 +17,21 @@ import javax.inject.Singleton
  * Time: 21:30
  */
 @Singleton
-class GameProviderRepository @Inject constructor(allProviders: MutableSet<GameProvider>) {
-    // TODO: Allow enabling / disabling providers? Is this needed?
-    val providers = run {
+class GameProviderRepository @Inject constructor(
+    allProviders: MutableSet<GameProvider>,
+    userPreferences: UserPreferences
+) {
+    private val providerComparator = userPreferences.providerSearchFirstProperty.map { it!!.toComparator().reversed() }
+
+    private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
-        allProviders.sortedBy { it.info.type.ordinal }
+        val providers = SortedFilteredList(allProviders.toList().observable())
+        providers.sortedItems.comparatorProperty().bind(providerComparator)
+        providers
     }
+
+    // TODO: Allow enabling / disabling providers? Is this needed?
+    val providers: List<GameProvider> get() = _providers
 
     private val providersByType = allProviders.associateBy { it.info.type }
     private val providerLogos = providersByType.mapValues { it.value.info.logo.toImage() }

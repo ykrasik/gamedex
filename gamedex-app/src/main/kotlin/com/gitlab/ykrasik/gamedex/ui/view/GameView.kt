@@ -88,7 +88,10 @@ class GameView : View("Games") {
 
                 button("Refresh Games") {
                     isDefaultButton = true
-                    setOnAction { controller.refreshGames() }
+                    setOnAction {
+                        val task = controller.refreshGames()
+                        disableProperty().cleanBind(task.runningProperty)
+                    }
                 }
             }
         }

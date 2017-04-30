@@ -20,8 +20,6 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
         log.info("[$platform] Searching: name='$name'...")
         val searchResults = client.search(name, platform)
-        log.debug("[$platform] Results: $searchResults")
-
         val results = searchResults.toProviderSearchResults(name, platform)
         log.info("[$platform] ${results.size} Search results: $results.")
         return results

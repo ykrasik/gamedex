@@ -38,8 +38,6 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     override fun fetch(apiUrl: String, platform: Platform): RawGameData {
         log.info("[$platform] Fetching: $apiUrl...")
         val response = client.fetch(apiUrl)
-        log.debug("[$platform] Response: $response")
-
         assertOk(response.statusCode)
 
         // When result is found - GiantBomb returns a Json object.

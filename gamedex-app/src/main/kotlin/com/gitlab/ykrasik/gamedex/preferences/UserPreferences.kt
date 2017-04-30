@@ -45,6 +45,10 @@ class UserPreferences private constructor() {
     var prevDirectory by prevDirectoryProperty
 
     @Transient
+    val providerSearchFirstProperty = preferenceProperty(DefaultProviderPriority.prefer(GameProviderType.GiantBomb))
+    var providerSearchFirst by providerSearchFirstProperty
+
+    @Transient
     val providerNamePriorityProperty = preferenceProperty(DefaultProviderPriority.prefer(GameProviderType.GiantBomb))
     var providerNamePriority by providerNamePriorityProperty
 
