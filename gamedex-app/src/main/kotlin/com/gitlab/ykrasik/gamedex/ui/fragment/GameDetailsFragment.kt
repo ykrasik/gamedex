@@ -8,6 +8,7 @@ import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
+import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
@@ -20,6 +21,8 @@ import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
+import org.controlsfx.glyphfont.FontAwesome
+import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import java.net.URLEncoder
 
@@ -173,15 +176,34 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                         }
                     }
 
-                    // TODO: Wrap in a workspace for navigation
                     // Bottom
                     separator { padding { top = 10; bottom = 10 } }
-                    webView = webview {
-                        if (displayVideos) {
-                            vgrow = Priority.ALWAYS
-                            val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
-                            val url = "https://www.youtube.com/results?search_query=$search"
-                            engine.load(url)
+                    borderpane {
+                        center {
+                            webView = webview {
+                                if (displayVideos) {
+                                    vgrow = Priority.ALWAYS
+                                    val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
+                                    val url = "https://www.youtube.com/results?search_query=$search"
+                                    engine.load(url)
+                                }
+                            }
+                        }
+                        top {
+                            gridpane {
+                                padding { top = 5; bottom = 5 }
+                                hgap = 10.0
+                                row {
+                                    button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_LEFT)) {
+                                        enableWhen { canBrowserNavigate(back = true) }
+                                        setOnAction { navigateBrowser(back = true) }
+                                    }
+                                    button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_RIGHT)) {
+                                        enableWhen { canBrowserNavigate(back = false) }
+                                        setOnAction { navigateBrowser(back = false) }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -189,8 +211,25 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         }
     }
 
+    private fun canBrowserNavigate(back: Boolean): Property<Boolean> {
+        val history = webView.engine.history
+        val entries = history.entries
+        return history.currentIndexProperty().mapProperty { i ->
+            val currentIndex = i!!.toInt()
+            entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
+        }
+    }
+
+    private fun navigateBrowser(back: Boolean) {
+        webView.engine.history.go(if (back) -1 else 1)
+    }
+
     override fun onDock() {
         modalStage!!.isMaximized = true
+    }
+
+    override fun onUndock() {
+        webView.engine.load(null)
     }
 
     fun show(): Boolean {
@@ -200,7 +239,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
 
     private fun close(accept: Boolean) {
         this.accept = accept
-        webView.engine.load(null)
         close()
     }
 

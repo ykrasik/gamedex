@@ -12,7 +12,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
-import com.gitlab.ykrasik.gamedex.ui.map
+import com.gitlab.ykrasik.gamedex.ui.mapProperty
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -46,7 +46,7 @@ class GameController @Inject constructor(
     private val dateAddedComparator = compareBy(Game::lastModified)
 
     init {
-        games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.map { it!!.toComparator() })
+        games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.mapProperty { it!!.toComparator() })
     }
 
     fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }

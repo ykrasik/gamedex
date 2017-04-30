@@ -149,8 +149,16 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override val size: Int get() = mapped.size
 }
 
-fun <T, R> Property<T>.map(f: (T?) -> R): Property<R> {
+fun <T, R> ObservableValue<T>.mapProperty(f: (T?) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this.value))
     this.onChange { property.set(f(it)) }
+    return property
+}
+
+fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
+    val property = SimpleObjectProperty(f(this))
+    this.onChange {
+        property.set(f(this))
+    }
     return property
 }
