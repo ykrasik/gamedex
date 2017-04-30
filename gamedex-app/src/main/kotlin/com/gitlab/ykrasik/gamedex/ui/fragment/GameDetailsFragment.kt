@@ -10,6 +10,7 @@ import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.beans.property.Property
 import javafx.event.EventTarget
+import javafx.scene.control.Button
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.image.ImageView
@@ -38,6 +39,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     private val gameController: GameController by di()
 
     private var webView: WebView by singleAssign()
+    private var backButton: Button by singleAssign()
+    private var forwardButton: Button by singleAssign()
 
     private var accept = false
 
@@ -178,32 +181,28 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
 
                     // Bottom
                     separator { padding { top = 10; bottom = 10 } }
-                    borderpane {
-                        center {
-                            webView = webview {
-                                if (displayVideos) {
-                                    vgrow = Priority.ALWAYS
-                                    val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
-                                    val url = "https://www.youtube.com/results?search_query=$search"
-                                    engine.load(url)
-                                }
-                            }
+                    gridpane {
+                        padding { top = 5; bottom = 5 }
+                        hgap = 10.0
+                        row {
+                            backButton = button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_LEFT))
+                            forwardButton = button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_RIGHT))
                         }
-                        top {
-                            gridpane {
-                                padding { top = 5; bottom = 5 }
-                                hgap = 10.0
-                                row {
-                                    button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_LEFT)) {
-                                        enableWhen { canBrowserNavigate(back = true) }
-                                        setOnAction { navigateBrowser(back = true) }
-                                    }
-                                    button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_RIGHT)) {
-                                        enableWhen { canBrowserNavigate(back = false) }
-                                        setOnAction { navigateBrowser(back = false) }
-                                    }
-                                }
-                            }
+                    }
+                    webView = webview {
+                        with(backButton) {
+                            enableWhen { canNavigate(back = true) }
+                            setOnAction { navigate(back = true) }
+                        }
+                        with(forwardButton) {
+                            enableWhen { canNavigate(back = false) }
+                            setOnAction { navigate(back = false) }
+                        }
+                        if (displayVideos) {
+                            vgrow = Priority.ALWAYS
+                            val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
+                            val url = "https://www.youtube.com/results?search_query=$search"
+                            engine.load(url)
                         }
                     }
                 }
@@ -211,8 +210,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         }
     }
 
-    private fun canBrowserNavigate(back: Boolean): Property<Boolean> {
-        val history = webView.engine.history
+    private fun WebView.canNavigate(back: Boolean): Property<Boolean> {
+        val history = engine.history
         val entries = history.entries
         return history.currentIndexProperty().mapProperty { i ->
             val currentIndex = i!!.toInt()
@@ -220,8 +219,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         }
     }
 
-    private fun navigateBrowser(back: Boolean) {
-        webView.engine.history.go(if (back) -1 else 1)
+    private fun WebView.navigate(back: Boolean) {
+        engine.history.go(if (back) -1 else 1)
     }
 
     override fun onDock() {
