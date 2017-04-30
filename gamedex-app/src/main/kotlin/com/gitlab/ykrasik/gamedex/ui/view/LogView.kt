@@ -22,9 +22,6 @@ class LogView : View("Log") {
             hbox {
                 paddingAll = 10
                 enumComboBox(userPreferences.logFilterLevelProperty)
-                togglebutton("Show Timestamp") {
-                    userPreferences.logShowTimestampProperty.bindBidirectional(selectedProperty())
-                }
                 togglebutton("Tail") {
                     userPreferences.logTailProperty.bindBidirectional(selectedProperty())
                 }
@@ -37,12 +34,6 @@ class LogView : View("Log") {
 
                 setCellFactory {
                     object : ListCell<LogEntry>() {
-                        init {
-                            userPreferences.logShowTimestampProperty.onChange {
-                                updateItem(this.item, this.isEmpty)
-                            }
-                        }
-
                         override fun updateItem(item: LogEntry?, empty: Boolean) {
                             super.updateItem(item, empty)
 
@@ -56,14 +47,8 @@ class LogView : View("Log") {
                                 return
                             }
 
-                            val timestamp = if (userPreferences.logShowTimestamp) {
-                                item.timestamp.toString("HH:mm:ss.SSS") + " "
-                            } else {
-                                ""
-                            }
-
                             // TODO: Color different context differently?
-                            text = "$timestamp[${item.context}] ${item.message}"
+                            text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
 
                             when (item.level) {
                                 LogLevel.debug -> toggleClass(Style.debug, true)

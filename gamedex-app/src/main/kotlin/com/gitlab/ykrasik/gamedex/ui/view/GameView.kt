@@ -29,6 +29,8 @@ class GameView : View("Games") {
             toolbar {
                 prefHeight = 40.0
 
+                // TODO: ControlsFx ClearableField. Also consider making this auto-completing.
+                // TODO: Add a platform filter.
                 gridpane {
                     hgap = 2.0
                     row {

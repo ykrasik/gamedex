@@ -81,10 +81,6 @@ class UserPreferences private constructor() {
     var logFilterLevel by logFilterLevelProperty
 
     @Transient
-    val logShowTimestampProperty = preferenceProperty(true)
-    var logShowTimestamp by logShowTimestampProperty
-
-    @Transient
     val logTailProperty = preferenceProperty(true)
     var logTail by logTailProperty
 

@@ -53,13 +53,14 @@ class MainView : View("Gamedex") {
                 textProperty().bind(notificationManager.messageProperty)
 
                 left {
+                    // TODO: Make log a tab? Or it's own window?
                     togglebutton("Log") {
                         isSelected = true
                         prefWidth = 50.0
                         logView.root.visibleProperty().bind(selectedProperty())
                     }
                     verticalSeparator(10.0)
-                    label { 
+                    label {
                         paddingTop = 4
                         textProperty().bind(gameController.games.sizeProperty().asString("Games: %d"))
                     }

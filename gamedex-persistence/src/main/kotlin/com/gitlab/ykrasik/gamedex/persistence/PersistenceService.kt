@@ -30,17 +30,16 @@ interface PersistenceService {
     fun insertImage(gameId: Int, url: String, data: ByteArray): Unit
 }
 
-// TODO: Change logs here to debug.
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
+    private val log by logger()
+
     init {
         initializer.create()
     }
 
-    private val log by logger()
-
     override fun fetchAllLibraries(): List<Library> = transaction {
-        log.info("Fetching all libraries...")
+        log.debug("Fetching all libraries...")
         val libraries = Libraries.selectAll().map {
             Library(
                 id = it[Libraries.id].value,
@@ -48,18 +47,18 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                 data = it[Libraries.data].fromJson()
             )
         }
-        log.info("Result: ${libraries.size} libraries.")
+        log.debug("Result: ${libraries.size} libraries.")
         libraries
     }
 
     override fun insertLibrary(path: File, data: LibraryData): Library = transaction {
-        log.info("Inserting library: path=$path, data=$data...")
+        log.debug("Inserting library: path=$path, data=$data...")
         val id = Libraries.insertAndGetId {
             it[Libraries.path] = path.toString()
             it[Libraries.data] = data.toJsonStr()
         }!!.value
         val library = Library(id, path, data)
-        log.info("Result: $library.")
+        log.debug("Result: $library.")
         library
     }
 
@@ -71,7 +70,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
     }
 
     override fun fetchAllGames(): List<RawGame> = transaction {
-        log.info("Fetching all games...")
+        log.debug("Fetching all games...")
         val games = Games.selectAll().map {
             RawGame(
                 id = it[Games.id].value,
@@ -84,12 +83,12 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                 priorityOverride = it[Games.priorityOverride]?.fromJson()
             )
         }
-        log.info("Result: ${games.size} games.")
+        log.debug("Result: ${games.size} games.")
         games
     }
 
     override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame = transaction {
-        log.info("Inserting game: metaData=$metaData, rawGameData=$rawGameData...")
+        log.debug("Inserting game: metaData=$metaData, rawGameData=$rawGameData...")
 
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
@@ -99,7 +98,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         }!!.value
 
         val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, priorityOverride = null)
-        log.info("Result: $game.")
+        log.debug("Result: $game.")
         game
     }
 

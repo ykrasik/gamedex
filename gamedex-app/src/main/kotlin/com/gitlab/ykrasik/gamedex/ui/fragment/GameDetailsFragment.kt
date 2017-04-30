@@ -48,8 +48,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     okButton { setOnAction { close(accept = true) } }
                     cancelButton { setOnAction { close(accept = false) } }
 
-                    // TODO: Implement.
                     button("Change Thumbnail") { setOnAction { gameController.changeThumbnail(game) } }
+                    // TODO: Implement.
                     button("Change Poster")
                     button("Refresh")
                     button("Search Again")
@@ -85,6 +85,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 verticalSeparator(padding = 10.0)
 
                 // TODO: Check if the new form can do what we did here manually.
+                // TODO: See if this can be made collapsible
                 // Right
                 vbox {
                     hgrow = Priority.ALWAYS
@@ -172,6 +173,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                         }
                     }
 
+                    // TODO: Wrap in a workspace for navigation
                     // Bottom
                     separator { padding { top = 10; bottom = 10 } }
                     webView = webview {

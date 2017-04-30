@@ -12,7 +12,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
-import org.slf4j.bridge.SLF4JBridgeHandler
 import tornadofx.*
 
 /**
@@ -46,11 +45,6 @@ class PreloaderView : View("Gamedex") {
         // TODO: Stylesheet.
         style = "-fx-padding: 5; -fx-background-color: cornsilk; -fx-border-width:5; -fx-border-color: linear-gradient(to bottom, chocolate, derive(chocolate, 50%));"
         effect = DropShadow()
-    }
-
-    init {
-        SLF4JBridgeHandler.removeHandlersForRootLogger()
-        SLF4JBridgeHandler.install()
     }
 
     override fun onDock() {

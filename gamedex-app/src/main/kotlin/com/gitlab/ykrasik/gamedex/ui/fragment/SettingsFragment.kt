@@ -31,6 +31,7 @@ class SettingsFragment : Fragment() {
                 nonClosableTab("Game Data") {
                     form {
                         paddingAll = 20
+                        // TODO: Consider ControlsFx PropertySheet
                         fieldset("Preferred Provider for Game Data") {
                             listOf(
                                 "Name" to userPreferences.providerNamePriorityProperty,

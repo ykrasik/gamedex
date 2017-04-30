@@ -20,6 +20,7 @@ import tornadofx.*
 class GameListView : View("Game List") {
     private val controller: GameController by di()
 
+    // TODO: This should probably be a master-detail pane
     override val root = splitpane {
         dividerPosition = 0.69
 

@@ -80,7 +80,7 @@ class Notifications {
     private var graphic: Node? = null
     private var actions = FXCollections.observableArrayList<Action>()
     private var position = Pos.TOP_RIGHT
-    private var hideAfterDuration: Duration? = Duration.seconds(5.0)
+    private var hideAfterDuration: Duration? = null
     private var hideCloseButton: Boolean = false
     private var onAction: EventHandler<ActionEvent>? = null
     private var owner: Window? = null
@@ -220,7 +220,6 @@ class Notifications {
                 startY = screenBounds.minY
                 screenWidth = screenBounds.width
                 screenHeight = screenBounds.height
-
                 Utils.getWindow(null)
             } else {
                 // If the owner is set, we will make the notifications popup inside its window.
