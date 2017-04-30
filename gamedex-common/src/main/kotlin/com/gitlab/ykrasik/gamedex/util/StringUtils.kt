@@ -10,5 +10,3 @@ fun Any?.toStringOr(default: String): String = this?.toString() ?: default
 fun String.collapseSpaces(): String = "\\s+".toRegex().replace(this, " ")
 
 fun String.emptyToNull(): String? = if (isNullOrEmpty()) null else this
-
-fun String.containsIgnoreCase(str: String): Boolean = this.toLowerCase().contains(str.toLowerCase())

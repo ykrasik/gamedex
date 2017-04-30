@@ -6,7 +6,7 @@ import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
-import com.gitlab.ykrasik.gamedex.util.containsIgnoreCase
+import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
 
 /**
@@ -29,23 +29,38 @@ class GameView : View("Games") {
             toolbar {
                 prefHeight = 40.0
 
-                // TODO: ControlsFx ClearableField. Also consider making this auto-completing.
-                // TODO: Add a platform filter.
+                gridpane {
+                    val search = TextFields.createClearableTextField().apply {
+                        promptText = "Search"
+                    }
+                    TextFields.bindAutoCompletion(search) { request ->
+                        controller.games.filter { game ->
+                            val query = request.userText
+                            if (query.isEmpty()) false
+                            else game.name.startsWith(query, ignoreCase = true)
+                        }.map { it.name }
+                    }
+                    children += search
+                    controller.games.filterWhen(search.textProperty(), { query, game ->
+                        if (query.isEmpty()) true
+                        else game.name.contains(query, ignoreCase = true)
+                    })
+                }
+
+                verticalSeparator(10.0)
+
                 gridpane {
                     hgap = 2.0
+                    setMinSize(10.0, 10.0)
                     row {
-                        val search = textfield { 
-                            promptText = "Search"
-                            controller.games.filterWhen(textProperty(), { query, game ->
-                                if (query.isEmpty()) true
-                                else game.name.containsIgnoreCase(query)
-                            })
-                        }
-                        button(graphic = xIcon) { setOnAction { search.clear() } }
+                        label("Sort:")
+                        enumComboBox(userPreferences.gameSortProperty)
                     }
                 }
 
                 verticalSeparator(10.0)
+
+                // TODO: Add a platform filter.
 
                 gridpane {
                     hgap = 2.0
@@ -64,17 +79,6 @@ class GameView : View("Games") {
                         button("Library Filter") { setOnAction { controller.filterLibraries() } }
                         readOnlyTextField()
                         button(graphic = xIcon)
-                    }
-                }
-
-                verticalSeparator(10.0)
-
-                gridpane {
-                    hgap = 2.0
-                    setMinSize(10.0, 10.0)
-                    row {
-                        label("Sort:")
-                        enumComboBox(userPreferences.gameSortProperty)
                     }
                 }
 

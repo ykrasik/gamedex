@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.util.containsIgnoreCase
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
 import org.joda.time.LocalDate
@@ -41,7 +40,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
         val searchWords = name.split("[^a-zA-Z\\d']".toRegex())
         val filteredResults = this.asSequence().filter { (_, name) ->
             searchWords.all { word ->
-                name.containsIgnoreCase(word)
+                name.contains(word, ignoreCase = true)
             }
         }
         return filteredResults.map { it.toSearchResult(platform) }.toList()

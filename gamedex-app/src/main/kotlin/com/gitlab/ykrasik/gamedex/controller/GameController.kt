@@ -14,12 +14,11 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.UIResources
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.toImageView
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notifications
 import com.gitlab.ykrasik.gamedex.util.logger
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
 import javafx.scene.layout.GridPane
 import kotlinx.coroutines.experimental.CommonPool
@@ -47,8 +46,14 @@ class GameController @Inject constructor(
 
     val games = SortedFilteredList(gameRepository.games)
 
+    private val nameComparator = compareBy(Game::name)
+    private val criticScoreComparator = compareBy(Game::criticScore).then(nameComparator)
+    private val userScoreComparator = compareBy(Game::userScore).then(nameComparator)
+    private val releaseDateComparator = compareBy(Game::releaseDate).then(nameComparator)
+    private val dateAddedComparator = compareBy(Game::lastModified)
+
     init {
-        games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.toComparatorProperty())
+        games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.map { it!!.toComparator() })
     }
 
     fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }
@@ -151,14 +156,6 @@ class GameController @Inject constructor(
         priorityOverride = f(this.priorityOverride ?: ProviderPriorityOverride())
     )
 
-    private fun ObjectProperty<GameSort>.toComparatorProperty(): ObjectProperty<Comparator<Game>?> {
-        val property = SimpleObjectProperty<Comparator<Game>?>()
-        this.onChange {
-            property.set(it?.toComparator())
-        }
-        return property
-    }
-
     private fun GameSort.toComparator(): Comparator<Game>? = when (this) {
         GameSort.nameAsc -> nameComparator
         GameSort.nameDesc -> nameComparator.reversed()
@@ -172,10 +169,4 @@ class GameController @Inject constructor(
         GameSort.dateAddedDesc -> dateAddedComparator.reversed()
         else -> null
     }
-
-    private val nameComparator = compareBy(Game::name)
-    private val criticScoreComparator = compareBy(Game::criticScore).then(nameComparator)
-    private val userScoreComparator = compareBy(Game::userScore).then(nameComparator)
-    private val releaseDateComparator = compareBy(Game::releaseDate).then(nameComparator)
-    private val dateAddedComparator = compareBy(Game::lastModified)
 }
