@@ -1,16 +1,15 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.ui.ThreadAwareDoubleProperty
-import com.gitlab.ykrasik.gamedex.ui.ThreadAwareStringProperty
-import com.gitlab.ykrasik.gamedex.ui.UIResources
-import com.gitlab.ykrasik.gamedex.ui.toImageView
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.StringProperty
 import javafx.geometry.Pos
+import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.Priority
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -32,6 +31,8 @@ abstract class GamedexTask(title: String) {
     private lateinit var job: Job
     protected val progress = TaskProgress()
 
+    private var graphic: ImageView by singleAssign()
+
     private val notification = Notification()
         .hideCloseButton()
         .position(Pos.TOP_RIGHT)
@@ -39,16 +40,19 @@ abstract class GamedexTask(title: String) {
         .graphic(GridPane().apply {
             hgap = 10.0
             vgap = 5.0
-            row {
-                progressbar(progress.progressProperty) {
-                    minWidth = 500.0
-                }
-                button(graphic = UIResources.Images.error.toImageView()) {
-                    setOnAction { job.cancel() }
-                }
+            progressbar(progress.progressProperty) {
+                gridpaneConstraints { columnIndex = 0; rowIndex = 0 }
+                minWidth = 500.0
             }
-            row {
-                text(progress.messageProperty)
+            button(graphic = UIResources.Images.error.toImageView().apply { fitWidth = 30.0; fitHeight = 30.0; isPreserveRatio = true }) {
+                gridpaneConstraints { columnIndex = 2; rowIndex = 0 }
+                setOnAction { job.cancel() }
+            }
+            text(progress.messageProperty) { gridpaneConstraints { columnIndex = 0; rowIndex = 1 } }
+            region { gridpaneConstraints { columnIndex = 1; rowIndex = 1; hGrow = Priority.ALWAYS } }
+            graphic = imageview(UIResources.Images.loading) {
+                gridpaneConstraints { columnIndex = 2; rowIndex = 1 }
+                fitWidth = 40.0; fitHeight = 40.0; isPreserveRatio = true
             }
         })
 
@@ -68,7 +72,8 @@ abstract class GamedexTask(title: String) {
             } finally {
                 run(JavaFx) {
                     finally()
-                    notification.hide(afterDelay = 2.seconds)
+                    graphic.image = UIResources.Images.tick
+                    notification.hide(afterDelay = 1.seconds)
                     runningProperty.set(false)
                 }
             }

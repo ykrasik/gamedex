@@ -2,11 +2,10 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import com.gitlab.ykrasik.gamedex.ui.enumComboBox
-import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
-import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
-import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.ui.*
+import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
+import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -30,8 +29,9 @@ class GameView : View("Games") {
                 prefHeight = 40.0
 
                 gridpane {
-                    val search = TextFields.createClearableTextField().apply {
+                    val search = (TextFields.createClearableTextField() as CustomTextField).apply {
                         promptText = "Search"
+                        left = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)
                     }
                     TextFields.bindAutoCompletion(search) { request ->
                         controller.games.filter { game ->
@@ -92,6 +92,7 @@ class GameView : View("Games") {
 
                 button("Refresh Games") {
                     isDefaultButton = true
+                    graphic = fontAwesomeGlyph(FontAwesome.Glyph.REFRESH)
                     setOnAction {
                         val task = controller.refreshGames()
                         disableProperty().cleanBind(task.runningProperty)

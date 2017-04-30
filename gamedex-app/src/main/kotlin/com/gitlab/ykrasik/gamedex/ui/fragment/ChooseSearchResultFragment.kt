@@ -20,6 +20,7 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
 import javafx.scene.text.Font
+import javafx.stage.Screen
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
 import tornadofx.*
@@ -41,8 +42,13 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
 
     private var choice: SearchResultChoice = SearchResultChoice.Cancel
 
+    // TODO: Need a proceed but do not filter results that weren't chosen option.
     override val root = borderpane {
         paddingAll = 20
+        with(Screen.getPrimary().bounds) {
+            prefHeight = height * 3 / 4
+            prefWidth = width * 2 / 3
+        }
         top {
             gridpane {
                 row {
@@ -50,10 +56,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
                         font = Font.font(14.0)
                     }
-                    region {
-                        gridpaneConstraints { hgrow = Priority.ALWAYS }
-                        hgrow = Priority.ALWAYS
-                    }
+                    region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
                     imageview {
                         gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                         image = providerRepository.logo(data.providerType)
@@ -85,10 +88,7 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                             }
                         }
                     }
-                    region {
-                        gridpaneConstraints { hgrow = Priority.ALWAYS }
-                        hgrow = Priority.ALWAYS
-                    }
+                    region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
                     label("Search results: ${data.searchResults.size}") {
                         gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                         font = Font.font(16.0)
@@ -102,7 +102,12 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                 val indexColumn = makeIndexColumn()
                 customColumn("Thumbnail", ProviderSearchResult::thumbnailUrl) {
                     object : TableCell<ProviderSearchResult, String?>() {
-                        private val imageView = ImageView().fadeOnImageChange()
+                        private val imageView = ImageView().apply {
+                            fadeOnImageChange()
+                            fitHeight = 200.0
+                            fitWidth = 200.0
+                            isPreserveRatio = true
+                        }
                         init { graphic = imageView }
                         override fun updateItem(thumbnailUrl: String?, empty: Boolean) {
                             if (empty) {

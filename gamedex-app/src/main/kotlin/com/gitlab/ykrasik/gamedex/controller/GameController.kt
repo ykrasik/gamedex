@@ -57,9 +57,7 @@ class GameController @Inject constructor(
         override suspend fun doRun(context: CoroutineContext) {
             val requestsJob = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, progress)
             for (addGameRequest in requestsJob.channel) {
-                val game = gameRepository.add(addGameRequest)
-
-                progress.message = "Added: '${game.name}'"
+                gameRepository.add(addGameRequest)
                 numNewGames += 1
             }
         }
@@ -83,7 +81,7 @@ class GameController @Inject constructor(
         override suspend fun doRun(context: CoroutineContext) {
             games.forEachIndexed { i, game ->
                 progress.message = "Re-fetching '${game.name}..."
-                progress.progress(i, gameRepository.games.size)
+                progress.progress(i, gameRepository.games.size - 1)
 
                 val newRawGameData = dataProviderService.fetch(game.providerData, game.platform)
                 val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
@@ -112,14 +110,14 @@ class GameController @Inject constructor(
         private suspend fun cleanupStaleGames() {
             progress.message = "Detecting stales games..."
             val staleGamesDetected = gameRepository.games.filterIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size)
+                progress.progress(i, gameRepository.games.size - 1)
                 !game.path.isDirectory
             }
             progress.message = "Detected ${staleGamesDetected.size} stales games."
 
             staleGamesDetected.forEachIndexed { i, game ->
                 progress.message = "Cleaning up stale game: '${game.name}'..."
-                progress.progress(i, gameRepository.games.size)
+                progress.progress(i, gameRepository.games.size - 1)
 
                 gameRepository.delete(game)
                 staleGames += 1
@@ -129,14 +127,14 @@ class GameController @Inject constructor(
         private suspend fun cleanupStaleLibraries() {
             progress.message = "Detecting stales libraries..."
             val staleLibrariesDetected = libraryRepository.libraries.filterIndexed { i, library ->
-                progress.progress(i, libraryRepository.libraries.size)
+                progress.progress(i, libraryRepository.libraries.size - 1)
                 !library.path.isDirectory
             }
             progress.message = "Detected ${staleLibrariesDetected.size} stales libraries."
 
             staleLibrariesDetected.forEachIndexed { i, library ->
                 progress.message = "Deleting stale library: '${library.name}'..."
-                progress.progress(i, libraryRepository.libraries.size)
+                progress.progress(i, libraryRepository.libraries.size - 1)
 
                 libraryRepository.delete(library)
                 gameRepository.deleteByLibrary(library)  // TODO: This logic is duplicated from LibraryController.
@@ -157,16 +155,19 @@ class GameController @Inject constructor(
         }
     }
 
-    fun delete(game: Game) = launch(JavaFx) {
-        if (!areYouSureDialog("Delete game '${game.name}'?")) return@launch
+    fun delete(game: Game): Boolean {
+        if (!areYouSureDialog("Delete game '${game.name}'?")) return false
 
-        gameRepository.delete(game)
+        launch(JavaFx) {
+            gameRepository.delete(game)
 
-        Notification()
-            .text("Deleted game: '${game.name}")
-            .information()
-            .automaticallyHideAfter(5.seconds)
-            .show()
+            Notification()
+                .text("Deleted game: '${game.name}")
+                .information()
+                .automaticallyHideAfter(2.seconds)
+                .show()
+        }
+        return true
     }
 
     fun filterGenres() {

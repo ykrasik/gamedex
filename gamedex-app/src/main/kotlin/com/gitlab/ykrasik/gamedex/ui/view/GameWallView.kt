@@ -37,6 +37,7 @@ class GameWallView : View("Games Wall") {
                 GameDetailsFragment(cell.item).show()
             }
             cell.contextmenu {
+                menuitem("View Details") { GameDetailsFragment(cell.item).show() }
                 menuitem("Change Thumbnail") { controller.changeThumbnail(cell.item) }
                 separator()
                 menuitem("Delete") { controller.delete(cell.item) }

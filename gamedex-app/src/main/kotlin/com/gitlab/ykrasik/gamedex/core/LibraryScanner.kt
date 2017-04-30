@@ -28,7 +28,7 @@ class LibraryScanner @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val providerService: DataProviderService
 ) {
-    private val metaDataRegex = "(\\[.*?\\])|(-)".toRegex()
+    private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
     private val log by logger()
 
@@ -49,7 +49,7 @@ class LibraryScanner @Inject constructor(
         newDirectories.forEachIndexed { i, (library, directory) ->
             if (!isActive) return@forEachIndexed
 
-            progress.progress(i, newDirectories.size)
+            progress.progress(i, newDirectories.size - 1)
             val addGameRequest = processDirectory(directory, library, progress)
             addGameRequest?.let { send(it) }
         }
@@ -68,5 +68,6 @@ class LibraryScanner @Inject constructor(
     }
 
     // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-    private fun File.normalizeName(): String = name.replace(metaDataRegex, "").collapseSpaces().trim()
+    private fun File.normalizeName(): String =
+        name.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
 }

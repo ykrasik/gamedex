@@ -23,7 +23,6 @@ import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
 import org.controlsfx.glyphfont.FontAwesome
-import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import java.net.URLEncoder
 
@@ -33,10 +32,11 @@ import java.net.URLEncoder
  * Time: 18:17
  */
 // TODO: This will need to learn to refresh itself when data is updated.
+// TODO: This class is already too big
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
+    private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()
-    private val gameController: GameController by di()
 
     private var webView: WebView by singleAssign()
     private var backButton: Button by singleAssign()
@@ -59,7 +59,11 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     button("Change Poster")
                     button("Refresh")
                     button("Search Again")
-                    button("Delete")
+                    button("Delete") { setOnAction {
+                        if (gameController.delete(game)) {
+                            close(accept = false)
+                        }
+                    } }
                 }
                 separator()
             }
@@ -91,7 +95,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 verticalSeparator(padding = 10.0)
 
                 // TODO: Check if the new form can do what we did here manually.
-                // TODO: See if this can be made collapsible
+                // TODO: See if this can be made collapsible - squeezebox?
                 // Right
                 vbox {
                     hgrow = Priority.ALWAYS
@@ -185,8 +189,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                         padding { top = 5; bottom = 5 }
                         hgap = 10.0
                         row {
-                            backButton = button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_LEFT))
-                            forwardButton = button(graphic = Glyph("FontAwesome", FontAwesome.Glyph.ARROW_RIGHT))
+                            backButton = button(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ARROW_LEFT))
+                            forwardButton = button(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ARROW_RIGHT))
                         }
                     }
                     webView = webview {

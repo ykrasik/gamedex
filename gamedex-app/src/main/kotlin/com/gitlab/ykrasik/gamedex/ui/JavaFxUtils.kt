@@ -1,23 +1,40 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
+import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
 import javafx.application.Platform
 import javafx.application.Platform.runLater
+import javafx.beans.binding.Bindings
 import javafx.beans.binding.ListExpression
+import javafx.beans.binding.NumberBinding
 import javafx.beans.property.*
+import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.transformation.TransformationList
-import javafx.scene.control.TableColumnBase
-import javafx.scene.control.TableView
+import javafx.event.EventTarget
+import javafx.geometry.Insets
+import javafx.geometry.Orientation
+import javafx.scene.Group
+import javafx.scene.Node
+import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
+import javafx.scene.shape.Rectangle
 import javafx.stage.Stage
-import tornadofx.onChange
+import javafx.util.Callback
+import javafx.util.Duration
+import org.controlsfx.control.Rating
+import org.controlsfx.control.StatusBar
+import org.controlsfx.glyphfont.FontAwesome
+import org.controlsfx.glyphfont.Glyph
+import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.util.*
+import kotlin.reflect.KProperty1
 
 /**
  * User: ykrasik
@@ -162,3 +179,119 @@ fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<
     }
     return property
 }
+
+fun EventTarget.readOnlyTextField(value: String? = null, op: (TextField.() -> Unit)? = null) = textfield(value, op).apply {
+    isEditable = false
+}
+
+fun EventTarget.readOnlyTextArea(value: String? = null, op: (TextArea.() -> Unit)? = null) = textarea(value, op).apply {
+    isEditable = false
+}
+
+fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(text, op).apply {
+    isClosable = false
+}
+
+inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: (ComboBox<T>.() -> Unit)? = null): ComboBox<T> {
+    val enumValues = T::class.java.enumConstants.asList().observable<T>()
+    return combobox(property, enumValues, op)
+}
+
+inline fun <reified S, T> TableView<S>.customColumn(title: String,
+                                                    prop: KProperty1<S, T>,
+                                                    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
+    val column = TableColumn<S, T>(title)
+    addColumnInternal(column)
+    column.cellValueFactory = Callback { observable(it.value, prop) }
+    column.setCellFactory { cellFactory(it) }
+    return column
+}
+
+fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
+    // TODO: TornadoFx has a built-in 'confirm' method.
+    val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.CANCEL, ButtonType.OK)
+    alert.headerText = "Are You Sure?"
+    op?.invoke(alert)
+    val buttonClicked = alert.showAndWait()
+
+    var ok = false
+    buttonClicked.ifPresent {
+        when (it) {
+            ButtonType.OK -> ok = true
+            ButtonType.CANCEL -> ok = false
+            else -> error("Unexpected buttonType: $it")
+        }
+    }
+    return ok
+}
+
+fun ButtonBar.okButton(op: (Button.() -> Unit)? = null): Button {
+    return button("OK", type = ButtonBar.ButtonData.OK_DONE) {
+        op?.invoke(this)
+        isDefaultButton = true
+    }
+}
+
+fun ButtonBar.cancelButton(op: (Button.() -> Unit)? = null): Button {
+    return button("Cancel", type = ButtonBar.ButtonData.LEFT) {
+        op?.invoke(this)
+        isCancelButton = true
+    }
+}
+
+fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView {
+    imageProperty().onChange {
+        fade(fadeInDuration, 1.0, play = true) {
+            fromValue = 0.0
+        }
+    }
+    return this
+}
+
+fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() -> Unit)? = null) = opcr(this, Rating(max), op).apply {
+    isPartialRating = isPartial
+    skin = FixedRatingSkin(this)
+}
+
+fun EventTarget.imageViewResizingPane(imageView: ImageView, op: (ImageViewResizingPane.() -> Unit)? = null) =
+    opcr(this, ImageViewResizingPane(imageView), op)
+
+fun Node.clipRectangle(op: Rectangle.() -> Unit) {
+    clip = Rectangle().apply(op)
+}
+
+fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
+
+fun EventTarget.statusBar(op: (StatusBar.() -> Unit)? = null) = opcr(this, StatusBar(), op)
+fun StatusBar.left(op: (Node.() -> Unit)) = statusBarItems(op, leftItems)
+fun StatusBar.right(op: (Node.() -> Unit)) = statusBarItems(op, rightItems)
+private fun statusBarItems(op: (Node.() -> Unit), items: ObservableList<Node>) {
+    val target = object : Group() {
+        override fun getChildren() = items
+    }
+    op(target)
+}
+
+fun Region.padding(op: (InsetBuilder.() -> Unit)) {
+    val builder = InsetBuilder(this)
+    op(builder)
+    padding = Insets(builder.top.toDouble(), builder.right.toDouble(), builder.bottom.toDouble(), builder.left.toDouble())
+}
+class InsetBuilder(region: Region) {
+    var top: Number = region.padding.top
+    var bottom: Number = region.padding.bottom
+    var right: Number = region.padding.right
+    var left: Number = region.padding.left
+}
+
+fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {
+    padding?.let {
+        padding { right = it; left = it }
+    }
+}
+
+var SplitPane.dividerPosition: Double
+    get() = dividerPositions.first()
+    set(value) = setDividerPositions(value)
+
+fun fontAwesomeGlyph(glyph: FontAwesome.Glyph) = Glyph("FontAwesome", glyph)

@@ -9,6 +9,7 @@ import java.io.File
  * Date: 25/05/2016
  * Time: 11:29
  */
+// TODO: Consider renaming this to GameSource or something, to allow for non-filesystem sources.
 data class Library(
     val id: Int,
     val path: File,

@@ -47,7 +47,7 @@ class LibraryController @Inject constructor(
             Notification()
                 .text("Deleted library: '${library.name}")
                 .information()
-                .automaticallyHideAfter(5.seconds)
+                .automaticallyHideAfter(2.seconds)
                 .show()
         }
         return deleted

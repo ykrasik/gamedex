@@ -53,12 +53,12 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
         return imageProperty
     }
 
-    private suspend fun fetchOrDownloadImage(gameId: Int, url: String, saveIfAbsent: Boolean): ByteArray {
+    private suspend fun fetchOrDownloadImage(gameId: Int, url: String, persistIfAbsent: Boolean): ByteArray {
         val storedImage = persistenceService.fetchImage(url)
         if (storedImage != null) return storedImage
 
         val downloadedImage = downloadImage(url)
-        if (saveIfAbsent) {
+        if (persistIfAbsent) {
             launch(CommonPool) {
                 // Save downloaded image asynchronously
                 persistenceService.insertImage(gameId, url, downloadedImage)
@@ -68,9 +68,9 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private fun downloadImage(url: String): ByteArray {
-        log.info("Downloading $url...")
+        log.debug("Downloading $url...")
         val bytes = download(url)
-        log.info("Downloading $url: ${bytes.size} bytes.")
+        log.info("Downloaded $url: ${bytes.size} bytes.")
         return bytes
     }
 }
