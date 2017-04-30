@@ -68,7 +68,7 @@ abstract class GamedexTask(title: String) {
             } finally {
                 run(JavaFx) {
                     finally()
-                    notification.hide()
+                    notification.hide(afterDelay = 2.seconds)
                     runningProperty.set(false)
                 }
             }

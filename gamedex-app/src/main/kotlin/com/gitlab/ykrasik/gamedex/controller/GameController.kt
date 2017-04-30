@@ -105,11 +105,11 @@ class GameController @Inject constructor(
         private var staleLibraries = 0
 
         suspend override fun doRun(context: CoroutineContext) {
-            staleGames = cleanupStaleGames()
-            staleLibraries = cleanupStaleLibraries()
+            cleanupStaleGames()
+            cleanupStaleLibraries()
         }
 
-        private suspend fun cleanupStaleGames(): Int {
+        private suspend fun cleanupStaleGames() {
             progress.message = "Detecting stales games..."
             val staleGamesDetected = gameRepository.games.filterIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size)
@@ -122,12 +122,11 @@ class GameController @Inject constructor(
                 progress.progress(i, gameRepository.games.size)
 
                 gameRepository.delete(game)
+                staleGames += 1
             }
-
-            return staleGamesDetected.size
         }
 
-        private suspend fun cleanupStaleLibraries(): Int {
+        private suspend fun cleanupStaleLibraries() {
             progress.message = "Detecting stales libraries..."
             val staleLibrariesDetected = libraryRepository.libraries.filterIndexed { i, library ->
                 progress.progress(i, libraryRepository.libraries.size)
@@ -141,9 +140,8 @@ class GameController @Inject constructor(
 
                 libraryRepository.delete(library)
                 gameRepository.deleteByLibrary(library)  // TODO: This logic is duplicated from LibraryController.
+                staleLibraries += 1
             }
-
-            return staleLibrariesDetected.size
         }
 
         override fun finally() {
@@ -167,7 +165,7 @@ class GameController @Inject constructor(
         Notification()
             .text("Deleted game: '${game.name}")
             .information()
-            .hideAfter(5.seconds)
+            .automaticallyHideAfter(5.seconds)
             .show()
     }
 

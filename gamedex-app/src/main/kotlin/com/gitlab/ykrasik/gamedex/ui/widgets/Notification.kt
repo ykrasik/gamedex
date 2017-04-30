@@ -80,7 +80,7 @@ class Notification {
     private var graphic: Node? = null
     private var actions = FXCollections.observableArrayList<Action>()
     private var position = Pos.TOP_RIGHT
-    private var hideAfterDuration: Duration? = null
+    private var automaticallyHideAfterDuration: Duration? = null
     private var hideCloseButton: Boolean = false
     private var onAction: EventHandler<ActionEvent>? = null
     private var owner: Window? = null
@@ -148,11 +148,10 @@ class Notification {
     }
 
     /**
-     * Specify the duration that the notification should show, after which it
-     * will be hidden.
+     * Specify the duration that the notification should show, after which it will automatically be hidden.
      * If null, will be shown until manually closed.
      */
-    fun hideAfter(duration: Duration?): Notification = apply { this.hideAfterDuration = duration }
+    fun automaticallyHideAfter(duration: Duration?): Notification = apply { this.automaticallyHideAfterDuration = duration }
 
     /**
      * Specify what to do when the user clicks on the notification (in addition
@@ -189,10 +188,10 @@ class Notification {
     }
 
     /**
-     * Instructs the notification to be hidden.
+     * Instructs the notification to be hidden, possibly after a certain delay.
      */
-    fun hide() {
-        NotificationPopupHandler.hide(this)
+    fun hide(afterDelay: Duration? = null) {
+        NotificationPopupHandler.hide(this, afterDelay)
     }
 
     val isShowing get() = NotificationPopupHandler.isShowing(this)
@@ -348,13 +347,21 @@ class Notification {
             addPopupToMap(p, popup)
 
             // begin a timeline to get rid of the popup
-            if (notification.hideAfterDuration != null) {
-                val timeline = createHideTimeline(notification, notificationBar, notification.hideAfterDuration!!)
-                timeline.play()
+            if (notification.automaticallyHideAfterDuration != null) {
+                createHideTimeline(notification, notificationBar, notification.automaticallyHideAfterDuration!!).play()
             }
         }
 
-        fun hide(notification: Notification) {
+        fun hide(notification: Notification, afterDelay: Duration? = null) {
+            if (afterDelay == null) {
+                doHide(notification)
+            } else {
+                val notificationBar = notificationsMap[notification]!!.content.first() as NotificationBar
+                createHideTimeline(notification, notificationBar, afterDelay).play()
+            }
+        }
+
+        private fun doHide(notification: Notification) {
             val popup = notificationsMap.remove(notification)
             if (popup != null) {
                 // Popup may have already been hidden (by clicking the close button)
@@ -376,7 +383,7 @@ class Notification {
 
             val timeline = Timeline(kfBegin, kfEnd)
             timeline.delay = startDelay
-            timeline.onFinished = EventHandler<ActionEvent> { hide(notification) }
+            timeline.onFinished = EventHandler<ActionEvent> { doHide(notification) }
 
             return timeline
         }
