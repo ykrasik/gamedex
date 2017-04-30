@@ -116,22 +116,73 @@ class GameController @Inject constructor(
         }
     }
 
-    // TODO: Allow cancelling this
     fun refetchGames() = launch(JavaFx) {
         if (!areYouSureDialog("Re-fetch all games? This could take a while...")) return@launch
 
-        run(CommonPool) {
-            games.forEach { game ->
-                val newRawGameData = dataProviderService.fetch(game.providerData, game.platform)
-                val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
-                gameRepository.update(newRawGame)
+        RefetchGamesTask().start()
+    }
+
+    inner class RefetchGamesTask {
+        private val log by logger()
+
+        private lateinit var job: Job
+        private val jobNotification = Notification()
+
+        private val notification = Notifications()
+            .hideCloseButton()
+            .position(Pos.TOP_RIGHT)
+            .title("Re-fetching games...")
+            .graphic(GridPane().apply {
+                hgap = 10.0
+                vgap = 5.0
+                row {
+                    progressbar(jobNotification.progressProperty) {
+                        minWidth = 500.0
+                    }
+                    button(graphic = UIResources.Images.error.toImageView()) {
+                        setOnAction { job.cancel() }
+                    }
+                }
+                row {
+                    text(jobNotification.messageProperty)
+                }
+            })
+
+        val runningProperty = SimpleBooleanProperty(false)
+
+        fun start() {
+            job = launch(CommonPool) {
+                run(JavaFx) {
+                    runningProperty.set(true)
+                    notification.show()
+                }
+
+                var gamesRefetched = 0
+                try {
+                    run(CommonPool) {
+                        games.forEachIndexed { i, game ->
+                            jobNotification.message = "Re-fetching '${game.name}..."
+                            jobNotification.progress(i, gameRepository.games.size)
+                            val newRawGameData = dataProviderService.fetch(game.providerData, game.platform)
+                            val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
+                            gameRepository.update(newRawGame)
+                            gamesRefetched += 1
+                        }
+                    }
+                } finally {
+                    run(JavaFx) {
+                        log.info("Done: Re-fetched $gamesRefetched games.")
+                        notification.hide()
+                        runningProperty.set(false)
+                    }
+                }
             }
         }
     }
 
-    fun cleanup(): CleanupGamesTask = CleanupGamesTask().apply { start() }
+    fun cleanup(): CleanupTask = CleanupTask().apply { start() }
 
-    inner class CleanupGamesTask {
+    inner class CleanupTask {
         private val log by logger()
 
         private lateinit var job: Job
