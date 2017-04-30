@@ -22,6 +22,8 @@ class Main : App(PreloaderView::class, Styles::class) {
             SLF4JBridgeHandler.install()
             LoggerFactory = UILoggerFactory
 
+            // TODO: Set root slf4j level to info programatically.
+
             Application.launch(Main::class.java, *args)
         }
     }

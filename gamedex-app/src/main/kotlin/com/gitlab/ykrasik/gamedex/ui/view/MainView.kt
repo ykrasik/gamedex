@@ -2,8 +2,9 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.MainController
-import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.util.Log
+import com.gitlab.ykrasik.gamedex.util.LogLevel
 import javafx.geometry.Orientation
 import tornadofx.*
 
@@ -15,7 +16,6 @@ import tornadofx.*
 class MainView : View("Gamedex") {
     private val mainController: MainController by di()
     private val gameController: GameController by di()
-    private val notificationManager: NotificationManager by di()
 
     private val gameView: GameView by inject()
     private val libraryView: LibraryView by inject()
@@ -50,7 +50,9 @@ class MainView : View("Gamedex") {
         }
         bottom {
             statusBar {
-                textProperty().bind(notificationManager.messageProperty)
+                Log.entries.onChange {
+                    text = it.list.last { it.level == LogLevel.info }.message
+                }
 
                 left {
                     // TODO: Make log a tab? Or it's own window?

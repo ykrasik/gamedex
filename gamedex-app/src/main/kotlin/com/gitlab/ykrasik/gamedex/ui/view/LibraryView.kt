@@ -12,8 +12,7 @@ import tornadofx.*
 class LibraryView : View("Libraries") {
     private val controller: LibraryController by di()
 
-    override val root = tableview<Library> {
-        itemsProperty().bind(controller.librariesProperty)
+    override val root = tableview(controller.libraries) {
 
         isEditable = false
         columnResizePolicy = SmartResize.POLICY

@@ -1,11 +1,14 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.core.NotificationManager
+import com.gitlab.ykrasik.gamedex.core.Notification
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
+import com.gitlab.ykrasik.gamedex.util.Log
+import com.gitlab.ykrasik.gamedex.util.LogEntry
 import com.gitlab.ykrasik.gamedex.util.ProgramData
 import com.google.inject.AbstractModule
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
+import javafx.collections.ListChangeListener
 import javafx.scene.effect.DropShadow
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.CommonPool
@@ -21,7 +24,16 @@ import tornadofx.*
  */
 class PreloaderView : View("Gamedex") {
     private var logo = resources.image("gamedex.png")
-    private val notificationManager = NotificationManager()
+    private val notification = Notification()
+
+    private val messageListener = ListChangeListener<LogEntry> {
+        notification.message = it.list.last().message
+    }
+
+    init {
+        // While loading, flush all log messages to the notification.
+        Log.entries.addListener(messageListener)
+    }
 
     override val root = borderpane {
         center {
@@ -34,10 +46,10 @@ class PreloaderView : View("Gamedex") {
                 vgap = 5.0
                 row {
                     val progressBar = progressbar(0.0) { prefWidth = logo.width }
-                    progressBar.bind(notificationManager.progressProperty)
+                    progressBar.bind(notification.progressProperty)
                 }
                 row {
-                    label(notificationManager.messageProperty)
+                    label(notification.messageProperty)
                 }
             }
         }
@@ -62,24 +74,21 @@ class PreloaderView : View("Gamedex") {
     }
 
     private fun loadGamdex() {
-        notificationManager.message("Loading...")
+        notification.message = "Loading..."
         val programData = ProgramData.get()
         val provisionListener = GamedexProvisionListener(programData.amountOfDiComponents)
 
         FX.dicontainer = GuiceDiContainer(
-            GuiceDiContainer.defaultModules + LifecycleModule(provisionListener) + NotificationModule()
+            GuiceDiContainer.defaultModules + LifecycleModule(provisionListener)
         )
 
-        notificationManager.message("Done loading.")
+        notification.message = "Done loading."
+        Log.entries.removeListener(messageListener)
+
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
         ProgramData.write(programData.copy(amountOfDiComponents = provisionListener.componentCount))
     }
 
-    private inner class NotificationModule : AbstractModule() {
-        override fun configure() {
-            bind(NotificationManager::class.java).toInstance(notificationManager)
-        }
-    }
 
     private class LifecycleModule(private val listener: GamedexProvisionListener) : AbstractModule() {
         override fun configure() {
@@ -93,7 +102,7 @@ class PreloaderView : View("Gamedex") {
 
         override fun <T : Any> onProvision(provision: ProvisionListener.ProvisionInvocation<T>) {
             _componentCount++
-            notificationManager.progress(_componentCount, totalComponents)
+            notification.progress(_componentCount, totalComponents)
         }
     }
 }

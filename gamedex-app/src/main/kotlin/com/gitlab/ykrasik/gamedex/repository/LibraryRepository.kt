@@ -2,16 +2,13 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
-import javafx.beans.property.ReadOnlyListProperty
 import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
-import tornadofx.getValue
 import tornadofx.observable
 import java.io.File
 import javax.inject.Inject
@@ -24,16 +21,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class LibraryRepository @Inject constructor(
-    private val persistenceService: PersistenceService,
-    private val notificationManager: NotificationManager
+    private val persistenceService: PersistenceService
 ) {
     private val log by logger()
 
-    val librariesProperty: ReadOnlyListProperty<Library> = run {
-        notificationManager.message("Fetching libraries...")
-        SimpleListProperty(persistenceService.fetchAllLibraries().observable())
+    val libraries: ObservableList<Library> = run {
+        log.info("Fetching libraries...")
+        val libraries = SimpleListProperty(persistenceService.fetchAllLibraries().observable())
+        log.info("Fetched ${libraries.size} libraries.")
+        libraries
     }
-    val libraries: ObservableList<Library> by librariesProperty
 
     suspend fun add(request: AddLibraryRequest): Library {
         val library = run(CommonPool) {
@@ -46,13 +43,14 @@ class LibraryRepository @Inject constructor(
     }
 
     suspend fun delete(library: Library) {
+        log.info("Deleting '${library.name}'...")
         run(CommonPool) {
             persistenceService.deleteLibrary(library.id)
         }
         run(JavaFx) {
             check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
         }
-        log.info("Done")
+        log.info("Deleting '${library.name}': Done.")
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")

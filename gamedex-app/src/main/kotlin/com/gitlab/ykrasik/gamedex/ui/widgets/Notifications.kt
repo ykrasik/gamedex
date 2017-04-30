@@ -355,9 +355,12 @@ class Notifications {
         }
 
         fun hide(notification: Notifications) {
-            val popup = notificationsMap.remove(notification)!!
-            popup.hide()
-            removePopupFromMap(notification.position, popup)
+            val popup = notificationsMap.remove(notification)
+            if (popup != null) {
+                // Popup may have already been hidden (by clicking the close button)
+                popup.hide()
+                removePopupFromMap(notification.position, popup)
+            }
 
             // TODO: Recalc popup positions now
         }

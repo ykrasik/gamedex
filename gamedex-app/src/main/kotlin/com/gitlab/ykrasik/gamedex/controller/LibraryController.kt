@@ -5,12 +5,10 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.AddLibraryFragment
+import com.gitlab.ykrasik.gamedex.ui.widgets.Notifications
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import tornadofx.Controller
-import tornadofx.listview
-import tornadofx.text
-import tornadofx.vbox
+import tornadofx.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +23,7 @@ class LibraryController @Inject constructor(
     private val gameRepository: GameRepository
 ): Controller() {
 
-    val librariesProperty get() = libraryRepository.librariesProperty
+    val libraries = SortedFilteredList(libraryRepository.libraries)
 
     fun addLibrary(): Boolean {
         var added = false
@@ -42,11 +40,15 @@ class LibraryController @Inject constructor(
         launch(JavaFx) {
             if (!confirmDelete(library)) return@launch
 
-            log.info("Deleting $library...")
             libraryRepository.delete(library)
             gameRepository.deleteByLibrary(library)
-            log.info("Done")
             deleted = true
+
+            Notifications()
+                .text("Deleted library: '${library.name}")
+                .information()
+                .hideAfter(5.seconds)
+                .show()
         }
         return deleted
     }

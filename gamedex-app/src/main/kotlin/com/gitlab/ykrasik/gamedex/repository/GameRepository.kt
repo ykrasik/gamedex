@@ -2,9 +2,9 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
-import com.gitlab.ykrasik.gamedex.core.NotificationManager
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
 import kotlinx.coroutines.experimental.CommonPool
@@ -25,12 +25,15 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    userPreferences: UserPreferences,
-    private val notificationManager: NotificationManager
+    userPreferences: UserPreferences
 ) {
+    private val log by logger()
+
     val games: ObservableList<Game> = run {
-        notificationManager.message("Fetching games...")
-        persistenceService.fetchAllGames().map { it.toGame() }.observable()
+        log.info("Fetching games...")
+        val games = persistenceService.fetchAllGames().map { it.toGame() }.observable()
+        log.info("Fetched ${games.size} games.")
+        games
     }
 
     // TODO: Genres need to constantly flatMap from games, not just once.
@@ -67,12 +70,12 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun delete(game: Game) = run(JavaFx) {
-        notificationManager.message("Deleting '${game.name}'...")
+        log.info("Deleting '${game.name}'...")
         run(CommonPool) {
             persistenceService.deleteGame(game.id)
         }
         removeGameById(game.id)
-        notificationManager.message("Deleted '${game.name}'.")
+        log.info("Deleting '${game.name}': Done.")
     }
 
     suspend fun deleteByLibrary(library: Library) = run(JavaFx) {

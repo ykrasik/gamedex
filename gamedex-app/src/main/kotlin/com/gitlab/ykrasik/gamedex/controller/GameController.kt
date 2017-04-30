@@ -128,9 +128,15 @@ class GameController @Inject constructor(
     }
 
     fun delete(game: Game) = launch(JavaFx) {
-        if (areYouSureDialog("Delete game '${game.name}'?")) {
-            gameRepository.delete(game)
-        }
+        if (!areYouSureDialog("Delete game '${game.name}'?")) return@launch
+
+        gameRepository.delete(game)
+
+        Notifications()
+            .text("Deleted game: '${game.name}")
+            .information()
+            .hideAfter(5.seconds)
+            .show()
     }
 
     fun filterGenres() {
