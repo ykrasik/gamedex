@@ -92,21 +92,23 @@ class GameController @Inject constructor(
                 notification.show()
             }
 
-            val newGames = run(CommonPool) {
-                var newGames = 0
-                job = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, jobNotification)
-                for (addGameRequest in job.channel) {
-                    val game = gameRepository.add(addGameRequest)
-                    jobNotification.message = "Added: '${game.name}"
-                    newGames += 1
+            var newGames = 0
+            try {
+                run(CommonPool) {
+                    job = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, jobNotification)
+                    for (addGameRequest in job.channel) {
+                        val game = gameRepository.add(addGameRequest)
+                        jobNotification.message = "Added: '${game.name}"
+                        newGames += 1
+                    }
+                    newGames
                 }
-                newGames
-            }
-
-            run(JavaFx) {
-                log.info("Done refreshing games: Added $newGames new games.")
-                notification.hide()
-                runningProperty.set(false)
+            } finally {
+                run(JavaFx) {
+                    log.info("Done refreshing games: Added $newGames new games.")
+                    notification.hide()
+                    runningProperty.set(false)
+                }
             }
         }
     }

@@ -8,13 +8,9 @@ import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.Separator
 import javafx.scene.control.SplitPane
-import javafx.scene.layout.GridPane
-import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import org.controlsfx.control.StatusBar
-import tornadofx.gridpaneConstraints
 import tornadofx.opcr
-import tornadofx.region
 import tornadofx.separator
 
 /**
@@ -53,7 +49,3 @@ fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> 
 var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
-
-fun GridPane.spacer(): Region = region {
-    gridpaneConstraints { hGrow = Priority.ALWAYS }
-}

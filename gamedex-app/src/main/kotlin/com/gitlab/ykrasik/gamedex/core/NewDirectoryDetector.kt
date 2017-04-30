@@ -31,7 +31,7 @@ class NewDirectoryDetector {
         fun detectNewDirectories(dir: File) {
             if (!dir.isDirectory) {
                 log.warn("Directory doesn't exist: [$dir]")
-                return
+                throw DirectoryDoesntExistException(dir)
             }
             if (dir.isExcluded) return
 
@@ -53,3 +53,5 @@ class NewDirectoryDetector {
         private val File.isExcluded get() = this in excludedDirectories
     }
 }
+
+class DirectoryDoesntExistException(dir: File) : RuntimeException("Directory doesn't exist: '$dir'")
