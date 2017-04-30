@@ -5,7 +5,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.AddLibraryFragment
-import com.gitlab.ykrasik.gamedex.ui.widgets.Notifications
+import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
@@ -44,7 +44,7 @@ class LibraryController @Inject constructor(
             gameRepository.deleteByLibrary(library)
             deleted = true
 
-            Notifications()
+            Notification()
                 .text("Deleted library: '${library.name}")
                 .information()
                 .hideAfter(5.seconds)

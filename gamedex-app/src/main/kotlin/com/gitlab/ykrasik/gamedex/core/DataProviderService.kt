@@ -14,7 +14,7 @@ import javax.inject.Singleton
  */
 interface DataProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: Platform, path: File, notification: Notification): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress): List<RawGameData>?
 
     fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData>
 }
@@ -26,9 +26,9 @@ class DataProviderServiceImpl @Inject constructor(
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
-    override suspend fun search(name: String, platform: Platform, path: File, notification: Notification): List<RawGameData>? =
+    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress): List<RawGameData>? =
         try {
-            SearchContext(platform, path, notification, name).search()
+            SearchContext(platform, path, progress, name).search()
         } catch (e: CancelSearchException) {
             null
         }
@@ -36,7 +36,7 @@ class DataProviderServiceImpl @Inject constructor(
     private inner class SearchContext(
         private val platform: Platform,
         private val path: File,
-        private val notification: Notification,
+        private val progress: TaskProgress,
         private var searchedName: String
     ) {
         val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
@@ -47,9 +47,9 @@ class DataProviderServiceImpl @Inject constructor(
         }
 
         private suspend fun search(provider: GameProvider): RawGameData? {
-            notification.message = "[${provider.info.name}] Searching: '$searchedName'..."
+            progress.message = "[${provider.info.name}] Searching: '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            notification.message = "[${provider.info.name}] Searching: '$searchedName': ${results.size} results."
+            progress.message = "[${provider.info.name}] Searching: '$searchedName': ${results.size} results."
 
             val filteredResults = filterResults(results)
             val choice = if (filteredResults.size == 1) {

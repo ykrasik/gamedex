@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.core.Notification
+import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
@@ -24,10 +24,10 @@ import tornadofx.*
  */
 class PreloaderView : View("Gamedex") {
     private var logo = resources.image("gamedex.png")
-    private val notification = Notification()
+    private val progress = TaskProgress(writeToLog = false)
 
     private val messageListener = ListChangeListener<LogEntry> {
-        notification.message = it.list.last().message
+        progress.message = it.list.last().message
     }
 
     init {
@@ -46,10 +46,10 @@ class PreloaderView : View("Gamedex") {
                 vgap = 5.0
                 row {
                     val progressBar = progressbar(0.0) { prefWidth = logo.width }
-                    progressBar.bind(notification.progressProperty)
+                    progressBar.bind(progress.progressProperty)
                 }
                 row {
-                    label(notification.messageProperty)
+                    label(progress.messageProperty)
                 }
             }
         }
@@ -74,7 +74,7 @@ class PreloaderView : View("Gamedex") {
     }
 
     private fun loadGamdex() {
-        notification.message = "Loading..."
+        progress.message = "Loading..."
         val programData = ProgramData.get()
         val provisionListener = GamedexProvisionListener(programData.amountOfDiComponents)
 
@@ -82,7 +82,7 @@ class PreloaderView : View("Gamedex") {
             GuiceDiContainer.defaultModules + LifecycleModule(provisionListener)
         )
 
-        notification.message = "Done loading."
+        progress.message = "Done loading."
         Log.entries.removeListener(messageListener)
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
@@ -102,7 +102,7 @@ class PreloaderView : View("Gamedex") {
 
         override fun <T : Any> onProvision(provision: ProvisionListener.ProvisionInvocation<T>) {
             _componentCount++
-            notification.progress(_componentCount, totalComponents)
+            progress.progress(_componentCount, totalComponents)
         }
     }
 }

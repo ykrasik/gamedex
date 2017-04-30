@@ -32,8 +32,8 @@ class LibraryScanner @Inject constructor(
 
     private val log by logger()
 
-    fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, notification: Notification) = produce<AddGameRequest>(context) {
-        notification.message = "Scanning for new directories..."
+    fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, progress: TaskProgress) = produce<AddGameRequest>(context) {
+        progress.message = "Scanning for new directories..."
 
         val excludedDirectories = libraries.map(Library::path).toSet() + games.map(Game::path).toSet()
         val newDirectories = libraries.flatMap { library ->
@@ -49,17 +49,17 @@ class LibraryScanner @Inject constructor(
         newDirectories.forEachIndexed { i, (library, directory) ->
             if (!isActive) return@forEachIndexed
 
-            notification.progress(i, newDirectories.size)
-            val addGameRequest = processDirectory(directory, library, notification)
+            progress.progress(i, newDirectories.size)
+            val addGameRequest = processDirectory(directory, library, progress)
             addGameRequest?.let { send(it) }
         }
         channel.close()
     }
 
-    private suspend fun processDirectory(directory: File, library: Library, notification: Notification): AddGameRequest? {
+    private suspend fun processDirectory(directory: File, library: Library, progress: TaskProgress): AddGameRequest? {
         val name = requireNotNull(directory.normalizeName().emptyToNull()) { "Invalid directory name: '${directory.name}'!"}
 
-        val providerData = providerService.search(name, library.platform, directory, notification) ?: return null
+        val providerData = providerService.search(name, library.platform, directory, progress) ?: return null
 
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),

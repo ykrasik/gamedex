@@ -26,9 +26,17 @@ class MainView : View("Gamedex") {
             menubar {
                 menu("Game") {
                     isMnemonicParsing = false
-                    menuitem("Cleanup") { gameController.cleanup() }
+                    menuitem("Cleanup") {
+                        val task = gameController.cleanup()
+                        disableProperty().cleanBind(task.runningProperty)
+                    }
                     separator()
-                    menuitem("Re-Fetch Games") { gameController.refetchGames() }
+                    menuitem("Re-Fetch Games") {
+                        val task = gameController.refetchGames()
+                        if (task != null) {
+                            disableProperty().cleanBind(task.runningProperty)
+                        }
+                    }
                 }
                 menu("Settings") {
                     isMnemonicParsing = false

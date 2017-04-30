@@ -74,7 +74,7 @@ import java.util.*
 ` *
 </pre> *
  */
-class Notifications {
+class Notification {
     private var title: String? = null
     private var text: String? = null
     private var graphic: Node? = null
@@ -91,47 +91,47 @@ class Notifications {
     /**
      * Specify the text to show in the notification.
      */
-    fun text(text: String): Notifications = apply { this.text = text }
+    fun text(text: String): Notification = apply { this.text = text }
 
     /**
      * Specify the title to show in the notification.
      */
-    fun title(title: String): Notifications = apply { this.title = title }
+    fun title(title: String): Notification = apply { this.title = title }
 
     /**
      * Specify the graphic to show in the notification.
      */
-    fun graphic(graphic: Node): Notifications = apply { this.graphic = graphic }
+    fun graphic(graphic: Node): Notification = apply { this.graphic = graphic }
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'confirm' graphic.
      */
-    fun confirm(): Notifications = graphic(ImageView(UIResources.Images.confirm))
+    fun confirm(): Notification = graphic(ImageView(UIResources.Images.confirm))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'information' graphic.
      */
-    fun information(): Notifications = graphic(ImageView(UIResources.Images.information))
+    fun information(): Notification = graphic(ImageView(UIResources.Images.information))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'warning' graphic.
      */
-    fun warning(): Notifications = graphic(ImageView(UIResources.Images.warning))
+    fun warning(): Notification = graphic(ImageView(UIResources.Images.warning))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'error' graphic.
      */
-    fun error(): Notifications = graphic(ImageView(UIResources.Images.error))
+    fun error(): Notification = graphic(ImageView(UIResources.Images.error))
 
     /**
      * Specify the position of the notification on screen, by default it is
      * [bottom-right][Pos.BOTTOM_RIGHT].
      */
-    fun position(position: Pos): Notifications = apply { this.position = position }
+    fun position(position: Pos): Notification = apply { this.position = position }
 
     /**
      * The dialog window owner - which can be [Screen], [Window]
@@ -139,7 +139,7 @@ class Notifications {
      * the owner, otherwise the notifications will be shown within the whole
      * primary (default) screen.
      */
-    fun owner(owner: Any): Notifications = apply {
+    fun owner(owner: Any): Notification = apply {
         if (owner is Screen) {
             this.screen = owner
         } else {
@@ -152,32 +152,32 @@ class Notifications {
      * will be hidden.
      * If null, will be shown until manually closed.
      */
-    fun hideAfter(duration: Duration?): Notifications = apply { this.hideAfterDuration = duration }
+    fun hideAfter(duration: Duration?): Notification = apply { this.hideAfterDuration = duration }
 
     /**
      * Specify what to do when the user clicks on the notification (in addition
      * to the notification hiding, which happens whenever the notification is
      * clicked on).
      */
-    fun onAction(onAction: EventHandler<ActionEvent>): Notifications = apply { this.onAction = onAction }
+    fun onAction(onAction: EventHandler<ActionEvent>): Notification = apply { this.onAction = onAction }
 
     /**
      * Specify that the notification should use the built-in dark styling,
      * rather than the default 'modena' notification style (which is a
      * light-gray).
      */
-    fun darkStyle(): Notifications = apply { styleClass.add(STYLE_CLASS_DARK) }
+    fun darkStyle(): Notification = apply { styleClass.add(STYLE_CLASS_DARK) }
 
     /**
      * Specify that the close button in the top-right corner of the notification
      * should not be shown.
      */
-    fun hideCloseButton(): Notifications = apply { this.hideCloseButton = true }
+    fun hideCloseButton(): Notification = apply { this.hideCloseButton = true }
 
     /**
      * Specify the actions that should be shown in the notification as buttons.
      */
-    fun action(vararg actions: Action): Notifications = apply {
+    fun action(vararg actions: Action): Notification = apply {
         this.actions = FXCollections.observableArrayList(*actions)
     }
 
@@ -203,7 +203,7 @@ class Notifications {
         private var screenWidth = 0.0
         private var screenHeight = 0.0
 
-        private val notificationsMap = mutableMapOf<Notifications, Popup>()
+        private val notificationsMap = mutableMapOf<Notification, Popup>()
         private val popupsMap = mutableMapOf<Pos, MutableList<Popup>>()
         private val padding = 15.0
 
@@ -212,7 +212,7 @@ class Notifications {
 
         private var isShowing = false
 
-        fun show(notification: Notifications) {
+        fun show(notification: Notification) {
             val window = if (notification.owner == null) {
                 // If the owner is not set, we work with the whole screen.
                 val screenBounds = notification.screen.visualBounds
@@ -232,7 +232,7 @@ class Notifications {
             show(window, notification)
         }
 
-        private fun show(owner: Window?, notification: Notifications) {
+        private fun show(owner: Window?, notification: Notification) {
             // Stylesheets which are added to the scene of a popup aren't
             // considered for styling. For this reason, we need to find the next
             // window in the hierarchy which isn't a popup.
@@ -243,7 +243,7 @@ class Notifications {
             // need to install our CSS
             val ownerScene = ownerWindow?.scene
             if (ownerScene != null) {
-                val stylesheetUrl = Notifications::class.java.getResource("/org/controlsfx/control/notificationpopup.css").toExternalForm() //$NON-NLS-1$
+                val stylesheetUrl = Notification::class.java.getResource("/org/controlsfx/control/notificationpopup.css").toExternalForm() //$NON-NLS-1$
                 if (!ownerScene.stylesheets.contains(stylesheetUrl)) {
                     // The stylesheet needs to be added at the beginning so that
                     // the styling can be adjusted with custom stylesheets.
@@ -354,7 +354,7 @@ class Notifications {
             }
         }
 
-        fun hide(notification: Notifications) {
+        fun hide(notification: Notification) {
             val popup = notificationsMap.remove(notification)
             if (popup != null) {
                 // Popup may have already been hidden (by clicking the close button)
@@ -365,9 +365,9 @@ class Notifications {
             // TODO: Recalc popup positions now
         }
 
-        fun isShowing(notification: Notifications) = notificationsMap.containsKey(notification)
+        fun isShowing(notification: Notification) = notificationsMap.containsKey(notification)
 
-        private fun createHideTimeline(notification: Notifications, bar: NotificationBar, startDelay: Duration): Timeline {
+        private fun createHideTimeline(notification: Notification, bar: NotificationBar, startDelay: Duration): Timeline {
             val fadeOutBegin = KeyValue(bar.opacityProperty(), 1.0)
             val fadeOutEnd = KeyValue(bar.opacityProperty(), 0.0)
 
