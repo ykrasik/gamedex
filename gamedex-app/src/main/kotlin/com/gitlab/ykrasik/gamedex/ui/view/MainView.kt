@@ -26,7 +26,7 @@ class MainView : View("Gamedex") {
             menubar {
                 menu("Game") {
                     isMnemonicParsing = false
-                    menuitem("Cleanup") { mainController.cleanup() }
+                    menuitem("Cleanup") { gameController.cleanup() }
                     separator()
                     menuitem("Re-Fetch Games") { gameController.refetchGames() }
                 }

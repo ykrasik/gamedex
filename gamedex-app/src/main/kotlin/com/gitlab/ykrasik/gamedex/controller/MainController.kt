@@ -14,8 +14,4 @@ class MainController : Controller() {
     fun showSettings() {
         SettingsFragment().show()
     }
-
-    fun cleanup() {
-        TODO()  // TODO: Implement
-    }
 }

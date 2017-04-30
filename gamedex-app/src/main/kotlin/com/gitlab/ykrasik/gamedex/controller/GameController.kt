@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.DataProviderService
@@ -8,7 +9,6 @@ import com.gitlab.ykrasik.gamedex.core.LibraryScanner
 import com.gitlab.ykrasik.gamedex.core.Notification
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.UIResources
@@ -22,7 +22,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Pos
 import javafx.scene.layout.GridPane
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.channels.ProducerJob
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
@@ -58,10 +58,11 @@ class GameController @Inject constructor(
 
     fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }
 
+    // TODO: Looks like this can be generified
     inner class RefreshGamesTask {
         private val log by logger()
 
-        private lateinit var job: ProducerJob<AddGameRequest>
+        private lateinit var job: Job
         private val jobNotification = Notification()
 
         private val notification = Notifications()
@@ -86,28 +87,30 @@ class GameController @Inject constructor(
 
         val runningProperty = SimpleBooleanProperty(false)
 
-        fun start() = launch(CommonPool) {
-            run(JavaFx) {
-                runningProperty.set(true)
-                notification.show()
-            }
-
-            var newGames = 0
-            try {
-                run(CommonPool) {
-                    job = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, jobNotification)
-                    for (addGameRequest in job.channel) {
-                        val game = gameRepository.add(addGameRequest)
-                        jobNotification.message = "Added: '${game.name}"
-                        newGames += 1
-                    }
-                    newGames
-                }
-            } finally {
+        fun start() {
+            job = launch(CommonPool) {
                 run(JavaFx) {
-                    log.info("Done refreshing games: Added $newGames new games.")
-                    notification.hide()
-                    runningProperty.set(false)
+                    runningProperty.set(true)
+                    notification.show()
+                }
+
+                var newGames = 0
+                try {
+                    run(CommonPool) {
+                        val requestsJob = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, jobNotification)
+                        for (addGameRequest in requestsJob.channel) {
+                            val game = gameRepository.add(addGameRequest)
+                            jobNotification.message = "Added: '${game.name}"
+                            newGames += 1
+                        }
+                        newGames
+                    }
+                } finally {
+                    run(JavaFx) {
+                        log.info("Done refreshing games: Added $newGames new games.")
+                        notification.hide()
+                        runningProperty.set(false)
+                    }
                 }
             }
         }
@@ -123,6 +126,92 @@ class GameController @Inject constructor(
                 val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
                 gameRepository.update(newRawGame)
             }
+        }
+    }
+
+    fun cleanup(): CleanupGamesTask = CleanupGamesTask().apply { start() }
+
+    inner class CleanupGamesTask {
+        private val log by logger()
+
+        private lateinit var job: Job
+        private val jobNotification = Notification()
+
+        private val notification = Notifications()
+            .hideCloseButton()
+            .position(Pos.TOP_RIGHT)
+            .title("Cleaning up...")
+            .graphic(GridPane().apply {
+                hgap = 10.0
+                vgap = 5.0
+                row {
+                    progressbar(jobNotification.progressProperty) {
+                        minWidth = 500.0
+                    }
+                    button(graphic = UIResources.Images.error.toImageView()) {
+                        setOnAction { job.cancel() }
+                    }
+                }
+                row {
+                    text(jobNotification.messageProperty)
+                }
+            })
+
+        val runningProperty = SimpleBooleanProperty(false)
+
+        fun start() {
+            job = launch(CommonPool) {
+                run(JavaFx) {
+                    runningProperty.set(true)
+                    notification.show()
+                }
+
+                var staleGames = 0
+                var staleLibraries = 0
+                try {
+                    run(CommonPool) {
+                        // TODO: Batch delete if performance is an issue
+                        jobNotification.message = "Detecting stales games..."
+                        log.info("Detecting stales games...")
+                        val staleGamesDetected = detectStaleGames()
+                        log.info("Detected ${staleGamesDetected.size} stales games.")
+                        staleGamesDetected.forEachIndexed { i, game ->
+                            jobNotification.message = "Deleting stale game: '${game.name}..."
+                            jobNotification.progress(i, gameRepository.games.size)
+                            gameRepository.delete(game)
+                        }
+                        staleGames = staleGamesDetected.size
+
+                        jobNotification.message = "Detecting stales libraries..."
+                        log.info("Detecting stales libraries...")
+                        val staleLibrariesDetected = detectStaleLibraries()
+                        log.info("Detected ${staleLibrariesDetected.size} stales libraries.")
+                        staleLibrariesDetected.forEachIndexed { i, library ->
+                            jobNotification.message = "Deleting stale library: '${library.name}..."
+                            jobNotification.progress(i, libraryRepository.libraries.size)
+                            libraryRepository.delete(library)
+                            gameRepository.deleteByLibrary(library)  // TODO: This logic is duplicated from LibraryController.
+                        }
+                        staleLibraries = staleLibrariesDetected.size
+                    }
+                } finally {
+                    run(JavaFx) {
+                        log.info("Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries.")
+                        notification.hide()
+                        runningProperty.set(false)
+                    }
+                }
+            }
+        }
+
+        private fun detectStaleGames(): List<Game> = gameRepository.games.filterIndexed { i, game ->
+            jobNotification.progress(i, gameRepository.games.size)
+            !game.path.isDirectory
+        }
+
+        private fun detectStaleLibraries(): List<Library> = libraryRepository.libraries.filterIndexed { i, library ->
+            jobNotification.progress(i, libraryRepository.libraries.size)
+            !library.path.isDirectory
         }
     }
 

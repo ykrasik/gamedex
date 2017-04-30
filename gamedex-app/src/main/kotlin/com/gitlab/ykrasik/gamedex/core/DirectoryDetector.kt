@@ -20,13 +20,13 @@ class NewDirectoryDetector {
     private val log by logger()
 
     suspend fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
-        val newDirectoryContext = NewDirectoryContext(excludedDirectories)
-        newDirectoryContext.detectNewDirectories(dir)
-        return newDirectoryContext.newPaths
+        val context = NewDirectoryContext(excludedDirectories)
+        context.detectNewDirectories(dir)
+        return context.newDirectories
     }
 
     private inner class NewDirectoryContext(private val excludedDirectories: Set<File>) {
-        val newPaths = mutableListOf<File>()
+        val newDirectories = mutableListOf<File>()
 
         fun detectNewDirectories(dir: File) {
             if (!dir.isDirectory) {
@@ -42,7 +42,7 @@ class NewDirectoryDetector {
             } else {
                 if (!dir.isExcluded) {
                     log.debug("New directory detected: [$dir]")
-                    newPaths += dir
+                    newDirectories += dir
                 }
             }
         }
