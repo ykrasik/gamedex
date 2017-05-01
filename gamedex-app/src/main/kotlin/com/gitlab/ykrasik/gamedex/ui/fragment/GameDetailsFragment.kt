@@ -3,19 +3,15 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.Styles
-import com.gitlab.ykrasik.gamedex.util.browseToUrl
-import com.gitlab.ykrasik.gamedex.util.toStringOr
+import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.beans.property.Property
-import javafx.event.EventTarget
 import javafx.scene.control.Button
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import javafx.scene.paint.CycleMethod
 import javafx.scene.paint.LinearGradient
@@ -36,7 +32,7 @@ import java.net.URLEncoder
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
-    private val providerRepository: GameProviderRepository by di()
+    private val detailsSnippetFactory: GameDetailSnippetFactory by di()
 
     private var webView: WebView by singleAssign()
     private var backButton: Button by singleAssign()
@@ -97,91 +93,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 // TODO: Check if the new form can do what we did here manually.
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
-                vbox {
+                children += detailsSnippetFactory.create(game).apply {
                     hgrow = Priority.ALWAYS
-
-                    // Top
-                    hbox {
-                        spacer()
-                        label(game.name) { setId(Style.nameLabel) }
-                        spacer()
-                    }
-                    gridpane {
-                        hgap = 5.0
-                        vgap = 8.0
-                        row {
-                            detailsLabel("Path")
-                            label(game.path.path) {
-                                addClass(Style.details)
-                            }
-                        }
-                        row {
-                            detailsLabel("Description")
-                            label(game.description.toDisplayString()) {
-                                addClass(Style.details)
-                                isWrapText = true
-                                minHeight = Region.USE_PREF_SIZE
-                            }
-                        }
-                        row {
-                            detailsLabel("Release Date")
-                            label(game.releaseDate.toDisplayString()) { addClass(Style.details) }
-                        }
-                        row {
-                            detailsLabel("Critic Score")
-                            gridpane {
-                                hgap = 5.0
-                                row {
-                                    fixedRating(10) { rating = game.criticScore?.let { it / 10 } ?: 0.0 }
-                                    label(game.criticScore.toDisplayString()) {
-                                        addClass(Style.details)
-                                    }
-                                }
-                            }
-                        }
-                        row {
-                            detailsLabel("User Score")
-                            gridpane {
-                                hgap = 5.0
-                                row {
-                                    fixedRating(10) { rating = game.userScore?.let { it / 10 } ?: 0.0 }
-                                    label(game.userScore.toDisplayString()) {
-                                        addClass(Style.details)
-                                    }
-                                }
-                            }
-                        }
-                        row {
-                            detailsLabel("Genres")
-                            gridpane {
-                                hgap = 5.0
-                                row {
-                                    game.genres.forEach {
-                                        // TODO: Make clicking a genre change main view to only show these genres
-                                        label(it) { addClass(Style.details, Style.genre) }
-                                    }
-                                }
-                            }
-                        }
-                        row {
-                            detailsLabel("URL")
-                            gridpane {
-                                hgap = 7.0
-                                game.providerData.forEach { providerData ->
-                                    row {
-                                        imageview {
-                                            fitHeight = 30.0
-                                            fitWidth = 30.0
-                                            image = providerRepository.logo(providerData)
-                                        }
-                                        hyperlink(providerData.siteUrl) {
-                                            setOnAction { providerData.siteUrl.browseToUrl() }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
 
                     // Bottom
                     separator { padding { top = 10; bottom = 10 } }
@@ -245,12 +158,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         close()
     }
 
-    private fun Any?.toDisplayString() = toStringOr("NA")
-
-    private fun EventTarget.detailsLabel(name: String) = label(name) {
-        addClass(Style.detailsLabel)
-    }
-
     companion object {
         private val maxPosterWidthPercent = 0.44
     }
@@ -258,10 +165,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     class Style : Stylesheet() {
         companion object {
             val gameDetailView by cssid()
-            val detailsLabel by cssclass()
-            val details by cssclass()
-            val nameLabel by cssid()
-            val genre by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -269,15 +172,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         }
 
         init {
-            textArea {
-                content {
-                    backgroundColor = multi(Color.LIGHTGRAY)
-                    padding = box(0.px)
-                }
-            }
-            detailsLabel {
-                minWidth = 80.px
-            }
             gameDetailView {
                 backgroundColor = multi(
                     LinearGradient(0.0, 1.0, 0.0, 1.0, false, CycleMethod.NO_CYCLE,
@@ -291,24 +185,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 backgroundInsets = multi(box(0.px, 1.px, 2.px, 0.px))
                 textFill = Color.BLACK
                 effect = DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5.0, 0.0, 0.0, 1.0)
-            }
-            details {
-                borderRadius = multi(box(3.px))
-                backgroundColor = multi(Color.LIGHTGRAY)
-                backgroundRadius = multi(box(3.px))
-                padding = box(vertical = 5.px, horizontal = 10.px)
-            }
-
-            nameLabel {
-                fontSize = 20.px
-            }
-
-            genre {
-                and(hover) {
-                    translateX = 1.px
-                    translateY = 1.px
-                    effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
-                }
             }
         }
     }

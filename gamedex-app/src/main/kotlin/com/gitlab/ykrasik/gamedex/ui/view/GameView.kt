@@ -34,13 +34,6 @@ class GameView : GamedexView("Games") {
                 // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
                 left = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)
             }
-            TextFields.bindAutoCompletion(search) { request ->
-                controller.games.filter { game ->
-                    val query = request.userText
-                    if (query.isEmpty()) false
-                    else game.name.startsWith(query, ignoreCase = true)
-                }.map { it.name }
-            }
             children += search
             controller.games.filterWhen(search.textProperty(), { query, game ->
                 if (query.isEmpty()) true

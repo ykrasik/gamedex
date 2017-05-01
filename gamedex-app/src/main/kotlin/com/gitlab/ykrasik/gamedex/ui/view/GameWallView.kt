@@ -6,12 +6,18 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.popOver
+import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.beans.property.ReadOnlyProperty
 import javafx.css.StyleableObjectProperty
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.MouseButton
+import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.stage.Screen
+import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -23,6 +29,7 @@ class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
     private val preferences: GameWallPreferences by di()
     private val imageLoader: ImageLoader by di()
+    private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
@@ -32,10 +39,30 @@ class GameWallView : View("Games Wall") {
         (horizontalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellHorizontalSpacingProperty)
         (verticalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellVerticalSpacingProperty)
 
+        val popOver = popOver()
+
         cellFactory = {
             val cell = GameWallCell()
-            cell.onDoubleClick {
-                GameDetailsFragment(cell.item).show()
+            cell.setOnMouseClicked { e ->
+                when (e.clickCount) {
+                    1 -> with(popOver) {
+                        if (isShowing) {
+                            hide()
+                        } else if (e.button == MouseButton.PRIMARY) {
+                            arrowLocation = determineArrowLocation(e.screenX, e.screenY)
+                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false).apply {
+                                addClass(Style.quickDetails)
+                            }
+                            show(cell)
+                        }
+                    }
+                    2 -> {
+                        popOver.hide()
+                        if (e.button == MouseButton.PRIMARY) {
+                            GameDetailsFragment(cell.item).show()
+                        }
+                    }
+                }
             }
             cell.contextmenu {
                 menuitem("View Details") { GameDetailsFragment(cell.item).show() }
@@ -45,6 +72,26 @@ class GameWallView : View("Games Wall") {
             }
             cell
         }
+    }
+
+    private fun determineArrowLocation(x: Double, y: Double): PopOver.ArrowLocation {
+        val screenBounds = Screen.getPrimary().bounds
+        val maxX = screenBounds.maxX
+        val maxY = screenBounds.maxY
+
+        var arrowLocation = PopOver.ArrowLocation.TOP_LEFT
+        if (x > maxX / 2) {
+            arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
+        }
+        if (y > maxY / 2) {
+            arrowLocation = if (arrowLocation == PopOver.ArrowLocation.TOP_LEFT) {
+                PopOver.ArrowLocation.BOTTOM_LEFT
+            } else {
+                PopOver.ArrowLocation.BOTTOM_RIGHT
+            }
+        }
+
+        return arrowLocation
     }
 
     // TODO: Allow to overlay the library name as a ribbon over the image.
@@ -87,6 +134,23 @@ class GameWallView : View("Games Wall") {
             } else {
                 imageView.imageProperty().unbind()
                 imageView.image = null
+            }
+        }
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val quickDetails by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
+        }
+
+        init {
+            quickDetails {
+                padding = box(20.px)
+                backgroundColor = multi(Color.LIGHTGRAY)
             }
         }
     }
