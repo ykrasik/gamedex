@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.GeneralPreferences
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
@@ -22,7 +22,7 @@ import java.io.File
  * Time: 10:56
  */
 class AddLibraryFragment : Fragment("Add Library") {
-    private val preferences: UserPreferences by di()
+    private val preferences: GeneralPreferences by di()
 
     private val model = AddLibraryViewModel()
     private var accept = false

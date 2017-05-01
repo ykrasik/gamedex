@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.module
 
 import com.gitlab.ykrasik.gamedex.core.*
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.*
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.google.inject.AbstractModule
@@ -28,5 +28,25 @@ object AppModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun userPreferences() = UserPreferences()
+    fun allPreferences(general: GeneralPreferences,
+                       provider: ProviderPreferences,
+                       game: GamePreferences,
+                       gameWall: GameWallPreferences) =
+        AllPreferences(general, provider, game, gameWall)
+
+    @Provides
+    @Singleton
+    fun generalPreferences() = GeneralPreferences()
+
+    @Provides
+    @Singleton
+    fun providerPreferences() = ProviderPreferences()
+
+    @Provides
+    @Singleton
+    fun gamePreferences() = GamePreferences()
+
+    @Provides
+    @Singleton
+    fun gameWallPreferences() = GameWallPreferences()
 }

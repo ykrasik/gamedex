@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
@@ -21,16 +21,16 @@ import tornadofx.*
  */
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
-    private val userPreferences: UserPreferences by di()
+    private val preferences: GameWallPreferences by di()
     private val imageLoader: ImageLoader by di()
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
     override val root = datagrid(controller.games) {
-        cellHeightProperty.bind(userPreferences.gameWallCellHeightProperty)
-        cellWidthProperty.bind(userPreferences.gameWallCellWidthProperty)
-        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(userPreferences.gameWallCellHorizontalSpacingProperty)
-        (verticalCellSpacingProperty as StyleableObjectProperty).bind(userPreferences.gameWallCellVerticalSpacingProperty)
+        cellHeightProperty.bind(preferences.cellHeightProperty)
+        cellWidthProperty.bind(preferences.cellWidthProperty)
+        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellHorizontalSpacingProperty)
+        (verticalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellVerticalSpacingProperty)
 
         cellFactory = {
             val cell = GameWallCell()
@@ -51,7 +51,7 @@ class GameWallView : View("Games Wall") {
     // TODO: Consider adding an option to display the game name under the cell
     inner class GameWallCell : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
-        private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
+        private val imageViewLimitedPane = ImageViewLimitedPane(imageView, preferences.imageDisplayTypeProperty)
 
         init {
             // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.

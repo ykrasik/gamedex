@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.GeneralPreferences
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.util.*
 import javafx.scene.control.ListCell
@@ -15,14 +15,14 @@ import tornadofx.*
  * Time: 11:14
  */
 class LogView : GamedexView("Log") {
-    private val userPreferences: UserPreferences by di()
+    private val preferences: GeneralPreferences by di()
 
     private val logItems = SortedFilteredList(Log.entries)
 
     override fun ToolBar.constructToolbar() {
-        enumComboBox(userPreferences.logFilterLevelProperty)
+        enumComboBox(preferences.logFilterLevelProperty)
         togglebutton("Tail") {
-            userPreferences.logTailProperty.bindBidirectional(selectedProperty())
+            preferences.logTailProperty.bindBidirectional(selectedProperty())
         }
     }
 
@@ -67,17 +67,17 @@ class LogView : GamedexView("Log") {
         }
 
         logItems.onChange {
-            if (userPreferences.logTail) {
+            if (preferences.logTail) {
                 scrollTo(items.size)
             }
         }
     }
 
     init {
-        globalLogLevel = userPreferences.logFilterLevel
+        globalLogLevel = preferences.logFilterLevel
         logItems.predicate = { Logger.shouldLog(it.level) }
 
-        userPreferences.logFilterLevelProperty.onChange { level ->
+        preferences.logFilterLevelProperty.onChange { level ->
             globalLogLevel = level!!
             logItems.refilter()
         }

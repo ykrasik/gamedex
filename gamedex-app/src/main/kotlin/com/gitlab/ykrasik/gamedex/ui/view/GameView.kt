@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -22,7 +22,7 @@ import tornadofx.*
 // TODO: Should only be 1 view (wall / table), view type is decided by settings
 class GameView : GamedexView("Games") {
     private val controller: GameController by di()
-    private val userPreferences: UserPreferences by di()
+    private val preferences: GamePreferences by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -55,7 +55,7 @@ class GameView : GamedexView("Games") {
             setMinSize(10.0, 10.0)
             row {
                 label("Sort:")
-                enumComboBox(userPreferences.gameSortProperty)
+                enumComboBox(preferences.sortProperty)
             }
         }
 
@@ -65,7 +65,7 @@ class GameView : GamedexView("Games") {
 
         spacer()
 
-        checkbox("Hands Free Mode", userPreferences.handsFreeModeProperty)
+        checkbox("Hands Free Mode", preferences.handsFreeModeProperty)
 
         verticalSeparator(10.0)
 
@@ -122,7 +122,7 @@ class GameView : GamedexView("Games") {
     override val root = stackpane()
 
     init {
-        val gameDisplayType = userPreferences.gameDisplayTypeProperty.mapProperty { it!!.toNode() }
+        val gameDisplayType = preferences.displayTypeProperty.mapProperty { it!!.toNode() }
         root.children += gameDisplayType.value
         gameDisplayType.onChange {
             root.replaceChildren(it as Node)

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import java.io.File
 import javax.inject.Inject
@@ -22,7 +22,7 @@ interface DataProviderService {
 @Singleton
 class DataProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
-    private val userPreferences: UserPreferences,
+    private val preferences: GamePreferences,
     private val chooser: GameSearchChooser
 ) : DataProviderService {
 
@@ -54,7 +54,7 @@ class DataProviderServiceImpl @Inject constructor(
             val filteredResults = filterResults(results)
             val choice = if (filteredResults.size == 1) {
                 SearchResultChoice.Ok(filteredResults.first())
-            } else if (userPreferences.handsFreeMode) {
+            } else if (preferences.handsFreeMode) {
                 SearchResultChoice.Cancel
             } else {
                 val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, filteredResults)

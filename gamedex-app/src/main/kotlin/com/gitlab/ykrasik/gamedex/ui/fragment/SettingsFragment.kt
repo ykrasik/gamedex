@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.GameProviderType
-import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderPriority
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
+import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderOrder
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
@@ -15,7 +15,7 @@ import tornadofx.*
  * Time: 22:22
  */
 class SettingsFragment : Fragment() {
-    private val userPreferences: UserPreferences by di()
+    private val preferences: AllPreferences by di()
 
     override val root = borderpane {
         center {
@@ -26,21 +26,21 @@ class SettingsFragment : Fragment() {
                         // TODO: Consider ControlsFx PropertySheet
                         fieldset("Preferred Provider for Game Data") {
                             listOf(
-                                "Search First" to userPreferences.providerSearchFirstProperty,
-                                "Name" to userPreferences.providerNamePriorityProperty,
-                                "Description" to userPreferences.providerDescriptionPriorityProperty,
-                                "Release Date" to userPreferences.providerReleaseDatePriorityProperty,
-                                "Critic Score" to userPreferences.providerCriticScorePriorityProperty,
-                                "User Score" to userPreferences.providerUserScorePriorityProperty,
-                                "Thumbnail" to userPreferences.providerThumbnailPriorityProperty,
-                                "Poster" to userPreferences.providerPosterPriorityProperty,
-                                "Screenshot" to userPreferences.providerScreenshotPriorityProperty
+                                "Search First" to preferences.provider.searchOrderProperty,
+                                "Name" to preferences.provider.nameOrderProperty,
+                                "Description" to preferences.provider.descriptionOrderProperty,
+                                "Release Date" to preferences.provider.releaseDateOrderProperty,
+                                "Critic Score" to preferences.provider.criticScoreOrderProperty,
+                                "User Score" to preferences.provider.userScoreOrderProperty,
+                                "Thumbnail" to preferences.provider.thumbnailOrderProperty,
+                                "Poster" to preferences.provider.posterOrderProperty,
+                                "Screenshot" to preferences.provider.screenshotOrderProperty
                             ).forEach { (name, preferenceProperty) ->
                                 field(name) {
                                     enumComboBox<GameProviderType> {
                                         value = preferenceProperty.get().preferredProvider()
                                         valueProperty().onChange {
-                                            preferenceProperty.set(DefaultProviderPriority.prefer(it!!))
+                                            preferenceProperty.set(DefaultProviderOrder.prefer(it!!))
                                         }
                                     }
                                 }
@@ -52,17 +52,17 @@ class SettingsFragment : Fragment() {
                     form {
                         paddingAll = 20
                         fieldset("Game Display Type") {
-                            field("Type") { enumComboBox(userPreferences.gameDisplayTypeProperty) }
+                            field("Type") { enumComboBox(preferences.game.displayTypeProperty) }
                         }
 
                         // TODO: Only show if type is wall
                         fieldset("Game Wall") {
-                            field("Cell Image Display") { enumComboBox(userPreferences.gameWallImageDisplayTypeProperty) }
+                            field("Cell Image Display") { enumComboBox(preferences.gameWall.imageDisplayTypeProperty) }
                             // TODO: Should probably validate this data.
-                            field("Cell Width") { adjustableTextField(userPreferences.gameWallCellWidthProperty) }
-                            field("Cell Height") { adjustableTextField(userPreferences.gameWallCellHeightProperty) }
-                            field("Cell Horizontal Spacing") { adjustableTextField(userPreferences.gameWallCellHorizontalSpacingProperty) }
-                            field("Cell Vertical Spacing") { adjustableTextField(userPreferences.gameWallCellVerticalSpacingProperty) }
+                            field("Cell Width") { adjustableTextField(preferences.gameWall.cellWidthProperty) }
+                            field("Cell Height") { adjustableTextField(preferences.gameWall.cellHeightProperty) }
+                            field("Cell Horizontal Spacing") { adjustableTextField(preferences.gameWall.cellHorizontalSpacingProperty) }
+                            field("Cell Vertical Spacing") { adjustableTextField(preferences.gameWall.cellVerticalSpacingProperty) }
                         }
                     }
                 }

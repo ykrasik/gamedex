@@ -6,8 +6,8 @@ import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.DataProviderService
 import com.gitlab.ykrasik.gamedex.core.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
+import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
@@ -34,7 +34,7 @@ class GameController @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val libraryScanner: LibraryScanner,
     private val dataProviderService: DataProviderService,
-    userPreferences: UserPreferences
+    preferences: GamePreferences
 ) : Controller() {
 
     val games = SortedFilteredList(gameRepository.games)
@@ -46,7 +46,7 @@ class GameController @Inject constructor(
     private val dateAddedComparator = compareBy(Game::lastModified)
 
     init {
-        games.sortedItems.comparatorProperty().bind(userPreferences.gameSortProperty.mapProperty { it!!.toComparator() })
+        games.sortedItems.comparatorProperty().bind(preferences.sortProperty.mapProperty { it!!.toComparator() })
     }
 
     fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }
@@ -168,14 +168,6 @@ class GameController @Inject constructor(
                 .show()
         }
         return true
-    }
-
-    fun filterGenres() {
-        TODO()  // TODO: Implement
-    }
-
-    fun filterLibraries() {
-        TODO()  // TODO: Implement
     }
 
     private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(

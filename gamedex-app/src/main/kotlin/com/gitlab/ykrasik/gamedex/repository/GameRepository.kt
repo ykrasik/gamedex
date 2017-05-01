@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.repository
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
+import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import javafx.collections.transformation.FilteredList
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    userPreferences: UserPreferences
+    preferences: ProviderPreferences
 ) {
     private val log by logger()
 
@@ -42,14 +42,14 @@ class GameRepository @Inject constructor(
 
     init {
         // TODO: Find a more intelligent way
-        userPreferences.providerNamePriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerDescriptionPriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerReleaseDatePriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerCriticScorePriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerUserScorePriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerThumbnailPriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerPosterPriorityProperty.onChange { rebuildGames() }
-        userPreferences.providerScreenshotPriorityProperty.onChange { rebuildGames() }
+        preferences.nameOrderProperty.onChange { rebuildGames() }
+        preferences.descriptionOrderProperty.onChange { rebuildGames() }
+        preferences.releaseDateOrderProperty.onChange { rebuildGames() }
+        preferences.criticScoreOrderProperty.onChange { rebuildGames() }
+        preferences.userScoreOrderProperty.onChange { rebuildGames() }
+        preferences.thumbnailOrderProperty.onChange { rebuildGames() }
+        preferences.posterOrderProperty.onChange { rebuildGames() }
+        preferences.screenshotOrderProperty.onChange { rebuildGames() }
     }
 
     suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
