@@ -8,8 +8,8 @@ buildscript {
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
             dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.13']
-            coroutinesCore = [group: 'org.jetbrains.kotlinx', name:'kotlinx-coroutines-core', version: couroutinesVersion]
-            coroutinesJavaFx = [group: 'org.jetbrains.kotlinx', name:'kotlinx-coroutines-javafx', version: couroutinesVersion]
+            coroutinesCore = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: couroutinesVersion]
+            coroutinesJavaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: couroutinesVersion]
             delegate
         }
 
@@ -26,7 +26,7 @@ buildscript {
             julBridge = [group: 'org.slf4j', name: 'jul-to-slf4j', version: v]
             delegate
         }
-        
+
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.3.1']
 
         guava = [group: 'com.google.guava', name: 'guava', version: '21.0']
@@ -48,6 +48,7 @@ buildscript {
         exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.7.4']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
+        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '1.3.0']
         tornadoFx = [:].with {
             core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.2']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.5']
@@ -107,16 +108,16 @@ subprojects {
     configurations {
         testArtifacts.extendsFrom testRuntime
     }
-    
+
     task testJar(type: Jar) {
         classifier "test"
         from sourceSets.test.output
     }
-    
+
     artifacts {
         testArtifacts testJar
     }
-    
+
     dependencies {
         compile ktlin.std
         compile ktlin.reflect
@@ -141,7 +142,7 @@ subprojects {
     }
 
     compileKotlin {
-        kotlinOptions.jvmTarget= "1.8"
+        kotlinOptions.jvmTarget = "1.8"
     }
     kotlin {
         experimental {
@@ -164,6 +165,7 @@ project("gamedex-app") {
         compile slf4j.julBridge
 
         compile controlsFx
+        compile jFoenix
         compile tornadoFx.core
         compile tornadoFx.controls
 
@@ -197,7 +199,7 @@ project("gamedex-persistence") {
     dependencies {
         compile project(":gamedex-common")
         testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
-        
+
         compile h2
         compile exposed
     }

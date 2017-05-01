@@ -4,6 +4,8 @@ import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.util.*
 import javafx.scene.control.ListCell
+import javafx.scene.control.ToolBar
+import javafx.scene.input.KeyCombination
 import javafx.scene.paint.Color
 import tornadofx.*
 
@@ -12,59 +14,61 @@ import tornadofx.*
  * Date: 28/04/2017
  * Time: 11:14
  */
-class LogView : View("Log") {
+class LogView : GamedexView("Log") {
     private val userPreferences: UserPreferences by di()
 
     private val logItems = SortedFilteredList(Log.entries)
 
-    override val root = borderpane {
-        top {
-            hbox {
-                paddingAll = 10
-                enumComboBox(userPreferences.logFilterLevelProperty)
-                togglebutton("Tail") {
-                    userPreferences.logTailProperty.bindBidirectional(selectedProperty())
-                }
-            }
+    override fun ToolBar.constructToolbar() {
+        enumComboBox(userPreferences.logFilterLevelProperty)
+        togglebutton("Tail") {
+            userPreferences.logTailProperty.bindBidirectional(selectedProperty())
         }
-        center {
-            // TODO: TableView?
-            listview(logItems) {
-                addClass(Style.logView)
+    }
 
-                setCellFactory {
-                    object : ListCell<LogEntry>() {
-                        override fun updateItem(item: LogEntry?, empty: Boolean) {
-                            super.updateItem(item, empty)
+    // TODO: TableView?
+    override val root = listview(logItems) {
+        addClass(Style.logView)
 
-                            toggleClass(Style.debug, false)
-                            toggleClass(Style.info, false)
-                            toggleClass(Style.warn, false)
-                            toggleClass(Style.error, false)
-
-                            if (item == null || empty) {
-                                text = null
-                                return
-                            }
-
-                            // TODO: Color different context differently?
-                            text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
-
-                            when (item.level) {
-                                LogLevel.debug -> toggleClass(Style.debug, true)
-                                LogLevel.info -> toggleClass(Style.info, true)
-                                LogLevel.warn -> toggleClass(Style.warn, true)
-                                LogLevel.error -> toggleClass(Style.error, true)
-                            }
+        setCellFactory {
+            object : ListCell<LogEntry>() {
+                init {
+                    contextmenu {
+                        menuitem("Copy to Clipboard", KeyCombination.keyCombination("ctrl+c")) {
+                            clipboard.putString(item.message)
                         }
                     }
                 }
 
-                logItems.onChange {
-                    if (userPreferences.logTail) {
-                        scrollTo(items.size)
+                override fun updateItem(item: LogEntry?, empty: Boolean) {
+                    super.updateItem(item, empty)
+
+                    toggleClass(Style.debug, false)
+                    toggleClass(Style.info, false)
+                    toggleClass(Style.warn, false)
+                    toggleClass(Style.error, false)
+
+                    if (item == null || empty) {
+                        text = null
+                        return
+                    }
+
+                    // TODO: Color different context differently?
+                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
+
+                    when (item.level) {
+                        LogLevel.debug -> toggleClass(Style.debug, true)
+                        LogLevel.info -> toggleClass(Style.info, true)
+                        LogLevel.warn -> toggleClass(Style.warn, true)
+                        LogLevel.error -> toggleClass(Style.error, true)
                     }
                 }
+            }
+        }
+
+        logItems.onChange {
+            if (userPreferences.logTail) {
+                scrollTo(items.size)
             }
         }
     }
@@ -107,6 +111,9 @@ class LogView : View("Log") {
                         }
                         and(error) {
                             textFill = Color.RED
+                        }
+                        and(selected) {
+                            backgroundColor = multi(Color.LIGHTBLUE)
                         }
                     }
                 }

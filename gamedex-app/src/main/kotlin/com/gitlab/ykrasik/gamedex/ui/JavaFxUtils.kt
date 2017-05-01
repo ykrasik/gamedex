@@ -1,7 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
+import com.jfoenix.controls.JFXButton
+import com.jfoenix.controls.JFXDrawer
+import com.jfoenix.controls.JFXHamburger
+import com.jfoenix.controls.JFXToggleButton
 import javafx.application.Platform
 import javafx.application.Platform.runLater
 import javafx.beans.binding.Bindings
@@ -27,6 +32,7 @@ import javafx.scene.shape.Rectangle
 import javafx.stage.Stage
 import javafx.util.Callback
 import javafx.util.Duration
+import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
 import org.controlsfx.control.StatusBar
 import org.controlsfx.glyphfont.FontAwesome
@@ -54,7 +60,7 @@ fun Image.toImageView(): ImageView = ImageView(this)
 fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
 fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
     val p = SimpleIntegerProperty(this.size)
-    this.addListener(ListChangeListener { p.set(this.size)})
+    this.addListener(ListChangeListener { p.set(this.size) })
     return p
 }
 
@@ -277,6 +283,7 @@ fun Region.padding(op: (InsetBuilder.() -> Unit)) {
     op(builder)
     padding = Insets(builder.top.toDouble(), builder.right.toDouble(), builder.bottom.toDouble(), builder.left.toDouble())
 }
+
 class InsetBuilder(region: Region) {
     var top: Number = region.padding.top
     var bottom: Number = region.padding.bottom
@@ -294,4 +301,37 @@ var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
 
-fun fontAwesomeGlyph(glyph: FontAwesome.Glyph) = Glyph("FontAwesome", glyph)
+fun fontAwesomeGlyph(glyph: FontAwesome.Glyph, op: (Glyph.() -> Unit)? = null) = Glyph("FontAwesome", glyph).apply {
+    op?.invoke(this)
+}
+
+fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView(image), op)
+
+fun EventTarget.jfxHamburger(op: (JFXHamburger.() -> Unit)? = null) = opcr(this, JFXHamburger(), op)
+fun EventTarget.jfxDrawer(op: (JFXDrawer.() -> Unit)? = null) = opcr(this, JFXDrawer(), op)
+fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
+fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
+    opcr(this, JFXButton().apply {
+        addClass(Styles.jfxButton)
+        this.text = text
+        this.graphic = graphic
+        this.buttonType = type
+    }, op)
+
+fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver =
+    PopOver().apply {
+        this.arrowLocation = arrowLocation
+        op?.invoke(this)
+    }
+
+fun Button.withPopover(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null) {
+    val popover = popOver(arrowLocation, op)
+    setOnAction {
+        if (popover.isShowing) popover.hide() else popover.show(this)
+    }
+}
+
+inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<T>, noinline op: (TextField.() -> Unit)? = null) = textfield().apply {
+    bind(property)
+    op?.invoke(this)
+}

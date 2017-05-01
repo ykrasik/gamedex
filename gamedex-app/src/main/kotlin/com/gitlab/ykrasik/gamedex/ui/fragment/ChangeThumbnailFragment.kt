@@ -43,7 +43,7 @@ class ChangeThumbnailFragment(private val game: Game) : Fragment(game.name) {
                             verticalSeparator(padding = 20.0)
                         }
                         needSeparator = true
-                        val thumbnailProperty = imageLoader.fetchImage(game.id, thumbnailUrl, saveIfAbsent = false)
+                        val thumbnailProperty = imageLoader.fetchImage(game.id, thumbnailUrl, persistIfAbsent = false)
                         togglebutton(group = toggleGroup) {
                             isSelected = game.thumbnailUrl == thumbnailUrl
                             userData = Pair(rawGameData.providerData.type, thumbnailUrl)

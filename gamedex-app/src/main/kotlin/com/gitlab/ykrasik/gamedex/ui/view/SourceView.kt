@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import javafx.scene.control.ToolBar
 import tornadofx.*
 
 /**
@@ -9,8 +10,11 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:17
  */
-class LibraryView : View("Libraries") {
+class SourceView : GamedexView("Sources") {
     private val controller: LibraryController by di()
+
+    override fun ToolBar.constructToolbar() {
+    }
 
     override val root = tableview(controller.libraries) {
 

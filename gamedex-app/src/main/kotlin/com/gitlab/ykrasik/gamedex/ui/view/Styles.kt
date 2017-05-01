@@ -14,6 +14,8 @@ class Styles : Stylesheet() {
     companion object {
         val gameTile by cssclass()
         val card by cssclass()
+
+        val jfxButton by cssclass()
     }
 
     init {
@@ -381,6 +383,12 @@ class Styles : Stylesheet() {
             borderRadius = multi(box(10.px))
             backgroundColor = multi(Color.LIGHTGRAY)
             backgroundRadius = multi(box(10.px))
+        }
+
+        jfxButton {
+            and(hover) {
+                backgroundColor = multi(Color.LIGHTBLUE)
+            }
         }
     }
 }

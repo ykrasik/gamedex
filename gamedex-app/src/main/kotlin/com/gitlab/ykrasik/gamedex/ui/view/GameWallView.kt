@@ -8,6 +8,7 @@ import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.beans.property.ReadOnlyProperty
+import javafx.css.StyleableObjectProperty
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Rectangle
@@ -26,10 +27,10 @@ class GameWallView : View("Games Wall") {
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
     override val root = datagrid(controller.games) {
-        cellHeight = 202.0
-        cellWidth = 140.0
-        horizontalCellSpacing = 3.0
-        verticalCellSpacing = 3.0
+        cellHeightProperty.bind(userPreferences.gameWallCellHeightProperty)
+        cellWidthProperty.bind(userPreferences.gameWallCellWidthProperty)
+        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(userPreferences.gameWallCellHorizontalSpacingProperty)
+        (verticalCellSpacingProperty as StyleableObjectProperty).bind(userPreferences.gameWallCellVerticalSpacingProperty)
 
         cellFactory = {
             val cell = GameWallCell()
@@ -47,6 +48,7 @@ class GameWallView : View("Games Wall") {
     }
 
     // TODO: Allow to overlay the library name as a ribbon over the image.
+    // TODO: Consider adding an option to display the game name under the cell
     inner class GameWallCell : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, userPreferences.gameWallImageDisplayTypeProperty)
@@ -79,7 +81,7 @@ class GameWallView : View("Games Wall") {
 
             if (game != null) {
                 val thumbnailUrl = game.thumbnailUrl
-                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl, saveIfAbsent = true) }
+                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl, persistIfAbsent = true) }
                 imageView.imageProperty().cleanBind(image)
                 tooltip(game.name)
             } else {

@@ -28,10 +28,10 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
 
     private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
-    open fun fetchImage(gameId: Int, url: String?, saveIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
+    open fun fetchImage(gameId: Int, url: String?, persistIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
         return loadImage {
-            fetchOrDownloadImage(gameId, url, saveIfAbsent)
+            fetchOrDownloadImage(gameId, url, persistIfAbsent)
         }
     }
 

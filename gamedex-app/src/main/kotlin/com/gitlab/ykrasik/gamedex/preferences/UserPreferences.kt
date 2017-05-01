@@ -14,6 +14,7 @@ import java.io.File
  * Date: 11/10/2016
  * Time: 10:34
  */
+// TODO: Preferences by namespace.
 class UserPreferences private constructor() {
     // Jackson constructs the objects by calling it's setters on the properties. Calling a setter = write to file.
     // Disable writing the object to the file while it is being constructed.
@@ -35,6 +36,22 @@ class UserPreferences private constructor() {
     @Transient
     val gameWallImageDisplayTypeProperty = preferenceProperty(ImageDisplayType.stretch)
     var gameWallImageDisplayType by gameWallImageDisplayTypeProperty
+
+    @Transient
+    val gameWallCellWidthProperty = preferenceProperty(140.0)
+    var gameWallCellWidth by gameWallCellWidthProperty
+
+    @Transient
+    val gameWallCellHeightProperty = preferenceProperty(202.0)
+    var gameWallCellHeight by gameWallCellHeightProperty
+
+    @Transient
+    val gameWallCellHorizontalSpacingProperty = preferenceProperty(3.0)
+    var gameWallCellHorizontalSpacing by gameWallCellHorizontalSpacingProperty
+
+    @Transient
+    val gameWallCellVerticalSpacingProperty = preferenceProperty(3.0)
+    var gameWallCellVerticalSpacing by gameWallCellVerticalSpacingProperty
 
     @Transient
     val gameSortProperty = preferenceProperty(GameSort.criticScoreDesc)
@@ -87,6 +104,10 @@ class UserPreferences private constructor() {
     @Transient
     val logTailProperty = preferenceProperty(true)
     var logTail by logTailProperty
+
+    @Transient
+    val gameDisplayTypeProperty = preferenceProperty(GameDisplayType.wall)
+    var gameDisplayType by gameDisplayTypeProperty
 
     companion object {
         private val file = "conf/conf.json".toFile()

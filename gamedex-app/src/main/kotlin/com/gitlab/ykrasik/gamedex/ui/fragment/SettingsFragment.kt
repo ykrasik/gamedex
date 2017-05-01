@@ -3,10 +3,10 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderPriority
 import com.gitlab.ykrasik.gamedex.preferences.UserPreferences
-import com.gitlab.ykrasik.gamedex.ui.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.enumComboBox
-import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
-import com.gitlab.ykrasik.gamedex.ui.okButton
+import com.gitlab.ykrasik.gamedex.ui.*
+import javafx.beans.property.Property
+import javafx.scene.layout.Pane
+import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -20,15 +20,7 @@ class SettingsFragment : Fragment() {
     override val root = borderpane {
         center {
             tabpane {
-                nonClosableTab("Game Wall") {
-                    form {
-                        paddingAll = 20
-                        fieldset("Cell Image Display") {
-                            field("Type") { enumComboBox(userPreferences.gameWallImageDisplayTypeProperty) }
-                        }
-                    }
-                }
-                nonClosableTab("Game Data") {
+                nonClosableTab("Game Provider") {
                     form {
                         paddingAll = 20
                         // TODO: Consider ControlsFx PropertySheet
@@ -56,6 +48,24 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+                nonClosableTab("Game Display") {
+                    form {
+                        paddingAll = 20
+                        fieldset("Game Display Type") {
+                            field("Type") { enumComboBox(userPreferences.gameDisplayTypeProperty) }
+                        }
+
+                        // TODO: Only show if type is wall
+                        fieldset("Game Wall") {
+                            field("Cell Image Display") { enumComboBox(userPreferences.gameWallImageDisplayTypeProperty) }
+                            // TODO: Should probably validate this data.
+                            field("Cell Width") { adjustableTextField(userPreferences.gameWallCellWidthProperty) }
+                            field("Cell Height") { adjustableTextField(userPreferences.gameWallCellHeightProperty) }
+                            field("Cell Horizontal Spacing") { adjustableTextField(userPreferences.gameWallCellHorizontalSpacingProperty) }
+                            field("Cell Vertical Spacing") { adjustableTextField(userPreferences.gameWallCellVerticalSpacingProperty) }
+                        }
+                    }
+                }
             }
         }
         bottom {
@@ -65,6 +75,21 @@ class SettingsFragment : Fragment() {
                 okButton { setOnAction { close() } }
             }
         }
+    }
+
+    private fun Pane.adjustableTextField(property: Property<Double>) {
+        val textfield = textfield(property)
+
+        fun adjustButton(icon: FontAwesome.Glyph, adjustment: Int) {
+            button(graphic = fontAwesomeGlyph(icon)) {
+                setOnAction {
+                    textfield.text = ((textfield.text).toDouble() + adjustment).toString()
+                }
+            }
+        }
+
+        adjustButton(FontAwesome.Glyph.PLUS, +1)
+        adjustButton(FontAwesome.Glyph.MINUS, -1)
     }
 
     fun show() {

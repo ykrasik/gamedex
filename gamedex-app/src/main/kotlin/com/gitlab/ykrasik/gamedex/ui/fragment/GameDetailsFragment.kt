@@ -77,7 +77,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     addClass(Styles.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, saveIfAbsent = true))
+                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
 
                     imageViewResizingPane(poster) {
                         maxWidth = screenWidth * maxPosterWidthPercent
