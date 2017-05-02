@@ -32,9 +32,9 @@ class MainView : View("Gamedex") {
             tabPane = tabpane {
                 addClass(Style.navigationTabPane)
 
-                tab(gameView) { userData = gameView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.GAMEPAD) { color(Color.DARKRED)}}
-                tab(sourceView) { userData = sourceView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.HDD_ALT) }
-                tab(logView) { userData = logView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.BOOK) }
+                tab(gameView) { userData = gameView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.GAMEPAD) { color(Color.DARKRED) } }
+                tab(sourceView) { userData = sourceView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.HDD_ALT) { color(Color.DARKGREEN) } }
+                tab(logView) { userData = logView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.BOOK) { color(Color.DARKBLUE) } }
             }
         }
         top {
@@ -70,7 +70,7 @@ class MainView : View("Gamedex") {
                             }
                         }
                         separator()
-                        navigationButton("Settings", fontAwesomeGlyph(FontAwesome.Glyph.COG)) {
+                        navigationButton("Settings", fontAwesomeGlyph(FontAwesome.Glyph.COG) { color(Color.GRAY)}) {
                             setOnAction {
 //                    toggleClass(Stylesheet.pressed, false)
                                 this@withPopover.hide()

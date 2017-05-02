@@ -157,6 +157,10 @@ class GameWallView : View("Games Wall") {
             quickDetails {
                 padding = box(20.px)
                 backgroundColor = multi(Color.LIGHTGRAY)
+
+                label {
+                    textFill = Color.BLACK
+                }
             }
         }
     }
