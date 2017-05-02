@@ -14,7 +14,7 @@ import javax.inject.Singleton
  */
 @Singleton
 open class DbInitializer @Inject constructor(private val config: PersistenceConfig) {
-    private val log by logger()
+    private val log = logger()
 
     init {
         log.debug("Connection url: ${config.dbUrl}")

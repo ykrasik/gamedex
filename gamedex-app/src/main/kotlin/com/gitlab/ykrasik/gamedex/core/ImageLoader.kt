@@ -24,7 +24,7 @@ import kotlinx.coroutines.experimental.run
 // TODO: See if image caching can be moved into the ImageLoader - Guava LRU cache?
 @Singleton
 open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
-    private val log by logger()
+    private val log = logger()
 
     private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
@@ -70,7 +70,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     private fun downloadImage(url: String): ByteArray {
         log.debug("Downloading $url...")
         val bytes = download(url)
-        log.info("Downloaded $url: ${bytes.size} bytes.")
+        log.debug("Downloaded $url: ${bytes.size} bytes.")
         return bytes
     }
 }

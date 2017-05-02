@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
 import org.joda.time.DateTime
-import kotlin.reflect.KProperty
 import kotlin.reflect.full.companionObject
 
 /**
@@ -13,15 +12,13 @@ var globalLogLevel = LogLevel.debug
 var LoggerFactory: (String) -> Logger = { context -> StdOutLogger(context) }
 
 interface Logger {
+    // TODO: Consider adding trace - for stuff like persistence & imageDownloader.
     fun debug(msg: String) = log(msg, LogLevel.debug)
     fun info(msg: String) = log(msg, LogLevel.info)
     fun warn(msg: String) = log(msg, LogLevel.warn)
     fun error(msg: String) = log(msg, LogLevel.error)
 
     fun log(msg: String, level: LogLevel)
-
-    // For delegation access.
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = this
 
     companion object {
         operator fun invoke(context: String): Logger = LoggerFactory(context)
@@ -30,7 +27,8 @@ interface Logger {
     }
 }
 
-fun <R : Any> R.logger() = LoggerFactory(unwrapCompanionClass(this::class.java).simpleName ?: "AnonymousClass")
+fun <R : Any> R.logger() = logger(unwrapCompanionClass(this::class.java).simpleName ?: "AnonymousClass")
+fun logger(name: String) = LoggerFactory(name)
 
 enum class LogLevel { debug, info, warn, error }
 

@@ -27,7 +27,7 @@ class GameRepository @Inject constructor(
     private val gameFactory: GameFactory,
     preferences: ProviderPreferences
 ) {
-    private val log by logger()
+    private val log = logger()
 
     val games: ObservableList<Game> = run {
         log.info("Fetching games...")

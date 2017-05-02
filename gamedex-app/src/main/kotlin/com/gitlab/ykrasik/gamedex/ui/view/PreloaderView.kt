@@ -24,13 +24,14 @@ import tornadofx.*
  */
 class PreloaderView : View("Gamedex") {
     private var logo = resources.image("gamedex.png")
-    private val progress = TaskProgress(writeToLog = false)
+    private val progress = TaskProgress("Preloader", writeToLog = false)
 
     private val messageListener = ListChangeListener<LogEntry> {
         progress.message = it.list.last().message
     }
 
     init {
+        // TODO: Could consider doing this through a task.
         // While loading, flush all log messages to the notification.
         Log.entries.addListener(messageListener)
     }

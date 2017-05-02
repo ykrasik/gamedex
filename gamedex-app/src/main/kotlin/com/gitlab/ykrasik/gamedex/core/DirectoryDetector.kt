@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class NewDirectoryDetector {
-    private val log by logger()
+    private val log = logger()
 
     suspend fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
         val context = NewDirectoryContext(excludedDirectories)

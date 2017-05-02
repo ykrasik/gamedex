@@ -134,13 +134,27 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
         bottom {
             buttonbar {
                 paddingTop = 20
+
                 button("OK", type = ButtonBar.ButtonData.OK_DONE) {
                     enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
                     defaultButtonProperty().bind(defaultButtonIsSearch.not())
-                    setOnAction { close(choice = okResult) }
+                    setOnAction {
+                        val choice = if (data.isNewSearch) {
+                            okResult
+                        } else {
+                            SearchResultChoice.ProceedCarefully(tableView.selectedItem!!)
+                        }
+                        close(choice = choice)
+                    }
                 }
                 cancelButton { setOnAction { close(choice = SearchResultChoice.Cancel) } }
                 button("Proceed Without") { setOnAction { close(choice = SearchResultChoice.ProceedWithout) } }
+                if (data.isNewSearch) {
+                    button("Proceed Carefully", type = ButtonBar.ButtonData.FINISH) {
+                        enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
+                        setOnAction { close(choice = SearchResultChoice.ProceedCarefully(tableView.selectedItem!!)) }
+                    }
+                }
             }
         }
     }

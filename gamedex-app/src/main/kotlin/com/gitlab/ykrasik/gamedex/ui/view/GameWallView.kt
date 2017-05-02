@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.ui.fontAwesomeGlyph
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
@@ -18,6 +19,7 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
 import org.controlsfx.control.PopOver
+import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -65,10 +67,14 @@ class GameWallView : View("Games Wall") {
                 }
             }
             cell.contextmenu {
-                menuitem("View Details") { GameDetailsFragment(cell.item).show() }
-                menuitem("Change Thumbnail") { controller.changeThumbnail(cell.item) }
+                menuitem("View Details", graphic = fontAwesomeGlyph(FontAwesome.Glyph.EYE)) { GameDetailsFragment(cell.item).show() }
                 separator()
-                menuitem("Delete") { controller.delete(cell.item) }
+                menuitem("Search Again", graphic = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)) { controller.searchAgain(cell.item) }
+                menuitem("Re-fetch", graphic = fontAwesomeGlyph(FontAwesome.Glyph.RETWEET)) { controller.refetchGame(cell.item) }
+                separator()
+                menuitem("Change Thumbnail", graphic = fontAwesomeGlyph(FontAwesome.Glyph.FILE_IMAGE_ALT)) { controller.changeThumbnail(cell.item) }
+                separator()
+                menuitem("Delete", graphic = fontAwesomeGlyph(FontAwesome.Glyph.TRASH)) { controller.delete(cell.item) }
             }
             cell
         }

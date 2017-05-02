@@ -13,17 +13,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class GiantBombProvider @Inject constructor(private val client: GiantBombClient) : GameProvider {
-    private val log by logger()
+    private val log = logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.info("[$platform] Searching: name='$name'...")
+        log.debug("[$platform] Searching: name='$name'...")
         val response = client.search(name, platform)
-        log.debug("[$platform] Response: $response")
-
         assertOk(response.statusCode)
 
         val results = response.results.map { it.toProviderSearchResult() }
-        log.info("[$platform] ${results.size} Search results: $results.")
+        log.debug("[$platform] ${results.size} Search results: $results.")
         return results
     }
 
@@ -36,7 +34,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     )
 
     override fun fetch(apiUrl: String, platform: Platform): RawGameData {
-        log.info("[$platform] Fetching: $apiUrl...")
+        log.debug("[$platform] Fetching: $apiUrl...")
         val response = client.fetch(apiUrl)
         assertOk(response.statusCode)
 
@@ -44,7 +42,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
         val gameData = response.results.first().toRawGameData(apiUrl)
-        log.info("[$platform] Result: $gameData.")
+        log.debug("[$platform] Result: $gameData.")
         return gameData
     }
 

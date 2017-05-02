@@ -54,12 +54,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     // TODO: Implement.
                     button("Change Poster")
                     button("Refresh")
-                    button("Search Again")
-                    button("Delete") { setOnAction {
-                        if (gameController.delete(game)) {
-                            close(accept = false)
-                        }
-                    } }
+                    button("Search Again") { setOnAction { gameController.searchAgain(game) } }
+                    button("Delete") { setOnAction { if (gameController.delete(game)) { close(accept = false) } } }
                 }
                 separator()
             }

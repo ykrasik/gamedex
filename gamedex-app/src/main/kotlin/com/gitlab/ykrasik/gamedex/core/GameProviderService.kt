@@ -12,11 +12,11 @@ import javax.inject.Singleton
  * Date: 13/10/2016
  * Time: 13:29
  */
-interface DataProviderService {
+interface GameProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isNewSearch: Boolean): List<RawGameData>?
 
-    fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData>
+    fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData>
 }
 
 @Singleton
@@ -24,11 +24,11 @@ class DataProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val preferences: GamePreferences,
     private val chooser: GameSearchChooser
-) : DataProviderService {
+) : GameProviderService {
 
-    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress): List<RawGameData>? =
+    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isNewSearch: Boolean): List<RawGameData>? =
         try {
-            SearchContext(platform, path, progress, name).search()
+            SearchContext(platform, path, progress, isNewSearch, name).search()
         } catch (e: CancelSearchException) {
             null
         }
@@ -37,34 +37,36 @@ class DataProviderServiceImpl @Inject constructor(
         private val platform: Platform,
         private val path: File,
         private val progress: TaskProgress,
+        private val isNewSearch: Boolean,
         private var searchedName: String
     ) {
-        val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
+        private var autoProceed = isNewSearch
+
+//        val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
 
-        suspend fun search(): List<RawGameData> {
-            return providerRepository.providers.mapNotNull { search(it) }
-        }
+        suspend fun search(): List<RawGameData> = providerRepository.providers.mapNotNull { search(it) }
 
         private suspend fun search(provider: GameProvider): RawGameData? {
-            progress.message = "[${provider.info.name}] Searching: '$searchedName'..."
+            progress.message = "[${provider.info.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            progress.message = "[${provider.info.name}] Searching: '$searchedName': ${results.size} results."
+            progress.message = "[${provider.info.name}][$platform] Searching '$searchedName': ${results.size} results."
 
             val filteredResults = filterResults(results)
-            val choice = if (filteredResults.size == 1) {
-                SearchResultChoice.Ok(filteredResults.first())
-            } else if (preferences.handsFreeMode) {
-                SearchResultChoice.Cancel
-            } else {
-                val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, filteredResults)
-                chooser.choose(chooseSearchResultData)
-            }
+            val choice = chooseResult(provider, filteredResults)
+
             return when (choice) {
                 is SearchResultChoice.Ok -> {
                     val chosenResult = choice.result
                     previouslyDiscardedResults += filteredResults.filter { it != chosenResult }
-                    previouslySelectedResults += chosenResult
+//                    previouslySelectedResults += chosenResult
+                    provider.fetch(chosenResult.apiUrl, platform)
+                }
+                is SearchResultChoice.ProceedCarefully -> {
+                    val chosenResult = choice.result
+                    previouslyDiscardedResults.clear()
+                    autoProceed = false
+//                    previouslySelectedResults += chosenResult
                     provider.fetch(chosenResult.apiUrl, platform)
                 }
                 is SearchResultChoice.NewSearch -> {
@@ -74,6 +76,17 @@ class DataProviderServiceImpl @Inject constructor(
                 }
                 SearchResultChoice.ProceedWithout -> null
                 SearchResultChoice.Cancel -> throw CancelSearchException()
+            }
+        }
+
+        private suspend fun chooseResult(provider: GameProvider, results: List<ProviderSearchResult>): SearchResultChoice {
+            return when {
+                results.size == 1 && autoProceed -> SearchResultChoice.Ok(results.first())
+                results.size != 1 && autoProceed && preferences.handsFreeMode -> SearchResultChoice.Cancel
+                else -> {
+                    val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, isNewSearch, results)
+                    chooser.choose(chooseSearchResultData)
+                }
             }
         }
 
@@ -89,10 +102,13 @@ class DataProviderServiceImpl @Inject constructor(
         }
     }
 
-    override fun fetch(providerData: List<ProviderData>, platform: Platform): List<RawGameData> =
+    override fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData> =
         providerData.map { providerData ->
             val provider = providerRepository[providerData]
-            provider.fetch(providerData.apiUrl, platform)
+            progress.message = "[${provider.info.name}][$platform] Fetching '$name'..."
+            val result = provider.fetch(providerData.apiUrl, platform)
+            progress.message = "[${provider.info.name}][$platform] Fetching '$name'...: Done."
+            result
         }
 
     private class CancelSearchException : RuntimeException()
@@ -100,6 +116,7 @@ class DataProviderServiceImpl @Inject constructor(
 
 sealed class SearchResultChoice {
     data class Ok(val result: ProviderSearchResult) : SearchResultChoice()
+    data class ProceedCarefully(val result: ProviderSearchResult) : SearchResultChoice()
     data class NewSearch(val newSearch: String) : SearchResultChoice()
     object Cancel : SearchResultChoice()
     object ProceedWithout : SearchResultChoice()

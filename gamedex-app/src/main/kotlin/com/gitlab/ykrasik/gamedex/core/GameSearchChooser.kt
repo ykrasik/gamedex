@@ -26,5 +26,6 @@ data class ChooseSearchResultData(
     val name: String,
     val path: File,
     val providerType: GameProviderType,
+    val isNewSearch: Boolean,
     val searchResults: List<ProviderSearchResult>
 )

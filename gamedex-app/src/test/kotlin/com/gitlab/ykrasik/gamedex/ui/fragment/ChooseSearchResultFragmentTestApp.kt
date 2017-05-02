@@ -20,6 +20,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
                 name = randomName(),
                 path = randomFile(),
                 providerType = GameProviderType.GiantBomb,
+                isNewSearch = true,
                 searchResults = List(10) {
                     ProviderSearchResult(
                         name = randomName(),

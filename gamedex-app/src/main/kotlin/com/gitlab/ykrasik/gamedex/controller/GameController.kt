@@ -3,9 +3,11 @@ package com.gitlab.ykrasik.gamedex.controller
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
 import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.core.DataProviderService
+import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.GamedexTask
 import com.gitlab.ykrasik.gamedex.core.LibraryScanner
+import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -33,7 +35,7 @@ class GameController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val libraryScanner: LibraryScanner,
-    private val dataProviderService: DataProviderService,
+    private val providerService: GameProviderService, // TODO: This class appears in too many places.
     preferences: GamePreferences
 ) : Controller() {
 
@@ -67,26 +69,22 @@ class GameController @Inject constructor(
         }
     }
 
-    fun refetchGames(): RefetchGamesTask? {
+    fun refetchAllGames(): RefetchAllGamesTask? {
         return if (areYouSureDialog("Re-fetch all games? This could take a while...")) {
-            RefetchGamesTask().apply { start() }
+            RefetchAllGamesTask().apply { start() }
         } else {
             null
         }
     }
 
-    inner class RefetchGamesTask : GamedexTask("Re-fetching games...") {
+    inner class RefetchAllGamesTask : GamedexTask("Re-fetching all games...") {
         private var numRefetched = 0
 
         override suspend fun doRun(context: CoroutineContext) {
             games.forEachIndexed { i, game ->
-                progress.message = "Re-fetching '${game.name}..."
                 progress.progress(i, gameRepository.games.size - 1)
 
-                val newRawGameData = dataProviderService.fetch(game.providerData, game.platform)
-                val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
-                gameRepository.update(newRawGame)
-
+                doRefetchGame(game, progress)
                 numRefetched += 1
             }
         }
@@ -94,6 +92,23 @@ class GameController @Inject constructor(
         override fun finally() {
             progress.message = "Done: Re-fetched $numRefetched games."
         }
+    }
+
+    fun refetchGame(game: Game): RefetchGameTask = RefetchGameTask(game).apply { start() }
+
+    inner class RefetchGameTask(private val game: Game) : GamedexTask("Re-fetching '${game.name}'...") {
+        override suspend fun doRun(context: CoroutineContext) {
+            doRefetchGame(game, progress)
+        }
+
+        override fun finally() {
+            progress.message = "Done."
+        }
+    }
+
+    private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
+        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerData, progress)
+        updateGame(game, newRawGameData)
     }
 
     fun cleanup(): CleanupTask = CleanupTask().apply { start() }
@@ -147,6 +162,19 @@ class GameController @Inject constructor(
         }
     }
 
+    fun searchAgain(game: Game): SearchAgainTask = SearchAgainTask(game).apply { start() }
+
+    inner class SearchAgainTask(private val game: Game) : GamedexTask("Searching '${game.name}'...") {
+        suspend override fun doRun(context: CoroutineContext) {
+            val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isNewSearch = false) ?: return
+            updateGame(game, newRawGameData)
+        }
+
+        override fun finally() {
+            progress.message = "Done."
+        }
+    }
+
     fun changeThumbnail(game: Game) = launch(JavaFx) {
         val (thumbnailOverride, newThumbnailUrl) = ChangeThumbnailFragment(game).show() ?: return@launch
         if (newThumbnailUrl != game.thumbnailUrl) {
@@ -168,6 +196,11 @@ class GameController @Inject constructor(
                 .show()
         }
         return true
+    }
+
+    private suspend fun updateGame(game: Game, newRawGameData: List<RawGameData>) {
+        val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
+        gameRepository.update(newRawGame)
     }
 
     private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(

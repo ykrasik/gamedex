@@ -115,7 +115,7 @@ class GameView : GamedexView("Games") {
                         addClass(Style.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = gameContorller.refetchGames()
+                            val task = gameContorller.refetchAllGames()
                             if (task != null) {
                                 disableProperty().cleanBind(task.runningProperty)
                             }

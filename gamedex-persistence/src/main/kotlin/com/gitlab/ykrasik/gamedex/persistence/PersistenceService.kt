@@ -32,7 +32,7 @@ interface PersistenceService {
 
 @Singleton
 class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
-    private val log by logger()
+    private val log = logger()
 
     init {
         initializer.create()

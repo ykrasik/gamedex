@@ -26,11 +26,11 @@ import kotlin.coroutines.experimental.CoroutineContext
 // TODO: This class doesn't do much
 class LibraryScanner @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
-    private val providerService: DataProviderService
+    private val providerService: GameProviderService
 ) {
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
-    private val log by logger()
+    private val log = logger()
 
     fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, progress: TaskProgress) = produce<AddGameRequest>(context) {
         progress.message = "Scanning for new directories..."
@@ -46,6 +46,8 @@ class LibraryScanner @Inject constructor(
             paths.map { library to it }
         }
 
+        progress.message = "Scanning for new directories: ${newDirectories.size} new directories."
+
         newDirectories.forEachIndexed { i, (library, directory) ->
             if (!isActive) return@forEachIndexed
 
@@ -59,7 +61,7 @@ class LibraryScanner @Inject constructor(
     private suspend fun processDirectory(directory: File, library: Library, progress: TaskProgress): AddGameRequest? {
         val name = requireNotNull(directory.normalizeName().emptyToNull()) { "Invalid directory name: '${directory.name}'!"}
 
-        val providerData = providerService.search(name, library.platform, directory, progress) ?: return null
+        val providerData = providerService.search(name, library.platform, directory, progress, isNewSearch = true) ?: return null
 
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),

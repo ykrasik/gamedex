@@ -23,7 +23,7 @@ import javax.inject.Singleton
 class LibraryRepository @Inject constructor(
     private val persistenceService: PersistenceService
 ) {
-    private val log by logger()
+    private val log = logger()
 
     val libraries: ObservableList<Library> = run {
         log.info("Fetching libraries...")

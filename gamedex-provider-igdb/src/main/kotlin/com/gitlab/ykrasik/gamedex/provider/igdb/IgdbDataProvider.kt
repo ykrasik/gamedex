@@ -14,23 +14,21 @@ import javax.inject.Singleton
  */
 @Singleton
 class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
-    private val log by logger()
+    private val log = logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.info("[$platform] Searching: name='$name'...")
+        log.debug("[$platform] Searching: name='$name'...")
         val searchResults = client.search(name, platform)
         val results = searchResults.toProviderSearchResults(name, platform)
-        log.info("[$platform] ${results.size} Search results: $results.")
+        log.debug("[$platform] ${results.size} Search results: $results.")
         return results
     }
 
     override fun fetch(apiUrl: String, platform: Platform): RawGameData {
-        log.info("[$platform] Fetching: $apiUrl...")
+        log.debug("[$platform] Fetching: $apiUrl...")
         val fetchResult = client.fetch(apiUrl)
-        log.debug("[$platform] Response: $fetchResult")
-
         val gameData = fetchResult.toRawGameData(apiUrl, platform)
-        log.info("[$platform] Result: $gameData.")
+        log.debug("[$platform] Result: $gameData.")
         return gameData
     }
 

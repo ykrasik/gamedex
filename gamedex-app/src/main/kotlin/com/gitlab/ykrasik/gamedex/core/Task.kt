@@ -26,10 +26,8 @@ import kotlin.coroutines.experimental.CoroutineContext
 // TODO: Support 2 types of notifications - FlashNotifications (which disappear after a second or 2)
 // TODO: And PersistentNotifications (which display ongoing job messages & progress).
 abstract class GamedexTask(title: String) {
-    protected val log by logger()
-
     private lateinit var job: Job
-    protected val progress = TaskProgress()
+    protected val progress = TaskProgress(title)
 
     private var graphic: ImageView by singleAssign()
 
@@ -84,9 +82,11 @@ abstract class GamedexTask(title: String) {
     protected abstract fun finally()
 }
 
-class TaskProgress(private val writeToLog: Boolean = true) {
+class TaskProgress(name: String, private val writeToLog: Boolean = true) {
     val messageProperty: StringProperty = ThreadAwareStringProperty()
     val progressProperty: DoubleProperty = ThreadAwareDoubleProperty()
+
+    private val log = logger(name)
 
     var message: String
         get() = messageProperty.get()
@@ -101,9 +101,5 @@ class TaskProgress(private val writeToLog: Boolean = true) {
 
     fun progress(done: Int, total: Int) {
         progress = done.toDouble() / total.toDouble()
-    }
-
-    companion object {
-        private val log by logger()
     }
 }
