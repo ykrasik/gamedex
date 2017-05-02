@@ -77,6 +77,13 @@ class MainView : View("Gamedex") {
                                 SettingsFragment().show()
                             }
                         }
+                        separator()
+                        navigationButton("Quit", fontAwesomeGlyph(FontAwesome.Glyph.SIGN_OUT)) {
+                            setOnAction {
+                                this@withPopover.hide()
+                                System.exit(0)
+                            }
+                        }
                     }
                 }
             }
