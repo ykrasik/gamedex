@@ -3,15 +3,10 @@ package com.gitlab.ykrasik.gamedex.controller
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
 import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.RawGameData
-import com.gitlab.ykrasik.gamedex.core.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.GamedexTask
-import com.gitlab.ykrasik.gamedex.core.LibraryScanner
-import com.gitlab.ykrasik.gamedex.core.TaskProgress
+import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
-import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
 import com.gitlab.ykrasik.gamedex.ui.mapProperty
@@ -23,7 +18,6 @@ import tornadofx.SortedFilteredList
 import tornadofx.seconds
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
@@ -33,9 +27,7 @@ import kotlin.coroutines.experimental.CoroutineContext
 @Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val libraryRepository: LibraryRepository,
-    private val libraryScanner: LibraryScanner,
-    private val providerService: GameProviderService, // TODO: This class appears in too many places.
+    private val gameTasks: GameTasks,
     preferences: GamePreferences
 ) : Controller() {
 
@@ -51,129 +43,21 @@ class GameController @Inject constructor(
         games.sortedItems.comparatorProperty().bind(preferences.sortProperty.mapProperty { it!!.toComparator() })
     }
 
-    fun refreshGames(): RefreshGamesTask = RefreshGamesTask().apply { start() }
+    fun refreshGames() = gameTasks.RefreshGamesTask().apply { start() }
 
-    inner class RefreshGamesTask : GamedexTask("Refreshing games...") {
-        private var numNewGames = 0
-
-        override suspend fun doRun(context: CoroutineContext) {
-            val requestsJob = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, progress)
-            for (addGameRequest in requestsJob.channel) {
-                gameRepository.add(addGameRequest)
-                numNewGames += 1
-            }
-        }
-
-        override fun finally() {
-            progress.message = "Done refreshing games: Added $numNewGames new games."
-        }
-    }
-
-    fun refetchAllGames(): RefetchAllGamesTask? {
+    fun refetchAllGames(): GameTasks.RefetchAllGamesTask? {
         return if (areYouSureDialog("Re-fetch all games? This could take a while...")) {
-            RefetchAllGamesTask().apply { start() }
+            gameTasks.RefetchAllGamesTask().apply { start() }
         } else {
             null
         }
     }
 
-    inner class RefetchAllGamesTask : GamedexTask("Re-fetching all games...") {
-        private var numRefetched = 0
+    fun refetchGame(game: Game) = gameTasks.RefetchGameTask(game).apply { start() }
 
-        override suspend fun doRun(context: CoroutineContext) {
-            games.forEachIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size - 1)
+    fun cleanup() = gameTasks.CleanupTask().apply { start() }
 
-                doRefetchGame(game, progress)
-                numRefetched += 1
-            }
-        }
-
-        override fun finally() {
-            progress.message = "Done: Re-fetched $numRefetched games."
-        }
-    }
-
-    fun refetchGame(game: Game): RefetchGameTask = RefetchGameTask(game).apply { start() }
-
-    inner class RefetchGameTask(private val game: Game) : GamedexTask("Re-fetching '${game.name}'...") {
-        override suspend fun doRun(context: CoroutineContext) {
-            doRefetchGame(game, progress)
-        }
-
-        override fun finally() {
-            progress.message = "Done."
-        }
-    }
-
-    private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
-        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerData, progress)
-        updateGame(game, newRawGameData)
-    }
-
-    fun cleanup(): CleanupTask = CleanupTask().apply { start() }
-
-    inner class CleanupTask : GamedexTask("Cleaning up...") {
-        private var staleGames = 0
-        private var staleLibraries = 0
-
-        suspend override fun doRun(context: CoroutineContext) {
-            cleanupStaleGames()
-            cleanupStaleLibraries()
-        }
-
-        private suspend fun cleanupStaleGames() {
-            progress.message = "Detecting stales games..."
-            val staleGamesDetected = gameRepository.games.filterIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size - 1)
-                !game.path.isDirectory
-            }
-            progress.message = "Detected ${staleGamesDetected.size} stales games."
-
-            staleGamesDetected.forEachIndexed { i, game ->
-                progress.message = "Cleaning up stale game: '${game.name}'..."
-                progress.progress(i, gameRepository.games.size - 1)
-
-                gameRepository.delete(game)
-                staleGames += 1
-            }
-        }
-
-        private suspend fun cleanupStaleLibraries() {
-            progress.message = "Detecting stales libraries..."
-            val staleLibrariesDetected = libraryRepository.libraries.filterIndexed { i, library ->
-                progress.progress(i, libraryRepository.libraries.size - 1)
-                !library.path.isDirectory
-            }
-            progress.message = "Detected ${staleLibrariesDetected.size} stales libraries."
-
-            staleLibrariesDetected.forEachIndexed { i, library ->
-                progress.message = "Deleting stale library: '${library.name}'..."
-                progress.progress(i, libraryRepository.libraries.size - 1)
-
-                libraryRepository.delete(library)
-                gameRepository.deleteByLibrary(library)  // TODO: This logic is duplicated from LibraryController.
-                staleLibraries += 1
-            }
-        }
-
-        override fun finally() {
-            progress.message = "Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries."
-        }
-    }
-
-    fun searchAgain(game: Game): SearchAgainTask = SearchAgainTask(game).apply { start() }
-
-    inner class SearchAgainTask(private val game: Game) : GamedexTask("Searching '${game.name}'...") {
-        suspend override fun doRun(context: CoroutineContext) {
-            val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isNewSearch = false) ?: return
-            updateGame(game, newRawGameData)
-        }
-
-        override fun finally() {
-            progress.message = "Done."
-        }
-    }
+    fun searchAgain(game: Game) = gameTasks.SearchAgainTask(game).apply { start() }
 
     fun changeThumbnail(game: Game) = launch(JavaFx) {
         val (thumbnailOverride, newThumbnailUrl) = ChangeThumbnailFragment(game).show() ?: return@launch
@@ -196,11 +80,6 @@ class GameController @Inject constructor(
                 .show()
         }
         return true
-    }
-
-    private suspend fun updateGame(game: Game, newRawGameData: List<RawGameData>) {
-        val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
-        gameRepository.update(newRawGame)
     }
 
     private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(
