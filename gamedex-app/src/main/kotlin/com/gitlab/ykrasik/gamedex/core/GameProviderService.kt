@@ -20,7 +20,7 @@ interface GameProviderService {
 }
 
 @Singleton
-class DataProviderServiceImpl @Inject constructor(
+class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val preferences: GamePreferences,
     private val chooser: GameSearchChooser
@@ -47,11 +47,13 @@ class DataProviderServiceImpl @Inject constructor(
 
         suspend fun search(): List<RawGameData> = providerRepository.providers.mapNotNull { search(it) }
 
+        // TODO: Allow going back to previous results and changing.
         private suspend fun search(provider: GameProvider): RawGameData? {
             progress.message = "[${provider.info.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             progress.message = "[${provider.info.name}][$platform] Searching '$searchedName': ${results.size} results."
 
+            // TODO: Add a button to show all filtered results.
             val filteredResults = filterResults(results)
             val choice = chooseResult(provider, filteredResults)
 
@@ -71,10 +73,14 @@ class DataProviderServiceImpl @Inject constructor(
                 }
                 is SearchResultChoice.NewSearch -> {
                     previouslyDiscardedResults += filteredResults
+                    autoProceed = false
                     searchedName = choice.newSearch
                     search(provider)
                 }
-                SearchResultChoice.ProceedWithout -> null
+                SearchResultChoice.ProceedWithout -> {
+                    previouslyDiscardedResults.clear()
+                    null
+                }
                 SearchResultChoice.Cancel -> throw CancelSearchException()
             }
         }
@@ -96,9 +102,10 @@ class DataProviderServiceImpl @Inject constructor(
 //                    return listOf(result)
 //                }
 //            }
-            return results.filterNot { result ->
+            val filteredResults = results.filterNot { result ->
                 previouslyDiscardedResults.any { it.name.equals(result.name, ignoreCase = true) }
             }
+            return if (filteredResults.isNotEmpty()) filteredResults else results
         }
     }
 
