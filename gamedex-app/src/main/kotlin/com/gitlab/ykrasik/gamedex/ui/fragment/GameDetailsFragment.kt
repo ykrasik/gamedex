@@ -88,7 +88,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     }
                 }
 
-                verticalSeparator(padding = 10.0)
+                verticalSeparator()
 
                 // TODO: Check if the new form can do what we did here manually.
                 // TODO: See if this can be made collapsible - squeezebox?

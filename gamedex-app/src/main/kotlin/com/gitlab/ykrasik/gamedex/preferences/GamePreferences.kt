@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.preferences
 
+import com.gitlab.ykrasik.gamedex.Platform
 import tornadofx.getValue
 import tornadofx.setValue
 
@@ -20,6 +21,10 @@ class GamePreferences private constructor() : UserPreferencesSet("game") {
     @Transient
     val sortProperty = preferenceProperty(GameSort.criticScoreDesc)
     var sort by sortProperty
+
+    @Transient
+    val platformProperty = preferenceProperty(Platform.pc)
+    var platform by platformProperty
 
     @Transient
     val handsFreeModeProperty = preferenceProperty(false)

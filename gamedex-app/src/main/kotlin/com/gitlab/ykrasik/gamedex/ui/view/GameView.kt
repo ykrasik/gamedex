@@ -1,6 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
+import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
 import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.ui.*
@@ -21,27 +24,40 @@ import tornadofx.*
  */
 // TODO: Should only be 1 view (wall / table), view type is decided by settings
 class GameView : GamedexView("Games") {
-    private val controller: GameController by di()
+    private val gameContorller: GameController by di()
+    private val libraryContorller: LibraryController by di()
     private val preferences: GamePreferences by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
 
     override fun ToolBar.constructToolbar() {
-        gridpane {
-            val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-                promptText = "Search"
-                // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
-                left = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)
-            }
-            children += search
-            controller.games.filterWhen(search.textProperty(), { query, game ->
-                if (query.isEmpty()) true
-                else game.name.contains(query, ignoreCase = true)
-            })
+        val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
+            platform != Platform.excluded && libraryContorller.libraries.any { it.platform == platform }
+        }
+        combobox(preferences.platformProperty, platformsWithLibraries)
+
+        verticalSeparator()
+
+        val platformPredicate = preferences.platformProperty.toPredicate { platform, game: Game ->
+            game.platform == platform
         }
 
-        verticalSeparator(10.0)
+        val search = (TextFields.createClearableTextField() as CustomTextField).apply {
+            promptText = "Search"
+            // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
+            left = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)
+        }
+        items += search
+
+        val searchPredicate = search.textProperty().toPredicate { query, game: Game ->
+            query!!.isEmpty() || game.name.contains(query, ignoreCase = true)
+        }
+
+        val predicate = platformPredicate.and(searchPredicate)
+        gameContorller.games.filteredItems.predicateProperty().bind(predicate)
+
+        verticalSeparator()
 
         gridpane {
             hgap = 2.0
@@ -52,7 +68,7 @@ class GameView : GamedexView("Games") {
             }
         }
 
-        verticalSeparator(10.0)
+        verticalSeparator()
 
         // TODO: Add a platform filter.
 
@@ -60,24 +76,24 @@ class GameView : GamedexView("Games") {
 
         checkbox("Hands Free Mode", preferences.handsFreeModeProperty)
 
-        verticalSeparator(10.0)
+        verticalSeparator()
 
         button("Refresh Games") {
             isDefaultButton = true
             graphic = fontAwesomeGlyph(FontAwesome.Glyph.REFRESH)
             setOnAction {
-                val task = controller.refreshGames()
+                val task = gameContorller.refreshGames()
                 disableProperty().cleanBind(task.runningProperty)
             }
         }
 
-        verticalSeparator(10.0)
+        verticalSeparator()
 
         label {
-            textProperty().bind(controller.games.sizeProperty().asString("Games: %d"))
+            textProperty().bind(gameContorller.games.sizeProperty().asString("Games: %d"))
         }
 
-        verticalSeparator(10.0)
+        verticalSeparator()
 
         jfxButton(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ELLIPSIS_V) { size(18.0) }) {
             prefWidth = 40.0
@@ -88,18 +104,18 @@ class GameView : GamedexView("Games") {
                         addClass(Style.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = controller.cleanup()
+                            val task = gameContorller.cleanup()
                             disableProperty().cleanBind(task.runningProperty)
                         }
                     }
 
                     separator()
-                    
+
                     jfxButton("Re-Fetch Games", graphic = fontAwesomeGlyph(FontAwesome.Glyph.RETWEET)) {
                         addClass(Style.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = controller.refetchGames()
+                            val task = gameContorller.refetchGames()
                             if (task != null) {
                                 disableProperty().cleanBind(task.runningProperty)
                             }
@@ -109,7 +125,7 @@ class GameView : GamedexView("Games") {
             }
         }
 
-        verticalSeparator(10.0)
+        verticalSeparator()
     }
 
     override val root = stackpane()
@@ -122,7 +138,7 @@ class GameView : GamedexView("Games") {
         }
     }
 
-    private fun GameDisplayType.toNode() = when(this) {
+    private fun GameDisplayType.toNode() = when (this) {
         GameDisplayType.wall -> gameWallView.root
         GameDisplayType.list -> gameListView.root
     }

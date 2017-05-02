@@ -40,6 +40,7 @@ import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import java.io.ByteArrayInputStream
 import java.util.*
+import java.util.function.Predicate
 import kotlin.reflect.KProperty1
 
 /**
@@ -178,6 +179,17 @@ fun <T, R> ObservableValue<T>.mapProperty(f: (T?) -> R): Property<R> {
     return property
 }
 
+fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
+    mapProperty { t -> Predicate { r: R -> f(t, r) } }
+
+fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
+    fun compose() = this.value.and(other.value)
+    val property = SimpleObjectProperty(compose())
+    this.onChange { property.set(compose()) }
+    other.onChange { property.set(compose()) }
+    return property
+}
+
 fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this))
     this.onChange {
@@ -291,7 +303,7 @@ class InsetBuilder(region: Region) {
     var left: Number = region.padding.left
 }
 
-fun EventTarget.verticalSeparator(padding: Double? = null, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {
+fun EventTarget.verticalSeparator(padding: Double? = 10.0, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {
     padding?.let {
         padding { right = it; left = it }
     }

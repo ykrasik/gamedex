@@ -9,6 +9,7 @@ import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
+import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
@@ -31,7 +32,7 @@ class MainView : View("Gamedex") {
             tabPane = tabpane {
                 addClass(Style.navigationTabPane)
 
-                tab(gameView) { userData = gameView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.GAMEPAD) }
+                tab(gameView) { userData = gameView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.GAMEPAD) { color(Color.DARKRED)}}
                 tab(sourceView) { userData = sourceView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.HDD_ALT) }
                 tab(logView) { userData = logView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.BOOK) }
             }
