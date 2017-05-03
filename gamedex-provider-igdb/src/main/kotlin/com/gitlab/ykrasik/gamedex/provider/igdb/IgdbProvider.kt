@@ -13,7 +13,7 @@ import javax.inject.Singleton
  * Time: 11:14
  */
 @Singleton
-class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
+class IgdbProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
     private val log = logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
@@ -106,7 +106,7 @@ class IgdbDataProvider @Inject constructor(private val config: IgdbConfig, priva
     private val Platform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val info = IgdbDataProvider.info
+    override val info = IgdbProvider.info
 
     companion object {
         val info = GameProviderInfo(

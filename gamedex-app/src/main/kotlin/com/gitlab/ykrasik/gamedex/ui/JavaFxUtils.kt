@@ -28,6 +28,7 @@ import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
+import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Stage
 import javafx.util.Callback
@@ -313,7 +314,7 @@ var SplitPane.dividerPosition: Double
     get() = dividerPositions.first()
     set(value) = setDividerPositions(value)
 
-fun fontAwesomeGlyph(glyph: FontAwesome.Glyph, op: (Glyph.() -> Unit)? = null) = Glyph("FontAwesome", glyph).apply {
+fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwesome", this).apply {
     op?.invoke(this)
 }
 
@@ -346,4 +347,46 @@ fun Button.withPopover(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocat
 inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<T>, noinline op: (TextField.() -> Unit)? = null) = textfield().apply {
     bind(property)
     op?.invoke(this)
+}
+
+fun EventTarget.platformComboBox(property: Property<com.gitlab.ykrasik.gamedex.Platform>? = null,
+                                 values: List<com.gitlab.ykrasik.gamedex.Platform>? = null,
+                                 op: (ComboBox<com.gitlab.ykrasik.gamedex.Platform>.() -> Unit)? = null) {
+    combobox(property, values) {
+        setCellFactory {
+            object : ListCell<com.gitlab.ykrasik.gamedex.Platform>() {
+                override fun updateItem(item: com.gitlab.ykrasik.gamedex.Platform?, empty: Boolean) {
+                    super.updateItem(item, empty)
+                    if (item == null || empty) {
+                        text = null
+                        graphic = null
+                    } else {
+                        text = item.toString()
+                        graphic = item.toLogo()
+                    }
+                }
+            }
+        }
+        buttonCell = object : ListCell<com.gitlab.ykrasik.gamedex.Platform>() {
+            override fun updateItem(item: com.gitlab.ykrasik.gamedex.Platform?, empty: Boolean) {
+                super.updateItem(item, empty)
+                if (item == null || empty) {
+                    text = null
+                    graphic = null
+                } else {
+                    text = item.toString()
+                    graphic = item.toLogo()
+                }
+            }
+        }
+
+        op?.invoke(this)
+    }
+}
+
+private fun com.gitlab.ykrasik.gamedex.Platform.toLogo() = when (this) {
+    com.gitlab.ykrasik.gamedex.Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
+    com.gitlab.ykrasik.gamedex.Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
+    com.gitlab.ykrasik.gamedex.Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
+    else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
 }

@@ -13,7 +13,7 @@ import org.joda.time.LocalDate
  */
 class IgdbProviderRealIT : ScopedWordSpec() {
     val config = IgdbConfig(appConfig)
-    val provider = IgdbDataProvider(config, IgdbClient(config))
+    val provider = IgdbProvider(config, IgdbClient(config))
 
     init {
         "IgdbDataProvider" should {

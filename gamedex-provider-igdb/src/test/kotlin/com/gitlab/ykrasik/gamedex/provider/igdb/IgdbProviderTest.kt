@@ -266,7 +266,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun fetch(apiUrl: String = baseUrl) = provider.fetch(apiUrl, platform)
 
         private val client = mock<IgdbClient>()
-        val provider = IgdbDataProvider(IgdbConfig(
+        val provider = IgdbProvider(IgdbConfig(
             endpoint = baseUrl,
             baseImageUrl = baseImageUrl,
             apiKey = randomString(),

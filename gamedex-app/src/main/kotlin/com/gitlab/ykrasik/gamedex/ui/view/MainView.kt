@@ -32,9 +32,9 @@ class MainView : View("Gamedex") {
             tabPane = tabpane {
                 addClass(Style.navigationTabPane)
 
-                tab(gameView) { userData = gameView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.GAMEPAD) { color(Color.DARKRED) } }
-                tab(sourceView) { userData = sourceView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.HDD_ALT) { color(Color.DARKGREEN) } }
-                tab(logView) { userData = logView; graphic = fontAwesomeGlyph(FontAwesome.Glyph.BOOK) { color(Color.DARKBLUE) } }
+                tab(gameView) { userData = gameView; graphic = FontAwesome.Glyph.GAMEPAD.toGraphic { color(Color.DARKRED) } }
+                tab(sourceView) { userData = sourceView; graphic = FontAwesome.Glyph.HDD_ALT.toGraphic { color(Color.DARKGREEN) } }
+                tab(logView) { userData = logView; graphic = FontAwesome.Glyph.BOOK.toGraphic { color(Color.DARKBLUE) } }
             }
         }
         top {
@@ -50,7 +50,7 @@ class MainView : View("Gamedex") {
 
     private fun GamedexView.populateToolbar() {
         toolbar.replaceChildren {
-            jfxButton(graphic = fontAwesomeGlyph(FontAwesome.Glyph.BARS) { size(21.0) }) {
+            jfxButton(graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) }) {
                 addClass(Style.navigationButton)
                 textProperty().bind(tabPane.selectionModel.selectedItemProperty().mapProperty { it!!.text })
                 alignment = Pos.CENTER_LEFT
@@ -70,7 +70,7 @@ class MainView : View("Gamedex") {
                             }
                         }
                         separator()
-                        navigationButton("Settings", fontAwesomeGlyph(FontAwesome.Glyph.COG) { color(Color.GRAY)}) {
+                        navigationButton("Settings", FontAwesome.Glyph.COG.toGraphic { color(Color.GRAY)}) {
                             setOnAction {
 //                    toggleClass(Stylesheet.pressed, false)
                                 this@withPopover.hide()
@@ -78,7 +78,7 @@ class MainView : View("Gamedex") {
                             }
                         }
                         separator()
-                        navigationButton("Quit", fontAwesomeGlyph(FontAwesome.Glyph.SIGN_OUT)) {
+                        navigationButton("Quit", FontAwesome.Glyph.SIGN_OUT.toGraphic()) {
                             setOnAction {
                                 this@withPopover.hide()
                                 System.exit(0)

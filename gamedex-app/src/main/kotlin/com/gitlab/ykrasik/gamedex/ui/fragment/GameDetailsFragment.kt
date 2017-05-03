@@ -29,6 +29,7 @@ import java.net.URLEncoder
  */
 // TODO: This will need to learn to refresh itself when data is updated.
 // TODO: This class is already too big
+// TODO: Display the platform with an icon somewhere
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
@@ -98,8 +99,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                         padding { top = 5; bottom = 5 }
                         hgap = 10.0
                         row {
-                            backButton = button(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ARROW_LEFT))
-                            forwardButton = button(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ARROW_RIGHT))
+                            backButton = button(graphic = FontAwesome.Glyph.ARROW_LEFT.toGraphic())
+                            forwardButton = button(graphic = FontAwesome.Glyph.ARROW_RIGHT.toGraphic())
                         }
                     }
                     webView = webview {

@@ -5,9 +5,9 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.ui.fontAwesomeGlyph
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.popOver
+import com.gitlab.ykrasik.gamedex.ui.toGraphic
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.beans.property.ReadOnlyProperty
@@ -67,14 +67,15 @@ class GameWallView : View("Games Wall") {
                 }
             }
             cell.contextmenu {
-                menuitem("View Details", graphic = fontAwesomeGlyph(FontAwesome.Glyph.EYE)) { GameDetailsFragment(cell.item).show() }
+                menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(cell.item).show() }
                 separator()
-                menuitem("Search Again", graphic = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)) { controller.searchAgain(cell.item) }
-                menuitem("Re-fetch", graphic = fontAwesomeGlyph(FontAwesome.Glyph.RETWEET)) { controller.refetchGame(cell.item) }
+                // TODO: Find better names - refresh, update, rediscover?
+                menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.searchAgain(cell.item) }
+                menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { controller.refetchGame(cell.item) }
                 separator()
-                menuitem("Change Thumbnail", graphic = fontAwesomeGlyph(FontAwesome.Glyph.FILE_IMAGE_ALT)) { controller.changeThumbnail(cell.item) }
+                menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(cell.item) }
                 separator()
-                menuitem("Delete", graphic = fontAwesomeGlyph(FontAwesome.Glyph.TRASH)) { controller.delete(cell.item) }
+                menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(cell.item) }
             }
             cell
         }

@@ -81,7 +81,7 @@ class SettingsFragment : Fragment() {
         val textfield = textfield(property)
 
         fun adjustButton(icon: FontAwesome.Glyph, adjustment: Int) {
-            button(graphic = fontAwesomeGlyph(icon)) {
+            button(graphic = icon.toGraphic()) {
                 setOnAction {
                     textfield.text = ((textfield.text).toDouble() + adjustment).toString()
                 }

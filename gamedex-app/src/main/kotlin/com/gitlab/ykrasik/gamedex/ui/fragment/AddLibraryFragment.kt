@@ -5,7 +5,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.preferences.GeneralPreferences
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.enumComboBox
+import com.gitlab.ykrasik.gamedex.ui.platformComboBox
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.SimpleObjectProperty
@@ -40,7 +40,7 @@ class AddLibraryFragment : Fragment("Add Library") {
                 button("Browse") { setOnAction { browse() } }
             }
             field("Name") { textfield(model.nameProperty).required() }
-            field("Platform") { enumComboBox<Platform>(model.platformProperty) { value = Platform.pc } }
+            field("Platform") { platformComboBox(model.platformProperty, Platform.values().toList()) { value = Platform.pc } }
         }
 
         buttonbar {

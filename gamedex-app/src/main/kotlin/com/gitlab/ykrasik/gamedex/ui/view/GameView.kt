@@ -22,7 +22,6 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-// TODO: Should only be 1 view (wall / table), view type is decided by settings
 class GameView : GamedexView("Games") {
     private val gameContorller: GameController by di()
     private val libraryContorller: LibraryController by di()
@@ -32,10 +31,12 @@ class GameView : GamedexView("Games") {
     private val gameListView: GameListView by inject()
 
     override fun ToolBar.constructToolbar() {
+        // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
         val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
             platform != Platform.excluded && libraryContorller.libraries.any { it.platform == platform }
         }
-        combobox(preferences.platformProperty, platformsWithLibraries)
+
+        platformComboBox(preferences.platformProperty, platformsWithLibraries)
 
         verticalSeparator()
 
@@ -46,7 +47,7 @@ class GameView : GamedexView("Games") {
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
             promptText = "Search"
             // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
-            left = fontAwesomeGlyph(FontAwesome.Glyph.SEARCH)
+            left = FontAwesome.Glyph.SEARCH.toGraphic()
         }
         items += search
 
@@ -80,7 +81,7 @@ class GameView : GamedexView("Games") {
 
         button("Refresh Games") {
             isDefaultButton = true
-            graphic = fontAwesomeGlyph(FontAwesome.Glyph.REFRESH)
+            graphic = FontAwesome.Glyph.REFRESH.toGraphic()
             setOnAction {
                 val task = gameContorller.refreshGames()
                 disableProperty().cleanBind(task.runningProperty)
@@ -95,12 +96,12 @@ class GameView : GamedexView("Games") {
 
         verticalSeparator()
 
-        jfxButton(graphic = fontAwesomeGlyph(FontAwesome.Glyph.ELLIPSIS_V) { size(18.0) }) {
+        jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(18.0) }) {
             prefWidth = 40.0
             withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
                 contentNode = vbox(spacing = 5.0) {
                     paddingAll = 5
-                    jfxButton("Cleanup", graphic = fontAwesomeGlyph(FontAwesome.Glyph.TRASH)) {
+                    jfxButton("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
                         addClass(Style.extraButton)
                         setOnAction {
                             this@withPopover.hide()
@@ -111,7 +112,7 @@ class GameView : GamedexView("Games") {
 
                     separator()
 
-                    jfxButton("Re-Fetch Games", graphic = fontAwesomeGlyph(FontAwesome.Glyph.RETWEET)) {
+                    jfxButton("Re-Fetch Games", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) {
                         addClass(Style.extraButton)
                         setOnAction {
                             this@withPopover.hide()
