@@ -54,7 +54,6 @@ class LogView : GamedexView("Log") {
                         return
                     }
 
-                    // TODO: Color different context differently?
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
 
                     when (item.level) {

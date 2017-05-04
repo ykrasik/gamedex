@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
+import com.gitlab.ykrasik.gamedex.ui.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
@@ -30,6 +31,7 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             spacer()
             label(game.name) { setId(Style.nameLabel) }
             spacer()
+            children += game.platform.toLogo()
         }
         gridpane {
             hgap = 5.0

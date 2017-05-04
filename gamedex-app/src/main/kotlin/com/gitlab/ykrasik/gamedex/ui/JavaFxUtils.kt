@@ -384,7 +384,7 @@ fun EventTarget.platformComboBox(property: Property<com.gitlab.ykrasik.gamedex.P
     }
 }
 
-private fun com.gitlab.ykrasik.gamedex.Platform.toLogo() = when (this) {
+fun com.gitlab.ykrasik.gamedex.Platform.toLogo() = when (this) {
     com.gitlab.ykrasik.gamedex.Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
     com.gitlab.ykrasik.gamedex.Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
     com.gitlab.ykrasik.gamedex.Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }

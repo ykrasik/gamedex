@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderOrder
+import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
@@ -55,8 +56,8 @@ class SettingsFragment : Fragment() {
                             field("Type") { enumComboBox(preferences.game.displayTypeProperty) }
                         }
 
-                        // TODO: Only show if type is wall
                         fieldset("Game Wall") {
+                            visibleProperty().bind(preferences.game.displayTypeProperty.isEqualTo(GameDisplayType.wall))
                             field("Cell Image Display") { enumComboBox(preferences.gameWall.imageDisplayTypeProperty) }
                             // TODO: Should probably validate this data.
                             field("Cell Width") { adjustableTextField(preferences.gameWall.cellWidthProperty) }

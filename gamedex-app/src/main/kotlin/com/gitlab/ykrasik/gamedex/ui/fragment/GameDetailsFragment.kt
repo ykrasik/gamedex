@@ -29,7 +29,6 @@ import java.net.URLEncoder
  */
 // TODO: This will need to learn to refresh itself when data is updated.
 // TODO: This class is already too big
-// TODO: Display the platform with an icon somewhere
 class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
