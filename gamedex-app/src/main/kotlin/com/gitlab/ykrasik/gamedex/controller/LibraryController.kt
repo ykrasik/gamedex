@@ -55,15 +55,20 @@ class LibraryController @Inject constructor(
 
     private fun confirmDelete(library: Library): Boolean {
         val baseMessage = "Delete library '${library.name}'?"
-        val gamesToBeDeleted = gameRepository.gamesForLibrary(library)
+        val gamesToBeDeleted = gameRepository.games.filter { it.libraryId == library.id }
         return areYouSureDialog {
-            if (gamesToBeDeleted.size > 0) {
+            if (gamesToBeDeleted.isNotEmpty()) {
                 dialogPane.content = vbox {
-                    text("$baseMessage The following ${gamesToBeDeleted.size} games will also be deleted!")
-                    listview(gamesToBeDeleted) {
-                        // TODO: Limit max amount of items.
-                        maxHeight = 400.0
-                    }
+                    text("$baseMessage The following games will also be deleted:")
+                    val maxGamesToDisplay = 10
+                    val messages = gamesToBeDeleted.asSequence().map { it.name }.take(maxGamesToDisplay).let {
+                        if (gamesToBeDeleted.size > maxGamesToDisplay) {
+                            it + "And ${gamesToBeDeleted.size - maxGamesToDisplay} other games..."
+                        } else {
+                            it
+                        }
+                    }.toList()
+                    listview(messages.observable())
                 }
             } else {
                 contentText = baseMessage
