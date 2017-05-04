@@ -42,7 +42,6 @@ class IgdbMockServer(port: Int) : Closeable {
     }
 
     inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
-        // TODO: This style of 'willReturn' does not allow testing parsing failures.
         infix fun willReturn(response: IgdbClient.DetailsResult) {
             wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(listOf(response))))
         }

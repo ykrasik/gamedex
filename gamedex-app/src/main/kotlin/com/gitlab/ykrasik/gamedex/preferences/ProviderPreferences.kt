@@ -18,11 +18,11 @@ class ProviderPreferences private constructor() : UserPreferencesSet("provider")
     }
 
     @Transient
-    val searchOrderProperty = preferenceProperty(DefaultProviderOrder.prefer(GameProviderType.GiantBomb))
+    val searchOrderProperty = preferenceProperty(DefaultProviderOrder.prefer(GameProviderType.Igdb))
     var searchOrder by searchOrderProperty
 
     @Transient
-    val nameOrderProperty = preferenceProperty(DefaultProviderOrder.prefer(GameProviderType.GiantBomb))
+    val nameOrderProperty = preferenceProperty(DefaultProviderOrder.prefer(GameProviderType.Igdb))
     var nameOrder by nameOrderProperty
 
     @Transient

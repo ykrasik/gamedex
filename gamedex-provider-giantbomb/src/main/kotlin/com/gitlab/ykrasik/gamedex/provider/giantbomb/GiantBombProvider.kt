@@ -16,12 +16,13 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     private val log = logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.debug("[$platform] Searching: name='$name'...")
+        log.debug("[$platform] Searching: '$name'...")
         val response = client.search(name, platform)
         assertOk(response.statusCode)
 
         val results = response.results.map { it.toProviderSearchResult() }
-        log.debug("[$platform] ${results.size} Search results: $results.")
+        log.debug("[$platform] Searching: '$name': ${results.size} results.")
+        results.forEach { log.trace("[$platform] $it") }
         return results
     }
 

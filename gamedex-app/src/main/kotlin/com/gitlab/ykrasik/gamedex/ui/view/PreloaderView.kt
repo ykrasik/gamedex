@@ -24,7 +24,7 @@ import tornadofx.*
  */
 class PreloaderView : View("Gamedex") {
     private var logo = resources.image("gamedex.png")
-    private val progress = TaskProgress("Preloader", writeToLog = false)
+    private val progress = TaskProgress(log = null)
 
     private val messageListener = ListChangeListener<LogEntry> {
         progress.message = it.list.last().message

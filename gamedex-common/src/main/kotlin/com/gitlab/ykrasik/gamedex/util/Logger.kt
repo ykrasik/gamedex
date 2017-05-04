@@ -12,7 +12,7 @@ var globalLogLevel = LogLevel.debug
 var LoggerFactory: (String) -> Logger = { context -> StdOutLogger(context) }
 
 interface Logger {
-    // TODO: Consider adding trace - for stuff like persistence & imageDownloader.
+    fun trace(msg: String) = log(msg, LogLevel.trace)
     fun debug(msg: String) = log(msg, LogLevel.debug)
     fun info(msg: String) = log(msg, LogLevel.info)
     fun warn(msg: String) = log(msg, LogLevel.warn)
@@ -30,7 +30,7 @@ interface Logger {
 fun <R : Any> R.logger() = logger(unwrapCompanionClass(this::class.java).simpleName ?: "AnonymousClass")
 fun logger(name: String) = LoggerFactory(name)
 
-enum class LogLevel { debug, info, warn, error }
+enum class LogLevel { trace, debug, info, warn, error }
 
 class StdOutLogger(private val context: String) : Logger {
     override fun log(msg: String, level: LogLevel) {

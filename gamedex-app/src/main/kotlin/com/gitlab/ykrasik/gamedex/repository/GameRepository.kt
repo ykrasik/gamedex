@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
-import javafx.collections.transformation.FilteredList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -86,8 +85,6 @@ class GameRepository @Inject constructor(
     private fun rebuildGames() {
         this.games.setAll(this.games.map { it.rawGame.toGame() }.observable())
     }
-
-    fun gamesForLibrary(library: Library): FilteredList<Game> = this.games.filtered { it.libraryId == library.id }
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 

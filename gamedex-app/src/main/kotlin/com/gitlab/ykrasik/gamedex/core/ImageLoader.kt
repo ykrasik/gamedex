@@ -68,9 +68,9 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private fun downloadImage(url: String): ByteArray {
-        log.debug("Downloading $url...")
+        log.trace("Downloading $url...")
         val bytes = download(url)
-        log.debug("Downloaded $url: ${bytes.size} bytes.")
+        log.trace("Downloaded $url: ${bytes.size} bytes.")
         return bytes
     }
 }

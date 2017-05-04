@@ -43,6 +43,7 @@ class LogView : GamedexView("Log") {
                 override fun updateItem(item: LogEntry?, empty: Boolean) {
                     super.updateItem(item, empty)
 
+                    toggleClass(Style.trace, false)
                     toggleClass(Style.debug, false)
                     toggleClass(Style.info, false)
                     toggleClass(Style.warn, false)
@@ -57,6 +58,7 @@ class LogView : GamedexView("Log") {
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
 
                     when (item.level) {
+                        LogLevel.trace -> toggleClass(Style.trace, true)
                         LogLevel.debug -> toggleClass(Style.debug, true)
                         LogLevel.info -> toggleClass(Style.info, true)
                         LogLevel.warn -> toggleClass(Style.warn, true)
@@ -88,6 +90,7 @@ class LogView : GamedexView("Log") {
             companion object {
                 val logView by cssclass()
 
+                val trace by csspseudoclass()
                 val debug by csspseudoclass()
                 val info by csspseudoclass()
                 val warn by csspseudoclass()
@@ -103,6 +106,9 @@ class LogView : GamedexView("Log") {
                     listCell {
                         backgroundColor = multi(Color.WHITE) // removes alternating list gray cells.
 
+                        and(trace) {
+                            textFill = Color.LIGHTGRAY
+                        }
                         and(debug) {
                             textFill = Color.GRAY
                         }

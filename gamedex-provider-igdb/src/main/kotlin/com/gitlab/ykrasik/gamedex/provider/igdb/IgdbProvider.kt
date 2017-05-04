@@ -17,10 +17,11 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private val log = logger()
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.debug("[$platform] Searching: name='$name'...")
+        log.debug("[$platform] Searching: '$name'...")
         val searchResults = client.search(name, platform)
         val results = searchResults.toProviderSearchResults(name, platform)
-        log.debug("[$platform] ${results.size} Search results: $results.")
+        log.debug("[$platform] Searching: '$name': ${results.size} results.")
+        results.forEach { log.trace("[$platform] $it") }
         return results
     }
 

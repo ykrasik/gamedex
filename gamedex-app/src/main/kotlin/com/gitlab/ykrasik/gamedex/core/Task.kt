@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
+import com.gitlab.ykrasik.gamedex.util.Logger
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -23,11 +24,11 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Date: 16/03/2017
  * Time: 18:04
  */
-// TODO: Support 2 types of notifications - FlashNotifications (which disappear after a second or 2)
-// TODO: And PersistentNotifications (which display ongoing job messages & progress).
 abstract class GamedexTask(title: String) {
+    private val log = logger()
+
     private lateinit var job: Job
-    protected val progress = TaskProgress(title)
+    protected val progress = TaskProgress(log)
 
     private var graphic: ImageView by singleAssign()
 
@@ -82,19 +83,15 @@ abstract class GamedexTask(title: String) {
     protected abstract fun finally()
 }
 
-class TaskProgress(name: String, private val writeToLog: Boolean = true) {
+class TaskProgress(private val log: Logger?) {
     val messageProperty: StringProperty = ThreadAwareStringProperty()
     val progressProperty: DoubleProperty = ThreadAwareDoubleProperty()
-
-    private val log = logger(name)
 
     var message: String
         get() = messageProperty.get()
         set(value) {
             messageProperty.set(value)
-            if (writeToLog) {
-                log.info(value)
-            }
+            log?.info(value)
         }
 
     var progress: Double by progressProperty
