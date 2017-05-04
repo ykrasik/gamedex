@@ -17,12 +17,10 @@ class Main : App(PreloaderView::class, Styles::class) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            // TODO: At some point I could probably bridge slf4j to the ui logger.
+            // TODO: At some point I could probably bridge slf4j to the ui logger, if needed.
             SLF4JBridgeHandler.removeHandlersForRootLogger()
             SLF4JBridgeHandler.install()
             LoggerFactory = UILoggerFactory
-
-            // TODO: Set root slf4j level to info programatically.
 
             Application.launch(Main::class.java, *args)
         }

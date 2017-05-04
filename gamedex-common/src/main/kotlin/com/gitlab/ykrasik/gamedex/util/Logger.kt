@@ -37,7 +37,7 @@ class StdOutLogger(private val context: String) : Logger {
         if (!Logger.shouldLog(level)) return
 
         val timestamp = DateTime.now().toString("HH:mm:ss.SSS")
-        println("$timestamp [$level] [${Thread.currentThread().name}] [$context] $msg")
+        println("$timestamp [${Thread.currentThread().name}] [$level] [$context] $msg")
     }
 }
 

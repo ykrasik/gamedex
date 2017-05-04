@@ -40,16 +40,16 @@ class GameView : GamedexView("Games") {
 
         verticalSeparator()
 
-        val platformPredicate = preferences.platformProperty.toPredicate { platform, game: Game ->
-            game.platform == platform
-        }
-
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
             promptText = "Search"
             // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
             left = FontAwesome.Glyph.SEARCH.toGraphic()
         }
         items += search
+
+        val platformPredicate = preferences.platformProperty.toPredicate { platform, game: Game ->
+            game.platform == platform
+        }
 
         val searchPredicate = search.textProperty().toPredicate { query, game: Game ->
             query!!.isEmpty() || game.name.contains(query, ignoreCase = true)
@@ -71,10 +71,17 @@ class GameView : GamedexView("Games") {
 
         verticalSeparator()
 
-        // TODO: Add a platform filter.
-
         spacer()
 
+        verticalSeparator()
+
+        label {
+            textProperty().bind(gameContorller.games.sizeProperty().asString("Games: %d"))
+        }
+
+        verticalSeparator()
+
+        // TODO: Move this under the refresh button, as a drop down button.
         checkbox("Hands Free Mode", preferences.handsFreeModeProperty)
 
         verticalSeparator()
@@ -86,12 +93,6 @@ class GameView : GamedexView("Games") {
                 val task = gameContorller.refreshGames()
                 disableProperty().cleanBind(task.runningProperty)
             }
-        }
-
-        verticalSeparator()
-
-        label {
-            textProperty().bind(gameContorller.games.sizeProperty().asString("Games: %d"))
         }
 
         verticalSeparator()
