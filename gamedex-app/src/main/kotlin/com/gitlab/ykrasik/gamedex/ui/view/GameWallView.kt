@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
+import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.popOver
@@ -116,7 +117,7 @@ class GameWallView : View("Games Wall") {
             imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
             imageViewLimitedPane.clip = createClippingArea()
 
-            addClass(Styles.gameTile, Styles.card)
+            addClass(CommonStyle.hoverable, CommonStyle.card)
             graphic = imageViewLimitedPane
         }
 

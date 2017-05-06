@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.beans.property.Property
 import javafx.scene.control.Button
@@ -66,7 +65,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
             hbox {
                 // Left
                 stackpane {
-                    addClass(Styles.card)       // TODO: Not sure what this does
+                    addClass(CommonStyle.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
                     poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))

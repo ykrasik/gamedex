@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.module.AppModule
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.test.TestImages
-import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.util.appConfig
 import com.google.inject.AbstractModule
 import com.google.inject.Binding
@@ -42,7 +41,7 @@ abstract class BaseTestApp {
     companion object {
         var initializer: () -> Unit = { }
 
-        class TestApplication : App(TestView::class, Styles::class)
+        class TestApplication : App(TestView::class)
 
         class TestView : View("Test") {
             override val root: Parent = vbox {

@@ -1,21 +1,27 @@
-package com.gitlab.ykrasik.gamedex.ui.view
+package com.gitlab.ykrasik.gamedex.ui
 
-/**
- * User: ykrasik
- * Date: 08/10/2016
- * Time: 22:30
- */
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
 import tornadofx.*
 
-class Styles : Stylesheet() {
+/**
+ * User: ykrasik
+ * Date: 06/05/2017
+ * Time: 13:43
+ */
+class CommonStyle : Stylesheet() {
     companion object {
-        val gameTile by cssclass()
+        val hoverable by cssclass()
+
+        // TODO: Move this to the GameWallStyle?
         val card by cssclass()
 
         val jfxButton by cssclass()
+
+        init {
+            importStylesheet(CommonStyle::class)
+        }
     }
 
     init {
@@ -370,10 +376,11 @@ class Styles : Stylesheet() {
 //            }
 //        }
 
-        gameTile {
+        hoverable {
             and(hover) {
                 translateX = 1.px
                 translateY = 1.px
+                // TODO: Find something less hideous
                 effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
             }
         }

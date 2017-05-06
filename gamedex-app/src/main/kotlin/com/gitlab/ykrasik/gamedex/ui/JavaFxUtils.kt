@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.ui
 
-import com.gitlab.ykrasik.gamedex.ui.view.Styles
 import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
 import com.jfoenix.controls.JFXButton
@@ -347,7 +346,7 @@ fun EventTarget.jfxDrawer(op: (JFXDrawer.() -> Unit)? = null) = opcr(this, JFXDr
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
     opcr(this, JFXButton().apply {
-        addClass(Styles.jfxButton)
+        addClass(CommonStyle.jfxButton)
         this.text = text
         this.graphic = graphic
         this.buttonType = type

@@ -3,14 +3,13 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
-import javafx.scene.effect.BlurType
-import javafx.scene.effect.DropShadow
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
@@ -93,7 +92,7 @@ class GameDetailSnippetFactory @Inject constructor(
                     row {
                         game.genres.forEach { genre ->
                             jfxButton(genre) {
-                                addClass(Style.details, Style.genre)
+                                addClass(Style.details, CommonStyle.hoverable)
                                 setOnAction {
                                     sortedFilteredGames.genreFilterProperty.set(genre)
                                     close()
@@ -137,7 +136,6 @@ class GameDetailSnippetFactory @Inject constructor(
             val detailsLabel by cssclass()
             val details by cssclass()
             val nameLabel by cssid()
-            val genre by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -156,13 +154,6 @@ class GameDetailSnippetFactory @Inject constructor(
             }
             nameLabel {
                 fontSize = 20.px
-            }
-            genre {
-                and(hover) {
-                    translateX = 1.px
-                    translateY = 1.px
-                    effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
-                }
             }
         }
     }
