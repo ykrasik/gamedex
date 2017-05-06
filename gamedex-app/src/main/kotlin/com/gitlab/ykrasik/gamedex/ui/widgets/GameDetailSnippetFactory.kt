@@ -1,8 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
@@ -22,11 +24,15 @@ import javax.inject.Singleton
  * Time: 19:42
  */
 @Singleton
-class GameDetailSnippetFactory @Inject constructor(private val providerRepository: GameProviderRepository) {
+class GameDetailSnippetFactory @Inject constructor(
+    private val providerRepository: GameProviderRepository,
+    private val sortedFilteredGames: SortedFilteredGames
+) {
 
     fun create(game: Game,
                withDescription: Boolean = true,
-               withUrls: Boolean = true): VBox = VBox().apply {
+               withUrls: Boolean = true,
+               close: () -> Unit): VBox = VBox().apply {
         hbox {
             spacer()
             label(game.name) { setId(Style.nameLabel) }
@@ -85,9 +91,14 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 gridpane {
                     hgap = 5.0
                     row {
-                        game.genres.forEach {
-                            // TODO: Make clicking a genre change main view to only show these genres
-                            label(it) { addClass(Style.details, Style.genre) }
+                        game.genres.forEach { genre ->
+                            jfxButton(genre) {
+                                addClass(Style.details, Style.genre)
+                                setOnAction {
+                                    sortedFilteredGames.genreFilterProperty.set(genre)
+                                    close()
+                                }
+                            }
                         }
                     }
                 }

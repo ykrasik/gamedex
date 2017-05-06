@@ -35,14 +35,20 @@ class GameFactory @Inject constructor(
         )
     }
 
-    private fun RawGame.toGameData(): GameData = GameData(
-        name = firstBy(preferences.nameOrder, priorityOverride?.name) { it.gameData.name } ?: metaData.path.name,
-        description = firstBy(preferences.descriptionOrder, priorityOverride?.description) { it.gameData.description },
-        releaseDate = firstBy(preferences.releaseDateOrder, priorityOverride?.releaseDate) { it.gameData.releaseDate },
-        criticScore = firstBy(preferences.criticScoreOrder, priorityOverride?.criticScore) { it.gameData.criticScore },
-        userScore = firstBy(preferences.userScoreOrder, priorityOverride?.userScore) { it.gameData.userScore },
-        genres = rawGameData.flatMapTo(mutableSetOf<String>()) { it.gameData.genres }.toList()  // TODO: Consider limiting the max amount of genres to 5.
-    )
+    private fun RawGame.toGameData(): GameData {
+        // TODO: Consider limiting the max amount of genres to 5.
+        val genres = rawGameData.flatMapTo(mutableSetOf<String>()) {
+            it.gameData.genres.flatMap { processGenre(it) }
+        }.toList()
+        return GameData(
+            name = firstBy(preferences.nameOrder, priorityOverride?.name) { it.gameData.name } ?: metaData.path.name,
+            description = firstBy(preferences.descriptionOrder, priorityOverride?.description) { it.gameData.description },
+            releaseDate = firstBy(preferences.releaseDateOrder, priorityOverride?.releaseDate) { it.gameData.releaseDate },
+            criticScore = firstBy(preferences.criticScoreOrder, priorityOverride?.criticScore) { it.gameData.criticScore },
+            userScore = firstBy(preferences.userScoreOrder, priorityOverride?.userScore) { it.gameData.userScore },
+            genres = genres
+        )
+    }
 
     private fun RawGame.toImageUrls(): ImageUrls {
         val thumbnailUrl = firstBy(preferences.thumbnailOrder, priorityOverride?.thumbnail) { it.imageUrls.thumbnailUrl }
@@ -73,4 +79,18 @@ class GameFactory @Inject constructor(
 
     private fun <T> List<RawGameData>.findFirst(extractor: (RawGameData) -> T?): T? =
         this.asSequence().map(extractor).firstNotNull()
+
+    private fun processGenre(genre: String): List<String> = when (genre) {
+        "Action-Adventure" -> listOf("Action", "Adventure")
+        "Driving/Racing" -> listOf("Racing")
+        "Dual-Joystick Shooter" -> emptyList()
+        "Educational" -> emptyList()
+        "Fishing" -> emptyList()
+        "Flight Simulator" -> listOf("Simulation")
+        "Football" -> listOf("Sport")
+        "Music/Rhythm" -> listOf()
+        "Real-Time Strategy" -> listOf("Real Time Strategy (RTS)")
+        "Role-Playing" -> listOf("Role-Playing Game (RPG)")
+        else -> listOf(genre)
+    }
 }

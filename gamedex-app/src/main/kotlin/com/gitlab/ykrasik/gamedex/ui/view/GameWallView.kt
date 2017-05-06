@@ -27,6 +27,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
+// TODO: Allow "marking" a game with some marker - to delete, redownload etc.
 class GameWallView : View("Games Wall") {
     private val controller: GameController by di()
     private val preferences: GameWallPreferences by di()
@@ -52,7 +53,7 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false).apply {
+                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, close = { hide() }).apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)

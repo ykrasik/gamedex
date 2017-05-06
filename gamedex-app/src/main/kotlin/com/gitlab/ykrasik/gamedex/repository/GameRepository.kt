@@ -4,6 +4,8 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
+import com.gitlab.ykrasik.gamedex.ui.distincted
+import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
@@ -35,9 +37,7 @@ class GameRepository @Inject constructor(
         games
     }
 
-    // TODO: Genres need to constantly flatMap from games, not just once.
-//    val genresProperty: ReadOnlyListProperty<String> = SimpleListProperty(this.games.flatMapTo(mutableSetOf<String>(), Game::genres).toList().observable())
-//    val genres: ObservableList<String> by genresProperty
+    val genres = games.flatMapped { it.genres }.distincted()
 
     init {
         // TODO: Find a more intelligent way

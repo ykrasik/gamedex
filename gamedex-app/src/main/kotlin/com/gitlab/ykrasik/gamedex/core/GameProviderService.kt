@@ -48,6 +48,9 @@ class GameProviderServiceImpl @Inject constructor(
         suspend fun search(): List<RawGameData> = providerRepository.providers.mapNotNull { search(it) }
 
         // TODO: Allow going back to previous results and changing.
+        // TODO: Save a map from each provider type to the raw results.
+        // TODO: Split search results as exact and non-exact matches
+        // TODO: tornadofx wizard?
         private suspend fun search(provider: GameProvider): RawGameData? {
             progress.message = "[${provider.info.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)

@@ -4,17 +4,14 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.GameTasks
-import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
-import com.gitlab.ykrasik.gamedex.preferences.GameSort
+import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
-import com.gitlab.ykrasik.gamedex.ui.mapProperty
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
-import tornadofx.SortedFilteredList
 import tornadofx.seconds
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,21 +24,17 @@ import javax.inject.Singleton
 @Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val gameTasks: GameTasks,
-    preferences: GamePreferences
+    private val sortedFilteredGames: SortedFilteredGames,
+    private val gameTasks: GameTasks
 ) : Controller() {
 
-    val games = SortedFilteredList(gameRepository.games)
+    val games get() = sortedFilteredGames.games
+    val gamePlatformFilterProperty get() = sortedFilteredGames.platformFilterProperty
+    val gameSearchQueryProperty get() = sortedFilteredGames.searchQueryProperty
+    val gameGenreFilterProperty get() = sortedFilteredGames.genreFilterProperty
+    val gameSortProperty get() = sortedFilteredGames.sortProperty
 
-    private val nameComparator = compareBy(Game::name)
-    private val criticScoreComparator = compareBy(Game::criticScore).then(nameComparator)
-    private val userScoreComparator = compareBy(Game::userScore).then(nameComparator)
-    private val releaseDateComparator = compareBy(Game::releaseDate).then(nameComparator)
-    private val dateAddedComparator = compareBy(Game::lastModified)
-
-    init {
-        games.sortedItems.comparatorProperty().bind(preferences.sortProperty.mapProperty { it!!.toComparator() })
-    }
+    val genres get() = gameRepository.genres
 
     fun refreshGames() = gameTasks.RefreshGamesTask().apply { start() }
 
@@ -85,18 +78,4 @@ class GameController @Inject constructor(
     private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(
         priorityOverride = f(this.priorityOverride ?: ProviderPriorityOverride())
     )
-
-    private fun GameSort.toComparator(): Comparator<Game>? = when (this) {
-        GameSort.nameAsc -> nameComparator
-        GameSort.nameDesc -> nameComparator.reversed()
-        GameSort.criticScoreAsc -> criticScoreComparator
-        GameSort.criticScoreDesc -> criticScoreComparator.reversed()
-        GameSort.userScoreAsc -> userScoreComparator
-        GameSort.userScoreDesc -> userScoreComparator.reversed()
-        GameSort.releaseDateAsc -> releaseDateComparator
-        GameSort.releaseDateDesc -> releaseDateComparator.reversed()
-        GameSort.dateAddedAsc -> dateAddedComparator
-        GameSort.dateAddedDesc -> dateAddedComparator.reversed()
-        else -> null
-    }
 }

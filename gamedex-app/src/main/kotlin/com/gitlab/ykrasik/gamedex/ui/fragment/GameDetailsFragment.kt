@@ -89,7 +89,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 // TODO: Check if the new form can do what we did here manually.
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
-                children += detailsSnippetFactory.create(game).apply {
+                children += detailsSnippetFactory.create(game, close = { close(accept = false) }).apply {
                     hgrow = Priority.ALWAYS
 
                     // Bottom

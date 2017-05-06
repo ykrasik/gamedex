@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
@@ -36,7 +35,15 @@ class GameView : GamedexView("Games") {
             platform != Platform.excluded && libraryContorller.libraries.any { it.platform == platform }
         }
 
-        platformComboBox(preferences.platformProperty, platformsWithLibraries)
+        platformComboBox(gameContorller.gamePlatformFilterProperty, platformsWithLibraries)
+
+        verticalSeparator()
+
+        label("Genres:")
+        val possibleGenres = gameContorller.genres.sorted().let { listOf("") + it }
+        combobox(gameContorller.gameGenreFilterProperty, possibleGenres) {
+            selectionModel.select(0)
+        }
 
         verticalSeparator()
 
@@ -44,32 +51,14 @@ class GameView : GamedexView("Games") {
             promptText = "Search"
             // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
             left = FontAwesome.Glyph.SEARCH.toGraphic()
+            gameContorller.gameSearchQueryProperty.bind(textProperty())
         }
         items += search
 
-        val platformPredicate = preferences.platformProperty.toPredicate { platform, game: Game ->
-            game.platform == platform
-        }
-
-        val searchPredicate = search.textProperty().toPredicate { query, game: Game ->
-            query!!.isEmpty() || game.name.contains(query, ignoreCase = true)
-        }
-
-        val predicate = platformPredicate.and(searchPredicate)
-        gameContorller.games.filteredItems.predicateProperty().bind(predicate)
-
         verticalSeparator()
 
-        gridpane {
-            hgap = 2.0
-            setMinSize(10.0, 10.0)
-            row {
-                label("Sort:")
-                enumComboBox(preferences.sortProperty)
-            }
-        }
-
-        verticalSeparator()
+        label("Sort:")
+        enumComboBox(gameContorller.gameSortProperty)
 
         spacer()
 

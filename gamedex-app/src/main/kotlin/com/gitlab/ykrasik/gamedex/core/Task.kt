@@ -32,6 +32,7 @@ abstract class GamedexTask(title: String) {
 
     private var graphic: ImageView by singleAssign()
 
+    // TODO: Make the notification moveable
     private val notification = Notification()
         .hideCloseButton()
         .position(Pos.TOP_RIGHT)

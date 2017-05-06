@@ -19,12 +19,12 @@ class GamePreferences private constructor() : UserPreferencesSet("game") {
     var displayType by displayTypeProperty
 
     @Transient
-    val sortProperty = preferenceProperty(GameSort.criticScoreDesc)
-    var sort by sortProperty
-
-    @Transient
     val platformProperty = preferenceProperty(Platform.pc)
     var platform by platformProperty
+
+    @Transient
+    val sortProperty = preferenceProperty(GameSort.criticScoreDesc)
+    var sort by sortProperty
 
     @Transient
     val handsFreeModeProperty = preferenceProperty(false)

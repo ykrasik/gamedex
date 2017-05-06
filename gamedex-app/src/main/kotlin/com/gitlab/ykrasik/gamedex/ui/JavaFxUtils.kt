@@ -111,8 +111,30 @@ private fun printSize(id: String,
 
 fun <T> ObservableValue<T>.printChanges(id: String) = addListener { _, o, v -> println("$id changed: $o -> $v") }
 
-fun <E, F> ListExpression<E>.mapped(f: (E) -> F): ListProperty<F> = SimpleListProperty(this.value.mapped(f))
-fun <E, F> ObservableList<E>.mapped(f: (E) -> F): ObservableList<F> = MappedList(this, f)
+fun <T, R> ListExpression<T>.mapped(f: (T) -> R): ListProperty<R> = SimpleListProperty(this.value.mapped(f))
+fun <T, R> ObservableList<T>.mapped(f: (T) -> R): ObservableList<R> = MappedList(this, f)
+
+// TODO: This is the un-optimized version
+fun <T, R> ObservableList<T>.flatMapped(f: (T) -> List<R>): ObservableList<R> {
+    fun doFlatMap() = this.flatMap(f)
+
+    val list = FXCollections.observableArrayList(doFlatMap())
+    this.onChange {
+        list.setAll(doFlatMap())
+    }
+    return list
+}
+
+// TODO: This is the un-optimized version
+fun <T> ObservableList<T>.distincted(): ObservableList<T> {
+    fun doDistinct() = this.distinct()
+
+    val list = FXCollections.observableArrayList(doDistinct())
+    this.onChange {
+        list.setAll(doDistinct())
+    }
+    return list
+}
 
 /**
  * Creates a new MappedList list wrapped around the source list.
