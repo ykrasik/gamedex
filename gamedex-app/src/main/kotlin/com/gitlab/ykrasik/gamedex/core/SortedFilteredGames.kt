@@ -1,35 +1,30 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.preferences.GameSort
-import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.and
 import com.gitlab.ykrasik.gamedex.ui.mapProperty
 import com.gitlab.ykrasik.gamedex.ui.toPredicate
+import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import tornadofx.SortedFilteredList
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 06/05/2017
  * Time: 12:48
  */
-@Singleton
-class SortedFilteredGames @Inject constructor(
-    private val preferences: GamePreferences,
-    gameRepository: GameRepository
+class SortedFilteredGames(
+    val platformFilterProperty: ObjectProperty<Platform>,
+    val sortProperty: ObjectProperty<GameSort>,
+    _games: ObservableList<Game>
 ) {
-    val platformFilterProperty get() = preferences.platformProperty
     val searchQueryProperty = SimpleStringProperty("")
     val genreFilterProperty = SimpleStringProperty("")
 
-    val sortProperty get() = preferences.sortProperty
-
-    val games: ObservableList<Game> = SortedFilteredList(gameRepository.games)
+    val games: ObservableList<Game> = SortedFilteredList(_games)
 
     private val nameComparator = compareBy(Game::name)
     private val criticScoreComparator = compareBy(Game::criticScore).then(nameComparator)

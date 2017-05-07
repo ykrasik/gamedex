@@ -30,14 +30,14 @@ import tornadofx.*
  */
 // TODO: Allow "marking" a game with some marker - to delete, redownload etc.
 class GameWallView : View("Games Wall") {
-    private val controller: GameController by di()
+    private val gameController: GameController by di()
     private val preferences: GameWallPreferences by di()
     private val imageLoader: ImageLoader by di()
     private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
-    override val root = datagrid(controller.games) {
+    override val root = datagrid(gameController.sortedFilteredGames) {
         cellHeightProperty.bind(preferences.cellHeightProperty)
         cellWidthProperty.bind(preferences.cellWidthProperty)
         (horizontalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellHorizontalSpacingProperty)
@@ -53,8 +53,12 @@ class GameWallView : View("Games Wall") {
                         if (isShowing) {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
+                            fun onGenrePressed(genre: String) {
+                                gameController.gameGenreFilterProperty.set(genre)
+                                hide()
+                            }
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, close = { hide() }).apply {
+                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, onGenrePressed = ::onGenrePressed).apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)
@@ -72,12 +76,12 @@ class GameWallView : View("Games Wall") {
                 menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(cell.item).show() }
                 separator()
                 // TODO: Find better names - refresh, update, rediscover?
-                menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.searchAgain(cell.item) }
-                menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { controller.refetchGame(cell.item) }
+                menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { gameController.searchAgain(cell.item) }
+                menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { gameController.refetchGame(cell.item) }
                 separator()
-                menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(cell.item) }
+                menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { gameController.changeThumbnail(cell.item) }
                 separator()
-                menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(cell.item) }
+                menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { gameController.delete(cell.item) }
             }
             cell
         }

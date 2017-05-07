@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
@@ -23,15 +22,12 @@ import javax.inject.Singleton
  * Time: 19:42
  */
 @Singleton
-class GameDetailSnippetFactory @Inject constructor(
-    private val providerRepository: GameProviderRepository,
-    private val sortedFilteredGames: SortedFilteredGames
-) {
+class GameDetailSnippetFactory @Inject constructor(private val providerRepository: GameProviderRepository) {
 
     fun create(game: Game,
                withDescription: Boolean = true,
                withUrls: Boolean = true,
-               close: () -> Unit): VBox = VBox().apply {
+               onGenrePressed: (String) -> Unit): VBox = VBox().apply {
         hbox {
             spacer()
             label(game.name) { setId(Style.nameLabel) }
@@ -94,8 +90,7 @@ class GameDetailSnippetFactory @Inject constructor(
                             jfxButton(genre) {
                                 addClass(Style.details, CommonStyle.hoverable)
                                 setOnAction {
-                                    sortedFilteredGames.genreFilterProperty.set(genre)
-                                    close()
+                                    onGenrePressed(genre)
                                 }
                             }
                         }

@@ -65,7 +65,7 @@ class GameView : GamedexView("Games") {
         verticalSeparator()
 
         label {
-            textProperty().bind(gameContorller.games.sizeProperty().asString("Games: %d"))
+            textProperty().bind(gameContorller.sortedFilteredGames.sizeProperty().asString("Games: %d"))
         }
 
         verticalSeparator()

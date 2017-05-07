@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
+import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
@@ -24,15 +25,16 @@ import javax.inject.Singleton
 @Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val sortedFilteredGames: SortedFilteredGames,
-    private val gameTasks: GameTasks
+    private val gameTasks: GameTasks,
+    preferences: GamePreferences
 ) : Controller() {
 
-    val games get() = sortedFilteredGames.games
-    val gamePlatformFilterProperty get() = sortedFilteredGames.platformFilterProperty
-    val gameSearchQueryProperty get() = sortedFilteredGames.searchQueryProperty
-    val gameGenreFilterProperty get() = sortedFilteredGames.genreFilterProperty
-    val gameSortProperty get() = sortedFilteredGames.sortProperty
+    private val _sortedFilteredGames = SortedFilteredGames(preferences.platformProperty, preferences.sortProperty, gameRepository.games)
+    val sortedFilteredGames get() = _sortedFilteredGames.games
+    val gamePlatformFilterProperty get() = _sortedFilteredGames.platformFilterProperty
+    val gameSearchQueryProperty get() = _sortedFilteredGames.searchQueryProperty
+    val gameGenreFilterProperty get() = _sortedFilteredGames.genreFilterProperty
+    val gameSortProperty get() = _sortedFilteredGames.sortProperty
 
     val genres get() = gameRepository.genres
 

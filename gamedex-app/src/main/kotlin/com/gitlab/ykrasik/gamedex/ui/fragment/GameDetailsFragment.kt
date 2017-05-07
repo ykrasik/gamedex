@@ -88,7 +88,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 // TODO: Check if the new form can do what we did here manually.
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
-                children += detailsSnippetFactory.create(game, close = { close(accept = false) }).apply {
+                children += detailsSnippetFactory.create(game, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
                     hgrow = Priority.ALWAYS
 
                     // Bottom
@@ -151,6 +151,11 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     private fun close(accept: Boolean) {
         this.accept = accept
         close()
+    }
+
+    private fun onGenrePressed(genre: String) {
+        gameController.gameGenreFilterProperty.set(genre)
+        close(accept = false)
     }
 
     companion object {
