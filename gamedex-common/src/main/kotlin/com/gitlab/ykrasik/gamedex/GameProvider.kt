@@ -8,7 +8,9 @@ import org.joda.time.LocalDate
  * Time: 10:42
  */
 interface GameProvider {
-    val info: GameProviderInfo
+    val name: String
+    val type: GameProviderType
+    val logo: ByteArray
 
     fun search(name: String, platform: Platform): List<ProviderSearchResult>
 
@@ -19,12 +21,6 @@ enum class GameProviderType {
     Igdb,
     GiantBomb
 }
-
-class GameProviderInfo(
-    val name: String,
-    val type: GameProviderType,
-    val logo: ByteArray
-)
 
 data class ProviderSearchResult(
     val name: String,

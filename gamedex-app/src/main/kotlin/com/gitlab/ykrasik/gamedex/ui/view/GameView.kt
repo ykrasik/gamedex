@@ -1,14 +1,19 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
-import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
+import javafx.beans.property.ObjectProperty
+import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ContentDisplay
+import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
@@ -24,7 +29,7 @@ import tornadofx.*
 class GameView : GamedexView("Games") {
     private val gameContorller: GameController by di()
     private val libraryContorller: LibraryController by di()
-    private val preferences: GamePreferences by di()
+    private val preferences: AllPreferences by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -35,13 +40,13 @@ class GameView : GamedexView("Games") {
             platform != Platform.excluded && libraryContorller.libraries.any { it.platform == platform }
         }
 
-        platformComboBox(gameContorller.gamePlatformFilterProperty, platformsWithLibraries)
+        platformComboBox(gameContorller.sortedFilteredGames.platformFilterProperty, platformsWithLibraries)
 
         verticalSeparator()
 
         label("Genres:")
         val possibleGenres = gameContorller.genres.sorted().let { listOf("") + it }
-        combobox(gameContorller.gameGenreFilterProperty, possibleGenres) {
+        combobox(gameContorller.sortedFilteredGames.genreFilterProperty, possibleGenres) {
             selectionModel.select(0)
         }
 
@@ -49,29 +54,35 @@ class GameView : GamedexView("Games") {
 
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
             promptText = "Search"
-            // TODO: Put the search icon on the right, and have it change to a 'clear' when text is typed.
             left = FontAwesome.Glyph.SEARCH.toGraphic()
-            gameContorller.gameSearchQueryProperty.bind(textProperty())
+            gameContorller.sortedFilteredGames.searchQueryProperty.bind(textProperty())
         }
         items += search
 
         verticalSeparator()
 
+        // TODO: This is only relevant for the game wall view, make it support adding stuff to the toolbar
         label("Sort:")
-        enumComboBox(gameContorller.gameSortProperty)
+        enumComboBox(gameContorller.sortedFilteredGames.sortProperty)
+        jfxButton {
+            graphicProperty().bind(gameContorller.sortedFilteredGames.sortOrderProperty.mapProperty { it!!.toGraphic() })
+            setOnAction {
+                preferences.gameWall.sortOrderProperty.toggle()
+            }
+        }
 
         spacer()
 
         verticalSeparator()
 
         label {
-            textProperty().bind(gameContorller.sortedFilteredGames.sizeProperty().asString("Games: %d"))
+            textProperty().bind(gameContorller.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
         }
 
         verticalSeparator()
 
         // TODO: Move this under the refresh button, as a drop down button.
-        checkbox("Hands Free Mode", preferences.handsFreeModeProperty)
+        checkbox("Hands Free Mode", preferences.game.handsFreeModeProperty)
 
         verticalSeparator()
 
@@ -122,7 +133,7 @@ class GameView : GamedexView("Games") {
     override val root = stackpane()
 
     init {
-        val gameDisplayType = preferences.displayTypeProperty.mapProperty { it!!.toNode() }
+        val gameDisplayType = preferences.game.displayTypeProperty.mapProperty { it!!.toNode() }
         root.children += gameDisplayType.value
         gameDisplayType.onChange {
             root.replaceChildren(it as Node)
@@ -134,7 +145,31 @@ class GameView : GamedexView("Games") {
         GameDisplayType.list -> gameListView.root
     }
 
+    private fun TableColumn.SortType.toGraphic() = when (this) {
+        TableColumn.SortType.ASCENDING -> FontAwesome.Glyph.ARROW_UP.toGraphic()
+        TableColumn.SortType.DESCENDING -> FontAwesome.Glyph.ARROW_DOWN.toGraphic()
+    }
+
+    private fun ObjectProperty<TableColumn.SortType>.toggle() {
+        value = when (value!!) {
+            TableColumn.SortType.ASCENDING -> TableColumn.SortType.DESCENDING
+            TableColumn.SortType.DESCENDING -> TableColumn.SortType.ASCENDING
+        }
+    }
+
     companion object {
+        inline fun EventTarget.gameContextMenu(controller: GameController, crossinline game: () -> Game) = contextmenu {
+            menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(game()).show() }
+            separator()
+            // TODO: Find better names - refresh, update, rediscover?
+            menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.searchAgain(game()) }
+            menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { controller.refetchGame(game()) }
+            separator()
+            menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(game()) }
+            separator()
+            menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
+        }
+
         class Style : Stylesheet() {
             companion object {
                 val extraButton by cssclass()

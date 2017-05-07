@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.preferences
 
+import javafx.scene.control.TableColumn
 import tornadofx.getValue
 import tornadofx.setValue
 
@@ -34,8 +35,24 @@ class GameWallPreferences private constructor() : UserPreferencesSet("gameWall")
     var cellVerticalSpacing by cellVerticalSpacingProperty
 
     @Transient
-    val sortProperty = preferenceProperty(GameSort.criticScoreDesc)
+    val sortProperty = preferenceProperty(GameWallSort.criticScore)
     var sort by sortProperty
+
+    @Transient
+    val sortOrderProperty = preferenceProperty(TableColumn.SortType.DESCENDING)
+    var sortOrder by sortOrderProperty
+}
+
+enum class GameWallSort(val key: String) {
+    name_("Name"),
+    criticScore("Critic Score"),
+    userScore("User Score"),
+    minScore("Min Score"),
+    avgScore("Average Score"),
+    releaseDate("Release Date"),
+    dateAdded("Last Update Date");
+
+    override fun toString() = key
 }
 
 enum class ImageDisplayType { fit, stretch }

@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,7 +24,7 @@ interface GameProviderService {
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val preferences: GamePreferences,
-    private val chooser: GameSearchChooser
+    private val chooser: SearchChooser
 ) : GameProviderService {
 
     override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isNewSearch: Boolean): List<RawGameData>? =
@@ -40,94 +41,122 @@ class GameProviderServiceImpl @Inject constructor(
         private val isNewSearch: Boolean,
         private var searchedName: String
     ) {
-        private var autoProceed = isNewSearch
+        private val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
+        private val latestProviderResults = mutableMapOf<GameProviderType, List<ProviderSearchResult>>()
+        private var userExactMatch: String? = null
 
-//        val previouslySelectedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
-        val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
+        suspend fun search(): List<RawGameData> {
+            val results = providerRepository.providers.map { it to search(it) }
 
-        suspend fun search(): List<RawGameData> = providerRepository.providers.mapNotNull { search(it) }
+            // TODO: Fetch async per provider.
+            return results.mapNotNull { (provider, searchResult) ->
+                searchResult?.let {
+                    provider.fetch(it.apiUrl, platform)
+                }
+            }
+        }
 
-        // TODO: Allow going back to previous results and changing.
-        // TODO: Save a map from each provider type to the raw results.
-        // TODO: Split search results as exact and non-exact matches
-        // TODO: tornadofx wizard?
-        private suspend fun search(provider: GameProvider): RawGameData? {
-            progress.message = "[${provider.info.name}][$platform] Searching '$searchedName'..."
+        private suspend fun search(provider: GameProvider): ProviderSearchResult? {
+            progress.message = "[${provider.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            progress.message = "[${provider.info.name}][$platform] Searching '$searchedName': ${results.size} results."
+            latestProviderResults[provider.type] = results
+            progress.message = "[${provider.name}][$platform] Searching '$searchedName': ${results.size} results."
 
-            // TODO: Add a button to show all filtered results.
-            val filteredResults = filterResults(results)
-            val choice = chooseResult(provider, filteredResults)
+            val choice = if (!isNewSearch) {
+                chooseResult(provider, results)
+            } else if (userExactMatch != null) {
+                val providerExactMatch = results.find { it.name.equals(userExactMatch, ignoreCase = true) }
+                if (providerExactMatch != null) {
+                    return providerExactMatch
+                } else {
+                    chooseResult(provider, results)
+                }
+            } else {
+                // TODO: pressing 'new search' should prevent this.
+                if (results.size == 1 && results.first().name.equals(searchedName, ignoreCase = true)) {
+                    return results.first()
+                } else {
+                    chooseResult(provider, results)
+                }
+            }
 
             return when (choice) {
-                is SearchResultChoice.Ok -> {
+                is SearchChooser.Choice.ExactMatch -> {
                     val chosenResult = choice.result
-                    previouslyDiscardedResults += filteredResults.filter { it != chosenResult }
-//                    previouslySelectedResults += chosenResult
-                    provider.fetch(chosenResult.apiUrl, platform)
+                    userExactMatch = chosenResult.name
+                    previouslyDiscardedResults += results
+                    previouslyDiscardedResults -= chosenResult
+                    chosenResult
                 }
-                is SearchResultChoice.ProceedCarefully -> {
+                is SearchChooser.Choice.NotExactMatch -> {
                     val chosenResult = choice.result
-                    previouslyDiscardedResults.clear()
-                    autoProceed = false
-//                    previouslySelectedResults += chosenResult
-                    provider.fetch(chosenResult.apiUrl, platform)
+                    previouslyDiscardedResults += results
+                    previouslyDiscardedResults -= chosenResult
+                    chosenResult
                 }
-                is SearchResultChoice.NewSearch -> {
-                    previouslyDiscardedResults += filteredResults
-                    autoProceed = false
+                is SearchChooser.Choice.NewSearch -> {
                     searchedName = choice.newSearch
                     search(provider)
                 }
-                SearchResultChoice.ProceedWithout -> {
-                    previouslyDiscardedResults.clear()
-                    null
+                SearchChooser.Choice.ProceedWithout -> null
+                SearchChooser.Choice.GoBack -> {
+                    // TODO
+                    TODO()
                 }
-                SearchResultChoice.Cancel -> throw CancelSearchException()
+                SearchChooser.Choice.Cancel -> throw CancelSearchException()
             }
         }
 
-        private suspend fun chooseResult(provider: GameProvider, results: List<ProviderSearchResult>): SearchResultChoice {
-            return when {
-                results.size == 1 && autoProceed -> SearchResultChoice.Ok(results.first())
-                results.size != 1 && autoProceed && preferences.handsFreeMode -> SearchResultChoice.Cancel
-                else -> {
-                    val chooseSearchResultData = ChooseSearchResultData(searchedName, path, provider.info.type, isNewSearch, results)
-                    chooser.choose(chooseSearchResultData)
-                }
-            }
-        }
+        private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
+            // We only get here when we have no exact matches.
+            // TODO: Is this too restrictive? Allow handsFreeMode to auto accept in hands free mode?
+            if (preferences.handsFreeMode) return SearchChooser.Choice.Cancel
 
-        private fun filterResults(results: List<ProviderSearchResult>): List<ProviderSearchResult> {
-//            results.forEach { result ->
-//                if (previouslySelectedResults.any { it.name.equals(result.name, ignoreCase = true) }) {
-//                    return listOf(result)
-//                }
-//            }
-            val filteredResults = results.filterNot { result ->
+            val (filteredResults, results) = allSearchResults.partition { result ->
                 previouslyDiscardedResults.any { it.name.equals(result.name, ignoreCase = true) }
             }
-            return if (filteredResults.isNotEmpty()) filteredResults else results
+
+            val chooseSearchResultData = SearchChooser.Data(
+                searchedName, path, provider.type, results = results, filteredResults = filteredResults
+            )
+            return chooser.choose(chooseSearchResultData)
         }
     }
 
     override fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData> =
         providerData.map { providerData ->
             val provider = providerRepository[providerData]
-            progress.message = "[${provider.info.name}][$platform] Fetching '$name'..."
+            progress.message = "[${provider.name}][$platform] Fetching '$name'..."
             val result = provider.fetch(providerData.apiUrl, platform)
-            progress.message = "[${provider.info.name}][$platform] Fetching '$name'...: Done."
+            progress.message = "[${provider.name}][$platform] Fetching '$name'...: Done."
             result
         }
 
     private class CancelSearchException : RuntimeException()
 }
 
-sealed class SearchResultChoice {
-    data class Ok(val result: ProviderSearchResult) : SearchResultChoice()
-    data class ProceedCarefully(val result: ProviderSearchResult) : SearchResultChoice()
-    data class NewSearch(val newSearch: String) : SearchResultChoice()
-    object Cancel : SearchResultChoice()
-    object ProceedWithout : SearchResultChoice()
+interface SearchChooser {
+    suspend fun choose(data: Data): Choice
+
+    data class Data(
+        val name: String,
+        val path: File,
+        val providerType: GameProviderType,
+        val results: List<ProviderSearchResult>,
+        val filteredResults: List<ProviderSearchResult>
+    )
+
+    sealed class Choice {
+        data class ExactMatch(val result: ProviderSearchResult) : Choice()
+        data class NotExactMatch(val result: ProviderSearchResult) : Choice()
+        data class NewSearch(val newSearch: String) : Choice()
+        object ProceedWithout : Choice()
+        object GoBack : Choice()
+        object Cancel : Choice()
+    }
+}
+
+@Singleton
+class UISearchChooser @Inject constructor() : SearchChooser {
+    override suspend fun choose(data: SearchChooser.Data) = ChooseSearchResultFragment(data).show()
 }

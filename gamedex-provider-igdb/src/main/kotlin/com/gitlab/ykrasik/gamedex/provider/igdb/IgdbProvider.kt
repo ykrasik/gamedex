@@ -107,14 +107,12 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private val Platform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val info = IgdbProvider.info
+    override val name = "IGDB"
+    override val type = GameProviderType.Igdb
+    override val logo = IgdbProvider.logo
 
     companion object {
-        val info = GameProviderInfo(
-            name = "IGDB",
-            type = GameProviderType.Igdb,
-            logo = getResourceAsByteArray("igdb.png")
-        )
+        val logo = getResourceAsByteArray("igdb.png")
 
         private val thumbnailImageType = IgdbImageType.thumb_2x
         private val posterImageType = IgdbImageType.screenshot_huge

@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.ui.dividerPosition
 import com.gitlab.ykrasik.gamedex.ui.padding
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextArea
 import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
+import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.geometry.VPos
@@ -18,14 +19,15 @@ import tornadofx.*
  * Time: 15:06
  */
 class GameListView : View("Game List") {
-    private val controller: GameController by di()
+    private val gameController: GameController by di()
 
     // TODO: This should probably be a master-detail pane
     override val root = splitpane {
         dividerPosition = 0.69
 
+        // TODO: Allow this view to use it's own table sort, or move sorting from GameWallPreferences to general GamePreferences.
         tableview<Game> {
-            items = controller.sortedFilteredGames
+            items = gameController.sortedFilteredGames.games
             isEditable = false
             columnResizePolicy = SmartResize.POLICY
 
@@ -33,7 +35,7 @@ class GameListView : View("Game List") {
 //                        prefWidth = -1.0
                 isSortable = false
                 contentWidth(100.0, useAsMin = true)
-                remainingWidth()
+//                remainingWidth()
             }
             column("Critic Score", Game::criticScore) {
 //                        prefWidth = -1.0
@@ -56,9 +58,7 @@ class GameListView : View("Game List") {
                 contentWidth(400.0, useAsMin = true)
             }
 
-            contextmenu {
-                menuitem("Delete") { selectedItem?. let { controller.delete(it) }}
-            }
+            gameContextMenu(gameController) { selectedItem!! }
         }
 
         gridpane {

@@ -74,13 +74,11 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         }
     }
 
-    override val info = GiantBombProvider.info
+    override val name = "GiantBomb"
+    override val type = GameProviderType.GiantBomb
+    override val logo = GiantBombProvider.logo
 
     companion object {
-        val info = GameProviderInfo(
-            name = "GiantBomb",
-            type = GameProviderType.GiantBomb,
-            logo = getResourceAsByteArray("giantbomb.png")
-        )
+        val logo = getResourceAsByteArray("giantbomb.png")
     }
 }

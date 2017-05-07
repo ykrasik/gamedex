@@ -16,7 +16,7 @@ import javax.inject.Singleton
 object AppModule : AbstractModule() {
     override fun configure() {
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
-        bind(GameSearchChooser::class.java).to(UIGameSearchChooser::class.java)
+        bind(SearchChooser::class.java).to(UISearchChooser::class.java)
 
         // Instruct Guice to eagerly create these classes
         // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)

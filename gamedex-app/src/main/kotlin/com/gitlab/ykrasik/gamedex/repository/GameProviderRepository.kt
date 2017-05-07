@@ -33,8 +33,8 @@ class GameProviderRepository @Inject constructor(
     // TODO: Allow enabling / disabling providers? Is this needed?
     val providers: List<GameProvider> get() = _providers
 
-    private val providersByType = allProviders.associateBy { it.info.type }
-    private val providerLogos = providersByType.mapValues { it.value.info.logo.toImage() }
+    private val providersByType = allProviders.associateBy { it.type }
+    private val providerLogos = providersByType.mapValues { it.value.logo.toImage() }
 
     operator fun get(type: GameProviderType) = providersByType[type]!!
     operator fun get(providerData: ProviderData) = get(providerData.type)

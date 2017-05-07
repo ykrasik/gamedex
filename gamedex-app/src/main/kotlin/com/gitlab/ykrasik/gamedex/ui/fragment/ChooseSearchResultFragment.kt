@@ -1,28 +1,25 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.core.ChooseSearchResultData
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.core.SearchResultChoice
+import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.customColumn
-import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.HPos
+import javafx.geometry.Pos
+import javafx.geometry.Side
 import javafx.geometry.VPos
-import javafx.scene.control.ButtonBar
-import javafx.scene.control.TableCell
-import javafx.scene.control.TableView
+import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import javafx.scene.text.Font
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
+import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -30,7 +27,7 @@ import tornadofx.*
  * Date: 02/01/2017
  * Time: 15:54
  */
-class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choose Search Result for '${data.name}'") {
+class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Search Result for '${data.name}'") {
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()
 
@@ -38,11 +35,16 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
     private val defaultButtonIsSearch = SimpleBooleanProperty(false)
 
     private var tableView: TableView<ProviderSearchResult> by singleAssign()
+
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyObjectProperty<Image>>()
 
-    private var choice: SearchResultChoice = SearchResultChoice.Cancel
+    private val results = ArrayList(data.results).observable()
 
-    // TODO: Need a proceed but do not filter results that weren't chosen option.
+    private val showingFilteredProperty = SimpleBooleanProperty(false)
+    private var showingFiltered by showingFilteredProperty
+
+    private var choice: SearchChooser.Choice = SearchChooser.Choice.Cancel
+
     override val root = borderpane {
         paddingAll = 20
         with(Screen.getPrimary().bounds) {
@@ -51,54 +53,74 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
         }
         top {
             gridpane {
-                row {
-                    label(data.path.path) {
-                        gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
-                        font = Font.font(14.0)
-                    }
-                    region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
-                    imageview {
-                        gridpaneConstraints { vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                        image = providerRepository.logo(data.providerType)
-                        fitHeight = 100.0
-                        fitWidth = 100.0
-                        isPreserveRatio = true
-                    }
+                hgap = 10.0
+                label(data.path.path) {
+                    gridpaneConstraints { columnRowIndex(0, 0); vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
+                    setId(Style.pathLabel)
                 }
-                row {
-                    gridpane {
-                        hgap = 10.0
-                        gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.LEFT }
-                        row {
-                            val newSearch = textfield(data.name) {
-                                prefWidthProperty().bind(minTableWidth.subtract(230))
-                                tooltip("You can edit the name and click 'Search Again' to search for a new value")
-                                font = Font.font(16.0)
-                                isFocusTraversable = false
+                region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
+                imageview {
+                    gridpaneConstraints { columnRowIndex(4, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
+                    image = providerRepository.logo(data.providerType)
+                    fitHeight = 100.0
+                    fitWidth = 100.0
+                    isPreserveRatio = true
+                }
 
-                                // "Search Again" becomes the new default button when this textfield has focus.
-                                defaultButtonIsSearch.bind(focusedProperty())
+                val newSearch = textfield(data.name) {
+                    gridpaneConstraints { columnRowIndex(0, 1) }
+                    setId(Style.newSearch)
+                    prefWidthProperty().bind(minTableWidth.subtract(230))
+                    tooltip("Search for a different name")
+                    isFocusTraversable = false
+
+                    // "Search Again" becomes the new default button when this textfield has focus.
+                    defaultButtonIsSearch.bind(focusedProperty())
+                }
+                button("Search Again") {
+                    gridpaneConstraints { columnRowIndex(1, 1) }
+                    enableWhen { newSearch.textProperty().isNotEqualTo(data.name) }
+                    defaultButtonProperty().bind(defaultButtonIsSearch)
+                    prefHeightProperty().bind(newSearch.heightProperty())
+                    tooltip("Search for a different name")
+                    setOnAction { close(SearchChooser.Choice.NewSearch(newSearch.text)) }
+                }
+                region { gridpaneConstraints { columnRowIndex(2, 1); hGrow = Priority.ALWAYS } }
+
+                if (data.filteredResults.isNotEmpty()) {
+                    jfxButton {
+                        gridpaneConstraints { columnRowIndex(3, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
+                        setId(Style.showFilterToggle)
+                        graphicProperty().bind(showingFilteredProperty.mapProperty {
+                            (if (it!!) FontAwesome.Glyph.MINUS else FontAwesome.Glyph.PLUS).toGraphic()
+                        })
+                        tooltip {
+                            textProperty().bind(
+                                showingFilteredProperty.mapProperty {
+                                    "${if (it!!) "Hide" else "Show"} ${data.filteredResults.size} filtered results"
+                                }
+                            )
+                        }
+                        setOnAction {
+                            if (showingFiltered) {
+                                results -= data.filteredResults
+                            } else {
+                                results += data.filteredResults
                             }
-                            button("Search Again") {
-                                enableWhen { newSearch.textProperty().isNotEqualTo(data.name) }
-                                defaultButtonProperty().bind(defaultButtonIsSearch)
-                                prefHeightProperty().bind(newSearch.heightProperty())
-                                tooltip("Search for a new name, enter new name in the name field")
-                                setOnAction { close(choice = SearchResultChoice.NewSearch(newSearch.text)) }
-                            }
+                            showingFiltered = !showingFiltered
                         }
                     }
-                    region { gridpaneConstraints { hGrow = Priority.ALWAYS } }
-                    label("Search results: ${data.searchResults.size}") {
-                        gridpaneConstraints { vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
-                        font = Font.font(16.0)
-                    }
+                }
+                label {
+                    gridpaneConstraints { columnRowIndex(4, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
+                    setId(Style.searchResultsLabel)
+                    textProperty().bind(results.mapProperty { "Search results: ${results.size}" })
                 }
                 paddingBottom = 10
             }
         }
         center {
-            tableView = tableview(data.searchResults.observable()) {
+            tableView = tableview(results) {
                 val indexColumn = makeIndexColumn()
                 customColumn("Thumbnail", ProviderSearchResult::thumbnailUrl) {
                     object : TableCell<ProviderSearchResult, String?>() {
@@ -108,7 +130,11 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                             fitWidth = 200.0
                             isPreserveRatio = true
                         }
-                        init { graphic = imageView }
+
+                        init {
+                            graphic = imageView
+                        }
+
                         override fun updateItem(thumbnailUrl: String?, empty: Boolean) {
                             if (empty) {
                                 imageView.imageProperty().unbind()
@@ -128,31 +154,59 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
                 })
                 minWidthProperty().bind(minTableWidth)
 
-                onUserSelect(clickCount = 2) { close(choice = okResult) }
+                onUserSelect(clickCount = 2) { close(okResult) }
             }
         }
         bottom {
             buttonbar {
                 paddingTop = 20
-
-                button("OK", type = ButtonBar.ButtonData.OK_DONE) {
+                button("OK", ButtonBar.ButtonData.OK_DONE) {
+                    graphic = FontAwesome.Glyph.CARET_DOWN.toGraphic()
+                    contentDisplay = ContentDisplay.RIGHT
+                    alignment = Pos.CENTER_RIGHT
+                    graphicTextGap = 30.0
                     enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
                     defaultButtonProperty().bind(defaultButtonIsSearch.not())
-                    setOnAction {
-                        val choice = if (data.isNewSearch) {
-                            okResult
-                        } else {
-                            SearchResultChoice.ProceedCarefully(tableView.selectedItem!!)
+
+                    setOnAction { close(okResult) }
+                    val menu = ContextMenu().apply {
+                        this.prefWidthProperty().bind(this@button.widthProperty())
+                        menuitem("Not Exact Match") {
+                            close(SearchChooser.Choice.NotExactMatch(tableView.selectedItem!!))
                         }
-                        close(choice = choice)
+                    }
+
+                    setOnMouseEntered {
+                        if (!menu.isShowing) {
+                            menu.show(this, Side.BOTTOM, 0.0, 0.0)
+                        }
                     }
                 }
-                cancelButton { setOnAction { close(choice = SearchResultChoice.Cancel) } }
-                button("Proceed Without") { setOnAction { close(choice = SearchResultChoice.ProceedWithout) } }
-                if (data.isNewSearch) {
-                    button("Proceed Carefully", type = ButtonBar.ButtonData.FINISH) {
-                        enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
-                        setOnAction { close(choice = SearchResultChoice.ProceedCarefully(tableView.selectedItem!!)) }
+
+                button("Proceed Without", type = ButtonBar.ButtonData.FINISH) {
+                    setOnAction { close(SearchChooser.Choice.ProceedWithout) }
+                }
+
+                cancelButton {
+                    graphic = FontAwesome.Glyph.CARET_DOWN.toGraphic()
+                    contentDisplay = ContentDisplay.LEFT
+                    alignment = Pos.CENTER_LEFT
+                    graphicTextGap = 25.0
+
+                    setOnAction { close(SearchChooser.Choice.Cancel) }
+                    val menu = ContextMenu().apply {
+                        items += MenuItem().apply {
+                            graphic = Label("Back", FontAwesome.Glyph.BACKWARD.toGraphic()).apply {
+                                prefWidthProperty().bind(this@cancelButton.widthProperty().subtract(22))
+                            }
+                            setOnAction { close(SearchChooser.Choice.GoBack) }
+                        }
+                    }
+
+                    setOnMouseEntered {
+                        if (!menu.isShowing) {
+                            menu.show(this, Side.BOTTOM, 0.0, 0.0)
+                        }
                     }
                 }
             }
@@ -165,15 +219,39 @@ class ChooseSearchResultFragment(data: ChooseSearchResultData) : Fragment("Choos
         modalStage!!.minWidthProperty().bind(minTableWidth.add(60))
     }
 
-    suspend fun show(): SearchResultChoice = run(JavaFx) {
+    suspend fun show(): SearchChooser.Choice = run(JavaFx) {
         openWindow(block = true)
         choice
     }
 
-    private fun close(choice: SearchResultChoice) {
+    private fun close(choice: SearchChooser.Choice) {
         this.choice = choice
         close()
     }
 
-    private val okResult get() = SearchResultChoice.Ok(tableView.selectedItem!!)
+    private val okResult get() = SearchChooser.Choice.ExactMatch(tableView.selectedItem!!)
+
+    class Style : Stylesheet() {
+        companion object {
+            val pathLabel by cssid()
+            val newSearch by cssid()
+            val showFilterToggle by cssid()
+            val searchResultsLabel by cssid()
+        }
+
+        init {
+            pathLabel {
+                fontSize = 14.px
+            }
+            newSearch {
+                fontSize = 16.px
+            }
+            showFilterToggle {
+                fontSize = 16.px
+            }
+            searchResultsLabel {
+                fontSize = 16.px
+            }
+        }
+    }
 }

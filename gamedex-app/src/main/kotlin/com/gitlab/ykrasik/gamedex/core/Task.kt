@@ -24,6 +24,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Date: 16/03/2017
  * Time: 18:04
  */
+// TODO: Consider having a notificationPane and only 1 possible ongoing task at a time.
 abstract class GamedexTask(title: String) {
     private val log = logger()
 

@@ -8,7 +8,7 @@ import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.popOver
-import com.gitlab.ykrasik.gamedex.ui.toGraphic
+import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.beans.property.ReadOnlyProperty
@@ -20,7 +20,6 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
 import org.controlsfx.control.PopOver
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -37,7 +36,7 @@ class GameWallView : View("Games Wall") {
 
     private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
-    override val root = datagrid(gameController.sortedFilteredGames) {
+    override val root = datagrid(gameController.sortedFilteredGames.games) {
         cellHeightProperty.bind(preferences.cellHeightProperty)
         cellWidthProperty.bind(preferences.cellWidthProperty)
         (horizontalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellHorizontalSpacingProperty)
@@ -54,7 +53,7 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             fun onGenrePressed(genre: String) {
-                                gameController.gameGenreFilterProperty.set(genre)
+                                gameController.sortedFilteredGames.genreFilterProperty.set(genre)
                                 hide()
                             }
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
@@ -72,17 +71,7 @@ class GameWallView : View("Games Wall") {
                     }
                 }
             }
-            cell.contextmenu {
-                menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(cell.item).show() }
-                separator()
-                // TODO: Find better names - refresh, update, rediscover?
-                menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { gameController.searchAgain(cell.item) }
-                menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { gameController.refetchGame(cell.item) }
-                separator()
-                menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { gameController.changeThumbnail(cell.item) }
-                separator()
-                menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { gameController.delete(cell.item) }
-            }
+            cell.gameContextMenu(gameController) { cell.item }
             cell
         }
     }

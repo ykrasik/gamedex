@@ -154,7 +154,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     }
 
     private fun onGenrePressed(genre: String) {
-        gameController.gameGenreFilterProperty.set(genre)
+        gameController.sortedFilteredGames.genreFilterProperty.set(genre)
         close(accept = false)
     }
 

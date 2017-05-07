@@ -1,12 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
-import com.jfoenix.controls.JFXButton
-import com.jfoenix.controls.JFXDrawer
-import com.jfoenix.controls.JFXHamburger
-import com.jfoenix.controls.JFXToggleButton
-import javafx.application.Platform
+import com.jfoenix.controls.*
 import javafx.application.Platform.runLater
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.ListExpression
@@ -48,7 +45,7 @@ import kotlin.reflect.KProperty1
  * Date: 02/01/2017
  * Time: 20:45
  */
-fun runLaterIfNecessary(f: () -> Unit) = if (Platform.isFxApplicationThread()) {
+fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApplicationThread()) {
     f()
 } else {
     runLater(f)
@@ -344,6 +341,9 @@ fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = op
 fun EventTarget.jfxHamburger(op: (JFXHamburger.() -> Unit)? = null) = opcr(this, JFXHamburger(), op)
 fun EventTarget.jfxDrawer(op: (JFXDrawer.() -> Unit)? = null) = opcr(this, JFXDrawer(), op)
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
+fun EventTarget.jfxToggleNode(graphic: Node? = null, op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
+    this.graphic = graphic
+}, op)
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
     opcr(this, JFXButton().apply {
         addClass(CommonStyle.jfxButton)
@@ -351,6 +351,10 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
         this.graphic = graphic
         this.buttonType = type
     }, op)
+fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
+    if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()
+    if (property != null) valueProperty().bindBidirectional(property)
+}, op)
 
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver =
     PopOver().apply {
@@ -370,13 +374,13 @@ inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<
     op?.invoke(this)
 }
 
-fun EventTarget.platformComboBox(property: Property<com.gitlab.ykrasik.gamedex.Platform>? = null,
-                                 values: List<com.gitlab.ykrasik.gamedex.Platform>? = null,
-                                 op: (ComboBox<com.gitlab.ykrasik.gamedex.Platform>.() -> Unit)? = null) {
+fun EventTarget.platformComboBox(property: Property<Platform>? = null,
+                                 values: List<Platform>? = null,
+                                 op: (ComboBox<Platform>.() -> Unit)? = null) {
     combobox(property, values) {
         setCellFactory {
-            object : ListCell<com.gitlab.ykrasik.gamedex.Platform>() {
-                override fun updateItem(item: com.gitlab.ykrasik.gamedex.Platform?, empty: Boolean) {
+            object : ListCell<Platform>() {
+                override fun updateItem(item: Platform?, empty: Boolean) {
                     super.updateItem(item, empty)
                     if (item == null || empty) {
                         text = null
@@ -388,8 +392,8 @@ fun EventTarget.platformComboBox(property: Property<com.gitlab.ykrasik.gamedex.P
                 }
             }
         }
-        buttonCell = object : ListCell<com.gitlab.ykrasik.gamedex.Platform>() {
-            override fun updateItem(item: com.gitlab.ykrasik.gamedex.Platform?, empty: Boolean) {
+        buttonCell = object : ListCell<Platform>() {
+            override fun updateItem(item: Platform?, empty: Boolean) {
                 super.updateItem(item, empty)
                 if (item == null || empty) {
                     text = null
@@ -405,9 +409,9 @@ fun EventTarget.platformComboBox(property: Property<com.gitlab.ykrasik.gamedex.P
     }
 }
 
-fun com.gitlab.ykrasik.gamedex.Platform.toLogo() = when (this) {
-    com.gitlab.ykrasik.gamedex.Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
-    com.gitlab.ykrasik.gamedex.Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
-    com.gitlab.ykrasik.gamedex.Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
+fun Platform.toLogo() = when (this) {
+    Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
+    Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
+    Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
     else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
 }
