@@ -1,14 +1,12 @@
 package com.gitlab.ykrasik.gamedex.controller
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ProviderPriorityOverride
-import com.gitlab.ykrasik.gamedex.RawGame
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeThumbnailFragment
+import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeImageFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -54,16 +52,20 @@ class GameController @Inject constructor(
 
     fun searchAgain(game: Game) = gameTasks.SearchAgainTask(game).apply { start() }
 
-    fun changeThumbnail(game: Game) = launch(JavaFx) {
-        val (thumbnailOverride, newThumbnailUrl) = ChangeThumbnailFragment(game).show() ?: return@launch
-        if (newThumbnailUrl != game.thumbnailUrl) {
-            val newRawGame = game.rawGame.withPriorityOverride { it.copy(thumbnail = thumbnailOverride) }
-            gameRepository.update(newRawGame)
-        }
-    }
+    fun changeThumbnail(game: Game) = changeImage(game, { g -> ChangeImageFragment.thumbnail(g) }, { o -> copy(thumbnail = o) })
+    fun changePoster(game: Game) = changeImage(game, { g -> ChangeImageFragment.poster(g) }, { o -> copy(poster = o) })
 
-    fun changePoster(game: Game) = launch(JavaFx) {
-        TODO()  // TODO: Implement
+    private fun changeImage(game: Game,
+                            factory: (Game) -> ChangeImageFragment,
+                            modifier: GameDataOverrides.(GameDataOverride?) -> GameDataOverrides) = launch(JavaFx) {
+        val choice = factory(game).show()
+        val override = when (choice) {
+            is ChangeImageFragment.Choice.Select -> choice.override
+            is ChangeImageFragment.Choice.Clear -> null
+            is ChangeImageFragment.Choice.Cancel -> return@launch
+        }
+        val newRawGame = game.rawGame.withDataOverride { it.modifier(override) }
+        gameRepository.update(newRawGame)
     }
 
     fun delete(game: Game): Boolean {
@@ -81,7 +83,8 @@ class GameController @Inject constructor(
         return true
     }
 
-    private fun RawGame.withPriorityOverride(f: (ProviderPriorityOverride) -> ProviderPriorityOverride): RawGame = copy(
-        priorityOverride = f(this.priorityOverride ?: ProviderPriorityOverride())
-    )
+    private fun RawGame.withDataOverride(f: (GameDataOverrides) -> GameDataOverrides): RawGame {
+        val userData = this.userData ?: UserData(overrides = GameDataOverrides())
+        return copy(userData = userData.copy(overrides = f(userData.overrides)))
+    }
 }

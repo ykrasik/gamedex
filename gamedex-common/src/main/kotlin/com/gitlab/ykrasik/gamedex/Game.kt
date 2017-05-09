@@ -1,5 +1,7 @@
 package com.gitlab.ykrasik.gamedex
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import java.io.File
@@ -14,12 +16,12 @@ data class Game(
     private val library: Library,
     private val gameData: GameData,
     val providerData: List<ProviderData>,
-    private val imageUrls: ImageUrls
+    val imageUrls: ImageUrls
 ) {
     val id get() = rawGame.id
     val path get() = metaData.path
     val lastModified get() = metaData.lastModified
-    val priorityOverride get() = rawGame.priorityOverride
+    val userData get() = rawGame.userData
     private val metaData get() = rawGame.metaData
 
     val libraryId get() = library.id
@@ -36,16 +38,17 @@ data class Game(
     val posterUrl get() = imageUrls.posterUrl
     val screenshotUrls get() = imageUrls.screenshotUrls
 
-    override fun toString() = "[$id] Game(name = '$name')"
+    override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
 }
 
 data class RawGame(
     val id: Int,
     val metaData: MetaData,
     val rawGameData: List<RawGameData>,
-    val priorityOverride: ProviderPriorityOverride?  // TODO: should this be nullable? Can be empty instead.
+    val userData: UserData?
 )
 
+// TODO: Need a better name for this... providerData?
 data class RawGameData(
     val providerData: ProviderData,
     val gameData: GameData,
@@ -61,6 +64,7 @@ data class GameData(
     val genres: List<String>
 )
 
+// TODO: Maybe rename to providerHeader?
 data class ProviderData(
     val type: GameProviderType,
     val apiUrl: String,
@@ -79,15 +83,28 @@ data class MetaData(
     val lastModified: DateTime
 )
 
-data class ProviderPriorityOverride(
-    val name: GameProviderType? = null,
-    val description: GameProviderType? = null,
-    val releaseDate: GameProviderType? = null,
-    val criticScore: GameProviderType? = null,
-    val userScore: GameProviderType? = null,
-    // TODO: Consider adding priority overrides for genres as well.
-    val thumbnail: GameProviderType? = null,
-    val poster: GameProviderType? = null,
-    val screenshots: GameProviderType? = null
-    // TODO: This makes all screenshots come from a single provider. If needed, add more flexibility in the future - can use urls instead of Type.
+data class UserData(
+    val overrides: GameDataOverrides = GameDataOverrides()
 )
+
+data class GameDataOverrides(
+    val name: GameDataOverride? = null,
+    val description: GameDataOverride? = null,
+    val releaseDate: GameDataOverride? = null,
+    val criticScore: GameDataOverride? = null,
+    val userScore: GameDataOverride? = null,
+    val genres: GameDataOverride? = null,
+    val thumbnail: GameDataOverride? = null,
+    val poster: GameDataOverride? = null,
+    val screenshots: GameDataOverride? = null
+)
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = GameDataOverride.Provider::class, name = "provider"),
+    JsonSubTypes.Type(value = GameDataOverride.Custom::class, name = "custom")
+)
+sealed class GameDataOverride {
+    data class Provider(val provider: GameProviderType) : GameDataOverride()
+    data class Custom(val data: Any) : GameDataOverride()
+}

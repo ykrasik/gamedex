@@ -79,8 +79,8 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId].value
                 ),
-                rawGameData = it[Games.data].listFromJson(),
-                priorityOverride = it[Games.priorityOverride]?.fromJson()
+                rawGameData = it[Games.providerData].listFromJson(),
+                userData = it[Games.userData]?.fromJson()
             )
         }
         log.trace("Result: ${games.size} games.")
@@ -94,10 +94,10 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
             it[Games.path] = metaData.path.path
             it[Games.lastModified] = metaData.lastModified
-            it[Games.data] = rawGameData.toJsonStr()
+            it[Games.providerData] = rawGameData.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, priorityOverride = null)
+        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, userData = null)
         log.trace("Result: $game.")
         game
     }
@@ -107,8 +107,8 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
             it[Games.path] = rawGame.metaData.path.path
             it[Games.lastModified] = rawGame.metaData.lastModified
-            it[Games.data] = rawGame.rawGameData.toJsonStr()
-            it[Games.priorityOverride] = rawGame.priorityOverride?.toJsonStr()
+            it[Games.providerData] = rawGame.rawGameData.toJsonStr()
+            it[Games.userData] = rawGame.userData?.toJsonStr()
         }
         require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!"}
     }

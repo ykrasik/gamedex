@@ -15,7 +15,7 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
                 id = rnd.nextInt(),
                 metaData = randomMetaData(),
                 rawGameData = emptyList(),
-                priorityOverride = null
+                userData = null
             ),
             library = Library(
                 id = rnd.nextInt(),

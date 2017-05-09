@@ -198,6 +198,13 @@ fun <T, R> ObservableValue<T>.mapProperty(f: (T?) -> R): Property<R> {
     return property
 }
 
+fun <T, R> ObservableValue<T>.flatMapProperty(f: (T?) -> ObservableValue<R>): Property<R> {
+    fun calc() = f(this.value).value
+    val property = SimpleObjectProperty(calc())
+    this.onChange { property.set(calc()) }
+    return property
+}
+
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
     mapProperty { t -> Predicate { r: R -> f(t, r) } }
 
@@ -351,6 +358,14 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
         this.graphic = graphic
         this.buttonType = type
     }, op)
+fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
+    addClass(CommonStyle.acceptButton)
+    op?.invoke(this)
+}
+fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
+    addClass(CommonStyle.cancelButton)
+    op?.invoke(this)
+}
 fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
     if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()
     if (property != null) valueProperty().bindBidirectional(property)
@@ -359,6 +374,7 @@ fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? 
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver =
     PopOver().apply {
         this.arrowLocation = arrowLocation
+        fadeOutDuration = 0.seconds     // A ton of exceptions start getting thrown if closing a window with an open popover, due to this.
         op?.invoke(this)
     }
 

@@ -17,6 +17,7 @@ import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
+import kotlinx.coroutines.experimental.Job
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
@@ -27,9 +28,9 @@ import java.net.URLEncoder
  * Date: 30/03/2017
  * Time: 18:17
  */
-// TODO: This will need to learn to refresh itself when data is updated.
+// TODO: This needs to refresh itself when data is updated.
 // TODO: This class is already too big
-class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
+class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
     private val detailsSnippetFactory: GameDetailSnippetFactory by di()
@@ -44,8 +45,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         setId(Style.gameDetailsView)
         top {
             toolbar {
-                jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }) {
-                    setId(Style.acceptButton)
+                acceptButton {
                     addClass(Style.gameDetailsButton)
                     setOnAction { close(accept = true) }
                 }
@@ -87,7 +87,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                 addClass(CommonStyle.extraButton)
                                 setOnAction {
                                     this@withPopover.hide()
-                                    gameController.changeThumbnail(game)
+                                    changeThumbnail()
                                 }
                             }
 
@@ -95,15 +95,14 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                 addClass(CommonStyle.extraButton)
                                 setOnAction {
                                     this@withPopover.hide()
-                                    gameController.changePoster(game)
+                                    changePoster()
                                 }
                             }
 
                             separator()
 
                             jfxButton("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
-                                setId(Style.deleteButton)
-                                addClass(CommonStyle.extraButton)
+                                addClass(CommonStyle.deleteButton, CommonStyle.extraButton)
                                 setOnAction {
                                     this@withPopover.hide()
                                     if (gameController.delete(game)) {
@@ -132,11 +131,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
 
                     contextmenu {
-                        menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
-                            setOnAction {
-                                gameController.changePoster(game)
-                            }
-                        }
+                        menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { changePoster() }
                     }
 
                     imageViewResizingPane(poster) {
@@ -226,6 +221,21 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         close(accept = false)
     }
 
+    private fun changePoster() = hideTemporarily {
+        gameController.changePoster(game)
+    }
+
+    private fun changeThumbnail() = hideTemporarily {
+        gameController.changeThumbnail(game)
+    }
+
+    private fun hideTemporarily(f: () -> Job) {
+        close(accept = false)
+        f().invokeOnCompletion {
+            show()
+        }
+    }
+
     companion object {
         private val maxPosterWidthPercent = 0.44
     }
@@ -237,8 +247,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
             val leftGameDetailsView by cssid()
             val middleGameDetailsView by cssid()
             val rightGameDetailsView by cssid()
-            val acceptButton by cssid()
-            val deleteButton by cssid()
             val gameDetailsButton by cssclass()
 
             init {
@@ -275,18 +283,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
 
             rightGameDetailsView {
                 padding = box(5.px)
-            }
-
-            acceptButton {
-                and(hover) {
-                    backgroundColor = multi(Color.LIMEGREEN)
-                }
-            }
-
-            deleteButton {
-                and(hover) {
-                    backgroundColor = multi(Color.RED)
-                }
             }
 
             gameDetailsButton {

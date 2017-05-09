@@ -19,6 +19,7 @@ class GameFactory @Inject constructor(
     private val preferences: ProviderPreferences
 ) {
     private val maxScreenshots = 10
+    private val maxGenres = 7
 
     fun create(rawGame: RawGame): Game {
         val library = libraryRepository[rawGame.metaData.libraryId]
@@ -36,25 +37,24 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData {
-        // TODO: Consider limiting the max amount of genres to 5.
-        val genres = rawGameData.flatMapTo(mutableSetOf<String>()) {
-            it.gameData.genres.flatMap { processGenre(it) }
-        }.toList()
+        val overrides = userData?.overrides
+
         return GameData(
-            name = firstBy(preferences.nameOrder, priorityOverride?.name) { it.gameData.name } ?: metaData.path.name,
-            description = firstBy(preferences.descriptionOrder, priorityOverride?.description) { it.gameData.description },
-            releaseDate = firstBy(preferences.releaseDateOrder, priorityOverride?.releaseDate) { it.gameData.releaseDate },
-            criticScore = firstBy(preferences.criticScoreOrder, priorityOverride?.criticScore) { it.gameData.criticScore },
-            userScore = firstBy(preferences.userScoreOrder, priorityOverride?.userScore) { it.gameData.userScore },
-            genres = genres
+            name = firstBy(preferences.nameOrder, overrides?.name) { it.gameData.name } ?: metaData.path.name,
+            description = firstBy(preferences.descriptionOrder, overrides?.description) { it.gameData.description },
+            releaseDate = firstBy(preferences.releaseDateOrder, overrides?.releaseDate) { it.gameData.releaseDate },
+            criticScore = firstBy(preferences.criticScoreOrder, overrides?.criticScore) { it.gameData.criticScore },
+            userScore = firstBy(preferences.userScoreOrder, overrides?.userScore) { it.gameData.userScore },
+            genres = unsortedListBy(overrides?.genres) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
         )
     }
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(preferences.thumbnailOrder, priorityOverride?.thumbnail) { it.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(preferences.posterOrder, priorityOverride?.poster) { it.imageUrls.posterUrl }
-        val screenshotUrls = sortDataBy(preferences.screenshotOrder, priorityOverride?.screenshots)
-            .asSequence().flatMap { it.imageUrls.screenshotUrls.asSequence() }.take(maxScreenshots).toList()
+        val overrides = userData?.overrides
+
+        val thumbnailUrl = firstBy(preferences.thumbnailOrder, overrides?.thumbnail) { it.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(preferences.posterOrder, overrides?.poster) { it.imageUrls.posterUrl }
+        val screenshotUrls = listBy(preferences.screenshotOrder, overrides?.screenshots) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
 
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,
@@ -65,17 +65,42 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.toProviderData(): List<ProviderData> = this.rawGameData.map { it.providerData }
 
-    private fun <T> RawGame.firstBy(defaultOrder: DefaultProviderOrder, override: GameProviderType?, extractor: (RawGameData) -> T?): T? =
-        sortDataBy(defaultOrder, override).findFirst(extractor)
-
-    private fun RawGame.sortDataBy(order: DefaultProviderOrder, override: GameProviderType?) = rawGameData.sortedByDescending {
-        val type = it.providerData.type
-        if (type == override) {
-            DefaultProviderOrder.maxPriority + 1
-        } else {
-            order[type]
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> RawGame.firstBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (RawGameData) -> T?): T? =
+        when (override) {
+            is GameDataOverride.Custom -> override.data as T
+            else -> {
+                val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
+                sorted.findFirst(extractor)
+            }
         }
-    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> RawGame.listBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (RawGameData) -> List<T>): List<T> =
+        when (override) {
+            is GameDataOverride.Custom -> override.data as List<T>
+            else -> {
+                val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
+                sorted.flatMap(extractor)
+            }
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (RawGameData) -> List<T>): List<T> =
+        when (override) {
+            is GameDataOverride.Custom -> override.data as List<T>
+            else -> rawGameData.flatMap(extractor)
+        }
+
+    private fun RawGame.sortDataBy(order: DefaultProviderOrder, override: GameDataOverride.Provider?): List<RawGameData> =
+        rawGameData.sortedByDescending {
+            val type = it.providerData.type
+            if (type == override?.provider) {
+                DefaultProviderOrder.maxPriority + 1
+            } else {
+                order[type]
+            }
+        }
 
     private fun <T> List<RawGameData>.findFirst(extractor: (RawGameData) -> T?): T? =
         this.asSequence().map(extractor).firstNotNull()

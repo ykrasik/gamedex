@@ -35,7 +35,7 @@ class SettingsFragment : Fragment() {
                                 "User Score" to preferences.provider.userScoreOrderProperty,
                                 "Thumbnail" to preferences.provider.thumbnailOrderProperty,
                                 "Poster" to preferences.provider.posterOrderProperty,
-                                "Screenshot" to preferences.provider.screenshotOrderProperty
+                                "Screenshots" to preferences.provider.screenshotOrderProperty
                             ).forEach { (name, preferenceProperty) ->
                                 field(name) {
                                     enumComboBox<GameProviderType> {

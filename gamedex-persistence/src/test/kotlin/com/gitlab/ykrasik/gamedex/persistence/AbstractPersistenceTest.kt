@@ -65,16 +65,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             )
         )
 
-        fun randomPriorityOverride() = ProviderPriorityOverride(
-            name = randomEnum<GameProviderType>(),
-            description = randomEnum<GameProviderType>(),
-            releaseDate = randomEnum<GameProviderType>(),
-            criticScore = randomEnum<GameProviderType>(),
-            userScore = randomEnum<GameProviderType>(),
-            thumbnail = randomEnum<GameProviderType>(),
-            poster = randomEnum<GameProviderType>(),
-            screenshots = randomEnum<GameProviderType>()
-        )
+        fun providerOverride(provider: GameProviderType = randomEnum()) = GameDataOverride.Provider(provider)
+        fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =

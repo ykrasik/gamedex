@@ -24,6 +24,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
+// TODO: Support db import / export
 class GameView : GamedexView("Games") {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
@@ -165,6 +166,7 @@ class GameView : GamedexView("Games") {
             menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { controller.refetchGame(game()) }
             separator()
             menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(game()) }
+            menuitem("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { controller.changePoster(game()) }
             separator()
             menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
         }
