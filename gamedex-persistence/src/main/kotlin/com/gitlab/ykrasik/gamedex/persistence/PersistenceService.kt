@@ -22,7 +22,7 @@ interface PersistenceService {
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
-    fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame
+    fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>, userData: UserData?): RawGame
     fun updateGame(rawGame: RawGame): Unit
     fun deleteGame(id: Int)
 
@@ -87,7 +87,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         games
     }
 
-    override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>): RawGame = transaction {
+    override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>, userData: UserData?): RawGame = transaction {
         log.trace("Inserting game: metaData=$metaData, rawGameData=$rawGameData...")
 
         val id = Games.insertAndGetId {
@@ -95,9 +95,10 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             it[Games.path] = metaData.path.path
             it[Games.lastModified] = metaData.lastModified
             it[Games.providerData] = rawGameData.toJsonStr()
+            it[Games.userData] = userData?.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, userData = null)
+        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, userData = userData)
         log.trace("Result: $game.")
         game
     }

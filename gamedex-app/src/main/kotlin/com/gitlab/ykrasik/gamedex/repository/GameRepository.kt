@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
+import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
 import com.gitlab.ykrasik.gamedex.ui.distincted
@@ -30,14 +31,8 @@ class GameRepository @Inject constructor(
 ) {
     private val log = logger()
 
-    val games: ObservableList<Game> = run {
-        log.info("Fetching games...")
-        val games = persistenceService.fetchAllGames().map { it.toGame() }.observable()
-        log.info("Fetched ${games.size} games.")
-        games
-    }
-
-    val genres = games.flatMapped { it.genres }.distincted()
+    val games: ObservableList<Game> = fetchAllGames()
+    val genres = games.flatMapped(Game::genres).distincted()
 
     init {
         // TODO: Find a more intelligent way
@@ -51,13 +46,36 @@ class GameRepository @Inject constructor(
         preferences.screenshotOrderProperty.onChange { rebuildGames() }
     }
 
-    suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
-        val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData)
-        val game = rawGame.toGame()
-        run(JavaFx) {
-            games += game
+    private fun fetchAllGames(): ObservableList<Game> {
+        log.info("Fetching games...")
+        val games = persistenceService.fetchAllGames().map { it.toGame() }
+        log.info("Fetched ${games.size} games.")
+        return games.observable()
+    }
+
+    suspend fun add(request: AddGameRequest) {
+        run(CommonPool) {
+            val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData, request.userData)
+            val game = rawGame.toGame()
+            run(JavaFx) {
+                games += game
+            }
         }
-        game
+    }
+
+    suspend fun addAll(requests: List<AddGameRequest>, progress: TaskProgress) {
+        run(CommonPool) {
+            val games = requests.mapIndexed { i, request ->
+                progress.progress(i, requests.size - 1)
+                progress.message = "Writing '${request.metaData.path.name}..."
+                val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData, request.userData)
+                rawGame.toGame()
+            }
+            run(JavaFx) {
+                progress.message = "Updating UI..."
+                this.games += games
+            }
+        }
     }
 
     suspend fun update(newRawGame: RawGame) = run(JavaFx) {
@@ -77,9 +95,9 @@ class GameRepository @Inject constructor(
         log.info("Deleting '${game.name}': Done.")
     }
 
-    suspend fun deleteByLibrary(library: Library) = run(JavaFx) {
-        // TODO: Instead of filtering in place, try re-setting to a filtered list (performance)
-        this.games.removeAll { it.libraryId == library.id }
+    suspend fun invalidate() = run(JavaFx) {
+        // Re-fetch all games from persistence
+        games.setAll(fetchAllGames())
     }
 
     private fun rebuildGames() {
@@ -97,5 +115,6 @@ class GameRepository @Inject constructor(
 
 data class AddGameRequest(
     val metaData: MetaData,
-    val rawGameData: List<RawGameData>
+    val rawGameData: List<RawGameData>,
+    val userData: UserData?
 )

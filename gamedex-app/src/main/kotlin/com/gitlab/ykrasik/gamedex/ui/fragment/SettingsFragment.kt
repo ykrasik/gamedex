@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.controller.SettingsController
 import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderOrder
 import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
@@ -16,6 +17,7 @@ import tornadofx.*
  * Time: 22:22
  */
 class SettingsFragment : Fragment() {
+    private val settingsController: SettingsController by di()
     private val preferences: AllPreferences by di()
 
     override val root = borderpane {
@@ -67,6 +69,21 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+                nonClosableTab("General") {
+                    vbox(spacing = 10.0) {
+                        paddingAll = 20
+                        button("Export Database") {
+                            setOnAction {
+                                settingsController.exportDatabase()
+                            }
+                        }
+                        button("Import Database") {
+                            setOnAction {
+                                settingsController.importDatabase()
+                            }
+                        }
+                    }
+                }
             }
         }
         bottom {
@@ -97,56 +114,6 @@ class SettingsFragment : Fragment() {
         openModal(block = true)
     }
 }
-//
-//<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" styleClass="screen">
-//<center>
-//<TabPane minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-//<tabs>
-//<Tab closable="false" text="Game Wall">
-//<content>
-//<GridPane hgap="10.0" vgap="10.0">
-//<columnConstraints>
-//<ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="-Infinity" />
-//<ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" minWidth="-Infinity" />
-//</columnConstraints>
-//<rowConstraints>
-//<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-//<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-//<RowConstraints minHeight="-Infinity" vgrow="SOMETIMES" />
-//</rowConstraints>
-//<children>
-//<Label text="Wall Cell Image Behavior">
-//<tooltip>
-//<Tooltip autoHide="true" text="How to handle images that don't exactly fit a cell" />
-//</tooltip>
-//</Label>
-//<ComboBox fx:id="gameWallImageDisplayComboBox" GridPane.columnIndex="1" />
-//</children>
-//<padding>
-//<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-//</padding>
-//</GridPane>
-//</content>
-//</Tab>
-//</tabs>
-//</TabPane>
-//</center>
-//<bottom>
-//<Button fx:id="closeButton" cancelButton="true" defaultButton="true" minHeight="40.0" minWidth="40.0" mnemonicParsing="false" onAction="#close" text="Close" BorderPane.alignment="CENTER_RIGHT">
-//<BorderPane.margin>
-//<Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-//</BorderPane.margin>
-//</Button>
-//</bottom>
-//</BorderPane>
-//
-//
-//private val configService: ConfigService
-//private val stageManager: StageManager
-//
-//@FXML private val gameWallImageDisplayComboBox: ComboBox<GameWallImageDisplay>? = null
-//
-//@SneakyThrows
 //fun SettingsScreen(@NonNull configService: ConfigService, @NonNull stageManager: StageManager): ??? {
 //    this.configService = configService
 //    this.stageManager = stageManager
@@ -165,16 +132,4 @@ class SettingsFragment : Fragment() {
 //
 //    // Make the stage draggable by clicking anywhere.
 //    JavaFxUtils.makeStageDraggable(stage, root)
-//}
-//
-//@FXML
-//private fun initialize() {
-//    initGameWallImageDisplay()
-//}
-//
-//private fun initGameWallImageDisplay() {
-//    gameWallImageDisplayComboBox!!.setItems(FXCollections.observableArrayList<GameWallImageDisplay>(*GameWallImageDisplay.values()))
-//
-//    gameWallImageDisplayComboBox.getSelectionModel().select(configService.getGameWallImageDisplay())
-//    configService.gameWallImageDisplayProperty().bind(gameWallImageDisplayComboBox.getSelectionModel().selectedItemProperty())
 //}

@@ -72,7 +72,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
             persistenceService.insertGame(
                 metaData = randomMetaData(library, path),
-                rawGameData = listOf(randomRawGameData(), randomRawGameData())
+                rawGameData = listOf(randomRawGameData(), randomRawGameData()),
+                userData = null // FIXME: Test this.
             )
     }
 

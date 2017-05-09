@@ -41,7 +41,7 @@ class LibraryController @Inject constructor(
             if (!confirmDelete(library)) return@launch
 
             libraryRepository.delete(library)
-            gameRepository.deleteByLibrary(library)
+            gameRepository.invalidate()
             deleted = true
 
             Notification()
@@ -55,7 +55,7 @@ class LibraryController @Inject constructor(
 
     private fun confirmDelete(library: Library): Boolean {
         val baseMessage = "Delete library '${library.name}'?"
-        val gamesToBeDeleted = gameRepository.games.filter { it.libraryId == library.id }
+        val gamesToBeDeleted = gameRepository.games.filter { it.library.id == library.id }
         return areYouSureDialog {
             if (gamesToBeDeleted.isNotEmpty()) {
                 dialogPane.content = vbox {

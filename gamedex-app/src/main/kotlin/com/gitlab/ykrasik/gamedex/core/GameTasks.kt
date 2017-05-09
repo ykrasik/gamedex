@@ -108,7 +108,7 @@ class GameTasks @Inject constructor(
                 progress.progress(i, libraryRepository.libraries.size - 1)
 
                 libraryRepository.delete(library)
-                gameRepository.deleteByLibrary(library)  // TODO: This logic is duplicated from LibraryController.
+                gameRepository.invalidate()  // TODO: This logic is duplicated from LibraryController.
                 staleLibraries += 1
             }
         }

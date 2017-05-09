@@ -65,7 +65,8 @@ class LibraryScanner @Inject constructor(
 
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
-            rawGameData = providerData
+            rawGameData = providerData,
+            userData = null
         )
     }
 

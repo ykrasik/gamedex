@@ -13,7 +13,7 @@ import java.io.File
  */
 data class Game(
     val rawGame: RawGame,
-    private val library: Library,
+    val library: Library,
     private val gameData: GameData,
     val providerData: List<ProviderData>,
     val imageUrls: ImageUrls
@@ -22,9 +22,8 @@ data class Game(
     val path get() = metaData.path
     val lastModified get() = metaData.lastModified
     val userData get() = rawGame.userData
-    private val metaData get() = rawGame.metaData
+    val metaData get() = rawGame.metaData
 
-    val libraryId get() = library.id
     val platform get() = library.platform
 
     val name get() = gameData.name

@@ -70,7 +70,8 @@ object TestMain {
                             val type = providerTypes.randomElement()
                             providerTypes -= type
                             randomRawGameData(type)
-                        }
+                        },
+                        userData = null
                     )
                 }
             }.forEach { it.await() }
