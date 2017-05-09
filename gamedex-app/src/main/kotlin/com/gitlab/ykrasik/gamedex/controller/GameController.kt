@@ -62,6 +62,10 @@ class GameController @Inject constructor(
         }
     }
 
+    fun changePoster(game: Game) = launch(JavaFx) {
+        TODO()  // TODO: Implement
+    }
+
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false
 

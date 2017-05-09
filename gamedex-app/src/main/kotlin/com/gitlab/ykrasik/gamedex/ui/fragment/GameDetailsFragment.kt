@@ -41,7 +41,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     private var accept = false
 
     override val root = borderpane {
-        setId(Style.gameDetailView)
+        setId(Style.gameDetailsView)
         top {
             toolbar {
                 jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }) {
@@ -69,8 +69,8 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(22.0) }) {
                     addClass(Style.gameDetailsButton)
                     withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
-                        contentNode = vbox(spacing = 5.0) {
-                            paddingAll = 5
+                        contentNode = vbox {
+                            addClass(CommonStyle.popoverMenu)
 
                             jfxButton("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
                                 addClass(CommonStyle.extraButton)
@@ -95,7 +95,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                 addClass(CommonStyle.extraButton)
                                 setOnAction {
                                     this@withPopover.hide()
-                                    TODO()  // TODO
+                                    gameController.changePoster(game)
                                 }
                             }
 
@@ -111,8 +111,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                                     }
                                 }
                             }
-
-                            separator()
                         }
                     }
                 }
@@ -123,10 +121,12 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         center {
             val screenWidth = Screen.getPrimary().bounds.width
             hbox {
-                paddingAll = 10
+                setId(Style.gameDetailsViewContent)
+
                 // Left
                 stackpane {
-                    addClass(CommonStyle.card)       // TODO: Not sure what this does
+                    setId(Style.leftGameDetailsView)
+                    addClass(CommonStyle.card)
 
                     val poster = ImageView()
                     poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
@@ -134,7 +134,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     contextmenu {
                         menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
                             setOnAction {
-                                TODO()  // TODO
+                                gameController.changePoster(game)
                             }
                         }
                     }
@@ -152,12 +152,13 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                     }
                 }
 
-                verticalSeparator()
-
-                // TODO: Check if the new form can do what we did here manually.
+                region { setId(Style.middleGameDetailsView) }
+                
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
                 children += detailsSnippetFactory.create(game, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
+                    setId(Style.rightGameDetailsView)
+                    addClass(CommonStyle.card)
                     hgrow = Priority.ALWAYS
 
                     // Bottom
@@ -231,7 +232,11 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
 
     class Style : Stylesheet() {
         companion object {
-            val gameDetailView by cssid()
+            val gameDetailsView by cssid()
+            val gameDetailsViewContent by cssid()
+            val leftGameDetailsView by cssid()
+            val middleGameDetailsView by cssid()
+            val rightGameDetailsView by cssid()
             val acceptButton by cssid()
             val deleteButton by cssid()
             val gameDetailsButton by cssclass()
@@ -242,7 +247,7 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
         }
 
         init {
-            gameDetailView {
+            gameDetailsView {
                 backgroundColor = multi(
                     LinearGradient(0.0, 1.0, 0.0, 1.0, false, CycleMethod.NO_CYCLE,
                         Stop(0.0, Color.web("#f2f2f2")), Stop(1.0, Color.web("#d6d6d6"))),
@@ -255,6 +260,21 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 backgroundInsets = multi(box(0.px, 1.px, 2.px, 0.px))
                 textFill = Color.BLACK
                 effect = DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5.0, 0.0, 0.0, 1.0)
+            }
+
+            gameDetailsViewContent {
+                padding = box(2.px)
+            }
+
+            leftGameDetailsView {
+            }
+
+            middleGameDetailsView {
+                padding = box(2.px)
+            }
+
+            rightGameDetailsView {
+                padding = box(5.px)
             }
 
             acceptButton {

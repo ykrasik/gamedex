@@ -98,8 +98,9 @@ class GameView : GamedexView("Games") {
         jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(18.0) }) {
             prefWidth = 40.0
             withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
-                contentNode = vbox(spacing = 5.0) {
-                    paddingAll = 5
+                contentNode = vbox {
+                    addClass(CommonStyle.popoverMenu)
+
                     jfxButton("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
                         addClass(CommonStyle.extraButton)
                         setOnAction {

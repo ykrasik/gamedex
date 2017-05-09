@@ -23,6 +23,8 @@ class CommonStyle : Stylesheet() {
 
         val extraButton by cssclass()
 
+        val popoverMenu by cssclass()
+
         init {
             importStylesheet(CommonStyle::class)
         }
@@ -407,6 +409,11 @@ class CommonStyle : Stylesheet() {
             contentDisplay = ContentDisplay.RIGHT
             alignment = Pos.CENTER_RIGHT
             graphicTextGap = 6.px
+        }
+
+        popoverMenu {
+            spacing = 5.px
+            padding = box(5.px)
         }
     }
 }
