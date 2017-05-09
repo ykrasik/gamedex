@@ -4,6 +4,11 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
+import com.gitlab.ykrasik.gamedex.util.collapseSpaces
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.run
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,7 +20,7 @@ import javax.inject.Singleton
  */
 interface GameProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isNewSearch: Boolean): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<RawGameData>?
 
     fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData>
 }
@@ -27,42 +32,50 @@ class GameProviderServiceImpl @Inject constructor(
     private val chooser: SearchChooser
 ) : GameProviderService {
 
-    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isNewSearch: Boolean): List<RawGameData>? =
+    private val metaDataRegex = "(\\[.*?\\])".toRegex()
+
+    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<RawGameData>? =
         try {
-            SearchContext(platform, path, progress, isNewSearch, name).search()
+            SearchContext(platform, path, progress, isSearchAgain, name.normalizeName()).search()
         } catch (e: CancelSearchException) {
             null
         }
+
+    // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
+    private fun String.normalizeName(): String = this.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
 
     private inner class SearchContext(
         private val platform: Platform,
         private val path: File,
         private val progress: TaskProgress,
-        private val isNewSearch: Boolean,
+        private val isSearchAgain: Boolean,
         private var searchedName: String
     ) {
+        private var canAutoContinue = !isSearchAgain
         private val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
-        private val latestProviderResults = mutableMapOf<GameProviderType, List<ProviderSearchResult>>()
         private var userExactMatch: String? = null
 
+        // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<RawGameData> {
             val results = providerRepository.providers.map { it to search(it) }
 
-            // TODO: Fetch async per provider.
+            progress.message = "Downloading game data..."
             return results.mapNotNull { (provider, searchResult) ->
                 searchResult?.let {
-                    provider.fetch(it.apiUrl, platform)
+                    async(CommonPool) {
+                        provider.fetch(it.apiUrl, platform)
+                    }
                 }
-            }
+            }.map { it.await() }
         }
 
         private suspend fun search(provider: GameProvider): ProviderSearchResult? {
             progress.message = "[${provider.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            latestProviderResults[provider.type] = results
             progress.message = "[${provider.name}][$platform] Searching '$searchedName': ${results.size} results."
 
-            val choice = if (!isNewSearch) {
+            val choice = if (isSearchAgain) {
+                // If 'search again', always display all results.
                 chooseResult(provider, results)
             } else if (userExactMatch != null) {
                 val providerExactMatch = results.find { it.name.equals(userExactMatch, ignoreCase = true) }
@@ -72,45 +85,37 @@ class GameProviderServiceImpl @Inject constructor(
                     chooseResult(provider, results)
                 }
             } else {
-                // TODO: pressing 'new search' should prevent this.
-                if (results.size == 1 && results.first().name.equals(searchedName, ignoreCase = true)) {
+                if (canAutoContinue && results.size == 1 && results.first().name.equals(searchedName, ignoreCase = true)) {
                     return results.first()
                 } else {
                     chooseResult(provider, results)
                 }
             }
 
+            fun ProviderSearchResult.markChosen() = apply {
+                previouslyDiscardedResults += results
+                previouslyDiscardedResults -= this
+            }
+
             return when (choice) {
-                is SearchChooser.Choice.ExactMatch -> {
-                    val chosenResult = choice.result
-                    userExactMatch = chosenResult.name
-                    previouslyDiscardedResults += results
-                    previouslyDiscardedResults -= chosenResult
-                    chosenResult
+                is SearchChooser.Choice.ExactMatch -> choice.result.markChosen().apply {
+                    userExactMatch = name
+                    searchedName = name
                 }
-                is SearchChooser.Choice.NotExactMatch -> {
-                    val chosenResult = choice.result
-                    previouslyDiscardedResults += results
-                    previouslyDiscardedResults -= chosenResult
-                    chosenResult
-                }
+                is SearchChooser.Choice.NotExactMatch -> choice.result.markChosen()
                 is SearchChooser.Choice.NewSearch -> {
                     searchedName = choice.newSearch
+                    canAutoContinue = false
                     search(provider)
                 }
                 SearchChooser.Choice.ProceedWithout -> null
-                SearchChooser.Choice.GoBack -> {
-                    // TODO
-                    TODO()
-                }
                 SearchChooser.Choice.Cancel -> throw CancelSearchException()
             }
         }
 
         private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
             // We only get here when we have no exact matches.
-            // TODO: Is this too restrictive? Allow handsFreeMode to auto accept in hands free mode?
-            if (preferences.handsFreeMode) return SearchChooser.Choice.Cancel
+            if (!isSearchAgain && preferences.handsFreeMode) return SearchChooser.Choice.Cancel
 
             val (filteredResults, results) = allSearchResults.partition { result ->
                 previouslyDiscardedResults.any { it.name.equals(result.name, ignoreCase = true) }
@@ -151,12 +156,13 @@ interface SearchChooser {
         data class NotExactMatch(val result: ProviderSearchResult) : Choice()
         data class NewSearch(val newSearch: String) : Choice()
         object ProceedWithout : Choice()
-        object GoBack : Choice()
         object Cancel : Choice()
     }
 }
 
 @Singleton
-class UISearchChooser @Inject constructor() : SearchChooser {
-    override suspend fun choose(data: SearchChooser.Data) = ChooseSearchResultFragment(data).show()
+class UISearchChooser : SearchChooser {
+    override suspend fun choose(data: SearchChooser.Data) = run(JavaFx) {
+        ChooseSearchResultFragment(data).show()
+    }
 }

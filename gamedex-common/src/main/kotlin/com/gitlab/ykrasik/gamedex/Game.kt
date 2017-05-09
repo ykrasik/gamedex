@@ -57,7 +57,7 @@ data class RawGameData(
 data class GameData(
     val name: String,
     val description: String?,
-    val releaseDate: LocalDate?,
+    val releaseDate: LocalDate?,        // TODO: Store this as a string? To allow for 2017 Q4 etc.
     val criticScore: Double?,
     val userScore: Double?,
     val genres: List<String>

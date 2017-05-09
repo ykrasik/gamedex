@@ -5,8 +5,6 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.MetaData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
-import com.gitlab.ykrasik.gamedex.util.collapseSpaces
-import com.gitlab.ykrasik.gamedex.util.emptyToNull
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.channels.produce
 import org.joda.time.DateTime
@@ -28,7 +26,6 @@ class LibraryScanner @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val providerService: GameProviderService
 ) {
-    private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
     private val log = logger()
 
@@ -59,18 +56,11 @@ class LibraryScanner @Inject constructor(
     }
 
     private suspend fun processDirectory(directory: File, library: Library, progress: TaskProgress): AddGameRequest? {
-        val name = requireNotNull(directory.normalizeName().emptyToNull()) { "Invalid directory name: '${directory.name}'!"}
-
-        val providerData = providerService.search(name, library.platform, directory, progress, isNewSearch = true) ?: return null
-
+        val providerData = providerService.search(directory.name, library.platform, directory, progress, isSearchAgain = false) ?: return null
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
             rawGameData = providerData,
             userData = null
         )
     }
-
-    // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-    private fun File.normalizeName(): String =
-        name.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
 }

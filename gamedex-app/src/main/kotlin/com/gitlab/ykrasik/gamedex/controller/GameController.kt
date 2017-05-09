@@ -36,19 +36,15 @@ class GameController @Inject constructor(
         sortedFilteredGames.sortOrderProperty.bindBidirectional(preferences.gameWall.sortOrderProperty)
     }
 
+    fun cleanup() = gameTasks.CleanupTask().apply { start() }
+
     fun refreshGames() = gameTasks.RefreshGamesTask().apply { start() }
 
-    fun refetchAllGames(): GameTasks.RefetchAllGamesTask? {
-        return if (areYouSureDialog("Re-fetch all games? This could take a while...")) {
-            gameTasks.RefetchAllGamesTask().apply { start() }
-        } else {
-            null
-        }
-    }
+    fun refetchAllGames() = gameTasks.RefetchAllGamesTask().apply { start() }
 
     fun refetchGame(game: Game) = gameTasks.RefetchGameTask(game).apply { start() }
 
-    fun cleanup() = gameTasks.CleanupTask().apply { start() }
+    fun retryAllGames() = gameTasks.RetryAllGamesTask().apply { start() }
 
     fun searchAgain(game: Game) = gameTasks.SearchAgainTask(game).apply { start() }
 

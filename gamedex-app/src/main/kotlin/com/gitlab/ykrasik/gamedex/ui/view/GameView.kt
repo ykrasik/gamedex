@@ -118,9 +118,17 @@ class GameView : GamedexView("Games") {
                         setOnAction {
                             this@withPopover.hide()
                             val task = gameController.refetchAllGames()
-                            if (task != null) {
-                                disableProperty().cleanBind(task.runningProperty)
-                            }
+                            disableProperty().cleanBind(task.runningProperty)
+                        }
+                    }
+
+                    jfxButton("Retry Games", graphic = FontAwesome.Glyph.RECYCLE.toGraphic()) {
+                        addClass(CommonStyle.extraButton)
+                        tooltip("Try searching for games that are missing providers")
+                        setOnAction {
+                            this@withPopover.hide()
+                            val task = gameController.retryAllGames()
+                            disableProperty().cleanBind(task.runningProperty)
                         }
                     }
                 }

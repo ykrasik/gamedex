@@ -17,8 +17,6 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
 import javafx.stage.Screen
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.run
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
@@ -102,11 +100,6 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             )
                         }
                         setOnAction {
-                            if (showingFiltered) {
-                                results -= data.filteredResults
-                            } else {
-                                results += data.filteredResults
-                            }
                             showingFiltered = !showingFiltered
                         }
                     }
@@ -187,29 +180,22 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                     setOnAction { close(SearchChooser.Choice.ProceedWithout) }
                 }
 
-                cancelButton {
-                    graphic = FontAwesome.Glyph.CARET_DOWN.toGraphic()
-                    contentDisplay = ContentDisplay.LEFT
-                    alignment = Pos.CENTER_LEFT
-                    graphicTextGap = 25.0
-
-                    setOnAction { close(SearchChooser.Choice.Cancel) }
-                    val menu = ContextMenu().apply {
-                        items += MenuItem().apply {
-                            graphic = Label("Back", FontAwesome.Glyph.BACKWARD.toGraphic()).apply {
-                                prefWidthProperty().bind(this@cancelButton.widthProperty().subtract(22))
-                            }
-                            setOnAction { close(SearchChooser.Choice.GoBack) }
-                        }
-                    }
-
-                    setOnMouseEntered {
-                        if (!menu.isShowing) {
-                            menu.show(this, Side.BOTTOM, 0.0, 0.0)
-                        }
-                    }
-                }
+                cancelButton { setOnAction { close(SearchChooser.Choice.Cancel) } }
             }
+        }
+    }
+
+    init {
+        showingFilteredProperty.onChange {
+            if (it) {
+                results += data.filteredResults
+            } else {
+                results -= data.filteredResults
+            }
+            tableView.resizeColumnsToFitContent()
+        }
+        if (results.isEmpty() && data.filteredResults.isNotEmpty()) {
+            showingFiltered = true
         }
     }
 
@@ -219,9 +205,9 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
         modalStage!!.minWidthProperty().bind(minTableWidth.add(60))
     }
 
-    suspend fun show(): SearchChooser.Choice = run(JavaFx) {
+    fun show(): SearchChooser.Choice {
         openWindow(block = true)
-        choice
+        return choice
     }
 
     private fun close(choice: SearchChooser.Choice) {
