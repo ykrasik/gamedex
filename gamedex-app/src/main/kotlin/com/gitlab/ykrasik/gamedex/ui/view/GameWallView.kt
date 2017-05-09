@@ -52,12 +52,8 @@ class GameWallView : View("Games Wall") {
                         if (isShowing) {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
-                            fun onGenrePressed(genre: String) {
-                                gameController.sortedFilteredGames.genreFilterProperty.set(genre)
-                                hide()
-                            }
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, onGenrePressed = ::onGenrePressed).apply {
+                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, onGenrePressed = { onGenrePressed(it) }).apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)
@@ -74,6 +70,11 @@ class GameWallView : View("Games Wall") {
             cell.gameContextMenu(gameController) { cell.item }
             cell
         }
+    }
+
+    private fun PopOver.onGenrePressed(genre: String) {
+        gameController.sortedFilteredGames.genreFilterProperty.set(genre)
+        hide()
     }
 
     private fun determineArrowLocation(x: Double, y: Double): PopOver.ArrowLocation {
