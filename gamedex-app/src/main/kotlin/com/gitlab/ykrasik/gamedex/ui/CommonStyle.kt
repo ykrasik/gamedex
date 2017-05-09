@@ -1,5 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import javafx.geometry.Pos
+import javafx.scene.control.ContentDisplay
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
@@ -18,6 +20,8 @@ class CommonStyle : Stylesheet() {
         val card by cssclass()
 
         val jfxButton by cssclass()
+
+        val extraButton by cssclass()
 
         init {
             importStylesheet(CommonStyle::class)
@@ -396,6 +400,13 @@ class CommonStyle : Stylesheet() {
             and(hover) {
                 backgroundColor = multi(Color.LIGHTBLUE)
             }
+        }
+
+        extraButton {
+            prefWidth = 160.px
+            contentDisplay = ContentDisplay.RIGHT
+            alignment = Pos.CENTER_RIGHT
+            graphicTextGap = 6.px
         }
     }
 }

@@ -58,7 +58,7 @@ data class DefaultProviderOrder(val priorities: EnumMap<GameProviderType, Int>) 
     fun preferredProvider(): GameProviderType = priorities.maxBy { it.value }!!.key
 
     operator fun get(type: GameProviderType) = priorities[type]!!
-    operator fun get(provider: GameProvider) = get(provider.info.type)
+    operator fun get(provider: GameProvider) = get(provider.type)
 
     fun toComparator(): Comparator<GameProvider> = Comparator { o1, o2 -> get(o1).compareTo(get(o2)) }
 

@@ -17,6 +17,7 @@ import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
+import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.net.URLEncoder
@@ -42,33 +43,101 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     override val root = borderpane {
         setId(Style.gameDetailView)
         top {
-            vbox {
-                buttonbar {
-                    padding { right = 10; left = 10 }
-                    minHeight = 40.0
-                    okButton { setOnAction { close(accept = true) } }
-                    cancelButton { setOnAction { close(accept = false) } }
-
-                    button("Change Thumbnail") { setOnAction { gameController.changeThumbnail(game) } }
-                    // TODO: Implement.
-                    button("Change Poster")
-                    button("Refresh")
-                    button("Search Again") { setOnAction { gameController.searchAgain(game) } }
-                    button("Delete") { setOnAction { if (gameController.delete(game)) { close(accept = false) } } }
+            toolbar {
+                jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }) {
+                    setId(Style.acceptButton)
+                    addClass(Style.gameDetailsButton)
+                    setOnAction { close(accept = true) }
                 }
-                separator()
+
+                verticalSeparator()
+
+                jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.BLUE) }) {
+                    addClass(Style.gameDetailsButton)
+                    setOnAction {
+                        val task = gameController.refetchGame(game)
+                        disableProperty().cleanBind(task.runningProperty)
+                    }
+                }
+
+                verticalSeparator()
+
+                spacer()
+
+                verticalSeparator()
+
+                jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(22.0) }) {
+                    addClass(Style.gameDetailsButton)
+                    withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
+                        contentNode = vbox(spacing = 5.0) {
+                            paddingAll = 5
+
+                            jfxButton("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
+                                addClass(CommonStyle.extraButton)
+                                setOnAction {
+                                    this@withPopover.hide()
+                                    val task = gameController.searchAgain(game)
+                                    disableProperty().cleanBind(task.runningProperty)
+                                }
+                            }
+
+                            separator()
+
+                            jfxButton("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) {
+                                addClass(CommonStyle.extraButton)
+                                setOnAction {
+                                    this@withPopover.hide()
+                                    gameController.changeThumbnail(game)
+                                }
+                            }
+
+                            jfxButton("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
+                                addClass(CommonStyle.extraButton)
+                                setOnAction {
+                                    this@withPopover.hide()
+                                    TODO()  // TODO
+                                }
+                            }
+
+                            separator()
+
+                            jfxButton("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
+                                setId(Style.deleteButton)
+                                addClass(CommonStyle.extraButton)
+                                setOnAction {
+                                    this@withPopover.hide()
+                                    if (gameController.delete(game)) {
+                                        close(accept = false)
+                                    }
+                                }
+                            }
+
+                            separator()
+                        }
+                    }
+                }
+
+                verticalSeparator()
             }
         }
         center {
-            paddingAll = 10
             val screenWidth = Screen.getPrimary().bounds.width
             hbox {
+                paddingAll = 10
                 // Left
                 stackpane {
                     addClass(CommonStyle.card)       // TODO: Not sure what this does
 
                     val poster = ImageView()
                     poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
+
+                    contextmenu {
+                        menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
+                            setOnAction {
+                                TODO()  // TODO
+                            }
+                        }
+                    }
 
                     imageViewResizingPane(poster) {
                         maxWidth = screenWidth * maxPosterWidthPercent
@@ -102,6 +171,17 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                         }
                     }
                     webView = webview {
+                        fun canNavigate(back: Boolean): Property<Boolean> {
+                            val history = engine.history
+                            val entries = history.entries
+                            return history.currentIndexProperty().mapProperty { i ->
+                                val currentIndex = i!!.toInt()
+                                entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
+                            }
+                        }
+
+                        fun navigate(back: Boolean) = engine.history.go(if (back) -1 else 1)
+
                         with(backButton) {
                             enableWhen { canNavigate(back = true) }
                             setOnAction { navigate(back = true) }
@@ -120,19 +200,6 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 }
             }
         }
-    }
-
-    private fun WebView.canNavigate(back: Boolean): Property<Boolean> {
-        val history = engine.history
-        val entries = history.entries
-        return history.currentIndexProperty().mapProperty { i ->
-            val currentIndex = i!!.toInt()
-            entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
-        }
-    }
-
-    private fun WebView.navigate(back: Boolean) {
-        engine.history.go(if (back) -1 else 1)
     }
 
     override fun onDock() {
@@ -165,6 +232,9 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
     class Style : Stylesheet() {
         companion object {
             val gameDetailView by cssid()
+            val acceptButton by cssid()
+            val deleteButton by cssid()
+            val gameDetailsButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -185,6 +255,23 @@ class GameDetailsFragment(game: Game, displayVideos: Boolean = true) : Fragment(
                 backgroundInsets = multi(box(0.px, 1.px, 2.px, 0.px))
                 textFill = Color.BLACK
                 effect = DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5.0, 0.0, 0.0, 1.0)
+            }
+
+            acceptButton {
+                and(hover) {
+                    backgroundColor = multi(Color.LIMEGREEN)
+                }
+            }
+
+            deleteButton {
+                and(hover) {
+                    backgroundColor = multi(Color.RED)
+                }
+            }
+
+            gameDetailsButton {
+                minWidth = 100.px
+                prefHeight = 40.px
             }
         }
     }

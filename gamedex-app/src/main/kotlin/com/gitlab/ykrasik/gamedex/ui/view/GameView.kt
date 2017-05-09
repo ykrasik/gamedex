@@ -10,9 +10,7 @@ import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import javafx.beans.property.ObjectProperty
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import org.controlsfx.control.PopOver
@@ -27,8 +25,8 @@ import tornadofx.*
  * Time: 22:14
  */
 class GameView : GamedexView("Games") {
-    private val gameContorller: GameController by di()
-    private val libraryContorller: LibraryController by di()
+    private val gameController: GameController by di()
+    private val libraryController: LibraryController by di()
     private val preferences: AllPreferences by di()
 
     private val gameWallView: GameWallView by inject()
@@ -37,16 +35,16 @@ class GameView : GamedexView("Games") {
     override fun ToolBar.constructToolbar() {
         // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
         val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
-            platform != Platform.excluded && libraryContorller.libraries.any { it.platform == platform }
+            platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
         }
 
-        platformComboBox(gameContorller.sortedFilteredGames.platformFilterProperty, platformsWithLibraries)
+        platformComboBox(gameController.sortedFilteredGames.platformFilterProperty, platformsWithLibraries)
 
         verticalSeparator()
 
         label("Genres:")
-        val possibleGenres = gameContorller.genres.sorted().let { listOf("") + it }
-        combobox(gameContorller.sortedFilteredGames.genreFilterProperty, possibleGenres) {
+        val possibleGenres = gameController.genres.sorted().let { listOf("") + it }
+        combobox(gameController.sortedFilteredGames.genreFilterProperty, possibleGenres) {
             selectionModel.select(0)
         }
 
@@ -55,7 +53,7 @@ class GameView : GamedexView("Games") {
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
             promptText = "Search"
             left = FontAwesome.Glyph.SEARCH.toGraphic()
-            gameContorller.sortedFilteredGames.searchQueryProperty.bind(textProperty())
+            gameController.sortedFilteredGames.searchQueryProperty.bind(textProperty())
         }
         items += search
 
@@ -63,9 +61,9 @@ class GameView : GamedexView("Games") {
 
         // TODO: This is only relevant for the game wall view, make it support adding stuff to the toolbar
         label("Sort:")
-        enumComboBox(gameContorller.sortedFilteredGames.sortProperty)
+        enumComboBox(gameController.sortedFilteredGames.sortProperty)
         jfxButton {
-            graphicProperty().bind(gameContorller.sortedFilteredGames.sortOrderProperty.mapProperty { it!!.toGraphic() })
+            graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.mapProperty { it!!.toGraphic() })
             setOnAction {
                 preferences.gameWall.sortOrderProperty.toggle()
             }
@@ -76,7 +74,7 @@ class GameView : GamedexView("Games") {
         verticalSeparator()
 
         label {
-            textProperty().bind(gameContorller.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
+            textProperty().bind(gameController.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
         }
 
         verticalSeparator()
@@ -90,7 +88,7 @@ class GameView : GamedexView("Games") {
             isDefaultButton = true
             graphic = FontAwesome.Glyph.REFRESH.toGraphic()
             setOnAction {
-                val task = gameContorller.refreshGames()
+                val task = gameController.refreshGames()
                 disableProperty().cleanBind(task.runningProperty)
             }
         }
@@ -103,10 +101,10 @@ class GameView : GamedexView("Games") {
                 contentNode = vbox(spacing = 5.0) {
                     paddingAll = 5
                     jfxButton("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
-                        addClass(Style.extraButton)
+                        addClass(CommonStyle.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = gameContorller.cleanup()
+                            val task = gameController.cleanup()
                             disableProperty().cleanBind(task.runningProperty)
                         }
                     }
@@ -114,10 +112,10 @@ class GameView : GamedexView("Games") {
                     separator()
 
                     jfxButton("Re-Fetch Games", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) {
-                        addClass(Style.extraButton)
+                        addClass(CommonStyle.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = gameContorller.refetchAllGames()
+                            val task = gameController.refetchAllGames()
                             if (task != null) {
                                 disableProperty().cleanBind(task.runningProperty)
                             }
@@ -168,25 +166,6 @@ class GameView : GamedexView("Games") {
             menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(game()) }
             separator()
             menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
-        }
-
-        class Style : Stylesheet() {
-            companion object {
-                val extraButton by cssclass()
-
-                init {
-                    importStylesheet(Style::class)
-                }
-            }
-
-            init {
-                extraButton {
-                    prefWidth = 140.px
-                    contentDisplay = ContentDisplay.RIGHT
-                    alignment = Pos.CENTER_RIGHT
-                    graphicTextGap = 6.px
-                }
-            }
         }
     }
 }
