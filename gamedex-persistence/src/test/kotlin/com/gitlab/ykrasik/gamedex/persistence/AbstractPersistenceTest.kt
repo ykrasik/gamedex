@@ -11,16 +11,15 @@ import io.kotlintest.TestCaseContext
  * Time: 13:48
  */
 abstract class AbstractPersistenceTest : ScopedWordSpec() {
-    val initializer = DbInitializer(PersistenceConfig(
+    val persistenceService = PersistenceServiceImpl(PersistenceConfig(
         dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
         driver = "org.h2.Driver",
         user = "sa",
         password = ""
     ))
-    val persistenceService = PersistenceServiceImpl(initializer)
 
     override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
-        initializer.reload()
+        persistenceService.dropDb()
         test()
     }
 
@@ -44,8 +43,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             lastModified = randomDateTime()
         )
 
-        fun randomRawGameData() = RawGameData(
-            providerData = ProviderData(
+        fun randomProviderData() = ProviderData(
+            header = ProviderHeader(
                 type = randomEnum<GameProviderType>(),
                 apiUrl = randomUrl(),
                 siteUrl = randomUrl()
@@ -72,7 +71,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
             persistenceService.insertGame(
                 metaData = randomMetaData(library, path),
-                rawGameData = listOf(randomRawGameData(), randomRawGameData()),
+                providerData = listOf(randomProviderData(), randomProviderData()),
                 userData = null // FIXME: Test this.
             )
     }

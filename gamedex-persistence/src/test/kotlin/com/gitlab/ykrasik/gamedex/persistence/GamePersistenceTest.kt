@@ -17,12 +17,12 @@ class GamePersistenceTest : AbstractPersistenceTest() {
         "Game persistence insert" should {
             "insert and retrieve a single game".inLazyScope({ GameScope() }) {
                 val metaData = randomMetaData()
-                val providerData = listOf(randomRawGameData(), randomRawGameData())
+                val providerData = listOf(randomProviderData(), randomProviderData())
 
-                val game = persistenceService.insertGame(metaData, providerData)
+                val game = persistenceService.insertGame(metaData, providerData, userData = null)   // FIXME: Test!
 
                 game.metaData shouldBe metaData
-                game.rawGameData shouldBe providerData
+                game.providerData shouldBe providerData
                 game.userData shouldBe null
 
                 persistenceService.fetchAllGames() shouldBe listOf(game)
@@ -67,7 +67,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
         "Game persistence update" should {
             "update game data".inLazyScope({ GameScope() }) {
                 val game = givenGameExists()
-                val updatedGame = game.copy(rawGameData = listOf(randomRawGameData()))
+                val updatedGame = game.copy(providerData = listOf(randomProviderData()))
 
                 persistenceService.updateGame(updatedGame)
 

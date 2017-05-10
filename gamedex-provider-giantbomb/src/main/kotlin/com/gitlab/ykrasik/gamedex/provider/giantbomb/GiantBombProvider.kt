@@ -34,7 +34,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         apiUrl = apiDetailUrl
     )
 
-    override fun fetch(apiUrl: String, platform: Platform): RawGameData {
+    override fun fetch(apiUrl: String, platform: Platform): ProviderData {
         log.debug("[$platform] Fetching: $apiUrl...")
         val response = client.fetch(apiUrl)
         assertOk(response.statusCode)
@@ -42,13 +42,13 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         // When result is found - GiantBomb returns a Json object.
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
-        val gameData = response.results.first().toRawGameData(apiUrl)
+        val gameData = response.results.first().toProviderData(apiUrl)
         log.debug("[$platform] Result: $gameData.")
         return gameData
     }
 
-    private fun GiantBombClient.DetailsResult.toRawGameData(apiUrl: String) = RawGameData(
-        providerData = ProviderData(
+    private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
+        header = ProviderHeader(
             type = GameProviderType.GiantBomb,
             apiUrl = apiUrl,
             siteUrl = this.siteDetailUrl

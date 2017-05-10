@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex
 
 import com.gitlab.ykrasik.gamedex.module.ConfigModule
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.persistence.DbInitializer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
@@ -50,9 +49,8 @@ object TestMain {
         val numGames = 1000
 
         val guice = GuiceDiContainer(listOf(PersistenceModule, ConfigModule))
-        guice.getInstance(DbInitializer::class).reload()
-        
         val persistenceService = guice.getInstance(PersistenceService::class)
+        persistenceService.dropDb()
 
         persistenceService.insertLibrary(
             path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(Platform.pc, "Test Games")
@@ -66,10 +64,10 @@ object TestMain {
                     val providerTypes = mutableListOf(*GameProviderType.values())
                     persistenceService.insertGame(
                         metaData = randomMetaData(),
-                        rawGameData = List(rnd.nextInt(GameProviderType.values().size + 1)) {
+                        providerData = List(rnd.nextInt(GameProviderType.values().size + 1)) {
                             val type = providerTypes.randomElement()
                             providerTypes -= type
-                            randomRawGameData(type)
+                            randomProviderData(type)
                         },
                         userData = null
                     )
@@ -79,13 +77,13 @@ object TestMain {
         executor.shutdownNow()
     }
 
-    private fun randomRawGameData(type: GameProviderType) = RawGameData(
-        providerData = randomProviderData(type),
+    private fun randomProviderData(type: GameProviderType) = ProviderData(
+        header = randomProviderHeader(type),
         gameData = randomGameData(),
         imageUrls = imageUrls(type)
     )
 
-    private fun randomProviderData(type: GameProviderType) = ProviderData(
+    private fun randomProviderHeader(type: GameProviderType) = ProviderHeader(
         type = type,
         apiUrl = apiUrl(type),
         siteUrl = randomUrl()

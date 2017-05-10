@@ -59,7 +59,7 @@ class LibraryScanner @Inject constructor(
         val providerData = providerService.search(directory.name, library.platform, directory, progress, isSearchAgain = false) ?: return null
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
-            rawGameData = providerData,
+            providerData = providerData,
             userData = null
         )
     }

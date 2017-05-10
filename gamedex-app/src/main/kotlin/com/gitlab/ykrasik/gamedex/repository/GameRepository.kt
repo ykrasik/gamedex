@@ -53,29 +53,27 @@ class GameRepository @Inject constructor(
         return games.observable()
     }
 
-    suspend fun add(request: AddGameRequest) {
-        run(CommonPool) {
-            val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData, request.userData)
-            val game = rawGame.toGame()
-            run(JavaFx) {
-                games += game
-            }
+    suspend fun add(request: AddGameRequest) = run(CommonPool) {
+        val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+        val game = rawGame.toGame()
+        run(JavaFx) {
+            games += game
         }
+        game
     }
 
-    suspend fun addAll(requests: List<AddGameRequest>, progress: TaskProgress) {
-        run(CommonPool) {
-            val games = requests.mapIndexed { i, request ->
-                progress.progress(i, requests.size - 1)
-                progress.message = "Writing '${request.metaData.path.name}..."
-                val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.rawGameData, request.userData)
-                rawGame.toGame()
-            }
-            run(JavaFx) {
-                progress.message = "Updating UI..."
-                this.games += games
-            }
+    suspend fun addAll(requests: List<AddGameRequest>, progress: TaskProgress) = run(CommonPool) {
+        val games = requests.mapIndexed { i, request ->
+            progress.progress(i, requests.size - 1)
+            progress.message = "Writing '${request.metaData.path.name}..."
+            val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+            rawGame.toGame()
         }
+        run(JavaFx) {
+            progress.message = "Updating UI..."
+            this.games += games
+        }
+        games
     }
 
     suspend fun update(newRawGame: RawGame) = run(JavaFx) {
@@ -115,6 +113,6 @@ class GameRepository @Inject constructor(
 
 data class AddGameRequest(
     val metaData: MetaData,
-    val rawGameData: List<RawGameData>,
+    val providerData: List<ProviderData>,
     val userData: UserData?
 )

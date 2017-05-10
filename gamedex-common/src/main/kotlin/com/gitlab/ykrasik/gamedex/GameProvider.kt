@@ -14,7 +14,7 @@ interface GameProvider {
 
     fun search(name: String, platform: Platform): List<ProviderSearchResult>
 
-    fun fetch(apiUrl: String, platform: Platform): RawGameData
+    fun fetch(apiUrl: String, platform: Platform): ProviderData
 }
 
 enum class GameProviderType {

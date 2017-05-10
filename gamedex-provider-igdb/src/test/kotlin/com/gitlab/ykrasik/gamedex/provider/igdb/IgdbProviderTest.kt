@@ -114,8 +114,8 @@ class IgdbProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
 
-                fetch(baseUrl) shouldBe RawGameData(
-                    providerData = ProviderData(
+                fetch(baseUrl) shouldBe ProviderData(
+                    header = ProviderHeader(
                         type = GameProviderType.Igdb,
                         apiUrl = baseUrl,
                         siteUrl = detailsResult.url

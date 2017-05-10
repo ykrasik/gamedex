@@ -15,7 +15,7 @@ data class Game(
     val rawGame: RawGame,
     val library: Library,
     private val gameData: GameData,
-    val providerData: List<ProviderData>,
+    val providerHeaders: List<ProviderHeader>,
     val imageUrls: ImageUrls
 ) {
     val id get() = rawGame.id
@@ -43,13 +43,12 @@ data class Game(
 data class RawGame(
     val id: Int,
     val metaData: MetaData,
-    val rawGameData: List<RawGameData>,
+    val providerData: List<ProviderData>,
     val userData: UserData?
 )
 
-// TODO: Need a better name for this... providerData?
-data class RawGameData(
-    val providerData: ProviderData,
+data class ProviderData(
+    val header: ProviderHeader,
     val gameData: GameData,
     val imageUrls: ImageUrls
 )
@@ -63,8 +62,7 @@ data class GameData(
     val genres: List<String>
 )
 
-// TODO: Maybe rename to providerHeader?
-data class ProviderData(
+data class ProviderHeader(
     val type: GameProviderType,
     val apiUrl: String,
     val siteUrl: String

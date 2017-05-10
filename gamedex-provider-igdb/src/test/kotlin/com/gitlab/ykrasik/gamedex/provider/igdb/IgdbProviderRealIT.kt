@@ -28,8 +28,8 @@ class IgdbProviderRealIT : ScopedWordSpec() {
             }
 
             "fetch game details" {
-                provider.fetch(apiUrl, Platform.pc) shouldBe RawGameData(
-                    providerData = ProviderData(
+                provider.fetch(apiUrl, Platform.pc) shouldBe ProviderData(
+                    header = ProviderHeader(
                         type = GameProviderType.Igdb,
                         apiUrl = apiUrl,
                         siteUrl = url

@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.RawGameData
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
@@ -67,7 +67,7 @@ class GameTasks @Inject constructor(
     }
 
     private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
-        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerData, progress)
+        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerHeaders, progress)
         updateGame(game, newRawGameData)
     }
 
@@ -77,7 +77,7 @@ class GameTasks @Inject constructor(
 
         override suspend fun doRun(context: CoroutineContext) {
             // Operate on a copy of the games to avoid concurrent modifications
-            val gamesToRetry = gameRepository.games.filter { it.rawGame.rawGameData.size < providerRepository.providers.size }
+            val gamesToRetry = gameRepository.games.filter { it.rawGame.providerData.size < providerRepository.providers.size }
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
@@ -158,8 +158,8 @@ class GameTasks @Inject constructor(
         return true
     }
 
-    private suspend fun updateGame(game: Game, newRawGameData: List<RawGameData>) {
-        val newRawGame = game.rawGame.copy(rawGameData = newRawGameData)
+    private suspend fun updateGame(game: Game, providerData: List<ProviderData>) {
+        val newRawGame = game.rawGame.copy(providerData = providerData)
         gameRepository.update(newRawGame)
     }
 }

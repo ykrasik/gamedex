@@ -102,15 +102,15 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                     detailsLabel("URL")
                     gridpane {
                         hgap = 7.0
-                        game.providerData.forEach { providerData ->
+                        game.providerHeaders.forEach { header ->
                             row {
                                 imageview {
                                     fitHeight = 30.0
                                     fitWidth = 30.0
-                                    image = providerRepository.logo(providerData)
+                                    image = providerRepository.logo(header)
                                 }
-                                hyperlink(providerData.siteUrl) {
-                                    setOnAction { providerData.siteUrl.browseToUrl() }
+                                hyperlink(header.siteUrl) {
+                                    setOnAction { header.siteUrl.browseToUrl() }
                                 }
                             }
                         }

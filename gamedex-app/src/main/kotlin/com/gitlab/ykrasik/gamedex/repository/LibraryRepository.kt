@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
-import javafx.beans.property.SimpleListProperty
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -20,26 +19,34 @@ import javax.inject.Singleton
  * Time: 19:47
  */
 @Singleton
-class LibraryRepository @Inject constructor(
-    private val persistenceService: PersistenceService
-) {
+class LibraryRepository @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    val libraries: ObservableList<Library> = run {
+    val libraries: ObservableList<Library> = fetchAllLibraries()
+
+    private fun fetchAllLibraries(): ObservableList<Library> {
         log.info("Fetching libraries...")
-        val libraries = SimpleListProperty(persistenceService.fetchAllLibraries().observable())
+        val libraries = persistenceService.fetchAllLibraries()
         log.info("Fetched ${libraries.size} libraries.")
-        libraries
+        return libraries.observable()
     }
 
-    suspend fun add(request: AddLibraryRequest): Library {
-        val library = run(CommonPool) {
-            persistenceService.insertLibrary(request.path, request.data)
-        }
+    suspend fun add(request: AddLibraryRequest) = run(CommonPool) {
+        val library = persistenceService.insertLibrary(request.path, request.data)
         run(JavaFx) {
             libraries += library
         }
-        return library
+        library
+    }
+
+    suspend fun addAll(requests: List<AddLibraryRequest>) = run(CommonPool) {
+        val libraries = requests.map { request ->
+            persistenceService.insertLibrary(request.path, request.data)
+        }
+        run(JavaFx) {
+            this.libraries += libraries
+        }
+        libraries
     }
 
     suspend fun delete(library: Library) {
@@ -51,6 +58,11 @@ class LibraryRepository @Inject constructor(
             check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
         }
         log.info("Deleting '${library.name}': Done.")
+    }
+
+    suspend fun invalidate() = run(JavaFx) {
+        // Re-fetch all libraries from persistence
+        libraries.setAll(fetchAllLibraries())
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")

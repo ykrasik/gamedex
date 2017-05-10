@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.GameProviderType
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
 import com.gitlab.ykrasik.gamedex.ui.mapProperty
 import com.gitlab.ykrasik.gamedex.ui.toImage
@@ -37,8 +37,8 @@ class GameProviderRepository @Inject constructor(
     private val providerLogos = providersByType.mapValues { it.value.logo.toImage() }
 
     operator fun get(type: GameProviderType) = providersByType[type]!!
-    operator fun get(providerData: ProviderData) = get(providerData.type)
+    operator fun get(header: ProviderHeader) = get(header.type)
 
     fun logo(type: GameProviderType) = providerLogos[type]!!
-    fun logo(providerData: ProviderData) = logo(providerData.type)
+    fun logo(header: ProviderHeader) = logo(header.type)
 }

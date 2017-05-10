@@ -25,10 +25,10 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         return results
     }
 
-    override fun fetch(apiUrl: String, platform: Platform): RawGameData {
+    override fun fetch(apiUrl: String, platform: Platform): ProviderData {
         log.debug("[$platform] Fetching: $apiUrl...")
         val fetchResult = client.fetch(apiUrl)
-        val gameData = fetchResult.toRawGameData(apiUrl, platform)
+        val gameData = fetchResult.toProviderData(apiUrl, platform)
         log.debug("[$platform] Result: $gameData.")
         return gameData
     }
@@ -53,8 +53,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(thumbnailImageType)
     )
 
-    private fun IgdbClient.DetailsResult.toRawGameData(apiUrl: String, platform: Platform) = RawGameData(
-        providerData = ProviderData(
+    private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
+        header = ProviderHeader(
             type = GameProviderType.Igdb,
             apiUrl = apiUrl,
             siteUrl = this.url

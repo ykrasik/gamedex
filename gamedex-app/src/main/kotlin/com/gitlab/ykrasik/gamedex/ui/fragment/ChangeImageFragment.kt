@@ -50,8 +50,8 @@ class ChangeImageFragment(
             hbox {
                 paddingTop = 20.0
                 var needSeparator = false
-                game.rawGame.rawGameData.forEach { rawGameData ->
-                    imageUrlExtractor(rawGameData.imageUrls)?.let { imageUrl ->
+                game.rawGame.providerData.forEach { providerData ->
+                    imageUrlExtractor(providerData.imageUrls)?.let { imageUrl ->
                         if (needSeparator) {
                             verticalSeparator(padding = 20.0)
                         }
@@ -62,11 +62,11 @@ class ChangeImageFragment(
                                 alignment = Pos.CENTER
                                 fitHeight = 120.0
                                 fitWidth = 120.0
-                                image = providerRepository.logo(rawGameData.providerData)
+                                image = providerRepository.logo(providerData.header)
                             }
                             toggleChoice {
                                 isSelected = imageUrlExtractor(game.imageUrls) == imageUrl
-                                userData = Choice.Select(GameDataOverride.Provider(rawGameData.providerData.type))
+                                userData = Choice.Select(GameDataOverride.Provider(providerData.header.type))
                                 graphic = imageDisplay(thumbnailProperty)
                             }
                         }

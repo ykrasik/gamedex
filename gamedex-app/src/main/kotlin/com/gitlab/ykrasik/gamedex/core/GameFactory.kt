@@ -25,13 +25,13 @@ class GameFactory @Inject constructor(
         val library = libraryRepository[rawGame.metaData.libraryId]
         val gameData = rawGame.toGameData()
         val imageUrls = rawGame.toImageUrls()
-        val providerData = rawGame.toProviderData()
+        val providerHeaders = rawGame.toProviderHeaders()
 
         return Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
-            providerData = providerData,
+            providerHeaders = providerHeaders,
             imageUrls = imageUrls
         )
     }
@@ -63,10 +63,10 @@ class GameFactory @Inject constructor(
         )
     }
 
-    private fun RawGame.toProviderData(): List<ProviderData> = this.rawGameData.map { it.providerData }
+    private fun RawGame.toProviderHeaders(): List<ProviderHeader> = this.providerData.map { it.header }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (RawGameData) -> T?): T? =
+    private fun <T> RawGame.firstBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (ProviderData) -> T?): T? =
         when (override) {
             is GameDataOverride.Custom -> override.data as T
             else -> {
@@ -76,7 +76,7 @@ class GameFactory @Inject constructor(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.listBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (RawGameData) -> List<T>): List<T> =
+    private fun <T> RawGame.listBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.data as List<T>
             else -> {
@@ -86,15 +86,15 @@ class GameFactory @Inject constructor(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (RawGameData) -> List<T>): List<T> =
+    private fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.data as List<T>
-            else -> rawGameData.flatMap(extractor)
+            else -> providerData.flatMap(extractor)
         }
 
-    private fun RawGame.sortDataBy(order: DefaultProviderOrder, override: GameDataOverride.Provider?): List<RawGameData> =
-        rawGameData.sortedByDescending {
-            val type = it.providerData.type
+    private fun RawGame.sortDataBy(order: DefaultProviderOrder, override: GameDataOverride.Provider?): List<ProviderData> =
+        providerData.sortedByDescending {
+            val type = it.header.type
             if (type == override?.provider) {
                 DefaultProviderOrder.maxPriority + 1
             } else {
@@ -102,7 +102,7 @@ class GameFactory @Inject constructor(
             }
         }
 
-    private fun <T> List<RawGameData>.findFirst(extractor: (RawGameData) -> T?): T? =
+    private fun <T> List<ProviderData>.findFirst(extractor: (ProviderData) -> T?): T? =
         this.asSequence().map(extractor).firstNotNull()
 
     private fun processGenre(genre: String): List<String> = when (genre) {

@@ -76,8 +76,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                fetch(apiDetailUrl) shouldBe RawGameData(
-                    providerData = ProviderData(
+                fetch(apiDetailUrl) shouldBe ProviderData(
+                    header = ProviderHeader(
                         type = GameProviderType.GiantBomb,
                         apiUrl = apiDetailUrl,
                         siteUrl = detailsResult.siteDetailUrl

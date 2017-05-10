@@ -20,9 +20,9 @@ import javax.inject.Singleton
  */
 interface GameProviderService {
     // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
-    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<RawGameData>?
+    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<ProviderData>?
 
-    fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData>
+    fun fetch(name: String, platform: Platform, providerHeaders: List<ProviderHeader>, progress: TaskProgress): List<ProviderData>
 }
 
 @Singleton
@@ -34,7 +34,7 @@ class GameProviderServiceImpl @Inject constructor(
 
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
-    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<RawGameData>? =
+    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<ProviderData>? =
         try {
             SearchContext(platform, path, progress, isSearchAgain, name.normalizeName()).search()
         } catch (e: CancelSearchException) {
@@ -56,7 +56,7 @@ class GameProviderServiceImpl @Inject constructor(
         private var userExactMatch: String? = null
 
         // TODO: Support a back button somehow, it's needed...
-        suspend fun search(): List<RawGameData> {
+        suspend fun search(): List<ProviderData> {
             val results = providerRepository.providers.map { it to search(it) }
 
             progress.message = "Downloading game data..."
@@ -128,11 +128,11 @@ class GameProviderServiceImpl @Inject constructor(
         }
     }
 
-    override fun fetch(name: String, platform: Platform, providerData: List<ProviderData>, progress: TaskProgress): List<RawGameData> =
-        providerData.map { providerData ->
-            val provider = providerRepository[providerData]
+    override fun fetch(name: String, platform: Platform, providerHeaders: List<ProviderHeader>, progress: TaskProgress): List<ProviderData> =
+        providerHeaders.map { header ->
+            val provider = providerRepository[header]
             progress.message = "[${provider.name}][$platform] Fetching '$name'..."
-            val result = provider.fetch(providerData.apiUrl, platform)
+            val result = provider.fetch(header.apiUrl, platform)
             progress.message = "[${provider.name}][$platform] Fetching '$name'...: Done."
             result
         }

@@ -17,12 +17,14 @@ import javax.sql.rowset.serial.SerialBlob
  * Time: 15:10
  */
 interface PersistenceService {
+    fun dropDb()
+
     fun fetchAllLibraries(): List<Library>
     fun insertLibrary(path: File, data: LibraryData): Library
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
-    fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>, userData: UserData?): RawGame
+    fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame
     fun updateGame(rawGame: RawGame): Unit
     fun deleteGame(id: Int)
 
@@ -31,11 +33,28 @@ interface PersistenceService {
 }
 
 @Singleton
-class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : PersistenceService {
+class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : PersistenceService {
     private val log = logger()
+    private val tables = arrayOf(Libraries, Games, Images)
 
     init {
-        initializer.create()
+        log.debug("Connection url: ${config.dbUrl}")
+        Database.connect(config.dbUrl, config.driver, config.user, config.password)
+
+        create()
+    }
+
+    private fun create() = transaction {
+        SchemaUtils.create(*tables)
+    }
+
+    private fun drop() = transaction {
+        SchemaUtils.drop(*tables)
+    }
+
+    override fun dropDb() = transaction {
+        drop()
+        create()
     }
 
     override fun fetchAllLibraries(): List<Library> = transaction {
@@ -79,7 +98,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
                     lastModified = it[Games.lastModified],
                     libraryId = it[Games.libraryId].value
                 ),
-                rawGameData = it[Games.providerData].listFromJson(),
+                providerData = it[Games.providerData].listFromJson(),
                 userData = it[Games.userData]?.fromJson()
             )
         }
@@ -87,18 +106,18 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
         games
     }
 
-    override fun insertGame(metaData: MetaData, rawGameData: List<RawGameData>, userData: UserData?): RawGame = transaction {
-        log.trace("Inserting game: metaData=$metaData, rawGameData=$rawGameData...")
+    override fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame = transaction {
+        log.trace("Inserting game: metaData=$metaData, rawGameData=$providerData...")
 
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
             it[Games.path] = metaData.path.path
             it[Games.lastModified] = metaData.lastModified
-            it[Games.providerData] = rawGameData.toJsonStr()
+            it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, rawGameData = rawGameData, userData = userData)
+        val game = RawGame(id = id, metaData = metaData, providerData = providerData, userData = userData)
         log.trace("Result: $game.")
         game
     }
@@ -108,7 +127,7 @@ class PersistenceServiceImpl @Inject constructor(initializer: DbInitializer) : P
             it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
             it[Games.path] = rawGame.metaData.path.path
             it[Games.lastModified] = rawGame.metaData.lastModified
-            it[Games.providerData] = rawGame.rawGameData.toJsonStr()
+            it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
         }
         require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!"}

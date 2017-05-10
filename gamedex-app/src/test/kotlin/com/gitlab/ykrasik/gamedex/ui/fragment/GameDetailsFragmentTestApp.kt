@@ -14,7 +14,7 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             rawGame = RawGame(
                 id = rnd.nextInt(),
                 metaData = randomMetaData(),
-                rawGameData = emptyList(),
+                providerData = emptyList(),
                 userData = null
             ),
             library = Library(
@@ -26,7 +26,7 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
                 )
             ),
             gameData = randomGameData(),
-            providerData = randomProviderData(),
+            providerHeaders = randomProviderHeaders(),
             imageUrls = ImageUrls(
                 thumbnailUrl = randomUrl(),
                 posterUrl = randomUrl(),

@@ -1,19 +1,24 @@
 package com.gitlab.ykrasik.gamedex.controller
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GamedexTask
+import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import tornadofx.Controller
+import tornadofx.FileChooserMode
 import tornadofx.chooseFile
 import java.io.File
 import javax.inject.Inject
@@ -28,7 +33,8 @@ import kotlin.coroutines.experimental.CoroutineContext
 @Singleton
 class SettingsController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val libraryRepository: LibraryRepository
+    private val libraryRepository: LibraryRepository,
+    private val persistenceService: PersistenceService
 ) : Controller() {
 
     private val objectMapper = ObjectMapper()
@@ -37,28 +43,31 @@ class SettingsController @Inject constructor(
         .configure(WRITE_DATES_AS_TIMESTAMPS, true)
 
     fun exportDatabase() {
-        val file = browse() ?: return
+        val file = browse(FileChooserMode.Save) ?: return
         ExportDatabaseTask(file).start()
     }
 
     fun importDatabase() {
-        // TODO: Delete existing db before.
-        val file = browse() ?: return
+        val file = browse(FileChooserMode.Single) ?: return
+        if (!areYouSureDialog("This will overwrite the existing database.")) return
         ImportDatabaseTask(file).start()
     }
 
-    private fun browse(): File? {
-        val file = chooseFile("Choose database file...", filters = emptyArray())
+    private fun browse(mode: FileChooserMode): File? {
+        val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
+            initialDirectory = ".".toFile()
+            initialFileName = "db.json"
+        }
         return file.firstOrNull()
     }
 
     // TODO: This isn't actually cancellable.
     inner class ExportDatabaseTask(private val file: File) : GamedexTask("Exporting Database...") {
         suspend override fun doRun(context: CoroutineContext) {
-            val libraries = libraryRepository.libraries.map { it.serialize() }
-            val games = gameRepository.games.mapIndexed {i, game ->
+            val libraries = libraryRepository.libraries.map { it.toPortable() }
+            val games = gameRepository.games.mapIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
-                game.serialize()
+                game.toPortable()
             }
 
             progress.message = "Writing file..."
@@ -72,18 +81,20 @@ class SettingsController @Inject constructor(
     }
 
     // TODO: This isn't actually cancellable.
+    // TODO: Will this be faster if multithreaded?
     inner class ImportDatabaseTask(private val file: File) : GamedexTask("Importing Database...") {
         private var importedGames = 0
 
         suspend override fun doRun(context: CoroutineContext) {
             val portableDb = objectMapper.readValue(file, PortableDb::class.java)
+            persistenceService.dropDb()
+            libraryRepository.invalidate()
+            gameRepository.invalidate()
 
-            val libraries = portableDb.libraries
-                .map { it.deserializeLibrary() }
-                .map { libraryRepository.add(it) }
-                .associateBy { it.path.toString() to it.platform }
+            val libraries = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() })
+                .associateBy { it.path }
 
-            val requests = portableDb.games.map { game -> game.deserializeGame(libraries) }
+            val requests = portableDb.games.map { it.toGameRequest(libraries) }
 
             progress.message = "Writing DB..."
             gameRepository.addAll(requests, progress)
@@ -96,108 +107,166 @@ class SettingsController @Inject constructor(
     }
 
     private data class PortableDb(
-        val libraries: List<Map<String, Any?>>,
-        val games: List<Map<String, Any?>>
+        val libraries: List<PortableLibrary>,
+        val games: List<PortableGame>
     )
 
-    private fun Library.serialize() = filterNulls(
-        "path" to path.toString(),
-        "platform" to platform.toString(),
-        "name" to name
-    )
-
-    private fun Map<String, Any?>.deserializeLibrary() = AddLibraryRequest(
-        path = get_("path").toFile(),
-        data = LibraryData(
-            platform = Platform(get_("platform")),
-            name = get_("name")
-        )
-    )
-
-    private fun Game.serialize() = metaData.serialize(this) + filterNulls(
-        "providerData" to rawGame.rawGameData.map { it.serialize() },
-        "userData" to userData
-    )
-
-    @Suppress("UNCHECKED_CAST")
-    private fun Map<String, Any?>.deserializeGame(libraries: Map<Pair<String, Platform>, Library>) = AddGameRequest(
-        metaData = deserializeMetaData(libraries),
-        rawGameData = (get("providerData")!! as List<Map<String, Any?>>).apply { println(this) }.map { it.deserializeRawGameData() },
-        userData = get("userData")?.let { userData ->
-            objectMapper.readValue(objectMapper.writeValueAsString(userData), UserData::class.java)
-        }
-    )
-
-    private fun MetaData.serialize(game: Game) = filterNulls(
-        "path" to path.toString(),
-        "lastModified" to lastModified,
-        "libraryPath" to game.library.path,
-        "platform" to game.platform.toString()
-    )
-
-    private fun Map<String, Any?>.deserializeMetaData(libraries: Map<Pair<String, Platform>, Library>): MetaData {
-        val path = get_("libraryPath")
-        val platform = Platform(get_("platform"))
-        return MetaData(
-            libraryId = libraries[path to platform]!!.id,
-            path = get_("path").toFile(),
-            lastModified = DateTime(get("lastModified")!! as Long)
+    private data class PortableLibrary(
+        val path: String,
+        val platform: String,
+        val name: String
+    ) {
+        fun toLibraryRequest() = AddLibraryRequest(
+            path = path.toFile(),
+            data = LibraryData(
+                platform = Platform.valueOf(platform),
+                name = name
+            )
         )
     }
 
-    private fun RawGameData.serialize() = providerData.serialize() + gameData.serialize() + imageUrls.serialize()
-
-    private fun Map<String, Any?>.deserializeRawGameData() = RawGameData(
-        providerData = deserializeProviderData(),
-        gameData = deserializeGameData(),
-        imageUrls = deserializeImageUrls()
+    private fun Library.toPortable() = PortableLibrary(
+        path = path.toString(),
+        platform = platform.name,
+        name = name
     )
 
-    private fun ProviderData.serialize() = filterNulls(
-        "provider" to type.toString(),
-        "apiUrl" to apiUrl,
-        "siteUrl" to siteUrl
+    private data class PortableGame(
+        val path: String,
+        val lastModified: Long,
+        val libraryPath: String,
+        val platform: String,
+        val providerData: List<PortableProviderData>,
+        val userData: PortableUserData?
+    ) {
+        fun toGameRequest(libraries: Map<File, Library>) = AddGameRequest(
+            metaData = MetaData(
+                libraryId = libraries[libraryPath.toFile()]!!.id,
+                path = path.toFile(),
+                lastModified = DateTime(lastModified)
+            ),
+            providerData = providerData.map { it.toProviderData() },
+            userData = userData?.toUserData()
+        )
+    }
+
+    private fun Game.toPortable() = PortableGame(
+        path = path.toString(),
+        lastModified = lastModified.millis,
+        libraryPath = library.path.toString(),
+        platform = library.platform.name,
+        providerData = rawGame.providerData.map { it.toPortable() },
+        userData = userData?.toPortable()
     )
 
-    private fun Map<String, Any?>.deserializeProviderData() = ProviderData(
-        type = GameProviderType.valueOf(get_("provider")),
-        apiUrl = get_("apiUrl"),
-        siteUrl = get_("siteUrl")
+    private data class PortableProviderData(
+        val provider: String,
+        val apiUrl: String,
+        val siteUrl: String,
+        val name: String,
+        val description: String?,
+        val releaseDate: Long?,
+        val criticScore: Double?,
+        val userScore: Double?,
+        val genres: List<String>,
+        val thumbnailUrl: String?,
+        val posterUrl: String?,
+        val screenshotUrls: List<String>
+    ) {
+        fun toProviderData() = ProviderData(
+            header = ProviderHeader(
+                type = GameProviderType.valueOf(provider),
+                apiUrl = apiUrl,
+                siteUrl = siteUrl
+            ),
+            gameData = GameData(
+                name = name,
+                description = description,
+                releaseDate = releaseDate?.let { LocalDate(it) },
+                criticScore = criticScore,
+                userScore = userScore,
+                genres = genres
+            ),
+            imageUrls = ImageUrls(
+                thumbnailUrl = thumbnailUrl,
+                posterUrl = posterUrl,
+                screenshotUrls = screenshotUrls
+            )
+        )
+    }
+
+    private fun ProviderData.toPortable() = PortableProviderData(
+        provider = header.type.name,
+        apiUrl = header.apiUrl,
+        siteUrl = header.siteUrl,
+        name = gameData.name,
+        description = gameData.description,
+        criticScore = gameData.criticScore,
+        releaseDate = gameData.releaseDate?.toDateTimeAtStartOfDay()?.millis,
+        userScore = gameData.userScore,
+        genres = gameData.genres,
+        thumbnailUrl = imageUrls.thumbnailUrl,
+        posterUrl = imageUrls.posterUrl,
+        screenshotUrls = imageUrls.screenshotUrls
     )
 
-    private fun GameData.serialize() = filterNulls(
-        "name" to name,
-        "description" to description,
-        "releaseDate" to releaseDate?.toDateTimeAtStartOfDay(),
-        "criticScore" to criticScore,
-        "userScore" to userScore,
-        "genres" to genres
+    private data class PortableUserData(
+        val nameOverride: PortableGameDataOverride?,
+        val descriptionOverride: PortableGameDataOverride?,
+        val releaseDateOverride: PortableGameDataOverride?,
+        val criticScoreOverride: PortableGameDataOverride?,
+        val userScoreOverride: PortableGameDataOverride?,
+        val genresOverride: PortableGameDataOverride?,
+        val thumbnailOverride: PortableGameDataOverride?,
+        val posterOverride: PortableGameDataOverride?,
+        val screenshotsOverride: PortableGameDataOverride?
+    ) {
+        fun toUserData() = UserData(
+            overrides = GameDataOverrides(
+                name = nameOverride?.toOverride(),
+                description = descriptionOverride?.toOverride(),
+                releaseDate = releaseDateOverride?.toOverride(),
+                criticScore = criticScoreOverride?.toOverride(),
+                userScore = userScoreOverride?.toOverride(),
+                genres = genresOverride?.toOverride(),
+                thumbnail = thumbnailOverride?.toOverride(),
+                poster = posterOverride?.toOverride(),
+                screenshots = screenshotsOverride?.toOverride()
+            )
+        )
+    }
+
+    private fun UserData.toPortable() = PortableUserData(
+        nameOverride = overrides.name?.toPortable(),
+        descriptionOverride = overrides.description?.toPortable(),
+        releaseDateOverride = overrides.releaseDate?.toPortable(),
+        criticScoreOverride = overrides.criticScore?.toPortable(),
+        userScoreOverride = overrides.userScore?.toPortable(),
+        genresOverride = overrides.genres?.toPortable(),
+        thumbnailOverride = overrides.thumbnail?.toPortable(),
+        posterOverride = overrides.poster?.toPortable(),
+        screenshotsOverride = overrides.screenshots?.toPortable()
     )
 
-    @Suppress("UNCHECKED_CAST")
-    private fun Map<String, Any?>.deserializeGameData() = GameData(
-        name = get_("name"),
-        description = get("description")?.toString(),
-        releaseDate = (get("releaseDate") as? Long)?.let(::LocalDate),
-        criticScore = get("criticScore") as? Double,
-        userScore = get("userScore") as? Double,
-        genres = get("genres") as List<String>
+    private fun GameDataOverride.toPortable() = when(this)  {
+        is GameDataOverride.Provider -> PortableGameDataOverride.Provider(provider)
+        is GameDataOverride.Custom -> PortableGameDataOverride.Custom(data)
+    }
+    
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = PortableGameDataOverride.Provider::class, name = "provider"),
+        JsonSubTypes.Type(value = PortableGameDataOverride.Custom::class, name = "custom")
     )
+    private sealed class PortableGameDataOverride {
+        abstract fun toOverride(): GameDataOverride
 
-    private fun ImageUrls.serialize() = filterNulls(
-        "thumbnailUrl" to thumbnailUrl,
-        "posterUrl" to posterUrl,
-        "screenshotUrls" to screenshotUrls
-    )
+        data class Provider(val provider: GameProviderType) : PortableGameDataOverride() {
+            override fun toOverride() = GameDataOverride.Provider(provider)
+        }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun Map<String, Any?>.deserializeImageUrls() = ImageUrls(
-        thumbnailUrl = get("thumbnailUrl") as? String,
-        posterUrl = get("posterUrl") as? String,
-        screenshotUrls = get("screenshotUrls") as List<String>
-    )
-
-    private fun filterNulls(vararg values: Pair<String, Any?>) = values.filter { it.second != null }.toMap()
-
-    private fun Map<String, Any?>.get_(key: String) = get(key)!!.toString()
+        data class Custom(val data: Any) : PortableGameDataOverride() {
+            override fun toOverride() = GameDataOverride.Custom(data)
+        }
+    }
 }
