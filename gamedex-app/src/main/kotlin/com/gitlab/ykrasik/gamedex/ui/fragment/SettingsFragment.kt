@@ -82,6 +82,7 @@ class SettingsFragment : Fragment() {
                                 settingsController.importDatabase()
                             }
                         }
+                        // TODO: Add a 'purge images' button
                     }
                 }
             }

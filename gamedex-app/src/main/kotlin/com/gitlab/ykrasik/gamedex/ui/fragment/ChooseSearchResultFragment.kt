@@ -10,9 +10,11 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.HPos
 import javafx.geometry.Pos
-import javafx.geometry.Side
 import javafx.geometry.VPos
-import javafx.scene.control.*
+import javafx.scene.control.ButtonBar
+import javafx.scene.control.ContentDisplay
+import javafx.scene.control.TableCell
+import javafx.scene.control.TableView
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
@@ -162,16 +164,10 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                     defaultButtonProperty().bind(defaultButtonIsSearch.not())
 
                     setOnAction { close(okResult) }
-                    val menu = ContextMenu().apply {
-                        this.prefWidthProperty().bind(this@button.widthProperty())
+                    dropDownMenu {
+                        prefWidthProperty().bind(this@button.widthProperty())
                         menuitem("Not Exact Match") {
                             close(SearchChooser.Choice.NotExactMatch(tableView.selectedItem!!))
-                        }
-                    }
-
-                    setOnMouseEntered {
-                        if (!menu.isShowing) {
-                            menu.show(this, Side.BOTTOM, 0.0, 0.0)
                         }
                     }
                 }

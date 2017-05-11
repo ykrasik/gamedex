@@ -36,17 +36,15 @@ class GameController @Inject constructor(
         sortedFilteredGames.sortOrderProperty.bindBidirectional(preferences.gameWall.sortOrderProperty)
     }
 
+    // TODO: Since these are called from multiple places, consider placing the ui icons in one central place for consistency.
+    fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
     fun cleanup() = gameTasks.CleanupTask().apply { start() }
 
-    fun refreshGames() = gameTasks.RefreshGamesTask().apply { start() }
+    fun refreshAllGames() = gameTasks.RefreshAllGamesTask().apply { start() }
+    fun refreshGame(game: Game) = gameTasks.RefreshGameTask(game).apply { start() }
 
-    fun refetchAllGames() = gameTasks.RefetchAllGamesTask().apply { start() }
-
-    fun refetchGame(game: Game) = gameTasks.RefetchGameTask(game).apply { start() }
-
-    fun retryAllGames() = gameTasks.RetryAllGamesTask().apply { start() }
-
-    fun searchAgain(game: Game) = gameTasks.SearchAgainTask(game).apply { start() }
+    fun rediscoverAllGames() = gameTasks.RediscoverAllGamesTask().apply { start() }
+    fun rediscoverGame(game: Game) = gameTasks.RediscoverGameTask(game).apply { start() }
 
     fun changeThumbnail(game: Game) = changeImage(game, { g -> ChangeImageFragment.thumbnail(g) }, { o -> copy(thumbnail = o) })
     fun changePoster(game: Game) = changeImage(game, { g -> ChangeImageFragment.poster(g) }, { o -> copy(poster = o) })

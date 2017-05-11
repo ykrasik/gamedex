@@ -80,17 +80,16 @@ class GameView : GamedexView("Games") {
 
         verticalSeparator()
 
-        // TODO: Move this under the refresh button, as a drop down button.
-        checkbox("Hands Free Mode", preferences.game.handsFreeModeProperty)
-
-        verticalSeparator()
-
-        button("Refresh Games") {
+        button("Scan New Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
             isDefaultButton = true
-            graphic = FontAwesome.Glyph.REFRESH.toGraphic()
             setOnAction {
-                val task = gameController.refreshGames()
+                val task = gameController.scanNewGames()
                 disableProperty().cleanBind(task.runningProperty)
+            }
+            dropDownMenu {
+                checkmenuitem("Hands Free Mode") {
+                    selectedProperty().bindBidirectional(preferences.game.handsFreeModeProperty)
+                }
             }
         }
 
@@ -113,21 +112,21 @@ class GameView : GamedexView("Games") {
 
                     separator()
 
-                    jfxButton("Re-Fetch Games", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) {
+                    jfxButton("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
                         addClass(CommonStyle.extraButton)
                         setOnAction {
                             this@withPopover.hide()
-                            val task = gameController.refetchAllGames()
+                            val task = gameController.refreshAllGames()
                             disableProperty().cleanBind(task.runningProperty)
                         }
                     }
 
-                    jfxButton("Retry Games", graphic = FontAwesome.Glyph.RECYCLE.toGraphic()) {
+                    jfxButton("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
                         addClass(CommonStyle.extraButton)
-                        tooltip("Try searching for games that are missing providers")
+                        tooltip("Try searching games that are missing providers")
                         setOnAction {
                             this@withPopover.hide()
-                            val task = gameController.retryAllGames()
+                            val task = gameController.rediscoverAllGames()
                             disableProperty().cleanBind(task.runningProperty)
                         }
                     }
@@ -169,9 +168,8 @@ class GameView : GamedexView("Games") {
         inline fun EventTarget.gameContextMenu(controller: GameController, crossinline game: () -> Game) = contextmenu {
             menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(game()).show() }
             separator()
-            // TODO: Find better names - refresh, update, rediscover?
-            menuitem("Search Again", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.searchAgain(game()) }
-            menuitem("Re-fetch", graphic = FontAwesome.Glyph.RETWEET.toGraphic()) { controller.refetchGame(game()) }
+            menuitem("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) { controller.refreshGame(game()) }
+            menuitem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.rediscoverGame(game()) }
             separator()
             menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(game()) }
             menuitem("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { controller.changePoster(game()) }

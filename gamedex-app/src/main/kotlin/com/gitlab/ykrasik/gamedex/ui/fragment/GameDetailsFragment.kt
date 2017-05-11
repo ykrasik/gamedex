@@ -55,7 +55,7 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
                 jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.BLUE) }) {
                     addClass(Style.gameDetailsButton)
                     setOnAction {
-                        val task = gameController.refetchGame(game)
+                        val task = gameController.refreshGame(game)
                         disableProperty().cleanBind(task.runningProperty)
                     }
                 }
@@ -76,7 +76,7 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
                                 addClass(CommonStyle.extraButton)
                                 setOnAction {
                                     this@withPopover.hide()
-                                    val task = gameController.searchAgain(game)
+                                    val task = gameController.rediscoverGame(game)
                                     disableProperty().cleanBind(task.runningProperty)
                                 }
                             }

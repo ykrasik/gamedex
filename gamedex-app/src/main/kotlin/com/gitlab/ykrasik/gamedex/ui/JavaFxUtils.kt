@@ -18,6 +18,7 @@ import javafx.collections.transformation.TransformationList
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
+import javafx.geometry.Side
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.*
@@ -351,6 +352,7 @@ fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr
 fun EventTarget.jfxToggleNode(graphic: Node? = null, op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
     this.graphic = graphic
 }, op)
+
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
     opcr(this, JFXButton().apply {
         addClass(CommonStyle.jfxButton)
@@ -358,14 +360,17 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
         this.graphic = graphic
         this.buttonType = type
     }, op)
+
 fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
     addClass(CommonStyle.acceptButton)
     op?.invoke(this)
 }
+
 fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
     addClass(CommonStyle.cancelButton)
     op?.invoke(this)
 }
+
 fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
     if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()
     if (property != null) valueProperty().bindBidirectional(property)
@@ -430,4 +435,13 @@ fun Platform.toLogo() = when (this) {
     Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
     Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
     else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
+}
+
+fun Node.dropDownMenu(op: (ContextMenu.() -> Unit)? = null) = ContextMenu().apply {
+    this@dropDownMenu.setOnMouseEntered {
+        if (!isShowing) {
+            show(this@dropDownMenu, Side.BOTTOM, 0.0, 0.0)
+        }
+    }
+    op?.invoke(this)
 }

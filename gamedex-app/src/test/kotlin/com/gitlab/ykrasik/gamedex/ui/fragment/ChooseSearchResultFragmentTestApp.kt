@@ -5,8 +5,6 @@ import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.test.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
 
 /**
  * User: ykrasik
@@ -23,17 +21,15 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
             apiUrl = randomUrl()
         )
 
-        launch(CommonPool) {
-            val data = SearchChooser.Data(
-                name = randomName(),
-                path = randomFile(),
-                providerType = GameProviderType.GiantBomb,
-                results = List(10) { randomSearchResult() },
-                filteredResults = List(10) { randomSearchResult() }
-            )
-            println("Result: " + ChooseSearchResultFragment(data).show())
-            System.exit(0)
-        }
+        val data = SearchChooser.Data(
+            name = randomName(),
+            path = randomFile(),
+            providerType = GameProviderType.GiantBomb,
+            results = List(10) { randomSearchResult() },
+            filteredResults = List(10) { randomSearchResult() }
+        )
+        println("Result: " + ChooseSearchResultFragment(data).show())
+        System.exit(0)
     }
 
     @JvmStatic fun main(args: Array<String>) {}

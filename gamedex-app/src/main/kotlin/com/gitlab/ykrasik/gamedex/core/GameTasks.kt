@@ -22,7 +22,7 @@ class GameTasks @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService     // TODO: This class appears in too many places.
 ) {
-    inner class RefreshGamesTask : GamedexTask("Refreshing games...") {
+    inner class ScanNewGamesTask : GamedexTask("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun(context: CoroutineContext) {
@@ -34,62 +34,7 @@ class GameTasks @Inject constructor(
         }
 
         override fun finally() {
-            progress.message = "Done refreshing games: Added $numNewGames new games."
-        }
-    }
-
-    inner class RefetchAllGamesTask : GamedexTask("Re-fetching all games...") {
-        private var numRefetched = 0
-
-        override suspend fun doRun(context: CoroutineContext) {
-            // Operate on a copy of the games to avoid concurrent modifications
-            gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size - 1)
-
-                doRefetchGame(game, progress)
-                numRefetched += 1
-            }
-        }
-
-        override fun finally() {
-            progress.message = "Done: Re-fetched $numRefetched games."
-        }
-    }
-
-    inner class RefetchGameTask(private val game: Game) : GamedexTask("Re-fetching '${game.name}'...") {
-        override suspend fun doRun(context: CoroutineContext) {
-            doRefetchGame(game, progress)
-        }
-
-        override fun finally() {
-            progress.message = "Done."
-        }
-    }
-
-    private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
-        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerHeaders, progress)
-        updateGame(game, newRawGameData)
-    }
-
-    inner class RetryAllGamesTask : GamedexTask("Re-trying all games...") {
-        private var numRetried = 0
-        private var numSucceeded = 0
-
-        override suspend fun doRun(context: CoroutineContext) {
-            // Operate on a copy of the games to avoid concurrent modifications
-            val gamesToRetry = gameRepository.games.filter { it.rawGame.providerData.size < providerRepository.providers.size }
-            gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
-                progress.progress(i, gamesToRetry.size - 1)
-
-                if (doSearchAgain(game, progress)) {
-                    numSucceeded += 1
-                }
-                numRetried += 1
-            }
-        }
-
-        override fun finally() {
-            progress.message = "Done: Successfully retried $numSucceeded/$numRetried games."
+            progress.message = "Done: Added $numNewGames new games."
         }
     }
 
@@ -142,9 +87,27 @@ class GameTasks @Inject constructor(
         }
     }
 
-    inner class SearchAgainTask(private val game: Game) : GamedexTask("Searching '${game.name}'...") {
-        suspend override fun doRun(context: CoroutineContext) {
-            doSearchAgain(game, progress)
+    inner class RefreshAllGamesTask : GamedexTask("Refreshing all games...") {
+        private var numRefreshed = 0
+
+        override suspend fun doRun(context: CoroutineContext) {
+            // Operate on a copy of the games to avoid concurrent modifications
+            gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
+                progress.progress(i, gameRepository.games.size - 1)
+
+                doRefetchGame(game, progress)
+                numRefreshed += 1
+            }
+        }
+
+        override fun finally() {
+            progress.message = "Done: Refreshed $numRefreshed games."
+        }
+    }
+
+    inner class RefreshGameTask(private val game: Game) : GamedexTask("Refreshing '${game.name}'...") {
+        override suspend fun doRun(context: CoroutineContext) {
+            doRefetchGame(game, progress)
         }
 
         override fun finally() {
@@ -152,7 +115,44 @@ class GameTasks @Inject constructor(
         }
     }
 
-    private suspend fun doSearchAgain(game: Game, progress: TaskProgress): Boolean {
+    private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
+        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerHeaders, progress)
+        updateGame(game, newRawGameData)
+    }
+
+    inner class RediscoverAllGamesTask : GamedexTask("Rediscovering all games...") {
+        private var numRetried = 0
+        private var numSucceeded = 0
+
+        override suspend fun doRun(context: CoroutineContext) {
+            // Operate on a copy of the games to avoid concurrent modifications
+            val gamesToRetry = gameRepository.games.filter { it.rawGame.providerData.size < providerRepository.providers.size }
+            gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
+                progress.progress(i, gamesToRetry.size - 1)
+
+                if (doRediscover(game, progress)) {
+                    numSucceeded += 1
+                }
+                numRetried += 1
+            }
+        }
+
+        override fun finally() {
+            progress.message = "Done: Rediscovered $numSucceeded/$numRetried games."
+        }
+    }
+
+    inner class RediscoverGameTask(private val game: Game) : GamedexTask("Rediscovering '${game.name}'...") {
+        suspend override fun doRun(context: CoroutineContext) {
+            doRediscover(game, progress)
+        }
+
+        override fun finally() {
+            progress.message = "Done."
+        }
+    }
+
+    private suspend fun doRediscover(game: Game, progress: TaskProgress): Boolean {
         val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isSearchAgain = true) ?: return false
         updateGame(game, newRawGameData)
         return true
