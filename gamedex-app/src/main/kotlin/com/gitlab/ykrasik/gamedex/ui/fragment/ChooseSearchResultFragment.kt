@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
-import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.HPos
@@ -15,7 +14,6 @@ import javafx.scene.control.ButtonBar
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
-import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
 import javafx.stage.Screen
@@ -35,8 +33,6 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
     private val defaultButtonIsSearch = SimpleBooleanProperty(false)
 
     private var tableView: TableView<ProviderSearchResult> by singleAssign()
-
-    private val thumbnailCache = mutableMapOf<String?, ReadOnlyObjectProperty<Image>>()
 
     private val results = ArrayList(data.results).observable()
 
@@ -134,7 +130,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             if (empty) {
                                 imageView.imageProperty().unbind()
                             } else {
-                                val thumbnail = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.downloadImage(thumbnailUrl) }
+                                val thumbnail = imageLoader.downloadImage(thumbnailUrl)
                                 imageView.imageProperty().cleanBind(thumbnail)
                             }
                         }

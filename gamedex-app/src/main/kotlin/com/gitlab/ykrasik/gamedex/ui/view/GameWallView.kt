@@ -11,9 +11,7 @@ import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
-import javafx.beans.property.ReadOnlyProperty
 import javafx.css.StyleableObjectProperty
-import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
@@ -33,8 +31,6 @@ class GameWallView : View("Games Wall") {
     private val preferences: GameWallPreferences by di()
     private val imageLoader: ImageLoader by di()
     private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
-
-    private val thumbnailCache = mutableMapOf<String?, ReadOnlyProperty<Image>>()
 
     override val root = datagrid(gameController.sortedFilteredGames.games) {
         cellHeightProperty.bind(preferences.cellHeightProperty)
@@ -131,7 +127,7 @@ class GameWallView : View("Games Wall") {
 
             if (game != null) {
                 val thumbnailUrl = game.thumbnailUrl
-                val image = thumbnailCache.getOrPut(thumbnailUrl) { imageLoader.fetchImage(game.id, thumbnailUrl, persistIfAbsent = true) }
+                val image = imageLoader.fetchImage(game.id, thumbnailUrl, persistIfAbsent = true)
                 imageView.imageProperty().cleanBind(image)
                 tooltip(game.name)
             } else {

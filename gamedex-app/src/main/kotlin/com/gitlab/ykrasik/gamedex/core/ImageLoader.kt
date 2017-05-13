@@ -21,24 +21,36 @@ import kotlinx.coroutines.experimental.run
  * Date: 02/01/2017
  * Time: 18:30
  */
-// TODO: See if image caching can be moved into the ImageLoader - Guava LRU cache?
 @Singleton
 open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
     private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
 
+    private val downloadCache = Cache<String, ByteArray>(300)
+    private val downloadImageCache = Cache<String, ReadOnlyObjectProperty<Image>>(300)
+    private val fetchImageCache = Cache<String, ReadOnlyObjectProperty<Image>>(5000)
+
+    // Will only ever be called by the JavaFx thread, so we don't need to handle cache concurrency
+    // We disregard the value of persistIfAbsent when checking the cache, which is a simplifying assumption -
+    // the same urls will always have the same persistIfAbsent value - a situation where this method is called
+    // twice - once with persistIfAbsent=false, and again with the same url but persistIfAbsent=true simply doesn't exist.
     open fun fetchImage(gameId: Int, url: String?, persistIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
-        return loadImage {
-            fetchOrDownloadImage(gameId, url, persistIfAbsent)
+        return fetchImageCache.getOrPut(url) {
+            loadImage {
+                fetchOrDownloadImage(gameId, url, persistIfAbsent)
+            }
         }
     }
 
+    // Will only ever be called by the JavaFx thread, so we don't need to handle cache concurrency
     open fun downloadImage(url: String?): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
-        return loadImage {
-            downloadImage(url)
+        return downloadImageCache.getOrPut(url) {
+            loadImage {
+                downloadImage(url)
+            }
         }
     }
 
@@ -67,10 +79,16 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
         return downloadedImage
     }
 
-    private fun downloadImage(url: String): ByteArray {
-        log.trace("Downloading $url...")
+    private fun downloadImage(url: String): ByteArray = downloadCache.getOrPut(url) {
+        log.trace("[$url] Downloading...")
         val bytes = download(url)
-        log.trace("Downloaded $url: ${bytes.size} bytes.")
+        log.trace("[$url] Downloading... Done: ${bytes.size} bytes.")
         return bytes
+    }
+
+    private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
+            return size > maxSize
+        }
     }
 }
