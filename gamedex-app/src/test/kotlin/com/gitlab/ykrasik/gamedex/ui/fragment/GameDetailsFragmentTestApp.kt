@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.test.rnd
 
 /**
  * User: ykrasik
@@ -17,21 +17,10 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
                 providerData = emptyList(),
                 userData = null
             ),
-            library = Library(
-                id = rnd.nextInt(),
-                path = randomFile(),
-                data = LibraryData(
-                    platform = randomEnum(),
-                    name = randomName()
-                )
-            ),
+            library = randomLibrary(),
             gameData = randomGameData(),
             providerHeaders = randomProviderHeaders(),
-            imageUrls = ImageUrls(
-                thumbnailUrl = randomUrl(),
-                posterUrl = randomUrl(),
-                screenshotUrls = List(rnd.nextInt(10)) { randomUrl() }
-            )
+            imageUrls = randomImageUrls()
         )
         println("Result: " + GameDetailsFragment(game, displayVideos = false).show())
         System.exit(0)

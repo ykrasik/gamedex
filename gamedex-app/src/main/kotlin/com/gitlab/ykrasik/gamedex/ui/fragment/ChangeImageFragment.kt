@@ -11,11 +11,10 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Pos
-import javafx.scene.Node
-import javafx.scene.control.ToggleButton
 import javafx.scene.control.ToggleGroup
 import javafx.scene.image.Image
 import javafx.scene.layout.Region
+import javafx.scene.paint.Color
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
@@ -43,12 +42,12 @@ class ChangeImageFragment(
     private var accept = false
 
     override val root = borderpane {
-//        addClass(Styles.card)
         paddingAll = 20.0
 
         center {
             hbox {
                 paddingTop = 20.0
+                isFillHeight = true
                 var needSeparator = false
                 game.rawGame.providerData.forEach { providerData ->
                     imageUrlExtractor(providerData.imageUrls)?.let { imageUrl ->
@@ -56,18 +55,20 @@ class ChangeImageFragment(
                             verticalSeparator(padding = 20.0)
                         }
                         needSeparator = true
-                        val thumbnailProperty = imageLoader.fetchImage(game.id, imageUrl, persistIfAbsent = false)
-                        vbox(spacing = 40.0) {
-                            imageview {
-                                alignment = Pos.CENTER
-                                fitHeight = 120.0
-                                fitWidth = 120.0
-                                image = providerRepository.logo(providerData.header)
-                            }
-                            toggleChoice {
-                                isSelected = imageUrlExtractor(game.imageUrls) == imageUrl
-                                userData = Choice.Select(GameDataOverride.Provider(providerData.header.type))
-                                graphic = imageDisplay(thumbnailProperty)
+                        jfxToggleNode(group = toggleGroup) {
+                            addClass(Style.choice, Style.choiceButton)
+                            isSelected = imageUrlExtractor(game.imageUrls) == imageUrl
+                            userData = Choice.Select(GameDataOverride.Provider(providerData.header.type))
+                            graphic = vbox {
+                                imageview {
+                                    alignment = Pos.CENTER
+                                    fitHeight = 120.0
+                                    fitWidth = 120.0
+                                    isPreserveRatio = true
+                                    image = providerRepository.logo(providerData.header)
+                                }
+                                spacer()
+                                imageDisplay(imageLoader.fetchImage(game.id, imageUrl, persistIfAbsent = false))
                             }
                         }
                     }
@@ -75,11 +76,11 @@ class ChangeImageFragment(
                 if (needSeparator) {
                     verticalSeparator(padding = 20.0)
                 }
-                vbox(spacing = 40.0) {
-                    val imageUrlProperty = SimpleStringProperty("")
+                vbox(spacing = 10) {
+                    addClass(Style.choice)
                     val imageProperty = SimpleObjectProperty<Image>()
-                    spacer()
-                    hbox(spacing = 10.0) {
+                    val imageUrlProperty = SimpleStringProperty("")
+                    hbox(spacing = 10) {
                         val customUrl = textfield {
                             promptText = "Custom URL"
                             prefWidth = 240.0
@@ -97,26 +98,27 @@ class ChangeImageFragment(
                             }
                         }
                     }
-                    spacer()
-                    toggleChoice {
+                    jfxToggleNode(group = toggleGroup) {
+                        addClass(Style.choice, Style.choiceButton)
+
                         imageUrlProperty.onChange {
                             userData = Choice.Select(GameDataOverride.Custom(it!!))
                         }
-                        graphic = imageDisplay(imageProperty)
                         disableProperty().bind(imageProperty.isNull)
+
+                        graphic = vbox {
+                            spacer()
+                            imageDisplay(imageProperty)
+                        }
                     }
                 }
 
                 verticalSeparator(padding = 20.0)
 
-                vbox {
-                    spacer()
-                    toggleChoice {
-                        text = "Clear Overrides"
-                        graphic = FontAwesome.Glyph.BAN.toGraphic()
-                        userData = Choice.Clear
-                    }
-                    spacer()
+                jfxToggleNode(group = toggleGroup) {
+                    addClass(Style.choice, Style.choiceButton)
+                    graphic = FontAwesome.Glyph.TIMES_CIRCLE.toGraphic { size(80.0) }
+                    userData = Choice.Clear
                 }
             }
         }
@@ -131,16 +133,11 @@ class ChangeImageFragment(
         }
     }
 
-    private fun Node.toggleChoice(op: (ToggleButton.() -> Unit)) = togglebutton(group = toggleGroup, op = op).apply {
-        setOnMouseClicked {
-            if (it.clickCount == 2) close(accept = true)
-        }
-    }
-
     private fun Region.imageDisplay(image: ObservableValue<Image>) = imageview {
         paddingAll = 40.0
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
+        isPreserveRatio = true
         imageProperty().bind(image)
     }
 
@@ -168,5 +165,35 @@ class ChangeImageFragment(
     companion object {
         fun thumbnail(game: Game) = ChangeImageFragment(game, ImageUrls::thumbnailUrl, GameDataOverrides::thumbnail)
         fun poster(game: Game) = ChangeImageFragment(game, ImageUrls::posterUrl, GameDataOverrides::poster)
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val choice by cssclass()
+            val choiceButton by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
+        }
+
+        init {
+            choice {
+                maxHeight = 450.px
+            }
+
+            choiceButton {
+                prefHeight = 450.px
+                prefWidth = 250.px
+
+                borderColor = multi(box(Color.LIGHTBLUE))
+                borderRadius = multi(box(6.px))
+                backgroundRadius = multi(box(6.px))
+
+                and(hover) {
+                    borderColor = multi(box(Color.CORNFLOWERBLUE))
+                }
+            }
+        }
     }
 }

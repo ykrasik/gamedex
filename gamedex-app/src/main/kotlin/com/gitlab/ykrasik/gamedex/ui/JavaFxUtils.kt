@@ -25,6 +25,7 @@ import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Stage
@@ -217,6 +218,7 @@ fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>):
     return property
 }
 
+// TODO: Look at using objectBinding()
 fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this))
     this.onChange {
@@ -349,8 +351,9 @@ fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = op
 fun EventTarget.jfxHamburger(op: (JFXHamburger.() -> Unit)? = null) = opcr(this, JFXHamburger(), op)
 fun EventTarget.jfxDrawer(op: (JFXDrawer.() -> Unit)? = null) = opcr(this, JFXDrawer(), op)
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
-fun EventTarget.jfxToggleNode(graphic: Node? = null, op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
+fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
     this.graphic = graphic
+    this.toggleGroup = group
 }, op)
 
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
@@ -362,14 +365,46 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
     }, op)
 
 fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
-    addClass(CommonStyle.acceptButton)
+    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
     op?.invoke(this)
 }
 
 fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
-    addClass(CommonStyle.cancelButton)
+    addClass(CommonStyle.toolbarButton, CommonStyle.cancelButton)
     op?.invoke(this)
 }
+
+fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(21.0) }) {
+    addClass(CommonStyle.toolbarButton)
+    withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
+        op?.invoke(this)
+    }
+}
+
+fun PopOver.extraMenuItem(text: String? = null, graphic: Node? = null, op: (JFXButton.() -> Unit)? = null, onAction: () -> Unit): JFXButton {
+    return popoverContent.jfxButton(text, graphic) {
+        addClass(CommonStyle.extraMenu)
+        op?.invoke(this)
+        setOnAction {
+            this@extraMenuItem.hide()
+            onAction()
+        }
+    }
+}
+
+fun PopOver.separator(orientation: Orientation = Orientation.HORIZONTAL, op: (Separator.() -> Unit)? = null) {
+    popoverContent.separator(orientation, op)
+}
+
+private val PopOver.popoverContent get() =
+    if (contentNode !is VBox) {
+        VBox().apply {
+            addClass(CommonStyle.popoverMenu)
+            contentNode = this
+        }
+    } else {
+        contentNode
+    }
 
 fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
     if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()
@@ -379,7 +414,7 @@ fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? 
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver =
     PopOver().apply {
         this.arrowLocation = arrowLocation
-        fadeOutDuration = 0.seconds     // A ton of exceptions start getting thrown if closing a window with an open popover, due to this.
+        isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
         op?.invoke(this)
     }
 

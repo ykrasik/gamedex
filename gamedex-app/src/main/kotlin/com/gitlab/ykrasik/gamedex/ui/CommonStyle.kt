@@ -21,10 +21,13 @@ class CommonStyle : Stylesheet() {
 
         val jfxButton by cssclass()
 
-        val extraButton by cssclass()
         val acceptButton by cssclass()
         val cancelButton by cssclass()
         val deleteButton by cssclass()
+
+        val extraMenu by cssclass()
+
+        val toolbarButton by cssclass()
 
         val popoverMenu by cssclass()
 
@@ -407,24 +410,13 @@ class CommonStyle : Stylesheet() {
             }
         }
 
-        extraButton {
-            prefWidth = 160.px
-            contentDisplay = ContentDisplay.RIGHT
-            alignment = Pos.CENTER_RIGHT
-            graphicTextGap = 6.px
-        }
-
         acceptButton {
-            prefWidth = 100.px
-            prefHeight = 40.px
             and(hover) {
                 backgroundColor = multi(Color.LIMEGREEN)
             }
         }
 
         cancelButton {
-            prefWidth = 100.px
-            prefHeight = 40.px
             and(hover) {
                 backgroundColor = multi(Color.INDIANRED)
             }
@@ -434,6 +426,18 @@ class CommonStyle : Stylesheet() {
             and(hover) {
                 backgroundColor = multi(Color.RED)
             }
+        }
+
+        extraMenu {
+            prefWidth = 160.px
+            contentDisplay = ContentDisplay.RIGHT
+            alignment = Pos.CENTER_RIGHT
+            graphicTextGap = 6.px
+        }
+
+        toolbarButton {
+            minWidth = 100.px
+            prefHeight = 40.px
         }
 
         popoverMenu {

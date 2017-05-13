@@ -16,10 +16,11 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class SettingsFragment : Fragment() {
+class SettingsFragment : Fragment("Settings") {
     private val settingsController: SettingsController by di()
     private val preferences: AllPreferences by di()
 
+    // TODO: Use a viewModel.
     override val root = borderpane {
         center {
             tabpane {

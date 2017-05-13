@@ -13,7 +13,6 @@ import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
-import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
 import org.controlsfx.glyphfont.FontAwesome
@@ -39,6 +38,7 @@ class GameView : GamedexView("Games") {
             platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
         }
 
+        // TODO: Combine all filters into a filter menu
         platformComboBox(gameController.sortedFilteredGames.platformFilterProperty, platformsWithLibraries)
 
         verticalSeparator()
@@ -95,42 +95,22 @@ class GameView : GamedexView("Games") {
 
         verticalSeparator()
 
-        jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(18.0) }) {
-            prefWidth = 40.0
-            withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
-                contentNode = vbox {
-                    addClass(CommonStyle.popoverMenu)
+        extraMenu {
+            extraMenuItem("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
+                val task = gameController.cleanup()
+                disableProperty().cleanBind(task.runningProperty)
+            }
 
-                    jfxButton("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
-                        addClass(CommonStyle.extraButton)
-                        setOnAction {
-                            this@withPopover.hide()
-                            val task = gameController.cleanup()
-                            disableProperty().cleanBind(task.runningProperty)
-                        }
-                    }
+            separator()
 
-                    separator()
+            extraMenuItem("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
+                val task = gameController.refreshAllGames()
+                disableProperty().cleanBind(task.runningProperty)
+            }
 
-                    jfxButton("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
-                        addClass(CommonStyle.extraButton)
-                        setOnAction {
-                            this@withPopover.hide()
-                            val task = gameController.refreshAllGames()
-                            disableProperty().cleanBind(task.runningProperty)
-                        }
-                    }
-
-                    jfxButton("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
-                        addClass(CommonStyle.extraButton)
-                        tooltip("Try searching games that are missing providers")
-                        setOnAction {
-                            this@withPopover.hide()
-                            val task = gameController.rediscoverAllGames()
-                            disableProperty().cleanBind(task.runningProperty)
-                        }
-                    }
-                }
+            extraMenuItem("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
+                val task = gameController.rediscoverAllGames()
+                disableProperty().cleanBind(task.runningProperty)
             }
         }
 

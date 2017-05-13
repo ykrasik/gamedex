@@ -7,6 +7,15 @@ import com.gitlab.ykrasik.gamedex.test.*
  * Date: 01/04/2017
  * Time: 14:09
  */
+fun randomLibrary() = Library(
+    id = rnd.nextInt(),
+    path = randomFile(),
+    data = LibraryData(
+        platform = randomEnum(),
+        name = randomName()
+    )
+)
+
 fun randomMetaData() = MetaData(
     libraryId = 1,
     path = randomFile(),
@@ -29,3 +38,9 @@ fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(GameProvide
         siteUrl = randomUrl()
     )
 }
+
+fun randomImageUrls() = ImageUrls(
+    thumbnailUrl = randomUrl(),
+    posterUrl = randomUrl(),
+    screenshotUrls = List(rnd.nextInt(10)) { randomUrl() }
+)

@@ -18,7 +18,6 @@ import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Job
-import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.net.URLEncoder
@@ -46,14 +45,14 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
         top {
             toolbar {
                 acceptButton {
-                    addClass(Style.gameDetailsButton)
+                    addClass(CommonStyle.toolbarButton)
                     setOnAction { close(accept = true) }
                 }
 
                 verticalSeparator()
 
                 jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.BLUE) }) {
-                    addClass(Style.gameDetailsButton)
+                    addClass(CommonStyle.toolbarButton)
                     setOnAction {
                         val task = gameController.refreshGame(game)
                         disableProperty().cleanBind(task.runningProperty)
@@ -66,50 +65,27 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
 
                 verticalSeparator()
 
-                jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(22.0) }) {
-                    addClass(Style.gameDetailsButton)
-                    withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
-                        contentNode = vbox {
-                            addClass(CommonStyle.popoverMenu)
+                extraMenu {
+                    extraMenuItem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
+                        val task = gameController.rediscoverGame(game)
+                        disableProperty().cleanBind(task.runningProperty)
+                    }
 
-                            jfxButton("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
-                                addClass(CommonStyle.extraButton)
-                                setOnAction {
-                                    this@withPopover.hide()
-                                    val task = gameController.rediscoverGame(game)
-                                    disableProperty().cleanBind(task.runningProperty)
-                                }
-                            }
+                    separator()
 
-                            separator()
+                    extraMenuItem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) {
+                        changeThumbnail()
+                    }
 
-                            jfxButton("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) {
-                                addClass(CommonStyle.extraButton)
-                                setOnAction {
-                                    this@withPopover.hide()
-                                    changeThumbnail()
-                                }
-                            }
+                    extraMenuItem("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
+                        changePoster()
+                    }
 
-                            jfxButton("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
-                                addClass(CommonStyle.extraButton)
-                                setOnAction {
-                                    this@withPopover.hide()
-                                    changePoster()
-                                }
-                            }
+                    separator()
 
-                            separator()
-
-                            jfxButton("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
-                                addClass(CommonStyle.deleteButton, CommonStyle.extraButton)
-                                setOnAction {
-                                    this@withPopover.hide()
-                                    if (gameController.delete(game)) {
-                                        close(accept = false)
-                                    }
-                                }
-                            }
+                    extraMenuItem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic(), op = { addClass(CommonStyle.deleteButton) }) {
+                        if (gameController.delete(game)) {
+                            close(accept = false)
                         }
                     }
                 }
@@ -247,7 +223,6 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
             val leftGameDetailsView by cssid()
             val middleGameDetailsView by cssid()
             val rightGameDetailsView by cssid()
-            val gameDetailsButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -283,11 +258,6 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
 
             rightGameDetailsView {
                 padding = box(5.px)
-            }
-
-            gameDetailsButton {
-                minWidth = 100.px
-                prefHeight = 40.px
             }
         }
     }
