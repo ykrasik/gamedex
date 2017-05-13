@@ -19,8 +19,8 @@ import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.controlsfx.glyphfont.FontAwesome
-import org.joda.time.LocalDate
 import tornadofx.*
+import java.time.LocalDate
 
 /**
  * User: ykrasik
@@ -72,21 +72,21 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                     providerDataExtractor = { it.gameData.releaseDate },
                     gameDataExtractor = Game::releaseDate,
                     dataDisplay = { textDisplay(it) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.releaseDate, LocalDate::parse) }
+                    customDataDisplay = { customTextChoice(it, GameDataType.releaseDate, LocalDate::parse, { it }) }
                 )
                 choiceTab(
                     GameDataType.criticScore,
                     providerDataExtractor = { it.gameData.criticScore },
                     gameDataExtractor = Game::criticScore,
                     dataDisplay = { textDisplay(it.toString()) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.criticScore, String::toDouble, String::toDouble) }
+                    customDataDisplay = { customTextChoice(it, GameDataType.criticScore, String::toDouble) }
                 )
                 choiceTab(
                     GameDataType.userScore,
                     providerDataExtractor = { it.gameData.userScore },
                     gameDataExtractor = Game::userScore,
                     dataDisplay = { textDisplay(it.toString()) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.userScore, String::toDouble, String::toDouble) }
+                    customDataDisplay = { customTextChoice(it, GameDataType.userScore, String::toDouble) }
                 )
                 choiceTab(
                     GameDataType.thumbnail,
@@ -165,15 +165,15 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 }
             }
 
-            // TODO: It's currently impossible to change a custom value before clearing it.
             with(toggleGroup) {
                 val initialSelection = selectedToggle!!
+                val initialUserData = initialSelection.userData
                 selectedToggleProperty().addListener { _, oldValue, newValue ->
                     if (oldValue != null && newValue == null) {
                         selectToggle(oldValue)
                     }
                     if (newValue != null) {
-                        if (newValue != initialSelection) {
+                        if (newValue != initialSelection || newValue.userData != initialUserData) {
                             val choice = newValue.userData as SingleChoice
                             when (choice) {
                                 is SingleChoice.Override -> overrides.put(type, choice.override)
@@ -188,10 +188,11 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         }
     }
 
+    // TODO: This is similar to customImageChoice, can probably save some code.
     private fun VBox.customTextChoice(toggleGroup: ToggleGroup,
                                       type: GameDataType,
                                       validator: (String) -> Any = { it },
-                                      converter: (String) -> Any = { it }) {
+                                      converter: (String) -> Any = validator) {
         val customText = CustomTextViewModel()
         val customDataProperty = SimpleStringProperty("")
         hbox(spacing = 10) {
@@ -230,6 +231,10 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
             customDataProperty.onChange {
                 userData = SingleChoice.Override(GameDataOverride.Custom(converter(it!!)))
+                // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
+                // the change listener on the toggle group
+                isSelected = false
+                isSelected = true
             }
 
             disableWhen { customDataProperty.isEmpty.or(customDataProperty.isNull) }
@@ -284,6 +289,10 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
             imageUrlProperty.onChange {
                 userData = SingleChoice.Override(GameDataOverride.Custom(it!!))
+                // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
+                // the change listener on the toggle group
+                isSelected = false
+                isSelected = true
             }
             disableProperty().bind(imageProperty.isNull)
 
