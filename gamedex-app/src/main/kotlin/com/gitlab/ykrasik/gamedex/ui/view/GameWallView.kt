@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
 import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
@@ -58,7 +57,7 @@ class GameWallView : View("Games Wall") {
                     2 -> {
                         popOver.hide()
                         if (e.button == MouseButton.PRIMARY) {
-                            GameDetailsFragment(cell.item).show()
+                            gameController.viewDetails(cell.item)
                         }
                     }
                 }

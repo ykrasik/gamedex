@@ -3,8 +3,6 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -83,22 +81,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val platform: Int,
         val category: Int,
         val human: String
-    ) {
-        fun toLocalDate(): LocalDate? {
-            val format = when (category) {
-                0 -> DateTimeFormat.forPattern("YYYY-MMM-dd")
-                1 -> DateTimeFormat.forPattern("YYYY-MMM")
-                2 -> DateTimeFormat.forPattern("YYYY")
-                3 -> DateTimeFormat.forPattern("YYYY-'Q1'")
-                4 -> DateTimeFormat.forPattern("YYYY-'Q2'")
-                5 -> DateTimeFormat.forPattern("YYYY-'Q3'")
-                6 -> DateTimeFormat.forPattern("YYYY-'Q4'")
-                7 -> return null
-                else -> throw IllegalArgumentException("Invalid date category: $category!")
-            }
-            return format.parseLocalDate(human)
-        }
-    }
+    )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class DetailsResult(

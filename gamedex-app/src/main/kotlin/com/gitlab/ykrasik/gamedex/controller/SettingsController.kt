@@ -16,7 +16,6 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
-import org.joda.time.LocalDate
 import tornadofx.Controller
 import tornadofx.FileChooserMode
 import tornadofx.chooseFile
@@ -165,7 +164,7 @@ class SettingsController @Inject constructor(
         val siteUrl: String,
         val name: String,
         val description: String?,
-        val releaseDate: Long?,
+        val releaseDate: String?,
         val criticScore: Double?,
         val userScore: Double?,
         val genres: List<String>,
@@ -182,7 +181,7 @@ class SettingsController @Inject constructor(
             gameData = GameData(
                 name = name,
                 description = description,
-                releaseDate = releaseDate?.let { LocalDate(it) },
+                releaseDate = releaseDate,
                 criticScore = criticScore,
                 userScore = userScore,
                 genres = genres
@@ -202,7 +201,7 @@ class SettingsController @Inject constructor(
         name = gameData.name,
         description = gameData.description,
         criticScore = gameData.criticScore,
-        releaseDate = gameData.releaseDate?.toDateTimeAtStartOfDay()?.millis,
+        releaseDate = gameData.releaseDate,
         userScore = gameData.userScore,
         genres = gameData.genres,
         thumbnailUrl = imageUrls.thumbnailUrl,
@@ -221,31 +220,34 @@ class SettingsController @Inject constructor(
         val posterOverride: PortableGameDataOverride?,
         val screenshotsOverride: PortableGameDataOverride?
     ) {
-        fun toUserData() = UserData(
-            overrides = GameDataOverrides(
-                name = nameOverride?.toOverride(),
-                description = descriptionOverride?.toOverride(),
-                releaseDate = releaseDateOverride?.toOverride(),
-                criticScore = criticScoreOverride?.toOverride(),
-                userScore = userScoreOverride?.toOverride(),
-                genres = genresOverride?.toOverride(),
-                thumbnail = thumbnailOverride?.toOverride(),
-                poster = posterOverride?.toOverride(),
-                screenshots = screenshotsOverride?.toOverride()
+        fun toUserData(): UserData {
+            val overrides = mutableMapOf<GameDataType, GameDataOverride>()
+            nameOverride?.toOverride()?.let { overrides += GameDataType.name_ to it }
+            descriptionOverride?.toOverride()?.let { overrides += GameDataType.description to it }
+            releaseDateOverride?.toOverride()?.let { overrides += GameDataType.releaseDate to it }
+            criticScoreOverride?.toOverride()?.let { overrides += GameDataType.criticScore to it }
+            userScoreOverride?.toOverride()?.let { overrides += GameDataType.userScore to it }
+            genresOverride?.toOverride()?.let { overrides += GameDataType.genres to it }
+            thumbnailOverride?.toOverride()?.let { overrides += GameDataType.thumbnail to it }
+            posterOverride?.toOverride()?.let { overrides += GameDataType.poster to it }
+            screenshotsOverride?.toOverride()?.let { overrides += GameDataType.screenshots to it }
+
+            return UserData(
+                overrides = overrides
             )
-        )
+        }
     }
 
     private fun UserData.toPortable() = PortableUserData(
-        nameOverride = overrides.name?.toPortable(),
-        descriptionOverride = overrides.description?.toPortable(),
-        releaseDateOverride = overrides.releaseDate?.toPortable(),
-        criticScoreOverride = overrides.criticScore?.toPortable(),
-        userScoreOverride = overrides.userScore?.toPortable(),
-        genresOverride = overrides.genres?.toPortable(),
-        thumbnailOverride = overrides.thumbnail?.toPortable(),
-        posterOverride = overrides.poster?.toPortable(),
-        screenshotsOverride = overrides.screenshots?.toPortable()
+        nameOverride = overrides[GameDataType.name_]?.toPortable(),
+        descriptionOverride = overrides[GameDataType.description]?.toPortable(),
+        releaseDateOverride = overrides[GameDataType.releaseDate]?.toPortable(),
+        criticScoreOverride = overrides[GameDataType.criticScore]?.toPortable(),
+        userScoreOverride = overrides[GameDataType.userScore]?.toPortable(),
+        genresOverride = overrides[GameDataType.genres]?.toPortable(),
+        thumbnailOverride = overrides[GameDataType.thumbnail]?.toPortable(),
+        posterOverride = overrides[GameDataType.poster]?.toPortable(),
+        screenshotsOverride = overrides[GameDataType.screenshots]?.toPortable()
     )
 
     private fun GameDataOverride.toPortable() = when(this)  {

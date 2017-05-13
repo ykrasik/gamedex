@@ -36,25 +36,19 @@ class GameFactory @Inject constructor(
         )
     }
 
-    private fun RawGame.toGameData(): GameData {
-        val overrides = userData?.overrides
-
-        return GameData(
-            name = firstBy(preferences.nameOrder, overrides?.name) { it.gameData.name } ?: metaData.path.name,
-            description = firstBy(preferences.descriptionOrder, overrides?.description) { it.gameData.description },
-            releaseDate = firstBy(preferences.releaseDateOrder, overrides?.releaseDate) { it.gameData.releaseDate },
-            criticScore = firstBy(preferences.criticScoreOrder, overrides?.criticScore) { it.gameData.criticScore },
-            userScore = firstBy(preferences.userScoreOrder, overrides?.userScore) { it.gameData.userScore },
-            genres = unsortedListBy(overrides?.genres) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
-        )
-    }
+    private fun RawGame.toGameData(): GameData = GameData(
+        name = firstBy(preferences.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
+        description = firstBy(preferences.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
+        releaseDate = firstBy(preferences.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
+        criticScore = firstBy(preferences.criticScoreOrder, userData?.criticScoreOverride()) { it.gameData.criticScore },
+        userScore = firstBy(preferences.userScoreOrder, userData?.userScoreOverride()) { it.gameData.userScore },
+        genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
+    )
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val overrides = userData?.overrides
-
-        val thumbnailUrl = firstBy(preferences.thumbnailOrder, overrides?.thumbnail) { it.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(preferences.posterOrder, overrides?.poster) { it.imageUrls.posterUrl }
-        val screenshotUrls = listBy(preferences.screenshotOrder, overrides?.screenshots) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
+        val thumbnailUrl = firstBy(preferences.thumbnailOrder, userData?.thumbnailOverride()) { it.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(preferences.posterOrder, userData?.posterOverride()) { it.imageUrls.posterUrl }
+        val screenshotUrls = listBy(preferences.screenshotOrder, userData?.screenshotsOverride()) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
 
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,

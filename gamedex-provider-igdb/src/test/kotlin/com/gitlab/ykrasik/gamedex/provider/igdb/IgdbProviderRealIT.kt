@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.util.appConfig
 import io.kotlintest.matchers.shouldBe
-import org.joda.time.LocalDate
 
 /**
  * User: ykrasik
@@ -54,7 +53,7 @@ class IgdbProviderRealIT : ScopedWordSpec() {
 
     val name = "No Man's Sky"
     val apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225"
-    val releaseDate = LocalDate.parse("2016-08-12")
+    val releaseDate = "2016-08-12"
     val criticScore = 72.6428571428571
     val userScore = 63.0478057301822
     val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.png"

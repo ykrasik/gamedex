@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.util.appConfig
 import io.kotlintest.matchers.shouldBe
-import org.joda.time.LocalDate
 
 /**
  * User: ykrasik
@@ -53,7 +52,7 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
 
     val name = "No Man's Sky"
     val apiUrl = "https://www.giantbomb.com/api/game/3030-44656/"
-    val releaseDate = LocalDate.parse("2016-08-09")
+    val releaseDate = "2016-08-09"
     val thumbnailUrl = "https://www.giantbomb.com/api/image/scale_avatar/2927125-no%20man%27s%20sky.jpg"
     val posterUrl = "https://www.giantbomb.com/api/image/scale_large/2927125-no%20man%27s%20sky.jpg"
     val url = "https://www.giantbomb.com/no-mans-sky/3030-44656/"

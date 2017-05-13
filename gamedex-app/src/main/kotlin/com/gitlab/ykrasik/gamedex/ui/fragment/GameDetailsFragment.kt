@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
@@ -44,14 +45,11 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
         setId(Style.gameDetailsView)
         top {
             toolbar {
-                acceptButton {
-                    addClass(CommonStyle.toolbarButton)
-                    setOnAction { close(accept = true) }
-                }
+                acceptButton { setOnAction { close(accept = true) } }
 
                 verticalSeparator()
 
-                jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.BLUE) }) {
+                jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.DARKCYAN) }) {
                     addClass(CommonStyle.toolbarButton)
                     setOnAction {
                         val task = gameController.refreshGame(game)
@@ -61,29 +59,29 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
 
                 verticalSeparator()
 
+                jfxButton("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic { size(22.0); color(Color.DARKGOLDENROD) }) {
+                    addClass(CommonStyle.toolbarButton)
+                    setOnAction {
+                        val task = gameController.rediscoverGame(game)
+                        disableProperty().cleanBind(task.runningProperty)
+                    }
+                }
+
+                verticalSeparator()
+
+                jfxButton("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic { size(22.0); color(Color.ORANGE) }) {
+                    addClass(CommonStyle.toolbarButton)
+                    setOnAction { editDetails() }
+                }
+
+                verticalSeparator()
+
                 spacer()
 
                 verticalSeparator()
 
-                extraMenu {
-                    extraMenuItem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
-                        val task = gameController.rediscoverGame(game)
-                        disableProperty().cleanBind(task.runningProperty)
-                    }
-
-                    separator()
-
-                    extraMenuItem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) {
-                        changeThumbnail()
-                    }
-
-                    extraMenuItem("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) {
-                        changePoster()
-                    }
-
-                    separator()
-
-                    extraMenuItem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic(), op = { addClass(CommonStyle.deleteButton) }) {
+                deleteButton {
+                    setOnAction {
                         if (gameController.delete(game)) {
                             close(accept = false)
                         }
@@ -107,7 +105,7 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
                     poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
 
                     contextmenu {
-                        menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { changePoster() }
+                        menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { editDetails(GameDataType.poster) }
                     }
 
                     imageViewResizingPane(poster) {
@@ -124,7 +122,7 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
                 }
 
                 region { setId(Style.middleGameDetailsView) }
-                
+
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
                 children += detailsSnippetFactory.create(game, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
@@ -197,12 +195,8 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
         close(accept = false)
     }
 
-    private fun changePoster() = hideTemporarily {
-        gameController.changePoster(game)
-    }
-
-    private fun changeThumbnail() = hideTemporarily {
-        gameController.changeThumbnail(game)
+    private fun editDetails(type: GameDataType = GameDataType.name_) = hideTemporarily {
+        gameController.editDetails(game, initialTab = type)
     }
 
     private fun hideTemporarily(f: () -> Job) {

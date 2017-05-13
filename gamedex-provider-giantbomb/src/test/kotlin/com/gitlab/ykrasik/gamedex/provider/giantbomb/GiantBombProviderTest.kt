@@ -22,7 +22,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 search(name) shouldBe listOf(ProviderSearchResult(
                     apiUrl = searchResult.apiDetailUrl,
                     name = name,
-                    releaseDate = searchResult.originalReleaseDate,
+                    releaseDate = searchResult.originalReleaseDate?.toString(),
                     score = null,
                     thumbnailUrl = searchResult.image!!.thumbUrl
                 ))
@@ -85,7 +85,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                     gameData = GameData(
                         name = detailsResult.name,
                         description = detailsResult.deck,
-                        releaseDate = detailsResult.originalReleaseDate,
+                        releaseDate = detailsResult.originalReleaseDate?.toString(),
                         criticScore = null,
                         userScore = null,
                         genres = listOf(detailsResult.genres!!.first().name)

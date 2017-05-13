@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
@@ -15,15 +15,57 @@ import org.h2.jdbc.JdbcSQLException
 class GamePersistenceTest : AbstractPersistenceTest() {
     init {
         "Game persistence insert" should {
-            "insert and retrieve a single game".inLazyScope({ GameScope() }) {
+            "insert and retrieve a single game with null userData".inLazyScope({ GameScope() }) {
                 val metaData = randomMetaData()
                 val providerData = listOf(randomProviderData(), randomProviderData())
 
-                val game = persistenceService.insertGame(metaData, providerData, userData = null)   // FIXME: Test!
+                val game = persistenceService.insertGame(metaData, providerData, userData = null)
 
                 game.metaData shouldBe metaData
                 game.providerData shouldBe providerData
                 game.userData shouldBe null
+
+                persistenceService.fetchAllGames() shouldBe listOf(game)
+            }
+
+            "insert and retrieve a single game with userData with empty overrides".inLazyScope({ GameScope() }) {
+                val metaData = randomMetaData()
+                val providerData = listOf(randomProviderData(), randomProviderData())
+                val userData = UserData(overrides = emptyMap())
+
+                val game = persistenceService.insertGame(metaData, providerData, userData = userData)
+
+                game.metaData shouldBe metaData
+                game.providerData shouldBe providerData
+                game.userData shouldBe userData
+
+                persistenceService.fetchAllGames() shouldBe listOf(game)
+            }
+
+            "insert and retrieve a single game with provider-override userData".inLazyScope({ GameScope() }) {
+                val metaData = randomMetaData()
+                val providerData = listOf(randomProviderData(), randomProviderData())
+                val userData = UserData(overrides = providerOverrides())
+
+                val game = persistenceService.insertGame(metaData, providerData, userData = userData)
+
+                game.metaData shouldBe metaData
+                game.providerData shouldBe providerData
+                game.userData shouldBe userData
+
+                persistenceService.fetchAllGames() shouldBe listOf(game)
+            }
+
+            "insert and retrieve a single game with custom-override userData".inLazyScope({ GameScope() }) {
+                val metaData = randomMetaData()
+                val providerData = listOf(randomProviderData(), randomProviderData())
+                val userData = UserData(overrides = customOverrides())
+
+                val game = persistenceService.insertGame(metaData, providerData, userData = userData)
+
+                game.metaData shouldBe metaData
+                game.providerData shouldBe providerData
+                game.userData shouldBe userData
 
                 persistenceService.fetchAllGames() shouldBe listOf(game)
             }
@@ -74,38 +116,9 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
             }
 
-            "update game user data with provider overrides".inLazyScope({ GameScope() }) {
+            "update game user data to null".inLazyScope({ GameScope() }) {
                 val game = givenGameExists()
-                val updatedGame = game.copy(userData = UserData(overrides = GameDataOverrides(
-                    name = providerOverride(),
-                    description = providerOverride(),
-                    releaseDate = providerOverride(),
-                    criticScore = providerOverride(),
-                    userScore = providerOverride(),
-                    genres = providerOverride(),
-                    thumbnail = providerOverride(),
-                    poster = providerOverride(),
-                    screenshots = providerOverride()
-                )))
-
-                persistenceService.updateGame(updatedGame)
-
-                persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
-            }
-
-            "update game user data with custom overrides".inLazyScope({ GameScope() }) {
-                val game = givenGameExists()
-                val updatedGame = game.copy(userData = UserData(overrides = GameDataOverrides(
-                    name = customDataOverride(randomName()),
-                    description = customDataOverride(randomSentence()),
-                    releaseDate = customDataOverride(randomLocalDateString()),
-                    criticScore = customDataOverride(randomScore()),
-                    userScore = customDataOverride(randomScore()),
-                    genres = customDataOverride(listOf(randomString(), randomString(), randomString())),
-                    thumbnail = customDataOverride(randomUrl()),
-                    poster = customDataOverride(randomUrl()),
-                    screenshots = customDataOverride(listOf(randomUrl(), randomUrl()))
-                )))
+                val updatedGame = game.copy(userData = null)
 
                 persistenceService.updateGame(updatedGame)
 
@@ -114,7 +127,25 @@ class GamePersistenceTest : AbstractPersistenceTest() {
 
             "update game user data with empty overrides".inLazyScope({ GameScope() }) {
                 val game = givenGameExists()
-                val updatedGame = game.copy(userData = UserData(overrides = GameDataOverrides()))
+                val updatedGame = game.copy(userData = UserData(overrides = emptyMap()))
+
+                persistenceService.updateGame(updatedGame)
+
+                persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
+            }
+
+            "update game user data with provider overrides".inLazyScope({ GameScope() }) {
+                val game = givenGameExists()
+                val updatedGame = game.copy(userData = UserData(overrides = providerOverrides()))
+
+                persistenceService.updateGame(updatedGame)
+
+                persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
+            }
+
+            "update game user data with custom overrides".inLazyScope({ GameScope() }) {
+                val game = givenGameExists()
+                val updatedGame = game.copy(userData = UserData(overrides = customOverrides()))
 
                 persistenceService.updateGame(updatedGame)
 

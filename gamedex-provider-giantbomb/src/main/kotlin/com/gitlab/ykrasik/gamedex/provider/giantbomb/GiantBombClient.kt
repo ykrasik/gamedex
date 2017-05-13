@@ -64,7 +64,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     data class SearchResult(
         val apiDetailUrl: String,
         val name: String,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")   // TODO: Can I just use a string and split by space?
         val originalReleaseDate: LocalDate?,
         val image: Image?
     )

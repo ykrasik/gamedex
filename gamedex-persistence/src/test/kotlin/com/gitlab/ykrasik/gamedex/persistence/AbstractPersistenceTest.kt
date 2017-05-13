@@ -52,7 +52,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             gameData = GameData(
                 name = randomName(),
                 description = randomSentence(),
-                releaseDate = randomLocalDate(),
+                releaseDate = randomLocalDateString(),
                 criticScore = randomScore(),
                 userScore = randomScore(),
                 genres = listOf(randomString(), randomString())
@@ -64,15 +64,39 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             )
         )
 
-        fun providerOverride(provider: GameProviderType = randomEnum()) = GameDataOverride.Provider(provider)
-        fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
+        fun providerOverrides() = mapOf(
+            GameDataType.name_ to providerOverride(),
+            GameDataType.description to providerOverride(),
+            GameDataType.releaseDate to providerOverride(),
+            GameDataType.criticScore to providerOverride(),
+            GameDataType.userScore to providerOverride(),
+            GameDataType.genres to providerOverride(),
+            GameDataType.thumbnail to providerOverride(),
+            GameDataType.poster to providerOverride(),
+            GameDataType.screenshots to providerOverride()
+        )
+
+        fun customOverrides() = mapOf(
+            GameDataType.name_ to customDataOverride(randomName()),
+            GameDataType.description to customDataOverride(randomSentence()),
+            GameDataType.releaseDate to customDataOverride(randomLocalDateString()),
+            GameDataType.criticScore to customDataOverride(randomScore()),
+            GameDataType.userScore to customDataOverride(randomScore()),
+            GameDataType.genres to customDataOverride(listOf(randomString(), randomString(), randomString())),
+            GameDataType.thumbnail to customDataOverride(randomUrl()),
+            GameDataType.poster to customDataOverride(randomUrl()),
+            GameDataType.screenshots to customDataOverride(listOf(randomUrl(), randomUrl()))
+        )
+
+        private fun providerOverride(provider: GameProviderType = randomEnum()) = GameDataOverride.Provider(provider)
+        private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
             persistenceService.insertGame(
                 metaData = randomMetaData(library, path),
                 providerData = listOf(randomProviderData(), randomProviderData()),
-                userData = null // FIXME: Test this.
+                userData = UserData(overrides = providerOverrides())
             )
     }
 

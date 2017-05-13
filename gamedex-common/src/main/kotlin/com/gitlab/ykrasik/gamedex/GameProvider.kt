@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex
 
-import org.joda.time.LocalDate
-
 /**
  * User: ykrasik
  * Date: 29/05/2016
@@ -24,7 +22,7 @@ enum class GameProviderType {
 
 data class ProviderSearchResult(
     val name: String,
-    val releaseDate: LocalDate?,
+    val releaseDate: String?,
     val score: Double?,
     val thumbnailUrl: String?,
     val apiUrl: String

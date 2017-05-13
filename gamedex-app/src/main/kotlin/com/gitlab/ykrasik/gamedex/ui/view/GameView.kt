@@ -1,13 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import javafx.beans.property.ObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -146,13 +146,13 @@ class GameView : GamedexView("Games") {
 
     companion object {
         inline fun EventTarget.gameContextMenu(controller: GameController, crossinline game: () -> Game) = contextmenu {
-            menuitem("View Details", graphic = FontAwesome.Glyph.EYE.toGraphic()) { GameDetailsFragment(game()).show() }
+            menuitem("View", graphic = FontAwesome.Glyph.EYE.toGraphic()) { controller.viewDetails(game()) }
+            separator()
+            menuitem("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic()) { controller.editDetails(game()) }
+            menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.editDetails(game(), initialTab = GameDataType.thumbnail) }
             separator()
             menuitem("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) { controller.refreshGame(game()) }
             menuitem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.rediscoverGame(game()) }
-            separator()
-            menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.changeThumbnail(game()) }
-            menuitem("Change Poster", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { controller.changePoster(game()) }
             separator()
             menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
         }

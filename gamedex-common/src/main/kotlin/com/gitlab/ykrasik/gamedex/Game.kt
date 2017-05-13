@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.joda.time.DateTime
-import org.joda.time.LocalDate
 import java.io.File
 
 /**
@@ -56,7 +55,7 @@ data class ProviderData(
 data class GameData(
     val name: String,
     val description: String?,
-    val releaseDate: LocalDate?,        // TODO: Store this as a string? To allow for 2017 Q4 etc.
+    val releaseDate: String?,
     val criticScore: Double?,
     val userScore: Double?,
     val genres: List<String>
@@ -80,21 +79,31 @@ data class MetaData(
     val lastModified: DateTime
 )
 
-data class UserData(
-    val overrides: GameDataOverrides = GameDataOverrides()
-)
+enum class GameDataType(val displayName: String) {
+    name_("Name"),
+    description("Description"),
+    releaseDate("Release Date"),
+    criticScore("Critic Score"),
+    userScore("User Score"),
+    genres("Genres"),
+    thumbnail("Thumbnail"),
+    poster("Poster"),
+    screenshots("Screenshots")
+}
 
-data class GameDataOverrides(
-    val name: GameDataOverride? = null,
-    val description: GameDataOverride? = null,
-    val releaseDate: GameDataOverride? = null,
-    val criticScore: GameDataOverride? = null,
-    val userScore: GameDataOverride? = null,
-    val genres: GameDataOverride? = null,
-    val thumbnail: GameDataOverride? = null,
-    val poster: GameDataOverride? = null,
-    val screenshots: GameDataOverride? = null
-)
+data class UserData(
+    val overrides: Map<GameDataType, GameDataOverride> = emptyMap()
+) {
+    fun nameOverride() = overrides[GameDataType.name_]
+    fun descriptionOverride() = overrides[GameDataType.description]
+    fun releaseDateOverride() = overrides[GameDataType.releaseDate]
+    fun criticScoreOverride() = overrides[GameDataType.criticScore]
+    fun userScoreOverride() = overrides[GameDataType.userScore]
+    fun genresOverride() = overrides[GameDataType.genres]
+    fun thumbnailOverride() = overrides[GameDataType.thumbnail]
+    fun posterOverride() = overrides[GameDataType.poster]
+    fun screenshotsOverride() = overrides[GameDataType.screenshots]
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(

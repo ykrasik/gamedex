@@ -28,7 +28,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
 
     private fun GiantBombClient.SearchResult.toProviderSearchResult() = ProviderSearchResult(
         name = name,
-        releaseDate = originalReleaseDate,
+        releaseDate = originalReleaseDate?.toString(),
         score = null,
         thumbnailUrl = image?.thumbUrl,
         apiUrl = apiDetailUrl
@@ -56,7 +56,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         gameData = GameData(
             name = this.name,
             description = this.deck,
-            releaseDate = this.originalReleaseDate,
+            releaseDate = this.originalReleaseDate?.toString(),
             criticScore = null,
             userScore = null,
             genres = this.genres?.map { it.name } ?: emptyList()

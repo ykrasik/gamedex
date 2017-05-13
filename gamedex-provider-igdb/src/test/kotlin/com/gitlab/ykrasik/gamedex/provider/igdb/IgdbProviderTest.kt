@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
 import io.kotlintest.mock.`when`
 import io.kotlintest.mock.mock
-import org.joda.time.LocalDate
 
 /**
  * User: ykrasik
@@ -213,7 +212,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         val genreId = rnd.nextInt(100)
         val genre = randomString()
         val name = randomName()
-        val releaseDate = randomLocalDate()
+        val releaseDate = randomLocalDateString()
 
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
@@ -223,7 +222,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
         fun searchResult(name: String = this.name,
-                         releaseDate: LocalDate = randomLocalDate(),
+                         releaseDate: String = randomLocalDateString(),
                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = name,
@@ -232,7 +231,7 @@ class IgdbProviderTest : ScopedWordSpec() {
             cover = image()
         )
 
-        fun detailsResult(releaseDate: LocalDate = randomLocalDate(),
+        fun detailsResult(releaseDate: String = randomLocalDateString(),
                           releaseDatePlatformId: Int = this.platformId) = IgdbClient.DetailsResult(
             url = randomString(),
             name = name,
@@ -245,10 +244,10 @@ class IgdbProviderTest : ScopedWordSpec() {
             genres = listOf(genreId)
         )
 
-        private fun releaseDate(releaseDate: LocalDate, platformId: Int) = IgdbClient.ReleaseDate(
+        private fun releaseDate(releaseDate: String, platformId: Int) = IgdbClient.ReleaseDate(
             platform = platformId,
             category = 0,
-            human = releaseDate.toString("YYYY-MMM-dd")
+            human = releaseDate
         )
 
         fun image(cloudinaryId: String? = randomString()) = IgdbClient.Image(cloudinaryId = cloudinaryId)

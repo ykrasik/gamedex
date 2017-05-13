@@ -6,7 +6,8 @@ import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.fragment.ChangeImageFragment
+import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
+import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -36,6 +37,20 @@ class GameController @Inject constructor(
         sortedFilteredGames.sortOrderProperty.bindBidirectional(preferences.gameWall.sortOrderProperty)
     }
 
+    fun viewDetails(game: Game) = GameDetailsFragment(game).show()
+    fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_) = launch(JavaFx) {
+        val choice = EditGameDataFragment(game, initialTab).show()
+        val overrides = when (choice) {
+            is EditGameDataFragment.Choice.Override -> choice.overrides
+            is EditGameDataFragment.Choice.Clear -> emptyMap()
+            is EditGameDataFragment.Choice.Cancel -> return@launch
+        }
+        val newRawGame = game.rawGame.withDataOverrides(overrides)
+        if (newRawGame.userData != game.rawGame.userData) {
+            gameRepository.update(newRawGame)
+        }
+    }
+
     // TODO: Since these are called from multiple places, consider placing the ui icons in one central place for consistency.
     fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
     fun cleanup() = gameTasks.CleanupTask().apply { start() }
@@ -45,22 +60,6 @@ class GameController @Inject constructor(
 
     fun rediscoverAllGames() = gameTasks.RediscoverAllGamesTask().apply { start() }
     fun rediscoverGame(game: Game) = gameTasks.RediscoverGameTask(game).apply { start() }
-
-    fun changeThumbnail(game: Game) = changeImage(game, { g -> ChangeImageFragment.thumbnail(g) }, { o -> copy(thumbnail = o) })
-    fun changePoster(game: Game) = changeImage(game, { g -> ChangeImageFragment.poster(g) }, { o -> copy(poster = o) })
-
-    private fun changeImage(game: Game,
-                            factory: (Game) -> ChangeImageFragment,
-                            modifier: GameDataOverrides.(GameDataOverride?) -> GameDataOverrides) = launch(JavaFx) {
-        val choice = factory(game).show()
-        val override = when (choice) {
-            is ChangeImageFragment.Choice.Select -> choice.override
-            is ChangeImageFragment.Choice.Clear -> null
-            is ChangeImageFragment.Choice.Cancel -> return@launch
-        }
-        val newRawGame = game.rawGame.withDataOverride { it.modifier(override) }
-        gameRepository.update(newRawGame)
-    }
 
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false
@@ -77,8 +76,12 @@ class GameController @Inject constructor(
         return true
     }
 
-    private fun RawGame.withDataOverride(f: (GameDataOverrides) -> GameDataOverrides): RawGame {
-        val userData = this.userData ?: UserData(overrides = GameDataOverrides())
-        return copy(userData = userData.copy(overrides = f(userData.overrides)))
+    private fun RawGame.withDataOverrides(overrides: Map<GameDataType, GameDataOverride>): RawGame {
+        // If new overrides are empty and userData is null, or userData has empty overrides -> nothing to do
+        // If new overrides are not empty and userData is not null, but has the same overrides -> nothing to do
+        if (overrides == userData?.overrides ?: emptyMap()) return this
+
+        val userData = this.userData ?: UserData()
+        return copy(userData = userData.copy(overrides = overrides))
     }
 }

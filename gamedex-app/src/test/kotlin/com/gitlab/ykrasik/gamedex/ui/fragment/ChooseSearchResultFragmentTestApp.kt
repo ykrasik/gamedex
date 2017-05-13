@@ -15,7 +15,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
     override fun init() {
         fun randomSearchResult() = ProviderSearchResult(
             name = randomName(),
-            releaseDate = randomLocalDate(),
+            releaseDate = randomLocalDateString(),
             score = randomScore(),
             thumbnailUrl = randomUrl(),
             apiUrl = randomUrl()

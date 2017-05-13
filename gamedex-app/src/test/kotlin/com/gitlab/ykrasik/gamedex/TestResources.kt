@@ -25,7 +25,7 @@ fun randomMetaData() = MetaData(
 fun randomGameData() = GameData(
     name = randomString(),
     description = randomSentence(maxWords = 10),
-    releaseDate = randomLocalDate(),
+    releaseDate = randomLocalDateString(),
     criticScore = randomScore(),
     userScore = randomScore(),
     genres = List(rnd.nextInt(4)) { randomString() }

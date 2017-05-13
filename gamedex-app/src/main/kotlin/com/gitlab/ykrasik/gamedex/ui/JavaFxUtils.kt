@@ -366,11 +366,19 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
 
 fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
     addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
+    tooltip("Accept")
     op?.invoke(this)
 }
 
 fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
     addClass(CommonStyle.toolbarButton, CommonStyle.cancelButton)
+    tooltip("Cancel")
+    op?.invoke(this)
+}
+
+fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.TRASH.toGraphic { size(26.0); color(Color.INDIANRED) }).apply {
+    addClass(CommonStyle.toolbarButton, CommonStyle.deleteButton)
+    tooltip("Delete")
     op?.invoke(this)
 }
 

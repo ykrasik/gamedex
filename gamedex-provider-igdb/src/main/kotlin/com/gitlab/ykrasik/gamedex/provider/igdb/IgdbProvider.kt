@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
-import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -74,10 +73,10 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         )
     )
 
-    private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): LocalDate? {
+    private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): String? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.
         val releaseDate = this.find { it.platform == platform.id } ?: return null
-        return releaseDate.toLocalDate()
+        return releaseDate.human
     }
 
     private fun String.toThumbnailUrl() = toImageUrl(thumbnailImageType)
