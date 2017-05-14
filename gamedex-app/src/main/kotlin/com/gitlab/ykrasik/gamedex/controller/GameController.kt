@@ -9,6 +9,8 @@ import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
@@ -38,16 +40,19 @@ class GameController @Inject constructor(
     }
 
     fun viewDetails(game: Game) = GameDetailsFragment(game).show()
-    fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_) = launch(JavaFx) {
+    fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Deferred<Game> = async(JavaFx) {
         val choice = EditGameDataFragment(game, initialTab).show()
         val overrides = when (choice) {
             is EditGameDataFragment.Choice.Override -> choice.overrides
             is EditGameDataFragment.Choice.Clear -> emptyMap()
-            is EditGameDataFragment.Choice.Cancel -> return@launch
+            is EditGameDataFragment.Choice.Cancel -> return@async game
         }
+
         val newRawGame = game.rawGame.withDataOverrides(overrides)
         if (newRawGame.userData != game.rawGame.userData) {
             gameRepository.update(newRawGame)
+        } else {
+            game
         }
     }
 

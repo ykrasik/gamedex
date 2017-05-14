@@ -194,17 +194,28 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override val size: Int get() = mapped.size
 }
 
+// TODO: Make f(T) non nullable
 fun <T, R> ObservableValue<T>.mapProperty(f: (T?) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this.value))
     this.onChange { property.set(f(it)) }
     return property
 }
 
+// TODO: Make f(T) non nullable
 fun <T, R> ObservableValue<T>.flatMapProperty(f: (T?) -> ObservableValue<R>): Property<R> {
-    fun calc() = f(this.value).value
-    val property = SimpleObjectProperty(calc())
-    this.onChange { property.set(calc()) }
+    fun calc() = f(this.value)
+    val property = SimpleObjectProperty<R>()
+    property.bind(calc())
+
+    this.onChange { property.cleanBind(calc()) }
     return property
+}
+
+// Perform the action on the initial value of the observable and on each change.
+fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
+    fun doPerform() = f(value)
+    doPerform()
+    this.onChange { doPerform() }
 }
 
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =

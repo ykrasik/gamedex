@@ -48,7 +48,7 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(cell.item, withDescription = false, withUrls = false, onGenrePressed = { onGenrePressed(it) }).apply {
+                            contentNode = gameDetailSnippetFactory.create(cell.itemProperty(), withDescription = false, withUrls = false, onGenrePressed = { onGenrePressed(it) }).apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)

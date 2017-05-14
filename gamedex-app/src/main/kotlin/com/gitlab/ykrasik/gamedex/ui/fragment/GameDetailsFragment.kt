@@ -6,7 +6,9 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
+import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.Button
 import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
@@ -18,7 +20,8 @@ import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.net.URLEncoder
@@ -28,9 +31,8 @@ import java.net.URLEncoder
  * Date: 30/03/2017
  * Time: 18:17
  */
-// TODO: This needs to refresh itself when data is updated.
-// TODO: This class is already too big
-class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true) : Fragment(game.name) {
+// TODO: This class is too big
+class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fragment() {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
     private val detailsSnippetFactory: GameDetailSnippetFactory by di()
@@ -38,6 +40,9 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
     private var webView: WebView by singleAssign()
     private var backButton: Button by singleAssign()
     private var forwardButton: Button by singleAssign()
+
+    private val gameProperty: ObjectProperty<Game> = SimpleObjectProperty(initialGame)
+    private var game by gameProperty
 
     private var accept = false
 
@@ -102,7 +107,10 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
                     addClass(CommonStyle.card)
 
                     val poster = ImageView()
-                    poster.imageProperty().bind(imageLoader.fetchImage(game.id, game.posterUrl, persistIfAbsent = true))
+                    val gamePosterProperty = gameProperty.flatMapProperty { game ->
+                        imageLoader.fetchImage(game!!.id, game.posterUrl, persistIfAbsent = true)
+                    }
+                    poster.imageProperty().bind(gamePosterProperty)
 
                     contextmenu {
                         menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { editDetails(GameDataType.poster) }
@@ -125,7 +133,7 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
 
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
-                children += detailsSnippetFactory.create(game, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
+                children += detailsSnippetFactory.create(gameProperty, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
                     setId(Style.rightGameDetailsView)
                     addClass(CommonStyle.card)
                     hgrow = Priority.ALWAYS
@@ -172,6 +180,10 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
         }
     }
 
+    init {
+        titleProperty.bind(gameProperty.mapProperty { it!!.name })
+    }
+
     override fun onDock() {
         modalStage!!.isMaximized = true
     }
@@ -195,14 +207,10 @@ class GameDetailsFragment(private val game: Game, displayVideos: Boolean = true)
         close(accept = false)
     }
 
-    private fun editDetails(type: GameDataType = GameDataType.name_) = hideTemporarily {
-        gameController.editDetails(game, initialTab = type)
-    }
-
-    private fun hideTemporarily(f: () -> Job) {
-        close(accept = false)
-        f().invokeOnCompletion {
-            show()
+    private fun editDetails(type: GameDataType = GameDataType.name_) {
+        val newGame = gameController.editDetails(game, initialTab = type)
+        launch(JavaFx) {
+            game = newGame.await()
         }
     }
 

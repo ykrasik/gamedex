@@ -76,13 +76,15 @@ class GameRepository @Inject constructor(
         games
     }
 
-    suspend fun update(newRawGame: RawGame) = run(JavaFx) {
+    suspend fun update(newRawGame: RawGame): Game = run(JavaFx) {
         val updatedGame = newRawGame.copy(metaData = newRawGame.metaData.updatedNow())
         run(CommonPool) {
             persistenceService.updateGame(updatedGame)
         }
         removeGameById(updatedGame.id)
-        games += updatedGame.toGame()
+        val game = updatedGame.toGame()
+        games += game
+        game
     }
 
     suspend fun delete(game: Game) = run(JavaFx) {

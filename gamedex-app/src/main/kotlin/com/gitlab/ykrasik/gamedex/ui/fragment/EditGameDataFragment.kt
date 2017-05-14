@@ -31,6 +31,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
     private val providerRepository: GameProviderRepository by di()
     private val imageLoader: ImageLoader by di()
 
+    // TODO: Play around with representing this as a CustomProvider in the UserData
     private var overrides = HashMap(game.rawGame.userData?.overrides ?: emptyMap())
 
     private var choice: Choice = Choice.Cancel
@@ -315,7 +316,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
     }
 
     fun show(): Choice {
-        openModal(block = true/*, stageStyle = StageStyle.UNDECORATED*/)
+        openWindow(block = true, owner = null/*, stageStyle = StageStyle.UNDECORATED*/)
         return choice
     }
 
