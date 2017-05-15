@@ -42,7 +42,7 @@ class GameSettings private constructor() : AbstractSettings("game") {
         minScore("Min Score"),
         avgScore("Average Score"),
         releaseDate("Release Date"),
-        dateAdded("Last Update Date");
+        lastModified("Last Modified");
 
         override fun toString() = key
     }

@@ -11,7 +11,9 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.TableColumn
 import tornadofx.SortedFilteredList
+import tornadofx.getValue
 import tornadofx.onChange
+import tornadofx.setValue
 
 /**
  * User: ykrasik
@@ -20,11 +22,18 @@ import tornadofx.onChange
  */
 class SortedFilteredGames(_games: ObservableList<Game>) {
     val platformFilterProperty = SimpleObjectProperty<Platform>()
+    var platformFilter by platformFilterProperty
+
+    val genreFilterProperty = SimpleStringProperty(allGenres)
+    var genreFilter by genreFilterProperty
+
     val searchQueryProperty = SimpleStringProperty("")
-    val genreFilterProperty = SimpleStringProperty("")
 
     val sortProperty = SimpleObjectProperty<GameSettings.Sort>(GameSettings.Sort.name_)
+    var sort by sortProperty
+
     val sortOrderProperty = SimpleObjectProperty<TableColumn.SortType>(TableColumn.SortType.ASCENDING)
+    var sortOrder by sortOrderProperty
 
     val games: ObservableList<Game> = SortedFilteredList(_games)
 
@@ -42,7 +51,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
         }
 
         val genrePredicate = genreFilterProperty.toPredicate { genre, game: Game ->
-            genre.isNullOrEmpty() || game.genres.contains(genre)
+            genre.isNullOrEmpty() || genre == allGenres || game.genres.contains(genre)
         }
 
         val gameFilterPredicateProperty = platformPredicate.and(searchPredicate).and(genrePredicate)
@@ -61,7 +70,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
                 GameSettings.Sort.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
                 GameSettings.Sort.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
                 GameSettings.Sort.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                GameSettings.Sort.dateAdded -> compareBy(Game::lastModified)
+                GameSettings.Sort.lastModified -> compareBy(Game::lastModified)
             }
             return if (sortOrderProperty.value == TableColumn.SortType.ASCENDING) {
                 comparator
@@ -82,4 +91,8 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
 
     private val Game.minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c, u) } }
     private val Game.avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c + u) / 2 } }
+
+    companion object {
+        val allGenres = "All"
+    }
 }

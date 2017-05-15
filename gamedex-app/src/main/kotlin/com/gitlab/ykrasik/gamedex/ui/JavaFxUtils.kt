@@ -18,7 +18,6 @@ import javafx.collections.transformation.TransformationList
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
-import javafx.geometry.Side
 import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.control.*
@@ -404,9 +403,10 @@ fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(gra
 fun EventTarget.buttonWithPopover(text: String? = null,
                                   graphic: Node? = null,
                                   arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                  styleClass: CssRule? = CommonStyle.toolbarButton,
                                   op: (PopOver.() -> Unit)? = null) =
     jfxButton(text = text, graphic = graphic) {
-        addClass(CommonStyle.toolbarButton)
+        styleClass?.let { addClass(it) }
         withPopover(arrowLocation) {
             op?.invoke(this)
         }
@@ -416,7 +416,7 @@ fun EventTarget.buttonWithPopover(text: Property<String>,
                                   graphic: Node? = null,
                                   arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                   op: (PopOver.() -> Unit)? = null) =
-    buttonWithPopover(text.value, graphic, arrowLocation, op).apply {
+    buttonWithPopover(text.value, graphic, arrowLocation, op = op).apply {
         textProperty().cleanBind(text)
     }
 
@@ -428,11 +428,10 @@ fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = buttonWithPopover(
 
 fun PopOver.popoverMenuItem(text: String? = null,
                             graphic: Node? = null,
-                            styleClass: CssRule = CommonStyle.extraMenu,
-                            op: (JFXButton.() -> Unit)? = null, onAction: () -> Unit): JFXButton {
+                            styleClass: CssRule? = CommonStyle.extraMenu,
+                            onAction: () -> Unit): JFXButton {
     return popoverContent.jfxButton(text, graphic) {
-        addClass(styleClass)
-        op?.invoke(this)
+        styleClass?.let { addClass(it) }
         setOnAction {
             this@popoverMenuItem.hide()
             onAction()
@@ -444,7 +443,7 @@ fun PopOver.separator(orientation: Orientation = Orientation.HORIZONTAL, op: (Se
     popoverContent.separator(orientation, op)
 }
 
-private val PopOver.popoverContent: VBox get() {
+val PopOver.popoverContent: VBox get() {
     return if (contentNode !is VBox) {
         VBox().apply {
             addClass(CommonStyle.popoverMenu)
@@ -464,6 +463,7 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     PopOver().apply {
         this.arrowLocation = arrowLocation
         isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
+        isDetachable = false
         op?.invoke(this)
     }
 
@@ -521,11 +521,19 @@ fun Platform.toLogo() = when (this) {
     else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
 }
 
-fun Node.dropDownMenu(op: (ContextMenu.() -> Unit)? = null) = ContextMenu().apply {
+fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
+    val popover = popOver(arrowLocation)
     this@dropDownMenu.setOnMouseEntered {
-        if (!isShowing) {
-            show(this@dropDownMenu, Side.BOTTOM, 0.0, 0.0)
+        if (!popover.isShowing) {
+            popover.show(this@dropDownMenu)
         }
     }
-    op?.invoke(this)
+    this@dropDownMenu.setOnMouseExited {
+        if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
+            it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
+            popover.hide()
+        }
+    }
+    op?.invoke(popover)
+    return popover
 }

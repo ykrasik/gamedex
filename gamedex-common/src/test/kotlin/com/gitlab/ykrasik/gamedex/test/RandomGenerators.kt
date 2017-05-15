@@ -47,7 +47,7 @@ fun randomScore() = rnd.nextDouble() * 100
 
 fun randomDateTime(): DateTime = DateTime.now().plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
-fun randomLocalDateString(): String = randomLocalDate().toString("YYYY-MMM-dd")
+fun randomLocalDateString(): String = randomLocalDate().toString()
 
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 

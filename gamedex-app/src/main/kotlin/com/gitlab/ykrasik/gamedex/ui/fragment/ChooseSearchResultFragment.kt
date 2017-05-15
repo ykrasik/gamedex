@@ -25,6 +25,7 @@ import tornadofx.*
  * Date: 02/01/2017
  * Time: 15:54
  */
+// TODO: Redo this screen according to theme
 class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Search Result for '${data.name}'") {
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()
@@ -161,8 +162,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
 
                     setOnAction { close(okResult) }
                     dropDownMenu {
-                        prefWidthProperty().bind(this@button.widthProperty())
-                        menuitem("Not Exact Match") {
+                        popoverMenuItem("Not Exact Match") {
                             close(SearchChooser.Choice.NotExactMatch(tableView.selectedItem!!))
                         }
                     }

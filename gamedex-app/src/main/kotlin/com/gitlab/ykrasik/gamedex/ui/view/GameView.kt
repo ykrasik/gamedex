@@ -5,12 +5,16 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
-import javafx.beans.property.ObjectProperty
 import javafx.event.EventTarget
+import javafx.geometry.Pos
+import javafx.scene.control.ContentDisplay
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
+import javafx.scene.input.KeyCode
+import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
 import org.controlsfx.glyphfont.FontAwesome
@@ -30,61 +34,114 @@ class GameView : GamedexView("Games") {
     private val gameListView: GameListView by inject()
 
     override fun ToolBar.constructToolbar() {
-        // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
-        val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
-            platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
-        }
+        buttonWithPopover(
+            text = "Filter",
+            graphic = FontAwesome.Glyph.FILTER.toGraphic { size(21.0) },
+            arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
-        // TODO: Combine all filters into a filter menu
-        platformComboBox(gameController.sortedFilteredGames.platformFilterProperty, platformsWithLibraries)
-
-        verticalSeparator()
-
-        label("Genres:")
-        val possibleGenres = gameController.genres.sorted().let { listOf("") + it }
-        combobox(gameController.sortedFilteredGames.genreFilterProperty, possibleGenres) {
-            selectionModel.select(0)
-        }
-
-        verticalSeparator()
-
-        val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-            promptText = "Search"
-            left = FontAwesome.Glyph.SEARCH.toGraphic()
-            gameController.sortedFilteredGames.searchQueryProperty.bind(textProperty())
-        }
-        items += search
-
-        verticalSeparator()
-
-        // TODO: This is only relevant for the game wall view, make it support adding stuff to the toolbar
-        label("Sort:")
-        enumComboBox(gameController.sortedFilteredGames.sortProperty)
-        jfxButton {
-            graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.map { it!!.toGraphic() })
-            setOnAction {
-                settings.sortOrderProperty.toggle()
+            popoverContent.form {
+                fieldset {
+                    separator()
+                    field("Search") {
+                        val search = (TextFields.createClearableTextField() as CustomTextField).apply {
+                            addClass(Style.filterButton)
+                            promptText = "Search"
+                            left = FontAwesome.Glyph.SEARCH.toGraphic()
+                            gameController.sortedFilteredGames.searchQueryProperty.bind(textProperty())
+                            setOnKeyPressed {
+                                if (it.code == KeyCode.ESCAPE) {
+                                    text = ""
+                                    this@buttonWithPopover.hide()
+                                }
+                            }
+                        }
+                        children += search
+                    }
+                    separator()
+                    field("Platform") {
+                        // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
+                        val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
+                            platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
+                        }
+                        buttonWithPopover(arrowLocation = PopOver.ArrowLocation.LEFT_TOP, styleClass = null) {
+                            platformsWithLibraries.forEach { platform ->
+                                popoverMenuItem(platform.key, platform.toLogo()) {
+                                    gameController.sortedFilteredGames.platformFilter = platform
+                                }.apply {
+                                    addClass(Style.platformItem)
+                                }
+                            }
+                        }.apply {
+                            addClass(Style.filterButton)
+                            textProperty().bind(gameController.sortedFilteredGames.platformFilterProperty.map { it!!.toString() })
+                            graphicProperty().bind(gameController.sortedFilteredGames.platformFilterProperty.map { it!!.toLogo() })
+                            alignment = Pos.CENTER_LEFT
+                        }
+                    }
+                    separator()
+                    field("Genre") {
+                        val possibleGenres = gameController.genres.sorted().let { listOf(SortedFilteredGames.allGenres) + it }
+                        buttonWithPopover(arrowLocation = PopOver.ArrowLocation.LEFT_TOP, styleClass = null) {
+                            possibleGenres.forEach { genre ->
+                                popoverMenuItem(genre) {
+                                    gameController.sortedFilteredGames.genreFilter = genre
+                                }.apply {
+                                    addClass(Style.genreItem)
+                                }
+                                if (genre == SortedFilteredGames.allGenres) {
+                                    separator()
+                                }
+                            }
+                        }.apply {
+                            addClass(Style.filterButton)
+                            textProperty().bind(gameController.sortedFilteredGames.genreFilterProperty)
+                            alignment = Pos.CENTER_LEFT
+                        }
+                    }
+                    separator()
+                }
             }
         }
+
+        verticalSeparator()
+
+        buttonWithPopover(
+            graphic = FontAwesome.Glyph.SORT.toGraphic { size(21.0) },
+            arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
+
+            GameSettings.Sort.values().forEach { sort ->
+                popoverMenuItem(sort.key, styleClass = Style.sortItem) {
+                    val prevSort = gameController.sortedFilteredGames.sort
+                    if (prevSort == sort) {
+                        gameController.sortedFilteredGames.sortOrder = gameController.sortedFilteredGames.sortOrder.toggle()
+                    } else {
+                        gameController.sortedFilteredGames.sortOrder = TableColumn.SortType.DESCENDING
+                    }
+                    gameController.sortedFilteredGames.sort = sort
+                }
+            }
+        }.apply {
+            textProperty().bind(gameController.sortedFilteredGames.sortProperty.map { it!!.toString() })
+            graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.map { it!!.toGraphic() })
+            contentDisplay = ContentDisplay.LEFT
+        }
+
+        verticalSeparator()
 
         spacer()
 
         verticalSeparator()
 
-        label {
-            textProperty().bind(gameController.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
-        }
-
-        verticalSeparator()
-
-        button("Scan New Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
+        jfxButton("Scan New Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(21.0) }) {
+            addClass(CommonStyle.toolbarButton)
             isDefaultButton = true
             setOnAction {
                 val task = gameController.scanNewGames()
                 disableWhen { task.runningProperty }
             }
             dropDownMenu {
-                checkmenuitem("Hands Free Mode") {
+                popoverContent.jfxToggleButton {
+                    text = "Hands Free Mode"
                     selectedProperty().bindBidirectional(settings.handsFreeModeProperty)
                 }
             }
@@ -109,6 +166,10 @@ class GameView : GamedexView("Games") {
                 val task = gameController.rediscoverAllGames()
                 disableWhen { task.runningProperty }
             }
+        }.apply {
+            textProperty().bind(gameController.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
+            contentDisplay = ContentDisplay.RIGHT
+            graphicTextGap = 10.0
         }
 
         verticalSeparator()
@@ -128,15 +189,13 @@ class GameView : GamedexView("Games") {
     }
 
     private fun TableColumn.SortType.toGraphic() = when (this) {
-        TableColumn.SortType.ASCENDING -> FontAwesome.Glyph.ARROW_UP.toGraphic()
-        TableColumn.SortType.DESCENDING -> FontAwesome.Glyph.ARROW_DOWN.toGraphic()
-    }
+        TableColumn.SortType.ASCENDING -> FontAwesome.Glyph.SORT_ASC.toGraphic()
+        TableColumn.SortType.DESCENDING -> FontAwesome.Glyph.SORT_DESC.toGraphic()
+    }.apply { size(23.0) }
 
-    private fun ObjectProperty<TableColumn.SortType>.toggle() {
-        value = when (value!!) {
-            TableColumn.SortType.ASCENDING -> TableColumn.SortType.DESCENDING
-            TableColumn.SortType.DESCENDING -> TableColumn.SortType.ASCENDING
-        }
+    private fun TableColumn.SortType.toggle() = when (this) {
+        TableColumn.SortType.ASCENDING -> TableColumn.SortType.DESCENDING
+        TableColumn.SortType.DESCENDING -> TableColumn.SortType.ASCENDING
     }
 
     companion object {
@@ -150,6 +209,40 @@ class GameView : GamedexView("Games") {
             menuitem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.rediscoverGame(game()) }
             separator()
             menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
+        }
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val filterButton by cssclass()
+            val genreItem by cssclass()
+            val platformItem by cssclass()
+            val sortItem by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
+        }
+
+        init {
+            filterButton {
+                prefWidth = 160.px
+            }
+
+            genreItem {
+                prefWidth = 160.px
+                alignment = Pos.CENTER_LEFT
+            }
+
+            platformItem {
+                prefWidth = 100.px
+                alignment = Pos.CENTER_LEFT
+            }
+
+            sortItem {
+                prefWidth = 100.px
+                alignment = Pos.CENTER_LEFT
+            }
         }
     }
 }
