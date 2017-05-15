@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.preferences.GamePreferences
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import kotlinx.coroutines.experimental.CommonPool
@@ -28,7 +28,7 @@ interface GameProviderService {
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
-    private val preferences: GamePreferences,
+    private val settings: GameSettings,
     private val chooser: SearchChooser
 ) : GameProviderService {
 
@@ -115,7 +115,7 @@ class GameProviderServiceImpl @Inject constructor(
 
         private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
             // We only get here when we have no exact matches.
-            if (!isSearchAgain && preferences.handsFreeMode) return SearchChooser.Choice.Cancel
+            if (!isSearchAgain && settings.handsFreeMode) return SearchChooser.Choice.Cancel
 
             val (filteredResults, results) = allSearchResults.partition { result ->
                 previouslyDiscardedResults.any { it.name.equals(result.name, ignoreCase = true) }

@@ -139,6 +139,7 @@ fun <T> ObservableList<T>.distincted(): ObservableList<T> {
  * Each element will have the given function applied to it, such that the list is cast through the mapper.
  * Taken from https://gist.github.com/mikehearn/a2e4a048a996fd900656
  */
+// TODO: tornadoFx has something similar, called ListConversionListener
 class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) -> E) : TransformationList<E, F>(source) {
     private var mapped = transform()
 
@@ -194,15 +195,13 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override val size: Int get() = mapped.size
 }
 
-// TODO: Make f(T) non nullable
-fun <T, R> ObservableValue<T>.mapProperty(f: (T?) -> R): Property<R> {
+fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this.value))
     this.onChange { property.set(f(it)) }
     return property
 }
 
-// TODO: Make f(T) non nullable
-fun <T, R> ObservableValue<T>.flatMapProperty(f: (T?) -> ObservableValue<R>): Property<R> {
+fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
     fun calc() = f(this.value)
     val property = SimpleObjectProperty<R>()
     property.bind(calc())
@@ -219,7 +218,7 @@ fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
 }
 
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
-    mapProperty { t -> Predicate { r: R -> f(t, r) } }
+    map { t -> Predicate { r: R -> f(t, r) } }
 
 fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
     fun compose() = this.value.and(other.value)

@@ -2,8 +2,8 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.preferences.GeneralPreferences
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.platformComboBox
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
@@ -22,7 +22,7 @@ import java.io.File
  * Time: 10:56
  */
 class AddLibraryFragment : Fragment("Add Library") {
-    private val preferences: GeneralPreferences by di()
+    private val settings: GeneralSettings by di()
 
     private val model = AddLibraryViewModel()
     private var accept = false
@@ -58,8 +58,8 @@ class AddLibraryFragment : Fragment("Add Library") {
     }
 
     private fun browse() {
-        val directory = chooseDirectory("Browse Library Path...", initialDirectory = preferences.prevDirectory?.existsOrNull()) ?: return
-        preferences.prevDirectory = directory
+        val directory = chooseDirectory("Browse Library Path...", initialDirectory = settings.prevDirectory?.existsOrNull()) ?: return
+        settings.prevDirectory = directory
         model.path = directory.path
         model.name = directory.name
     }

@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.preferences.GeneralPreferences
+import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
 import com.google.inject.AbstractModule
@@ -78,7 +78,7 @@ class PreloaderView : View("Gamedex") {
         progress.message = "Loading..."
 
         // TODO: Meh, not super clean, but I'm not super bothered
-        val preferences = GeneralPreferences()
+        val preferences = GeneralSettings()
         val provisionListener = GamedexProvisionListener(preferences.amountOfDiComponents)
 
         FX.dicontainer = GuiceDiContainer(

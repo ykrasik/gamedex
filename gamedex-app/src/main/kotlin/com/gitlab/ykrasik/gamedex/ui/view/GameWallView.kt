@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.preferences.GameWallPreferences
+import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.popOver
@@ -27,15 +27,15 @@ import tornadofx.*
 // TODO: Allow "marking" a game with some marker - to delete, redownload etc.
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
-    private val preferences: GameWallPreferences by di()
+    private val settings: GameWallSettings by di()
     private val imageLoader: ImageLoader by di()
     private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
     override val root = datagrid(gameController.sortedFilteredGames.games) {
-        cellHeightProperty.bind(preferences.cellHeightProperty)
-        cellWidthProperty.bind(preferences.cellWidthProperty)
-        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellHorizontalSpacingProperty)
-        (verticalCellSpacingProperty as StyleableObjectProperty).bind(preferences.cellVerticalSpacingProperty)
+        cellHeightProperty.bind(settings.cellHeightProperty)
+        cellWidthProperty.bind(settings.cellWidthProperty)
+        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(settings.cellHorizontalSpacingProperty)
+        (verticalCellSpacingProperty as StyleableObjectProperty).bind(settings.cellVerticalSpacingProperty)
 
         val popOver = popOver()
 
@@ -96,7 +96,7 @@ class GameWallView : View("Games Wall") {
     // TODO: Consider adding an option to display the game name under the cell
     inner class GameWallCell : DataGridCell<Game>(root) {
         private val imageView = ImageView().fadeOnImageChange()
-        private val imageViewLimitedPane = ImageViewLimitedPane(imageView, preferences.imageDisplayTypeProperty)
+        private val imageViewLimitedPane = ImageViewLimitedPane(imageView, settings.imageDisplayTypeProperty)
 
         init {
             // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.

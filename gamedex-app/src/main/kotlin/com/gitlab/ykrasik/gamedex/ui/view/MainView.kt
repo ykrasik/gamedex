@@ -52,7 +52,7 @@ class MainView : View("Gamedex") {
         toolbar.replaceChildren {
             jfxButton(graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) }) {
                 addClass(Style.navigationButton)
-                textProperty().bind(tabPane.selectionModel.selectedItemProperty().mapProperty { it!!.text })
+                textProperty().bind(tabPane.selectionModel.selectedItemProperty().map { it!!.text })
                 alignment = Pos.CENTER_LEFT
                 graphicTextGap = 6.0
                 withPopover(PopOver.ArrowLocation.TOP_LEFT) {

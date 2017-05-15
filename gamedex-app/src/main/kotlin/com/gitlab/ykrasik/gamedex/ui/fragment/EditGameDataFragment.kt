@@ -295,7 +295,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 isSelected = false
                 isSelected = true
             }
-            disableProperty().bind(imageProperty.isNull)
+            disableWhen { imageProperty.isNull }
 
             graphic = vbox {
                 alignment = Pos.CENTER

@@ -3,8 +3,8 @@ package com.gitlab.ykrasik.gamedex.controller
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
-import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
@@ -27,16 +27,16 @@ import javax.inject.Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
     private val gameTasks: GameTasks,
-    preferences: AllPreferences
+    settings: GameSettings
 ) : Controller() {
 
     val sortedFilteredGames = SortedFilteredGames(gameRepository.games)
     val genres get() = gameRepository.genres
 
     init {
-        sortedFilteredGames.platformFilterProperty.bindBidirectional(preferences.game.platformProperty)
-        sortedFilteredGames.sortProperty.bindBidirectional(preferences.gameWall.sortProperty)
-        sortedFilteredGames.sortOrderProperty.bindBidirectional(preferences.gameWall.sortOrderProperty)
+        sortedFilteredGames.platformFilterProperty.bindBidirectional(settings.platformProperty)
+        sortedFilteredGames.sortProperty.bindBidirectional(settings.sortProperty)
+        sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }
 
     fun viewDetails(game: Game) = GameDetailsFragment(game).show()

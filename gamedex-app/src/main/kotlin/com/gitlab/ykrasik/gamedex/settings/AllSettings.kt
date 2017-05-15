@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.preferences
+package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.util.*
 import javafx.beans.property.ObjectProperty
@@ -10,14 +10,15 @@ import tornadofx.onChange
  * Date: 11/10/2016
  * Time: 10:34
  */
-class AllPreferences(
-    val general: GeneralPreferences,
-    val provider: ProviderPreferences,
-    val game: GamePreferences,
-    val gameWall: GameWallPreferences
+class AllSettings(
+    val general: GeneralSettings,
+    val provider: ProviderSettings,
+    val game: GameSettings,
+    val gameWall: GameWallSettings
 )
 
-abstract class UserPreferencesSet(name: String) {
+// TODO: I probably only want 1 class, and the ability to scope settings.
+abstract class AbstractSettings(name: String) {
     @Transient
     protected val file = "conf/$name.json".toFile()
 
@@ -30,7 +31,7 @@ abstract class UserPreferencesSet(name: String) {
         val property = SimpleObjectProperty<T>(initialValue)
         property.onChange {
             if (updateEnable) {
-                UserPreferencesSet.update(this@UserPreferencesSet)
+                AbstractSettings.update(this@AbstractSettings)
             }
         }
         return property
@@ -38,21 +39,21 @@ abstract class UserPreferencesSet(name: String) {
 
     companion object {
         @JvmStatic
-        protected inline fun <reified T : UserPreferencesSet> readOrUse(preferences: T): T {
-            val file = preferences.file
+        protected inline fun <reified T : AbstractSettings> readOrUse(settings: T): T {
+            val file = settings.file
             val p = if (file.exists()) {
                 file.readJson<T>()
             } else {
                 file.create()
-                file.writeJson(preferences)
-                preferences
+                file.writeJson(settings)
+                settings
             }
             p.updateEnable = true
             return p
         }
 
-        private fun update(p: UserPreferencesSet) {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(p.file, p)
+        private fun update(s: AbstractSettings) {
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(s.file, s)
         }
     }
 }

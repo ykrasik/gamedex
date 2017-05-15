@@ -58,7 +58,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                     addClass(CommonStyle.toolbarButton)
                     setOnAction {
                         val task = gameController.refreshGame(game)
-                        disableProperty().cleanBind(task.runningProperty)
+                        disableWhen { task.runningProperty }
                     }
                 }
 
@@ -68,7 +68,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                     addClass(CommonStyle.toolbarButton)
                     setOnAction {
                         val task = gameController.rediscoverGame(game)
-                        disableProperty().cleanBind(task.runningProperty)
+                        disableWhen { task.runningProperty }
                     }
                 }
 
@@ -107,7 +107,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                     addClass(CommonStyle.card)
 
                     val poster = ImageView()
-                    val gamePosterProperty = gameProperty.flatMapProperty { game ->
+                    val gamePosterProperty = gameProperty.flatMap { game ->
                         imageLoader.fetchImage(game!!.id, game.posterUrl, persistIfAbsent = true)
                     }
                     poster.imageProperty().bind(gamePosterProperty)
@@ -152,7 +152,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                         fun canNavigate(back: Boolean): Property<Boolean> {
                             val history = engine.history
                             val entries = history.entries
-                            return history.currentIndexProperty().mapProperty { i ->
+                            return history.currentIndexProperty().map { i ->
                                 val currentIndex = i!!.toInt()
                                 entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
                             }
@@ -181,7 +181,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
     }
 
     init {
-        titleProperty.bind(gameProperty.mapProperty { it!!.name })
+        titleProperty.bind(gameProperty.map { it!!.name })
     }
 
     override fun onDock() {

@@ -5,12 +5,10 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.preferences.AllPreferences
-import com.gitlab.ykrasik.gamedex.preferences.GameDisplayType
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.ObjectProperty
 import javafx.event.EventTarget
-import javafx.scene.Node
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import org.controlsfx.control.textfield.CustomTextField
@@ -23,11 +21,10 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-// TODO: Support db import / export
 class GameView : GamedexView("Games") {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
-    private val preferences: AllPreferences by di()
+    private val settings: GameSettings by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -64,9 +61,9 @@ class GameView : GamedexView("Games") {
         label("Sort:")
         enumComboBox(gameController.sortedFilteredGames.sortProperty)
         jfxButton {
-            graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.mapProperty { it!!.toGraphic() })
+            graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.map { it!!.toGraphic() })
             setOnAction {
-                preferences.gameWall.sortOrderProperty.toggle()
+                settings.sortOrderProperty.toggle()
             }
         }
 
@@ -84,11 +81,11 @@ class GameView : GamedexView("Games") {
             isDefaultButton = true
             setOnAction {
                 val task = gameController.scanNewGames()
-                disableProperty().cleanBind(task.runningProperty)
+                disableWhen { task.runningProperty }
             }
             dropDownMenu {
                 checkmenuitem("Hands Free Mode") {
-                    selectedProperty().bindBidirectional(preferences.game.handsFreeModeProperty)
+                    selectedProperty().bindBidirectional(settings.handsFreeModeProperty)
                 }
             }
         }
@@ -98,19 +95,19 @@ class GameView : GamedexView("Games") {
         extraMenu {
             extraMenuItem("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
                 val task = gameController.cleanup()
-                disableProperty().cleanBind(task.runningProperty)
+                disableWhen { task.runningProperty }
             }
 
             separator()
 
             extraMenuItem("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
                 val task = gameController.refreshAllGames()
-                disableProperty().cleanBind(task.runningProperty)
+                disableWhen { task.runningProperty }
             }
 
             extraMenuItem("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
                 val task = gameController.rediscoverAllGames()
-                disableProperty().cleanBind(task.runningProperty)
+                disableWhen { task.runningProperty }
             }
         }
 
@@ -120,16 +117,14 @@ class GameView : GamedexView("Games") {
     override val root = stackpane()
 
     init {
-        val gameDisplayType = preferences.game.displayTypeProperty.mapProperty { it!!.toNode() }
-        root.children += gameDisplayType.value
-        gameDisplayType.onChange {
-            root.replaceChildren(it as Node)
+        settings.displayTypeProperty.perform {
+            root.replaceChildren(it!!.toNode())
         }
     }
 
-    private fun GameDisplayType.toNode() = when (this) {
-        GameDisplayType.wall -> gameWallView.root
-        GameDisplayType.list -> gameListView.root
+    private fun GameSettings.DisplayType.toNode() = when (this) {
+        GameSettings.DisplayType.wall -> gameWallView.root
+        GameSettings.DisplayType.list -> gameListView.root
     }
 
     private fun TableColumn.SortType.toGraphic() = when (this) {

@@ -10,6 +10,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:17
  */
+// TODO: This screen needs some work
 class SourceView : GamedexView("Sources") {
     private val controller: LibraryController by di()
 

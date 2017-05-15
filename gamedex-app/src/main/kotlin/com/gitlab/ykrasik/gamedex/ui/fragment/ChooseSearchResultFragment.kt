@@ -87,12 +87,12 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                     jfxButton {
                         gridpaneConstraints { columnRowIndex(3, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                         setId(Style.showFilterToggle)
-                        graphicProperty().bind(showingFilteredProperty.mapProperty {
+                        graphicProperty().bind(showingFilteredProperty.map {
                             (if (it!!) FontAwesome.Glyph.MINUS else FontAwesome.Glyph.PLUS).toGraphic()
                         })
                         tooltip {
                             textProperty().bind(
-                                showingFilteredProperty.mapProperty {
+                                showingFilteredProperty.map {
                                     "${if (it!!) "Hide" else "Show"} ${data.filteredResults.size} filtered results"
                                 }
                             )

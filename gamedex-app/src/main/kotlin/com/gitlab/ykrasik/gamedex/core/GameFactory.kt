@@ -1,9 +1,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.preferences.DefaultProviderOrder
-import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class GameFactory @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val preferences: ProviderPreferences
+    private val settings: ProviderSettings
 ) {
     private val maxScreenshots = 10
     private val maxGenres = 7
@@ -37,18 +36,18 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        name = firstBy(preferences.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
-        description = firstBy(preferences.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
-        releaseDate = firstBy(preferences.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
-        criticScore = firstBy(preferences.criticScoreOrder, userData?.criticScoreOverride()) { it.gameData.criticScore },
-        userScore = firstBy(preferences.userScoreOrder, userData?.userScoreOverride()) { it.gameData.userScore },
+        name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
+        description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
+        releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
+        criticScore = firstBy(settings.criticScoreOrder, userData?.criticScoreOverride()) { it.gameData.criticScore },
+        userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride()) { it.gameData.userScore },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
     )
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(preferences.thumbnailOrder, userData?.thumbnailOverride()) { it.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(preferences.posterOrder, userData?.posterOverride()) { it.imageUrls.posterUrl }
-        val screenshotUrls = listBy(preferences.screenshotOrder, userData?.screenshotsOverride()) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
+        val thumbnailUrl = firstBy(settings.thumbnailOrder, userData?.thumbnailOverride()) { it.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(settings.posterOrder, userData?.posterOverride()) { it.imageUrls.posterUrl }
+        val screenshotUrls = listBy(settings.screenshotOrder, userData?.screenshotsOverride()) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
 
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,
@@ -60,7 +59,7 @@ class GameFactory @Inject constructor(
     private fun RawGame.toProviderHeaders(): List<ProviderHeader> = this.providerData.map { it.header }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (ProviderData) -> T?): T? =
+    private fun <T> RawGame.firstBy(defaultOrder: ProviderSettings.Order, override: GameDataOverride?, extractor: (ProviderData) -> T?): T? =
         when (override) {
             is GameDataOverride.Custom -> override.data as T
             else -> {
@@ -70,7 +69,7 @@ class GameFactory @Inject constructor(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.listBy(defaultOrder: DefaultProviderOrder, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
+    private fun <T> RawGame.listBy(defaultOrder: ProviderSettings.Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.data as List<T>
             else -> {
@@ -86,11 +85,11 @@ class GameFactory @Inject constructor(
             else -> providerData.flatMap(extractor)
         }
 
-    private fun RawGame.sortDataBy(order: DefaultProviderOrder, override: GameDataOverride.Provider?): List<ProviderData> =
+    private fun RawGame.sortDataBy(order: ProviderSettings.Order, override: GameDataOverride.Provider?): List<ProviderData> =
         providerData.sortedByDescending {
             val type = it.header.type
             if (type == override?.provider) {
-                DefaultProviderOrder.maxPriority + 1
+                ProviderSettings.Order.maxPriority + 1
             } else {
                 order[type]
             }

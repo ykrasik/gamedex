@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
-import com.gitlab.ykrasik.gamedex.preferences.ImageDisplayType
+import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.unmodifiable
 import javafx.beans.property.ObjectProperty
 import javafx.collections.ObservableList
@@ -18,7 +18,7 @@ import tornadofx.onChange
  */
 class ImageViewLimitedPane(
     private val imageView: ImageView,
-    private val imageDisplayType: ObjectProperty<ImageDisplayType>
+    private val imageDisplayType: ObjectProperty<GameWallSettings.ImageDisplayType>
 ) : Pane() {
 
     init {
@@ -42,8 +42,8 @@ class ImageViewLimitedPane(
         super.resize(maxWidth, maxHeight)
 
         when (imageDisplayType.get()) {
-            ImageDisplayType.fit -> fitImage(true)
-            ImageDisplayType.stretch -> stretchImage()
+            GameWallSettings.ImageDisplayType.fit -> fitImage(true)
+            GameWallSettings.ImageDisplayType.stretch -> stretchImage()
             else -> throw IllegalArgumentException("Invalid imageDisplayType: ${imageDisplayType.get()}")
         }
     }

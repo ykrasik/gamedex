@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.preferences.GameWallSort
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.and
 import com.gitlab.ykrasik.gamedex.ui.toPredicate
 import javafx.beans.property.ObjectProperty
@@ -23,7 +23,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     val searchQueryProperty = SimpleStringProperty("")
     val genreFilterProperty = SimpleStringProperty("")
 
-    val sortProperty = SimpleObjectProperty<GameWallSort>(GameWallSort.name_)
+    val sortProperty = SimpleObjectProperty<GameSettings.Sort>(GameSettings.Sort.name_)
     val sortOrderProperty = SimpleObjectProperty<TableColumn.SortType>(TableColumn.SortType.ASCENDING)
 
     val games: ObservableList<Game> = SortedFilteredList(_games)
@@ -55,13 +55,13 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     private fun sortComparator(): ObjectProperty<Comparator<Game>> {
         fun comparator(): Comparator<Game> {
             val comparator = when (sortProperty.value!!) {
-                GameWallSort.name_ -> nameComparator
-                GameWallSort.criticScore -> criticScoreComparator.then(nameComparator)
-                GameWallSort.userScore -> userScoreComparator.then(nameComparator)
-                GameWallSort.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                GameWallSort.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                GameWallSort.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                GameWallSort.dateAdded -> compareBy(Game::lastModified)
+                GameSettings.Sort.name_ -> nameComparator
+                GameSettings.Sort.criticScore -> criticScoreComparator.then(nameComparator)
+                GameSettings.Sort.userScore -> userScoreComparator.then(nameComparator)
+                GameSettings.Sort.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                GameSettings.Sort.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                GameSettings.Sort.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+                GameSettings.Sort.dateAdded -> compareBy(Game::lastModified)
             }
             return if (sortOrderProperty.value == TableColumn.SortType.ASCENDING) {
                 comparator

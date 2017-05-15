@@ -4,7 +4,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.preferences.ProviderPreferences
+import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.distincted
 import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    preferences: ProviderPreferences
+    settings: ProviderSettings
 ) {
     private val log = logger()
 
@@ -36,14 +36,14 @@ class GameRepository @Inject constructor(
 
     init {
         // TODO: Find a more intelligent way
-        preferences.nameOrderProperty.onChange { rebuildGames() }
-        preferences.descriptionOrderProperty.onChange { rebuildGames() }
-        preferences.releaseDateOrderProperty.onChange { rebuildGames() }
-        preferences.criticScoreOrderProperty.onChange { rebuildGames() }
-        preferences.userScoreOrderProperty.onChange { rebuildGames() }
-        preferences.thumbnailOrderProperty.onChange { rebuildGames() }
-        preferences.posterOrderProperty.onChange { rebuildGames() }
-        preferences.screenshotOrderProperty.onChange { rebuildGames() }
+        settings.nameOrderProperty.onChange { rebuildGames() }
+        settings.descriptionOrderProperty.onChange { rebuildGames() }
+        settings.releaseDateOrderProperty.onChange { rebuildGames() }
+        settings.criticScoreOrderProperty.onChange { rebuildGames() }
+        settings.userScoreOrderProperty.onChange { rebuildGames() }
+        settings.thumbnailOrderProperty.onChange { rebuildGames() }
+        settings.posterOrderProperty.onChange { rebuildGames() }
+        settings.screenshotOrderProperty.onChange { rebuildGames() }
     }
 
     private fun fetchAllGames(): ObservableList<Game> {

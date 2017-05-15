@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.preferences
+package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.util.LogLevel
 import javafx.beans.property.ObjectProperty
@@ -11,9 +11,9 @@ import java.io.File
  * Date: 01/05/2017
  * Time: 19:10
  */
-class GeneralPreferences private constructor() : UserPreferencesSet("general") {
+class GeneralSettings private constructor() : AbstractSettings("general") {
     companion object {
-        operator fun invoke(): GeneralPreferences = readOrUse(GeneralPreferences())
+        operator fun invoke(): GeneralSettings = readOrUse(GeneralSettings())
     }
 
     @Transient

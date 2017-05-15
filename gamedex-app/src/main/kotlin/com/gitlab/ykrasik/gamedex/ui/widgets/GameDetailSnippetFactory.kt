@@ -28,10 +28,10 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                onGenrePressed: (String) -> Unit): VBox = VBox().apply {
         hbox {
             spacer()
-            label(gameProperty.mapProperty { it!!.name }) { setId(Style.nameLabel) }
+            label(gameProperty.map { it!!.name }) { setId(Style.nameLabel) }
             spacer()
             stackpane {
-                gameProperty.mapProperty { it!!.platform }.perform {
+                gameProperty.map { it!!.platform }.perform {
                     replaceChildren(it.toLogo())
                 }
             }
@@ -41,14 +41,14 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             vgap = 8.0
             row {
                 detailsLabel("Path")
-                label(gameProperty.mapProperty { it!!.path.path }) {
+                label(gameProperty.map { it!!.path.path }) {
                     addClass(Style.details)
                 }
             }
             if (withDescription) {
                 row {
                     detailsLabel("Description")
-                    label(gameProperty.mapProperty { it!!.description.toDisplayString() }) {
+                    label(gameProperty.map { it!!.description.toDisplayString() }) {
                         addClass(Style.details)
                         isWrapText = true
                         minHeight = Region.USE_PREF_SIZE
@@ -57,16 +57,16 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             }
             row {
                 detailsLabel("Release Date")
-                label(gameProperty.mapProperty { it!!.releaseDate.toDisplayString() }) { addClass(Style.details) }
+                label(gameProperty.map { it!!.releaseDate.toDisplayString() }) { addClass(Style.details) }
             }
             row {
                 detailsLabel("Critic Score")
                 gridpane {
                     hgap = 5.0
                     row {
-                        val criticScoreProperty = gameProperty.mapProperty { it!!.criticScore }
-                        fixedRating(10) { ratingProperty().bind(criticScoreProperty.mapProperty { it?.let { it / 10 } ?: 0.0 }) }
-                        label(criticScoreProperty.mapProperty { it.toDisplayString() }) {
+                        val criticScoreProperty = gameProperty.map { it!!.criticScore }
+                        fixedRating(10) { ratingProperty().bind(criticScoreProperty.map { it?.let { it / 10 } ?: 0.0 }) }
+                        label(criticScoreProperty.map { it.toDisplayString() }) {
                             addClass(Style.details)
                         }
                     }
@@ -77,9 +77,9 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 gridpane {
                     hgap = 5.0
                     row {
-                        val userScoreProperty = gameProperty.mapProperty { it!!.userScore }
-                        fixedRating(10) { ratingProperty().bind(userScoreProperty.mapProperty { it?.let { it / 10 } ?: 0.0 }) }
-                        label(userScoreProperty.mapProperty { it.toDisplayString() }) {
+                        val userScoreProperty = gameProperty.map { it!!.userScore }
+                        fixedRating(10) { ratingProperty().bind(userScoreProperty.map { it?.let { it / 10 } ?: 0.0 }) }
+                        label(userScoreProperty.map { it.toDisplayString() }) {
                             addClass(Style.details)
                         }
                     }
@@ -88,7 +88,7 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             row {
                 detailsLabel("Genres")
                 stackpane {
-                    gameProperty.mapProperty { it!!.genres }.perform { genres ->
+                    gameProperty.map { it!!.genres }.perform { genres ->
                         replaceChildren {
                             gridpane {
                                 hgap = 5.0
@@ -111,7 +111,7 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 row {
                     detailsLabel("URL")
                     stackpane {
-                        gameProperty.mapProperty { it!!.providerHeaders }.perform { providerHeaders ->
+                        gameProperty.map { it!!.providerHeaders }.perform { providerHeaders ->
                             replaceChildren {
                                 gridpane {
                                     hgap = 7.0
