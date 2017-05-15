@@ -2,10 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.fragment.SettingsFragment
-import com.jfoenix.controls.JFXButton
-import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
@@ -50,53 +47,25 @@ class MainView : View("Gamedex") {
 
     private fun GamedexView.populateToolbar() {
         toolbar.replaceChildren {
-            jfxButton(graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) }) {
-                addClass(Style.navigationButton)
-                textProperty().bind(tabPane.selectionModel.selectedItemProperty().map { it!!.text })
-                alignment = Pos.CENTER_LEFT
-                graphicTextGap = 6.0
-                withPopover(PopOver.ArrowLocation.TOP_LEFT) {
-                    contentNode = vbox(spacing = 5.0) {
-                        paddingAll = 5
-                        tabPane.tabs.forEach { tab ->
-                            navigationButton(tab.text, tab.graphic) {
-//                    tabPane.selectionModel.selectedItemProperty().onChange { selectedTab ->
-//                        toggleClass(Stylesheet.pressed, selectedTab == tab)
-//                    }
-                                setOnAction {
-                                    tabPane.selectionModel.select(tab)
-                                    this@withPopover.hide()
-                                }
-                            }
-                        }
-                        separator()
-                        navigationButton("Settings", FontAwesome.Glyph.COG.toGraphic { color(Color.GRAY)}) {
-                            setOnAction {
-//                    toggleClass(Stylesheet.pressed, false)
-                                this@withPopover.hide()
-                                SettingsFragment().show()
-                            }
-                        }
-                        separator()
-                        navigationButton("Quit", FontAwesome.Glyph.SIGN_OUT.toGraphic()) {
-                            setOnAction {
-                                this@withPopover.hide()
-                                System.exit(0)
-                            }
-                        }
-                    }
+            buttonWithPopover(
+                text = tabPane.selectionModel.selectedItemProperty().map { it!!.text },
+                graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) },
+                arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
+
+                tabPane.tabs.forEach { tab ->
+                    popoverMenuItem(tab.text, tab.graphic, Style.navigationButton) { tabPane.selectionModel.select(tab) }
+                }
+                separator()
+                popoverMenuItem("Settings", FontAwesome.Glyph.COG.toGraphic { color(Color.GRAY)}, Style.navigationButton) {
+                    SettingsFragment().show()
+                }
+                separator()
+                popoverMenuItem("Quit", FontAwesome.Glyph.SIGN_OUT.toGraphic(), Style.navigationButton) {
+                    System.exit(0)
                 }
             }
             verticalSeparator()
             this.constructToolbar()
-        }
-    }
-
-    private fun EventTarget.navigationButton(text: String, icon: Node, op: JFXButton.() -> Unit) {
-        jfxButton(text, graphic = icon) {
-            addClass(Style.navigationButton)
-            alignment = Pos.CENTER_LEFT
-            op(this)
         }
     }
 
@@ -127,6 +96,7 @@ class MainView : View("Gamedex") {
 
                 navigationButton {
                     prefWidth = 100.px
+                    alignment = Pos.CENTER_LEFT
                 }
             }
         }

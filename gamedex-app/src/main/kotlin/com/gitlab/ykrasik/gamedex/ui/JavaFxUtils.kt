@@ -78,7 +78,11 @@ class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
     }
 }
 
-fun Region.printSize(id: String) { printWidth(id); printHeight(id) }
+fun Region.printSize(id: String) {
+    printWidth(id)
+    printHeight(id)
+}
+
 fun Region.printWidth(id: String) = printSize(id, "width", minWidthProperty(), maxWidthProperty(), prefWidthProperty(), widthProperty())
 fun Region.printHeight(id: String) = printSize(id, "height", minHeightProperty(), maxHeightProperty(), prefHeightProperty(), heightProperty())
 
@@ -374,6 +378,11 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
         this.buttonType = type
     }, op)
 
+fun EventTarget.jfxButton(text: Property<String>, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
+    jfxButton(text.value, graphic, type, op).apply {
+        textProperty().cleanBind(text)
+    }
+
 fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
     addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
     tooltip("Accept")
@@ -392,19 +401,40 @@ fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(gra
     op?.invoke(this)
 }
 
-fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(21.0) }) {
-    addClass(CommonStyle.toolbarButton)
-    withPopover(PopOver.ArrowLocation.TOP_RIGHT) {
-        op?.invoke(this)
+fun EventTarget.buttonWithPopover(text: String? = null,
+                                  graphic: Node? = null,
+                                  arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                  op: (PopOver.() -> Unit)? = null) =
+    jfxButton(text = text, graphic = graphic) {
+        addClass(CommonStyle.toolbarButton)
+        withPopover(arrowLocation) {
+            op?.invoke(this)
+        }
     }
-}
 
-fun PopOver.extraMenuItem(text: String? = null, graphic: Node? = null, op: (JFXButton.() -> Unit)? = null, onAction: () -> Unit): JFXButton {
+fun EventTarget.buttonWithPopover(text: Property<String>,
+                                  graphic: Node? = null,
+                                  arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                  op: (PopOver.() -> Unit)? = null) =
+    buttonWithPopover(text.value, graphic, arrowLocation, op).apply {
+        textProperty().cleanBind(text)
+    }
+
+fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = buttonWithPopover(
+    graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(21.0) },
+    arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
+    op = op
+)
+
+fun PopOver.popoverMenuItem(text: String? = null,
+                            graphic: Node? = null,
+                            styleClass: CssRule = CommonStyle.extraMenu,
+                            op: (JFXButton.() -> Unit)? = null, onAction: () -> Unit): JFXButton {
     return popoverContent.jfxButton(text, graphic) {
-        addClass(CommonStyle.extraMenu)
+        addClass(styleClass)
         op?.invoke(this)
         setOnAction {
-            this@extraMenuItem.hide()
+            this@popoverMenuItem.hide()
             onAction()
         }
     }
@@ -414,15 +444,16 @@ fun PopOver.separator(orientation: Orientation = Orientation.HORIZONTAL, op: (Se
     popoverContent.separator(orientation, op)
 }
 
-private val PopOver.popoverContent get() =
-    if (contentNode !is VBox) {
+private val PopOver.popoverContent: VBox get() {
+    return if (contentNode !is VBox) {
         VBox().apply {
             addClass(CommonStyle.popoverMenu)
             contentNode = this
         }
     } else {
-        contentNode
+        contentNode as VBox
     }
+}
 
 fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
     if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()

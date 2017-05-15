@@ -93,19 +93,19 @@ class GameView : GamedexView("Games") {
         verticalSeparator()
 
         extraMenu {
-            extraMenuItem("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
+            popoverMenuItem("Cleanup", graphic = FontAwesome.Glyph.TRASH.toGraphic()) {
                 val task = gameController.cleanup()
                 disableWhen { task.runningProperty }
             }
 
             separator()
 
-            extraMenuItem("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
+            popoverMenuItem("Refresh Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) {
                 val task = gameController.refreshAllGames()
                 disableWhen { task.runningProperty }
             }
 
-            extraMenuItem("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
+            popoverMenuItem("Rediscover Games", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) {
                 val task = gameController.rediscoverAllGames()
                 disableWhen { task.runningProperty }
             }
