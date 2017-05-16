@@ -12,9 +12,9 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
 import tornadofx.*
 import kotlin.coroutines.experimental.CoroutineContext
@@ -25,10 +25,12 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Time: 18:04
  */
 // TODO: Consider having a notificationPane and only 1 possible ongoing task at a time.
-abstract class GamedexTask(title: String) {
+abstract class GamedexTask<T>(title: String) {
     private val log = logger()
 
-    private lateinit var job: Job
+    private lateinit var _result: Deferred<T>
+    val result: Deferred<T> get() = _result
+
     protected val progress = TaskProgress(log)
 
     private var graphic: ImageView by singleAssign()
@@ -47,7 +49,7 @@ abstract class GamedexTask(title: String) {
             }
             button(graphic = UIResources.Images.error.toImageView().apply { fitWidth = 30.0; fitHeight = 30.0; isPreserveRatio = true }) {
                 gridpaneConstraints { columnIndex = 2; rowIndex = 0 }
-                setOnAction { job.cancel() }
+                setOnAction { _result.cancel() }
             }
             text(progress.messageProperty) { gridpaneConstraints { columnIndex = 0; rowIndex = 1 } }
             region { gridpaneConstraints { columnIndex = 1; rowIndex = 1; hGrow = Priority.ALWAYS } }
@@ -60,16 +62,14 @@ abstract class GamedexTask(title: String) {
     val runningProperty = SimpleBooleanProperty(false)
 
     fun start() {
-        job = launch(CommonPool) {
+        _result = async(CommonPool) {
             run(JavaFx) {
                 runningProperty.set(true)
                 notification.show()
             }
 
             try {
-                run(CommonPool) {
-                    doRun(context)
-                }
+                doRun(context)
             } finally {
                 run(JavaFx) {
                     finally()
@@ -81,7 +81,7 @@ abstract class GamedexTask(title: String) {
         }
     }
 
-    protected abstract suspend fun doRun(context: CoroutineContext)
+    protected abstract suspend fun doRun(context: CoroutineContext): T
     protected abstract fun finally()
 }
 

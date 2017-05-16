@@ -22,7 +22,7 @@ class GameTasks @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService     // TODO: This class appears in too many places.
 ) {
-    inner class ScanNewGamesTask : GamedexTask("Scanning new games...") {
+    inner class ScanNewGamesTask : GamedexTask<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun(context: CoroutineContext) {
@@ -38,7 +38,7 @@ class GameTasks @Inject constructor(
         }
     }
 
-    inner class CleanupTask : GamedexTask("Cleaning up...") {
+    inner class CleanupTask : GamedexTask<Unit>("Cleaning up...") {
         private var staleGames = 0
         private var staleLibraries = 0
 
@@ -87,7 +87,7 @@ class GameTasks @Inject constructor(
         }
     }
 
-    inner class RefreshAllGamesTask : GamedexTask("Refreshing all games...") {
+    inner class RefreshAllGamesTask : GamedexTask<Unit>("Refreshing all games...") {
         private var numRefreshed = 0
 
         override suspend fun doRun(context: CoroutineContext) {
@@ -105,22 +105,20 @@ class GameTasks @Inject constructor(
         }
     }
 
-    inner class RefreshGameTask(private val game: Game) : GamedexTask("Refreshing '${game.name}'...") {
-        override suspend fun doRun(context: CoroutineContext) {
-            doRefetchGame(game, progress)
-        }
+    inner class RefreshGameTask(private val game: Game) : GamedexTask<Game>("Refreshing '${game.name}'...") {
+        override suspend fun doRun(context: CoroutineContext) = doRefetchGame(game, progress)
 
         override fun finally() {
             progress.message = "Done."
         }
     }
 
-    private suspend fun doRefetchGame(game: Game, progress: TaskProgress) {
+    private suspend fun doRefetchGame(game: Game, progress: TaskProgress): Game {
         val newRawGameData = providerService.fetch(game.name, game.platform, game.providerHeaders, progress)
-        updateGame(game, newRawGameData)
+        return updateGame(game, newRawGameData)
     }
 
-    inner class RediscoverAllGamesTask : GamedexTask("Rediscovering all games...") {
+    inner class RediscoverAllGamesTask : GamedexTask<Unit>("Rediscovering all games...") {
         private var numRetried = 0
         private var numSucceeded = 0
 
@@ -130,7 +128,7 @@ class GameTasks @Inject constructor(
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                if (doRediscover(game, progress)) {
+                if (doRediscover(game, progress) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
@@ -142,24 +140,21 @@ class GameTasks @Inject constructor(
         }
     }
 
-    inner class RediscoverGameTask(private val game: Game) : GamedexTask("Rediscovering '${game.name}'...") {
-        suspend override fun doRun(context: CoroutineContext) {
-            doRediscover(game, progress)
-        }
+    inner class RediscoverGameTask(private val game: Game) : GamedexTask<Game>("Rediscovering '${game.name}'...") {
+        suspend override fun doRun(context: CoroutineContext) = doRediscover(game, progress) ?: game
 
         override fun finally() {
             progress.message = "Done."
         }
     }
 
-    private suspend fun doRediscover(game: Game, progress: TaskProgress): Boolean {
-        val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isSearchAgain = true) ?: return false
-        updateGame(game, newRawGameData)
-        return true
+    private suspend fun doRediscover(game: Game, progress: TaskProgress): Game? {
+        val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isSearchAgain = true) ?: return null
+        return updateGame(game, newRawGameData)
     }
 
-    private suspend fun updateGame(game: Game, providerData: List<ProviderData>) {
+    private suspend fun updateGame(game: Game, providerData: List<ProviderData>): Game {
         val newRawGame = game.rawGame.copy(providerData = providerData)
-        gameRepository.update(newRawGame)
+        return gameRepository.update(newRawGame)
     }
 }

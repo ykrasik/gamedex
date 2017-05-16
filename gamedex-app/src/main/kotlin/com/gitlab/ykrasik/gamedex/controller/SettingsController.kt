@@ -61,7 +61,7 @@ class SettingsController @Inject constructor(
     }
 
     // TODO: This isn't actually cancellable.
-    inner class ExportDatabaseTask(private val file: File) : GamedexTask("Exporting Database...") {
+    inner class ExportDatabaseTask(private val file: File) : GamedexTask<Unit>("Exporting Database...") {
         suspend override fun doRun(context: CoroutineContext) {
             val libraries = libraryRepository.libraries.map { it.toPortable() }
             val games = gameRepository.games.mapIndexed { i, game ->
@@ -81,7 +81,7 @@ class SettingsController @Inject constructor(
 
     // TODO: This isn't actually cancellable.
     // TODO: Will this be faster if multithreaded?
-    inner class ImportDatabaseTask(private val file: File) : GamedexTask("Importing Database...") {
+    inner class ImportDatabaseTask(private val file: File) : GamedexTask<Unit>("Importing Database...") {
         private var importedGames = 0
 
         suspend override fun doRun(context: CoroutineContext) {

@@ -33,7 +33,6 @@ import java.net.URLEncoder
  * Time: 18:17
  */
 // TODO: This class is too big
-// TODO: Refresh & rediscover game need to reload this view.
 class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fragment() {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
@@ -61,6 +60,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                     setOnAction {
                         val task = gameController.refreshGame(game)
                         disableWhen { task.runningProperty }
+                        reloadGame { task.result }
                     }
                 }
 
@@ -71,6 +71,7 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                     setOnAction {
                         val task = gameController.rediscoverGame(game)
                         disableWhen { task.runningProperty }
+                        reloadGame { task.result }
                     }
                 }
 

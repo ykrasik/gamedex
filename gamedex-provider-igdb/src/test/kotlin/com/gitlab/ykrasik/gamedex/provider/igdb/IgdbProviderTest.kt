@@ -90,6 +90,22 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
+            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult(releaseDate = "2000-Apr-07")))
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe "2000-04-07"
+                }
+            }
+
+            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult(releaseDate = "2017-Q4")))
+
+                search() should haveASingleSearchResultThat {
+                    it.releaseDate shouldBe "2017-Q4"
+                }
+            }
+
             "handle null cover cloudinaryId".inScope(Scope()) {
                 givenClientSearchReturns(listOf(searchResult().copy(cover = image(cloudinaryId = null))))
 
@@ -151,6 +167,18 @@ class IgdbProviderTest : ScopedWordSpec() {
                 givenClientFetchReturns(detailsResult(releaseDatePlatformId = platformId + 1))
 
                 fetch().gameData.releaseDate shouldBe null
+            }
+
+            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult(releaseDate = "2000-Apr-07"))
+
+                fetch().gameData.releaseDate shouldBe "2000-04-07"
+            }
+
+            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult(releaseDate = "2017-Q4"))
+
+                fetch().gameData.releaseDate shouldBe "2017-Q4"
             }
 
             "handle null aggregatedRating".inScope(Scope()) {

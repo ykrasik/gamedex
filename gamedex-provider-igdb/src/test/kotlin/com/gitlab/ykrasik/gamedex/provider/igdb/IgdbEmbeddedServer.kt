@@ -51,7 +51,7 @@ class IgdbMockServer(port: Int) : Closeable {
 class IgdbFakeServer(port: Int) : Closeable {
     private val imagePath = "images"
     private val thumbnailPath = "t_thumb_2x"
-    private val posterPath = "screenshot_huge"
+    private val posterPath = "t_screenshot_huge"
 
     val endpointUrl = "http://localhost:$port"
     val baseImageUrl = "$endpointUrl/$imagePath"
