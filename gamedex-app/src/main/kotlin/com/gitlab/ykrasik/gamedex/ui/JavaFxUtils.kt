@@ -1,45 +1,22 @@
 package com.gitlab.ykrasik.gamedex.ui
 
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ui.widgets.FixedRatingSkin
-import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewResizingPane
-import com.jfoenix.controls.*
 import javafx.application.Platform.runLater
-import javafx.beans.binding.Bindings
-import javafx.beans.binding.ListExpression
-import javafx.beans.binding.NumberBinding
-import javafx.beans.property.*
-import javafx.beans.value.ObservableNumberValue
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
-import javafx.collections.FXCollections
-import javafx.collections.ListChangeListener
-import javafx.collections.ObservableList
-import javafx.collections.transformation.TransformationList
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
-import javafx.scene.Group
-import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Region
-import javafx.scene.layout.VBox
-import javafx.scene.paint.Color
-import javafx.scene.shape.Rectangle
 import javafx.stage.Stage
-import javafx.util.Callback
 import javafx.util.Duration
-import org.controlsfx.control.PopOver
-import org.controlsfx.control.Rating
-import org.controlsfx.control.StatusBar
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import java.io.ByteArrayInputStream
-import java.util.*
-import java.util.function.Predicate
-import kotlin.reflect.KProperty1
 
 /**
  * User: ykrasik
@@ -55,13 +32,6 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
 fun Image.toImageView(): ImageView = ImageView(this)
-
-fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
-fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
-    val p = SimpleIntegerProperty(this.size)
-    this.addListener(ListChangeListener { p.set(this.size) })
-    return p
-}
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
 
@@ -110,163 +80,6 @@ private fun printSize(id: String,
     actual.printChanges("$id $sizeName")
 }
 
-fun <T> ObservableValue<T>.printChanges(id: String) = addListener { _, o, v -> println("$id changed: $o -> $v") }
-
-fun <T, R> ListExpression<T>.mapped(f: (T) -> R): ListProperty<R> = SimpleListProperty(this.value.mapped(f))
-fun <T, R> ObservableList<T>.mapped(f: (T) -> R): ObservableList<R> = MappedList(this, f)
-
-// TODO: This is the un-optimized version
-fun <T, R> ObservableList<T>.flatMapped(f: (T) -> List<R>): ObservableList<R> {
-    fun doFlatMap() = this.flatMap(f)
-
-    val list = FXCollections.observableArrayList(doFlatMap())
-    this.onChange {
-        list.setAll(doFlatMap())
-    }
-    return list
-}
-
-// TODO: This is the un-optimized version
-fun <T> ObservableList<T>.distincted(): ObservableList<T> {
-    fun doDistinct() = this.distinct()
-
-    val list = FXCollections.observableArrayList(doDistinct())
-    this.onChange {
-        list.setAll(doDistinct())
-    }
-    return list
-}
-
-/**
- * Creates a new MappedList list wrapped around the source list.
- * Each element will have the given function applied to it, such that the list is cast through the mapper.
- * Taken from https://gist.github.com/mikehearn/a2e4a048a996fd900656
- */
-// TODO: tornadoFx has something similar, called ListConversionListener
-class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) -> E) : TransformationList<E, F>(source) {
-    private var mapped = transform()
-
-    private fun transform(): MutableList<E> = source.map(mapper) as MutableList<E>
-
-    override fun sourceChanged(c: ListChangeListener.Change<out F>) {
-        // Is all this stuff right for every case? Probably it doesn't matter for this app.
-        beginChange()
-        while (c.next()) {
-            if (c.wasPermutated()) {
-                val perm = IntArray(c.to - c.from)
-                for (i in c.from..c.to - 1)
-                    perm[i - c.from] = c.getPermutation(i)
-                nextPermutation(c.from, c.to, perm)
-            } else if (c.wasUpdated()) {
-                for (i in c.from..c.to - 1) {
-                    remapIndex(i)
-                    nextUpdate(i)
-                }
-            } else {
-                if (c.wasRemoved()) {
-                    // Removed should come first to properly handle replacements, then add.
-                    val removed = mapped.subList(c.from, c.from + c.removedSize)
-                    val duped = ArrayList(removed)
-                    removed.clear()
-                    nextRemove(c.from, duped)
-                }
-                if (c.wasAdded()) {
-                    for (i in c.from..c.to - 1) {
-                        mapped.addAll(c.from, c.addedSubList.map(mapper))
-                        remapIndex(i)
-                    }
-                    nextAdd(c.from, c.to)
-                }
-            }
-        }
-        endChange()
-    }
-
-    private fun remapIndex(i: Int) {
-        if (i >= mapped.size) {
-            for (j in mapped.size..i) {
-                mapped.add(mapper(source[j]))
-            }
-        }
-        mapped[i] = mapper(source[i])
-    }
-
-    override fun getSourceIndex(index: Int) = index
-
-    override fun get(index: Int): E = mapped[index]
-
-    override val size: Int get() = mapped.size
-}
-
-fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
-    val property = SimpleObjectProperty(f(this.value))
-    this.onChange { property.set(f(it)) }
-    return property
-}
-
-fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
-    fun calc() = f(this.value)
-    val property = SimpleObjectProperty<R>()
-    property.bind(calc())
-
-    this.onChange { property.cleanBind(calc()) }
-    return property
-}
-
-// Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
-    fun doPerform() = f(value)
-    doPerform()
-    this.onChange { doPerform() }
-}
-
-fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
-    map { t -> Predicate { r: R -> f(t, r) } }
-
-fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
-    fun compose() = this.value.and(other.value)
-    val property = SimpleObjectProperty(compose())
-    this.onChange { property.set(compose()) }
-    other.onChange { property.set(compose()) }
-    return property
-}
-
-// TODO: Look at using objectBinding()
-fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
-    val property = SimpleObjectProperty(f(this))
-    this.onChange {
-        property.set(f(this))
-    }
-    return property
-}
-
-fun EventTarget.readOnlyTextField(value: String? = null, op: (TextField.() -> Unit)? = null) = textfield(value, op).apply {
-    isEditable = false
-}
-
-fun EventTarget.readOnlyTextArea(value: String? = null, op: (TextArea.() -> Unit)? = null) = textarea(value, op).apply {
-    isEditable = false
-}
-
-fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(text, op).apply {
-    isClosable = false
-}
-
-inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: (ComboBox<T>.() -> Unit)? = null): ComboBox<T> {
-    val enumValues = T::class.java.enumConstants.asList().observable<T>()
-    return combobox(property, enumValues, op)
-}
-
-inline fun <reified S, T> TableView<S>.customColumn(title: String,
-                                                    prop: KProperty1<S, T>,
-                                                    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
-    val column = TableColumn<S, T>(title)
-    addColumnInternal(column)
-    column.cellValueFactory = Callback { observable(it.value, prop) }
-    column.setCellFactory { cellFactory(it) }
-    return column
-}
-
 fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
     // TODO: TornadoFx has a built-in 'confirm' method.
     val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.CANCEL, ButtonType.OK)
@@ -308,30 +121,6 @@ fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageVi
     return this
 }
 
-fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() -> Unit)? = null) = opcr(this, Rating(max), op).apply {
-    isPartialRating = isPartial
-    skin = FixedRatingSkin(this)
-}
-
-fun EventTarget.imageViewResizingPane(imageView: ImageView, op: (ImageViewResizingPane.() -> Unit)? = null) =
-    opcr(this, ImageViewResizingPane(imageView), op)
-
-fun Node.clipRectangle(op: Rectangle.() -> Unit) {
-    clip = Rectangle().apply(op)
-}
-
-fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
-
-fun EventTarget.statusBar(op: (StatusBar.() -> Unit)? = null) = opcr(this, StatusBar(), op)
-fun StatusBar.left(op: (Node.() -> Unit)) = statusBarItems(op, leftItems)
-fun StatusBar.right(op: (Node.() -> Unit)) = statusBarItems(op, rightItems)
-private fun statusBarItems(op: (Node.() -> Unit), items: ObservableList<Node>) {
-    val target = object : Group() {
-        override fun getChildren() = items
-    }
-    op(target)
-}
-
 fun Region.padding(op: (InsetBuilder.() -> Unit)) {
     val builder = InsetBuilder(this)
     op(builder)
@@ -361,179 +150,7 @@ fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwe
 
 fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView(image), op)
 
-fun EventTarget.jfxHamburger(op: (JFXHamburger.() -> Unit)? = null) = opcr(this, JFXHamburger(), op)
-fun EventTarget.jfxDrawer(op: (JFXDrawer.() -> Unit)? = null) = opcr(this, JFXDrawer(), op)
-fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
-fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
-    this.graphic = graphic
-    this.toggleGroup = group
-}, op)
-
-fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
-    opcr(this, JFXButton().apply {
-        addClass(CommonStyle.jfxButton)
-        this.text = text
-        this.graphic = graphic
-        this.buttonType = type
-    }, op)
-
-fun EventTarget.jfxButton(text: Property<String>, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
-    jfxButton(text.value, graphic, type, op).apply {
-        textProperty().cleanBind(text)
-    }
-
-fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
-    tooltip("Accept")
-    op?.invoke(this)
-}
-
-fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.cancelButton)
-    tooltip("Cancel")
-    op?.invoke(this)
-}
-
-fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.TRASH.toGraphic { size(26.0); color(Color.INDIANRED) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.deleteButton)
-    tooltip("Delete")
-    op?.invoke(this)
-}
-
-fun EventTarget.buttonWithPopover(text: String? = null,
-                                  graphic: Node? = null,
-                                  arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                  styleClass: CssRule? = CommonStyle.toolbarButton,
-                                  op: (PopOver.() -> Unit)? = null) =
-    jfxButton(text = text, graphic = graphic) {
-        styleClass?.let { addClass(it) }
-        withPopover(arrowLocation) {
-            op?.invoke(this)
-        }
-    }
-
-fun EventTarget.buttonWithPopover(text: Property<String>,
-                                  graphic: Node? = null,
-                                  arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                  op: (PopOver.() -> Unit)? = null) =
-    buttonWithPopover(text.value, graphic, arrowLocation, op = op).apply {
-        textProperty().cleanBind(text)
-    }
-
-fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = buttonWithPopover(
-    graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(21.0) },
-    arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
-    op = op
-)
-
-fun PopOver.popoverMenuItem(text: String? = null,
-                            graphic: Node? = null,
-                            styleClass: CssRule? = CommonStyle.extraMenu,
-                            onAction: () -> Unit): JFXButton {
-    return popoverContent.jfxButton(text, graphic) {
-        styleClass?.let { addClass(it) }
-        setOnAction {
-            this@popoverMenuItem.hide()
-            onAction()
-        }
-    }
-}
-
-fun PopOver.separator(orientation: Orientation = Orientation.HORIZONTAL, op: (Separator.() -> Unit)? = null) {
-    popoverContent.separator(orientation, op)
-}
-
-val PopOver.popoverContent: VBox get() {
-    return if (contentNode !is VBox) {
-        VBox().apply {
-            addClass(CommonStyle.popoverMenu)
-            contentNode = this
-        }
-    } else {
-        contentNode as VBox
-    }
-}
-
-fun <T> EventTarget.jfxComboBox(property: Property<T>? = null, values: List<T>? = null, op: (JFXComboBox<T>.() -> Unit)? = null) = opcr(this, JFXComboBox<T>().apply {
-    if (values != null) items = if (values is ObservableList<*>) values as ObservableList<T> else values.observable()
-    if (property != null) valueProperty().bindBidirectional(property)
-}, op)
-
-fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver =
-    PopOver().apply {
-        this.arrowLocation = arrowLocation
-        isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
-        isDetachable = false
-        op?.invoke(this)
-    }
-
-fun Button.withPopover(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null) {
-    val popover = popOver(arrowLocation, op)
-    setOnAction {
-        if (popover.isShowing) popover.hide() else popover.show(this)
-    }
-}
-
 inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<T>, noinline op: (TextField.() -> Unit)? = null) = textfield().apply {
     bind(property)
     op?.invoke(this)
-}
-
-fun EventTarget.platformComboBox(property: Property<Platform>? = null,
-                                 values: List<Platform>? = null,
-                                 op: (ComboBox<Platform>.() -> Unit)? = null) {
-    combobox(property, values) {
-        setCellFactory {
-            object : ListCell<Platform>() {
-                override fun updateItem(item: Platform?, empty: Boolean) {
-                    super.updateItem(item, empty)
-                    if (item == null || empty) {
-                        text = null
-                        graphic = null
-                    } else {
-                        text = item.toString()
-                        graphic = item.toLogo()
-                    }
-                }
-            }
-        }
-        buttonCell = object : ListCell<Platform>() {
-            override fun updateItem(item: Platform?, empty: Boolean) {
-                super.updateItem(item, empty)
-                if (item == null || empty) {
-                    text = null
-                    graphic = null
-                } else {
-                    text = item.toString()
-                    graphic = item.toLogo()
-                }
-            }
-        }
-
-        op?.invoke(this)
-    }
-}
-
-fun Platform.toLogo() = when (this) {
-    Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
-    Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
-    Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
-    else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
-}
-
-fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
-    val popover = popOver(arrowLocation)
-    this@dropDownMenu.setOnMouseEntered {
-        if (!popover.isShowing) {
-            popover.show(this@dropDownMenu)
-        }
-    }
-    this@dropDownMenu.setOnMouseExited {
-        if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
-            it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
-            popover.hide()
-        }
-    }
-    op?.invoke(popover)
-    return popover
 }

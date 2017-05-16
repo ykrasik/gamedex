@@ -39,6 +39,7 @@ class GameView : GamedexView("Games") {
             graphic = FontAwesome.Glyph.FILTER.toGraphic { size(21.0) },
             arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
+            // TODO: Add Tags
             popoverContent.form {
                 fieldset {
                     separator()
@@ -60,43 +61,37 @@ class GameView : GamedexView("Games") {
                     separator()
                     field("Platform") {
                         // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
-                        val platformsWithLibraries = Platform.values().toList().observable().filtered { platform ->
+                        val platformsWithLibraries = Platform.values().toList().filter { platform ->
                             platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
                         }
-                        buttonWithPopover(arrowLocation = PopOver.ArrowLocation.LEFT_TOP, styleClass = null) {
-                            platformsWithLibraries.forEach { platform ->
-                                popoverMenuItem(platform.key, platform.toLogo()) {
-                                    gameController.sortedFilteredGames.platformFilter = platform
-                                }.apply {
-                                    addClass(Style.platformItem)
-                                }
-                            }
-                        }.apply {
-                            addClass(Style.filterButton)
-                            textProperty().bind(gameController.sortedFilteredGames.platformFilterProperty.map { it!!.toString() })
-                            graphicProperty().bind(gameController.sortedFilteredGames.platformFilterProperty.map { it!!.toLogo() })
-                            alignment = Pos.CENTER_LEFT
-                        }
+                        popoverComboMenu(
+                            items = platformsWithLibraries,
+                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                            styleClass = Style.filterButton,
+                            text = Platform::key,
+                            graphic = { it.toLogo() },
+                            itemStyleClass = Style.platformItem,
+                            initialSelection = gameController.sortedFilteredGames.platformFilter).bindBidirectional(
+                            gameController.sortedFilteredGames.platformFilterProperty
+                        )
                     }
                     separator()
                     field("Genre") {
-                        val possibleGenres = gameController.genres.sorted().let { listOf(SortedFilteredGames.allGenres) + it }
-                        buttonWithPopover(arrowLocation = PopOver.ArrowLocation.LEFT_TOP, styleClass = null) {
-                            possibleGenres.forEach { genre ->
-                                popoverMenuItem(genre) {
-                                    gameController.sortedFilteredGames.genreFilter = genre
-                                }.apply {
-                                    addClass(Style.genreItem)
-                                }
-                                if (genre == SortedFilteredGames.allGenres) {
+                        popoverComboMenu(
+                            items = listOf(SortedFilteredGames.allGenres) + gameController.genres.sorted(),
+                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                            styleClass = Style.filterButton,
+                            text = { it },
+                            graphic = { null },
+                            itemStyleClass = Style.genreItem,
+                            initialSelection = gameController.sortedFilteredGames.genreFilter,
+                            menuOp = {
+                                if (it == SortedFilteredGames.allGenres) {
                                     separator()
                                 }
-                            }
-                        }.apply {
-                            addClass(Style.filterButton)
-                            textProperty().bind(gameController.sortedFilteredGames.genreFilterProperty)
-                            alignment = Pos.CENTER_LEFT
-                        }
+                            }).bindBidirectional(
+                            gameController.sortedFilteredGames.genreFilterProperty
+                        )
                     }
                     separator()
                 }
@@ -227,6 +222,7 @@ class GameView : GamedexView("Games") {
         init {
             filterButton {
                 prefWidth = 160.px
+                alignment = Pos.CENTER_LEFT
             }
 
             genreItem {

@@ -48,7 +48,6 @@ class MainView : View("Gamedex") {
     private fun GamedexView.populateToolbar() {
         toolbar.replaceChildren {
             buttonWithPopover(
-                text = tabPane.selectionModel.selectedItemProperty().map { it!!.text },
                 graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) },
                 arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
@@ -63,6 +62,8 @@ class MainView : View("Gamedex") {
                 popoverMenuItem("Quit", FontAwesome.Glyph.SIGN_OUT.toGraphic(), Style.navigationButton) {
                     System.exit(0)
                 }
+            }.apply {
+                textProperty().bind(tabPane.selectionModel.selectedItemProperty().map { it!!.text })
             }
             verticalSeparator()
             this.constructToolbar()
