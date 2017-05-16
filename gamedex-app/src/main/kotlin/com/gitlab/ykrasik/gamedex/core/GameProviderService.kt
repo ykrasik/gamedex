@@ -19,10 +19,9 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    // TODO: I don't want this to suspend, see if it's possible to make it Produce results to the calling class.
     suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<ProviderData>?
 
-    fun fetch(name: String, platform: Platform, providerHeaders: List<ProviderHeader>, progress: TaskProgress): List<ProviderData>
+    suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: TaskProgress): List<ProviderData>
 }
 
 @Singleton
@@ -57,19 +56,11 @@ class GameProviderServiceImpl @Inject constructor(
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
-            val results = providerRepository.providers.map { it to search(it) }
-
-            progress.message = "Downloading game data..."
-            return results.mapNotNull { (provider, searchResult) ->
-                searchResult?.let {
-                    async(CommonPool) {
-                        provider.fetch(it.apiUrl, platform)
-                    }
-                }
-            }.map { it.await() }
+            val results = providerRepository.providers.mapNotNull { search(it) }
+            return download(searchedName, platform, results, progress)
         }
 
-        private suspend fun search(provider: GameProvider): ProviderSearchResult? {
+        private suspend fun search(provider: GameProvider): ProviderHeader? {
             progress.message = "[${provider.name}][$platform] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             progress.message = "[${provider.name}][$platform] Searching '$searchedName': ${results.size} results."
@@ -80,28 +71,26 @@ class GameProviderServiceImpl @Inject constructor(
             } else if (userExactMatch != null) {
                 val providerExactMatch = results.find { it.name.equals(userExactMatch, ignoreCase = true) }
                 if (providerExactMatch != null) {
-                    return providerExactMatch
+                    return providerExactMatch.toHeader(provider)
                 } else {
                     chooseResult(provider, results)
                 }
             } else {
                 if (canAutoContinue && results.size == 1 && results.first().name.equals(searchedName, ignoreCase = true)) {
-                    return results.first()
+                    return results.first().toHeader(provider)
                 } else {
                     chooseResult(provider, results)
                 }
             }
 
-            fun ProviderSearchResult.markChosen() = apply {
+            fun ProviderSearchResult.markChosen() = let {
                 previouslyDiscardedResults += results
                 previouslyDiscardedResults -= this
+                this.toHeader(provider)
             }
 
             return when (choice) {
-                is SearchChooser.Choice.ExactMatch -> choice.result.markChosen().apply {
-                    userExactMatch = name
-                    searchedName = name
-                }
+                is SearchChooser.Choice.ExactMatch -> choice.result.apply { userExactMatch = name; searchedName = name }.markChosen()
                 is SearchChooser.Choice.NotExactMatch -> choice.result.markChosen()
                 is SearchChooser.Choice.NewSearch -> {
                     searchedName = choice.newSearch
@@ -126,16 +115,22 @@ class GameProviderServiceImpl @Inject constructor(
             )
             return chooser.choose(chooseSearchResultData)
         }
+
+        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(
+            type = provider.type,
+            apiUrl = apiUrl,
+            siteUrl = ""   // Unused for our purposes.
+        )
     }
 
-    override fun fetch(name: String, platform: Platform, providerHeaders: List<ProviderHeader>, progress: TaskProgress): List<ProviderData> =
-        providerHeaders.map { header ->
-            val provider = providerRepository[header]
-            progress.message = "[${provider.name}][$platform] Fetching '$name'..."
-            val result = provider.fetch(header.apiUrl, platform)
-            progress.message = "[${provider.name}][$platform] Fetching '$name'...: Done."
-            result
-        }
+    override suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: TaskProgress): List<ProviderData> {
+        progress.message = "[$platform] Downloading '$name'..."
+        return headers.map { header ->
+            async(CommonPool) {
+                providerRepository[header].download(header.apiUrl, platform)
+            }
+        }.map { it.await() }
+    }
 
     private class CancelSearchException : RuntimeException()
 }

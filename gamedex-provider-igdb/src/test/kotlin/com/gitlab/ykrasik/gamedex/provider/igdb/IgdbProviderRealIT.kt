@@ -15,7 +15,7 @@ class IgdbProviderRealIT : ScopedWordSpec() {
     val provider = IgdbProvider(config, IgdbClient(config))
 
     init {
-        "IgdbDataProvider" should {
+        "IgdbProvider" should {
             "search & retrieve a single search result" {
                 provider.search(name, Platform.pc) shouldBe listOf(ProviderSearchResult(
                     apiUrl = apiUrl,
@@ -26,8 +26,8 @@ class IgdbProviderRealIT : ScopedWordSpec() {
                 ))
             }
 
-            "fetch game details" {
-                provider.fetch(apiUrl, Platform.pc) shouldBe ProviderData(
+            "download game details" {
+                provider.download(apiUrl, Platform.pc) shouldBe ProviderData(
                     header = ProviderHeader(
                         type = GameProviderType.Igdb,
                         apiUrl = apiUrl,

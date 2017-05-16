@@ -13,7 +13,7 @@ import io.kotlintest.mock.mock
  */
 class GiantBombProviderTest : ScopedWordSpec() {
     init {
-        "GiantBombDataProvider.search" should {
+        "GiantBombProvider.search" should {
             "be able to return a single search result".inScope(Scope()) {
                 val searchResult = searchResult(name = name)
 
@@ -70,13 +70,13 @@ class GiantBombProviderTest : ScopedWordSpec() {
             }
         }
 
-        "GiantBombDataProvider.fetch" should {
-            "fetch a search result".inScope(Scope()) {
+        "GiantBombProvider.download" should {
+            "download details".inScope(Scope()) {
                 val detailsResult = detailsResult()
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                fetch(apiDetailUrl) shouldBe ProviderData(
+                download(apiDetailUrl) shouldBe ProviderData(
                     header = ProviderHeader(
                         type = GameProviderType.GiantBomb,
                         apiUrl = apiDetailUrl,
@@ -101,33 +101,33 @@ class GiantBombProviderTest : ScopedWordSpec() {
             "handle null deck".inScope(Scope()) {
                 givenClientFetchReturns(detailsResult().copy(deck = null))
 
-                fetch().gameData.description shouldBe null
+                download().gameData.description shouldBe null
             }
 
             "handle null originalReleaseDate".inScope(Scope()) {
                 givenClientFetchReturns(detailsResult().copy(originalReleaseDate = null))
 
-                fetch().gameData.releaseDate shouldBe null
+                download().gameData.releaseDate shouldBe null
             }
 
             "handle null genres".inScope(Scope()) {
                 givenClientFetchReturns(detailsResult().copy(genres = null))
 
-                fetch().gameData.genres shouldBe emptyList<String>()
+                download().gameData.genres shouldBe emptyList<String>()
             }
 
             "handle null image".inScope(Scope()) {
                 givenClientFetchReturns(detailsResult().copy(image = null))
 
-                fetch().imageUrls.thumbnailUrl shouldBe null
-                fetch().imageUrls.posterUrl shouldBe null
+                download().imageUrls.thumbnailUrl shouldBe null
+                download().imageUrls.posterUrl shouldBe null
             }
 
             "throw GameDexException on invalid response status".inScope(Scope()) {
                 givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
 
                 shouldThrow<GameDexException> {
-                    fetch()
+                    download()
                 }
             }
         }
@@ -173,7 +173,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
         fun search(name: String = this.name) = provider.search(name, platform)
 
-        fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform)
+        fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform)
 
         private val client = mock<GiantBombClient>()
         val provider = GiantBombProvider(client)

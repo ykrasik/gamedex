@@ -26,8 +26,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         return results
     }
 
-    override fun fetch(apiUrl: String, platform: Platform): ProviderData {
-        log.debug("[$platform] Fetching: $apiUrl...")
+    override fun download(apiUrl: String, platform: Platform): ProviderData {
+        log.debug("[$platform] Downloading: $apiUrl...")
         val fetchResult = client.fetch(apiUrl)
         val gameData = fetchResult.toProviderData(apiUrl, platform)
         log.debug("[$platform] Result: $gameData.")

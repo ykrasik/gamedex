@@ -34,8 +34,8 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         apiUrl = apiDetailUrl
     )
 
-    override fun fetch(apiUrl: String, platform: Platform): ProviderData {
-        log.debug("[$platform] Fetching: $apiUrl...")
+    override fun download(apiUrl: String, platform: Platform): ProviderData {
+        log.debug("[$platform] Downloading: $apiUrl...")
         val response = client.fetch(apiUrl)
         assertOk(response.statusCode)
 

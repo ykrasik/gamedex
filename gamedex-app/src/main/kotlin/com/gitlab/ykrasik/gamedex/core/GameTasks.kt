@@ -87,6 +87,7 @@ class GameTasks @Inject constructor(
         }
     }
 
+    // TODO: Consider renaming 'refresh' to 'redownload'
     inner class RefreshAllGamesTask : GamedexTask<Unit>("Refreshing all games...") {
         private var numRefreshed = 0
 
@@ -95,7 +96,7 @@ class GameTasks @Inject constructor(
             gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
 
-                doRefetchGame(game, progress)
+                doRefreshGame(game, progress)
                 numRefreshed += 1
             }
         }
@@ -106,15 +107,15 @@ class GameTasks @Inject constructor(
     }
 
     inner class RefreshGameTask(private val game: Game) : GamedexTask<Game>("Refreshing '${game.name}'...") {
-        override suspend fun doRun(context: CoroutineContext) = doRefetchGame(game, progress)
+        override suspend fun doRun(context: CoroutineContext) = doRefreshGame(game, progress)
 
         override fun finally() {
             progress.message = "Done."
         }
     }
 
-    private suspend fun doRefetchGame(game: Game, progress: TaskProgress): Game {
-        val newRawGameData = providerService.fetch(game.name, game.platform, game.providerHeaders, progress)
+    private suspend fun doRefreshGame(game: Game, progress: TaskProgress): Game {
+        val newRawGameData = providerService.download(game.name, game.platform, game.providerHeaders, progress)
         return updateGame(game, newRawGameData)
     }
 

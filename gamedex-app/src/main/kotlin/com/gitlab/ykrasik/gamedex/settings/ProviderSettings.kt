@@ -30,7 +30,7 @@ class ProviderSettings private constructor() : AbstractSettings("provider") {
     var descriptionOrder by descriptionOrderProperty
 
     @Transient
-    val releaseDateOrderProperty = preferenceProperty(Order.prefer(GameProviderType.GiantBomb))
+    val releaseDateOrderProperty = preferenceProperty(Order.prefer(GameProviderType.Igdb))
     var releaseDateOrder by releaseDateOrderProperty
 
     @Transient

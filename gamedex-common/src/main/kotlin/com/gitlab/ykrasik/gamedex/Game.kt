@@ -66,7 +66,7 @@ data class GameData(
 data class ProviderHeader(
     val type: GameProviderType,
     val apiUrl: String,
-    val siteUrl: String
+    val siteUrl: String // Doesn't really belong here, probably more in GameData, but whatever.
 )
 
 data class ImageUrls(
