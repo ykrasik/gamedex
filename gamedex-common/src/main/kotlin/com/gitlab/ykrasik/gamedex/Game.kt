@@ -36,6 +36,8 @@ data class Game(
     val posterUrl get() = imageUrls.posterUrl
     val screenshotUrls get() = imageUrls.screenshotUrls
 
+    val tags get() = rawGame.userData?.tags ?: emptyList()
+
     override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
 }
 
@@ -92,7 +94,8 @@ enum class GameDataType(val displayName: String) {
 }
 
 data class UserData(
-    val overrides: Map<GameDataType, GameDataOverride> = emptyMap()
+    val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
+    val tags: List<String> = emptyList()
 ) {
     fun nameOverride() = overrides[GameDataType.name_]
     fun descriptionOverride() = overrides[GameDataType.description]

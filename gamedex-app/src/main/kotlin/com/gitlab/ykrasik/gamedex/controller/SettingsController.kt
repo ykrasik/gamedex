@@ -218,7 +218,8 @@ class SettingsController @Inject constructor(
         val genresOverride: PortableGameDataOverride?,
         val thumbnailOverride: PortableGameDataOverride?,
         val posterOverride: PortableGameDataOverride?,
-        val screenshotsOverride: PortableGameDataOverride?
+        val screenshotsOverride: PortableGameDataOverride?,
+        val tags: List<String>
     ) {
         fun toUserData(): UserData {
             val overrides = mutableMapOf<GameDataType, GameDataOverride>()
@@ -233,7 +234,8 @@ class SettingsController @Inject constructor(
             screenshotsOverride?.toOverride()?.let { overrides += GameDataType.screenshots to it }
 
             return UserData(
-                overrides = overrides
+                overrides = overrides,
+                tags = tags
             )
         }
     }
@@ -247,7 +249,8 @@ class SettingsController @Inject constructor(
         genresOverride = overrides[GameDataType.genres]?.toPortable(),
         thumbnailOverride = overrides[GameDataType.thumbnail]?.toPortable(),
         posterOverride = overrides[GameDataType.poster]?.toPortable(),
-        screenshotsOverride = overrides[GameDataType.screenshots]?.toPortable()
+        screenshotsOverride = overrides[GameDataType.screenshots]?.toPortable(),
+        tags = tags
     )
 
     private fun GameDataOverride.toPortable() = when(this)  {

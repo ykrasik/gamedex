@@ -20,6 +20,7 @@ import javafx.scene.paint.LinearGradient
 import javafx.scene.paint.Stop
 import javafx.scene.web.WebView
 import javafx.stage.Screen
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.FontAwesome
@@ -32,6 +33,7 @@ import java.net.URLEncoder
  * Time: 18:17
  */
 // TODO: This class is too big
+// TODO: Refresh & rediscover game need to reload this view.
 class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fragment() {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
@@ -77,6 +79,13 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
                 jfxButton("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic { size(22.0); color(Color.ORANGE) }) {
                     addClass(CommonStyle.toolbarButton)
                     setOnAction { editDetails() }
+                }
+
+                verticalSeparator()
+
+                jfxButton("Tag", graphic = FontAwesome.Glyph.TAG.toGraphic { size(22.0); color(Color.BLUEVIOLET) }) {
+                    addClass(CommonStyle.toolbarButton)
+                    setOnAction { tag() }
                 }
 
                 verticalSeparator()
@@ -133,10 +142,23 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
 
                 // TODO: See if this can be made collapsible - squeezebox?
                 // Right
-                children += detailsSnippetFactory.create(gameProperty, onGenrePressed = this@GameDetailsFragment::onGenrePressed).apply {
+                vbox {
                     setId(Style.rightGameDetailsView)
                     addClass(CommonStyle.card)
                     hgrow = Priority.ALWAYS
+
+                    // Top
+                    stackpane {
+                        gameProperty.perform { game ->
+                            replaceChildren {
+                                children += detailsSnippetFactory.create(
+                                    game,
+                                    onGenrePressed = this@GameDetailsFragment::onGenrePressed,
+                                    onTagPressed = this@GameDetailsFragment::onTagPressed
+                                )
+                            }
+                        }
+                    }
 
                     // Bottom
                     separator { padding { top = 10; bottom = 10 } }
@@ -203,12 +225,23 @@ class GameDetailsFragment(initialGame: Game, displayVideos: Boolean = true) : Fr
     }
 
     private fun onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.genreFilterProperty.set(genre)
+        gameController.sortedFilteredGames.genreFilter = genre
         close(accept = false)
     }
 
-    private fun editDetails(type: GameDataType = GameDataType.name_) {
-        val newGame = gameController.editDetails(game, initialTab = type)
+    private fun onTagPressed(tag: String) {
+        gameController.sortedFilteredGames.tagFilter = tag
+        close(accept = false)
+    }
+
+    private fun editDetails(type: GameDataType = GameDataType.name_) = reloadGame {
+        gameController.editDetails(game, initialTab = type)
+    }
+
+    private fun tag() = reloadGame { gameController.tag(game) }
+
+    private fun reloadGame(f: () -> Deferred<Game>) {
+        val newGame = f()
         launch(JavaFx) {
             game = newGame.await()
         }

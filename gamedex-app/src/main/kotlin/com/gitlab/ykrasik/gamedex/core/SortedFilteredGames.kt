@@ -27,7 +27,11 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     val genreFilterProperty = SimpleStringProperty(allGenres)
     var genreFilter by genreFilterProperty
 
+    val tagFilterProperty = SimpleStringProperty(allTags)
+    var tagFilter by tagFilterProperty
+
     val searchQueryProperty = SimpleStringProperty("")
+    var searchQuery by searchQueryProperty
 
     val sortProperty = SimpleObjectProperty<GameSettings.Sort>(GameSettings.Sort.name_)
     var sort by sortProperty
@@ -54,11 +58,21 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
             genre.isNullOrEmpty() || genre == allGenres || game.genres.contains(genre)
         }
 
-        val gameFilterPredicateProperty = platformPredicate.and(searchPredicate).and(genrePredicate)
+        val tagPredicate = tagFilterProperty.toPredicate { tag, game: Game ->
+            tag.isNullOrEmpty() || tag == allTags || game.tags.contains(tag)
+        }
+
+        val gameFilterPredicate = platformPredicate and searchPredicate and genrePredicate and tagPredicate
 
         games as SortedFilteredList<Game>
-        games.filteredItems.predicateProperty().bind(gameFilterPredicateProperty)
+        games.filteredItems.predicateProperty().bind(gameFilterPredicate)
         games.sortedItems.comparatorProperty().bind(sortComparator())
+    }
+
+    fun clearFilters() {
+        genreFilter = allGenres
+        tagFilter = allTags
+        searchQuery = ""
     }
 
     private fun sortComparator(): ObjectProperty<Comparator<Game>> {
@@ -94,5 +108,6 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
 
     companion object {
         val allGenres = "All"
+        val allTags = "All"
     }
 }

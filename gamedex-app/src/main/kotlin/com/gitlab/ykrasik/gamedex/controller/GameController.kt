@@ -6,8 +6,11 @@ import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.distincted
+import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.fragment.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
@@ -31,7 +34,8 @@ class GameController @Inject constructor(
 ) : Controller() {
 
     val sortedFilteredGames = SortedFilteredGames(gameRepository.games)
-    val genres get() = gameRepository.genres
+    val genres = gameRepository.games.flatMapped(Game::genres).distincted()
+    val tags = gameRepository.games.flatMapped(Game::tags).distincted()
 
     init {
         sortedFilteredGames.platformFilterProperty.bindBidirectional(settings.platformProperty)
@@ -49,6 +53,21 @@ class GameController @Inject constructor(
         }
 
         val newRawGame = game.rawGame.withDataOverrides(overrides)
+        if (newRawGame.userData != game.rawGame.userData) {
+            gameRepository.update(newRawGame)
+        } else {
+            game
+        }
+    }
+
+    fun tag(game: Game): Deferred<Game> = async(JavaFx) {
+        val choice = TagFragment(game).show()
+        val tags = when (choice) {
+            is TagFragment.Choice.Select -> choice.tags
+            is TagFragment.Choice.Cancel -> return@async game
+        }
+
+        val newRawGame = game.rawGame.withTags(tags)
         if (newRawGame.userData != game.rawGame.userData) {
             gameRepository.update(newRawGame)
         } else {
@@ -88,5 +107,14 @@ class GameController @Inject constructor(
 
         val userData = this.userData ?: UserData()
         return copy(userData = userData.copy(overrides = overrides))
+    }
+
+    private fun RawGame.withTags(tags: List<String>): RawGame {
+        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
+        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
+        if (tags == userData?.tags ?: emptyList()) return this
+
+        val userData = this.userData ?: UserData()
+        return copy(userData = userData.copy(tags = tags))
     }
 }

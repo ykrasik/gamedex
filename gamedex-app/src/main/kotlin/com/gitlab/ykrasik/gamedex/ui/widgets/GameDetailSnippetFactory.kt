@@ -2,10 +2,12 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.fixedRating
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.toStringOr
-import javafx.beans.property.ObjectProperty
 import javafx.event.EventTarget
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
@@ -22,33 +24,30 @@ import javax.inject.Singleton
 @Singleton
 class GameDetailSnippetFactory @Inject constructor(private val providerRepository: GameProviderRepository) {
 
-    fun create(gameProperty: ObjectProperty<Game>,
+    fun create(game: Game,
                withDescription: Boolean = true,
                withUrls: Boolean = true,
-               onGenrePressed: (String) -> Unit): VBox = VBox().apply {
+               onGenrePressed: (String) -> Unit,
+               onTagPressed: (String) -> Unit): VBox = VBox().apply {
         hbox {
             spacer()
-            label(gameProperty.map { it!!.name }) { setId(Style.nameLabel) }
+            label(game.name) { setId(Style.nameLabel) }
             spacer()
-            stackpane {
-                gameProperty.map { it!!.platform }.perform {
-                    replaceChildren(it.toLogo())
-                }
-            }
+            children += game.platform.toLogo()
         }
         gridpane {
             hgap = 5.0
             vgap = 8.0
             row {
                 detailsLabel("Path")
-                label(gameProperty.map { it!!.path.path }) {
+                label(game.path.path) {
                     addClass(Style.details)
                 }
             }
             if (withDescription) {
                 row {
                     detailsLabel("Description")
-                    label(gameProperty.map { it!!.description.toDisplayString() }) {
+                    label(game.description.toDisplayString()) {
                         addClass(Style.details)
                         isWrapText = true
                         minHeight = Region.USE_PREF_SIZE
@@ -57,16 +56,15 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             }
             row {
                 detailsLabel("Release Date")
-                label(gameProperty.map { it!!.releaseDate.toDisplayString() }) { addClass(Style.details) }
+                label(game.releaseDate.toDisplayString()) { addClass(Style.details) }
             }
             row {
                 detailsLabel("Critic Score")
                 gridpane {
                     hgap = 5.0
                     row {
-                        val criticScoreProperty = gameProperty.map { it!!.criticScore }
-                        fixedRating(10) { ratingProperty().bind(criticScoreProperty.map { it?.let { it / 10 } ?: 0.0 }) }
-                        label(criticScoreProperty.map { it.toDisplayString() }) {
+                        fixedRating(10) { rating = game.criticScore?.let { it / 10 } ?: 0.0 }
+                        label(game.criticScore.toDisplayString()) {
                             addClass(Style.details)
                         }
                     }
@@ -77,9 +75,8 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 gridpane {
                     hgap = 5.0
                     row {
-                        val userScoreProperty = gameProperty.map { it!!.userScore }
-                        fixedRating(10) { ratingProperty().bind(userScoreProperty.map { it?.let { it / 10 } ?: 0.0 }) }
-                        label(userScoreProperty.map { it.toDisplayString() }) {
+                        fixedRating(10) { rating = game.userScore?.let { it / 10 } ?: 0.0 }
+                        label(game.userScore.toDisplayString()) {
                             addClass(Style.details)
                         }
                     }
@@ -87,19 +84,31 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             }
             row {
                 detailsLabel("Genres")
-                stackpane {
-                    gameProperty.map { it!!.genres }.perform { genres ->
-                        replaceChildren {
-                            gridpane {
-                                hgap = 5.0
-                                row {
-                                    genres.forEach { genre ->
-                                        jfxButton(genre) {
-                                            addClass(Style.details, CommonStyle.hoverable)
-                                            setOnAction {
-                                                onGenrePressed(genre)
-                                            }
-                                        }
+                gridpane {
+                    hgap = 5.0
+                    row {
+                        game.genres.forEach { genre ->
+                            jfxButton(genre) {
+                                addClass(Style.details, CommonStyle.hoverable)
+                                setOnAction {
+                                    onGenrePressed(genre)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (game.tags.isNotEmpty()) {
+                row {
+                    detailsLabel("Tags")
+                    gridpane {
+                        hgap = 5.0
+                        row {
+                            game.tags.forEach { tag ->
+                                jfxButton(tag) {
+                                    addClass(Style.details, CommonStyle.hoverable)
+                                    setOnAction {
+                                        onTagPressed(tag)
                                     }
                                 }
                             }
@@ -110,23 +119,17 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             if (withUrls) {
                 row {
                     detailsLabel("URL")
-                    stackpane {
-                        gameProperty.map { it!!.providerHeaders }.perform { providerHeaders ->
-                            replaceChildren {
-                                gridpane {
-                                    hgap = 7.0
-                                    providerHeaders.forEach { header ->
-                                        row {
-                                            imageview {
-                                                fitHeight = 30.0
-                                                fitWidth = 30.0
-                                                image = providerRepository.logo(header)
-                                            }
-                                            hyperlink(header.siteUrl) {
-                                                setOnAction { header.siteUrl.browseToUrl() }
-                                            }
-                                        }
-                                    }
+                    gridpane {
+                        hgap = 7.0
+                        game.providerHeaders.forEach { header ->
+                            row {
+                                imageview {
+                                    fitHeight = 30.0
+                                    fitWidth = 30.0
+                                    image = providerRepository.logo(header)
+                                }
+                                hyperlink(header.siteUrl) {
+                                    setOnAction { header.siteUrl.browseToUrl() }
                                 }
                             }
                         }

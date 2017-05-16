@@ -125,10 +125,10 @@ fun <T> EventTarget.popoverComboMenu(items: List<T>,
                                      itemStyleClass: CssRule? = null,
                                      text: (T) -> String?,
                                      graphic: (T) -> Node?,
-                                     initialSelection: T? = null,
+                                     initialSelection: T,
                                      menuOp: (PopOver.(T) -> Unit)? = null,
                                      buttonOp: (JFXButton.() -> Unit)? = null): ObjectProperty<T> {
-    val selectedItemProperty = SimpleObjectProperty<T>()
+    val selectedItemProperty = SimpleObjectProperty<T>(initialSelection)
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
         items.forEach { item ->
             popoverMenuItem(text(item), graphic(item), styleClass = itemStyleClass) {

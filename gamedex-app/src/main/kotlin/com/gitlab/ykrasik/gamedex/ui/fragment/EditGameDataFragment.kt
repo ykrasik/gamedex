@@ -167,8 +167,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
             }
 
             with(toggleGroup) {
-                val initialSelection = selectedToggle!!
-                val initialUserData = initialSelection.userData
+                val initialSelection = selectedToggle
+                val initialUserData = initialSelection?.userData
                 selectedToggleProperty().addListener { _, oldValue, newValue ->
                     if (oldValue != null && newValue == null) {
                         selectToggle(oldValue)

@@ -48,7 +48,13 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(cell.itemProperty(), withDescription = false, withUrls = false, onGenrePressed = { onGenrePressed(it) }).apply {
+                            contentNode = gameDetailSnippetFactory.create(
+                                cell.item!!,
+                                withDescription = false,
+                                withUrls = false,
+                                onGenrePressed = { onGenrePressed(it) },
+                                onTagPressed = { onTagPressed(it) }
+                            ).apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)
@@ -68,7 +74,12 @@ class GameWallView : View("Games Wall") {
     }
 
     private fun PopOver.onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.genreFilterProperty.set(genre)
+        gameController.sortedFilteredGames.genreFilter = genre
+        hide()
+    }
+
+    private fun PopOver.onTagPressed(tag: String) {
+        gameController.sortedFilteredGames.tagFilter = tag
         hide()
     }
 

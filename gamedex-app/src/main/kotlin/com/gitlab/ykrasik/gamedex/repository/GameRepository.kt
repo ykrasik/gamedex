@@ -5,8 +5,6 @@ import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
-import com.gitlab.ykrasik.gamedex.ui.distincted
-import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
@@ -32,7 +30,6 @@ class GameRepository @Inject constructor(
     private val log = logger()
 
     val games: ObservableList<Game> = fetchAllGames()
-    val genres = games.flatMapped(Game::genres).distincted()
 
     init {
         // TODO: Find a more intelligent way

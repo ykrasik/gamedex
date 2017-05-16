@@ -13,7 +13,6 @@ import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
-import javafx.scene.input.KeyCode
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
@@ -39,28 +38,34 @@ class GameView : GamedexView("Games") {
             graphic = FontAwesome.Glyph.FILTER.toGraphic { size(21.0) },
             arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
-            // TODO: Add Tags
             popoverContent.form {
                 fieldset {
+                    field {
+                        jfxButton("Clear all", graphic = FontAwesome.Glyph.TIMES_CIRCLE.toGraphic { size(20.0) }) {
+                            addClass(Style.clearFiltersButton)
+                            isCancelButton = true
+                            isFocusTraversable = false
+                            setOnAction {
+                                gameController.sortedFilteredGames.clearFilters()
+                                this@buttonWithPopover.hide()
+                            }
+                        }
+                    }
                     separator()
                     field("Search") {
                         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
                             addClass(Style.filterButton)
                             promptText = "Search"
                             left = FontAwesome.Glyph.SEARCH.toGraphic()
-                            gameController.sortedFilteredGames.searchQueryProperty.bind(textProperty())
-                            setOnKeyPressed {
-                                if (it.code == KeyCode.ESCAPE) {
-                                    text = ""
-                                    this@buttonWithPopover.hide()
-                                }
-                            }
+                            gameController.sortedFilteredGames.searchQueryProperty.bindBidirectional(textProperty())
+                            requestFocus()
                         }
                         children += search
                     }
                     separator()
                     field("Platform") {
                         // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
+                        // Currently this works because adding a platform requires switching to a different view.
                         val platformsWithLibraries = Platform.values().toList().filter { platform ->
                             platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
                         }
@@ -77,21 +82,49 @@ class GameView : GamedexView("Games") {
                     }
                     separator()
                     field("Genre") {
-                        popoverComboMenu(
-                            items = listOf(SortedFilteredGames.allGenres) + gameController.genres.sorted(),
-                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                            styleClass = Style.filterButton,
-                            text = { it },
-                            graphic = { null },
-                            itemStyleClass = Style.genreItem,
-                            initialSelection = gameController.sortedFilteredGames.genreFilter,
-                            menuOp = {
-                                if (it == SortedFilteredGames.allGenres) {
-                                    separator()
-                                }
-                            }).bindBidirectional(
-                            gameController.sortedFilteredGames.genreFilterProperty
-                        )
+                        // TODO: Another way (better?) of doing this would be to have a live list of genres
+                        gameController.genres.perform { genres ->
+                            replaceChildren {
+                                popoverComboMenu(
+                                    items = listOf(SortedFilteredGames.allGenres) + genres.sorted(),
+                                    arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                                    styleClass = Style.filterButton,
+                                    text = { it },
+                                    graphic = { null },
+                                    itemStyleClass = Style.genreItem,
+                                    initialSelection = gameController.sortedFilteredGames.genreFilter,
+                                    menuOp = {
+                                        if (it == SortedFilteredGames.allGenres) {
+                                            separator()
+                                        }
+                                    }).bindBidirectional(
+                                    gameController.sortedFilteredGames.genreFilterProperty
+                                )
+                            }
+                        }
+                    }
+                    separator()
+                    field("Tag") {
+                        // TODO: Another way (better?) of doing this would be to have a live list of tags
+                        gameController.tags.perform { tags ->
+                            replaceChildren {
+                                popoverComboMenu(
+                                    items = listOf(SortedFilteredGames.allTags) + tags.sorted(),
+                                    arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                                    styleClass = Style.filterButton,
+                                    text = { it },
+                                    graphic = { null },
+                                    itemStyleClass = Style.tagItem,
+                                    initialSelection = gameController.sortedFilteredGames.tagFilter,
+                                    menuOp = {
+                                        if (it == SortedFilteredGames.allTags) {
+                                            separator()
+                                        }
+                                    }).bindBidirectional(
+                                    gameController.sortedFilteredGames.tagFilterProperty
+                                )
+                            }
+                        }
                     }
                     separator()
                 }
@@ -200,6 +233,8 @@ class GameView : GamedexView("Games") {
             menuitem("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic()) { controller.editDetails(game()) }
             menuitem("Change Thumbnail", graphic = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic()) { controller.editDetails(game(), initialTab = GameDataType.thumbnail) }
             separator()
+            menuitem("Tag", graphic = FontAwesome.Glyph.TAG.toGraphic()) { controller.tag(game()) }
+            separator()
             menuitem("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) { controller.refreshGame(game()) }
             menuitem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.rediscoverGame(game()) }
             separator()
@@ -209,9 +244,11 @@ class GameView : GamedexView("Games") {
 
     class Style : Stylesheet() {
         companion object {
+            val clearFiltersButton by cssclass()
             val filterButton by cssclass()
-            val genreItem by cssclass()
             val platformItem by cssclass()
+            val genreItem by cssclass()
+            val tagItem by cssclass()
             val sortItem by cssclass()
 
             init {
@@ -220,8 +257,18 @@ class GameView : GamedexView("Games") {
         }
 
         init {
+            clearFiltersButton {
+                prefWidth = 220.px
+                alignment = Pos.CENTER_LEFT
+            }
+
             filterButton {
                 prefWidth = 160.px
+                alignment = Pos.CENTER_LEFT
+            }
+
+            platformItem {
+                prefWidth = 100.px
                 alignment = Pos.CENTER_LEFT
             }
 
@@ -230,8 +277,8 @@ class GameView : GamedexView("Games") {
                 alignment = Pos.CENTER_LEFT
             }
 
-            platformItem {
-                prefWidth = 100.px
+            tagItem {
+                prefWidth = 160.px
                 alignment = Pos.CENTER_LEFT
             }
 

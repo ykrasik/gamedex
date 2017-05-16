@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import javafx.beans.InvalidationListener
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.ListExpression
 import javafx.beans.binding.NumberBinding
@@ -9,6 +10,7 @@ import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
+import javafx.collections.ObservableSet
 import javafx.collections.transformation.TransformationList
 import tornadofx.cleanBind
 import tornadofx.onChange
@@ -54,6 +56,42 @@ fun <T> ObservableList<T>.distincted(): ObservableList<T> {
         list.setAll(doDistinct())
     }
     return list
+}
+
+fun <T> ObservableList<T>.containing(value: Property<T>): BooleanProperty {
+    fun doesContain() = this.contains(value.value)
+
+    val property = SimpleBooleanProperty(doesContain())
+    this.onChange {
+        property.value = doesContain()
+    }
+    value.onChange {
+        property.value = doesContain()
+    }
+    return property
+}
+
+fun <T> ObservableSet<T>.containing(value: Property<T>): BooleanProperty {
+    fun doesContain() = this.contains(value.value)
+
+    val property = SimpleBooleanProperty(doesContain())
+    this.addListener(InvalidationListener {
+        property.value = doesContain()
+    })
+    value.onChange {
+        property.value = doesContain()
+    }
+    return property
+}
+
+fun <T> ObservableList<T>.existing(f: (T) -> Boolean): BooleanProperty {
+    fun doesExist() = this.any(f)
+
+    val property = SimpleBooleanProperty(doesExist())
+    this.onChange {
+        property.value = doesExist()
+    }
+    return property
 }
 
 /**
@@ -123,6 +161,16 @@ fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
     return property
 }
 
+fun <T> ObservableValue<T>.nonNull(): Property<T> {
+    val property = SimpleObjectProperty(this.value)
+    this.onChange { newValue ->
+        if (newValue != null) {
+            property.value = newValue
+        }
+    }
+    return property
+}
+
 fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
     fun calc() = f(this.value)
     val property = SimpleObjectProperty<R>()
@@ -142,7 +190,7 @@ fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
     map { t -> Predicate { r: R -> f(t, r) } }
 
-fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
+infix fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
     fun compose() = this.value.and(other.value)
     val property = SimpleObjectProperty(compose())
     this.onChange { property.set(compose()) }
@@ -155,6 +203,25 @@ fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<
     val property = SimpleObjectProperty(f(this))
     this.onChange {
         property.set(f(this))
+    }
+    return property
+}
+
+// Perform the action on the initial value of the observable and on each change.
+fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit) {
+    fun doPerform() = f(this)
+    doPerform()
+    this.onChange {
+        doPerform()
+    }
+}
+
+fun <T> ObservableValue<List<T>>.notEmpty(): BooleanProperty {
+    fun isNotEmpty() = this.value.isNotEmpty()
+
+    val property = SimpleBooleanProperty(isNotEmpty())
+    this.onChange {
+        property.value = isNotEmpty()
     }
     return property
 }
