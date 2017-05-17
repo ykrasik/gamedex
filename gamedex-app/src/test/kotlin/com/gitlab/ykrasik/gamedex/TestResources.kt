@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex
 
 import com.gitlab.ykrasik.gamedex.test.*
+import org.joda.time.DateTime
 
 /**
  * User: ykrasik
@@ -19,7 +20,7 @@ fun randomLibrary() = Library(
 fun randomMetaData() = MetaData(
     libraryId = 1,
     path = randomFile(),
-    lastModified = randomDateTime()
+    lastModified = DateTime.now()
 )
 
 fun randomGameData() = GameData(
@@ -28,7 +29,7 @@ fun randomGameData() = GameData(
     releaseDate = randomLocalDateString(),
     criticScore = randomScore(),
     userScore = randomScore(),
-    genres = List(rnd.nextInt(4)) { randomString() }
+    genres = List(rnd.nextInt(5)) { "Genre ${rnd.nextInt(30)}" }
 )
 
 fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(GameProviderType.values().size)) {

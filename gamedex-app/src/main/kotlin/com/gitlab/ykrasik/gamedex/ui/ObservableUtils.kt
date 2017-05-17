@@ -13,8 +13,8 @@ import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
 import javafx.collections.transformation.TransformationList
 import tornadofx.cleanBind
+import tornadofx.observable
 import tornadofx.onChange
-import java.util.*
 import java.util.function.Predicate
 
 /**
@@ -69,6 +69,29 @@ fun <T> ObservableList<T>.containing(value: Property<T>): BooleanProperty {
         property.value = doesContain()
     }
     return property
+}
+
+fun <T> ObservableList<T>.added(other: ObservableList<T>): ObservableList<T> {
+    fun doAdd() = this + other
+
+    val list = doAdd().observable()
+    this.onChange {
+        list.setAll(doAdd())
+    }
+    other.onChange {
+        list.setAll(doAdd())
+    }
+    return list
+}
+
+fun <T> ObservableList<T>.filtered(f: (T) -> Boolean): ObservableList<T> {
+    fun doFilter() = this.filter(f)
+
+    val list = doFilter().observable()
+    this.onChange {
+        list.setAll(doFilter())
+    }
+    return list
 }
 
 fun <T> ObservableSet<T>.containing(value: Property<T>): BooleanProperty {

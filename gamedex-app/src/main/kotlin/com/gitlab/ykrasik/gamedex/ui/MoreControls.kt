@@ -126,7 +126,7 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     }
 
 // TODO: This is insane, really.
-fun <T> EventTarget.popoverComboMenu(items: List<T>,
+fun <T> EventTarget.popoverComboMenu(items: ObservableList<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = CommonStyle.toolbarButton,
                                      itemStyleClass: CssRule? = null,
@@ -137,14 +137,18 @@ fun <T> EventTarget.popoverComboMenu(items: List<T>,
                                      buttonOp: (JFXButton.() -> Unit)? = null): ObjectProperty<T> {
     val selectedItemProperty = SimpleObjectProperty<T>(initialSelection)
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
-        items.forEach { item ->
-            popoverMenuItem(text(item), graphic(item), styleClass = itemStyleClass) {
-                selectedItemProperty.value = item
+        items.perform { items ->
+            popoverContent.replaceChildren {
+                items.forEach { item ->
+                    popoverMenuItem(text(item), graphic(item), styleClass = itemStyleClass) {
+                        selectedItemProperty.value = item
+                    }
+                    if (item == initialSelection) {
+                        selectedItemProperty.value = item
+                    }
+                    menuOp?.invoke(this@buttonWithPopover, item)
+                }
             }
-            if (item == initialSelection) {
-                selectedItemProperty.value = item
-            }
-            menuOp?.invoke(this, item)
         }
     }.apply {
         textProperty().bind(selectedItemProperty.map { text(it!!) })

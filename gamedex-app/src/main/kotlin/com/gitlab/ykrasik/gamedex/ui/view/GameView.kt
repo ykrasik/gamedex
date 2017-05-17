@@ -64,11 +64,12 @@ class GameView : GamedexScreen("Games") {
                     }
                     separator()
                     field("Platform") {
-                        // If I ever decide to cache the constructed toolbar, this will stop functioning correctly.
-                        // Currently this works because adding a platform requires switching to a different view.
-                        val platformsWithLibraries = Platform.values().toList().filter { platform ->
-                            platform != Platform.excluded && libraryController.libraries.any { it.platform == platform }
-                        }
+                        // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
+                        val platformsWithLibraries = SortedFilteredList(
+                            libraryController.libraries.mapped { it.platform }.distincted().filtered { it != Platform.excluded }
+                        )
+                        platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
+
                         popoverComboMenu(
                             items = platformsWithLibraries,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
@@ -76,55 +77,48 @@ class GameView : GamedexScreen("Games") {
                             text = Platform::key,
                             graphic = { it.toLogo() },
                             itemStyleClass = Style.platformItem,
-                            initialSelection = gameController.sortedFilteredGames.platformFilter).bindBidirectional(
-                            gameController.sortedFilteredGames.platformFilterProperty
-                        )
+                            initialSelection = gameController.sortedFilteredGames.platformFilter
+                        ).bindBidirectional(gameController.sortedFilteredGames.platformFilterProperty)
                     }
                     separator()
                     field("Genre") {
-                        // TODO: Another way (better?) of doing this would be to have a live list of genres
-                        gameController.genres.perform { genres ->
-                            replaceChildren {
-                                popoverComboMenu(
-                                    items = listOf(SortedFilteredGames.allGenres) + genres.sorted(),
-                                    arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                                    styleClass = Style.filterButton,
-                                    text = { it },
-                                    graphic = { null },
-                                    itemStyleClass = Style.genreItem,
-                                    initialSelection = gameController.sortedFilteredGames.genreFilter,
-                                    menuOp = {
-                                        if (it == SortedFilteredGames.allGenres) {
-                                            separator()
-                                        }
-                                    }).bindBidirectional(
-                                    gameController.sortedFilteredGames.genreFilterProperty
-                                )
+                        // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
+                        val genres = SortedFilteredList(gameController.genres)
+                        genres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
+                        popoverComboMenu(
+                            items = listOf(SortedFilteredGames.allGenres).observable().added(genres),
+                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                            styleClass = Style.filterButton,
+                            text = { it },
+                            graphic = { null },
+                            itemStyleClass = Style.genreItem,
+                            initialSelection = gameController.sortedFilteredGames.genreFilter,
+                            menuOp = {
+                                if (it == SortedFilteredGames.allGenres) {
+                                    separator()
+                                }
                             }
-                        }
+                        ).bindBidirectional(gameController.sortedFilteredGames.genreFilterProperty)
                     }
                     separator()
                     field("Tag") {
-                        // TODO: Another way (better?) of doing this would be to have a live list of tags
-                        gameController.tags.perform { tags ->
-                            replaceChildren {
-                                popoverComboMenu(
-                                    items = listOf(SortedFilteredGames.allTags) + tags.sorted(),
-                                    arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                                    styleClass = Style.filterButton,
-                                    text = { it },
-                                    graphic = { null },
-                                    itemStyleClass = Style.tagItem,
-                                    initialSelection = gameController.sortedFilteredGames.tagFilter,
-                                    menuOp = {
-                                        if (it == SortedFilteredGames.allTags) {
-                                            separator()
-                                        }
-                                    }).bindBidirectional(
-                                    gameController.sortedFilteredGames.tagFilterProperty
-                                )
+                        // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
+                        val tags = SortedFilteredList(gameController.tags)
+                        tags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
+                        popoverComboMenu(
+                            items = listOf(SortedFilteredGames.allTags).observable().added(tags),
+                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                            styleClass = Style.filterButton,
+                            text = { it },
+                            graphic = { null },
+                            itemStyleClass = Style.tagItem,
+                            initialSelection = gameController.sortedFilteredGames.tagFilter,
+                            menuOp = {
+                                if (it == SortedFilteredGames.allTags) {
+                                    separator()
+                                }
                             }
-                        }
+                        ).bindBidirectional(gameController.sortedFilteredGames.tagFilterProperty)
                     }
                     separator()
                 }
