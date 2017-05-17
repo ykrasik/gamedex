@@ -17,8 +17,8 @@ fun randomLibrary() = Library(
     )
 )
 
-fun randomMetaData() = MetaData(
-    libraryId = 1,
+fun randomMetaData(libraryId: Int = 1) = MetaData(
+    libraryId = libraryId,
     path = randomFile(),
     lastModified = DateTime.now()
 )

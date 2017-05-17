@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
@@ -38,6 +39,8 @@ class GameView : GamedexScreen("Games") {
             graphic = FontAwesome.Glyph.FILTER.toGraphic { size(21.0) },
             arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
+            val realSources = libraryController.libraries.filtered { it.platform != Platform.excluded }
+
             popoverContent.form {
                 fieldset {
                     field {
@@ -65,35 +68,50 @@ class GameView : GamedexScreen("Games") {
                     separator()
                     field("Platform") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                        val platformsWithLibraries = SortedFilteredList(
-                            libraryController.libraries.mapped { it.platform }.distincted().filtered { it != Platform.excluded }
-                        )
+                        val platformsWithLibraries = realSources.mapped { it.platform }.distincted().sortedFiltered()
                         platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
 
                         popoverComboMenu(
                             items = platformsWithLibraries,
+                            initialSelection = gameController.sortedFilteredGames.platformFilter,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
-                            text = Platform::key,
-                            graphic = { it.toLogo() },
                             itemStyleClass = Style.platformItem,
-                            initialSelection = gameController.sortedFilteredGames.platformFilter
+                            text = Platform::key,
+                            graphic = Platform::toLogo
                         ).bindBidirectional(gameController.sortedFilteredGames.platformFilterProperty)
+                    }
+                    separator()
+                    field("Source") {
+                        val currentlySelectedLibraries = gameController.sortedFilteredGames.sourceIdsFilter.map { sourceId ->
+                            realSources.find { it.id == sourceId }!!
+                        }
+                        val selectedLibraries = popoverToggleMenu(
+                            items = realSources,
+                            initialSelection = currentlySelectedLibraries,
+                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                            styleClass = Style.filterButton,
+                            itemStyleClass = Style.libraryItem,
+                            text = Library::name,
+                            graphic = { it.platform.toLogo() }
+                        )
+                        gameController.sortedFilteredGames.sourceIdsFilterProperty.bind(
+                            selectedLibraries.mapped { it.id }.asProperty()
+                        )
                     }
                     separator()
                     field("Genre") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                        val genres = SortedFilteredList(gameController.genres)
+                        val genres = gameController.genres.sortedFiltered()
                         genres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
                         popoverComboMenu(
                             items = listOf(SortedFilteredGames.allGenres).observable().added(genres),
+                            initialSelection = gameController.sortedFilteredGames.genreFilter,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
-                            text = { it },
-                            graphic = { null },
                             itemStyleClass = Style.genreItem,
-                            initialSelection = gameController.sortedFilteredGames.genreFilter,
-                            menuOp = {
+                            text = { it },
+                            menuItemOp = {
                                 if (it == SortedFilteredGames.allGenres) {
                                     separator()
                                 }
@@ -103,17 +121,16 @@ class GameView : GamedexScreen("Games") {
                     separator()
                     field("Tag") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                        val tags = SortedFilteredList(gameController.tags)
+                        val tags = gameController.tags.sortedFiltered()
                         tags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
                         popoverComboMenu(
                             items = listOf(SortedFilteredGames.allTags).observable().added(tags),
+                            initialSelection = gameController.sortedFilteredGames.tagFilter,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
-                            text = { it },
-                            graphic = { null },
                             itemStyleClass = Style.tagItem,
-                            initialSelection = gameController.sortedFilteredGames.tagFilter,
-                            menuOp = {
+                            text = { it },
+                            menuItemOp = {
                                 if (it == SortedFilteredGames.allTags) {
                                     separator()
                                 }
@@ -241,6 +258,7 @@ class GameView : GamedexScreen("Games") {
             val clearFiltersButton by cssclass()
             val filterButton by cssclass()
             val platformItem by cssclass()
+            val libraryItem by cssclass()
             val genreItem by cssclass()
             val tagItem by cssclass()
             val sortItem by cssclass()
@@ -262,6 +280,11 @@ class GameView : GamedexScreen("Games") {
             }
 
             platformItem {
+                prefWidth = 100.px
+                alignment = Pos.CENTER_LEFT
+            }
+
+            libraryItem {
                 prefWidth = 100.px
                 alignment = Pos.CENTER_LEFT
             }

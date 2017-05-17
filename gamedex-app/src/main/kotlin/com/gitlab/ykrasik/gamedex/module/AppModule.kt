@@ -28,6 +28,10 @@ object AppModule : AbstractModule() {
 
     @Provides
     @Singleton
+    fun newDirectoryDetector() = newDirectoryDetector
+
+    @Provides
+    @Singleton
     fun allSettings(general: GeneralSettings,
                     provider: ProviderSettings,
                     game: GameSettings,

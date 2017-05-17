@@ -24,6 +24,10 @@ class GameSettings private constructor() : AbstractSettings("game") {
     var platform by platformProperty
 
     @Transient
+    val sourceIdsProperty = preferenceProperty(emptyList<Int>())
+    var sourceIds by sourceIdsProperty
+
+    @Transient
     val sortProperty = preferenceProperty(Sort.criticScore)
     var sort by sortProperty
 

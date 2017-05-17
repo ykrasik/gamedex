@@ -27,27 +27,28 @@ class LibraryScanner @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val providerService: GameProviderService
 ) {
-
     private val log = logger()
 
     fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, progress: Task.Progress) = produce<AddGameRequest>(context) {
-        progress.message = "Scanning for new directories..."
+        progress.message = "Scanning for new games..."
 
         val excludedDirectories = libraries.map(Library::path).toSet() + games.map(Game::path).toSet()
         val newDirectories = libraries.flatMap { library ->
             val paths = if (library.platform != Platform.excluded) {
                 log.debug("Scanning library: $library")
-                newDirectoryDetector.detectNewDirectories(library.path, excludedDirectories - library.path)
+                newDirectoryDetector.detectNewDirectories(library.path, excludedDirectories - library.path).apply {
+                    log.debug("Found ${this.size} new games.")
+                }
             } else {
                 emptyList()
             }
             paths.map { library to it }
         }
 
-        progress.message = "Scanning for new directories: ${newDirectories.size} new directories."
+        progress.message = "Scanning for new games: ${newDirectories.size} new games."
 
         newDirectories.forEachIndexed { i, (library, directory) ->
-            if (!isActive) return@forEachIndexed
+            if (!isActive) return@forEachIndexed    // TODO: Probably unneeded, any suspend call does the same.
 
             progress.progress(i, newDirectories.size - 1)
             val addGameRequest = processDirectory(directory, library, progress)

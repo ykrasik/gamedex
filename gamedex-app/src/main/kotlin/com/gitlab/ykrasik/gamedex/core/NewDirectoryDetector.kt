@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.util.logger
 import java.io.File
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -15,11 +14,10 @@ import javax.inject.Singleton
  * This is a simple algorithm that doesn't check file extensions, if it proves to be too simple (stupid), update this
  * class to only consider file extensions.
  */
-@Singleton
-class NewDirectoryDetector {
+open class NewDirectoryDetector {
     private val log = logger()
 
-    suspend fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
+    open fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
         val context = NewDirectoryContext(excludedDirectories)
         context.detectNewDirectories(dir)
         return context.newDirectories
@@ -52,6 +50,9 @@ class NewDirectoryDetector {
 
         private val File.isExcluded get() = this in excludedDirectories
     }
+
+    class DirectoryDoesntExistException(dir: File) : RuntimeException("Directory doesn't exist: '$dir'")
 }
 
-class DirectoryDoesntExistException(dir: File) : RuntimeException("Directory doesn't exist: '$dir'")
+// TODO: This allows mocking for test mode, but is dirty.
+var newDirectoryDetector = NewDirectoryDetector()

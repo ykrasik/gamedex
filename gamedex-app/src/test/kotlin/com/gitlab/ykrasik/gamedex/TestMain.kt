@@ -1,17 +1,17 @@
 package com.gitlab.ykrasik.gamedex
 
+import com.gitlab.ykrasik.gamedex.core.newDirectoryDetector
 import com.gitlab.ykrasik.gamedex.module.ConfigModule
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
-import com.gitlab.ykrasik.gamedex.test.randomElement
-import com.gitlab.ykrasik.gamedex.test.randomString
-import com.gitlab.ykrasik.gamedex.test.randomUrl
-import com.gitlab.ykrasik.gamedex.test.rnd
+import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.appConfig
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
+import com.nhaarman.mockito_kotlin.mock
 import com.typesafe.config.ConfigValueFactory
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
@@ -34,6 +34,10 @@ object TestMain {
             .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef(igdbServer.endpointUrl))
             .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef(igdbServer.baseImageUrl))
 
+        newDirectoryDetector = mock {
+            on { detectNewDirectories(any(), any()) } doAnswer { List(rnd.nextInt(4)) { randomFile() } }
+        }
+
         giantBombServer.start()
         igdbServer.start()
 
@@ -52,9 +56,10 @@ object TestMain {
         val persistenceService = guice.getInstance(PersistenceService::class)
         persistenceService.dropDb()
 
-        persistenceService.insertLibrary(
-            path = javaClass.getResource("/test-games").toURI().toFile(), data = LibraryData(Platform.pc, "Test Games")
-        )
+        val libraries = (1..5).zip(listOf(Platform.pc, Platform.android, Platform.mac, Platform.excluded, Platform.pc)).map { (i, platform) ->
+            val name = "lib$i"
+            persistenceService.insertLibrary(path = randomFile(), data = LibraryData(platform, name))
+        }
 
         val executor = Executors.newFixedThreadPool(10)
         val context = executor.asCoroutineDispatcher()
@@ -63,7 +68,7 @@ object TestMain {
                 async(context) {
                     val providerTypes = mutableListOf(*GameProviderType.values())
                     persistenceService.insertGame(
-                        metaData = randomMetaData(),
+                        metaData = randomMetaData(libraries.randomElement().id),
                         providerData = List(rnd.nextInt(GameProviderType.values().size + 1)) {
                             val type = providerTypes.randomElement()
                             providerTypes -= type

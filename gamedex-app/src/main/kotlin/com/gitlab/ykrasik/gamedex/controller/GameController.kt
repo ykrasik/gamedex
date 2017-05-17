@@ -38,6 +38,7 @@ class GameController @Inject constructor(
 
     init {
         sortedFilteredGames.platformFilterProperty.bindBidirectional(settings.platformProperty)
+        sortedFilteredGames.sourceIdsFilterProperty.bindBidirectional(settings.sourceIdsProperty)
         sortedFilteredGames.sortProperty.bindBidirectional(settings.sortProperty)
         sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }

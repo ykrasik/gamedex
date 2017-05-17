@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.fragment.AddLibraryFragment
+import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -23,7 +24,7 @@ class LibraryController @Inject constructor(
     private val gameRepository: GameRepository
 ): Controller() {
 
-    val libraries = SortedFilteredList(libraryRepository.libraries)
+    val libraries = libraryRepository.libraries.sortedFiltered()
 
     fun addLibrary(): Boolean {
         var added = false

@@ -5,9 +5,8 @@ import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.map
+import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
 import com.gitlab.ykrasik.gamedex.ui.toImage
-import tornadofx.SortedFilteredList
-import tornadofx.observable
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,12 +20,11 @@ class GameProviderRepository @Inject constructor(
     allProviders: MutableSet<GameProvider>,
     settings: ProviderSettings
 ) {
-    private val providerComparator = settings.searchOrderProperty.map { it!!.toComparator().reversed() }
 
     private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
-        val providers = SortedFilteredList(allProviders.toList().observable())
-        providers.sortedItems.comparatorProperty().bind(providerComparator)
+        val providers = allProviders.toList().sortedFiltered()
+        providers.sortedItems.comparatorProperty().bind(settings.searchOrderProperty.map { it!!.toComparator().reversed() })
         providers
     }
 

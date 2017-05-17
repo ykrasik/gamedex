@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
@@ -127,35 +128,76 @@ fun EventTarget.buttonWithPopover(text: String? = null,
 
 // TODO: This is insane, really.
 fun <T> EventTarget.popoverComboMenu(items: ObservableList<T>,
+                                     initialSelection: T,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = CommonStyle.toolbarButton,
                                      itemStyleClass: CssRule? = null,
-                                     text: (T) -> String?,
-                                     graphic: (T) -> Node?,
-                                     initialSelection: T,
-                                     menuOp: (PopOver.(T) -> Unit)? = null,
-                                     buttonOp: (JFXButton.() -> Unit)? = null): ObjectProperty<T> {
-    val selectedItemProperty = SimpleObjectProperty<T>(initialSelection)
+                                     text: ((T) -> String)? = null,
+                                     graphic: ((T) -> Node)? = null,
+                                     menuItemOp: (PopOver.(T) -> Unit)? = null): ObjectProperty<T> {
+    val selectedItemProperty = SimpleObjectProperty(initialSelection)
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
         items.perform { items ->
             popoverContent.replaceChildren {
                 items.forEach { item ->
-                    popoverMenuItem(text(item), graphic(item), styleClass = itemStyleClass) {
+                    popoverMenuItem(text?.invoke(item), graphic?.invoke(item), styleClass = itemStyleClass) {
                         selectedItemProperty.value = item
                     }
                     if (item == initialSelection) {
                         selectedItemProperty.value = item
                     }
-                    menuOp?.invoke(this@buttonWithPopover, item)
+                    menuItemOp?.invoke(this@buttonWithPopover, item)
                 }
             }
         }
     }.apply {
-        textProperty().bind(selectedItemProperty.map { text(it!!) })
-        graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
-        buttonOp?.invoke(this)
+        if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
+        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
     }
     return selectedItemProperty
+}
+
+fun <T> EventTarget.popoverToggleMenu(items: ObservableList<T>,
+                                      initialSelection: List<T>,
+                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                      styleClass: CssRule? = CommonStyle.toolbarButton,
+                                      itemStyleClass: CssRule? = null,
+                                      text: ((T) -> String)? = null,
+                                      graphic: ((T) -> Node)? = null,
+                                      menuItemOp: (PopOver.(T) -> Unit)? = null): ObservableList<T> {
+    val selectedItems = initialSelection.observable()
+    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
+        items.perform { items ->
+            popoverContent.replaceChildren {
+                items.forEach { item ->
+                    hbox {
+                        jfxToggleButton {
+                            if (itemStyleClass != null) addClass(itemStyleClass)
+                            this.text = text?.invoke(item)
+                            isSelected = initialSelection.contains(item)
+                            selectedProperty().onChange {
+                                if (it) selectedItems += item else selectedItems -= item
+                            }
+                        }
+                        if (graphic != null) {
+                            children += graphic(item).apply {
+                                alignment = Pos.CENTER
+                                paddingRight = 5.0
+                            }
+                        }
+                    }
+                    menuItemOp?.invoke(this@buttonWithPopover, item)
+                }
+            }
+        }
+    }.apply {
+        if (text != null) {
+            textProperty().bind(selectedItems.mapProperty { selectedItems ->
+                if (selectedItems.isEmpty() || selectedItems == items) "All" else selectedItems.map(text).sorted().joinToString(", ")
+            })
+        }
+    }
+    return selectedItems
 }
 
 fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = buttonWithPopover(
@@ -169,7 +211,7 @@ fun PopOver.popoverMenuItem(text: String? = null,
                             styleClass: CssRule? = CommonStyle.extraMenu,
                             onAction: () -> Unit): JFXButton {
     return popoverContent.jfxButton(text, graphic) {
-        styleClass?.let { addClass(it) }
+        if (styleClass != null) addClass(styleClass)
         setOnAction {
             this@popoverMenuItem.hide()
             onAction()

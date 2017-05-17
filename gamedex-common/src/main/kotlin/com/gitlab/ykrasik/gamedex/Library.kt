@@ -14,12 +14,9 @@ data class Library(
     val id: Int,
     val path: File,
     val data: LibraryData
-) : Comparable<Library> {
-
+) {
     val name get() = data.name
     val platform get() = data.platform
-
-    override fun compareTo(other: Library) = name.compareTo(other.name)
 }
 
 data class LibraryData(

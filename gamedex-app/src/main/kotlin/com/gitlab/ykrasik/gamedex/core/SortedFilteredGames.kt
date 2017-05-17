@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.and
+import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
 import com.gitlab.ykrasik.gamedex.ui.toPredicate
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -24,6 +25,9 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     val platformFilterProperty = SimpleObjectProperty<Platform>()
     var platformFilter by platformFilterProperty
 
+    val sourceIdsFilterProperty = SimpleObjectProperty(emptyList<Int>())
+    var sourceIdsFilter by sourceIdsFilterProperty
+
     val genreFilterProperty = SimpleStringProperty(allGenres)
     var genreFilter by genreFilterProperty
 
@@ -39,7 +43,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     val sortOrderProperty = SimpleObjectProperty<TableColumn.SortType>(TableColumn.SortType.ASCENDING)
     var sortOrder by sortOrderProperty
 
-    val games: ObservableList<Game> = SortedFilteredList(_games)
+    val games: ObservableList<Game> = _games.sortedFiltered()
 
     private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
     private val criticScoreComparator = compareBy(Game::criticScore)
@@ -48,6 +52,10 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     init {
         val platformPredicate = platformFilterProperty.toPredicate { platform, game: Game ->
             game.platform == platform
+        }
+
+        val sourcePredicate = sourceIdsFilterProperty.toPredicate { sourceIds, game: Game ->
+            sourceIds!!.isEmpty() || sourceIds.any { game.library.id == it }
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game ->
@@ -62,7 +70,8 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
             tag.isNullOrEmpty() || tag == allTags || game.tags.contains(tag)
         }
 
-        val gameFilterPredicate = platformPredicate and searchPredicate and genrePredicate and tagPredicate
+        val gameFilterPredicate = platformPredicate and sourcePredicate and
+            searchPredicate and genrePredicate and tagPredicate
 
         games as SortedFilteredList<Game>
         games.filteredItems.predicateProperty().bind(gameFilterPredicate)

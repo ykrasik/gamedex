@@ -12,6 +12,7 @@ import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.ObservableSet
 import javafx.collections.transformation.TransformationList
+import tornadofx.SortedFilteredList
 import tornadofx.cleanBind
 import tornadofx.observable
 import tornadofx.onChange
@@ -243,6 +244,25 @@ fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<
     return property
 }
 
+fun <T> ObservableList<T>.asProperty(): Property<ObservableList<T>> {
+    val property = SimpleObjectProperty(this)
+
+    // Very unfortunate, but otherwise a change event isn't fired.
+    var invalidationList: ObservableList<T> =
+        if (this.isEmpty()) FXCollections.emptyObservableList() else FXCollections.observableArrayList(this.first())
+    
+    this.onChange {
+        property.set(FXCollections.emptyObservableList())
+        if (this.isNotEmpty() && invalidationList.isEmpty()) {
+            invalidationList = FXCollections.observableArrayList(this.first())
+        } else {
+            property.set(invalidationList)
+        }
+        property.set(this)
+    }
+    return property
+}
+
 // Perform the action on the initial value of the observable and on each change.
 fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit) {
     fun doPerform() = f(this)
@@ -276,3 +296,6 @@ fun <T> ObservableSet<T>.invalidate() {
         this += this.first()
     }
 }
+
+fun <T> ObservableList<T>.sortedFiltered() = SortedFilteredList(this)
+fun <T> List<T>.sortedFiltered() = this.observable().sortedFiltered()
