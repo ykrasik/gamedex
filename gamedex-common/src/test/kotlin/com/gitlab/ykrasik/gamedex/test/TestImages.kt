@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.test
 
-import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.util.ClassPathScanner
 import javafx.scene.image.Image
 import java.io.ByteArrayInputStream
 
@@ -8,18 +8,12 @@ import java.io.ByteArrayInputStream
  * User: ykrasik
  * Date: 19/03/2017
  * Time: 13:51
+ *
+ * These images were all taken from igdb.com
  */
 object TestImages {
-    private fun loadImage(name: String) = getResourceAsByteArray(name)
+    private val images = ClassPathScanner.scanPackage("com.gitlab.ykrasik.gamedex.test") { it.endsWith(".jpg") }
 
-    private val images = (0..13).map { i ->
-        try {
-            loadImage("game$i.jpg")
-        } catch (e: Exception) {
-            loadImage("game$i.png")
-        }
-    }
-
-    fun randomImageBytes(): ByteArray = images.randomElement()
+    fun randomImageBytes(): ByteArray = images.randomElement().readBytes()
     fun randomImage(): Image = Image(ByteArrayInputStream(randomImageBytes()))
 }

@@ -38,6 +38,8 @@ object TestMain {
             on { detectNewDirectories(any(), any()) } doAnswer { List(rnd.nextInt(4)) { randomFile() } }
         }
 
+        TestImages
+
         giantBombServer.start()
         igdbServer.start()
 
