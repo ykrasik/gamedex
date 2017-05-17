@@ -8,11 +8,13 @@ import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
 import org.joda.time.DateTime
 import tornadofx.observable
 import tornadofx.onChange
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,14 +61,15 @@ class GameRepository @Inject constructor(
         game
     }
 
-    // TODO: Will this be faster if multithreaded?
     suspend fun addAll(requests: List<AddGameRequest>, progress: Task.Progress) = run(CommonPool) {
-        val games = requests.mapIndexed { i, request ->
-            progress.progress(i, requests.size - 1)
-            progress.message = "Writing '${request.metaData.path.name}..."
-            val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
-            rawGame.toGame()
-        }
+        val processed = AtomicInteger(0)
+        val games = requests.map { request ->
+            async(CommonPool) {
+                progress.progress(processed.incrementAndGet(), requests.size - 1)
+                val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+                rawGame.toGame()
+            }
+        }.map { it.await() }
         run(JavaFx) {
             progress.message = "Updating UI..."
             this.games += games
