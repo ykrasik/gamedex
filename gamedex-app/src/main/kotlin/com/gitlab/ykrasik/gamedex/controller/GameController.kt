@@ -11,13 +11,11 @@ import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
-import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
-import tornadofx.seconds
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,19 +82,14 @@ class GameController @Inject constructor(
     fun refreshGame(game: Game) = gameTasks.RefreshGameTask(game).apply { start() }
 
     fun rediscoverAllGames() = gameTasks.RediscoverAllGamesTask().apply { start() }
-    fun rediscoverGame(game: Game) = gameTasks.RediscoverGameTask(game).apply { start() }
+    fun searchGame(game: Game) = gameTasks.SearchGameTask(game).apply { start() }
 
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false
 
         launch(JavaFx) {
             gameRepository.delete(game)
-
-            Notification()
-                .text("Deleted game: '${game.name}")
-                .information()
-                .automaticallyHideAfter(2.seconds)
-                .show()
+            MainView.showFlashInfoNotification("Deleted game: '${game.name}'.")
         }
         return true
     }

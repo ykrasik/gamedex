@@ -236,7 +236,7 @@ class GameView : GamedexScreen("Games") {
             menuitem("Tag", graphic = FontAwesome.Glyph.TAG.toGraphic()) { controller.tag(game()) }
             separator()
             menuitem("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic()) { controller.refreshGame(game()) }
-            menuitem("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.rediscoverGame(game()) }
+            menuitem("Search", graphic = FontAwesome.Glyph.SEARCH.toGraphic()) { controller.searchGame(game()) }
             separator()
             menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { controller.delete(game()) }
         }

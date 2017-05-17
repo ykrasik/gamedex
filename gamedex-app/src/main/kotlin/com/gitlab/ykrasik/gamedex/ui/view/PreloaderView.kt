@@ -1,8 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view
 
-import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
 import com.google.inject.AbstractModule
@@ -24,7 +24,7 @@ import tornadofx.*
  */
 class PreloaderView : View("Gamedex") {
     private var logo = resources.image("gamedex.png")
-    private val progress = TaskProgress(log = null)
+    private val progress = Task.Progress(log = null)
 
     private val messageListener = ListChangeListener<LogEntry> {
         progress.message = it.list.last().message

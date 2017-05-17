@@ -2,9 +2,9 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
-import com.gitlab.ykrasik.gamedex.core.TaskProgress
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
@@ -59,7 +59,8 @@ class GameRepository @Inject constructor(
         game
     }
 
-    suspend fun addAll(requests: List<AddGameRequest>, progress: TaskProgress) = run(CommonPool) {
+    // TODO: Will this be faster if multithreaded?
+    suspend fun addAll(requests: List<AddGameRequest>, progress: Task.Progress) = run(CommonPool) {
         val games = requests.mapIndexed { i, request ->
             progress.progress(i, requests.size - 1)
             progress.message = "Writing '${request.metaData.path.name}..."

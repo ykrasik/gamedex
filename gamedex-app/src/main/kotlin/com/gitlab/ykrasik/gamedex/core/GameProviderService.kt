@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import kotlinx.coroutines.experimental.CommonPool
@@ -19,9 +20,9 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<ProviderData>?
+    suspend fun search(name: String, platform: Platform, path: File, progress: Task.Progress, isSearchAgain: Boolean): List<ProviderData>?
 
-    suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: TaskProgress): List<ProviderData>
+    suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: Task.Progress): List<ProviderData>
 }
 
 @Singleton
@@ -33,7 +34,7 @@ class GameProviderServiceImpl @Inject constructor(
 
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
-    override suspend fun search(name: String, platform: Platform, path: File, progress: TaskProgress, isSearchAgain: Boolean): List<ProviderData>? =
+    override suspend fun search(name: String, platform: Platform, path: File, progress: Task.Progress, isSearchAgain: Boolean): List<ProviderData>? =
         try {
             SearchContext(platform, path, progress, isSearchAgain, name.normalizeName()).search()
         } catch (e: CancelSearchException) {
@@ -46,7 +47,7 @@ class GameProviderServiceImpl @Inject constructor(
     private inner class SearchContext(
         private val platform: Platform,
         private val path: File,
-        private val progress: TaskProgress,
+        private val progress: Task.Progress,
         private val isSearchAgain: Boolean,
         private var searchedName: String
     ) {
@@ -123,7 +124,7 @@ class GameProviderServiceImpl @Inject constructor(
         )
     }
 
-    override suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: TaskProgress): List<ProviderData> {
+    override suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: Task.Progress): List<ProviderData> {
         progress.message = "[$platform] Downloading '$name'..."
         return headers.map { header ->
             async(CommonPool) {

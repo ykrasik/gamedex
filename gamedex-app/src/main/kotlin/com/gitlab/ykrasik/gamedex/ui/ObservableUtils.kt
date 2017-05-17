@@ -84,6 +84,19 @@ fun <T> ObservableSet<T>.containing(value: Property<T>): BooleanProperty {
     return property
 }
 
+fun <T> ObservableSet<T>.equaling(other: ObservableSet<T>): BooleanProperty {
+    fun doesEqual() = this == other
+
+    val property = SimpleBooleanProperty(doesEqual())
+    this.addListener(InvalidationListener {
+        property.value = doesEqual()
+    })
+    other.addListener(InvalidationListener {
+        property.value = doesEqual()
+    })
+    return property
+}
+
 fun <T> ObservableList<T>.existing(f: (T) -> Boolean): BooleanProperty {
     fun doesExist() = this.any(f)
 
@@ -216,6 +229,15 @@ fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit) {
     }
 }
 
+// Perform the action on the initial value of the observable and on each change.
+fun <T> ObservableSet<T>.perform(f: (ObservableSet<T>) -> Unit) {
+    fun doPerform() = f(this)
+    doPerform()
+    this.addListener(InvalidationListener {
+        doPerform()
+    })
+}
+
 fun <T> ObservableValue<List<T>>.notEmpty(): BooleanProperty {
     fun isNotEmpty() = this.value.isNotEmpty()
 
@@ -224,4 +246,10 @@ fun <T> ObservableValue<List<T>>.notEmpty(): BooleanProperty {
         property.value = isNotEmpty()
     }
     return property
+}
+
+fun <T> ObservableSet<T>.invalidate() {
+    if (isNotEmpty()) {
+        this += this.first()
+    }
 }

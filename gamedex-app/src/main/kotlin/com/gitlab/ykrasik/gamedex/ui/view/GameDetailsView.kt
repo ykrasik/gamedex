@@ -55,10 +55,10 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
 
         verticalSeparator()
 
-        jfxButton("Rediscover", graphic = FontAwesome.Glyph.SEARCH.toGraphic { size(22.0); color(Color.DARKGOLDENROD) }) {
+        jfxButton("Search", graphic = FontAwesome.Glyph.SEARCH.toGraphic { size(22.0); color(Color.DARKGOLDENROD) }) {
             addClass(CommonStyle.toolbarButton)
             setOnAction {
-                val task = gameController.rediscoverGame(game)
+                val task = gameController.searchGame(game)
                 disableWhen { task.runningProperty }
                 reloadGame { task.result }
             }

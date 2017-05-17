@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMEST
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.GamedexTask
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
@@ -61,7 +61,7 @@ class SettingsController @Inject constructor(
     }
 
     // TODO: This isn't actually cancellable.
-    inner class ExportDatabaseTask(private val file: File) : GamedexTask<Unit>("Exporting Database...") {
+    inner class ExportDatabaseTask(private val file: File) : Task<Unit>("Exporting Database...") {
         suspend override fun doRun(context: CoroutineContext) {
             val libraries = libraryRepository.libraries.map { it.toPortable() }
             val games = gameRepository.games.mapIndexed { i, game ->
@@ -74,14 +74,11 @@ class SettingsController @Inject constructor(
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
         }
 
-        override fun finally() {
-            progress.message = "Done: Exported ${gameRepository.games.size} games."
-        }
+        override fun doneMessage() = "Done: Exported ${gameRepository.games.size} games."
     }
 
     // TODO: This isn't actually cancellable.
-    // TODO: Will this be faster if multithreaded?
-    inner class ImportDatabaseTask(private val file: File) : GamedexTask<Unit>("Importing Database...") {
+    inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 
         suspend override fun doRun(context: CoroutineContext) {
@@ -100,9 +97,7 @@ class SettingsController @Inject constructor(
             importedGames = requests.size
         }
 
-        override fun finally() {
-            progress.message = "Done: Imported $importedGames games."
-        }
+        override fun doneMessage() = "Done: Imported $importedGames games."
     }
 
     private data class PortableDb(

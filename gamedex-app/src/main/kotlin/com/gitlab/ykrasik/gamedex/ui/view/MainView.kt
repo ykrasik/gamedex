@@ -3,11 +3,14 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.fragment.SettingsFragment
+import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
 import javafx.scene.paint.Color
+import org.controlsfx.control.NotificationPane
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
@@ -28,38 +31,39 @@ class MainView : View("Gamedex") {
 
     private lateinit var previousScreen: Tab
 
-    // TODO: See how this can be achieved using view switching instead of a tabpane
-    override val root = borderpane {
-        center {
-            tabPane = tabpane {
-                addClass(Style.navigationTabPane)
-
-                tab(gameView) {
-                    userData = gameView
-                    graphic = FontAwesome.Glyph.GAMEPAD.toGraphic { color(Color.DARKRED) }
-                    previousScreen = this
-                }
-                tab(sourceView) {
-                    userData = sourceView
-                    graphic = FontAwesome.Glyph.HDD_ALT.toGraphic { color(Color.DARKGREEN) }
-                }
-                tab(logView) {
-                    userData = logView
-                    graphic = FontAwesome.Glyph.BOOK.toGraphic { color(Color.DARKBLUE) }
-                }
-                tab(gameDetailsView) {
-                    userData = gameDetailsView
-                }
-
-                selectionModel.select(0)
-            }
-        }
-        top {
-            toolbar = toolbar {
-                items.onChange {
-                    fade(0.6.seconds, 1.0, play = true) {
-                        fromValue = 0.0
+    override val root = persistentNotification.apply {
+        content = borderpane {
+            top {
+                toolbar = toolbar {
+                    items.onChange {
+                        fade(0.6.seconds, 1.0, play = true) {
+                            fromValue = 0.0
+                        }
                     }
+                }
+            }
+            center {
+                tabPane = tabpane {
+                    addClass(Style.navigationTabPane)
+
+                    tab(gameView) {
+                        userData = gameView
+                        graphic = FontAwesome.Glyph.GAMEPAD.toGraphic { color(Color.DARKRED) }
+                        previousScreen = this
+                    }
+                    tab(sourceView) {
+                        userData = sourceView
+                        graphic = FontAwesome.Glyph.HDD_ALT.toGraphic { color(Color.DARKGREEN) }
+                    }
+                    tab(logView) {
+                        userData = logView
+                        graphic = FontAwesome.Glyph.BOOK.toGraphic { color(Color.DARKBLUE) }
+                    }
+                    tab(gameDetailsView) {
+                        userData = gameDetailsView
+                    }
+
+                    selectionModel.select(0)
                 }
             }
         }
@@ -67,7 +71,7 @@ class MainView : View("Gamedex") {
 
     init {
         tabPane.selectionModel.selectedItemProperty().perform { it!!.populateToolbar() }
-        tabPane.selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
+        tabPane.selectionModel.selectedItemProperty().addListener { _, oldValue, _ ->
             previousScreen = oldValue
         }
     }
@@ -157,5 +161,26 @@ class MainView : View("Gamedex") {
                 }
             }
         }
+
+        private val persistentNotification = NotificationPane().apply {
+            isCloseButtonVisible = false
+        }
+
+        fun showPersistentNotification(graphic: Node) {
+            persistentNotification.graphic = graphic
+            persistentNotification.show()
+        }
+
+        fun hidePersistentNotification() {
+            persistentNotification.hide()
+        }
+
+        fun showFlashInfoNotification(text: String) = Notification()
+            .text(text)
+            .information()
+            .automaticallyHideAfter(3.seconds)
+            .hideCloseButton()
+            .position(Pos.BOTTOM_RIGHT)
+            .show()
     }
 }

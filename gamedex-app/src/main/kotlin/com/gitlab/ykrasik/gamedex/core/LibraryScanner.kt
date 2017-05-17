@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.MetaData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.channels.produce
 import org.joda.time.DateTime
@@ -29,7 +30,7 @@ class LibraryScanner @Inject constructor(
 
     private val log = logger()
 
-    fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, progress: TaskProgress) = produce<AddGameRequest>(context) {
+    fun scan(context: CoroutineContext, libraries: List<Library>, games: List<Game>, progress: Task.Progress) = produce<AddGameRequest>(context) {
         progress.message = "Scanning for new directories..."
 
         val excludedDirectories = libraries.map(Library::path).toSet() + games.map(Game::path).toSet()
@@ -55,7 +56,7 @@ class LibraryScanner @Inject constructor(
         channel.close()
     }
 
-    private suspend fun processDirectory(directory: File, library: Library, progress: TaskProgress): AddGameRequest? {
+    private suspend fun processDirectory(directory: File, library: Library, progress: Task.Progress): AddGameRequest? {
         val providerData = providerService.search(directory.name, library.platform, directory, progress, isSearchAgain = false) ?: return null
         return AddGameRequest(
             metaData = MetaData(library.id, directory, lastModified = DateTime.now()),

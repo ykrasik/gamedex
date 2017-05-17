@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.ui.Task
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.experimental.CoroutineContext
@@ -22,7 +23,7 @@ class GameTasks @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService     // TODO: This class appears in too many places.
 ) {
-    inner class ScanNewGamesTask : GamedexTask<Unit>("Scanning new games...") {
+    inner class ScanNewGamesTask : Task<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun(context: CoroutineContext) {
@@ -33,12 +34,10 @@ class GameTasks @Inject constructor(
             }
         }
 
-        override fun finally() {
-            progress.message = "Done: Added $numNewGames new games."
-        }
+        override fun doneMessage() = "Done: Added $numNewGames new games."
     }
 
-    inner class CleanupTask : GamedexTask<Unit>("Cleaning up...") {
+    inner class CleanupTask : Task<Unit>("Cleaning up...") {
         private var staleGames = 0
         private var staleLibraries = 0
 
@@ -82,13 +81,11 @@ class GameTasks @Inject constructor(
             }
         }
 
-        override fun finally() {
-            progress.message = "Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries."
-        }
+        override fun doneMessage() = "Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries."
     }
 
     // TODO: Consider renaming 'refresh' to 'redownload'
-    inner class RefreshAllGamesTask : GamedexTask<Unit>("Refreshing all games...") {
+    inner class RefreshAllGamesTask : Task<Unit>("Refreshing all games...") {
         private var numRefreshed = 0
 
         override suspend fun doRun(context: CoroutineContext) {
@@ -101,25 +98,20 @@ class GameTasks @Inject constructor(
             }
         }
 
-        override fun finally() {
-            progress.message = "Done: Refreshed $numRefreshed games."
-        }
+        override fun doneMessage() = "Done: Refreshed $numRefreshed games."
     }
 
-    inner class RefreshGameTask(private val game: Game) : GamedexTask<Game>("Refreshing '${game.name}'...") {
+    inner class RefreshGameTask(private val game: Game) : Task<Game>("Refreshing '${game.name}'...") {
         override suspend fun doRun(context: CoroutineContext) = doRefreshGame(game, progress)
-
-        override fun finally() {
-            progress.message = "Done."
-        }
+        override fun doneMessage() = "Done refreshing: '${game.name}'."
     }
 
-    private suspend fun doRefreshGame(game: Game, progress: TaskProgress): Game {
+    private suspend fun doRefreshGame(game: Game, progress: Task.Progress): Game {
         val newRawGameData = providerService.download(game.name, game.platform, game.providerHeaders, progress)
         return updateGame(game, newRawGameData)
     }
 
-    inner class RediscoverAllGamesTask : GamedexTask<Unit>("Rediscovering all games...") {
+    inner class RediscoverAllGamesTask : Task<Unit>("Rediscovering all games...") {
         private var numRetried = 0
         private var numSucceeded = 0
 
@@ -129,27 +121,22 @@ class GameTasks @Inject constructor(
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                if (doRediscover(game, progress) != null) {
+                if (doSearch(game, progress) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
             }
         }
 
-        override fun finally() {
-            progress.message = "Done: Rediscovered $numSucceeded/$numRetried games."
-        }
+        override fun doneMessage() = "Done: Rediscovered $numSucceeded/$numRetried games."
     }
 
-    inner class RediscoverGameTask(private val game: Game) : GamedexTask<Game>("Rediscovering '${game.name}'...") {
-        suspend override fun doRun(context: CoroutineContext) = doRediscover(game, progress) ?: game
-
-        override fun finally() {
-            progress.message = "Done."
-        }
+    inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
+        suspend override fun doRun(context: CoroutineContext) = doSearch(game, progress) ?: game
+        override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun doRediscover(game: Game, progress: TaskProgress): Game? {
+    private suspend fun doSearch(game: Game, progress: Task.Progress): Game? {
         val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isSearchAgain = true) ?: return null
         return updateGame(game, newRawGameData)
     }
