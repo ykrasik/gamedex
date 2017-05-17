@@ -2,13 +2,14 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.rnd
+import com.gitlab.ykrasik.gamedex.ui.view.GameDetailsView
 
 /**
  * User: ykrasik
  * Date: 01/04/2017
  * Time: 14:06
  */
-object GameDetailsFragmentTestApp : BaseTestApp() {
+object GameDetailsViewTestApp : BaseTestApp() {
     override fun init() {
         val game = Game(
             rawGame = RawGame(
@@ -22,7 +23,9 @@ object GameDetailsFragmentTestApp : BaseTestApp() {
             providerHeaders = randomProviderHeaders(),
             imageUrls = randomImageUrls()
         )
-        println("Result: " + GameDetailsFragment(game, displayVideos = false).show())
+        val view = GameDetailsView()
+        view.game = game
+        view.openWindow(block = true)
         System.exit(0)
     }
 

@@ -11,7 +11,7 @@ import tornadofx.*
  * Time: 22:17
  */
 // TODO: This screen needs some work
-class SourceView : GamedexView("Sources") {
+class SourceView : GamedexScreen("Sources") {
     private val controller: LibraryController by di()
 
     override fun ToolBar.constructToolbar() {

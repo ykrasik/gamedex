@@ -9,8 +9,8 @@ import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.distincted
 import com.gitlab.ykrasik.gamedex.ui.flatMapped
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
-import com.gitlab.ykrasik.gamedex.ui.fragment.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.TagFragment
+import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
@@ -32,6 +32,7 @@ class GameController @Inject constructor(
     private val gameTasks: GameTasks,
     settings: GameSettings
 ) : Controller() {
+    private val mainView: MainView by inject()
 
     val sortedFilteredGames = SortedFilteredGames(gameRepository.games)
     val genres = gameRepository.games.flatMapped(Game::genres).distincted()
@@ -43,7 +44,7 @@ class GameController @Inject constructor(
         sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }
 
-    fun viewDetails(game: Game) = GameDetailsFragment(game).show()
+    fun viewDetails(game: Game) = mainView.showGameDetails(game)
     fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Deferred<Game> = async(JavaFx) {
         val choice = EditGameDataFragment(game, initialTab).show()
         val overrides = when (choice) {

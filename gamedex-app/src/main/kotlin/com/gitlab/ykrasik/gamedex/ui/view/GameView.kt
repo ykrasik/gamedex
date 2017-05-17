@@ -24,7 +24,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameView : GamedexView("Games") {
+class GameView : GamedexScreen("Games") {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
     private val settings: GameSettings by di()
