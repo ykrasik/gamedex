@@ -39,7 +39,7 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
         library
     }
 
-    suspend fun addAll(requests: List<AddLibraryRequest>) = run(CommonPool) {
+    suspend fun addAll(requests: List<AddLibraryRequest>): List<Library> = run(CommonPool) {
         val libraries = requests.map { request ->
             persistenceService.insertLibrary(request.path, request.data)
         }

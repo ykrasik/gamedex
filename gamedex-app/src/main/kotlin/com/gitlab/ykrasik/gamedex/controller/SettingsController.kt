@@ -83,7 +83,7 @@ class SettingsController @Inject constructor(
             gameRepository.invalidate()
 
             val libraries = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() })
-                .associateBy { it.path }
+                .associateBy { lib -> portableDb.findLib(lib.path, lib.platform).id }
 
             val requests = portableDb.games.map { it.toGameRequest(libraries) }
 
@@ -97,9 +97,12 @@ class SettingsController @Inject constructor(
     private data class PortableDb(
         val libraries: List<PortableLibrary>,
         val games: List<PortableGame>
-    )
+    ) {
+        fun findLib(path: File, platform: Platform) = libraries.find { it.path == path.path && it.platform == platform.name }!!
+    }
 
     private data class PortableLibrary(
+        val id: Int,
         val path: String,
         val platform: String,
         val name: String
@@ -114,22 +117,22 @@ class SettingsController @Inject constructor(
     }
 
     private fun Library.toPortable() = PortableLibrary(
+        id = id,
         path = path.toString(),
         platform = platform.name,
         name = name
     )
 
     private data class PortableGame(
+        val libraryId: Int,
         val path: String,
         val lastModified: Long,
-        val libraryPath: String,
-        val platform: String,
         val providerData: List<PortableProviderData>,
         val userData: PortableUserData?
     ) {
-        fun toGameRequest(libraries: Map<File, Library>) = AddGameRequest(
+        fun toGameRequest(libraries: Map<Int, Library>) = AddGameRequest(
             metaData = MetaData(
-                libraryId = libraries.getOrElse(libraryPath.toFile()) { throw IllegalArgumentException("Invalid library path: $libraryPath") }.id,
+                libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
                 path = path.toFile(),
                 lastModified = DateTime(lastModified)
             ),
@@ -139,10 +142,9 @@ class SettingsController @Inject constructor(
     }
 
     private fun Game.toPortable() = PortableGame(
+        libraryId = library.id,
         path = rawGame.metaData.path.toString(),
         lastModified = lastModified.millis,
-        libraryPath = library.path.toString(),
-        platform = library.platform.name,
         providerData = rawGame.providerData.map { it.toPortable() },
         userData = userData?.toPortable()
     )
