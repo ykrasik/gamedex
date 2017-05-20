@@ -68,45 +68,55 @@ class GameView : GamedexScreen("Games") {
                     separator()
                     field("Platform") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                        val platformsWithLibraries = realSources.mapped { it.platform }.distincted().sortedFiltered()
+                        val platformsWithLibraries = realSources.mapping { it.platform }.distincting().sortedFiltered()
                         platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
 
                         popoverComboMenu(
-                            items = platformsWithLibraries,
-                            initialSelection = gameController.sortedFilteredGames.platformFilter,
+                            possibleItems = platformsWithLibraries,
+                            selectedItemProperty = gameController.sortedFilteredGames.platformFilterProperty,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
                             itemStyleClass = Style.platformItem,
                             text = Platform::key,
                             graphic = Platform::toLogo
-                        ).bindBidirectional(gameController.sortedFilteredGames.platformFilterProperty)
+                        )
                     }
                     separator()
-                    field("Source") {
-                        val currentlySelectedLibraries = gameController.sortedFilteredGames.sourceIdsFilter.map { sourceId ->
-                            realSources.find { it.id == sourceId }!!
+                    vbox {
+                        realSources.filtering(gameController.sortedFilteredGames.platformFilterProperty.toPredicateF { platform, source: Library ->
+                            source.platform == platform
+                        }).performing { librariesWithPlatform ->
+                            replaceChildren {
+                                if (librariesWithPlatform.size <= 1) return@replaceChildren
+
+                                field("Source") {
+                                    val selectedLibraries = gameController.sortedFilteredGames.sourceIdsFilterProperty.mapping { sourceId ->
+                                        realSources.find { it.id == sourceId }!!
+                                    }
+                                    popoverToggleMenu(
+                                        possibleItems = librariesWithPlatform,
+                                        selectedItems = selectedLibraries,
+                                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                                        styleClass = Style.filterButton,
+                                        itemStyleClass = Style.libraryItem,
+                                        text = Library::name
+                                    )
+                                    selectedLibraries.onChange {
+                                        gameController.sortedFilteredGames.sourceIdsPerPlatformFilter +=
+                                            gameController.sortedFilteredGames.platformFilter to it!!.map { it.id }
+                                    }
+                                }
+                                separator()
+                            }
                         }
-                        val selectedLibraries = popoverToggleMenu(
-                            items = realSources,
-                            initialSelection = currentlySelectedLibraries,
-                            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                            styleClass = Style.filterButton,
-                            itemStyleClass = Style.libraryItem,
-                            text = Library::name,
-                            graphic = { it.platform.toLogo() }
-                        )
-                        gameController.sortedFilteredGames.sourceIdsFilterProperty.bind(
-                            selectedLibraries.mapped { it.id }.asProperty()
-                        )
                     }
-                    separator()
                     field("Genre") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
                         val genres = gameController.genres.sortedFiltered()
                         genres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
                         popoverComboMenu(
-                            items = listOf(SortedFilteredGames.allGenres).observable().added(genres),
-                            initialSelection = gameController.sortedFilteredGames.genreFilter,
+                            possibleItems = listOf(SortedFilteredGames.allGenres).observable().adding(genres),
+                            selectedItemProperty = gameController.sortedFilteredGames.genreFilterProperty,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
                             itemStyleClass = Style.genreItem,
@@ -116,7 +126,7 @@ class GameView : GamedexScreen("Games") {
                                     separator()
                                 }
                             }
-                        ).bindBidirectional(gameController.sortedFilteredGames.genreFilterProperty)
+                        )
                     }
                     separator()
                     field("Tag") {
@@ -124,8 +134,8 @@ class GameView : GamedexScreen("Games") {
                         val tags = gameController.tags.sortedFiltered()
                         tags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
                         popoverComboMenu(
-                            items = listOf(SortedFilteredGames.allTags).observable().added(tags),
-                            initialSelection = gameController.sortedFilteredGames.tagFilter,
+                            possibleItems = listOf(SortedFilteredGames.allTags).observable().adding(tags),
+                            selectedItemProperty = gameController.sortedFilteredGames.tagFilterProperty,
                             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                             styleClass = Style.filterButton,
                             itemStyleClass = Style.tagItem,
@@ -135,7 +145,7 @@ class GameView : GamedexScreen("Games") {
                                     separator()
                                 }
                             }
-                        ).bindBidirectional(gameController.sortedFilteredGames.tagFilterProperty)
+                        )
                     }
                     separator()
                 }

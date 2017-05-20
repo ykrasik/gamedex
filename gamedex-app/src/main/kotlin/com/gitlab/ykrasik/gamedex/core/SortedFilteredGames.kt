@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.and
+import com.gitlab.ykrasik.gamedex.ui.gettingOrElse
 import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
 import com.gitlab.ykrasik.gamedex.ui.toPredicate
 import javafx.beans.property.ObjectProperty
@@ -25,8 +26,11 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     val platformFilterProperty = SimpleObjectProperty<Platform>()
     var platformFilter by platformFilterProperty
 
-    val sourceIdsFilterProperty = SimpleObjectProperty(emptyList<Int>())
-    var sourceIdsFilter by sourceIdsFilterProperty
+    val sourceIdsPerPlatformFilterProperty = SimpleObjectProperty(emptyMap<Platform, List<Int>>())
+    var sourceIdsPerPlatformFilter by sourceIdsPerPlatformFilterProperty
+
+    val sourceIdsFilterProperty = sourceIdsPerPlatformFilterProperty.gettingOrElse(platformFilterProperty, emptyList())
+    val sourceIdsFilter by sourceIdsFilterProperty
 
     val genreFilterProperty = SimpleStringProperty(allGenres)
     var genreFilter by genreFilterProperty

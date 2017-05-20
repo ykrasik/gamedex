@@ -74,7 +74,7 @@ class TagFragment(game: Game) : Fragment("Tag") {
                 separator()
                 flowpane {
                     addClass(Style.tagDisplay)
-                    tags.perform { tags ->
+                    tags.performing { tags ->
                         replaceChildren {
                             tags.sorted().forEach { tag ->
                                 jfxToggleButton {

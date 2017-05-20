@@ -6,8 +6,8 @@ import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.distincted
-import com.gitlab.ykrasik.gamedex.ui.flatMapped
+import com.gitlab.ykrasik.gamedex.ui.distincting
+import com.gitlab.ykrasik.gamedex.ui.flatMapping
 import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.fragment.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
@@ -33,12 +33,12 @@ class GameController @Inject constructor(
     private val mainView: MainView by inject()
 
     val sortedFilteredGames = SortedFilteredGames(gameRepository.games)
-    val genres = gameRepository.games.flatMapped(Game::genres).distincted()
-    val tags = gameRepository.games.flatMapped(Game::tags).distincted()
+    val genres = gameRepository.games.flatMapping(Game::genres).distincting()
+    val tags = gameRepository.games.flatMapping(Game::tags).distincting()
 
     init {
         sortedFilteredGames.platformFilterProperty.bindBidirectional(settings.platformProperty)
-        sortedFilteredGames.sourceIdsFilterProperty.bindBidirectional(settings.sourceIdsProperty)
+        sortedFilteredGames.sourceIdsPerPlatformFilterProperty.bindBidirectional(settings.sourceIdsPerPlatformProperty)
         sortedFilteredGames.sortProperty.bindBidirectional(settings.sortProperty)
         sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }
