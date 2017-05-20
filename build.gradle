@@ -35,7 +35,7 @@ buildscript {
 
         jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.9']
 
-        khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: '-SNAPSHOT']
+        khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
             v = '2.8.8'
@@ -46,7 +46,7 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.194']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.7.4']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.8']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '1.3.0']
