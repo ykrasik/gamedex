@@ -39,7 +39,7 @@ class GameView : GamedexScreen("Games") {
             graphic = FontAwesome.Glyph.FILTER.toGraphic { size(21.0) },
             arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
-            val realSources = libraryController.libraries.filtered { it.platform != Platform.excluded }
+            val realLibraries = libraryController.libraries.filtered { it.platform != Platform.excluded }
 
             popoverContent.form {
                 fieldset {
@@ -68,7 +68,7 @@ class GameView : GamedexScreen("Games") {
                     separator()
                     field("Platform") {
                         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                        val platformsWithLibraries = realSources.mapping { it.platform }.distincting().sortedFiltered()
+                        val platformsWithLibraries = realLibraries.mapping { it.platform }.distincting().sortedFiltered()
                         platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
 
                         popoverComboMenu(
@@ -83,15 +83,15 @@ class GameView : GamedexScreen("Games") {
                     }
                     separator()
                     vbox {
-                        realSources.filtering(gameController.sortedFilteredGames.platformFilterProperty.toPredicateF { platform, source: Library ->
-                            source.platform == platform
+                        realLibraries.filtering(gameController.sortedFilteredGames.platformFilterProperty.toPredicateF { platform, library: Library ->
+                            library.platform == platform
                         }).performing { librariesWithPlatform ->
                             replaceChildren {
                                 if (librariesWithPlatform.size <= 1) return@replaceChildren
 
-                                field("Source") {
+                                field("Library") {
                                     val selectedLibraries = gameController.sortedFilteredGames.sourceIdsFilterProperty.mapping { sourceId ->
-                                        realSources.find { it.id == sourceId }!!
+                                        realLibraries.find { it.id == sourceId }!!
                                     }
                                     popoverToggleMenu(
                                         possibleItems = librariesWithPlatform,
@@ -295,7 +295,7 @@ class GameView : GamedexScreen("Games") {
             }
 
             libraryItem {
-                prefWidth = 100.px
+                prefWidth = 160.px
                 alignment = Pos.CENTER_LEFT
             }
 

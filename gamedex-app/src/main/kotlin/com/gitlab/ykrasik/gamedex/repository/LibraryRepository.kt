@@ -49,6 +49,16 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
         libraries
     }
 
+    suspend fun update(library: Library): Library = run(JavaFx) {
+        run(CommonPool) {
+            persistenceService.updateLibrary(library)
+        }
+
+        removeById(library.id)
+        libraries += library
+        library
+    }
+
     suspend fun delete(library: Library) {
         log.info("Deleting '${library.name}'...")
         run(CommonPool) {
@@ -66,6 +76,10 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")
+
+    private fun removeById(id: Int) {
+        check(libraries.removeIf { it.id == id }) { "Error! Doesn't exist: Library($id)" }
+    }
 }
 
 data class AddLibraryRequest(

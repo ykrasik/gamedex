@@ -21,6 +21,7 @@ interface PersistenceService {
 
     fun fetchAllLibraries(): List<Library>
     fun insertLibrary(path: File, data: LibraryData): Library
+    fun updateLibrary(library: Library): Unit
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
@@ -81,6 +82,14 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         library
     }
 
+    override fun updateLibrary(library: Library) = transaction {
+        val rowsUpdated = Libraries.update(where = { Libraries.id.eq(library.id.toLibraryId()) }) {
+            it[Libraries.path] = library.path.toString()
+            it[Libraries.data] = library.data.toJsonStr()
+        }
+        require(rowsUpdated == 1) { "Doesn't exist: Library(${library.id})!"}
+    }
+
     override fun deleteLibrary(id: Int) = transaction {
         log.trace("Deleting Library($id)...")
         val amount = Libraries.deleteWhere { Libraries.id.eq(id.toLibraryId()) }
@@ -124,7 +133,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
 
     override fun updateGame(rawGame: RawGame) = transaction {
         val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
-            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
+            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()  // TODO: Why am I allowing this?
             it[Games.path] = rawGame.metaData.path.path
             it[Games.lastModified] = rawGame.metaData.lastModified
             it[Games.providerData] = rawGame.providerData.toJsonStr()

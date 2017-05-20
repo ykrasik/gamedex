@@ -38,6 +38,7 @@ object TestMain {
             on { detectNewDirectories(any(), any()) } doAnswer { List(rnd.nextInt(4)) { randomFile() } }
         }
 
+        // Pre-Load test images
         TestImages
 
         giantBombServer.start()

@@ -66,10 +66,7 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
 
         verticalSeparator()
 
-        jfxButton("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic { size(22.0); color(Color.ORANGE) }) {
-            addClass(CommonStyle.toolbarButton)
-            setOnAction { editDetails() }
-        }
+        editButton { setOnAction { editDetails() } }
 
         verticalSeparator()
 

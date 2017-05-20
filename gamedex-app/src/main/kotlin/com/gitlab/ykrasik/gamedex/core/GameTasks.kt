@@ -66,8 +66,9 @@ class GameTasks @Inject constructor(
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val providerData = providerService.search(this, directory.name, library.platform, directory, isSearchAgain = false) ?: return null
+            val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
             return AddGameRequest(
-                metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
+                metaData = MetaData(library.id, relativePath, lastModified = DateTime.now()),
                 providerData = providerData,
                 userData = null
             )

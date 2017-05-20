@@ -22,7 +22,7 @@ import tornadofx.*
  */
 class MainView : View("Gamedex") {
     private val gameView: GameView by inject()
-    private val sourceView: SourceView by inject()
+    private val libraryView: LibraryView by inject()
     private val logView: LogView by inject()
     private val gameDetailsView: GameDetailsView by inject()
 
@@ -51,8 +51,8 @@ class MainView : View("Gamedex") {
                         graphic = FontAwesome.Glyph.GAMEPAD.toGraphic { color(Color.DARKRED) }
                         previousScreen = this
                     }
-                    tab(sourceView) {
-                        userData = sourceView
+                    tab(libraryView) {
+                        userData = libraryView
                         graphic = FontAwesome.Glyph.HDD_ALT.toGraphic { color(Color.DARKGREEN) }
                     }
                     tab(logView) {
@@ -166,6 +166,7 @@ class MainView : View("Gamedex") {
             isCloseButtonVisible = false
         }
 
+        // TODO: Do not allow a new notification while a one is running
         fun showPersistentNotification(graphic: Node) {
             persistentNotification.graphic = graphic
             persistentNotification.show()

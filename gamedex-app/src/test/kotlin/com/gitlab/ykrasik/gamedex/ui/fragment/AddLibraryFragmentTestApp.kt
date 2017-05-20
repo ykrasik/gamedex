@@ -12,7 +12,7 @@ import kotlinx.coroutines.experimental.launch
 object AddLibraryFragmentTestApp : BaseTestApp() {
     override fun init() {
         launch(CommonPool) {
-            println("Result: " + AddLibraryFragment().show())
+            println("Result: " + LibraryFragment(emptyList(), library = null).show())
             System.exit(0)
         }
     }

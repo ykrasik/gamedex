@@ -7,11 +7,15 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
+import javafx.scene.layout.VBox
 import javafx.stage.Stage
+import javafx.stage.StageStyle
 import javafx.util.Duration
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
@@ -80,23 +84,55 @@ private fun printSize(id: String,
     actual.printChanges("$id $sizeName")
 }
 
-fun areYouSureDialog(textBody: String? = null, op: (Alert.() -> Unit)? = null): Boolean {
-    // TODO: TornadoFx has a built-in 'confirm' method.
-    val alert = Alert(Alert.AlertType.CONFIRMATION, textBody ?: "Are You Sure?", ButtonType.CANCEL, ButtonType.OK)
-    alert.headerText = "Are You Sure?"
-    op?.invoke(alert)
-    val buttonClicked = alert.showAndWait()
+fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
+    var accept = false
 
-    var ok = false
-    buttonClicked.ifPresent {
-        when (it) {
-            ButtonType.OK -> ok = true
-            ButtonType.CANCEL -> ok = false
-            else -> error("Unexpected buttonType: $it")
+    override val root = borderpane {
+        minWidth = 400.0
+        minHeight = 100.0
+        top {
+            toolbar {
+                acceptButton {
+                    setOnAction { close(accept = true) }
+                }
+                spacer()
+                cancelButton {
+                    isCancelButton = true
+                    setOnAction { close(accept = false) }
+                }
+            }
+        }
+        center {
+            vbox(spacing = 10.0) {
+                hbox {
+                    paddingAll = 20.0
+                    alignment = Pos.CENTER_LEFT
+                    label(text)
+                    spacer()
+                    imageview(UIResources.Images.information)
+                }
+                if (op != null) {
+                    separator()
+                    vbox(spacing = 10.0) {
+                        paddingAll = 20.0
+                        paddingRight = 30.0
+                        op(this)
+                    }
+                }
+            }
         }
     }
-    return ok
-}
+
+    private fun close(accept: Boolean) {
+        this.accept = accept
+        close()
+    }
+
+    fun show(): Boolean {
+        openModal(block = true, stageStyle = StageStyle.UTILITY)
+        return accept
+    }
+}.show()
 
 fun ButtonBar.okButton(op: (Button.() -> Unit)? = null): Button {
     return button("OK", type = ButtonBar.ButtonData.OK_DONE) {
@@ -153,4 +189,32 @@ fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = op
 inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<T>, noinline op: (TextField.() -> Unit)? = null) = textfield().apply {
     bind(property)
     op?.invoke(this)
+}
+
+fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
+    val tableView = this
+    var lastSelectedRow: TableRow<S>? = null
+    setRowFactory {
+        TableRow<S>().apply {
+            selectedProperty().onChange {
+                if (it) lastSelectedRow = this
+            }
+            if (onClickAgain) {
+                addEventFilter(MouseEvent.MOUSE_PRESSED) { e ->
+                    if (index >= 0 && index < tableView.items.size && tableView.selectionModel.isSelected(index)) {
+                        tableView.selectionModel.clearSelection()
+                        e.consume()
+                    }
+                }
+            }
+        }
+    }
+    addEventFilter(MouseEvent.MOUSE_CLICKED) { e ->
+        lastSelectedRow?.let { lastSelectedRow ->
+            val boundsOfSelectedRow = lastSelectedRow.localToScene(lastSelectedRow.layoutBounds)
+            if (!boundsOfSelectedRow.contains(e.sceneX, e.sceneY)) {
+                tableView.selectionModel.clearSelection()
+            }
+        }
+    }
 }

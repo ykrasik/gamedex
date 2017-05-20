@@ -24,14 +24,19 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
     }
 
     inner open class LibraryScope {
-        fun randomLibraryDate() = LibraryData(
-            platform = randomEnum<Platform>(),
-            name = randomName()
+        fun libraryData(platform: Platform = randomEnum<Platform>(), name: String = randomName()) = LibraryData(
+            platform = platform,
+            name = name
         )
 
-        fun givenLibraryExists(path: String = randomPath()): Library = insertLibrary(path)
-        fun insertLibrary(path: String = randomPath()): Library =
-            persistenceService.insertLibrary(path.toFile(), randomLibraryDate())
+        fun givenLibraryExists(path: String = randomPath(),
+                               platform: Platform = randomEnum<Platform>(),
+                               name: String = randomName()): Library = insertLibrary(path, platform, name)
+
+        fun insertLibrary(path: String = randomPath(),
+                          platform: Platform = randomEnum<Platform>(),
+                          name: String = randomName()): Library =
+            persistenceService.insertLibrary(path.toFile(), libraryData(platform, name))
     }
 
     inner open class GameScope : LibraryScope() {

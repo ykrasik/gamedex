@@ -129,7 +129,7 @@ class SettingsController @Inject constructor(
     ) {
         fun toGameRequest(libraries: Map<File, Library>) = AddGameRequest(
             metaData = MetaData(
-                libraryId = libraries[libraryPath.toFile()]!!.id,
+                libraryId = libraries.getOrElse(libraryPath.toFile()) { throw IllegalArgumentException("Invalid library path: $libraryPath") }.id,
                 path = path.toFile(),
                 lastModified = DateTime(lastModified)
             ),
@@ -139,7 +139,7 @@ class SettingsController @Inject constructor(
     }
 
     private fun Game.toPortable() = PortableGame(
-        path = path.toString(),
+        path = rawGame.metaData.path.toString(),
         lastModified = lastModified.millis,
         libraryPath = library.path.toString(),
         platform = library.platform.name,

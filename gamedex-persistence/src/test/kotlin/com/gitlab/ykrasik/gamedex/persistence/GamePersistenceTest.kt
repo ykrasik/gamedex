@@ -101,15 +101,14 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 }
             }
 
-            "throw an exception when trying to insert a game for an already existing path in a different library".inLazyScope({ GameScope() }) {
+            "allow inserting a game for an already existing path in a different library".inLazyScope({ GameScope() }) {
                 val path = randomPath()
-                givenGameExists(path = path)
-
+                val game1 = givenGameExists(path = path)
                 val library2 = givenLibraryExists()
 
-                shouldThrow<JdbcSQLException> {
-                    insertGame(library = library2, path = path)
-                }
+                val game2 = insertGame(library = library2, path = path)
+
+                persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
             }
 
             "throw an exception when trying to insert a game for a non-existing library".inLazyScope({ GameScope() }) {
@@ -194,25 +193,41 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 }
             }
 
-            "throw an exception when trying to update a game to an already existing path in the same library".inLazyScope({ GameScope() }) {
-                val path = randomPath()
-                val game = givenGameExists()
-                givenGameExists(path = path)
+            "throw an exception when trying to update a game's path to one that already exists in the same library".inLazyScope({ GameScope() }) {
+                val game1 = givenGameExists(library)
+                val game2 = givenGameExists(library)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game.copy(metaData = randomMetaData(path = path)))
+                    persistenceService.updateGame(game1.copy(metaData = game1.metaData.copy(path = game2.metaData.path)))
                 }
+
+                persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
             }
 
-            "throw an exception when trying to update a game to an already existing path in a different library".inLazyScope({ GameScope() }) {
+            "allow updating a game's path to one that already exists in a different library".inLazyScope({ GameScope() }) {
                 val path = randomPath()
-                val game = givenGameExists()
+                val game1 = givenGameExists()
                 val library2 = givenLibraryExists()
-                givenGameExists(library = library2, path = path)
+                val game2 = givenGameExists(library = library2, path = path)
+                val updatedGame1 = game1.copy(metaData = game1.metaData.copy(path = path.toFile()))
+
+                persistenceService.updateGame(updatedGame1)
+
+                persistenceService.fetchAllGames() shouldBe listOf(updatedGame1, game2)
+            }
+
+            "throw an exception when trying to update a game to a different library, but the game's path already exists under that library".inLazyScope({ GameScope() }) {
+                val path = randomPath()
+                val game1 = givenGameExists(path = path)
+                val library2 = givenLibraryExists()
+                val game2 = givenGameExists(library = library2, path = path)
+                val updatedGame1 = game1.copy(metaData = randomMetaData(library = library2, path = path))
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game.copy(metaData = randomMetaData(library = library2, path = path)))
+                    persistenceService.updateGame(updatedGame1)
                 }
+
+                persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
             }
 
             "throw an exception when trying to update a game to a non-existing library".inLazyScope({ GameScope() }) {

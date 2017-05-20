@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.joda.time.DateTime
 import java.io.File
+import java.nio.file.Paths
 
 /**
  * User: ykrasik
@@ -18,10 +19,10 @@ data class Game(
     val imageUrls: ImageUrls
 ) {
     val id get() = rawGame.id
-    val path get() = metaData.path
+    val path: File = Paths.get(library.path.toString(), metaData.path.toString()).toFile()
     val lastModified get() = metaData.lastModified
     val userData get() = rawGame.userData
-    val metaData get() = rawGame.metaData
+    private val metaData get() = rawGame.metaData
 
     val platform get() = library.platform
 

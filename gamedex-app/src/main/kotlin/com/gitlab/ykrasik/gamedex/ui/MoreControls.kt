@@ -99,6 +99,18 @@ fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(gra
     op?.invoke(this)
 }
 
+fun EventTarget.addButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.PLUS.toGraphic { size(26.0); color(Color.GREEN) }).apply {
+    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
+    tooltip("Add")
+    op?.invoke(this)
+}
+
+fun EventTarget.editButton(op: (JFXButton.() -> Unit)? = null) = jfxButton("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic { size(26.0); color(Color.ORANGE) }) {
+    addClass(CommonStyle.toolbarButton)
+    tooltip("Edit")
+    op?.invoke(this)
+}
+
 fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.TRASH.toGraphic { size(26.0); color(Color.INDIANRED) }).apply {
     addClass(CommonStyle.toolbarButton, CommonStyle.deleteButton)
     tooltip("Delete")
@@ -245,41 +257,6 @@ fun Button.withPopover(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocat
     val popover = popOver(arrowLocation, op)
     setOnAction {
         if (popover.isShowing) popover.hide() else popover.show(this)
-    }
-}
-
-fun EventTarget.platformComboBox(property: Property<Platform>? = null,
-                                 values: List<Platform>? = null,
-                                 op: (ComboBox<Platform>.() -> Unit)? = null) {
-    combobox(property, values) {
-        setCellFactory {
-            object : ListCell<Platform>() {
-                override fun updateItem(item: Platform?, empty: Boolean) {
-                    super.updateItem(item, empty)
-                    if (item == null || empty) {
-                        text = null
-                        graphic = null
-                    } else {
-                        text = item.toString()
-                        graphic = item.toLogo()
-                    }
-                }
-            }
-        }
-        buttonCell = object : ListCell<Platform>() {
-            override fun updateItem(item: Platform?, empty: Boolean) {
-                super.updateItem(item, empty)
-                if (item == null || empty) {
-                    text = null
-                    graphic = null
-                } else {
-                    text = item.toString()
-                    graphic = item.toLogo()
-                }
-            }
-        }
-
-        op?.invoke(this)
     }
 }
 

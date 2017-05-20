@@ -62,6 +62,7 @@ class GameProviderServiceImpl @Inject constructor(
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
+            // TODO: Instead of writing the platform the provider, draw their logos.
             task.progress.message = "[$platform][${provider.type}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             task.progress.message = "[$platform][${provider.type}] Searching '$searchedName': ${results.size} results."
@@ -127,6 +128,7 @@ class GameProviderServiceImpl @Inject constructor(
     override suspend fun download(task: Task<*>, name: String, platform: Platform, headers: List<ProviderHeader>): List<ProviderData> {
         return headers.map { header ->
             async(task.context) {
+                // TODO: Instead of writing the platform the provider, draw their logos.
                 task.progress.message = "[$platform][${header.type}] Downloading '$name'..."
                 if (task.result.isCancelled) throw CancellationException()
                 providerRepository[header].download(header.apiUrl, platform)

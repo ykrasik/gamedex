@@ -85,7 +85,7 @@ class GameRepository @Inject constructor(
             persistenceService.updateGame(updatedGame)
         }
 
-        removeGameById(updatedGame.id)
+        removeById(updatedGame.id)
         val game = updatedGame.toGame()
         games += game
         game
@@ -117,7 +117,7 @@ class GameRepository @Inject constructor(
         run(CommonPool) {
             persistenceService.deleteGame(game.id)
         }
-        removeGameById(game.id)
+        removeById(game.id)
         log.info("Deleting '${game.name}': Done.")
     }
 
@@ -132,7 +132,7 @@ class GameRepository @Inject constructor(
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 
-    private fun removeGameById(id: Int) {
+    private fun removeById(id: Int) {
         check(games.removeIf { it.id == id }) { "Error! Doesn't exist: Game($id)" }
     }
 }
