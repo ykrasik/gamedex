@@ -112,7 +112,6 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private val Platform.id: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val name = "IGDB"
     override val type = GameProviderType.Igdb
     override val logo = IgdbProvider.logo
 

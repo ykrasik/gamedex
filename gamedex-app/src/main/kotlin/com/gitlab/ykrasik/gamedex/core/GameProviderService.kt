@@ -6,7 +6,7 @@ import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -20,9 +20,9 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    suspend fun search(name: String, platform: Platform, path: File, progress: Task.Progress, isSearchAgain: Boolean): List<ProviderData>?
+    suspend fun search(task: Task<*>, name: String, platform: Platform, path: File, isSearchAgain: Boolean): List<ProviderData>?
 
-    suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: Task.Progress): List<ProviderData>
+    suspend fun download(task: Task<*>, name: String, platform: Platform, headers: List<ProviderHeader>): List<ProviderData>
 }
 
 @Singleton
@@ -34,9 +34,9 @@ class GameProviderServiceImpl @Inject constructor(
 
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
-    override suspend fun search(name: String, platform: Platform, path: File, progress: Task.Progress, isSearchAgain: Boolean): List<ProviderData>? =
+    override suspend fun search(task: Task<*>, name: String, platform: Platform, path: File, isSearchAgain: Boolean): List<ProviderData>? =
         try {
-            SearchContext(platform, path, progress, isSearchAgain, name.normalizeName()).search()
+            SearchContext(task, platform, path, isSearchAgain, name.normalizeName()).search()
         } catch (e: CancelSearchException) {
             null
         }
@@ -45,9 +45,9 @@ class GameProviderServiceImpl @Inject constructor(
     private fun String.normalizeName(): String = this.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
 
     private inner class SearchContext(
+        private val task: Task<*>,
         private val platform: Platform,
         private val path: File,
-        private val progress: Task.Progress,
         private val isSearchAgain: Boolean,
         private var searchedName: String
     ) {
@@ -58,13 +58,13 @@ class GameProviderServiceImpl @Inject constructor(
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
             val results = providerRepository.providers.mapNotNull { search(it) }
-            return download(searchedName, platform, results, progress)
+            return download(task, searchedName, platform, results)
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
-            progress.message = "[${provider.name}][$platform] Searching '$searchedName'..."
+            task.progress.message = "[$platform][${provider.type}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            progress.message = "[${provider.name}][$platform] Searching '$searchedName': ${results.size} results."
+            task.progress.message = "[$platform][${provider.type}] Searching '$searchedName': ${results.size} results."
 
             val choice = if (isSearchAgain) {
                 // If 'search again', always display all results.
@@ -124,10 +124,11 @@ class GameProviderServiceImpl @Inject constructor(
         )
     }
 
-    override suspend fun download(name: String, platform: Platform, headers: List<ProviderHeader>, progress: Task.Progress): List<ProviderData> {
-        progress.message = "[$platform] Downloading '$name'..."
+    override suspend fun download(task: Task<*>, name: String, platform: Platform, headers: List<ProviderHeader>): List<ProviderData> {
         return headers.map { header ->
-            async(CommonPool) {
+            async(task.context) {
+                task.progress.message = "[$platform][${header.type}] Downloading '$name'..."
+                if (task.result.isCancelled) throw CancellationException()
                 providerRepository[header].download(header.apiUrl, platform)
             }
         }.map { it.await() }

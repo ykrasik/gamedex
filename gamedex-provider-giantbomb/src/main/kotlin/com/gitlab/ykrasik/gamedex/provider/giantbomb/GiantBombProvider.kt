@@ -74,7 +74,6 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         }
     }
 
-    override val name = "GiantBomb"
     override val type = GameProviderType.GiantBomb
     override val logo = GiantBombProvider.logo
 

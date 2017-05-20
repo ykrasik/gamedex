@@ -22,7 +22,6 @@ import tornadofx.chooseFile
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
@@ -60,14 +59,10 @@ class SettingsController @Inject constructor(
         return file.firstOrNull()
     }
 
-    // TODO: This isn't actually cancellable.
     inner class ExportDatabaseTask(private val file: File) : Task<Unit>("Exporting Database...") {
-        suspend override fun doRun(context: CoroutineContext) {
+        suspend override fun doRun() {
             val libraries = libraryRepository.libraries.map { it.toPortable() }
-            val games = gameRepository.games.mapIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size - 1)
-                game.toPortable()
-            }
+            val games = gameRepository.games.map { it.toPortable() }
 
             progress.message = "Writing file..."
             val portableDb = PortableDb(libraries, games)
@@ -77,11 +72,11 @@ class SettingsController @Inject constructor(
         override fun doneMessage() = "Done: Exported ${gameRepository.games.size} games."
     }
 
-    // TODO: This isn't actually cancellable.
+    // TODO: This isn't actually cancellable. Do I want it to be?
     inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 
-        suspend override fun doRun(context: CoroutineContext) {
+        suspend override fun doRun() {
             val portableDb = objectMapper.readValue(file, PortableDb::class.java)
             persistenceService.dropDb()
             libraryRepository.invalidate()
@@ -92,7 +87,6 @@ class SettingsController @Inject constructor(
 
             val requests = portableDb.games.map { it.toGameRequest(libraries) }
 
-            progress.message = "Writing DB..."
             gameRepository.addAll(requests, progress)
             importedGames = requests.size
         }

@@ -1,14 +1,16 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
+import kotlinx.coroutines.experimental.channels.produce
+import org.joda.time.DateTime
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
@@ -17,7 +19,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 @Singleton
 class GameTasks @Inject constructor(
-    private val libraryScanner: LibraryScanner,
+    private val newDirectoryDetector: NewDirectoryDetector,
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val providerRepository: GameProviderRepository,
@@ -26,12 +28,49 @@ class GameTasks @Inject constructor(
     inner class ScanNewGamesTask : Task<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
-        override suspend fun doRun(context: CoroutineContext) {
-            val requestsJob = libraryScanner.scan(context, libraryRepository.libraries, gameRepository.games, progress)
+        override suspend fun doRun() {
+            val requestsJob = scan()
             for (addGameRequest in requestsJob.channel) {
                 gameRepository.add(addGameRequest)
                 numNewGames += 1
             }
+        }
+
+        private fun scan() = produce<AddGameRequest>(context) {
+            progress.message = "Scanning for new games..."
+
+            val libraries = libraryRepository.libraries
+            val games = gameRepository.games
+            val excludedDirectories = libraries.map(Library::path).toSet() + games.map(Game::path).toSet()
+            val newDirectories = libraries.flatMap { library ->
+                val paths = if (library.platform != Platform.excluded) {
+                    log.debug("Scanning library: $library")
+                    newDirectoryDetector.detectNewDirectories(library.path, excludedDirectories - library.path).apply {
+                        log.debug("Found ${this.size} new games.")
+                    }
+                } else {
+                    emptyList()
+                }
+                paths.map { library to it }
+            }
+
+            progress.message = "Scanning for new games: ${newDirectories.size} new games."
+
+            newDirectories.forEachIndexed { i, (library, directory) ->
+                val addGameRequest = processDirectory(directory, library)
+                progress.progress(i, newDirectories.size)
+                addGameRequest?.let { send(it) }
+            }
+            channel.close()
+        }
+
+        private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
+            val providerData = providerService.search(this, directory.name, library.platform, directory, isSearchAgain = false) ?: return null
+            return AddGameRequest(
+                metaData = MetaData(library.id, directory, lastModified = DateTime.now()),
+                providerData = providerData,
+                userData = null
+            )
         }
 
         override fun doneMessage() = "Done: Added $numNewGames new games."
@@ -41,7 +80,7 @@ class GameTasks @Inject constructor(
         private var staleGames = 0
         private var staleLibraries = 0
 
-        suspend override fun doRun(context: CoroutineContext) {
+        suspend override fun doRun() {
             cleanupStaleGames()
             cleanupStaleLibraries()
         }
@@ -88,12 +127,12 @@ class GameTasks @Inject constructor(
     inner class RefreshAllGamesTask : Task<Unit>("Refreshing all games...") {
         private var numRefreshed = 0
 
-        override suspend fun doRun(context: CoroutineContext) {
+        override suspend fun doRun() {
             // Operate on a copy of the games to avoid concurrent modifications
             gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
 
-                doRefreshGame(game, progress)
+                doRefreshGame(game)
                 numRefreshed += 1
             }
         }
@@ -102,12 +141,12 @@ class GameTasks @Inject constructor(
     }
 
     inner class RefreshGameTask(private val game: Game) : Task<Game>("Refreshing '${game.name}'...") {
-        override suspend fun doRun(context: CoroutineContext) = doRefreshGame(game, progress)
+        override suspend fun doRun() = doRefreshGame(game)
         override fun doneMessage() = "Done refreshing: '${game.name}'."
     }
 
-    private suspend fun doRefreshGame(game: Game, progress: Task.Progress): Game {
-        val newRawGameData = providerService.download(game.name, game.platform, game.providerHeaders, progress)
+    private suspend fun Task<*>.doRefreshGame(game: Game): Game {
+        val newRawGameData = providerService.download(this, game.name, game.platform, game.providerHeaders)
         return updateGame(game, newRawGameData)
     }
 
@@ -115,13 +154,13 @@ class GameTasks @Inject constructor(
         private var numRetried = 0
         private var numSucceeded = 0
 
-        override suspend fun doRun(context: CoroutineContext) {
+        override suspend fun doRun() {
             // Operate on a copy of the games to avoid concurrent modifications
             val gamesToRetry = gameRepository.games.filter { it.rawGame.providerData.size < providerRepository.providers.size }
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                if (doSearch(game, progress) != null) {
+                if (doSearch(game) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
@@ -132,12 +171,12 @@ class GameTasks @Inject constructor(
     }
 
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
-        suspend override fun doRun(context: CoroutineContext) = doSearch(game, progress) ?: game
+        suspend override fun doRun() = doSearch(game) ?: game
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun doSearch(game: Game, progress: Task.Progress): Game? {
-        val newRawGameData = providerService.search(game.name, game.platform, game.path, progress, isSearchAgain = true) ?: return null
+    private suspend fun Task<*>.doSearch(game: Game): Game? {
+        val newRawGameData = providerService.search(this, game.name, game.platform, game.path, isSearchAgain = true) ?: return null
         return updateGame(game, newRawGameData)
     }
 

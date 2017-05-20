@@ -10,11 +10,8 @@ import javafx.geometry.HPos
 import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
 import javafx.stage.Screen
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.run
 import tornadofx.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -24,12 +21,15 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Time: 18:04
  */
 abstract class Task<out T>(private val title: String) {
-    private val log = logger()
+    protected val log = logger()
 
     private lateinit var _result: Deferred<T>
     val result: Deferred<T> get() = _result
 
-    protected val progress = Progress(log)
+    private lateinit var _context: CoroutineContext
+    val context: CoroutineContext get() = _context
+
+    val progress = Progress(log)
 
     private var graphic: ImageView by singleAssign()
 
@@ -37,6 +37,8 @@ abstract class Task<out T>(private val title: String) {
 
     fun start() {
         _result = async(CommonPool) {
+            this@Task._context = context
+
             run(JavaFx) {
                 runningProperty.set(true)
                 MainView.showPersistentNotification(GridPane().apply {
@@ -66,7 +68,12 @@ abstract class Task<out T>(private val title: String) {
             }
 
             try {
-                doRun(context)
+                doRun()
+            } catch (e: Exception) {
+                if (e !is CancellationException) {
+                    Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
+                }
+                throw e
             } finally {
                 run(JavaFx) {
                     graphic.image = UIResources.Images.tick
@@ -78,7 +85,7 @@ abstract class Task<out T>(private val title: String) {
         }
     }
 
-    protected abstract suspend fun doRun(context: CoroutineContext): T
+    protected abstract suspend fun doRun(): T
     protected abstract fun doneMessage(): String
 
     class Progress(private val log: Logger?) {

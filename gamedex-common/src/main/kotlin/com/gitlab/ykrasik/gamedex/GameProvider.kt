@@ -6,7 +6,6 @@ package com.gitlab.ykrasik.gamedex
  * Time: 10:42
  */
 interface GameProvider {
-    val name: String
     val type: GameProviderType
     val logo: ByteArray
 

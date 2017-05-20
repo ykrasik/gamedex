@@ -22,7 +22,6 @@ object AppModule : AbstractModule() {
         // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)
         bind(GameRepository::class.java)
         bind(LibraryRepository::class.java)
-        bind(LibraryScanner::class.java)
         bind(ImageLoader::class.java)
     }
 

@@ -46,7 +46,9 @@ data class RawGame(
     val metaData: MetaData,
     val providerData: List<ProviderData>,
     val userData: UserData?
-)
+) {
+    fun updatedNow() = copy(metaData = metaData.updatedNow())
+}
 
 data class ProviderData(
     val header: ProviderHeader,
@@ -79,7 +81,9 @@ data class MetaData(
     val libraryId: Int,
     val path: File,
     val lastModified: DateTime
-)
+) {
+    fun updatedNow() = copy(lastModified = DateTime.now())
+}
 
 enum class GameDataType(val displayName: String) {
     name_("Name"),

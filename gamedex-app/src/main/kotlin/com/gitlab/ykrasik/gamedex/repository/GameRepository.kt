@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
-import org.joda.time.DateTime
 import tornadofx.observable
 import tornadofx.onChange
 import java.util.concurrent.atomic.AtomicInteger
@@ -52,7 +51,7 @@ class GameRepository @Inject constructor(
         return games.observable()
     }
 
-    suspend fun add(request: AddGameRequest) = run(CommonPool) {
+    suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
         val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
         val game = rawGame.toGame()
         run(JavaFx) {
@@ -61,15 +60,18 @@ class GameRepository @Inject constructor(
         game
     }
 
-    suspend fun addAll(requests: List<AddGameRequest>, progress: Task.Progress) = run(CommonPool) {
-        val processed = AtomicInteger(0)
+    suspend fun addAll(requests: List<AddGameRequest>, progress: Task.Progress): List<Game> = run(CommonPool) {
+        val added = AtomicInteger(0)
+
+        progress.message = "Writing Games..."
         val games = requests.map { request ->
             async(CommonPool) {
-                progress.progress(processed.incrementAndGet(), requests.size - 1)
                 val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+                progress.progress(added.incrementAndGet(), requests.size)
                 rawGame.toGame()
             }
         }.map { it.await() }
+
         run(JavaFx) {
             progress.message = "Updating UI..."
             this.games += games
@@ -78,14 +80,36 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun update(newRawGame: RawGame): Game = run(JavaFx) {
-        val updatedGame = newRawGame.copy(metaData = newRawGame.metaData.updatedNow())
+        val updatedGame = newRawGame.updatedNow()
         run(CommonPool) {
             persistenceService.updateGame(updatedGame)
         }
+
         removeGameById(updatedGame.id)
         val game = updatedGame.toGame()
         games += game
         game
+    }
+
+    suspend fun updateAll(newRawGames: List<RawGame>, progress: Task.Progress): List<Game> = run(CommonPool) {
+        val updated = AtomicInteger(0)
+
+        progress.message = "Writing DB..."
+        val games = newRawGames.map { newRawGame ->
+            async(CommonPool) {
+                val updatedGame = newRawGame.updatedNow()
+                persistenceService.updateGame(updatedGame)
+                progress.progress(updated.incrementAndGet(), newRawGames.size)
+                updatedGame
+            }
+        }.map { it.await().toGame() }
+
+        run(JavaFx) {
+            progress.message = "Updating UI..."
+            this.games.removeIf { game -> newRawGames.any { it.id == game.id} }
+            this.games += games
+        }
+        games
     }
 
     suspend fun delete(game: Game) = run(JavaFx) {
@@ -111,8 +135,6 @@ class GameRepository @Inject constructor(
     private fun removeGameById(id: Int) {
         check(games.removeIf { it.id == id }) { "Error! Doesn't exist: Game($id)" }
     }
-
-    private fun MetaData.updatedNow(): MetaData = copy(lastModified = DateTime.now())
 }
 
 data class AddGameRequest(
