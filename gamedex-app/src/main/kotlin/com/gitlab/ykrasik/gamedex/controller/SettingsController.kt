@@ -80,7 +80,7 @@ class SettingsController @Inject constructor(
             val portableDb = objectMapper.readValue(file, PortableDb::class.java)
             persistenceService.dropDb()
             libraryRepository.invalidate()
-            gameRepository.invalidate()
+            gameRepository.hardInvalidate()
 
             val libraries = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() })
                 .associateBy { lib -> portableDb.findLib(lib.path, lib.platform).id }

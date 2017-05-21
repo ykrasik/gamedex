@@ -121,9 +121,13 @@ class GameRepository @Inject constructor(
         log.info("Deleting '${game.name}': Done.")
     }
 
-    suspend fun invalidate() = run(JavaFx) {
+    suspend fun hardInvalidate() = run(JavaFx) {
         // Re-fetch all games from persistence
         games.setAll(fetchAllGames())
+    }
+
+    suspend fun softInvalidate() = run(JavaFx) {
+        rebuildGames()
     }
 
     private fun rebuildGames() {

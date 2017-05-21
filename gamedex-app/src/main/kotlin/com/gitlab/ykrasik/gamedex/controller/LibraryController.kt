@@ -43,7 +43,10 @@ class LibraryController @Inject constructor(
         var added = false
         val choice = LibraryFragment(libraryRepository.libraries, library).show()
         if (choice is LibraryFragment.Choice.EditSource) {
-            launch(JavaFx) { libraryRepository.update(choice.library) }
+            launch(JavaFx) {
+                libraryRepository.update(choice.library)
+                gameRepository.softInvalidate()
+            }
             added = true
         }
         return added
@@ -55,7 +58,7 @@ class LibraryController @Inject constructor(
             if (!confirmDelete(library)) return@launch
 
             libraryRepository.delete(library)
-            gameRepository.invalidate()
+            gameRepository.hardInvalidate()
             deleted = true
 
             MainView.showFlashInfoNotification("Deleted library: '${library.name}'.")
