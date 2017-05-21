@@ -117,7 +117,7 @@ fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(gra
     op?.invoke(this)
 }
 
-fun EventTarget.backButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.UNDO.toGraphic { size(26.0); color(Color.GREEN) }).apply {
+fun EventTarget.backButton(text: String? = null, op: (JFXButton.() -> Unit)? = null) = jfxButton(text, FontAwesome.Glyph.UNDO.toGraphic { size(26.0); color(Color.GREEN) }).apply {
     addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
     isCancelButton = true
     tooltip("Back")

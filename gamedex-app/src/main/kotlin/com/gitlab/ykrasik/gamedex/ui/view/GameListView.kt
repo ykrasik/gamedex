@@ -30,46 +30,49 @@ class GameListView : View("Game List") {
     // TODO: This should probably be a master-detail pane
     override val root = borderpane {
         center {
-            vbox {
-                gridpane {
-                    hgap = 10.0
-                    row {
-                        label("Thumbnail") { addClass(Style.gameItemHeader, Style.thumbnailHeader) }
-                        label("Name") { addClass(Style.gameItemHeader, Style.nameHeader) }
-                        label("Release Date") { addClass(Style.gameItemHeader, Style.releaseDateHeader) }
-                        label("Critic Score") { addClass(Style.gameItemHeader, Style.criticScoreHeader) }
-                        label("User Score") { addClass(Style.gameItemHeader, Style.userScoreHeader) }
+            borderpane {
+                top {
+                    gridpane {
+                        hgap = 10.0
+                        row {
+                            label("Thumbnail") { addClass(Style.gameItemHeader, Style.thumbnailHeader) }
+                            label("Name") { addClass(Style.gameItemHeader, Style.nameHeader) }
+                            label("Release Date") { addClass(Style.gameItemHeader, Style.releaseDateHeader) }
+                            label("Critic Score") { addClass(Style.gameItemHeader, Style.criticScoreHeader) }
+                            label("User Score") { addClass(Style.gameItemHeader, Style.userScoreHeader) }
+                        }
                     }
                 }
-
-                listview = listview(gameController.sortedFilteredGames.games) {
-                    minHeight = Screen.getPrimary().bounds.height
-                    cellFormat { game ->
-                        graphic = gridpane {
-                            hgap = 10.0
-                            row {
-                                stackpane {
-                                    addClass(Style.gameItemValue, Style.thumbnailHeader, Style.thumbnailValue)
-                                    imageview(imageLoader.fetchImage(game.id, game.imageUrls.thumbnailUrl, persistIfAbsent = true)) {
-                                        fitHeight = 75.0
-                                        fitWidth = 75.0
-                                        isPreserveRatio = true
+                center {
+                    listview = listview(gameController.sortedFilteredGames.games) {
+                        minHeight = Screen.getPrimary().bounds.height
+                        cellFormat { game ->
+                            graphic = gridpane {
+                                hgap = 10.0
+                                row {
+                                    stackpane {
+                                        addClass(Style.gameItemValue, Style.thumbnailHeader, Style.thumbnailValue)
+                                        imageview(imageLoader.fetchImage(game.id, game.imageUrls.thumbnailUrl, persistIfAbsent = true)) {
+                                            fitHeight = 75.0
+                                            fitWidth = 75.0
+                                            isPreserveRatio = true
+                                        }
                                     }
+                                    label(game.name) { addClass(Style.gameItemValue, Style.nameHeader, Style.nameValue) }
+                                    label(game.releaseDate.toDisplayString()) { addClass(Style.gameItemValue, Style.releaseDateHeader, Style.releaseDateValue) }
+                                    label(game.criticScore.toDisplayString()) { addClass(Style.gameItemValue, Style.criticScoreHeader, Style.criticScoreValue) }
+                                    label(game.userScore.toDisplayString()) { addClass(Style.gameItemValue, Style.userScoreHeader, Style.userScoreValue) }
                                 }
-                                label(game.name) { addClass(Style.gameItemValue, Style.nameHeader, Style.nameValue) }
-                                label(game.releaseDate.toDisplayString()) { addClass(Style.gameItemValue, Style.releaseDateHeader, Style.releaseDateValue) }
-                                label(game.criticScore.toDisplayString()) { addClass(Style.gameItemValue, Style.criticScoreHeader, Style.criticScoreValue) }
-                                label(game.userScore.toDisplayString()) { addClass(Style.gameItemValue, Style.userScoreHeader, Style.userScoreValue) }
+                            }
+                            setOnMouseClicked { e ->
+                                if (e.clickCount == 2) {
+                                    gameController.viewDetails(game)
+                                }
                             }
                         }
-                        setOnMouseClicked { e ->
-                            if (e.clickCount == 2) {
-                                gameController.viewDetails(game)
-                            }
-                        }
-                    }
 
-                    gameContextMenu(gameController) { selectedItem!! }
+                        gameContextMenu(gameController) { selectedItem!! }
+                    }
                 }
             }
         }

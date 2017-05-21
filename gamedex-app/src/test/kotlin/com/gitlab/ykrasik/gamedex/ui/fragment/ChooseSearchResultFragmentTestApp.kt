@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.test.*
+import tornadofx.importStylesheet
 
 /**
  * User: ykrasik
@@ -13,6 +14,8 @@ import com.gitlab.ykrasik.gamedex.test.*
  */
 object ChooseSearchResultFragmentTestApp : BaseTestApp() {
     override fun init() {
+        importStylesheet(ChooseSearchResultFragment.Style::class)
+        
         fun randomSearchResult() = ProviderSearchResult(
             name = randomName(),
             releaseDate = randomLocalDateString(),
