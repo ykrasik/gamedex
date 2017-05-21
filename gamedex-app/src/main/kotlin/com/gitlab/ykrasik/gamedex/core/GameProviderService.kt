@@ -20,9 +20,21 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    suspend fun search(task: Task<*>, name: String, platform: Platform, path: File, isSearchAgain: Boolean): List<ProviderData>?
+    suspend fun search(taskData: ProviderTaskData, constraints: SearchConstraints?): List<ProviderData>?
 
-    suspend fun download(task: Task<*>, name: String, platform: Platform, headers: List<ProviderHeader>): List<ProviderData>
+    suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData>
+
+    data class ProviderTaskData(
+        val task: Task<*>,
+        val name: String,
+        val platform: Platform,
+        val path: File
+    )
+
+    data class SearchConstraints(
+        val isSearchAgain: Boolean,
+        val onlySearch: List<GameProviderType>
+    )
 }
 
 @Singleton
@@ -34,9 +46,10 @@ class GameProviderServiceImpl @Inject constructor(
 
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
-    override suspend fun search(task: Task<*>, name: String, platform: Platform, path: File, isSearchAgain: Boolean): List<ProviderData>? =
+    override suspend fun search(taskData: GameProviderService.ProviderTaskData,
+                                constraints: GameProviderService.SearchConstraints?): List<ProviderData>? =
         try {
-            SearchContext(task, platform, path, isSearchAgain, name.normalizeName()).search()
+            SearchContext(taskData, constraints).search()
         } catch (e: CancelSearchException) {
             null
         }
@@ -45,20 +58,27 @@ class GameProviderServiceImpl @Inject constructor(
     private fun String.normalizeName(): String = this.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
 
     private inner class SearchContext(
-        private val task: Task<*>,
-        private val platform: Platform,
-        private val path: File,
-        private val isSearchAgain: Boolean,
-        private var searchedName: String
+        private val taskData: GameProviderService.ProviderTaskData,
+        private val constraints: GameProviderService.SearchConstraints?
     ) {
+        private var searchedName = taskData.name.normalizeName()
         private var canAutoContinue = !isSearchAgain
         private val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         private var userExactMatch: String? = null
 
+        private val task get() = taskData.task
+        private val platform get() = taskData.platform
+        private val isSearchAgain get() = constraints?.isSearchAgain ?: false
+
+        private fun shouldSearch(provider: GameProvider): Boolean {
+            constraints ?: return true
+            return constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type)
+        }
+
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
-            val results = providerRepository.providers.mapNotNull { search(it) }
-            return download(task, searchedName, platform, results)
+            val results = providerRepository.providers.filter { shouldSearch(it) }.mapNotNull { search(it) }
+            return download(taskData.copy(name = searchedName), results)
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
@@ -113,7 +133,7 @@ class GameProviderServiceImpl @Inject constructor(
             }
 
             val chooseSearchResultData = SearchChooser.Data(
-                searchedName, path, provider.type, results = results, filteredResults = filteredResults
+                searchedName, taskData.path, provider.type, results = results, filteredResults = filteredResults
             )
             return chooser.choose(chooseSearchResultData)
         }
@@ -125,7 +145,11 @@ class GameProviderServiceImpl @Inject constructor(
         )
     }
 
-    override suspend fun download(task: Task<*>, name: String, platform: Platform, headers: List<ProviderHeader>): List<ProviderData> {
+    override suspend fun download(taskData: GameProviderService.ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> {
+        val task = taskData.task
+        val name = taskData.name
+        val platform = taskData.platform
+
         return headers.map { header ->
             async(task.context) {
                 // TODO: Instead of writing the platform the provider, draw their logos.

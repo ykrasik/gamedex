@@ -65,7 +65,8 @@ class GameTasks @Inject constructor(
         }
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
-            val providerData = providerService.search(this, directory.name, library.platform, directory, isSearchAgain = false) ?: return null
+            val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
+            val providerData = providerService.search(taskData, constraints = null) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
             return AddGameRequest(
                 metaData = MetaData(library.id, relativePath, lastModified = DateTime.now()),
@@ -147,7 +148,8 @@ class GameTasks @Inject constructor(
     }
 
     private suspend fun Task<*>.doRefreshGame(game: Game): Game {
-        val newRawGameData = providerService.download(this, game.name, game.platform, game.providerHeaders)
+        val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
+        val newRawGameData = providerService.download(taskData, game.providerHeaders)
         return updateGame(game, newRawGameData)
     }
 
@@ -157,11 +159,11 @@ class GameTasks @Inject constructor(
 
         override suspend fun doRun() {
             // Operate on a copy of the games to avoid concurrent modifications
-            val gamesToRetry = gameRepository.games.filter { it.rawGame.providerData.size < providerRepository.providers.size }
+            val gamesToRetry = gameRepository.games.filter { it.hasMissingProviders }
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                if (doSearch(game) != null) {
+                if (doSearchAgain(game, onlySearch = game.missingProviders) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
@@ -171,14 +173,28 @@ class GameTasks @Inject constructor(
         override fun doneMessage() = "Done: Rediscovered $numSucceeded/$numRetried games."
     }
 
+    private val Game.hasMissingProviders: Boolean get() = rawGame.providerData.size < providerRepository.providers.size
+
+    private val Game.missingProviders: List<GameProviderType> get() = GameProviderType.values().toList().filterNot { type ->
+        rawGame.providerData.any { it.header.type == type }
+    }
+
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
-        suspend override fun doRun() = doSearch(game) ?: game
+        suspend override fun doRun() = doSearchAgain(game) ?: game
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun Task<*>.doSearch(game: Game): Game? {
-        val newRawGameData = providerService.search(this, game.name, game.platform, game.path, isSearchAgain = true) ?: return null
-        return updateGame(game, newRawGameData)
+    private suspend fun Task<*>.doSearchAgain(game: Game, onlySearch: List<GameProviderType> = emptyList()): Game? {
+        val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
+        val constraints = GameProviderService.SearchConstraints(isSearchAgain = true, onlySearch = onlySearch)
+        val newProviderData = providerService.search(taskData, constraints) ?: return null
+        if (newProviderData.isEmpty()) return null
+        val providerDataToUpdate = if (onlySearch.isEmpty()) {
+            newProviderData
+        } else {
+            game.rawGame.providerData + newProviderData
+        }
+        return updateGame(game, providerDataToUpdate)
     }
 
     private suspend fun updateGame(game: Game, providerData: List<ProviderData>): Game {
