@@ -150,6 +150,9 @@ class GameView : GamedexScreen("Games") {
                     separator()
                 }
             }
+        }.apply {
+            shortcut("ctrl+f")
+            tooltip("Ctrl+f")
         }
 
         verticalSeparator()
