@@ -14,12 +14,17 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import org.joda.time.LocalDateTime
 import tornadofx.Controller
 import tornadofx.FileChooserMode
+import tornadofx.chooseDirectory
 import tornadofx.chooseFile
 import java.io.File
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,8 +46,14 @@ class SettingsController @Inject constructor(
         .configure(WRITE_DATES_AS_TIMESTAMPS, true)
 
     fun exportDatabase() {
-        val file = browse(FileChooserMode.Save) ?: return
-        ExportDatabaseTask(file).start()
+        val dir = browseDirectory() ?: return
+        val timestamptedPath = Paths.get(
+            dir.toString(),
+            LocalDate.now().toString("yyyy-MM-dd"),
+            "db_${LocalDateTime.now().toString("HH_mm_ss")}.json"
+        ).toFile()
+        timestamptedPath.create()
+        ExportDatabaseTask(timestamptedPath).start()
     }
 
     fun importDatabase() {
@@ -50,6 +61,8 @@ class SettingsController @Inject constructor(
         if (!areYouSureDialog("This will overwrite the existing database.")) return
         ImportDatabaseTask(file).start()
     }
+
+    private fun browseDirectory(): File? = chooseDirectory("Choose database export directory...", initialDirectory = ".".toFile())
 
     private fun browse(mode: FileChooserMode): File? {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
