@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.effect.BlurType
@@ -31,12 +32,72 @@ class CommonStyle : Stylesheet() {
 
         val popoverMenu by cssclass()
 
+        fun Any?.toDisplayString() = toStringOr("NA")
+
         init {
             importStylesheet(CommonStyle::class)
         }
     }
 
     init {
+        hoverable {
+            and(hover) {
+                translateX = 1.px
+                translateY = 1.px
+                // TODO: Find something less hideous
+                effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
+            }
+        }
+
+        card {
+            borderColor = multi(box(Color.BLACK))
+            borderRadius = multi(box(10.px))
+            backgroundColor = multi(Color.LIGHTGRAY)
+            backgroundRadius = multi(box(10.px))
+        }
+
+        jfxButton {
+            and(hover) {
+                backgroundColor = multi(Color.LIGHTBLUE)
+            }
+        }
+
+        acceptButton {
+            and(hover) {
+                backgroundColor = multi(Color.LIMEGREEN)
+            }
+        }
+
+        cancelButton {
+            and(hover) {
+                backgroundColor = multi(Color.INDIANRED)
+            }
+        }
+
+        deleteButton {
+            and(hover) {
+                backgroundColor = multi(Color.RED)
+            }
+        }
+
+        extraMenu {
+            prefWidth = 160.px
+            contentDisplay = ContentDisplay.RIGHT
+            alignment = Pos.CENTER_RIGHT
+            graphicTextGap = 6.px
+        }
+
+        toolbarButton {
+            minWidth = 100.px
+            prefHeight = 40.px
+        }
+
+        popoverMenu {
+            spacing = 5.px
+            padding = box(5.px)
+        }
+
+        // TODO: Experiment with code in comments to see what can be done with css
 //        root {
 //            unsafe("-fx-accent", linkColor)
 //            unsafe("-fx-faint-focus-color", raw("transparent"))
@@ -387,62 +448,5 @@ class CommonStyle : Stylesheet() {
 //                unsafe("-fx-text-fill", raw("-fx-accent"))
 //            }
 //        }
-
-        hoverable {
-            and(hover) {
-                translateX = 1.px
-                translateY = 1.px
-                // TODO: Find something less hideous
-                effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
-            }
-        }
-
-        card {
-            borderColor = multi(box(Color.BLACK))
-            borderRadius = multi(box(10.px))
-            backgroundColor = multi(Color.LIGHTGRAY)
-            backgroundRadius = multi(box(10.px))
-        }
-
-        jfxButton {
-            and(hover) {
-                backgroundColor = multi(Color.LIGHTBLUE)
-            }
-        }
-
-        acceptButton {
-            and(hover) {
-                backgroundColor = multi(Color.LIMEGREEN)
-            }
-        }
-
-        cancelButton {
-            and(hover) {
-                backgroundColor = multi(Color.INDIANRED)
-            }
-        }
-
-        deleteButton {
-            and(hover) {
-                backgroundColor = multi(Color.RED)
-            }
-        }
-
-        extraMenu {
-            prefWidth = 160.px
-            contentDisplay = ContentDisplay.RIGHT
-            alignment = Pos.CENTER_RIGHT
-            graphicTextGap = 6.px
-        }
-
-        toolbarButton {
-            minWidth = 100.px
-            prefHeight = 40.px
-        }
-
-        popoverMenu {
-            spacing = 5.px
-            padding = box(5.px)
-        }
     }
 }

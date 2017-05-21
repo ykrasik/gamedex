@@ -2,12 +2,9 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.fixedRating
-import com.gitlab.ykrasik.gamedex.ui.jfxButton
-import com.gitlab.ykrasik.gamedex.ui.toLogo
+import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.CommonStyle.Companion.toDisplayString
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
-import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.event.EventTarget
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
@@ -123,10 +120,10 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                         hgap = 7.0
                         game.providerHeaders.forEach { header ->
                             row {
-                                imageview {
+                                imageview(providerRepository.logo(header)) {
                                     fitHeight = 30.0
                                     fitWidth = 30.0
-                                    image = providerRepository.logo(header)
+                                    isPreserveRatio = true
                                 }
                                 hyperlink(header.siteUrl) {
                                     setOnAction { header.siteUrl.browseToUrl() }
@@ -138,8 +135,6 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             }
         }
     }
-
-    private fun Any?.toDisplayString() = toStringOr("NA")
 
     private fun EventTarget.detailsLabel(name: String) = label(name) {
         addClass(Style.detailsLabel)

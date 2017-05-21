@@ -185,6 +185,9 @@ fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwe
 }
 
 fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView(image), op)
+fun EventTarget.imageview(imageProperty: ObservableValue<Image>, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView().apply {
+    imageProperty().bind(imageProperty)
+}, op)
 
 inline fun <reified T : Number> EventTarget.textfield(property: ObservableValue<T>, noinline op: (TextField.() -> Unit)? = null) = textfield().apply {
     bind(property)

@@ -2,15 +2,17 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.ui.dividerPosition
-import com.gitlab.ykrasik.gamedex.ui.padding
-import com.gitlab.ykrasik.gamedex.ui.readOnlyTextArea
-import com.gitlab.ykrasik.gamedex.ui.readOnlyTextField
+import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.ui.CommonStyle.Companion.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
+import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.geometry.HPos
 import javafx.geometry.Pos
-import javafx.geometry.VPos
-import javafx.scene.layout.Priority
+import javafx.scene.control.ListView
+import javafx.scene.paint.Color
+import javafx.stage.Screen
 import tornadofx.*
 
 /**
@@ -20,93 +22,196 @@ import tornadofx.*
  */
 class GameListView : View("Game List") {
     private val gameController: GameController by di()
+    private val imageLoader: ImageLoader by di()
+    private val detailSnippetFactory: GameDetailSnippetFactory by di()
+
+    private var listview: ListView<Game> by singleAssign()
 
     // TODO: This should probably be a master-detail pane
-    override val root = splitpane {
-        dividerPosition = 0.69
+    override val root = borderpane {
+        center {
+            vbox {
+                gridpane {
+                    hgap = 10.0
+                    row {
+                        label("Thumbnail") { addClass(Style.gameItemHeader, Style.thumbnailHeader) }
+                        label("Name") { addClass(Style.gameItemHeader, Style.nameHeader) }
+                        label("Release Date") { addClass(Style.gameItemHeader, Style.releaseDateHeader) }
+                        label("Critic Score") { addClass(Style.gameItemHeader, Style.criticScoreHeader) }
+                        label("User Score") { addClass(Style.gameItemHeader, Style.userScoreHeader) }
+                    }
+                }
 
-        // TODO: Allow this view to use it's own table sort, or move sorting from GameWallPreferences to general GamePreferences.
-        tableview<Game> {
-            items = gameController.sortedFilteredGames.games
-            isEditable = false
-            columnResizePolicy = SmartResize.POLICY
+                listview = listview(gameController.sortedFilteredGames.games) {
+                    minHeight = Screen.getPrimary().bounds.height
+                    cellFormat { game ->
+                        graphic = gridpane {
+                            hgap = 10.0
+                            row {
+                                stackpane {
+                                    addClass(Style.gameItemValue, Style.thumbnailHeader, Style.thumbnailValue)
+                                    imageview(imageLoader.fetchImage(game.id, game.imageUrls.thumbnailUrl, persistIfAbsent = true)) {
+                                        fitHeight = 75.0
+                                        fitWidth = 75.0
+                                        isPreserveRatio = true
+                                    }
+                                }
+                                label(game.name) { addClass(Style.gameItemValue, Style.nameHeader, Style.nameValue) }
+                                label(game.releaseDate.toDisplayString()) { addClass(Style.gameItemValue, Style.releaseDateHeader, Style.releaseDateValue) }
+                                label(game.criticScore.toDisplayString()) { addClass(Style.gameItemValue, Style.criticScoreHeader, Style.criticScoreValue) }
+                                label(game.userScore.toDisplayString()) { addClass(Style.gameItemValue, Style.userScoreHeader, Style.userScoreValue) }
+                            }
+                        }
+                        setOnMouseClicked { e ->
+                            if (e.clickCount == 2) {
+                                gameController.viewDetails(game)
+                            }
+                        }
+                    }
 
-            column("Name", Game::name) {
-//                        prefWidth = -1.0
-                isSortable = false
-                contentWidth(100.0, useAsMin = true)
-//                remainingWidth()
+                    gameContextMenu(gameController) { selectedItem!! }
+                }
             }
-            column("Critic Score", Game::criticScore) {
-//                        prefWidth = -1.0
-                isSortable = false
-                contentWidth(10.0, useAsMin = true)
-            }
-            column("User Score", Game::userScore) {
-//                        prefWidth = -1.0
-                isSortable = false
-                contentWidth(10.0, useAsMin = true)
-            }
-            column("Release Date", Game::releaseDate) {
-//                        prefWidth = -1.0
-                isSortable = false
-                contentWidth(10.0, useAsMin = true)
-            }
-            column("Path", Game::path) {
-//                        prefWidth = -1.0
-                isSortable = false
-                contentWidth(400.0, useAsMin = true)
-            }
+        }
+        val selectedGame = listview.selectionModel.selectedItemProperty()
 
-            gameContextMenu(gameController) { selectedItem!! }
+        right {
+            stackpane {
+                setId(Style.sideView)
+                gridpane {
+                    alignment = Pos.TOP_CENTER
+                    selectedGame.perform { game ->
+                        if (game != null) {
+                            replaceChildren {
+                                row {
+                                    imageview(imageLoader.fetchImage(game.id, game.imageUrls.posterUrl, persistIfAbsent = true)) {
+                                        gridpaneConstraints { hAlignment = HPos.CENTER }
+                                        isPreserveRatio = true
+                                        fitHeight = 650.0
+                                        fitWidth = 650.0
+                                    }
+                                }
+                                row {
+                                    form {
+                                        fieldset {
+                                            gridpaneConstraints { hAlignment = HPos.CENTER }
+                                            children += detailSnippetFactory.create(
+                                                game,
+                                                onGenrePressed = this@GameListView::onGenrePressed,
+                                                onTagPressed = this@GameListView::onTagPressed)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun onGenrePressed(genre: String) {
+        gameController.sortedFilteredGames.genreFilter = genre
+    }
+
+    private fun onTagPressed(tag: String) {
+        gameController.sortedFilteredGames.tagFilter = tag
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val gameItemHeader by cssclass()
+            val gameItemValue by cssclass()
+
+            val thumbnailHeader by cssclass()
+            val thumbnailValue by cssclass()
+
+            val nameHeader by cssclass()
+            val nameValue by cssclass()
+
+            val releaseDateHeader by cssclass()
+            val releaseDateValue by cssclass()
+
+            val criticScoreHeader by cssclass()
+            val criticScoreValue by cssclass()
+
+            val userScoreHeader by cssclass()
+            val userScoreValue by cssclass()
+
+            val sideView by cssid()
+
+            init {
+                importStylesheet(Style::class)
+            }
         }
 
-        gridpane {
-            gridpaneConstraints {
-                hGrow = Priority.ALWAYS
-                minWidth = 10.0
-
-                vGrow = Priority.ALWAYS
-                vAlignment = VPos.BOTTOM    // Or center?
-                minHeight = 10.0
-                fillHeight = false
+        init {
+            gameItemHeader {
+                alignment = Pos.CENTER_LEFT
+                padding = box(vertical = 3.px, horizontal = 3.px)
             }
-            gridpane {
-                hgap = 3.0
-                vgap = 3.0
-                alignment = Pos.BOTTOM_CENTER
-                gridpaneConstraints {
-                    columnIndex = 1
 
-                    hAlignment = HPos.LEFT  // Or Right?
-                    hGrow = Priority.SOMETIMES
-                    fillWidth = false
-                    minWidth = Double.NEGATIVE_INFINITY
+            gameItemValue {
+                minHeight = 80.px
+                maxHeight = 80.px
+                alignment = Pos.CENTER_LEFT
+                padding = box(vertical = 3.px, horizontal = 5.px)
+                backgroundRadius = multi(box(5.px))
+            }
 
-                    vGrow = Priority.SOMETIMES  // Or Always?
-                    fillHeight = false
-                    minHeight = Double.NEGATIVE_INFINITY
-                    maxHeight = 60.0
-                }
+            thumbnailHeader {
+                minWidth = 85.px
+                maxWidth = 85.px
+            }
 
-                form {
-                    imageview {
-                        isPreserveRatio = true
-                        isPickOnBounds = true
+            thumbnailValue {
+                alignment = Pos.BASELINE_CENTER
+            }
 
-                        padding { bottom = 5; left = 5; right = 5 }
-                    }
-                    fieldset("Details") {
-                        field("Path") { readOnlyTextField() }
-                        field("Name") { readOnlyTextField() }
-                        field("Description") { readOnlyTextArea { isWrapText = true } }
-                        field("Release Date") { readOnlyTextField() }
-                        field("Critic Score") { readOnlyTextField() }
-                        field("User Score") { readOnlyTextField() }
-                        field("Genres") { readOnlyTextField() }
-                        field("URL") { hyperlink() }
-                    }
-                }
+            nameHeader {
+                minWidth = 600.px
+                maxWidth = 600.px
+            }
+
+            nameValue {
+                backgroundColor = multi(Color.LIGHTBLUE)
+            }
+
+            releaseDateHeader {
+                minWidth = 100.px
+                maxWidth = 100.px
+            }
+
+            releaseDateValue {
+                alignment = Pos.BASELINE_CENTER
+                backgroundColor = multi(Color.LIMEGREEN)
+            }
+
+            criticScoreHeader {
+                minWidth = 150.px
+                maxWidth = 150.px
+            }
+
+            criticScoreValue {
+                alignment = Pos.BASELINE_CENTER
+                backgroundColor = multi(Color.DARKORANGE)
+            }
+
+            userScoreHeader {
+                minWidth = 150.px
+                maxWidth = 150.px
+            }
+
+            userScoreValue {
+                alignment = Pos.BASELINE_CENTER
+                backgroundColor = multi(Color.DARKGOLDENROD)
+            }
+
+            sideView {
+                minWidth = 750.px
+                maxWidth = 750.px
+                padding = box(20.px)
+                fillWidth = true
             }
         }
     }
