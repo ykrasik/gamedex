@@ -25,7 +25,7 @@ class GameTasks @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService     // TODO: This class appears in too many places.
 ) {
-    inner class ScanNewGamesTask : Task<Unit>("Scanning new games...") {
+    inner class ScanNewGamesTask(private val searchMode: GameProviderService.SearchConstraints.SearchMode) : Task<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun() {
@@ -66,7 +66,8 @@ class GameTasks @Inject constructor(
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
-            val providerData = providerService.search(taskData, constraints = null) ?: return null
+            val constraints = GameProviderService.SearchConstraints(mode = searchMode, onlySearch = emptyList())
+            val providerData = providerService.search(taskData, constraints) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
             return AddGameRequest(
                 metaData = MetaData(library.id, relativePath, lastModified = DateTime.now()),
@@ -83,43 +84,36 @@ class GameTasks @Inject constructor(
         private var staleLibraries = 0
 
         suspend override fun doRun() {
-            cleanupStaleGames()
-            cleanupStaleLibraries()
+            // TODO: First detect stale, then confirm, then delete.
+            staleGames = cleanupStaleGames()
+            staleLibraries = cleanupStaleLibraries()
         }
 
-        private suspend fun cleanupStaleGames() {
+        private suspend fun cleanupStaleGames(): Int {
             progress.message = "Detecting stales games..."
-            val staleGamesDetected = gameRepository.games.filterIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size - 1)
-                !game.path.isDirectory
+            val staleGames = gameRepository.games.filterIndexed { i, game ->
+                (!game.path.isDirectory).apply {
+                    progress.progress(i, gameRepository.games.size)
+                }
             }
-            progress.message = "Detected ${staleGamesDetected.size} stales games."
 
-            staleGamesDetected.forEachIndexed { i, game ->
-                progress.message = "Cleaning up stale game: '${game.name}'..."
-                progress.progress(i, gameRepository.games.size - 1)
+            progress.message = "Cleaning up ${staleGames.size} stales games..."
+            gameRepository.deleteAll(staleGames, progress)
 
-                gameRepository.delete(game)
-                staleGames += 1
-            }
+            return staleGames.size
         }
 
-        private suspend fun cleanupStaleLibraries() {
+        private suspend fun cleanupStaleLibraries(): Int {
             progress.message = "Detecting stales libraries..."
-            val staleLibrariesDetected = libraryRepository.libraries.filterIndexed { i, library ->
-                progress.progress(i, libraryRepository.libraries.size - 1)
-                !library.path.isDirectory
+            val staleLibraries = libraryRepository.libraries.filterIndexed { i, library ->
+                (!library.path.isDirectory).apply {
+                    progress.progress(i, libraryRepository.libraries.size)
+                }
             }
-            progress.message = "Detected ${staleLibrariesDetected.size} stales libraries."
 
-            staleLibrariesDetected.forEachIndexed { i, library ->
-                progress.message = "Deleting stale library: '${library.name}'..."
-                progress.progress(i, libraryRepository.libraries.size - 1)
-
-                libraryRepository.delete(library)
-                gameRepository.hardInvalidate()  // TODO: This logic is duplicated from LibraryController.
-                staleLibraries += 1
-            }
+            progress.message = "Cleaning up ${staleLibraries.size} stales libraries..."
+            libraryRepository.deleteAll(staleLibraries, progress)
+            return staleLibraries.size
         }
 
         override fun doneMessage() = "Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries."
@@ -186,7 +180,10 @@ class GameTasks @Inject constructor(
 
     private suspend fun Task<*>.doSearchAgain(game: Game, onlySearch: List<GameProviderType> = emptyList()): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
-        val constraints = GameProviderService.SearchConstraints(isSearchAgain = true, onlySearch = onlySearch)
+        val constraints = GameProviderService.SearchConstraints(
+            mode = GameProviderService.SearchConstraints.SearchMode.alwaysAsk,
+            onlySearch = onlySearch
+        )
         val newProviderData = providerService.search(taskData, constraints) ?: return null
         if (newProviderData.isEmpty()) return null
         val providerDataToUpdate = if (onlySearch.isEmpty()) {

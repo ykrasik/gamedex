@@ -3,13 +3,16 @@ package com.gitlab.ykrasik.gamedex.repository
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
 import tornadofx.observable
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -68,6 +71,24 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
             check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
         }
         log.info("Deleting '${library.name}': Done.")
+    }
+
+    suspend fun deleteAll(libraries: List<Library>, progress: Task.Progress) = run(CommonPool) {
+        val deleted = AtomicInteger(0)
+
+        progress.message = "Deleting ${libraries.size} libraries..."
+        libraries.map { library ->
+            async(CommonPool) {
+                persistenceService.deleteLibrary(library.id)
+                progress.progress(deleted.incrementAndGet(), libraries.size)
+            }
+        }.forEach { it.await() }
+        progress.message = "Deleted ${libraries.size} libraries."
+
+        run(JavaFx) {
+            progress.message = "Updating UI..."
+            this.libraries.setAll(this.libraries.filterNot { library -> libraries.any { it.id == library.id } }.observable())
+        }
     }
 
     suspend fun invalidate() = run(JavaFx) {

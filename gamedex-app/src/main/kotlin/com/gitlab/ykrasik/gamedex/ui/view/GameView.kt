@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
@@ -184,18 +185,20 @@ class GameView : GamedexScreen("Games") {
 
         verticalSeparator()
 
+        val searchModeProperty = GameProviderService.SearchConstraints.SearchMode.askIfNonExact.toProperty()
         jfxButton("Scan New Games", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(21.0) }) {
             addClass(CommonStyle.toolbarButton)
             isDefaultButton = true
             setOnAction {
-                val task = gameController.scanNewGames()
+                val task = gameController.scanNewGames(searchModeProperty.value)
                 disableWhen { task.runningProperty }
             }
             dropDownMenu {
-                popoverContent.jfxToggleButton {
-                    text = "Hands Free Mode"
-                    selectedProperty().bindBidirectional(settings.handsFreeModeProperty)
-                }
+                popoverContent.buttonWithPopover(arrowLocation = PopOver.ArrowLocation.RIGHT_TOP) {
+                    GameProviderService.SearchConstraints.SearchMode.values().forEach { mode ->
+                        popoverMenuItem(mode.key, styleClass = Style.searchModeItem) { searchModeProperty.value = mode }
+                    }
+                }.textProperty().bind(searchModeProperty.map { it!!.key })
             }
         }
 
@@ -275,6 +278,7 @@ class GameView : GamedexScreen("Games") {
             val genreItem by cssclass()
             val tagItem by cssclass()
             val sortItem by cssclass()
+            val searchModeItem by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -314,6 +318,11 @@ class GameView : GamedexScreen("Games") {
 
             sortItem {
                 prefWidth = 100.px
+                alignment = Pos.CENTER_LEFT
+            }
+
+            searchModeItem {
+                prefWidth = 180.px
                 alignment = Pos.CENTER_LEFT
             }
         }

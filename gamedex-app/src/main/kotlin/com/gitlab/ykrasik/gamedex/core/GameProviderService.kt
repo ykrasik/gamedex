@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
@@ -20,7 +19,7 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    suspend fun search(taskData: ProviderTaskData, constraints: SearchConstraints?): List<ProviderData>?
+    suspend fun search(taskData: ProviderTaskData, constraints: SearchConstraints): List<ProviderData>?
 
     suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData>
 
@@ -32,22 +31,28 @@ interface GameProviderService {
     )
 
     data class SearchConstraints(
-        val isSearchAgain: Boolean,
-        val onlySearch: List<GameProviderType>
-    )
+        val mode: SearchMode = SearchMode.askIfNonExact,
+        val onlySearch: List<GameProviderType> = emptyList()
+    ) {
+        enum class SearchMode(val key: String) {
+            askIfNonExact("If non-exact: Ask"),
+            alwaysAsk("Always ask"),
+            skip("If non-exact: Skip"),
+            proceedWithout("If non-exact: Proceed without")
+        }
+    }
 }
 
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
-    private val settings: GameSettings,
     private val chooser: SearchChooser
 ) : GameProviderService {
 
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
     override suspend fun search(taskData: GameProviderService.ProviderTaskData,
-                                constraints: GameProviderService.SearchConstraints?): List<ProviderData>? =
+                                constraints: GameProviderService.SearchConstraints): List<ProviderData>? =
         try {
             SearchContext(taskData, constraints).search()
         } catch (e: CancelSearchException) {
@@ -59,21 +64,19 @@ class GameProviderServiceImpl @Inject constructor(
 
     private inner class SearchContext(
         private val taskData: GameProviderService.ProviderTaskData,
-        private val constraints: GameProviderService.SearchConstraints?
+        private val constraints: GameProviderService.SearchConstraints
     ) {
         private var searchedName = taskData.name.normalizeName()
-        private var canAutoContinue = !isSearchAgain
+        private var canAutoContinue = searchMode != GameProviderService.SearchConstraints.SearchMode.alwaysAsk
         private val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
         private var userExactMatch: String? = null
 
         private val task get() = taskData.task
         private val platform get() = taskData.platform
-        private val isSearchAgain get() = constraints?.isSearchAgain ?: false
+        private val searchMode get() = constraints.mode
 
-        private fun shouldSearch(provider: GameProvider): Boolean {
-            constraints ?: return true
-            return constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type)
-        }
+        private fun shouldSearch(provider: GameProvider): Boolean =
+            constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type)
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
@@ -87,18 +90,19 @@ class GameProviderServiceImpl @Inject constructor(
             val results = provider.search(searchedName, platform)
             task.progress.message = "[$platform][${provider.type}] Searching '$searchedName': ${results.size} results."
 
-            val choice = if (isSearchAgain) {
-                // If 'search again', always display all results.
+            fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
+
+            val choice = if (searchMode == GameProviderService.SearchConstraints.SearchMode.alwaysAsk) {
                 chooseResult(provider, results)
             } else if (userExactMatch != null) {
-                val providerExactMatch = results.find { it.name.equals(userExactMatch, ignoreCase = true) }
+                val providerExactMatch = findExactMatch(userExactMatch!!)
                 if (providerExactMatch != null) {
                     return providerExactMatch.toHeader(provider)
                 } else {
                     chooseResult(provider, results)
                 }
             } else {
-                if (canAutoContinue && results.size == 1 && results.first().name.equals(searchedName, ignoreCase = true)) {
+                if (canAutoContinue && results.size == 1 && findExactMatch(searchedName) != null) {
                     return results.first().toHeader(provider)
                 } else {
                     chooseResult(provider, results)
@@ -126,7 +130,12 @@ class GameProviderServiceImpl @Inject constructor(
 
         private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
             // We only get here when we have no exact matches.
-            if (!isSearchAgain && settings.handsFreeMode) return SearchChooser.Choice.Cancel
+            when (constraints.mode) {
+                GameProviderService.SearchConstraints.SearchMode.skip -> return SearchChooser.Choice.Cancel
+                GameProviderService.SearchConstraints.SearchMode.proceedWithout -> return SearchChooser.Choice.ProceedWithout
+                GameProviderService.SearchConstraints.SearchMode.askIfNonExact,
+                GameProviderService.SearchConstraints.SearchMode.alwaysAsk -> Unit // Proceed to ask chooser
+            }
 
             val (filteredResults, results) = allSearchResults.partition { result ->
                 previouslyDiscardedResults.any { it.name.equals(result.name, ignoreCase = true) }

@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -76,7 +77,7 @@ class GameController @Inject constructor(
     }
 
     // TODO: Since these are called from multiple places, consider placing the ui icons in one central place for consistency.
-    fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
+    fun scanNewGames(searchMode: GameProviderService.SearchConstraints.SearchMode) = gameTasks.ScanNewGamesTask(searchMode).apply { start() }
     fun cleanup() = gameTasks.CleanupTask().apply { start() }
 
     fun refreshAllGames() = gameTasks.RefreshAllGamesTask().apply { start() }

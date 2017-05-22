@@ -121,6 +121,24 @@ class GameRepository @Inject constructor(
         log.info("Deleting '${game.name}': Done.")
     }
 
+    suspend fun deleteAll(games: List<Game>, progress: Task.Progress) = run(CommonPool) {
+        val deleted = AtomicInteger(0)
+
+        progress.message = "Deleting ${games.size} games..."
+        games.map { game ->
+            async(CommonPool) {
+                persistenceService.deleteGame(game.id)
+                progress.progress(deleted.incrementAndGet(), games.size)
+            }
+        }.forEach { it.await() }
+        progress.message = "Deleted ${games.size} games."
+
+        run(JavaFx) {
+            progress.message = "Updating UI..."
+            this.games.setAll(this.games.filterNot { game -> games.any { it.id == game.id } }.observable())
+        }
+    }
+
     suspend fun hardInvalidate() = run(JavaFx) {
         // Re-fetch all games from persistence
         games.setAll(fetchAllGames())

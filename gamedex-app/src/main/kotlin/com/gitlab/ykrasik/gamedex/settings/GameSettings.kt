@@ -35,10 +35,6 @@ class GameSettings private constructor() : AbstractSettings("game") {
     val sortOrderProperty = preferenceProperty(TableColumn.SortType.DESCENDING)
     var sortOrder by sortOrderProperty
 
-    @Transient
-    val handsFreeModeProperty = preferenceProperty(false)
-    var handsFreeMode by handsFreeModeProperty
-
     enum class Sort(val key: String) {
         name_("Name"),
         criticScore("Critic Score"),
