@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.GameDexException
 import khttp.get
 import khttp.responses.Response
 import java.io.ByteArrayOutputStream
+import java.net.SocketTimeoutException
 
 /**
  * User: ykrasik
@@ -35,7 +36,11 @@ fun Response.assertOk(errorParser: (String) -> String = String::toString) {
 fun download(url: String,
              stream: Boolean = false,
              progress: (downloaded: Int, total: Int) -> Unit = { _, _ -> }): ByteArray {
-    val response = get(url, params = emptyMap(), headers = emptyMap(), stream = stream)
+    val response = try {
+        get(url, params = emptyMap(), headers = emptyMap(), stream = stream)
+    } catch (e: SocketTimeoutException) {
+        throw SocketTimeoutException("Timed out downloading: $url")
+    }
     return response.doIfOk {
         if (stream) {
             val contentLength = response.headers["Content-Length"]?.toInt() ?: 32.kb

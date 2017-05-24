@@ -10,6 +10,7 @@ import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import tornadofx.*
+import java.awt.Desktop
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,8 +38,10 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
             vgap = 8.0
             row {
                 detailsLabel("Path")
-                label(game.path.path) {
-                    addClass(Style.details)
+                jfxButton(game.path.path) {
+                    addClass(Style.details, CommonStyle.hoverable)
+                    isFocusTraversable = false
+                    setOnAction { Desktop.getDesktop().open(game.path) }
                 }
             }
             if (withDescription) {

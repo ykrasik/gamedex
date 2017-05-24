@@ -17,12 +17,14 @@ import javafx.scene.paint.Color
 import javafx.stage.Screen
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
+import java.awt.Desktop
 
 /**
  * User: ykrasik
  * Date: 02/01/2017
  * Time: 15:54
  */
+// TODO: If the game contains an .nfo file, consider displaying it in the search window
 class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Search Result for '${data.name}'") {
     private val imageLoader: ImageLoader by di()
     private val providerRepository: GameProviderRepository by di()
@@ -50,9 +52,11 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 top {
                     gridpane {
                         hgap = 10.0
-                        label(data.path.path) {
+                        jfxButton(data.path.path) {
                             gridpaneConstraints { columnRowIndex(0, 0); vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
                             setId(Style.pathLabel)
+                            isFocusTraversable = false
+                            setOnAction { Desktop.getDesktop().open(data.path) }
                         }
                         region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
                         imageview {
