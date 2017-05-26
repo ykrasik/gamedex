@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui
 
 import javafx.application.Platform.runLater
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -38,6 +39,12 @@ fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
 fun Image.toImageView(): ImageView = ImageView(this)
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
+
+class ThreadAwareObjectProperty<T> : SimpleObjectProperty<T>() {
+    override fun fireValueChangedEvent() {
+        runLaterIfNecessary { super.fireValueChangedEvent() }
+    }
+}
 
 class ThreadAwareStringProperty : SimpleStringProperty() {
     override fun fireValueChangedEvent() {

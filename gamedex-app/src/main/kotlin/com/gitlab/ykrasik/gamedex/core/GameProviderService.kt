@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
-import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -81,12 +80,13 @@ class GameProviderServiceImpl @Inject constructor(
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
+            task.platform = platform
             val results = providerRepository.providers.filter { shouldSearch(it) }.mapNotNull { search(it) }
             return download(taskData.copy(name = searchedName), results)
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
-            // TODO: Instead of writing the platform the provider, draw their logos.
+            task.providerLogo = providerRepository.logo(provider.type)
             task.progress.message = "[$platform][${provider.type}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             task.progress.message = "[$platform][${provider.type}] Searching '$searchedName': ${results.size} results."

@@ -99,7 +99,7 @@ class GameFactory @Inject constructor(
         this.asSequence().map(extractor).firstNotNull()
 
     private fun processGenre(genre: String): List<String> = when (genre) {
-        "Action-Adventure" -> listOf("Action", "Adventure")
+        "Action-Adventure", "Action Adventure" -> listOf("Action", "Adventure")
         "Driving/Racing" -> listOf("Racing")
         "Dual-Joystick Shooter" -> emptyList()
         "Educational" -> emptyList()

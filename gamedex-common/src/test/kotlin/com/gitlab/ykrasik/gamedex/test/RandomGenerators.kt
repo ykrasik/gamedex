@@ -52,4 +52,11 @@ fun randomLocalDateString(): String = randomLocalDate().toString()
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 
 fun <T> List<T>.randomElement(): T = this[rnd.nextInt(size)]
+fun <T> List<T>.randomElementExcluding(excluded: T): T {
+    require(!this.all { it == excluded })
+    while(true) {
+        val element = this.randomElement()
+        if (element != excluded) return element
+    }
+}
 fun <T> Array<T>.randomElement(): T = this[rnd.nextInt(size)]

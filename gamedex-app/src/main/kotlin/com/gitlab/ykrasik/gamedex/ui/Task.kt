@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.util.Logger
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -7,12 +8,19 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.StringProperty
 import javafx.geometry.HPos
+import javafx.geometry.Pos
+import javafx.geometry.VPos
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
 import javafx.stage.Screen
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.run
 import tornadofx.*
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -31,7 +39,13 @@ abstract class Task<out T>(private val title: String) {
 
     val progress = Progress(log)
 
-    private var graphic: ImageView by singleAssign()
+    private var loadingGraphic: ImageView by singleAssign()
+
+    private val platformProperty = ThreadAwareObjectProperty<Platform?>()
+    var platform by platformProperty
+
+    private val providerLogoProperty = ThreadAwareObjectProperty<Image?>()
+    var providerLogo by providerLogoProperty
 
     val runningProperty = SimpleBooleanProperty(false)
 
@@ -57,12 +71,38 @@ abstract class Task<out T>(private val title: String) {
                             setOnAction { _result.cancel() }
                         }
                     }
-                    text(progress.messageProperty) {
-                        gridpaneConstraints { columnRowIndex(0, 1); columnSpan = 2; hAlignment = HPos.CENTER }
+                    gridpane {
+                        gridpaneConstraints { columnRowIndex(0, 1); hAlignment = HPos.LEFT; vAlignment = VPos.CENTER }
+                        alignment = Pos.CENTER_LEFT
+                        hgap = 5.0
+                        fun redraw() {
+                            this@gridpane.replaceChildren {
+                                row {
+                                    platform?.let {
+                                        children += it.toLogo { size(38.0) }
+                                    }
+                                    providerLogo?.let {
+                                        imageview(it) {
+                                            fitWidth = 160.0
+                                            fitHeight = 40.0
+                                            isPreserveRatio = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        platformProperty.perform { redraw() }
+                        providerLogoProperty.perform { redraw() }
                     }
-                    this@Task.graphic = imageview(UIResources.Images.loading) {
-                        fitWidth = 40.0; fitHeight = 40.0; isPreserveRatio = true
+                    text(progress.messageProperty) {
+                        gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.CENTER }
+                    }
+                    loadingGraphic = imageview(UIResources.Images.loading) {
                         gridpaneConstraints { columnRowIndex(2, 1); }
+                        fitWidth = 40.0
+                        fitHeight = 40.0
+                        isPreserveRatio = true
                     }
                 })
             }
@@ -76,7 +116,7 @@ abstract class Task<out T>(private val title: String) {
                 throw e
             } finally {
                 run(JavaFx) {
-                    graphic.image = UIResources.Images.tick
+                    loadingGraphic.image = UIResources.Images.tick
                     runningProperty.set(false)
                     MainView.hidePersistentNotification()
                     MainView.showFlashInfoNotification(doneMessage())

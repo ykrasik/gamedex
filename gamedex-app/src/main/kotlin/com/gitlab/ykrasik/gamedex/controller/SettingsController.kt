@@ -75,7 +75,7 @@ class SettingsController @Inject constructor(
     inner class ExportDatabaseTask(private val file: File) : Task<Unit>("Exporting Database...") {
         suspend override fun doRun() {
             val libraries = libraryRepository.libraries.map { it.toPortable() }
-            val games = gameRepository.games.map { it.toPortable() }
+            val games = gameRepository.games.sortedBy { it.name }.map { it.toPortable() }
 
             progress.message = "Writing file..."
             val portableDb = PortableDb(libraries, games)

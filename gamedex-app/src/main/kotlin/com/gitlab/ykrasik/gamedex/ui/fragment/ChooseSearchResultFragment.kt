@@ -18,6 +18,7 @@ import javafx.stage.Screen
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.awt.Desktop
+import java.util.*
 
 /**
  * User: ykrasik
@@ -61,12 +62,12 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                         region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
                         stackpane {
                             gridpaneConstraints { columnRowIndex(4, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                            children += data.platform.toLogo { size(30.0) }
+                            children += data.platform.toLogo { size(40.0) }
                         }
                         imageview(providerRepository.logo(data.providerType)) {
                             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                            fitHeight = 100.0
-                            fitWidth = 100.0
+                            fitHeight = 80.0
+                            fitWidth = 160.0
                             isPreserveRatio = true
                         }
 
