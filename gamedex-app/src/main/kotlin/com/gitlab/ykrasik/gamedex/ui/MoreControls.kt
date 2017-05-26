@@ -19,6 +19,7 @@ import javafx.util.Callback
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
 import org.controlsfx.glyphfont.FontAwesome
+import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import kotlin.reflect.KProperty1
 
@@ -260,12 +261,12 @@ fun Button.withPopover(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocat
     }
 }
 
-fun Platform.toLogo() = when (this) {
+fun Platform.toLogo(op: (Glyph.() -> Unit)? = null) = when (this) {
     Platform.pc -> FontAwesome.Glyph.WINDOWS.toGraphic { color(Color.CORNFLOWERBLUE); size(19.0) }
     Platform.android -> FontAwesome.Glyph.ANDROID.toGraphic { color(Color.FORESTGREEN); size(19.0) }
     Platform.mac -> FontAwesome.Glyph.APPLE.toGraphic { color(Color.GRAY); size(19.0) }
     else -> FontAwesome.Glyph.QUESTION.toGraphic { size(19.0) }
-}
+}.apply { op?.invoke(this) }
 
 fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
     val popover = popOver(arrowLocation)

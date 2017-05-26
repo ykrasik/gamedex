@@ -76,7 +76,8 @@ class GameProviderServiceImpl @Inject constructor(
         private val searchMode get() = constraints.mode
 
         private fun shouldSearch(provider: GameProvider): Boolean =
-            constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type)
+            provider.supportedPlatforms.contains(platform) &&
+                (constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type))
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): List<ProviderData> {
@@ -142,7 +143,7 @@ class GameProviderServiceImpl @Inject constructor(
             }
 
             val chooseSearchResultData = SearchChooser.Data(
-                searchedName, taskData.path, provider.type, results = results, filteredResults = filteredResults
+                searchedName, taskData.path, taskData.platform, provider.type, results = results, filteredResults = filteredResults
             )
             return chooser.choose(chooseSearchResultData)
         }
@@ -178,6 +179,7 @@ interface SearchChooser {
     data class Data(
         val name: String,
         val path: File,
+        val platform: Platform,
         val providerType: GameProviderType,
         val results: List<ProviderSearchResult>,
         val filteredResults: List<ProviderSearchResult>

@@ -59,9 +59,12 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             setOnAction { Desktop.getDesktop().open(data.path) }
                         }
                         region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
-                        imageview {
+                        stackpane {
                             gridpaneConstraints { columnRowIndex(4, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                            image = providerRepository.logo(data.providerType)
+                            children += data.platform.toLogo { size(30.0) }
+                        }
+                        imageview(providerRepository.logo(data.providerType)) {
+                            gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                             fitHeight = 100.0
                             fitWidth = 100.0
                             isPreserveRatio = true
@@ -107,7 +110,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             }
                         }
                         label {
-                            gridpaneConstraints { columnRowIndex(4, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
+                            gridpaneConstraints { columnRowIndex(5, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                             setId(Style.searchResultsLabel)
                             textProperty().bind(results.mapProperty { "Search results: ${results.size}" })
                         }

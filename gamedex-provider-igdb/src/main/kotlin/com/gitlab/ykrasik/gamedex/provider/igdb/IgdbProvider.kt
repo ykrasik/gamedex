@@ -56,7 +56,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
 
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
         header = ProviderHeader(
-            type = GameProviderType.Igdb,
+            type = type,
             apiUrl = apiUrl,
             siteUrl = this.url
         ),
@@ -114,6 +114,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
 
     override val type = GameProviderType.Igdb
     override val logo = IgdbProvider.logo
+    override val supportedPlatforms = Platform.values().toList()
 
     companion object {
         val logo = getResourceAsByteArray("igdb.png")

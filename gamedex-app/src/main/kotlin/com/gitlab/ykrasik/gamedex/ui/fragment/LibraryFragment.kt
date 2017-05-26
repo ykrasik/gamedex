@@ -87,7 +87,7 @@ class LibraryFragment(existingLibraries: List<Library>, private val library: Lib
                             styleClass = Style.platformItem,
                             itemStyleClass = Style.platformItem,
                             text = Platform::key,
-                            graphic = Platform::toLogo
+                            graphic = { it.toLogo() }
                         )
                     }
                 }

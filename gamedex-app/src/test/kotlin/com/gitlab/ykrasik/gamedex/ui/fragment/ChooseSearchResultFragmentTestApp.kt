@@ -27,6 +27,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
         val data = SearchChooser.Data(
             name = randomName(),
             path = randomFile(),
+            platform = randomEnum(),
             providerType = GameProviderType.GiantBomb,
             results = List(10) { randomSearchResult() },
             filteredResults = List(10) { randomSearchResult() }

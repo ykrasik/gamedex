@@ -49,7 +49,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
 
     private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
         header = ProviderHeader(
-            type = GameProviderType.GiantBomb,
+            type = type,
             apiUrl = apiUrl,
             siteUrl = this.siteDetailUrl
         ),
@@ -76,6 +76,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
 
     override val type = GameProviderType.GiantBomb
     override val logo = GiantBombProvider.logo
+    override val supportedPlatforms = Platform.values().toList()
 
     companion object {
         val logo = getResourceAsByteArray("giantbomb.png")

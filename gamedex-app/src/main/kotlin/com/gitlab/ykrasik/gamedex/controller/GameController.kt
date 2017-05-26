@@ -99,7 +99,7 @@ class GameController @Inject constructor(
     private fun RawGame.withDataOverrides(overrides: Map<GameDataType, GameDataOverride>): RawGame {
         // If new overrides are empty and userData is null, or userData has empty overrides -> nothing to do
         // If new overrides are not empty and userData is not null, but has the same overrides -> nothing to do
-        if (overrides == userData?.overrides ?: emptyMap()) return this
+        if (overrides == userData?.overrides ?: emptyMap<GameDataType, GameDataOverride>()) return this
 
         val userData = this.userData ?: UserData()
         return copy(userData = userData.copy(overrides = overrides))
@@ -108,7 +108,7 @@ class GameController @Inject constructor(
     private fun RawGame.withTags(tags: List<String>): RawGame {
         // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
         // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-        if (tags == userData?.tags ?: emptyList()) return this
+        if (tags == userData?.tags ?: emptyList<String>()) return this
 
         val userData = this.userData ?: UserData()
         return copy(userData = userData.copy(tags = tags))

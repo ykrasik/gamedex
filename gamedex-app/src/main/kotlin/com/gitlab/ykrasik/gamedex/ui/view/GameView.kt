@@ -79,7 +79,7 @@ class GameView : GamedexScreen("Games") {
                             styleClass = Style.filterButton,
                             itemStyleClass = Style.platformItem,
                             text = Platform::key,
-                            graphic = Platform::toLogo
+                            graphic = { it.toLogo() }
                         )
                     }
                     separator()

@@ -8,6 +8,7 @@ package com.gitlab.ykrasik.gamedex
 interface GameProvider {
     val type: GameProviderType
     val logo: ByteArray
+    val supportedPlatforms: List<Platform>
 
     fun search(name: String, platform: Platform): List<ProviderSearchResult>
     fun download(apiUrl: String, platform: Platform): ProviderData

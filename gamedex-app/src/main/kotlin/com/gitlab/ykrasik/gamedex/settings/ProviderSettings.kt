@@ -12,6 +12,7 @@ import kotlin.Comparator
  * Date: 23/04/2017
  * Time: 12:48
  */
+// TODO: Support full ordering between providers via drag & drop.
 class ProviderSettings private constructor() : AbstractSettings("provider") {
     companion object {
         operator fun invoke(): ProviderSettings = readOrUse(ProviderSettings())
