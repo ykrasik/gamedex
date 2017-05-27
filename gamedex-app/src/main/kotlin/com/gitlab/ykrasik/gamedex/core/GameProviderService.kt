@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.run
@@ -18,7 +19,7 @@ import javax.inject.Singleton
  * Time: 13:29
  */
 interface GameProviderService {
-    suspend fun search(taskData: ProviderTaskData, constraints: SearchConstraints): List<ProviderData>?
+    suspend fun search(taskData: ProviderTaskData, constraints: SearchConstraints): SearchResults?
 
     suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData>
 
@@ -30,8 +31,8 @@ interface GameProviderService {
     )
 
     data class SearchConstraints(
-        val mode: SearchMode = SearchMode.askIfNonExact,
-        val onlySearch: List<GameProviderType> = emptyList()
+        val mode: SearchMode,
+        val excludedProviders: List<GameProviderType>
     ) {
         enum class SearchMode(val key: String) {
             askIfNonExact("If non-exact: Ask"),
@@ -39,6 +40,13 @@ interface GameProviderService {
             skip("If non-exact: Skip"),
             proceedWithout("If non-exact: Proceed without")
         }
+    }
+
+    data class SearchResults(
+        val providerData: List<ProviderData>,
+        val excludedProviders: List<GameProviderType>
+    ) {
+        fun isEmpty(): Boolean = providerData.isEmpty() && excludedProviders.isEmpty()
     }
 }
 
@@ -51,7 +59,7 @@ class GameProviderServiceImpl @Inject constructor(
     private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
     override suspend fun search(taskData: GameProviderService.ProviderTaskData,
-                                constraints: GameProviderService.SearchConstraints): List<ProviderData>? =
+                                constraints: GameProviderService.SearchConstraints): GameProviderService.SearchResults? =
         try {
             SearchContext(taskData, constraints).search()
         } catch (e: CancelSearchException) {
@@ -67,22 +75,28 @@ class GameProviderServiceImpl @Inject constructor(
     ) {
         private var searchedName = taskData.name.normalizeName()
         private var canAutoContinue = searchMode != GameProviderService.SearchConstraints.SearchMode.alwaysAsk
-        private val previouslyDiscardedResults: MutableSet<ProviderSearchResult> = mutableSetOf()
+        private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
+        private val excludedProviders = mutableListOf<GameProviderType>()
         private var userExactMatch: String? = null
 
         private val task get() = taskData.task
         private val platform get() = taskData.platform
         private val searchMode get() = constraints.mode
 
-        private fun shouldSearch(provider: GameProvider): Boolean =
-            provider.supportedPlatforms.contains(platform) &&
-                (constraints.onlySearch.isEmpty() || constraints.onlySearch.contains(provider.type))
+        init {
+            task.platform = platform
+        }
 
         // TODO: Support a back button somehow, it's needed...
-        suspend fun search(): List<ProviderData> {
-            task.platform = platform
+        suspend fun search(): GameProviderService.SearchResults {
             val results = providerRepository.providers.filter { shouldSearch(it) }.mapNotNull { search(it) }
-            return download(taskData.copy(name = searchedName), results)
+            val name = userExactMatch ?: searchedName
+            val providerData = download(taskData.copy(name = name), results)
+            return GameProviderService.SearchResults(providerData, excludedProviders)
+        }
+
+        private fun shouldSearch(provider: GameProvider): Boolean {
+            return provider.supportedPlatforms.contains(platform) && !constraints.excludedProviders.contains(provider.type)
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
@@ -123,6 +137,10 @@ class GameProviderServiceImpl @Inject constructor(
                     searchedName = choice.newSearch
                     canAutoContinue = false
                     search(provider)
+                }
+                is SearchChooser.Choice.ExcludeProvider -> {
+                    excludedProviders += provider.type
+                    null
                 }
                 SearchChooser.Choice.ProceedWithout -> null
                 SearchChooser.Choice.Cancel -> throw CancelSearchException()
@@ -189,6 +207,7 @@ interface SearchChooser {
         data class ExactMatch(val result: ProviderSearchResult) : Choice()
         data class NotExactMatch(val result: ProviderSearchResult) : Choice()
         data class NewSearch(val newSearch: String) : Choice()
+        data class ExcludeProvider(val provider: GameProviderType) : Choice()
         object ProceedWithout : Choice()
         object Cancel : Choice()
     }

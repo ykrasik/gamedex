@@ -66,13 +66,19 @@ class GameTasks @Inject constructor(
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
-            val constraints = GameProviderService.SearchConstraints(mode = searchMode, onlySearch = emptyList())
-            val providerData = providerService.search(taskData, constraints) ?: return null
+            val constraints = GameProviderService.SearchConstraints(mode = searchMode, excludedProviders = emptyList())
+            val results = providerService.search(taskData, constraints) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
+            val metaData = MetaData(library.id, relativePath, lastModified = DateTime.now())
+            val userData = if (results.excludedProviders.isNotEmpty()) {
+                UserData(excludedProviders = results.excludedProviders)
+            } else {
+                null
+            }
             return AddGameRequest(
-                metaData = MetaData(library.id, relativePath, lastModified = DateTime.now()),
-                providerData = providerData,
-                userData = null
+                metaData = metaData,
+                providerData = results.providerData,
+                userData = userData
             )
         }
 
@@ -83,8 +89,9 @@ class GameTasks @Inject constructor(
         private var staleGames = 0
         private var staleLibraries = 0
 
-        suspend override fun doRun() {
+        override suspend fun doRun() {
             // TODO: First detect stale, then confirm, then delete.
+            // TODO: Create backup before deleting
             staleGames = cleanupStaleGames()
             staleLibraries = cleanupStaleLibraries()
         }
@@ -143,8 +150,8 @@ class GameTasks @Inject constructor(
 
     private suspend fun Task<*>.doRefreshGame(game: Game): Game {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
-        val newRawGameData = providerService.download(taskData, game.providerHeaders)
-        return updateGame(game, newRawGameData)
+        val newProviderData = providerService.download(taskData, game.providerHeaders)
+        return updateGame(game, newProviderData, newUserData = game.userData)
     }
 
     inner class RediscoverAllGamesTask : Task<Unit>("Rediscovering all games...") {
@@ -157,45 +164,77 @@ class GameTasks @Inject constructor(
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                if (doSearchAgain(game, onlySearch = game.missingProviders) != null) {
+                val excludedProviders = game.existingProviders + game.excludedProviders
+                if (doSearchAgain(game, excludedProviders = excludedProviders) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
             }
         }
 
+        // TODO: Can consider checking if the missing providers support the game's platform, to avoid an empty call.
+        private val Game.hasMissingProviders: Boolean
+            get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
+
+        private val Game.existingProviders get() = rawGame.providerData.map { it.header.type }
+        private val Game.excludedProviders get() = userData?.excludedProviders ?: emptyList()
+
         override fun doneMessage() = "Done: Rediscovered $numSucceeded/$numRetried games."
     }
 
-    private val Game.hasMissingProviders: Boolean get() = rawGame.providerData.size < providerRepository.providers.size
-
-    private val Game.missingProviders: List<GameProviderType> get() = GameProviderType.values().toList().filterNot { type ->
-        rawGame.providerData.any { it.header.type == type }
-    }
-
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
-        suspend override fun doRun() = doSearchAgain(game) ?: game
+        override suspend fun doRun() = doSearchAgain(game, excludedProviders = emptyList()) ?: game
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun Task<*>.doSearchAgain(game: Game, onlySearch: List<GameProviderType> = emptyList()): Game? {
+    private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<GameProviderType>): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
         val constraints = GameProviderService.SearchConstraints(
             mode = GameProviderService.SearchConstraints.SearchMode.alwaysAsk,
-            onlySearch = onlySearch
+            excludedProviders = excludedProviders
         )
-        val newProviderData = providerService.search(taskData, constraints) ?: return null
-        if (newProviderData.isEmpty()) return null
-        val providerDataToUpdate = if (onlySearch.isEmpty()) {
-            newProviderData
+        val results = providerService.search(taskData, constraints) ?: return null
+        if (results.isEmpty()) return null
+
+        val newProviderData = if (excludedProviders.isEmpty()) {
+            results.providerData
         } else {
-            game.rawGame.providerData + newProviderData
+            game.rawGame.providerData + results.providerData
         }
-        return updateGame(game, providerDataToUpdate)
+
+        val newUserData = if (results.excludedProviders.isEmpty()) {
+            game.userData
+        } else {
+            game.userData.merge(UserData(excludedProviders = results.excludedProviders))
+        }
+
+        return updateGame(game, newProviderData, newUserData)
     }
 
-    private suspend fun updateGame(game: Game, providerData: List<ProviderData>): Game {
-        val newRawGame = game.rawGame.copy(providerData = providerData)
+    private fun UserData?.merge(userData: UserData?): UserData? {
+        if (userData == null) return this
+        if (this == null) return userData
+        return this.merge(userData)
+    }
+
+    private suspend fun updateGame(game: Game, newProviderData: List<ProviderData>, newUserData: UserData?): Game {
+        val newRawGame = game.rawGame.copy(providerData = newProviderData, userData = newUserData)
         return gameRepository.update(newRawGame)
+    }
+
+    // TODO: Finish this.
+    inner class DetectDuplicateGames : Task<List<Game>>("Detecting duplicate games...") {
+        private var duplicates = 0
+
+        override suspend fun doRun() = gameRepository.games.let { games ->
+            games.filterIndexed { i, game ->
+                (games.any { it != game && it.name == game.name }).apply {
+                    if (this) duplicates += 1
+                    progress.progress(i, games.size)
+                }
+            }
+        }
+
+        override fun doneMessage() = "Detected $duplicates duplicate games."
     }
 }

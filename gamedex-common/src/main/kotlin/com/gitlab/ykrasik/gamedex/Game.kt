@@ -46,8 +46,9 @@ data class RawGame(
     val id: Int,
     val metaData: MetaData,
     val providerData: List<ProviderData>,
-    val userData: UserData?
+    val userData: UserData?    // TODO: Make this non-nullable
 ) {
+    // TODO: Consider moving this responsibility to the persistence layer.
     fun updatedNow() = copy(metaData = metaData.updatedNow())
 }
 
@@ -100,7 +101,8 @@ enum class GameDataType(val displayName: String) {
 
 data class UserData(
     val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val excludedProviders: List<GameProviderType> = emptyList()
 ) {
     fun nameOverride() = overrides[GameDataType.name_]
     fun descriptionOverride() = overrides[GameDataType.description]
@@ -111,6 +113,12 @@ data class UserData(
     fun thumbnailOverride() = overrides[GameDataType.thumbnail]
     fun posterOverride() = overrides[GameDataType.poster]
     fun screenshotsOverride() = overrides[GameDataType.screenshots]
+
+    fun merge(other: UserData): UserData = UserData(
+        overrides = this.overrides + other.overrides,
+        tags = (this.tags + other.tags).distinct(),
+        excludedProviders = (this.excludedProviders + other.excludedProviders).distinct()
+    )
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

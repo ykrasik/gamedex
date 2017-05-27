@@ -184,9 +184,14 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton {
-                    setOnAction { close(SearchChooser.Choice.Cancel)  }
+                jfxButton("Exclude ${data.providerType}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic{ size(26.0) }) {
+                    setId(Style.excludeProvider)
+                    addClass(CommonStyle.toolbarButton)
+                    tooltip("Exclude searching ${data.providerType} for '${data.name}'")
+                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerType))  }
                 }
+                verticalSeparator()
+                cancelButton { setOnAction { close(SearchChooser.Choice.Cancel)  } }
             }
         }
     }
@@ -231,6 +236,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
             val searchResultsLabel by cssid()
             val notExactMatch by cssid()
             val proceedWithout by cssid()
+            val excludeProvider by cssid()
         }
 
         init {
@@ -254,6 +260,11 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
             proceedWithout {
                 and(hover) {
                     backgroundColor = multi(Color.YELLOW)
+                }
+            }
+            excludeProvider {
+                and(hover) {
+                    backgroundColor = multi(Color.ORANGE)
                 }
             }
         }
