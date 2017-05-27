@@ -41,15 +41,13 @@ object TestMain {
         // Pre-Load test images
         TestImages
 
-        giantBombServer.start()
-        igdbServer.start()
+        giantBombServer.start().use {
+            igdbServer.start().use {
+                generateDb()
 
-//        generateDb()
-
-        Main.main(args)
-
-        igdbServer.close()
-        giantBombServer.close()
+                Main.main(args)
+            }
+        }
     }
 
     private fun generateDb() {
@@ -67,7 +65,7 @@ object TestMain {
         val executor = Executors.newFixedThreadPool(10)
         val context = executor.asCoroutineDispatcher()
         runBlocking {
-            (0..numGames-1).map {
+            (0 until numGames).map {
                 async(context) {
                     val providerTypes = mutableListOf(*GameProviderType.values())
                     persistenceService.insertGame(
@@ -99,27 +97,26 @@ object TestMain {
 
     private fun apiUrl(type: GameProviderType) = when (type) {
         GameProviderType.GiantBomb -> giantBombServer.apiDetailsUrl
-        GameProviderType.Igdb -> "${igdbServer.endpointUrl}/${rnd.nextInt()}"
+        GameProviderType.Igdb -> igdbServer.detailsUrl(rnd.nextInt())
     }
 
-    private fun imageUrls(type: GameProviderType) = ImageUrls(
-        thumbnailUrl = randomThumbnailUrl(type),
-        posterUrl = randomPosterUrl(type),
-        screenshotUrls = List(rnd.nextInt(10)) { randomScreenshotUrl(type) }
+    private fun imageUrls(type: GameProviderType) = when (type) {
+        GameProviderType.GiantBomb -> randomGiantBombImageUrls()
+        GameProviderType.Igdb -> randomIgdbImageUrls()
+    }
+
+    private fun randomGiantBombImageUrls() = ImageUrls(
+        thumbnailUrl = "${giantBombServer.thumbnailUrl}/${randomString()}.jpg".sometimesNull(),
+        posterUrl = "${giantBombServer.superUrl}/${randomString()}.jpg".sometimesNull(),
+        screenshotUrls = List(rnd.nextInt(10)) { "${giantBombServer.screenshotUrl}/${randomString()}.jpg" }
     )
 
-    private fun randomThumbnailUrl(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> "${giantBombServer.thumbnailUrl}/${randomString()}.jpg"
-        GameProviderType.Igdb -> "${igdbServer.thumbnailUrl}/${randomString()}.png"
-    }
+    private fun randomIgdbImageUrls() = ImageUrls(
+        thumbnailUrl = "${igdbServer.thumbnailUrl}/${randomString()}.png".sometimesNull(),
+        posterUrl = "${igdbServer.posterUrl}/${randomString()}.png".sometimesNull(),
+        screenshotUrls = List(rnd.nextInt(10)) { "${igdbServer.screenshotUrl}/${randomString()}.png" }
+    )
 
-    private fun randomPosterUrl(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> "${giantBombServer.superUrl}/${randomString()}.jpg"
-        GameProviderType.Igdb -> "${igdbServer.posterUrl}/${randomString()}.png"
-    }
-
-    private fun randomScreenshotUrl(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> "${giantBombServer.screenshotUrl}/${randomString()}.jpg"
-        GameProviderType.Igdb -> "${igdbServer.screenshotUrl}/${randomString()}.png"
-    }
+    // 9/10 chance.
+    private fun String.sometimesNull() = if (rnd.nextInt(10) < 9) this else null
 }

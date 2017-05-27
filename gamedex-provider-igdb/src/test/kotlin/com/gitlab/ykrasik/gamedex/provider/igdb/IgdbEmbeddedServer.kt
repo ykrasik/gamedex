@@ -49,11 +49,13 @@ class IgdbMockServer(port: Int) : Closeable {
 }
 
 class IgdbFakeServer(port: Int) : Closeable {
+    private fun detailsPath(id: String) = id
     private val imagePath = "images"
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
     val endpointUrl = "http://localhost:$port"
+    fun detailsUrl(id: Int) = "$endpointUrl/${detailsPath(id.toString())}"
     val baseImageUrl = "$endpointUrl/$imagePath"
     val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
     val posterUrl = "$baseImageUrl/$posterPath"
@@ -71,7 +73,7 @@ class IgdbFakeServer(port: Int) : Closeable {
                     }
                 }
             }
-            get("/{id}") {
+            get("/" + detailsPath("{id}")) {
                 call.respondText(randomDetailResponse(), ContentType.Application.Json)
             }
             get("$imagePath/$thumbnailPath/{imageName}") {
@@ -136,7 +138,7 @@ class IgdbFakeServer(port: Int) : Closeable {
 
     private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
 
-    fun start() {
+    fun start() = apply {
         ktor.start(wait = false)
     }
 

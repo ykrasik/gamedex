@@ -110,7 +110,7 @@ class GiantBombFakeServer(port: Int) : Closeable {
         superUrl = "$superUrl/${randomString()}"
     )
 
-    fun start() {
+    fun start() = apply {
         ktor.start()
     }
 

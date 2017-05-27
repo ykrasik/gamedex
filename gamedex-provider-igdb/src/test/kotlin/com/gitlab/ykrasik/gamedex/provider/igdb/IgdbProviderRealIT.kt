@@ -55,7 +55,7 @@ class IgdbProviderRealIT : ScopedWordSpec() {
     val apiUrl = "https://igdbcom-internet-game-database-v1.p.mashape.com/games/3225"
     val releaseDate = "2016-08-12"
     val criticScore = 72.6428571428571
-    val userScore = 61.25741248922451
+    val userScore = 61.229013470380906
     val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.png"
     val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/sixpdbypwojsyly22a1l.png"
     val url = "https://www.igdb.com/games/no-man-s-sky"

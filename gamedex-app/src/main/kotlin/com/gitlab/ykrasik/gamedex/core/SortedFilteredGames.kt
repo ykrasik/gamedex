@@ -63,7 +63,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game ->
-            query!!.isEmpty() || game.name.contains(query, ignoreCase = true)
+            query!!.isEmpty() || query.split(" ").all { word -> game.name.contains(word, ignoreCase = true) }
         }
 
         val genrePredicate = genreFilterProperty.toPredicate { genre, game: Game ->

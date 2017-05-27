@@ -56,7 +56,7 @@ buildscript {
             delegate
         }
 
-        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.0']
+        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.3']
         junit = [group: 'junit', name: 'junit', version: '4.12']
         mockito = [:].with {
             core = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
@@ -98,7 +98,6 @@ allprojects {
         maven { url "http://dl.bintray.com/kotlin/exposed" }
         maven { url "https://jitpack.io" }
         maven { url "http://dl.bintray.com/kotlin/ktor" }
-//        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
 

@@ -121,11 +121,12 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                     detailsLabel("URL")
                     gridpane {
                         hgap = 7.0
-                        game.providerHeaders.forEach { header ->
+                        vgap = 3.0
+                        game.providerHeaders.sortedBy { it.type }.forEach { header ->
                             row {
                                 imageview(providerRepository.logo(header)) {
                                     fitHeight = 30.0
-                                    fitWidth = 30.0
+                                    fitWidth = 70.0
                                     isPreserveRatio = true
                                 }
                                 hyperlink(header.siteUrl) {

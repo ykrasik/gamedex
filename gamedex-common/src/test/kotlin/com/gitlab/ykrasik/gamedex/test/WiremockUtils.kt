@@ -14,6 +14,7 @@ import com.gitlab.ykrasik.gamedex.util.toJsonStr
  */
 fun MappingBuilder.withHeader(name: String, value: String) = withHeader(name, equalTo(value))
 fun MappingBuilder.withQueryParam(name: String, value: String) = withQueryParam(name, equalTo(value))
+fun MappingBuilder.withBody(body: String) = withRequestBody(equalTo(body))
 
 fun aJsonResponse(content: Any) = aJsonResponse(content.toJsonStr())
 fun aJsonResponse(content: String) = aResponse().withContentTypeJson().withStringBody(content)

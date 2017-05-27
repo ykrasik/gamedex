@@ -21,16 +21,15 @@ data class IgdbConfig(
     fun getGenreName(genreId: Int): String = genres[genreId]!!
 
     companion object {
-        operator fun invoke(config: Config): IgdbConfig =
-            config.getConfig("gameDex.provider.igdb").let { config ->
-                IgdbConfig(
-                    endpoint = config.getString("endpoint"),
-                    baseImageUrl = config.getString("baseImageUrl"),
-                    apiKey = config.getString("apiKey"),
-                    maxSearchResults = config.getInt("maxSearchResults"),
-                    platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int }),
-                    genres = config.getObjectMap("genres", String::toInt, Any::toString)
-                )
-            }
+        operator fun invoke(config: Config): IgdbConfig = config.getConfig("gameDex.provider.igdb").let { config ->
+            IgdbConfig(
+                endpoint = config.getString("endpoint"),
+                baseImageUrl = config.getString("baseImageUrl"),
+                apiKey = config.getString("apiKey"),
+                maxSearchResults = config.getInt("maxSearchResults"),
+                platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int }),
+                genres = config.getObjectMap("genres", String::toInt, Any::toString)
+            )
+        }
     }
 }

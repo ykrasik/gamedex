@@ -69,7 +69,13 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             )
         )
 
-        fun providerOverrides() = mapOf(
+        fun randomUserData() = UserData(
+            overrides = randomProviderOverrides(),
+            tags = listOf(randomString(), randomString()),
+            excludedProviders = listOf(randomEnum(), randomEnum())
+        )
+
+        fun randomProviderOverrides() = mapOf(
             GameDataType.name_ to providerOverride(),
             GameDataType.description to providerOverride(),
             GameDataType.releaseDate to providerOverride(),
@@ -81,7 +87,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             GameDataType.screenshots to providerOverride()
         )
 
-        fun customOverrides() = mapOf(
+        fun randomCustomOverrides() = mapOf(
             GameDataType.name_ to customDataOverride(randomName()),
             GameDataType.description to customDataOverride(randomSentence()),
             GameDataType.releaseDate to customDataOverride(randomLocalDateString()),
@@ -101,7 +107,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             persistenceService.insertGame(
                 metaData = randomMetaData(library, path),
                 providerData = listOf(randomProviderData(), randomProviderData()),
-                userData = UserData(overrides = providerOverrides())
+                userData = randomUserData()
             )
     }
 

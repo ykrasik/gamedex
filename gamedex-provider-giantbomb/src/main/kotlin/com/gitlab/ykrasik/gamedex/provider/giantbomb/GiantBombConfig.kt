@@ -17,13 +17,12 @@ data class GiantBombConfig(
     fun getPlatformId(platform: Platform) = platforms[platform]!!
 
     companion object {
-        operator fun invoke(config: Config): GiantBombConfig =
-            config.getConfig("gameDex.provider.giantBomb").let { config ->
-                GiantBombConfig(
-                    endpoint = config.getString("endpoint"),
-                    apiKey = config.getString("apiKey"),
-                    platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int })
-                )
-            }
+        operator fun invoke(config: Config): GiantBombConfig = config.getConfig("gameDex.provider.giantBomb").let { config ->
+            GiantBombConfig(
+                endpoint = config.getString("endpoint"),
+                apiKey = config.getString("apiKey"),
+                platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int })
+            )
+        }
     }
 }

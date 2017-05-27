@@ -4,8 +4,8 @@ include "gamedex-common"
 
 include "gamedex-persistence"
 
-include "gamedex-provider-igdb"
 include "gamedex-provider-giantbomb"
+include "gamedex-provider-igdb"
 
 include "gamedex-app"
 
