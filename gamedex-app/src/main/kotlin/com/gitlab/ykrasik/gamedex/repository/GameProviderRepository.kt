@@ -24,7 +24,7 @@ class GameProviderRepository @Inject constructor(
     private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
         val providers = allProviders.toList().sortedFiltered()
-        providers.sortedItems.comparatorProperty().bind(settings.searchOrderProperty.map { it!!.toComparator().reversed() })
+        providers.sortedItems.comparatorProperty().bind(settings.searchOrderProperty.map { it!!.toComparator() })
         providers
     }
 
@@ -37,6 +37,7 @@ class GameProviderRepository @Inject constructor(
     operator fun get(type: GameProviderType) = providersByType[type]!!
     operator fun get(header: ProviderHeader) = get(header.type)
 
+    // TODO: Create a ProviderWithLogo class instead?
     fun logo(type: GameProviderType) = providerLogos[type]!!
     fun logo(header: ProviderHeader) = logo(header.type)
 }

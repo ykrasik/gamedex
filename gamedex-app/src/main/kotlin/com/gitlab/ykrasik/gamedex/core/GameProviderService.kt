@@ -178,10 +178,10 @@ class GameProviderServiceImpl @Inject constructor(
         val name = taskData.name
         val platform = taskData.platform
 
+        task.platform = platform
+        task.progress.message = "[$platform] Downloading '$name'..."
         return headers.map { header ->
             async(task.context) {
-                // TODO: Instead of writing the platform the provider, draw their logos.
-                task.progress.message = "[$platform][${header.type}] Downloading '$name'..."
                 if (task.result.isCancelled) throw CancellationException()
                 providerRepository[header].download(header.apiUrl, platform)
             }

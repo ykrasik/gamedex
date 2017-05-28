@@ -2,36 +2,68 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.controller.SettingsController
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.*
+import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
+import javafx.geometry.Pos
+import javafx.scene.Cursor
+import javafx.scene.effect.DropShadow
+import javafx.scene.effect.Glow
 import javafx.scene.layout.Pane
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
+
 
 /**
  * User: ykrasik
  * Date: 06/01/2017
  * Time: 22:22
  */
-// TODO: Update to be in line with application look,
 class SettingsFragment : Fragment("Settings") {
     private val settingsController: SettingsController by di()
     private val settings: AllSettings by di()
+    private val providerRepository: GameProviderRepository by di()
 
     // TODO: Use a viewModel.
     override val root = borderpane {
+        top {
+            toolbar {
+                acceptButton { setOnAction { close() } }
+//                verticalSeparator()
+//                spacer()
+//                verticalSeparator()
+//                cancelButton { setOnAction { close() } }
+            }
+        }
         center {
             tabpane {
+                nonClosableTab("General") {
+                    vbox(spacing = 10.0) {
+                        paddingAll = 40
+                        button("Export Database") {
+                            setOnAction {
+                                settingsController.exportDatabase()
+                            }
+                        }
+                        button("Import Database") {
+                            setOnAction {
+                                settingsController.importDatabase()
+                            }
+                        }
+                        // TODO: Add a 'purge images' button
+                    }
+                }
                 nonClosableTab("Game Provider") {
                     form {
-                        paddingAll = 20
+                        paddingAll = 40
                         // TODO: Consider ControlsFx PropertySheet
-                        fieldset("Preferred Provider for Game Data") {
+                        fieldset("Provider Order") {
                             listOf(
-                                "Search First" to settings.provider.searchOrderProperty,
+                                "Search" to settings.provider.searchOrderProperty,
                                 "Name" to settings.provider.nameOrderProperty,
                                 "Description" to settings.provider.descriptionOrderProperty,
                                 "Release Date" to settings.provider.releaseDateOrderProperty,
@@ -40,14 +72,9 @@ class SettingsFragment : Fragment("Settings") {
                                 "Thumbnail" to settings.provider.thumbnailOrderProperty,
                                 "Poster" to settings.provider.posterOrderProperty,
                                 "Screenshots" to settings.provider.screenshotOrderProperty
-                            ).forEach { (name, preferenceProperty) ->
+                            ).forEach { (name, orderProperty) ->
                                 field(name) {
-                                    enumComboBox<GameProviderType> {
-                                        value = preferenceProperty.get().preferredProvider()
-                                        valueProperty().onChange {
-                                            preferenceProperty.set(ProviderSettings.Order.prefer(it!!))
-                                        }
-                                    }
+                                    providerOrder(orderProperty)
                                 }
                             }
                         }
@@ -55,7 +82,7 @@ class SettingsFragment : Fragment("Settings") {
                 }
                 nonClosableTab("Game Display") {
                     form {
-                        paddingAll = 20
+                        paddingAll = 40
                         fieldset("Game Display Type") {
                             field("Type") { enumComboBox(settings.game.displayTypeProperty) }
                         }
@@ -71,29 +98,65 @@ class SettingsFragment : Fragment("Settings") {
                         }
                     }
                 }
-                nonClosableTab("General") {
-                    vbox(spacing = 10.0) {
-                        paddingAll = 20
-                        button("Export Database") {
-                            setOnAction {
-                                settingsController.exportDatabase()
-                            }
-                        }
-                        button("Import Database") {
-                            setOnAction {
-                                settingsController.importDatabase()
-                            }
-                        }
-                        // TODO: Add a 'purge images' button
-                    }
-                }
             }
         }
-        bottom {
-            buttonbar {
-                paddingAll = 20
-                cancelButton { setOnAction { close() } }
-                okButton { setOnAction { close() } }
+    }
+
+    private fun Pane.providerOrder(orderProperty: ObjectProperty<ProviderSettings.Order>) {
+        hbox(spacing = 20.0) {
+            orderProperty.perform { order ->
+                var dragging: GameProviderType? = null
+                replaceChildren {
+                    order.ordered().map { provider ->
+                        label {
+                            addClass(Style.providerOrderLabel)
+                            graphic = imageview(providerRepository.logo(provider)) {
+                                fitWidth = 100.0
+                                fitHeight = 50.0
+                                isPreserveRatio = true
+                            }
+                            userData = provider
+
+                            val dropShadow = DropShadow()
+                            val glow = Glow()
+                            effect = dropShadow
+
+                            var dragX = 0.0
+                            
+                            setOnMousePressed { mouseEvent ->
+                                // record a delta distance for the drag and drop operation.
+                                dragX = layoutX - mouseEvent.sceneX
+                                cursor = Cursor.MOVE
+                                dragging = provider
+                                this@hbox.children.forEach { it.isManaged = false }
+                            }
+                            setOnMouseReleased {
+                                cursor = Cursor.HAND
+                                dragging = null
+                                this@hbox.children.forEach { it.isManaged = true }
+                            }
+                            setOnMouseDragged { mouseEvent ->
+                                layoutX = mouseEvent.sceneX + dragX
+                                val intersect = this@hbox.children.find { label ->
+                                    this@label != label && this@label.boundsInParent.intersects(label.boundsInParent)
+                                }
+                                if (intersect != null) {
+                                    orderProperty.value = order.switch(
+                                        dragging!!,
+                                        intersect.userData as GameProviderType
+                                    )
+                                }
+                            }
+                            setOnMouseEntered {
+                                cursor = Cursor.HAND
+                                dropShadow.input = glow
+                            }
+                            setOnMouseExited {
+                                dropShadow.input = null
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -115,6 +178,23 @@ class SettingsFragment : Fragment("Settings") {
 
     fun show() {
         openModal(block = true)
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val providerOrderLabel by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
+        }
+
+        init {
+            providerOrderLabel {
+                prefWidth = 100.px
+                alignment = Pos.BASELINE_CENTER
+            }
+        }
     }
 }
 //fun SettingsScreen(@NonNull configService: ConfigService, @NonNull stageManager: StageManager): ??? {

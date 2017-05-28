@@ -86,10 +86,10 @@ class GameFactory @Inject constructor(
         }
 
     private fun RawGame.sortDataBy(order: ProviderSettings.Order, override: GameDataOverride.Provider?): List<ProviderData> =
-        providerData.sortedByDescending {
+        providerData.sortedBy {
             val type = it.header.type
             if (type == override?.provider) {
-                ProviderSettings.Order.maxPriority + 1
+                ProviderSettings.Order.minOrder
             } else {
                 order[type]
             }
