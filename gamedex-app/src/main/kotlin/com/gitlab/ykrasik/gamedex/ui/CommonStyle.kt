@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.ui
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
-import javafx.scene.effect.BlurType
 import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
 import tornadofx.*
@@ -44,8 +43,7 @@ class CommonStyle : Stylesheet() {
             and(hover) {
                 translateX = 1.px
                 translateY = 1.px
-                // TODO: Find something less hideous
-                effect = DropShadow(BlurType.GAUSSIAN, Color.web("#0093ff"), 12.0, 0.2, 0.0, 1.0)
+                effect = DropShadow()
             }
         }
 

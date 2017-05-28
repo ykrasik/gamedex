@@ -11,6 +11,8 @@ import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.css.StyleableObjectProperty
+import javafx.scene.effect.DropShadow
+import javafx.scene.effect.Glow
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
@@ -117,7 +119,13 @@ class GameWallView : View("Games Wall") {
             imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
             imageViewLimitedPane.clip = createClippingArea()
 
-            addClass(CommonStyle.hoverable, CommonStyle.card)
+            addClass(CommonStyle.card)
+            val dropshadow = DropShadow().apply {
+                input = Glow()
+            }
+
+            setOnMouseEntered { effect = dropshadow }
+            setOnMouseExited { effect = null }
             graphic = imageViewLimitedPane
         }
 

@@ -104,6 +104,7 @@ class SettingsFragment : Fragment("Settings") {
 
     private fun Pane.providerOrder(orderProperty: ObjectProperty<ProviderSettings.Order>) {
         hbox(spacing = 20.0) {
+            alignment = Pos.CENTER
             orderProperty.perform { order ->
                 var dragging: GameProviderType? = null
                 replaceChildren {
