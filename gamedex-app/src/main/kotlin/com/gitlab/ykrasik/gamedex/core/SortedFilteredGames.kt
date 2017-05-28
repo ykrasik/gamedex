@@ -116,8 +116,8 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
         return property
     }
 
-    private val Game.minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c, u) } }
-    private val Game.avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c + u) / 2 } }
+    private val Game.minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c.score, u.score) } }
+    private val Game.avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c.score + u.score) / 2 } }
 
     companion object {
         val allGenres = "All"

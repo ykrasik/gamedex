@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.CommonStyle.Companion.toDisplayString
@@ -63,10 +64,7 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 gridpane {
                     hgap = 5.0
                     row {
-                        fixedRating(10) { rating = game.criticScore?.let { it / 10 } ?: 0.0 }
-                        label(game.criticScore.toDisplayString()) {
-                            addClass(Style.details)
-                        }
+                        score(game.criticScore, "critic")
                     }
                 }
             }
@@ -75,23 +73,22 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                 gridpane {
                     hgap = 5.0
                     row {
-                        fixedRating(10) { rating = game.userScore?.let { it / 10 } ?: 0.0 }
-                        label(game.userScore.toDisplayString()) {
-                            addClass(Style.details)
-                        }
+                        score(game.userScore, "user")
                     }
                 }
             }
-            row {
-                detailsLabel("Genres")
-                gridpane {
-                    hgap = 5.0
-                    row {
-                        game.genres.forEach { genre ->
-                            jfxButton(genre) {
-                                addClass(Style.details, CommonStyle.hoverable)
-                                setOnAction {
-                                    onGenrePressed(genre)
+            if (game.genres.isNotEmpty()) {
+                row {
+                    detailsLabel("Genres")
+                    gridpane {
+                        hgap = 5.0
+                        row {
+                            game.genres.forEach { genre ->
+                                jfxButton(genre) {
+                                    addClass(Style.details, CommonStyle.hoverable)
+                                    setOnAction {
+                                        onGenrePressed(genre)
+                                    }
                                 }
                             }
                         }
@@ -143,6 +140,19 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
     private fun EventTarget.detailsLabel(name: String) = label(name) {
         addClass(Style.detailsLabel)
     }
+
+    private fun EventTarget.score(score: Score?, name: String) {
+        if (score == null) {
+            label("NA") { addClass(Style.details)}
+            return
+        }
+
+        fixedRating(10) { rating = score.score / 10 }
+        label(score.score.format(3)) { addClass(Style.details) }
+        label("Based on ${score.numReviews} $name reviews.") { addClass(Style.details) }
+    }
+
+    private fun Double.format(digits: Int) = String.format("%.${digits}f", this)
 
     class Style : Stylesheet() {
         companion object {

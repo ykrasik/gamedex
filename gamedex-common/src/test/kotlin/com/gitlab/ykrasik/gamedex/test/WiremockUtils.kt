@@ -27,3 +27,4 @@ fun ResponseDefinitionBuilder.withBinaryBody(content: ByteArray) = withBody(cont
 
 fun RequestPatternBuilder.withHeader(name: String, value: String) = withHeader(name, equalTo(value))
 fun RequestPatternBuilder.withQueryParam(name: String, value: String) = withQueryParam(name, equalTo(value))
+fun RequestPatternBuilder.withBody(body: String) = withRequestBody(equalTo(body))

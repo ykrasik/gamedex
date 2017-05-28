@@ -170,7 +170,9 @@ class SettingsController @Inject constructor(
         val description: String?,
         val releaseDate: String?,
         val criticScore: Double?,
+        val numCriticReviews: Int?,
         val userScore: Double?,
+        val numUserReviews: Int?,
         val genres: List<String>,
         val thumbnailUrl: String?,
         val posterUrl: String?,
@@ -186,8 +188,8 @@ class SettingsController @Inject constructor(
                 name = name,
                 description = description,
                 releaseDate = releaseDate,
-                criticScore = criticScore,
-                userScore = userScore,
+                criticScore = toScore(criticScore, numCriticReviews),
+                userScore = toScore(userScore, numUserReviews),
                 genres = genres
             ),
             imageUrls = ImageUrls(
@@ -196,6 +198,8 @@ class SettingsController @Inject constructor(
                 screenshotUrls = screenshotUrls
             )
         )
+
+        private fun toScore(score: Double?, numReviews: Int?) = score?.let { Score(it, numReviews!!) }
     }
 
     private fun ProviderData.toPortable() = PortableProviderData(
@@ -204,9 +208,11 @@ class SettingsController @Inject constructor(
         siteUrl = header.siteUrl,
         name = gameData.name,
         description = gameData.description,
-        criticScore = gameData.criticScore,
         releaseDate = gameData.releaseDate,
-        userScore = gameData.userScore,
+        criticScore = gameData.criticScore?.score,
+        numCriticReviews = gameData.criticScore?.numReviews,
+        userScore = gameData.userScore?.score,
+        numUserReviews = gameData.userScore?.numReviews,
         genres = gameData.genres,
         thumbnailUrl = imageUrls.thumbnailUrl,
         posterUrl = imageUrls.posterUrl,

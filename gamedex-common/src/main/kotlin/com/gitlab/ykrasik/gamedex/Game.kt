@@ -58,7 +58,7 @@ data class ProviderData(
     val imageUrls: ImageUrls
 )
 
-// TODO: Add an updateDate and have refreshAll ignore games beyond a certain threshold
+// TODO: Consider adding an updateDate and have refreshAll ignore games beyond a certain threshold
 data class GameData(
     val name: String,
     val description: String?,
@@ -71,7 +71,9 @@ data class GameData(
 data class Score(
     val score: Double,
     val numReviews: Int
-)
+) : Comparable<Score> {
+    override fun compareTo(other: Score) = score.compareTo(other.score)
+}
 
 data class ProviderHeader(
     val type: GameProviderType,
