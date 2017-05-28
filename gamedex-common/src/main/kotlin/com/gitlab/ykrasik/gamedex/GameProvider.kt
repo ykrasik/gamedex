@@ -14,6 +14,7 @@ interface GameProvider {
     fun download(apiUrl: String, platform: Platform): ProviderData
 }
 
+// TODO: I think it's possible to live without this enum.
 enum class GameProviderType {
     Igdb,
     GiantBomb
@@ -22,7 +23,7 @@ enum class GameProviderType {
 data class ProviderSearchResult(
     val name: String,
     val releaseDate: String?,
-    val score: Double?,
+    val score: Score?,
     val thumbnailUrl: String?,
     val apiUrl: String
 )

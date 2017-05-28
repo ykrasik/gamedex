@@ -50,7 +50,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         apiUrl = "${config.endpoint}/$id",
         name = name,
         releaseDate = releaseDates?.findReleaseDate(platform),
-        score = aggregatedRating,
+        score = toScore(aggregatedRating, aggregatedRatingCount),
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(thumbnailImageType)
     )
 
@@ -64,8 +64,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
             name = this.name,
             description = this.summary,
             releaseDate = this.releaseDates?.findReleaseDate(platform),
-            criticScore = this.aggregatedRating,
-            userScore = this.rating,
+            criticScore = toScore(aggregatedRating, aggregatedRatingCount),
+            userScore = toScore(rating, ratingCount),
             genres = this.genres?.map { it.genreName } ?: emptyList()
         ),
         imageUrls = ImageUrls(
@@ -74,6 +74,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
             screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
         )
     )
+
+    private fun toScore(score: Double?, numReviews: Int?): Score? = score?.let { Score(it, numReviews!!) }
 
     private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): String? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.

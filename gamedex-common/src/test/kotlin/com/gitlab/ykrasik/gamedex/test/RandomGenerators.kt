@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.test
 
+import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
@@ -43,7 +44,7 @@ fun randomPath(): String = randomSentence(maxWords = 7, delimiter = "/")
 fun randomFile() = randomPath().toFile()
 fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${randomPath()}}"
 fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
-fun randomScore() = rnd.nextDouble() * 100
+fun randomScore() = Score(score = rnd.nextDouble() * 100, numReviews = rnd.nextInt(30) + 1)
 
 fun randomDateTime(): DateTime = DateTime.now().plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()

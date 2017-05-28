@@ -89,7 +89,8 @@ class IgdbClientIT : ScopedWordSpec() {
         val searchResult = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = randomName(),
-            aggregatedRating = randomScore(),
+            aggregatedRating = randomScore().score,
+            aggregatedRatingCount = randomScore().numReviews,
             releaseDates = listOf(randomReleaseDate()),
             cover = randomImage()
         )
@@ -99,8 +100,10 @@ class IgdbClientIT : ScopedWordSpec() {
             name = randomName(),
             summary = randomSentence(),
             releaseDates = listOf(randomReleaseDate()),
-            aggregatedRating = randomScore(),
-            rating = randomScore(),
+            aggregatedRating = randomScore().score,
+            aggregatedRatingCount = randomScore().numReviews,
+            rating = randomScore().score,
+            ratingCount = randomScore().numReviews,
             cover = randomImage(),
             screenshots = listOf(randomImage(), randomImage()),
             genres = listOf(rnd.nextInt(100))
@@ -127,6 +130,7 @@ class IgdbClientIT : ScopedWordSpec() {
     val searchFields = listOf(
         "name",
         "aggregated_rating",
+        "aggregated_rating_count",
         "release_dates.category",
         "release_dates.human",
         "release_dates.platform",
@@ -137,6 +141,7 @@ class IgdbClientIT : ScopedWordSpec() {
         "url",
         "summary",
         "rating",
+        "rating_count",
         "screenshots.cloudinary_id",
         "genres"
     )

@@ -23,7 +23,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                     apiUrl = "$baseUrl/${searchResult.id}",
                     name = name,
                     releaseDate = releaseDate,
-                    score = searchResult.aggregatedRating,
+                    score = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
                     thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
                 ))
             }
@@ -66,8 +66,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null aggregatedRating".inScope(Scope()) {
-                givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null)))
+            "handle null aggregatedRating and ignore aggregatedRatingCount".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1)))
 
                 search() should haveASingleSearchResultThat {
                     it.score shouldBe null
@@ -139,8 +139,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                         name = detailsResult.name,
                         description = detailsResult.summary,
                         releaseDate = releaseDate,
-                        criticScore = detailsResult.aggregatedRating,
-                        userScore = detailsResult.rating,
+                        criticScore = Score(detailsResult.aggregatedRating!!, detailsResult.aggregatedRatingCount!!),
+                        userScore = Score(detailsResult.rating!!, detailsResult.ratingCount!!),
                         genres = listOf(genre)
                     ),
                     imageUrls = ImageUrls(
@@ -181,14 +181,14 @@ class IgdbProviderTest : ScopedWordSpec() {
                 download().gameData.releaseDate shouldBe "2017-Q4"
             }
 
-            "handle null aggregatedRating".inScope(Scope()) {
-                givenClientFetchReturns(detailsResult().copy(aggregatedRating = null))
+            "handle null aggregatedRating and ignore aggregatedRatingCount".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
                 download().gameData.criticScore shouldBe null
             }
 
-            "handle null rating".inScope(Scope()) {
-                givenClientFetchReturns(detailsResult().copy(rating = null))
+            "handle null rating and ignore ratingCount".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(rating = null, ratingCount = 1))
 
                 download().gameData.userScore shouldBe null
             }
@@ -254,7 +254,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = name,
-            aggregatedRating = randomScore(),
+            aggregatedRating = randomScore().score,
+            aggregatedRatingCount = randomScore().numReviews,
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
             cover = image()
         )
@@ -265,8 +266,10 @@ class IgdbProviderTest : ScopedWordSpec() {
             name = name,
             summary = randomSentence(),
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
-            aggregatedRating = randomScore(),
-            rating = randomScore(),
+            aggregatedRating = randomScore().score,
+            aggregatedRatingCount = randomScore().numReviews,
+            rating = randomScore().score,
+            ratingCount = randomScore().numReviews,
             cover = image(),
             screenshots = listOf(image(), image()),
             genres = listOf(genreId)

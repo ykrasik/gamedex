@@ -58,19 +58,25 @@ data class ProviderData(
     val imageUrls: ImageUrls
 )
 
+// TODO: Add an updateDate and have refreshAll ignore games beyond a certain threshold
 data class GameData(
     val name: String,
     val description: String?,
     val releaseDate: String?,
-    val criticScore: Double?,
-    val userScore: Double?,
+    val criticScore: Score?,
+    val userScore: Score?,
     val genres: List<String>
+)
+
+data class Score(
+    val score: Double,
+    val numReviews: Int
 )
 
 data class ProviderHeader(
     val type: GameProviderType,
     val apiUrl: String,
-    val siteUrl: String // Doesn't really belong here, probably more in GameData, but whatever.
+    val siteUrl: String // Doesn't really belong here, probably more in GameData, but whatever.   TODO: Move to GameData.
 )
 
 data class ImageUrls(

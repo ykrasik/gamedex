@@ -91,7 +91,8 @@ class IgdbFakeServer(port: Int) : Closeable {
         IgdbClient.SearchResult(
             id = rnd.nextInt(),
             name = "$name ${randomName()}",
-            aggregatedRating = randomScore(),
+            aggregatedRating = randomScore().score,
+            aggregatedRatingCount = randomScore().numReviews,
             releaseDates = randomReleaseDates(),
             cover = randomImage()
         )
@@ -104,8 +105,10 @@ class IgdbFakeServer(port: Int) : Closeable {
         name = randomName(),
         summary = randomSentence(maxWords = 50),
         releaseDates = randomReleaseDates(),
-        aggregatedRating = randomScore(),
-        rating = randomScore(),
+        aggregatedRating = randomScore().score,
+        aggregatedRatingCount = randomScore().numReviews,
+        rating = randomScore().score,
+        ratingCount = randomScore().numReviews,
         cover = IgdbClient.Image(cloudinaryId = randomString()),
         screenshots = List(rnd.nextInt(10)) { randomImage() },
         genres = List(rnd.nextInt(4)) {
