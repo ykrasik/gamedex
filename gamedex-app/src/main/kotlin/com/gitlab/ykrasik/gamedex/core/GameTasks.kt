@@ -136,10 +136,10 @@ class GameTasks @Inject constructor(
             gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
 
-                val providersToDownload = game.rawGame.providerData.filter { data ->
+                val providersToDownload = game.providerHeaders.filter { header ->
                     // TODO: Store stale duration as config or parameter.
-                    data.gameData.updateDate.plusMonths(1).isBeforeNow
-                }.map { it.header }
+                    header.updateDate.plusMonths(1).isBeforeNow
+                }
                 if (providersToDownload.isNotEmpty()) {
                     doRefreshGame(game, providersToDownload)
                     numRefreshed += 1

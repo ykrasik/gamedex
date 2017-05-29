@@ -52,7 +52,7 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun add(request: AddGameRequest): Game = run(CommonPool) {
-        val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+        val rawGame = persistenceService.insertGame(request.metaData, request.providerData, request.userData)
         val game = rawGame.toGame()
         run(JavaFx) {
             games += game
@@ -66,7 +66,7 @@ class GameRepository @Inject constructor(
         progress.message = "Writing Games..."
         val games = requests.map { request ->
             async(CommonPool) {
-                val rawGame = persistenceService.insertGame(request.metaData.updatedNow(), request.providerData, request.userData)
+                val rawGame = persistenceService.insertGame(request.metaData, request.providerData, request.userData)
                 progress.progress(added.incrementAndGet(), requests.size)
                 rawGame.toGame()
             }
@@ -80,9 +80,8 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun update(newRawGame: RawGame): Game = run(JavaFx) {
-        val updatedGame = newRawGame.updatedNow()
-        run(CommonPool) {
-            persistenceService.updateGame(updatedGame)
+        val updatedGame = run(CommonPool) {
+            persistenceService.updateGame(newRawGame)
         }
 
         removeById(updatedGame.id)
@@ -97,8 +96,7 @@ class GameRepository @Inject constructor(
         progress.message = "Writing DB..."
         val games = newRawGames.map { newRawGame ->
             async(CommonPool) {
-                val updatedGame = newRawGame.updatedNow()
-                persistenceService.updateGame(updatedGame)
+                val updatedGame = persistenceService.updateGame(newRawGame)
                 progress.progress(updated.incrementAndGet(), newRawGames.size)
                 updatedGame
             }

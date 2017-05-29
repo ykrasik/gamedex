@@ -24,7 +24,6 @@ fun randomMetaData(libraryId: Int = 1) = MetaData(
 )
 
 fun randomGameData() = GameData(
-    updateDate = randomDateTime(),
     siteUrl = randomUrl(),
     name = randomString(),
     description = randomSentence(maxWords = 10),
@@ -38,9 +37,11 @@ fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(GameProvide
     randomProviderHeader()
 }
 
-fun randomProviderHeader(type: GameProviderType = randomEnum()) = ProviderHeader(
+fun randomProviderHeader(type: GameProviderType = randomEnum(),
+                         apiUrl: String = randomUrl()) = ProviderHeader(
     type = type,
-    apiUrl = randomUrl()
+    apiUrl = apiUrl,
+    updateDate = now.minusYears(1)
 )
 
 fun randomImageUrls() = ImageUrls(

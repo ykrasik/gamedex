@@ -30,10 +30,10 @@ class IgdbProviderRealIT : ScopedWordSpec() {
                 provider.download(apiUrl, Platform.pc) shouldBe ProviderData(
                     header = ProviderHeader(
                         type = GameProviderType.Igdb,
-                        apiUrl = apiUrl
+                        apiUrl = apiUrl,
+                        updateDate = nowMock
                     ),
                     gameData = GameData(
-                        updateDate = nowMock,
                         siteUrl = url,
                         name = name,
                         description = description,

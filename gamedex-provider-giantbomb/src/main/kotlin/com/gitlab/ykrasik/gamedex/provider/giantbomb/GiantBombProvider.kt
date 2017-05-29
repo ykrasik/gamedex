@@ -51,10 +51,10 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
         header = ProviderHeader(
             type = type,
-            apiUrl = apiUrl
+            apiUrl = apiUrl,
+            updateDate = now
         ),
         gameData = GameData(
-            updateDate = now,
             siteUrl = this.siteDetailUrl,
             name = this.name,
             description = this.deck,

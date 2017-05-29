@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTime
 import java.io.File
 import java.nio.file.Paths
@@ -48,10 +47,7 @@ data class RawGame(
     val metaData: MetaData,
     val providerData: List<ProviderData>,
     val userData: UserData?    // TODO: Make this non-nullable
-) {
-    // TODO: Consider moving this responsibility to the persistence layer.
-    fun updatedNow() = copy(metaData = metaData.updatedNow())
-}
+)
 
 data class ProviderData(
     val header: ProviderHeader,
@@ -60,7 +56,6 @@ data class ProviderData(
 )
 
 data class GameData(
-    val updateDate: DateTime,
     val siteUrl: String,
     val name: String,
     val description: String?,
@@ -77,10 +72,10 @@ data class Score(
     override fun compareTo(other: Score) = score.compareTo(other.score)
 }
 
-// TODO: updateDate sounds like it belongs here more then in gameData
 data class ProviderHeader(
     val type: GameProviderType,
-    val apiUrl: String
+    val apiUrl: String,
+    val updateDate: DateTime
 )
 
 data class ImageUrls(
@@ -93,10 +88,7 @@ data class MetaData(
     val libraryId: Int,
     val path: File,
     val updateDate: DateTime
-) {
-    // TODO: Consider moving this responsibility to the persistence layer.
-    fun updatedNow() = copy(updateDate = now)
-}
+)
 
 enum class GameDataType(val displayName: String) {
     name_("Name"),

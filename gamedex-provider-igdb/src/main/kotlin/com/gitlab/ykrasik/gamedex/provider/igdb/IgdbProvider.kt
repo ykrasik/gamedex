@@ -58,10 +58,10 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
         header = ProviderHeader(
             type = type,
-            apiUrl = apiUrl
+            apiUrl = apiUrl,
+            updateDate = now
         ),
         gameData = GameData(
-            updateDate = now,
             siteUrl = this.url,
             name = this.name,
             description = this.summary,

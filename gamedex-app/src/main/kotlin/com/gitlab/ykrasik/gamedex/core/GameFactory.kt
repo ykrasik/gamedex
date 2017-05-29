@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
-import com.gitlab.ykrasik.gamedex.util.now
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +36,6 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        updateDate = now, // Not used.
         siteUrl = "",       // Not used.
         name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },

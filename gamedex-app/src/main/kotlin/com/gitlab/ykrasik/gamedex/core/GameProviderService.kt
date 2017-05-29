@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
+import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -166,7 +167,7 @@ class GameProviderServiceImpl @Inject constructor(
             return chooser.choose(chooseSearchResultData)
         }
 
-        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.type, apiUrl)
+        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.type, apiUrl, updateDate = now)
     }
 
     override suspend fun download(taskData: GameProviderService.ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> {

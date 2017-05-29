@@ -167,8 +167,8 @@ class SettingsController @Inject constructor(
     private data class PortableProviderData(
         val provider: String,
         val apiUrl: String,
-        val siteUrl: String,
         val updateDate: Long,
+        val siteUrl: String,
         val name: String,
         val description: String?,
         val releaseDate: String?,
@@ -184,10 +184,10 @@ class SettingsController @Inject constructor(
         fun toProviderData() = ProviderData(
             header = ProviderHeader(
                 type = GameProviderType.valueOf(provider),
-                apiUrl = apiUrl
+                apiUrl = apiUrl,
+                updateDate = updateDate.toDateTime()
             ),
             gameData = GameData(
-                updateDate = updateDate.toDateTime(),
                 siteUrl = siteUrl,
                 name = name,
                 description = description,
@@ -209,8 +209,8 @@ class SettingsController @Inject constructor(
     private fun ProviderData.toPortable() = PortableProviderData(
         provider = header.type.name,
         apiUrl = header.apiUrl,
+        updateDate = header.updateDate.millis,
         siteUrl = gameData.siteUrl,
-        updateDate = gameData.updateDate.millis,
         name = gameData.name,
         description = gameData.description,
         releaseDate = gameData.releaseDate,

@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.util.*
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.io.File
 import java.sql.Blob
@@ -27,7 +28,7 @@ interface PersistenceService {
 
     fun fetchAllGames(): List<RawGame>
     fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame
-    fun updateGame(rawGame: RawGame): Unit
+    fun updateGame(rawGame: RawGame): RawGame
     fun deleteGame(id: Int)
 
     fun fetchImage(url: String): ByteArray?
@@ -119,28 +120,34 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     override fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame = transaction {
         log.trace("Inserting game: metaData=$metaData, rawGameData=$providerData...")
 
+        val updateDate = now
+
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
             it[Games.path] = metaData.path.path
-            it[Games.updateDate] = metaData.updateDate
+            it[Games.updateDate] = updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData, providerData = providerData, userData = userData)
+        val game = RawGame(id = id, metaData = metaData.updated(updateDate), providerData = providerData, userData = userData)
         log.trace("Result: $game.")
         game
     }
 
-    override fun updateGame(rawGame: RawGame) = transaction {
+    override fun updateGame(rawGame: RawGame): RawGame = transaction {
+        val updateDate = now
+
         val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
             it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()  // TODO: Why am I allowing this?
             it[Games.path] = rawGame.metaData.path.path
-            it[Games.updateDate] = rawGame.metaData.updateDate
+            it[Games.updateDate] = updateDate
             it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
         }
         require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!"}
+
+        rawGame.updated(updateDate)
     }
 
     override fun deleteGame(id: Int) = transaction {
@@ -163,6 +170,9 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Images.bytes] = data.toBlob()
         }
     }
+
+    private fun RawGame.updated(updateDate: DateTime) = copy(metaData = metaData.updated(updateDate))
+    private fun MetaData.updated(updateDate: DateTime) = copy(updateDate = updateDate)
 
     private fun Int.toLibraryId() = EntityID(this, Libraries)
     private fun Int.toGameId() = EntityID(this, Games)

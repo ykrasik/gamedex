@@ -51,10 +51,10 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
                 type = randomEnum<GameProviderType>(),
-                apiUrl = randomUrl()
+                apiUrl = randomUrl(),
+                updateDate = randomDateTime()
             ),
             gameData = GameData(
-                updateDate = randomDateTime(),
                 siteUrl = randomUrl(),
                 name = randomName(),
                 description = randomSentence(),
@@ -104,12 +104,14 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
+
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
-            persistenceService.insertGame(
-                metaData = randomMetaData(library, path),
-                providerData = listOf(randomProviderData(), randomProviderData()),
-                userData = randomUserData()
-            )
+            insertGame(metaData = randomMetaData(library, path))
+
+        fun insertGame(metaData: MetaData = randomMetaData(),
+                       providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+                       userData: UserData? = randomUserData()): RawGame =
+            persistenceService.insertGame(metaData, providerData, userData)
     }
 
     inner open class ImageScope : GameScope() {
