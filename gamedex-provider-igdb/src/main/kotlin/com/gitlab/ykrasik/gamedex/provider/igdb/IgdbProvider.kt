@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
@@ -57,10 +58,11 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
         header = ProviderHeader(
             type = type,
-            apiUrl = apiUrl,
-            siteUrl = this.url
+            apiUrl = apiUrl
         ),
         gameData = GameData(
+            updateDate = now,
+            siteUrl = this.url,
             name = this.name,
             description = this.summary,
             releaseDate = this.releaseDates?.findReleaseDate(platform),
@@ -107,7 +109,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         screenshot_med_2x, // 1138 x 640
         screenshot_big, // 889 x 500
         screenshot_big_2x, // 1778 x 1000
-        screenshot_huge,    // 1280 x 720
+        screenshot_huge, // 1280 x 720
         screenshot_huge_2x  // 2560 x 1440
     }
 

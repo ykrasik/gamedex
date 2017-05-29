@@ -6,8 +6,8 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
+import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.channels.produce
-import org.joda.time.DateTime
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,7 +69,7 @@ class GameTasks @Inject constructor(
             val constraints = GameProviderService.SearchConstraints(mode = searchMode, excludedProviders = emptyList())
             val results = providerService.search(taskData, constraints) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
-            val metaData = MetaData(library.id, relativePath, lastModified = DateTime.now())
+            val metaData = MetaData(library.id, relativePath, updateDate = now)
             val userData = if (results.excludedProviders.isNotEmpty()) {
                 UserData(excludedProviders = results.excludedProviders)
             } else {
@@ -135,6 +135,11 @@ class GameTasks @Inject constructor(
             gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
 
+                // TODO: Only refresh games that were refreshed before a certain point in time.
+//                val providersToDownload = game.rawGame.providerData.filter { data ->
+//                    // TODO: Store stale duration in config.
+//                    data.gameData.updateDate.plusWeeks(2).isBeforeNow
+//                }.map { it.header }
                 doRefreshGame(game)
                 numRefreshed += 1
             }
@@ -148,9 +153,15 @@ class GameTasks @Inject constructor(
         override fun doneMessage() = "Done refreshing: '${game.name}'."
     }
 
-    private suspend fun Task<*>.doRefreshGame(game: Game): Game {
+    private suspend fun Task<*>.doRefreshGame(game: Game, providersToDownload: List<ProviderHeader> = game.providerHeaders): Game {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
-        val newProviderData = providerService.download(taskData, game.providerHeaders)
+        val providerData = providerService.download(taskData, providersToDownload)
+        val newProviderData = providerData
+//        if (providersToDownload == game.providerHeaders) {
+//            providerData
+//        } else {
+//            game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.type == d.header.type } } + providerData
+//        }
         return updateGame(game, newProviderData, newUserData = game.userData)
     }
 

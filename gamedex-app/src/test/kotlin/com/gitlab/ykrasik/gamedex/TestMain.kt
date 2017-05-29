@@ -91,8 +91,7 @@ object TestMain {
 
     private fun randomProviderHeader(type: GameProviderType) = ProviderHeader(
         type = type,
-        apiUrl = apiUrl(type),
-        siteUrl = randomUrl()
+        apiUrl = apiUrl(type)
     )
 
     private fun apiUrl(type: GameProviderType) = when (type) {

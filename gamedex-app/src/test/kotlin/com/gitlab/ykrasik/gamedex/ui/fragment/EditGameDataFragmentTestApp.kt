@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.randomElement
-import com.gitlab.ykrasik.gamedex.test.randomUrl
 import com.gitlab.ykrasik.gamedex.test.rnd
 
 /**
@@ -14,11 +13,7 @@ object EditGameDataFragmentTestApp : BaseTestApp() {
     override fun init() {
         val providerData = GameProviderType.values().map { type ->
             ProviderData(
-                header = ProviderHeader(
-                    type = type,
-                    apiUrl = randomUrl(),
-                    siteUrl = randomUrl()
-                ),
+                header = randomProviderHeader(type),
                 gameData = randomGameData(),
                 imageUrls = randomImageUrls()
             )

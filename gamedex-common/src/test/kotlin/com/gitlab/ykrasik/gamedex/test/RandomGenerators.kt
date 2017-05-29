@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.util.now
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
@@ -46,7 +47,7 @@ fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${ran
 fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
 fun randomScore() = Score(score = rnd.nextDouble() * 100, numReviews = rnd.nextInt(30) + 1)
 
-fun randomDateTime(): DateTime = DateTime.now().plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
+fun randomDateTime(): DateTime = now.plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 fun randomLocalDateString(): String = randomLocalDate().toString()
 
@@ -54,7 +55,7 @@ inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.r
 
 fun <T> List<T>.randomElement(): T = this[rnd.nextInt(size)]
 fun <T> List<T>.randomElementExcluding(excluded: T): T {
-    require(!this.all { it == excluded })
+    require(this.any { it != excluded })
     while(true) {
         val element = this.randomElement()
         if (element != excluded) return element

@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.util.*
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTimeZone
 import java.io.File
 import java.sql.Blob
 import javax.inject.Inject
@@ -104,7 +105,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
                 id = it[Games.id].value,
                 metaData = MetaData(
                     path = it[Games.path].toFile(),
-                    lastModified = it[Games.lastModified],
+                    updateDate = it[Games.updateDate].withZone(DateTimeZone.UTC),
                     libraryId = it[Games.libraryId].value
                 ),
                 providerData = it[Games.providerData].listFromJson(),
@@ -121,7 +122,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
             it[Games.path] = metaData.path.path
-            it[Games.lastModified] = metaData.lastModified
+            it[Games.updateDate] = metaData.updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
         }!!.value
@@ -135,7 +136,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
             it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()  // TODO: Why am I allowing this?
             it[Games.path] = rawGame.metaData.path.path
-            it[Games.lastModified] = rawGame.metaData.lastModified
+            it[Games.updateDate] = rawGame.metaData.updateDate
             it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
         }

@@ -15,10 +15,10 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.create
+import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.toDateTime
 import com.gitlab.ykrasik.gamedex.util.toFile
-import org.joda.time.DateTime
-import org.joda.time.LocalDate
-import org.joda.time.LocalDateTime
+import org.joda.time.DateTimeZone
 import tornadofx.Controller
 import tornadofx.FileChooserMode
 import tornadofx.chooseDirectory
@@ -47,10 +47,11 @@ class SettingsController @Inject constructor(
 
     fun exportDatabase() {
         val dir = browseDirectory() ?: return
+        val timestamp = now.withZone(DateTimeZone.getDefault())
         val timestamptedPath = Paths.get(
             dir.toString(),
-            LocalDate.now().toString("yyyy-MM-dd"),
-            "db_${LocalDateTime.now().toString("HH_mm_ss")}.json"
+            timestamp.toString("yyyy-MM-dd"),
+            "db_${timestamp.toString("HH_mm_ss")}.json"
         ).toFile()
         timestamptedPath.create()
         ExportDatabaseTask(timestamptedPath).start()
@@ -86,6 +87,7 @@ class SettingsController @Inject constructor(
     }
 
     // TODO: This isn't actually cancellable. Do I want it to be?
+    // TODO: The UI of this stopped working.
     inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 
@@ -139,7 +141,7 @@ class SettingsController @Inject constructor(
     private data class PortableGame(
         val libraryId: Int,
         val path: String,
-        val lastModified: Long,
+        val updateDate: Long,
         val providerData: List<PortableProviderData>,
         val userData: PortableUserData?
     ) {
@@ -147,7 +149,7 @@ class SettingsController @Inject constructor(
             metaData = MetaData(
                 libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
                 path = path.toFile(),
-                lastModified = DateTime(lastModified)
+                updateDate = updateDate.toDateTime()
             ),
             providerData = providerData.map { it.toProviderData() },
             userData = userData?.toUserData()
@@ -157,7 +159,7 @@ class SettingsController @Inject constructor(
     private fun Game.toPortable() = PortableGame(
         libraryId = library.id,
         path = rawGame.metaData.path.toString(),
-        lastModified = lastModified.millis,
+        updateDate = updateDate.millis,
         providerData = rawGame.providerData.map { it.toPortable() },
         userData = userData?.toPortable()
     )
@@ -166,6 +168,7 @@ class SettingsController @Inject constructor(
         val provider: String,
         val apiUrl: String,
         val siteUrl: String,
+        val updateDate: Long,
         val name: String,
         val description: String?,
         val releaseDate: String?,
@@ -181,10 +184,11 @@ class SettingsController @Inject constructor(
         fun toProviderData() = ProviderData(
             header = ProviderHeader(
                 type = GameProviderType.valueOf(provider),
-                apiUrl = apiUrl,
-                siteUrl = siteUrl
+                apiUrl = apiUrl
             ),
             gameData = GameData(
+                updateDate = updateDate.toDateTime(),
+                siteUrl = siteUrl,
                 name = name,
                 description = description,
                 releaseDate = releaseDate,
@@ -205,7 +209,8 @@ class SettingsController @Inject constructor(
     private fun ProviderData.toPortable() = PortableProviderData(
         provider = header.type.name,
         apiUrl = header.apiUrl,
-        siteUrl = header.siteUrl,
+        siteUrl = gameData.siteUrl,
+        updateDate = gameData.updateDate.millis,
         name = gameData.name,
         description = gameData.description,
         releaseDate = gameData.releaseDate,

@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.util
 import com.gitlab.ykrasik.gamedex.ui.runLaterIfNecessary
 import javafx.collections.FXCollections
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 
 /**
  * User: ykrasik
@@ -34,5 +35,5 @@ object Log {
 }
 
 data class LogEntry(val level: LogLevel, val context: String, val message: String) {
-    val timestamp: DateTime = DateTime.now()
+    val timestamp: DateTime = now.withZone(DateTimeZone.getDefault())
 }

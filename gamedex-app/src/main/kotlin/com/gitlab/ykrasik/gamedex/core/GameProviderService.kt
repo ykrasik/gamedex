@@ -166,11 +166,7 @@ class GameProviderServiceImpl @Inject constructor(
             return chooser.choose(chooseSearchResultData)
         }
 
-        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(
-            type = provider.type,
-            apiUrl = apiUrl,
-            siteUrl = ""   // Unused for our purposes.
-        )
+        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.type, apiUrl)
     }
 
     override suspend fun download(taskData: GameProviderService.ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> {

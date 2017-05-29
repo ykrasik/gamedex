@@ -3,6 +3,9 @@ package com.gitlab.ykrasik.gamedex.test
 import io.kotlintest.TestCase
 import io.kotlintest.specs.StringSpec
 import io.kotlintest.specs.WordSpec
+import org.joda.time.DateTime
+import org.joda.time.DateTimeUtils
+import org.joda.time.DateTimeZone
 
 /**
  * User: ykrasik
@@ -17,6 +20,11 @@ abstract class ScopedStringSpec : StringSpec() {
 
 abstract class ScopedWordSpec : WordSpec() {
     override val oneInstancePerTest = false
+
+    val nowMock = DateTime(1).withZone(DateTimeZone.UTC)
+    init {
+        DateTimeUtils.setCurrentMillisFixed(1)
+    }
 
     fun <T> String.inScope(scope: T, test: T.() -> Unit): TestCase = this.invoke { test(scope) }
     fun <T> String.inLazyScope(scope: () -> T, test: T.() -> Unit): TestCase = this.invoke { test(scope()) }

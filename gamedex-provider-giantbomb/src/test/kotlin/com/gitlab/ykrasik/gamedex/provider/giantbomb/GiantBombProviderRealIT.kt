@@ -29,10 +29,11 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
                 provider.download(apiUrl, Platform.pc) shouldBe ProviderData(
                     header = ProviderHeader(
                         type = GameProviderType.GiantBomb,
-                        apiUrl = apiUrl,
-                        siteUrl = url
+                        apiUrl = apiUrl
                     ),
                     gameData = GameData(
+                        updateDate = nowMock,
+                        siteUrl = url,
                         name = name,
                         description = deck,
                         releaseDate = releaseDate,

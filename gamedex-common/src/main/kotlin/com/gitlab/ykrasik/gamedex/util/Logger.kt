@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import kotlin.reflect.full.companionObject
 
 /**
@@ -36,7 +36,7 @@ class StdOutLogger(private val context: String) : Logger {
     override fun log(msg: String, level: LogLevel) {
         if (!Logger.shouldLog(level)) return
 
-        val timestamp = DateTime.now().toString("HH:mm:ss.SSS")
+        val timestamp = now.withZone(DateTimeZone.getDefault()).toString("HH:mm:ss.SSS")
         println("$timestamp [${Thread.currentThread().name}] [$level] [$context] $msg")
     }
 }

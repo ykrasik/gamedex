@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
+import com.gitlab.ykrasik.gamedex.util.now
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,11 +37,13 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
+        updateDate = now, // Not used.
+        siteUrl = "",       // Not used.
         name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
-        criticScore = firstBy(settings.criticScoreOrder, userData?.criticScoreOverride()) { it.gameData.criticScore },
-        userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride()) { it.gameData.userScore },
+        criticScore = firstBy(settings.criticScoreOrder, userData?.criticScoreOverride(), { Score(it as Double, 1) }) { it.gameData.criticScore },
+        userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1)}) { it.gameData.userScore },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
     )
 
@@ -59,9 +62,12 @@ class GameFactory @Inject constructor(
     private fun RawGame.toProviderHeaders(): List<ProviderHeader> = this.providerData.map { it.header }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(defaultOrder: ProviderSettings.Order, override: GameDataOverride?, extractor: (ProviderData) -> T?): T? =
+    private fun <T> RawGame.firstBy(defaultOrder: ProviderSettings.Order,
+                                    override: GameDataOverride?,
+                                    converter: (Any) -> T = { it as T },
+                                    extractor: (ProviderData) -> T?): T? =
         when (override) {
-            is GameDataOverride.Custom -> override.data as T
+            is GameDataOverride.Custom -> converter(override.data)
             else -> {
                 val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
                 sorted.findFirst(extractor)

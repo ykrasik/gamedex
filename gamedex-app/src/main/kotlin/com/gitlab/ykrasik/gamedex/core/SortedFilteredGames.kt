@@ -97,7 +97,7 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
                 GameSettings.Sort.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
                 GameSettings.Sort.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
                 GameSettings.Sort.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                GameSettings.Sort.lastModified -> compareBy(Game::lastModified)
+                GameSettings.Sort.updateDate -> compareBy(Game::updateDate)
             }
             return if (sortOrderProperty.value == TableColumn.SortType.ASCENDING) {
                 comparator

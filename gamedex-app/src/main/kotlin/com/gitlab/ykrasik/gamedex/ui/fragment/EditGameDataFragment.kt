@@ -1,9 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataOverride
-import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
@@ -79,14 +76,14 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                     GameDataType.criticScore,
                     providerDataExtractor = { it.gameData.criticScore },
                     gameDataExtractor = Game::criticScore,
-                    dataDisplay = { textDisplay(it.toString()) },
+                    dataDisplay = { scoreDisplay(it) },
                     customDataDisplay = { customTextChoice(it, GameDataType.criticScore, String::toDouble) }
                 )
                 choiceTab(
                     GameDataType.userScore,
                     providerDataExtractor = { it.gameData.userScore },
                     gameDataExtractor = Game::userScore,
-                    dataDisplay = { textDisplay(it.toString()) },
+                    dataDisplay = { scoreDisplay(it)},
                     customDataDisplay = { customTextChoice(it, GameDataType.userScore, String::toDouble) }
                 )
                 choiceTab(
@@ -249,8 +246,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         customText.validate(decorateErrors = false)
     }
 
+    private fun VBox.scoreDisplay(score: Score) = textDisplay("${score.score} Based on ${score.numReviews} reviews.")
     private fun VBox.textDisplay(text: String) = textDisplay(text.toProperty())
-
     private fun VBox.textDisplay(text: StringProperty) {
         paddingAll = 20.0
         label(text) {

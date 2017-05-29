@@ -45,16 +45,17 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun randomMetaData(library: Library = this.library, path: String = randomPath()) = MetaData(
             libraryId = library.id,
             path = path.toFile(),
-            lastModified = randomDateTime()
+            updateDate = randomDateTime()
         )
 
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
                 type = randomEnum<GameProviderType>(),
-                apiUrl = randomUrl(),
-                siteUrl = randomUrl()
+                apiUrl = randomUrl()
             ),
             gameData = GameData(
+                updateDate = randomDateTime(),
+                siteUrl = randomUrl(),
                 name = randomName(),
                 description = randomSentence(),
                 releaseDate = randomLocalDateString(),
@@ -91,8 +92,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             GameDataType.name_ to customDataOverride(randomName()),
             GameDataType.description to customDataOverride(randomSentence()),
             GameDataType.releaseDate to customDataOverride(randomLocalDateString()),
-            GameDataType.criticScore to customDataOverride(randomScore()),
-            GameDataType.userScore to customDataOverride(randomScore()),
+            GameDataType.criticScore to customDataOverride(randomScore().score),
+            GameDataType.userScore to customDataOverride(randomScore().score),
             GameDataType.genres to customDataOverride(listOf(randomString(), randomString(), randomString())),
             GameDataType.thumbnail to customDataOverride(randomUrl()),
             GameDataType.poster to customDataOverride(randomUrl()),

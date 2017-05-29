@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.now
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,10 +51,11 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
         header = ProviderHeader(
             type = type,
-            apiUrl = apiUrl,
-            siteUrl = this.siteDetailUrl
+            apiUrl = apiUrl
         ),
         gameData = GameData(
+            updateDate = now,
+            siteUrl = this.siteDetailUrl,
             name = this.name,
             description = this.deck,
             releaseDate = this.originalReleaseDate?.toString(),

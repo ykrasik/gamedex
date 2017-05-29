@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTime
 import java.io.File
 import java.nio.file.Paths
@@ -20,7 +21,7 @@ data class Game(
 ) {
     val id get() = rawGame.id
     val path: File = Paths.get(library.path.toString(), metaData.path.toString()).toFile()
-    val lastModified get() = metaData.lastModified
+    val updateDate get() = metaData.updateDate
     val userData get() = rawGame.userData
     private val metaData get() = rawGame.metaData
 
@@ -58,8 +59,9 @@ data class ProviderData(
     val imageUrls: ImageUrls
 )
 
-// TODO: Consider adding an updateDate and have refreshAll ignore games beyond a certain threshold
 data class GameData(
+    val updateDate: DateTime,
+    val siteUrl: String,
     val name: String,
     val description: String?,
     val releaseDate: String?,
@@ -77,8 +79,7 @@ data class Score(
 
 data class ProviderHeader(
     val type: GameProviderType,
-    val apiUrl: String,
-    val siteUrl: String // Doesn't really belong here, probably more in GameData, but whatever.   TODO: Move to GameData.
+    val apiUrl: String
 )
 
 data class ImageUrls(
@@ -90,9 +91,10 @@ data class ImageUrls(
 data class MetaData(
     val libraryId: Int,
     val path: File,
-    val lastModified: DateTime
+    val updateDate: DateTime
 ) {
-    fun updatedNow() = copy(lastModified = DateTime.now())
+    // TODO: Consider moving this responsibility to the persistence layer.
+    fun updatedNow() = copy(updateDate = now)
 }
 
 enum class GameDataType(val displayName: String) {
