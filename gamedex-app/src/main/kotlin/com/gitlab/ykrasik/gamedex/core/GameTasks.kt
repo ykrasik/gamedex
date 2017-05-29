@@ -127,6 +127,7 @@ class GameTasks @Inject constructor(
     }
 
     // TODO: Consider renaming 'refresh' to 'redownload'
+    // TODO: Add the fact that this only operates on stale games to it's name.
     inner class RefreshAllGamesTask : Task<Unit>("Refreshing all games...") {
         private var numRefreshed = 0
 
@@ -135,13 +136,14 @@ class GameTasks @Inject constructor(
             gameRepository.games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gameRepository.games.size - 1)
 
-                // TODO: Only refresh games that were refreshed before a certain point in time.
-//                val providersToDownload = game.rawGame.providerData.filter { data ->
-//                    // TODO: Store stale duration in config.
-//                    data.gameData.updateDate.plusWeeks(2).isBeforeNow
-//                }.map { it.header }
-                doRefreshGame(game)
-                numRefreshed += 1
+                val providersToDownload = game.rawGame.providerData.filter { data ->
+                    // TODO: Store stale duration as config or parameter.
+                    data.gameData.updateDate.plusMonths(1).isBeforeNow
+                }.map { it.header }
+                if (providersToDownload.isNotEmpty()) {
+                    doRefreshGame(game, providersToDownload)
+                    numRefreshed += 1
+                }
             }
         }
 
@@ -155,16 +157,16 @@ class GameTasks @Inject constructor(
 
     private suspend fun Task<*>.doRefreshGame(game: Game, providersToDownload: List<ProviderHeader> = game.providerHeaders): Game {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
-        val providerData = providerService.download(taskData, providersToDownload)
-        val newProviderData = providerData
-//        if (providersToDownload == game.providerHeaders) {
-//            providerData
-//        } else {
-//            game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.type == d.header.type } } + providerData
-//        }
+        val downloadedProviderData = providerService.download(taskData, providersToDownload)
+        val newProviderData = if (providersToDownload == game.providerHeaders) {
+            downloadedProviderData
+        } else {
+            game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.type == d.header.type } } + downloadedProviderData
+        }
         return updateGame(game, newProviderData, newUserData = game.userData)
     }
 
+    // TODO: This only rediscovers non-excluded providers - find a way to add to name
     inner class RediscoverAllGamesTask : Task<Unit>("Rediscovering all games...") {
         private var numRetried = 0
         private var numSucceeded = 0

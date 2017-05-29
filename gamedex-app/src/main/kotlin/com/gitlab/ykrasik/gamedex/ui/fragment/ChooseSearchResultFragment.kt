@@ -148,7 +148,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                         }
                         column("Name", ProviderSearchResult::name)
                         column("Release Date", ProviderSearchResult::releaseDate)
-                        column("Score", ProviderSearchResult::score)
+                        column("Score", ProviderSearchResult::score) // TODO: Fix score display, add userScore
 
                         minTableWidth.bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
                             binding.add(column.widthProperty())

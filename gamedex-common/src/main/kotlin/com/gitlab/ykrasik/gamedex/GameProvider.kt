@@ -20,6 +20,7 @@ enum class GameProviderType {
     GiantBomb
 }
 
+// TODO: Add user score
 data class ProviderSearchResult(
     val name: String,
     val releaseDate: String?,

@@ -77,6 +77,7 @@ data class Score(
     override fun compareTo(other: Score) = score.compareTo(other.score)
 }
 
+// TODO: updateDate sounds like it belongs here more then in gameData
 data class ProviderHeader(
     val type: GameProviderType,
     val apiUrl: String
