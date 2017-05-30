@@ -1,13 +1,16 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.value.ObservableValue
 import javafx.geometry.HPos
+import javafx.geometry.Pos
 import javafx.geometry.VPos
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableView
@@ -121,7 +124,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
 
                 center {
                     tableView = tableview(results) {
-                        val indexColumn = makeIndexColumn()
+                        val indexColumn = makeIndexColumn().apply { addClass(Style.centered) }
                         customColumn("Thumbnail", ProviderSearchResult::thumbnailUrl) {
                             object : TableCell<ProviderSearchResult, String?>() {
                                 private val imageView = ImageView().apply {
@@ -132,6 +135,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                                 }
 
                                 init {
+                                    addClass(Style.centered)
                                     graphic = imageView
                                 }
 
@@ -147,11 +151,13 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             }
                         }
                         column("Name", ProviderSearchResult::name)
-                        column("Release Date", ProviderSearchResult::releaseDate)
-                        column("Critic Score", ProviderSearchResult::criticScoreScore)
-                        column("Critic Reviews", ProviderSearchResult::numCriticReviews)
-                        column("User Score", ProviderSearchResult::userScoreScore)
-                        column("User Reviews", ProviderSearchResult::numUserReviews)
+                        column("Release Date", ProviderSearchResult::releaseDate) { addClass(Style.centered) }
+                        column<ProviderSearchResult, String>("Critic Score") { toScoreDisplay(it.value.criticScore, "critics") }.apply {
+                            addClass(Style.centered)
+                        }
+                        column<ProviderSearchResult, String>("User Score") { toScoreDisplay(it.value.userScore, "users") }.apply {
+                            addClass(Style.centered)
+                        }
 
                         minTableWidth.bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
                             binding.add(column.widthProperty())
@@ -213,6 +219,9 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
         }
     }
 
+    private fun toScoreDisplay(score: Score?, type: String): ObservableValue<String> =
+        (if (score == null) "" else "${score.score}    /    ${score.numReviews} $type").toProperty()
+
     override fun onDock() {
 //        SmartResize.POLICY.requestResize(tableView)   // TODO: Experiment with this.
         tableView.resizeColumnsToFitContent()
@@ -240,6 +249,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
             val notExactMatch by cssid()
             val proceedWithout by cssid()
             val excludeProvider by cssid()
+            val centered by cssclass()
         }
 
         init {
@@ -269,6 +279,9 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 and(hover) {
                     backgroundColor = multi(Color.ORANGE)
                 }
+            }
+            centered {
+                alignment = Pos.TOP_CENTER
             }
         }
     }
