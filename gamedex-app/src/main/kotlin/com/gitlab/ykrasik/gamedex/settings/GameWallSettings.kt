@@ -18,11 +18,11 @@ class GameWallSettings private constructor() : AbstractSettings("gameWall") {
     var imageDisplayType by imageDisplayTypeProperty
 
     @Transient
-    val cellWidthProperty = preferenceProperty(169.0)
+    val cellWidthProperty = preferenceProperty(168.9)
     var cellWidth by cellWidthProperty
 
     @Transient
-    val cellHeightProperty = preferenceProperty(169.0)
+    val cellHeightProperty = preferenceProperty(168.9)
     var cellHeight by cellHeightProperty
 
     @Transient

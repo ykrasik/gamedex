@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.replaceFirst
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -84,9 +85,8 @@ class GameRepository @Inject constructor(
             persistenceService.updateGame(newRawGame)
         }
 
-        removeById(updatedGame.id)
         val game = updatedGame.toGame()
-        games += game
+        require(games.replaceFirst(game) { it.id == game.id }) { "Game doesn't exist: $game" }
         game
     }
 

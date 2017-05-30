@@ -10,7 +10,6 @@ import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
-import javafx.css.StyleableObjectProperty
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
 import javafx.scene.image.ImageView
@@ -18,6 +17,8 @@ import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
+import org.controlsfx.control.GridCell
+import org.controlsfx.control.GridView
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -26,22 +27,21 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
-// TODO: Allow "marking" a game with some marker - to delete, redownload etc.
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
     private val settings: GameWallSettings by di()
     private val imageLoader: ImageLoader by di()
     private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
-    override val root = datagrid(gameController.sortedFilteredGames.games) {
-        cellHeightProperty.bind(settings.cellHeightProperty)
-        cellWidthProperty.bind(settings.cellWidthProperty)
-        (horizontalCellSpacingProperty as StyleableObjectProperty).bind(settings.cellHorizontalSpacingProperty)
-        (verticalCellSpacingProperty as StyleableObjectProperty).bind(settings.cellVerticalSpacingProperty)
+    override val root = GridView<Game>(gameController.sortedFilteredGames.games).apply {
+        cellHeightProperty().bind(settings.cellHeightProperty)
+        cellWidthProperty().bind(settings.cellWidthProperty)
+        horizontalCellSpacingProperty().bind(settings.cellHorizontalSpacingProperty)
+        verticalCellSpacingProperty().bind(settings.cellVerticalSpacingProperty)
 
         val popOver = popOver()
 
-        cellFactory = {
+        setCellFactory {
             val cell = GameWallCell()
             cell.setOnMouseClicked { e ->
                 when (e.clickCount) {
@@ -107,7 +107,7 @@ class GameWallView : View("Games Wall") {
 
     // TODO: Allow to overlay the library name as a ribbon over the image.
     // TODO: Consider adding an option to display the game name under the cell
-    inner class GameWallCell : DataGridCell<Game>(root) {
+    private inner class GameWallCell : GridCell<Game>() {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, settings.imageDisplayTypeProperty)
 
@@ -123,9 +123,9 @@ class GameWallView : View("Games Wall") {
             val dropshadow = DropShadow().apply {
                 input = Glow()
             }
-
             setOnMouseEntered { effect = dropshadow }
             setOnMouseExited { effect = null }
+
             graphic = imageViewLimitedPane
         }
 
@@ -144,9 +144,7 @@ class GameWallView : View("Games Wall") {
             super.updateItem(game, empty)
 
             if (game != null) {
-                val thumbnailUrl = game.thumbnailUrl
-                val image = imageLoader.fetchImage(game.id, thumbnailUrl, persistIfAbsent = true)
-                imageView.imageProperty().cleanBind(image)
+                imageView.imageProperty().cleanBind(imageLoader.fetchImage(game.id, game.thumbnailUrl, persistIfAbsent = true))
                 tooltip(game.name)
             } else {
                 imageView.imageProperty().unbind()

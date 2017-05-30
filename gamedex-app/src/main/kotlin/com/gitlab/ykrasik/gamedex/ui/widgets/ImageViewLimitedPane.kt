@@ -3,13 +3,14 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.unmodifiable
 import javafx.beans.property.ObjectProperty
+import javafx.beans.value.ChangeListener
+import javafx.beans.value.WeakChangeListener
 import javafx.collections.ObservableList
 import javafx.geometry.HPos
 import javafx.geometry.VPos
 import javafx.scene.Node
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
-import tornadofx.onChange
 
 /**
  * User: ykrasik
@@ -31,7 +32,7 @@ class ImageViewLimitedPane(
         imageView.fitHeightProperty().bind(maxHeightProperty())
         imageView.fitWidthProperty().bind(maxWidthProperty())
 
-        imageDisplayType.onChange { requestParentLayout() }
+        imageDisplayType.addListener(WeakChangeListener(ChangeListener { _, _, _ -> requestParentLayout() }))
     }
 
     override fun layoutChildren() {
