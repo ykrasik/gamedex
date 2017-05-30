@@ -93,6 +93,8 @@ class IgdbFakeServer(port: Int) : Closeable {
             name = "$name ${randomName()}",
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
+            rating = randomScore().score,
+            ratingCount = randomScore().numReviews,
             releaseDates = randomReleaseDates(),
             cover = randomImage()
         )

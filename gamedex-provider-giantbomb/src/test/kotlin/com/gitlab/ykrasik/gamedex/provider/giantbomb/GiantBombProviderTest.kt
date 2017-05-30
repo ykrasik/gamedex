@@ -23,7 +23,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
                     apiUrl = searchResult.apiDetailUrl,
                     name = name,
                     releaseDate = searchResult.originalReleaseDate?.toString(),
-                    score = null,
+                    criticScore = null,
+                    userScore = null,
                     thumbnailUrl = searchResult.image!!.thumbUrl
                 ))
             }
@@ -49,7 +50,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 givenClientSearchReturns(listOf(searchResult().copy(originalReleaseDate = null)))
 
                 search() should haveASingleSearchResultThat {
-                    it.score shouldBe null
+                    it.criticScore shouldBe null
                 }
             }
 

@@ -52,6 +52,8 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "name",
             "aggregated_rating",
             "aggregated_rating_count",
+            "rating",
+            "rating_count",
             "release_dates.category",
             "release_dates.human",
             "release_dates.platform",
@@ -62,8 +64,6 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val fetchDetailsFields = searchFields + listOf(
             "url",
             "summary",
-            "rating",
-            "rating_count",
             "screenshots.cloudinary_id",
             "genres"
         )
@@ -75,6 +75,8 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val name: String,
         val aggregatedRating: Double?,
         val aggregatedRatingCount: Int?,
+        val rating: Double?,
+        val ratingCount: Int?,
         val releaseDates: List<ReleaseDate>?,
         val cover: Image?
     )

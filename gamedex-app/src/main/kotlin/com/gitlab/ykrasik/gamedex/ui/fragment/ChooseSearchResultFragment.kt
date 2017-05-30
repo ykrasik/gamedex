@@ -148,7 +148,10 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                         }
                         column("Name", ProviderSearchResult::name)
                         column("Release Date", ProviderSearchResult::releaseDate)
-                        column("Score", ProviderSearchResult::score) // TODO: Fix score display, add userScore
+                        column("Critic Score", ProviderSearchResult::criticScoreScore)
+                        column("Critic Reviews", ProviderSearchResult::numCriticReviews)
+                        column("User Score", ProviderSearchResult::userScoreScore)
+                        column("User Reviews", ProviderSearchResult::numUserReviews)
 
                         minTableWidth.bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
                             binding.add(column.widthProperty())
@@ -213,7 +216,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
     override fun onDock() {
 //        SmartResize.POLICY.requestResize(tableView)   // TODO: Experiment with this.
         tableView.resizeColumnsToFitContent()
-//        modalStage!!.minWidthProperty().bind(minTableWidth.add(60))
+        modalStage!!.minWidthProperty().bind(minTableWidth.add(60))
     }
 
     fun show(): SearchChooser.Choice {

@@ -19,7 +19,8 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
         fun randomSearchResult() = ProviderSearchResult(
             name = randomName(),
             releaseDate = randomLocalDateString(),
-            score = randomScore(),
+            criticScore = randomScore(),
+            userScore = randomScore(),
             thumbnailUrl = randomUrl(),
             apiUrl = randomUrl()
         )

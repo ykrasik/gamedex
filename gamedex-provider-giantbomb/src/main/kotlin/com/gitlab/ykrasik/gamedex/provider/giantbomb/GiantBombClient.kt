@@ -16,6 +16,7 @@ import javax.inject.Singleton
  * Date: 19/04/2017
  * Time: 09:33
  */
+// TODO: GiantBomb can return a number of user reviews
 @Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     open fun search(name: String, platform: Platform): SearchResponse {

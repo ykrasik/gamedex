@@ -20,7 +20,8 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
-                    score = null,
+                    criticScore = null,
+                    userScore = null,
                     thumbnailUrl = thumbnailUrl
                 ))
             }

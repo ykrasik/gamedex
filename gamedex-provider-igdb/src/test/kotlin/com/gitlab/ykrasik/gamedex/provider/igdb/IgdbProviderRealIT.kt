@@ -21,7 +21,8 @@ class IgdbProviderRealIT : ScopedWordSpec() {
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
-                    score = criticScore,
+                    criticScore = criticScore,
+                    userScore = userScore,
                     thumbnailUrl = thumbnailUrl
                 ))
             }

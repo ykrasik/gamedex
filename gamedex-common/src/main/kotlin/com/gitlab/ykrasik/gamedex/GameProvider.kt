@@ -20,11 +20,17 @@ enum class GameProviderType {
     GiantBomb
 }
 
-// TODO: Add user score
 data class ProviderSearchResult(
     val name: String,
     val releaseDate: String?,
-    val score: Score?,
+    val criticScore: Score?,
+    val userScore: Score?,
     val thumbnailUrl: String?,
     val apiUrl: String
-)
+) {
+    val criticScoreScore get() = criticScore?.score
+    val numCriticReviews get() = criticScore?.numReviews
+
+    val userScoreScore get() = userScore?.score
+    val numUserReviews get() = userScore?.numReviews
+}

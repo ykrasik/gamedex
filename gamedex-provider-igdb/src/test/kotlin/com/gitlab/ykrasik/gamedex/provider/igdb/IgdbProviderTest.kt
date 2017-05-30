@@ -23,7 +23,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                     apiUrl = "$baseUrl/${searchResult.id}",
                     name = name,
                     releaseDate = releaseDate,
-                    score = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
+                    criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
+                    userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
                     thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
                 ))
             }
@@ -70,7 +71,15 @@ class IgdbProviderTest : ScopedWordSpec() {
                 givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1)))
 
                 search() should haveASingleSearchResultThat {
-                    it.score shouldBe null
+                    it.criticScore shouldBe null
+                }
+            }
+
+            "handle null rating and ignore ratingCount".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult().copy(rating = null, ratingCount = 1)))
+
+                search() should haveASingleSearchResultThat {
+                    it.userScore shouldBe null
                 }
             }
 
@@ -257,6 +266,8 @@ class IgdbProviderTest : ScopedWordSpec() {
             name = name,
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
+            rating = randomScore().score,
+            ratingCount = randomScore().numReviews,
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
             cover = image()
         )

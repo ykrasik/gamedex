@@ -51,7 +51,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         apiUrl = "${config.endpoint}/$id",
         name = name,
         releaseDate = releaseDates?.findReleaseDate(platform),
-        score = toScore(aggregatedRating, aggregatedRatingCount),
+        criticScore = toScore(aggregatedRating, aggregatedRatingCount),
+        userScore = toScore(rating, ratingCount),
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(thumbnailImageType)
     )
 

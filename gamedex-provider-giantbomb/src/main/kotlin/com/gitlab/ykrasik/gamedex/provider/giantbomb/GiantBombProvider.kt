@@ -30,7 +30,8 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     private fun GiantBombClient.SearchResult.toProviderSearchResult() = ProviderSearchResult(
         name = name,
         releaseDate = originalReleaseDate?.toString(),
-        score = null,
+        criticScore = null,
+        userScore = null,
         thumbnailUrl = image?.thumbUrl,
         apiUrl = apiDetailUrl
     )
