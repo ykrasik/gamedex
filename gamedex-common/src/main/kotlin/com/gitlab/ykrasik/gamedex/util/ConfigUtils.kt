@@ -10,7 +10,7 @@ import com.typesafe.config.ConfigFactory
  */
 // TODO: Consider moving this to the app module.
 var appConfig: Config = run {
-    val configurationFiles = ClassPathScanner.scanPackage("") {
+    val configurationFiles = ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
         it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
     }
 

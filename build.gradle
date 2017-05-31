@@ -155,7 +155,6 @@ project("gamedex-app") {
         compile project(":gamedex-provider-giantbomb")
         compile project(":gamedex-provider-igdb")
 
-        compile reflections
         compile slf4j.julBridge
         compile logback
 
@@ -175,6 +174,7 @@ project("gamedex-common") {
 
         compile guava
         compile commonsLang3
+        compile reflections
 
         compile jodaTime
 

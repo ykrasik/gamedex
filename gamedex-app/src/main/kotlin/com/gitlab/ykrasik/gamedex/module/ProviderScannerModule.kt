@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.module
 
+import com.gitlab.ykrasik.gamedex.util.ClassPathScanner
 import com.google.inject.AbstractModule
-import org.reflections.Reflections
 
 
 /**
@@ -16,7 +16,7 @@ object ProviderScannerModule : AbstractModule() {
     }
 
     private fun scanProviderModules(): List<AbstractModule> {
-        val classes = Reflections("com.gitlab.ykrasik.gamedex.provider").getSubTypesOf(AbstractModule::class.java)
+        val classes = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", AbstractModule::class)
         return classes.map { it.kotlin.objectInstance!! }
     }
 }

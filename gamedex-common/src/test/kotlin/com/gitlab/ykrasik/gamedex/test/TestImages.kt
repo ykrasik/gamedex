@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream
  * These images were all taken from igdb.com
  */
 object TestImages {
-    private val images = ClassPathScanner.scanPackage("com.gitlab.ykrasik.gamedex.test") { it.endsWith(".jpg") }
+    private val images = ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex.test") { it.endsWith(".jpg") }
 
     fun randomImageBytes(): ByteArray = images.randomElement().readBytes()
     fun randomImage(): Image = Image(ByteArrayInputStream(randomImageBytes()))
