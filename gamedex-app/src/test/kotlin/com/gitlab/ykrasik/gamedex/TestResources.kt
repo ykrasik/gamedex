@@ -8,6 +8,8 @@ import com.gitlab.ykrasik.gamedex.util.now
  * Date: 01/04/2017
  * Time: 14:09
  */
+val testProviderIds = listOf("Igdb", "GiantBomb")
+
 fun randomLibrary() = Library(
     id = rnd.nextInt(),
     path = randomFile(),
@@ -33,13 +35,13 @@ fun randomGameData() = GameData(
     genres = List(rnd.nextInt(5)) { "Genre ${rnd.nextInt(30)}" }
 )
 
-fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(GameProviderType.values().size)) {
+fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(testProviderIds.size)) {
     randomProviderHeader()
 }
 
-fun randomProviderHeader(type: GameProviderType = randomEnum(),
+fun randomProviderHeader(id: ProviderId = testProviderIds.randomElement(),
                          apiUrl: String = randomUrl()) = ProviderHeader(
-    type = type,
+    id = id,
     apiUrl = apiUrl,
     updateDate = now.minusYears(1)
 )

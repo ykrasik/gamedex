@@ -33,7 +33,7 @@ interface GameProviderService {
 
     data class SearchConstraints(
         val mode: SearchMode,
-        val excludedProviders: List<GameProviderType>
+        val excludedProviders: List<ProviderId>
     ) {
         enum class SearchMode(val key: String) {
             askIfNonExact("If non-exact: Ask"),
@@ -45,7 +45,7 @@ interface GameProviderService {
 
     data class SearchResults(
         val providerData: List<ProviderData>,
-        val excludedProviders: List<GameProviderType>
+        val excludedProviders: List<ProviderId>
     ) {
         fun isEmpty(): Boolean = providerData.isEmpty() && excludedProviders.isEmpty()
     }
@@ -77,7 +77,7 @@ class GameProviderServiceImpl @Inject constructor(
         private var searchedName = taskData.name.normalizeName()
         private var canAutoContinue = searchMode != GameProviderService.SearchConstraints.SearchMode.alwaysAsk
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
-        private val excludedProviders = mutableListOf<GameProviderType>()
+        private val excludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
         private val task get() = taskData.task
@@ -97,14 +97,14 @@ class GameProviderServiceImpl @Inject constructor(
         }
 
         private fun shouldSearch(provider: GameProvider): Boolean {
-            return provider.supportedPlatforms.contains(platform) && !constraints.excludedProviders.contains(provider.type)
+            return provider.supportedPlatforms.contains(platform) && !constraints.excludedProviders.contains(provider.id)
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
-            task.providerLogo = providerRepository.logo(provider.type)
-            task.progress.message = "[$platform][${provider.type}] Searching '$searchedName'..."
+            task.providerLogo = providerRepository.logo(provider.id)
+            task.progress.message = "[$platform][${provider.id}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            task.progress.message = "[$platform][${provider.type}] Searching '$searchedName': ${results.size} results."
+            task.progress.message = "[$platform][${provider.id}] Searching '$searchedName': ${results.size} results."
 
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
@@ -140,7 +140,7 @@ class GameProviderServiceImpl @Inject constructor(
                     search(provider)
                 }
                 is SearchChooser.Choice.ExcludeProvider -> {
-                    excludedProviders += provider.type
+                    excludedProviders += provider.id
                     null
                 }
                 SearchChooser.Choice.ProceedWithout -> null
@@ -162,12 +162,12 @@ class GameProviderServiceImpl @Inject constructor(
             }
 
             val chooseSearchResultData = SearchChooser.Data(
-                searchedName, taskData.path, taskData.platform, provider.type, results = results, filteredResults = filteredResults
+                searchedName, taskData.path, taskData.platform, provider.id, results = results, filteredResults = filteredResults
             )
             return chooser.choose(chooseSearchResultData)
         }
 
-        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.type, apiUrl, updateDate = now)
+        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, updateDate = now)
     }
 
     override suspend fun download(taskData: GameProviderService.ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> {
@@ -180,7 +180,7 @@ class GameProviderServiceImpl @Inject constructor(
         return headers.map { header ->
             async(task.context) {
                 if (task.result.isCancelled) throw CancellationException()
-                providerRepository[header].download(header.apiUrl, platform)
+                providerRepository[header.id].download(header.apiUrl, platform)
             }
         }.map { it.await() }
     }
@@ -195,7 +195,7 @@ interface SearchChooser {
         val name: String,
         val path: File,
         val platform: Platform,
-        val providerType: GameProviderType,
+        val providerId: ProviderId,
         val results: List<ProviderSearchResult>,
         val filteredResults: List<ProviderSearchResult>
     )
@@ -204,7 +204,7 @@ interface SearchChooser {
         data class ExactMatch(val result: ProviderSearchResult) : Choice()
         data class NotExactMatch(val result: ProviderSearchResult) : Choice()
         data class NewSearch(val newSearch: String) : Choice()
-        data class ExcludeProvider(val provider: GameProviderType) : Choice()
+        data class ExcludeProvider(val provider: ProviderId) : Choice()
         object ProceedWithout : Choice()
         object Cancel : Choice()
     }

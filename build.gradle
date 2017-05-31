@@ -19,6 +19,7 @@ buildscript {
             multibindings = [group: 'com.google.inject.extensions', name: 'guice-multibindings', version: v]
             delegate
         }
+        reflections = [group: 'org.reflections', name: 'reflections', version: '0.9.10']
 
         slf4j = [:].with {
             v = '1.7.25'
@@ -86,10 +87,14 @@ buildscript {
 }
 
 allprojects {
-    apply plugin: "java"
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
+
+    group 'com.gitlab.ykrasik'
+    version '0.1.0'
 
     repositories {
         mavenLocal()
@@ -104,19 +109,7 @@ allprojects {
 subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'org.jetbrains.dokka'
-
-    configurations {
-        testArtifacts.extendsFrom testRuntime
-    }
-
-    task testJar(type: Jar) {
-        classifier "test"
-        from sourceSets.test.output
-    }
-
-    artifacts {
-        testArtifacts testJar
-    }
+    apply gradleFile('test.gradle')
 
     dependencies {
         compile ktlin.std
@@ -162,6 +155,7 @@ project("gamedex-app") {
         compile project(":gamedex-provider-giantbomb")
         compile project(":gamedex-provider-igdb")
 
+        compile reflections
         compile slf4j.julBridge
         compile logback
 
@@ -194,6 +188,42 @@ project("gamedex-common") {
         testCompile ktor.core
         testCompile ktor.netty
     }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task testSourcesJar(type: Jar, dependsOn: classes) {
+        appendix 'testkit'
+        classifier 'sources'
+        from sourceSets.test.allSource
+        exclude '**/*.jpg'
+    }
+
+    publishing {
+        publications {
+            main(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+            }
+            test(MavenPublication) {
+                artifactId 'gamedex-common-testkit'
+                artifact testJar
+                artifact testSourcesJar
+
+                pom.withXml {
+                    def dependencies = asNode().appendNode('dependencies')
+                    configurations.testArtifacts.getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', it.moduleGroup)
+                        dependency.appendNode('artifactId', it.moduleName)
+                        dependency.appendNode('version', it.moduleVersion)
+                    }
+                }
+            }
+        }
+    }
 }
 
 project("gamedex-persistence") {
@@ -219,3 +249,5 @@ project("gamedex-provider-igdb") {
         testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
     }
 }
+
+def gradleFile(String fileName) { [from: file("gradle/$fileName")] }

@@ -87,7 +87,6 @@ class SettingsController @Inject constructor(
     }
 
     // TODO: This isn't actually cancellable. Do I want it to be?
-    // TODO: The UI of this stopped working.
     inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 
@@ -165,7 +164,7 @@ class SettingsController @Inject constructor(
     )
 
     private data class PortableProviderData(
-        val provider: String,
+        val providerId: ProviderId,
         val apiUrl: String,
         val updateDate: Long,
         val siteUrl: String,
@@ -183,7 +182,7 @@ class SettingsController @Inject constructor(
     ) {
         fun toProviderData() = ProviderData(
             header = ProviderHeader(
-                type = GameProviderType.valueOf(provider),
+                id = providerId,
                 apiUrl = apiUrl,
                 updateDate = updateDate.toDateTime()
             ),
@@ -207,7 +206,7 @@ class SettingsController @Inject constructor(
     }
 
     private fun ProviderData.toPortable() = PortableProviderData(
-        provider = header.type.name,
+        providerId = header.id,
         apiUrl = header.apiUrl,
         updateDate = header.updateDate.millis,
         siteUrl = gameData.siteUrl,
@@ -235,7 +234,7 @@ class SettingsController @Inject constructor(
         val posterOverride: PortableGameDataOverride?,
         val screenshotsOverride: PortableGameDataOverride?,
         val tags: List<String>,
-        val excludedProviders: List<GameProviderType>
+        val excludedProviders: List<ProviderId>
     ) {
         fun toUserData(): UserData {
             val overrides = mutableMapOf<GameDataType, GameDataOverride>()
@@ -284,7 +283,7 @@ class SettingsController @Inject constructor(
     private sealed class PortableGameDataOverride {
         abstract fun toOverride(): GameDataOverride
 
-        data class Provider(val provider: GameProviderType) : PortableGameDataOverride() {
+        data class Provider(val provider: ProviderId) : PortableGameDataOverride() {
             override fun toOverride() = GameDataOverride.Provider(provider)
         }
 

@@ -79,7 +79,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
                 download(apiDetailUrl) shouldBe ProviderData(
                     header = ProviderHeader(
-                        type = GameProviderType.GiantBomb,
+                        id = "GiantBomb",
                         apiUrl = apiDetailUrl,
                         updateDate = nowMock
                     ),

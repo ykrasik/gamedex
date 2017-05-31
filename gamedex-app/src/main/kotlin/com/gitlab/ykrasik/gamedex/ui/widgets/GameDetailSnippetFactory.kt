@@ -119,9 +119,9 @@ class GameDetailSnippetFactory @Inject constructor(private val providerRepositor
                     gridpane {
                         hgap = 7.0
                         vgap = 3.0
-                        game.rawGame.providerData.sortedBy { it.header.type }.forEach { providerData ->
+                        game.rawGame.providerData.sortedBy { it.header.id }.forEach { providerData ->
                             row {
-                                imageview(providerRepository.logo(providerData.header)) {
+                                imageview(providerRepository.logo(providerData.header.id)) {
                                     fitHeight = 30.0
                                     fitWidth = 70.0
                                     isPreserveRatio = true

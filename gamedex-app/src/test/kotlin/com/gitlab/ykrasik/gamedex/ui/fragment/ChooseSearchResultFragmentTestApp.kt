@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
 import com.gitlab.ykrasik.gamedex.BaseTestApp
-import com.gitlab.ykrasik.gamedex.GameProviderType
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.testProviderIds
 import tornadofx.importStylesheet
 
 /**
@@ -29,7 +29,7 @@ object ChooseSearchResultFragmentTestApp : BaseTestApp() {
             name = randomName(),
             path = randomFile(),
             platform = randomEnum(),
-            providerType = GameProviderType.GiantBomb,
+            providerId = testProviderIds.randomElement(),
             results = List(10) { randomSearchResult() },
             filteredResults = List(10) { randomSearchResult() }
         )

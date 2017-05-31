@@ -84,6 +84,8 @@ proguard/
 
 # Package Files #
 *.jar
+!gradle-wrapper.jar
+gradle.properties
 *.war
 *.ear
 
@@ -103,5 +105,7 @@ classes/
 *.h2.db
 conf/
 *.mv.db
+*.trace.db
+*.trace.db.old
 *.hprof
 logs/

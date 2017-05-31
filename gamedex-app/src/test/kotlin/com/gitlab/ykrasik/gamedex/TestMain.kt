@@ -67,13 +67,13 @@ object TestMain {
         runBlocking {
             (0 until numGames).map {
                 async(context) {
-                    val providerTypes = mutableListOf(*GameProviderType.values())
+                    val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
                     persistenceService.insertGame(
                         metaData = randomMetaData(libraries.randomElement().id),
-                        providerData = List(rnd.nextInt(GameProviderType.values().size + 1)) {
-                            val type = providerTypes.randomElement()
-                            providerTypes -= type
-                            randomProviderData(type)
+                        providerData = List(rnd.nextInt(providerIds.size + 1)) {
+                            val providerId = providerIds.randomElement()
+                            providerIds -= providerId
+                            randomProviderData(providerId)
                         },
                         userData = null
                     )
@@ -83,20 +83,22 @@ object TestMain {
         executor.shutdownNow()
     }
 
-    private fun randomProviderData(type: GameProviderType) = ProviderData(
-        header = randomProviderHeader(type, apiUrl(type)),
+    private fun randomProviderData(id: ProviderId) = ProviderData(
+        header = randomProviderHeader(id, apiUrl(id)),
         gameData = randomGameData(),
-        imageUrls = imageUrls(type)
+        imageUrls = imageUrls(id)
     )
 
-    private fun apiUrl(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> giantBombServer.apiDetailsUrl
-        GameProviderType.Igdb -> igdbServer.detailsUrl(rnd.nextInt())
+    private fun apiUrl(id: ProviderId) = when (id) {
+        giantBombServer.providerId -> giantBombServer.apiDetailsUrl
+        igdbServer.providerId -> igdbServer.detailsUrl(rnd.nextInt())
+        else -> error("Invalid providerId: $id")
     }
 
-    private fun imageUrls(type: GameProviderType) = when (type) {
-        GameProviderType.GiantBomb -> randomGiantBombImageUrls()
-        GameProviderType.Igdb -> randomIgdbImageUrls()
+    private fun imageUrls(id: ProviderId) = when (id) {
+        giantBombServer.providerId -> randomGiantBombImageUrls()
+        igdbServer.providerId -> randomIgdbImageUrls()
+        else -> error("Invalid providerId: $id")
     }
 
     private fun randomGiantBombImageUrls() = ImageUrls(

@@ -1,8 +1,6 @@
 package com.gitlab.ykrasik.gamedex.module
 
 import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombModule
-import com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbModule
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.google.inject.Stage
@@ -21,7 +19,7 @@ class GuiceDiContainer(modules: List<Module> = GuiceDiContainer.defaultModules) 
 
     companion object {
         val defaultModules = listOf(
-            AppModule, ConfigModule, PersistenceModule, GiantBombModule, IgdbModule
+            AppModule, ConfigModule, PersistenceModule, ProviderScannerModule
         )
     }
 }

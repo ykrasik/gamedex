@@ -130,14 +130,14 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                                 addClass(Style.currentlySelected)
                                 isSelected = true
                             }
-                            userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.type))
+                            userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.id))
                             graphic = vbox {
                                 alignment = Pos.CENTER
                                 imageview {
                                     fitHeight = 120.0
                                     fitWidth = 120.0
                                     isPreserveRatio = true
-                                    image = providerRepository.logo(providerData.header)
+                                    image = providerRepository.logo(providerData.header.id)
                                 }
                                 spacer()
                                 dataDisplay(data)

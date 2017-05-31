@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.fragment
 
-import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.ProviderId
 import com.gitlab.ykrasik.gamedex.controller.SettingsController
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.AllSettings
@@ -106,7 +106,7 @@ class SettingsFragment : Fragment("Settings") {
         hbox(spacing = 20.0) {
             alignment = Pos.CENTER
             orderProperty.perform { order ->
-                var dragging: GameProviderType? = null
+                var dragging: ProviderId? = null
                 replaceChildren {
                     order.ordered().map { provider ->
                         label {
@@ -123,7 +123,7 @@ class SettingsFragment : Fragment("Settings") {
                             effect = dropShadow
 
                             var dragX = 0.0
-                            
+
                             setOnMousePressed { mouseEvent ->
                                 // record a delta distance for the drag and drop operation.
                                 dragX = layoutX - mouseEvent.sceneX
@@ -144,7 +144,7 @@ class SettingsFragment : Fragment("Settings") {
                                 if (intersect != null) {
                                     orderProperty.value = order.switch(
                                         dragging!!,
-                                        intersect.userData as GameProviderType
+                                        intersect.userData as ProviderId
                                     )
                                 }
                             }

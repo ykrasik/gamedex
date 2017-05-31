@@ -58,7 +58,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
 
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
         header = ProviderHeader(
-            type = type,
+            id = id,
             apiUrl = apiUrl,
             updateDate = now
         ),
@@ -82,7 +82,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
 
     private fun List<IgdbClient.ReleaseDate>.findReleaseDate(platform: Platform): String? {
         // IGDB returns all release dates for all platforms, not just the one we searched for.
-        val releaseDate = this.find { it.platform == platform.id } ?: return null
+        val releaseDate = this.find { it.platform == platform.platformId } ?: return null
         return try {
             LocalDate.parse(releaseDate.human, DateTimeFormat.forPattern("YYYY-MMM-dd")).toString()
         } catch (e: Exception) {
@@ -114,18 +114,17 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         screenshot_huge_2x  // 2560 x 1440
     }
 
-    private val Platform.id: Int get() = config.getPlatformId(this)
+    private val Platform.platformId: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val type = GameProviderType.Igdb
-    override val logo = IgdbProvider.logo
+    override val id = "Igdb"
+    override val logo = getResourceAsByteArray("igdb.png")
     override val supportedPlatforms = Platform.values().toList()
+    override fun toString() = id
 
-    companion object {
-        val logo = getResourceAsByteArray("igdb.png")
-
-        private val thumbnailImageType = IgdbImageType.thumb_2x
-        private val posterImageType = IgdbImageType.screenshot_huge
-        private val screenshotImageType = IgdbImageType.screenshot_huge
+    private companion object {
+        val thumbnailImageType = IgdbImageType.thumb_2x
+        val posterImageType = IgdbImageType.screenshot_huge
+        val screenshotImageType = IgdbImageType.screenshot_huge
     }
 }

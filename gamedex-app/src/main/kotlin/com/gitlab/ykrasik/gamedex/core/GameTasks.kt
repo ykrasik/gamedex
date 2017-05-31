@@ -161,7 +161,7 @@ class GameTasks @Inject constructor(
         val newProviderData = if (providersToDownload == game.providerHeaders) {
             downloadedProviderData
         } else {
-            game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.type == d.header.type } } + downloadedProviderData
+            game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.id == d.header.id } } + downloadedProviderData
         }
         return updateGame(game, newProviderData, newUserData = game.userData)
     }
@@ -189,7 +189,7 @@ class GameTasks @Inject constructor(
         private val Game.hasMissingProviders: Boolean
             get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
 
-        private val Game.existingProviders get() = rawGame.providerData.map { it.header.type }
+        private val Game.existingProviders get() = rawGame.providerData.map { it.header.id }
         private val Game.excludedProviders get() = userData?.excludedProviders ?: emptyList()
 
         override fun doneMessage() = "Done: Rediscovered $numSucceeded/$numRetried games."
@@ -200,7 +200,7 @@ class GameTasks @Inject constructor(
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<GameProviderType>): Game? {
+    private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<ProviderId>): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
         val constraints = GameProviderService.SearchConstraints(
             mode = GameProviderService.SearchConstraints.SearchMode.alwaysAsk,

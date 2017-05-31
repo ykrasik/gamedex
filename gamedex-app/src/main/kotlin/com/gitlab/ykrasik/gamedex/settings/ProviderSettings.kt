@@ -1,68 +1,68 @@
 package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.GameProvider
-import com.gitlab.ykrasik.gamedex.GameProviderType
+import com.gitlab.ykrasik.gamedex.ProviderId
 import tornadofx.getValue
 import tornadofx.setValue
-import java.util.*
-import kotlin.Comparator
 
 /**
  * User: ykrasik
  * Date: 23/04/2017
  * Time: 12:48
  */
-// TODO: Support full ordering between providers via drag & drop.
 class ProviderSettings private constructor() : AbstractSettings("provider") {
     companion object {
         operator fun invoke(): ProviderSettings = readOrUse(ProviderSettings())
+
+        // TODO: Does this mean that each provider needs to declare these fields?
+        private val Igdb = "Igdb"
+        private val GiantBomb = "GiantBomb"
     }
 
     @Transient
-    val searchOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val searchOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var searchOrder by searchOrderProperty
 
     @Transient
-    val nameOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val nameOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var nameOrder by nameOrderProperty
 
     @Transient
-    val descriptionOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val descriptionOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var descriptionOrder by descriptionOrderProperty
 
     @Transient
-    val releaseDateOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val releaseDateOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var releaseDateOrder by releaseDateOrderProperty
 
     @Transient
-    val criticScoreOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val criticScoreOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var criticScoreOrder by criticScoreOrderProperty
 
     @Transient
-    val userScoreOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val userScoreOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var userScoreOrder by userScoreOrderProperty
 
     @Transient
-    val thumbnailOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val thumbnailOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var thumbnailOrder by thumbnailOrderProperty
 
     @Transient
-    val posterOrderProperty = preferenceProperty(Order(GameProviderType.GiantBomb, GameProviderType.Igdb))
+    val posterOrderProperty = preferenceProperty(Order(GiantBomb, Igdb))
     var posterOrder by posterOrderProperty
 
     @Transient
-    val screenshotOrderProperty = preferenceProperty(Order(GameProviderType.Igdb, GameProviderType.GiantBomb))
+    val screenshotOrderProperty = preferenceProperty(Order(Igdb, GiantBomb))
     var screenshotOrder by screenshotOrderProperty
 
-    data class Order(val order: EnumMap<GameProviderType, Int>) {
-        operator fun get(type: GameProviderType) = order[type]!!
-        operator fun get(provider: GameProvider) = get(provider.type)
+    data class Order(val order: Map<ProviderId, Int>) {
+        operator fun get(id: ProviderId) = order[id]!!
 
-        fun toComparator(): Comparator<GameProvider> = Comparator { o1, o2 -> get(o1).compareTo(get(o2)) }
+        fun toComparator(): Comparator<GameProvider> = Comparator { o1, o2 -> get(o1.id).compareTo(get(o2.id)) }
 
         fun ordered() = order.entries.sortedBy { it.value }.map { it.key }
 
-        fun switch(a: GameProviderType, b: GameProviderType): Order {
+        fun switch(a: ProviderId, b: ProviderId): Order {
             val currentA = order[a]!!
             val currentB = order[b]!!
             return Order(order + (a to currentB) + (b to currentA))
@@ -71,11 +71,9 @@ class ProviderSettings private constructor() : AbstractSettings("provider") {
         companion object {
             val minOrder = -1
 
-            operator fun invoke(priorities: Map<GameProviderType, Int>): Order = Order(EnumMap(priorities))
-            operator fun invoke(vararg order: GameProviderType): Order {
-                require(order.size == GameProviderType.values().size) { "Missing a provider for order!" }
+            operator fun invoke(vararg order: ProviderId): Order {
                 require(order.distinct() == order.toList()) { "Providers may only appear once in order!" }
-                return invoke(order.mapIndexed { i, o -> o to i }.toMap())
+                return Order(order.mapIndexed { i, o -> o to i }.toMap())
             }
         }
     }

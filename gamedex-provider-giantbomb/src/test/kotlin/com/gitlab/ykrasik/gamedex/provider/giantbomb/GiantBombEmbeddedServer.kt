@@ -53,6 +53,7 @@ class GiantBombFakeServer(port: Int) : Closeable {
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
 
+    val providerId = "GiantBomb"
     val endpointUrl = "http://localhost:$port"
     val apiDetailsUrl = "$endpointUrl/$apiDetailPath"
     val thumbnailUrl = "$endpointUrl/$thumbnailPath"

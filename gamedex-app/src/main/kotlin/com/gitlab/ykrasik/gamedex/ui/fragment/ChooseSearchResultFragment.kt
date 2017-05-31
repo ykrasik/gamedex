@@ -67,7 +67,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                             gridpaneConstraints { columnRowIndex(4, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                             children += data.platform.toLogo { size(40.0) }
                         }
-                        imageview(providerRepository.logo(data.providerType)) {
+                        imageview(providerRepository.logo(data.providerId)) {
                             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
                             fitHeight = 80.0
                             fitWidth = 160.0
@@ -193,11 +193,11 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                jfxButton("Exclude ${data.providerType}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic{ size(26.0) }) {
+                jfxButton("Exclude ${data.providerId}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic{ size(26.0) }) {
                     setId(Style.excludeProvider)
                     addClass(CommonStyle.toolbarButton)
-                    tooltip("Exclude searching ${data.providerType} for '${data.name}'")
-                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerType))  }
+                    tooltip("Exclude searching ${data.providerId} for '${data.name}'")
+                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId))  }
                 }
                 verticalSeparator()
                 cancelButton { setOnAction { close(SearchChooser.Choice.Cancel)  } }
@@ -220,7 +220,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
     }
 
     private fun toScoreDisplay(score: Score?, type: String): ObservableValue<String> =
-        (if (score == null) "" else "${score.score}    /    ${score.numReviews} $type").toProperty()
+        (if (score == null) "" else "${score.score}   |   ${score.numReviews} $type").toProperty()
 
     override fun onDock() {
 //        SmartResize.POLICY.requestResize(tableView)   // TODO: Experiment with this.

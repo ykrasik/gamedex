@@ -1,0 +1,45 @@
+test {
+    testLogging {
+        events 'failed'
+        showExceptions true
+        showStackTraces true
+        exceptionFormat 'full'
+    }
+
+    systemProperties System.getProperties()
+}
+
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+
+task testJar(type: Jar) {
+    appendix = 'testkit'
+    from sourceSets.test.output
+}
+
+artifacts {
+    testArtifacts testJar
+}
+
+ext {
+    fullDependency = { String dep ->
+        dependencies {
+            compile project(dep)
+            testCompile project(path: dep, configuration: 'testArtifacts')
+        }
+    }
+
+    testDependency = { String dep ->
+        dependencies {
+            testCompile project(path: dep, configuration: 'testArtifacts')
+        }
+    }
+
+    externalTestDependency = { Map dep ->
+        dependencies {
+            testCompile dep + [classifier: 'tests']
+            testCompile dep + [classifier: 'tests-sources']
+        }
+    }
+}

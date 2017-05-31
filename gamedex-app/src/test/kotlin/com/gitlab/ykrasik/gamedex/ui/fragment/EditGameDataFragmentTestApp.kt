@@ -11,9 +11,9 @@ import com.gitlab.ykrasik.gamedex.test.rnd
  */
 object EditGameDataFragmentTestApp : BaseTestApp() {
     override fun init() {
-        val providerData = GameProviderType.values().map { type ->
+        val providerData = testProviderIds.map { id ->
             ProviderData(
-                header = randomProviderHeader(type),
+                header = randomProviderHeader(id),
                 gameData = randomGameData(),
                 imageUrls = randomImageUrls()
             )

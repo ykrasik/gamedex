@@ -54,6 +54,7 @@ class IgdbFakeServer(port: Int) : Closeable {
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
+    val providerId = "Igdb"
     val endpointUrl = "http://localhost:$port"
     fun detailsUrl(id: Int) = "$endpointUrl/${detailsPath(id.toString())}"
     val baseImageUrl = "$endpointUrl/$imagePath"

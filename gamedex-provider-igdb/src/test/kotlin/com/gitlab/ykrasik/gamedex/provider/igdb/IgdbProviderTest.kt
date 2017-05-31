@@ -140,7 +140,7 @@ class IgdbProviderTest : ScopedWordSpec() {
 
                 download(baseUrl) shouldBe ProviderData(
                     header = ProviderHeader(
-                        type = GameProviderType.Igdb,
+                        id = "Igdb",
                         apiUrl = baseUrl,
                         updateDate = nowMock
                     ),

@@ -73,7 +73,7 @@ data class Score(
 }
 
 data class ProviderHeader(
-    val type: GameProviderType,
+    val id: ProviderId,
     val apiUrl: String,
     val updateDate: DateTime
 )
@@ -105,7 +105,7 @@ enum class GameDataType(val displayName: String) {
 data class UserData(
     val overrides: Map<GameDataType, GameDataOverride> = emptyMap(),
     val tags: List<String> = emptyList(),
-    val excludedProviders: List<GameProviderType> = emptyList()
+    val excludedProviders: List<ProviderId> = emptyList()
 ) {
     fun nameOverride() = overrides[GameDataType.name_]
     fun descriptionOverride() = overrides[GameDataType.description]
@@ -130,6 +130,6 @@ data class UserData(
     JsonSubTypes.Type(value = GameDataOverride.Custom::class, name = "custom")
 )
 sealed class GameDataOverride {
-    data class Provider(val provider: GameProviderType) : GameDataOverride()
+    data class Provider(val provider: ProviderId) : GameDataOverride()
     data class Custom(val data: Any) : GameDataOverride()
 }

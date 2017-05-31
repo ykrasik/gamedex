@@ -50,7 +50,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
-                type = randomEnum<GameProviderType>(),
+                id = randomString(),
                 apiUrl = randomUrl(),
                 updateDate = randomDateTime()
             ),
@@ -73,7 +73,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun randomUserData() = UserData(
             overrides = randomProviderOverrides(),
             tags = listOf(randomString(), randomString()),
-            excludedProviders = listOf(randomEnum(), randomEnum())
+            excludedProviders = listOf(randomString(), randomString())
         )
 
         fun randomProviderOverrides() = mapOf(
@@ -100,7 +100,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             GameDataType.screenshots to customDataOverride(listOf(randomUrl(), randomUrl()))
         )
 
-        private fun providerOverride(provider: GameProviderType = randomEnum()) = GameDataOverride.Provider(provider)
+        private fun providerOverride() = GameDataOverride.Provider(randomString())
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
