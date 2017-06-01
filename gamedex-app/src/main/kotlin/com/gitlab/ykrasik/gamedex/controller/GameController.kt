@@ -77,13 +77,16 @@ class GameController @Inject constructor(
     }
 
     // TODO: Since these are called from multiple places, consider placing the ui icons in one central place for consistency.
-    fun scanNewGames(searchMode: GameProviderService.SearchConstraints.SearchMode) = gameTasks.ScanNewGamesTask(searchMode).apply { start() }
-    fun cleanup() = gameTasks.CleanupTask().apply { start() }
+    fun scanNewGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) = gameTasks.ScanNewGamesTask(chooseResults).apply { start() }
+    fun cleanup(): GameTasks.CleanupTask {
+        // TODO: Detect stale games, confirm, then delete.
+        return gameTasks.CleanupTask().apply { start() }
+    }
 
     fun refreshAllGames() = gameTasks.RefreshAllGamesTask().apply { start() }
     fun refreshGame(game: Game) = gameTasks.RefreshGameTask(game).apply { start() }
 
-    fun rediscoverAllGames() = gameTasks.RediscoverAllGamesTask().apply { start() }
+    fun rediscoverAllGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) = gameTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
     fun searchGame(game: Game) = gameTasks.SearchGameTask(game).apply { start() }
 
     fun delete(game: Game): Boolean {

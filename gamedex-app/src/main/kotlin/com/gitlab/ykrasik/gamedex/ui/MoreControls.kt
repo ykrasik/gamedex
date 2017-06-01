@@ -88,43 +88,6 @@ fun EventTarget.jfxButton(text: Property<String>, graphic: Node? = null, type: J
         textProperty().cleanBind(text)
     }
 
-fun EventTarget.acceptButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(26.0); color(Color.GREEN) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
-    tooltip("Accept")
-    op?.invoke(this)
-}
-
-fun EventTarget.cancelButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.BAN.toGraphic { size(26.0); color(Color.RED) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.cancelButton)
-    tooltip("Cancel")
-    op?.invoke(this)
-}
-
-fun EventTarget.addButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.PLUS.toGraphic { size(26.0); color(Color.GREEN) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
-    tooltip("Add")
-    op?.invoke(this)
-}
-
-fun EventTarget.editButton(op: (JFXButton.() -> Unit)? = null) = jfxButton("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic { size(26.0); color(Color.ORANGE) }) {
-    addClass(CommonStyle.toolbarButton)
-    tooltip("Edit")
-    op?.invoke(this)
-}
-
-fun EventTarget.deleteButton(op: (JFXButton.() -> Unit)? = null) = jfxButton(graphic = FontAwesome.Glyph.TRASH.toGraphic { size(26.0); color(Color.INDIANRED) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.deleteButton)
-    tooltip("Delete")
-    op?.invoke(this)
-}
-
-fun EventTarget.backButton(text: String? = null, op: (JFXButton.() -> Unit)? = null) = jfxButton(text, FontAwesome.Glyph.UNDO.toGraphic { size(26.0); color(Color.GREEN) }).apply {
-    addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton)
-    isCancelButton = true
-    tooltip("Back")
-    op?.invoke(this)
-}
-
 fun EventTarget.buttonWithPopover(text: String? = null,
                                   graphic: Node? = null,
                                   arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
@@ -206,12 +169,6 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
         }
     }
 }
-
-fun EventTarget.extraMenu(op: (PopOver.() -> Unit)? = null) = buttonWithPopover(
-    graphic = FontAwesome.Glyph.ELLIPSIS_V.toGraphic { size(21.0) },
-    arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
-    op = op
-)
 
 fun PopOver.popoverMenuItem(text: String? = null,
                             graphic: Node? = null,

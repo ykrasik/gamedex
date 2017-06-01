@@ -82,7 +82,7 @@ class MainView : View("Gamedex") {
         toolbar.replaceChildren {
             if (useDefaultNavigationButton) {
                 buttonWithPopover(
-                    graphic = FontAwesome.Glyph.BARS.toGraphic { size(21.0) },
+                    graphic = FontAwesome.Glyph.BARS.toGraphic { size(toolbarGraphicSize) },
                     arrowLocation = PopOver.ArrowLocation.TOP_LEFT) {
 
                     tabPane.tabs.forEach { tab ->

@@ -177,9 +177,8 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                     setOnAction { close(okResult) }
                 }
                 verticalSeparator()
-                jfxButton("Not Exact Match", graphic = FontAwesome.Glyph.QUESTION.toGraphic{ size(26.0); color(Color.LIGHTGREEN) }) {
+                toolbarButton("Not Exact Match", graphic = FontAwesome.Glyph.QUESTION.toGraphic { size(toolbarGraphicSize); color(Color.LIGHTGREEN) }) {
                     setId(Style.notExactMatch)
-                    addClass(CommonStyle.toolbarButton)
                     tooltip("Not Exact Match")
                     enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
                     setOnAction { close(SearchChooser.Choice.NotExactMatch(tableView.selectedItem!!)) }
@@ -193,9 +192,8 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                jfxButton("Exclude ${data.providerId}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic{ size(26.0) }) {
+                toolbarButton("Exclude ${data.providerId}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic { size(toolbarGraphicSize) }) {
                     setId(Style.excludeProvider)
-                    addClass(CommonStyle.toolbarButton)
                     tooltip("Exclude searching ${data.providerId} for '${data.name}'")
                     setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId))  }
                 }

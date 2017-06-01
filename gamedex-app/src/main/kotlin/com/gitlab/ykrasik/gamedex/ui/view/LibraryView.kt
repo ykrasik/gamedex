@@ -26,7 +26,7 @@ class LibraryView : GamedexScreen("Libraries") {
         verticalSeparator()
         spacer()
         verticalSeparator()
-        deleteButton {
+        deleteButton("Delete") {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
             setOnAction { deleteLibrary() }
         }

@@ -116,7 +116,7 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
                     alignment = Pos.CENTER_LEFT
                     label(text)
                     spacer()
-                    imageview(UIResources.Images.information)
+                    imageview(UIResources.Images.warning)
                 }
                 if (op != null) {
                     separator()

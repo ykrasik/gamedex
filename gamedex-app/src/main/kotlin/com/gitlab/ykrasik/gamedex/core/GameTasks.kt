@@ -25,7 +25,7 @@ class GameTasks @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService     // TODO: This class appears in too many places.
 ) {
-    inner class ScanNewGamesTask(private val searchMode: GameProviderService.SearchConstraints.SearchMode) : Task<Unit>("Scanning new games...") {
+    inner class ScanNewGamesTask(private val chooseResults: GameProviderService.SearchConstraints.ChooseResults) : Task<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun() {
@@ -66,7 +66,7 @@ class GameTasks @Inject constructor(
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
-            val constraints = GameProviderService.SearchConstraints(mode = searchMode, excludedProviders = emptyList())
+            val constraints = GameProviderService.SearchConstraints(chooseResults, excludedProviders = emptyList())
             val results = providerService.search(taskData, constraints) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
             val metaData = MetaData(library.id, relativePath, updateDate = now)
@@ -167,7 +167,9 @@ class GameTasks @Inject constructor(
     }
 
     // TODO: This only rediscovers non-excluded providers - find a way to add to name
-    inner class RediscoverAllGamesTask : Task<Unit>("Rediscovering all games...") {
+    inner class RediscoverAllGamesTask(private val chooseResults: GameProviderService.SearchConstraints.ChooseResults) :
+        Task<Unit>("Rediscovering all games...") {
+
         private var numRetried = 0
         private var numSucceeded = 0
 
@@ -177,8 +179,11 @@ class GameTasks @Inject constructor(
             gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, gamesToRetry.size - 1)
 
-                val excludedProviders = game.existingProviders + game.excludedProviders
-                if (doSearchAgain(game, excludedProviders = excludedProviders) != null) {
+                val constraints = GameProviderService.SearchConstraints(
+                    chooseResults = chooseResults,
+                    excludedProviders = game.existingProviders + game.excludedProviders
+                )
+                if (doSearchAgain(game, constraints) != null) {
                     numSucceeded += 1
                 }
                 numRetried += 1
@@ -196,20 +201,22 @@ class GameTasks @Inject constructor(
     }
 
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
-        override suspend fun doRun() = doSearchAgain(game, excludedProviders = emptyList()) ?: game
+        override suspend fun doRun(): Game {
+            val constraints = GameProviderService.SearchConstraints(
+                chooseResults = GameProviderService.SearchConstraints.ChooseResults.alwaysChoose,
+                excludedProviders = emptyList()
+            )
+            return doSearchAgain(game, constraints) ?: game
+        }
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
 
-    private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<ProviderId>): Game? {
+    private suspend fun Task<*>.doSearchAgain(game: Game, constraints: GameProviderService.SearchConstraints): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)
-        val constraints = GameProviderService.SearchConstraints(
-            mode = GameProviderService.SearchConstraints.SearchMode.alwaysAsk,
-            excludedProviders = excludedProviders
-        )
         val results = providerService.search(taskData, constraints) ?: return null
         if (results.isEmpty()) return null
 
-        val newProviderData = if (excludedProviders.isEmpty()) {
+        val newProviderData = if (constraints.excludedProviders.isEmpty()) {
             results.providerData
         } else {
             game.rawGame.providerData + results.providerData

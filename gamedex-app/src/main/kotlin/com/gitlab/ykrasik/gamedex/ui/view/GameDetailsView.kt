@@ -13,7 +13,6 @@ import javafx.scene.control.Button
 import javafx.scene.control.ToolBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Color
 import javafx.scene.web.WebView
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Deferred
@@ -44,50 +43,38 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
     override val useDefaultNavigationButton = false
 
     override fun ToolBar.constructToolbar() {
-        jfxButton("Refresh", graphic = FontAwesome.Glyph.REFRESH.toGraphic { size(22.0); color(Color.DARKCYAN) }) {
-            addClass(CommonStyle.toolbarButton)
-            setOnAction {
-                val task = gameController.refreshGame(game)
-                disableWhen { task.runningProperty }
-                reloadGame { task.result }
-            }
-        }
-
+        editButton { setOnAction { editDetails() } }
+        verticalSeparator()
+        tagButton { setOnAction { tag() } }
         verticalSeparator()
 
-        jfxButton("Search", graphic = FontAwesome.Glyph.SEARCH.toGraphic { size(22.0); color(Color.DARKGOLDENROD) }) {
-            addClass(CommonStyle.toolbarButton)
+        spacer()
+
+        verticalSeparator()
+        searchButton {
             setOnAction {
                 val task = gameController.searchGame(game)
                 disableWhen { task.runningProperty }
                 reloadGame { task.result }
             }
         }
-
         verticalSeparator()
-
-        editButton { setOnAction { editDetails() } }
-
-        verticalSeparator()
-
-        jfxButton("Tag", graphic = FontAwesome.Glyph.TAG.toGraphic { size(22.0); color(Color.BLUEVIOLET) }) {
-            addClass(CommonStyle.toolbarButton)
-            setOnAction { tag() }
+        refreshButton {
+            setOnAction {
+                val task = gameController.refreshGame(game)
+                disableWhen { task.runningProperty }
+                reloadGame { task.result }
+            }
         }
-
         verticalSeparator()
-
-        spacer()
-
-        verticalSeparator()
-
-        deleteButton {
+        deleteButton("Delete") {
             setOnAction {
                 if (gameController.delete(game)) {
                     goBackScreen()
                 }
             }
         }
+        verticalSeparator()
     }
 
     override val root = hbox {

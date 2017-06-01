@@ -32,14 +32,14 @@ interface GameProviderService {
     )
 
     data class SearchConstraints(
-        val mode: SearchMode,
+        val chooseResults: ChooseResults,
         val excludedProviders: List<ProviderId>
     ) {
-        enum class SearchMode(val key: String) {
-            askIfNonExact("If non-exact: Ask"),
-            alwaysAsk("Always ask"),
-            skip("If non-exact: Skip"),
-            proceedWithout("If non-exact: Proceed without")
+        enum class ChooseResults(val key: String) {
+            chooseIfNonExact("If no exact match: Choose"),
+            alwaysChoose("Always choose"),
+            skipIfNonExact("If no exact match: Skip"),
+            proceedWithoutIfNonExact("If no exact match: Proceed Without")
         }
     }
 
@@ -75,14 +75,14 @@ class GameProviderServiceImpl @Inject constructor(
         private val constraints: GameProviderService.SearchConstraints
     ) {
         private var searchedName = taskData.name.normalizeName()
-        private var canAutoContinue = searchMode != GameProviderService.SearchConstraints.SearchMode.alwaysAsk
+        private var canAutoContinue = chooseResults != GameProviderService.SearchConstraints.ChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val excludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
         private val task get() = taskData.task
         private val platform get() = taskData.platform
-        private val searchMode get() = constraints.mode
+        private val chooseResults get() = constraints.chooseResults
 
         init {
             task.platform = platform
@@ -108,7 +108,7 @@ class GameProviderServiceImpl @Inject constructor(
 
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
-            val choice = if (searchMode == GameProviderService.SearchConstraints.SearchMode.alwaysAsk) {
+            val choice = if (chooseResults == GameProviderService.SearchConstraints.ChooseResults.alwaysChoose) {
                 chooseResult(provider, results)
             } else if (userExactMatch != null) {
                 val providerExactMatch = findExactMatch(userExactMatch!!)
@@ -150,11 +150,11 @@ class GameProviderServiceImpl @Inject constructor(
 
         private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
             // We only get here when we have no exact matches.
-            when (constraints.mode) {
-                GameProviderService.SearchConstraints.SearchMode.skip -> return SearchChooser.Choice.Cancel
-                GameProviderService.SearchConstraints.SearchMode.proceedWithout -> return SearchChooser.Choice.ProceedWithout
-                GameProviderService.SearchConstraints.SearchMode.askIfNonExact,
-                GameProviderService.SearchConstraints.SearchMode.alwaysAsk -> Unit // Proceed to ask chooser
+            when (constraints.chooseResults) {
+                GameProviderService.SearchConstraints.ChooseResults.skipIfNonExact -> return SearchChooser.Choice.Cancel
+                GameProviderService.SearchConstraints.ChooseResults.proceedWithoutIfNonExact -> return SearchChooser.Choice.ProceedWithout
+                GameProviderService.SearchConstraints.ChooseResults.chooseIfNonExact,
+                GameProviderService.SearchConstraints.ChooseResults.alwaysChoose -> Unit // Proceed to ask chooser
             }
 
             val (filteredResults, results) = allSearchResults.partition { result ->

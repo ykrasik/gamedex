@@ -38,8 +38,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
             toolbar {
                 acceptButton { setOnAction { close(choice = Choice.Override(overrides)) } }
                 verticalSeparator()
-                jfxButton(graphic = FontAwesome.Glyph.TIMES_CIRCLE.toGraphic { size(26.0) }) {
-                    addClass(CommonStyle.toolbarButton)
+                toolbarButton(graphic = clearGraphic()) {
                     tooltip("Reset to default")
                     setOnAction { close(choice = Choice.Clear) }
                 }
