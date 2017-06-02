@@ -13,6 +13,8 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
@@ -122,7 +124,7 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
                                       text: ((T) -> String)? = null,
                                       graphic: ((T) -> Node)? = null,
                                       menuOp: (VBox.(T) -> Unit)? = null) {
-    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
+    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass, closeOnClick = false) {
         possibleItems.performing { items ->
             replaceChildren {
                 items.forEach { item ->
@@ -163,6 +165,7 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     isDetachable = false
     val content = popoverContent
     if (closeOnClick) content.addEventFilter(MouseEvent.MOUSE_CLICKED) { hide() }
+    content.addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) hide() }
     op?.invoke(content)
 }
 

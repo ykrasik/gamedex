@@ -2,24 +2,17 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.core.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Icon.search
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import org.controlsfx.control.PopOver
-import org.controlsfx.control.textfield.CustomTextField
-import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
 
 /**
@@ -29,17 +22,18 @@ import tornadofx.*
  */
 class GameView : GamedexScreen("Games") {
     private val gameController: GameController by di()
-    private val libraryController: LibraryController by di()
     private val settings: GameSettings by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
 
+    private val filterMenu: GameFilterMenu by inject()
+
     // FIXME: Change search -> sync, refresh maybe to download?
     override fun ToolBar.constructToolbar() {
         gamesLabel()
         verticalSeparator()
-        filterMenu()
+        items += filterMenu.root
         verticalSeparator()
         sortButton()
         verticalSeparator()
@@ -67,121 +61,6 @@ class GameView : GamedexScreen("Games") {
 
     private fun EventTarget.gamesLabel() = label {
         textProperty().bind(gameController.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
-    }
-
-    // TODO: Extract this to a different view.
-    private fun EventTarget.filterMenu() = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
-        val realLibraries = libraryController.libraries.filtered { it.platform != Platform.excluded }
-
-        form {
-            fieldset {
-                field {
-                    jfxButton("Clear all", Theme.Icon.clear()) {
-                        addClass(Style.clearFiltersButton)
-                        isCancelButton = true
-                        isFocusTraversable = false
-                        setOnAction { gameController.sortedFilteredGames.clearFilters() }
-                    }
-                }
-                separator()
-                field("Search") {
-                    val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-                        addClass(Style.filterButton)
-                        promptText = "Search"
-                        left = search(18.0)
-                        gameController.sortedFilteredGames.searchQueryProperty.bindBidirectional(textProperty())
-                        requestFocus()
-                    }
-                    children += search
-                }
-                separator()
-                field("Platform") {
-                    // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                    val platformsWithLibraries = realLibraries.mapping { it.platform }.distincting().sortedFiltered()
-                    platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
-
-                    popoverComboMenu(
-                        possibleItems = platformsWithLibraries,
-                        selectedItemProperty = gameController.sortedFilteredGames.platformFilterProperty,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClass = Style.filterButton,
-                        itemStyleClass = Style.platformItem,
-                        text = Platform::key,
-                        graphic = { it.toLogo() }
-                    )
-                }
-                separator()
-                vbox {
-                    realLibraries.filtering(gameController.sortedFilteredGames.platformFilterProperty.toPredicateF { platform, library: Library ->
-                        library.platform == platform
-                    }).performing { librariesWithPlatform ->
-                        replaceChildren {
-                            if (librariesWithPlatform.size <= 1) return@replaceChildren
-
-                            field("Library") {
-                                val selectedLibraries = gameController.sortedFilteredGames.sourceIdsFilterProperty.mapping { sourceId ->
-                                    realLibraries.find { it.id == sourceId }!!
-                                }
-                                popoverToggleMenu(
-                                    possibleItems = librariesWithPlatform,
-                                    selectedItems = selectedLibraries,
-                                    arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                                    styleClass = Style.filterButton,
-                                    itemStyleClass = Style.libraryItem,
-                                    text = Library::name
-                                )
-                                selectedLibraries.onChange {
-                                    gameController.sortedFilteredGames.sourceIdsPerPlatformFilter +=
-                                        gameController.sortedFilteredGames.platformFilter to it!!.map { it.id }
-                                }
-                            }
-                            separator()
-                        }
-                    }
-                }
-                field("Genre") {
-                    // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                    val genres = gameController.genres.sortedFiltered()
-                    genres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
-                    popoverComboMenu(
-                        possibleItems = listOf(SortedFilteredGames.allGenres).observable().adding(genres),
-                        selectedItemProperty = gameController.sortedFilteredGames.genreFilterProperty,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClass = Style.filterButton,
-                        itemStyleClass = Style.genreItem,
-                        text = { it },
-                        menuOp = {
-                            if (it == SortedFilteredGames.allGenres) {
-                                separator()
-                            }
-                        }
-                    )
-                }
-                separator()
-                field("Tag") {
-                    // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-                    val tags = gameController.tags.sortedFiltered()
-                    tags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
-                    popoverComboMenu(
-                        possibleItems = listOf(SortedFilteredGames.allTags).observable().adding(tags),
-                        selectedItemProperty = gameController.sortedFilteredGames.tagFilterProperty,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClass = Style.filterButton,
-                        itemStyleClass = Style.tagItem,
-                        text = { it },
-                        menuOp = {
-                            if (it == SortedFilteredGames.allTags) {
-                                separator()
-                            }
-                        }
-                    )
-                }
-                separator()
-            }
-        }
-    }.apply {
-        shortcut("ctrl+f")
-        tooltip("Ctrl+f")
     }
 
     private fun EventTarget.sortButton() {
@@ -357,12 +236,6 @@ class GameView : GamedexScreen("Games") {
 
     class Style : Stylesheet() {
         companion object {
-            val clearFiltersButton by cssclass()
-            val filterButton by cssclass()
-            val platformItem by cssclass()
-            val libraryItem by cssclass()
-            val genreItem by cssclass()
-            val tagItem by cssclass()
             val sortItem by cssclass()
             val reportButton by cssclass()
             val searchButton by cssclass()
@@ -375,36 +248,6 @@ class GameView : GamedexScreen("Games") {
         }
 
         init {
-            clearFiltersButton {
-                prefWidth = 220.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            filterButton {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            platformItem {
-                prefWidth = 100.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            libraryItem {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            genreItem {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            tagItem {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
             sortItem {
                 prefWidth = 140.px
                 alignment = Pos.CENTER_LEFT
