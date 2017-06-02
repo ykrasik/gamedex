@@ -12,6 +12,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
@@ -212,4 +213,10 @@ fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
             }
         }
     }
+}
+
+fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
+    val shouldShow = expr()
+    managedProperty().bind(shouldShow)
+    visibleWhen { shouldShow }
 }

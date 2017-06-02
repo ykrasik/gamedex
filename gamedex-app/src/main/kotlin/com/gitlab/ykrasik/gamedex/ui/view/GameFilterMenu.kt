@@ -11,7 +11,6 @@ import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.Pane
-import javafx.scene.layout.Priority
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
@@ -32,7 +31,6 @@ class GameFilterMenu : View() {
     override val root = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         form {
             fieldset {
-                inputGrow = Priority.ALWAYS
                 field { clearAllButton() }
                 separator()
                 field("Search") { searchText() }
@@ -40,10 +38,8 @@ class GameFilterMenu : View() {
                 field("Platform") { platformFilter() }
                 separator()
                 libraryFilter()
-                field("Genre") { genreFilter() }
-                separator()
-                field("Tag") { tagFilter() }
-                separator()
+                genreFilter()
+                tagFilter()
             }
         }
     }.apply {
@@ -53,7 +49,7 @@ class GameFilterMenu : View() {
 
     private fun EventTarget.clearAllButton() {
         jfxButton("Clear all", Theme.Icon.clear()) {
-            addClass(Style.filterButton)
+            addClass(Style.filterItem)
             isCancelButton = true
             isFocusTraversable = false
             setOnAction { gameController.sortedFilteredGames.clearFilters() }
@@ -62,7 +58,7 @@ class GameFilterMenu : View() {
 
     private fun Pane.searchText() {
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-            addClass(Style.filterButton)
+            addClass(Style.filterItem)
             promptText = "Search"
             left = Theme.Icon.search(18.0)
             gameController.sortedFilteredGames.searchQueryProperty.bindBidirectional(textProperty())
@@ -80,8 +76,8 @@ class GameFilterMenu : View() {
             possibleItems = platformsWithLibraries,
             selectedItemProperty = platformFilterProperty,
             arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-            styleClass = Style.filterButton,
-            itemStyleClass = Style.platformItem,
+            styleClass = Style.filterItem,
+            itemStyleClass = Style.filterItem,
             text = Platform::key,
             graphic = { it.toLogo() }
         )
@@ -91,7 +87,9 @@ class GameFilterMenu : View() {
         val librariesWithPlatform = libraries.filtering(platformFilterProperty.toPredicateF { platform, library: Library ->
             library.platform == platform
         })
+
         val shouldShow = librariesWithPlatform.mapProperty { it.size > 1 }
+
         field("Library") {
             librariesWithPlatform.performing { librariesWithPlatform ->
                 replaceChildren {
@@ -104,8 +102,8 @@ class GameFilterMenu : View() {
                         possibleItems = librariesWithPlatform,
                         selectedItems = selectedLibraries,
                         arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClass = Style.filterButton,
-                        itemStyleClass = Style.libraryItem,
+                        styleClass = Style.filterItem,
+                        itemStyleClass = Style.filterItem,
                         text = Library::name
                     )
                     selectedLibraries.onChange {
@@ -115,63 +113,79 @@ class GameFilterMenu : View() {
                 }
             }
         }.apply {
-            managedProperty().bind(shouldShow)
-            visibleWhen { shouldShow }
+            showWhen { shouldShow }
         }
+
         separator {
-            managedProperty().bind(shouldShow)
-            visibleWhen { shouldShow }
+            showWhen { shouldShow }
         }
     }
 
-    private fun EventTarget.genreFilter() {
+    // TODO: Genres per platform
+    private fun Fieldset.genreFilter() {
         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
         val genres = gameController.genres.sortedFiltered()
         genres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
 
-        popoverComboMenu(
-            possibleItems = listOf(SortedFilteredGames.allGenres).observable().adding(genres),
-            selectedItemProperty = gameController.sortedFilteredGames.genreFilterProperty,
-            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-            styleClass = Style.filterButton,
-            itemStyleClass = Style.genreItem,
-            text = { it },
-            menuOp = {
-                if (it == SortedFilteredGames.allGenres) {
-                    separator()
+        val shouldShow = genres.mapProperty { it.isNotEmpty() }
+
+        field("Genres") {
+            popoverComboMenu(
+                possibleItems = listOf(SortedFilteredGames.allGenres).observable().adding(genres),
+                selectedItemProperty = gameController.sortedFilteredGames.genreFilterProperty,
+                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                styleClass = Style.filterItem,
+                itemStyleClass = Style.filterItem,
+                text = { it },
+                menuOp = {
+                    if (it == SortedFilteredGames.allGenres) {
+                        separator()
+                    }
                 }
-            }
-        )
+            )
+        }.apply {
+            showWhen { shouldShow }
+        }
+
+        separator {
+            showWhen { shouldShow }
+        }
     }
 
-    // TODO: Hide when no tags.
-    private fun EventTarget.tagFilter() {
+    // TODO: tags per platform
+    private fun Fieldset.tagFilter() {
         // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
         val tags = gameController.tags.sortedFiltered()
         tags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
 
-        popoverComboMenu(
-            possibleItems = listOf(SortedFilteredGames.allTags).observable().adding(tags),
-            selectedItemProperty = gameController.sortedFilteredGames.tagFilterProperty,
-            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-            styleClass = Style.filterButton,
-            itemStyleClass = Style.tagItem,
-            text = { it },
-            menuOp = {
-                if (it == SortedFilteredGames.allTags) {
-                    separator()
+        val shouldShow = tags.mapProperty { it.isNotEmpty() }
+
+        field("Tag") {
+            popoverComboMenu(
+                possibleItems = listOf(SortedFilteredGames.allTags).observable().adding(tags),
+                selectedItemProperty = gameController.sortedFilteredGames.tagFilterProperty,
+                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                styleClass = Style.filterItem,
+                itemStyleClass = Style.filterItem,
+                text = { it },
+                menuOp = {
+                    if (it == SortedFilteredGames.allTags) {
+                        separator()
+                    }
                 }
-            }
-        )
+            )
+        }.apply {
+            showWhen { shouldShow }
+        }
+
+        separator {
+            showWhen { shouldShow }
+        }
     }
 
     class Style : Stylesheet() {
         companion object {
-            val filterButton by cssclass()
-            val platformItem by cssclass()
-            val libraryItem by cssclass()
-            val genreItem by cssclass()
-            val tagItem by cssclass()
+            val filterItem by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -179,28 +193,8 @@ class GameFilterMenu : View() {
         }
 
         init {
-            filterButton {
+            filterItem {
                 maxWidth = Double.MAX_VALUE.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            platformItem {
-                prefWidth = 100.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            libraryItem {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            genreItem {
-                prefWidth = 160.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            tagItem {
-                prefWidth = 160.px
                 alignment = Pos.CENTER_LEFT
             }
         }
