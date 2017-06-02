@@ -7,14 +7,18 @@ import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.jfoenix.controls.JFXButton
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.geometry.Pos
 import javafx.scene.Cursor
+import javafx.scene.Node
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
 import javafx.scene.layout.Pane
-import org.controlsfx.glyphfont.FontAwesome
+import javafx.scene.paint.Color
 import tornadofx.*
 
 
@@ -42,19 +46,23 @@ class SettingsFragment : Fragment("Settings") {
         center {
             tabpane {
                 nonClosableTab("General") {
-                    vbox(spacing = 10.0) {
-                        paddingAll = 40
-                        button("Export Database") {
-                            setOnAction {
-                                settingsController.exportDatabase()
-                            }
-                        }
-                        button("Import Database") {
-                            setOnAction {
-                                settingsController.importDatabase()
-                            }
-                        }
+                    form {
                         // TODO: Add a 'purge images' button
+                        paddingAll = 40
+                        fieldset("Database") {
+                            field {
+                                jfxButton("Export Database", Theme.Icon.upload()) {
+                                    addClass(Style.databaseButton)
+                                    setOnAction { settingsController.exportDatabase() }
+                                }
+                            }
+                            field {
+                                jfxButton("Import Database", Theme.Icon.download()) {
+                                    addClass(Style.databaseButton)
+                                    setOnAction { settingsController.importDatabase() }
+                                }
+                            }
+                        }
                     }
                 }
                 nonClosableTab("Game Provider") {
@@ -165,16 +173,16 @@ class SettingsFragment : Fragment("Settings") {
     private fun Pane.adjustableTextField(property: Property<Double>) {
         val textfield = textfield(property)
 
-        fun adjustButton(icon: FontAwesome.Glyph, adjustment: Int) {
-            button(graphic = icon.toGraphic()) {
+        fun adjustButton(icon: Node, adjustment: Int) {
+            jfxButton(graphic = icon, type = JFXButton.ButtonType.RAISED) {
                 setOnAction {
                     textfield.text = ((textfield.text).toDouble() + adjustment).toString()
                 }
             }
         }
 
-        adjustButton(FontAwesome.Glyph.PLUS, +1)
-        adjustButton(FontAwesome.Glyph.MINUS, -1)
+        adjustButton(Theme.Icon.plus(20.0), +1)
+        adjustButton(Theme.Icon.minus(20.0), -1)
     }
 
     fun show() {
@@ -184,6 +192,7 @@ class SettingsFragment : Fragment("Settings") {
     class Style : Stylesheet() {
         companion object {
             val providerOrderLabel by cssclass()
+            val databaseButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -194,6 +203,12 @@ class SettingsFragment : Fragment("Settings") {
             providerOrderLabel {
                 prefWidth = 100.px
                 alignment = Pos.BASELINE_CENTER
+            }
+
+            databaseButton {
+                borderColor = multi(box(Color.BLACK))
+                borderRadius = multi(box(3.px))
+                borderWidth = multi(box(0.5.px))
             }
         }
     }

@@ -3,9 +3,9 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.ui.CommonStyle.Companion.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.perform
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle.Companion.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.geometry.HPos

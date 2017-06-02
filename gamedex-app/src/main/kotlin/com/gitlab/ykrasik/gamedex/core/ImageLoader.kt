@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.ui.UIResources
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
 import com.gitlab.ykrasik.gamedex.ui.toImage
 import com.gitlab.ykrasik.gamedex.util.download
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -25,7 +25,7 @@ import kotlinx.coroutines.experimental.run
 open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    private val notAvailable = SimpleObjectProperty(UIResources.Images.notAvailable)
+    private val notAvailable = SimpleObjectProperty(Images.notAvailable)
 
     private val downloadCache = Cache<String, ByteArray>(300)
     private val downloadImageCache = Cache<String, ReadOnlyObjectProperty<Image>>(300)
@@ -55,7 +55,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private fun loadImage(f: suspend () -> ByteArray): ObjectProperty<Image> {
-        val imageProperty = SimpleObjectProperty<Image>(UIResources.Images.loading)
+        val imageProperty = SimpleObjectProperty(Images.loading)
         launch(CommonPool) {
             val image = f().toImage()
             run(JavaFx) {

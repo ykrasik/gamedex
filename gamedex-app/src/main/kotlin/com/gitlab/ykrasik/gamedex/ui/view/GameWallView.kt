@@ -4,9 +4,9 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
-import com.gitlab.ykrasik.gamedex.ui.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.popOver
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.view.GameView.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane

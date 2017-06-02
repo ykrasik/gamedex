@@ -2,9 +2,13 @@ package com.gitlab.ykrasik.gamedex.ui.view
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.allowDeselection
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.addButton
+import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.ui.theme.editButton
+import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -51,13 +55,13 @@ class LibraryView : GamedexScreen("Libraries") {
         }
 
         contextmenu {
-            menuitem("Add", graphic = FontAwesome.Glyph.PLUS.toGraphic()) { addLibrary() }
+            menuitem("Add", graphic = Theme.Icon.plus(20.0)) { addLibrary() }
             separator()
-            menuitem("Edit", graphic = FontAwesome.Glyph.PENCIL.toGraphic()) { editLibrary() }.apply {
+            menuitem("Edit", graphic = Theme.Icon.edit(20.0)) { editLibrary() }.apply {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
             }
             separator()
-            menuitem("Delete", graphic = FontAwesome.Glyph.TRASH.toGraphic()) { deleteLibrary() }.apply {
+            menuitem("Delete", graphic = Theme.Icon.delete(20.0)) { deleteLibrary() }.apply {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
             }
 

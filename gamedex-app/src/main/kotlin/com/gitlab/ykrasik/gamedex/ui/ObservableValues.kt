@@ -6,7 +6,9 @@ import javafx.beans.binding.NumberBinding
 import javafx.beans.property.*
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
+import javafx.collections.ObservableList
 import tornadofx.cleanBind
+import tornadofx.observable
 import tornadofx.onChange
 import java.util.function.Predicate
 
@@ -111,4 +113,12 @@ fun <T, R> ObservableValue<List<T>>.mapping(f: (T) -> R): Property<List<R>> {
     val property = SimpleObjectProperty(doMap())
     this.onChange { property.set(doMap()) }
     return property
+}
+
+fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {
+    fun doMap() = f(this.value)
+
+    val list = doMap().observable()
+    this.onChange { list.setAll(doMap()) }
+    return list
 }

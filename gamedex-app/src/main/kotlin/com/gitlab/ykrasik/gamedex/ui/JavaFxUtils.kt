@@ -1,5 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import javafx.application.Platform.runLater
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -116,7 +119,7 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
                     alignment = Pos.CENTER_LEFT
                     label(text)
                     spacer()
-                    imageview(UIResources.Images.warning)
+                    imageview(Images.warning)
                 }
                 if (op != null) {
                     separator()
@@ -140,20 +143,6 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
         return accept
     }
 }.show()
-
-fun ButtonBar.okButton(op: (Button.() -> Unit)? = null): Button {
-    return button("OK", type = ButtonBar.ButtonData.OK_DONE) {
-        op?.invoke(this)
-        isDefaultButton = true
-    }
-}
-
-fun ButtonBar.cancelButton(op: (Button.() -> Unit)? = null): Button {
-    return button("Cancel", type = ButtonBar.ButtonData.LEFT) {
-        op?.invoke(this)
-        isCancelButton = true
-    }
-}
 
 fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView {
     imageProperty().onChange {
@@ -182,10 +171,6 @@ fun EventTarget.verticalSeparator(padding: Double? = 10.0, op: (Separator.() -> 
         padding { right = it; left = it }
     }
 }
-
-var SplitPane.dividerPosition: Double
-    get() = dividerPositions.first()
-    set(value) = setDividerPositions(value)
 
 fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwesome", this).apply {
     op?.invoke(this)

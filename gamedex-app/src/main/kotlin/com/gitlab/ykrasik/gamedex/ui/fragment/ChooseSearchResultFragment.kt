@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.value.ObservableValue
@@ -18,7 +19,6 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.stage.Screen
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.awt.Desktop
 import java.util.*
@@ -65,7 +65,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                         region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
                         stackpane {
                             gridpaneConstraints { columnRowIndex(4, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-                            children += data.platform.toLogo { size(40.0) }
+                            children += data.platform.toLogo(40.0)
                         }
                         imageview(providerRepository.logo(data.providerId)) {
                             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
@@ -99,7 +99,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                                 gridpaneConstraints { columnRowIndex(3, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                                 setId(Style.showFilterToggle)
                                 graphicProperty().bind(showingFilteredProperty.map {
-                                    (if (it!!) FontAwesome.Glyph.MINUS else FontAwesome.Glyph.PLUS).toGraphic()
+                                    if (it!!) Theme.Icon.minus() else Theme.Icon.plus()
                                 })
                                 tooltip {
                                     textProperty().bind(
@@ -177,7 +177,7 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                     setOnAction { close(okResult) }
                 }
                 verticalSeparator()
-                toolbarButton("Not Exact Match", graphic = FontAwesome.Glyph.QUESTION.toGraphic { size(toolbarGraphicSize); color(Color.LIGHTGREEN) }) {
+                toolbarButton("Not Exact Match", Theme.Icon.question()) {
                     setId(Style.notExactMatch)
                     tooltip("Not Exact Match")
                     enableWhen { tableView.selectionModel.selectedItemProperty().isNotNull }
@@ -192,13 +192,13 @@ class ChooseSearchResultFragment(data: SearchChooser.Data) : Fragment("Choose Se
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                toolbarButton("Exclude ${data.providerId}", graphic = FontAwesome.Glyph.EXCLAMATION_TRIANGLE.toGraphic { size(toolbarGraphicSize) }) {
+                toolbarButton("Exclude ${data.providerId}", Theme.Icon.exclamationTriangle()) {
                     setId(Style.excludeProvider)
                     tooltip("Exclude searching ${data.providerId} for '${data.name}'")
-                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId))  }
+                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId)) }
                 }
                 verticalSeparator()
-                cancelButton { setOnAction { close(SearchChooser.Choice.Cancel)  } }
+                cancelButton { setOnAction { close(SearchChooser.Choice.Cancel) } }
             }
         }
     }

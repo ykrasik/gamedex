@@ -5,14 +5,18 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.popoverComboMenu
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import org.controlsfx.control.PopOver
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -59,7 +63,7 @@ class LibraryFragment(existingLibraries: List<Library>, private val library: Lib
                             }
                             if (library != null) text = library.path.toString()
                         }
-                        jfxButton("Browse", FontAwesome.Glyph.SEARCH.toGraphic()) { setOnAction { browse() } }
+                        jfxButton("Browse", Theme.Icon.search(17.0)) { setOnAction { browse() } }
                     }
                     field("Name") {
                         textfield(model.nameProperty) {

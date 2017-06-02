@@ -3,8 +3,12 @@ package com.gitlab.ykrasik.gamedex.ui.widgets
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.CommonStyle.Companion.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.fixedRating
+import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle.Companion.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.event.EventTarget
 import javafx.scene.layout.Region

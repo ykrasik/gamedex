@@ -3,9 +3,11 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import javafx.collections.FXCollections
 import javafx.geometry.Orientation
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 
 /**
@@ -56,7 +58,7 @@ class TagFragment(game: Game) : Fragment("Tag") {
                             isFocusTraversable = false
                         }
                         val alreadyExists = tags.containing(newTagName.textProperty())
-                        jfxButton(graphic = FontAwesome.Glyph.PLUS.toGraphic()) {
+                        jfxButton(graphic = Theme.Icon.plus(20.0)) {
                             disableWhen {
                                 newTagName.textProperty().let { name ->
                                     name.isEmpty.or(name.isNull).or(alreadyExists)

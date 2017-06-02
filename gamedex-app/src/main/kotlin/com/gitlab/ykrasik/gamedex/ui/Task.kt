@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.ui
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
+import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.ui.view.MainView
 import com.gitlab.ykrasik.gamedex.util.Logger
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -67,7 +69,7 @@ abstract class Task<out T>(private val title: String) {
                             prefWidth = Screen.getPrimary().bounds.width
                             gridpaneConstraints { hAlignment = HPos.CENTER }
                         }
-                        button(graphic = UIResources.Images.error.toImageView().apply { fitWidth = 30.0; fitHeight = 30.0; isPreserveRatio = true }) {
+                        button(graphic = Images.error.toImageView().apply { fitWidth = 30.0; fitHeight = 30.0; isPreserveRatio = true }) {
                             setOnAction { _result.cancel() }
                         }
                     }
@@ -79,7 +81,7 @@ abstract class Task<out T>(private val title: String) {
                             this@gridpane.replaceChildren {
                                 row {
                                     platform?.let {
-                                        children += it.toLogo { size(38.0) }
+                                        children += it.toLogo(38.0)
                                     }
                                     providerLogo?.let {
                                         imageview(it) {
@@ -98,7 +100,7 @@ abstract class Task<out T>(private val title: String) {
                     text(progress.messageProperty) {
                         gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.CENTER }
                     }
-                    loadingGraphic = imageview(UIResources.Images.loading) {
+                    loadingGraphic = imageview(Images.loading) {
                         gridpaneConstraints { columnRowIndex(2, 1); }
                         fitWidth = 40.0
                         fitHeight = 40.0
@@ -116,7 +118,7 @@ abstract class Task<out T>(private val title: String) {
                 throw e
             } finally {
                 run(JavaFx) {
-                    loadingGraphic.image = UIResources.Images.tick
+                    loadingGraphic.image = Images.tick
                     runningProperty.set(false)
                     MainView.hidePersistentNotification()
                     MainView.showFlashInfoNotification(doneMessage())

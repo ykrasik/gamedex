@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui
+package com.gitlab.ykrasik.gamedex.ui.theme
 
 import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.geometry.Pos

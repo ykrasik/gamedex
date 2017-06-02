@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
@@ -18,7 +19,6 @@ import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.net.URLEncoder
 
@@ -87,7 +87,7 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
             poster.imageProperty().bind(gamePosterProperty)
 
             contextmenu {
-                menuitem("Change", graphic = FontAwesome.Glyph.PICTURE_ALT.toGraphic()) { editDetails(GameDataType.poster) }
+                menuitem("Change", graphic = Theme.Icon.poster(20.0)) { editDetails(GameDataType.poster) }
             }
 
             imageViewResizingPane(poster) {
@@ -133,8 +133,8 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
                 padding { top = 5; bottom = 5 }
                 hgap = 10.0
                 row {
-                    backButton = button(graphic = FontAwesome.Glyph.ARROW_LEFT.toGraphic())
-                    forwardButton = button(graphic = FontAwesome.Glyph.ARROW_RIGHT.toGraphic())
+                    backButton = button(graphic = Theme.Icon.arrowLeft(18.0))
+                    forwardButton = button(graphic = Theme.Icon.arrowRight(18.0))
                 }
             }
             webView = webview {

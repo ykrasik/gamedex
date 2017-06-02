@@ -3,7 +3,14 @@ package com.gitlab.ykrasik.gamedex.ui.fragment
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.jfxToggleNode
+import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.theme.toolbarButton
+import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -15,7 +22,6 @@ import javafx.scene.image.Image
 import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
-import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.*
 import java.time.LocalDate
 
@@ -38,7 +44,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
             toolbar {
                 acceptButton { setOnAction { close(choice = Choice.Override(overrides)) } }
                 verticalSeparator()
-                toolbarButton(graphic = clearGraphic()) {
+                toolbarButton(graphic = Theme.Icon.clear()) {
                     tooltip("Reset to default")
                     setOnAction { close(choice = Choice.Clear) }
                 }
@@ -155,9 +161,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
                 verticalSeparator(padding = 20.0)
 
-                jfxToggleNode {
+                jfxToggleNode(Theme.Icon.timesCircle(80.0)) {
                     addClass(Style.choice, Style.choiceButton)
-                    graphic = FontAwesome.Glyph.TIMES_CIRCLE.toGraphic { size(80.0) }
                     userData = SingleChoice.Clear
                 }
             }
@@ -209,7 +214,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                     }
                 }
             }
-            jfxButton(graphic = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic()) {
+            jfxButton(graphic = Theme.Icon.accept(17.0)) {
                 enableWhen { customText.valid }
                 setOnAction {
                     customDataProperty.value = customText.text
@@ -269,7 +274,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                     imageProperty.cleanBind(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
                 }
             }
-            jfxButton(graphic = FontAwesome.Glyph.DOWNLOAD.toGraphic()) {
+            jfxButton(graphic = Theme.Icon.download(17.0)) {
                 disableWhen { customUrl.textProperty().isEmpty }
                 setOnAction {
                     imageUrlProperty.value = customUrl.text

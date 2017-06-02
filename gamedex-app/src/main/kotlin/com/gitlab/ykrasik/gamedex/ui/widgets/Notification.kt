@@ -26,7 +26,7 @@
  */
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
-import com.gitlab.ykrasik.gamedex.ui.UIResources
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
 import impl.org.controlsfx.skin.NotificationBar
 import javafx.animation.*
 import javafx.collections.FXCollections
@@ -107,25 +107,25 @@ class Notification {
      * Instructs the notification to be shown, and that it should use the
      * built-in 'confirm' graphic.
      */
-    fun confirm(): Notification = graphic(ImageView(UIResources.Images.confirm))
+    fun confirm(): Notification = graphic(ImageView(Images.confirm))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'information' graphic.
      */
-    fun information(): Notification = graphic(ImageView(UIResources.Images.information))
+    fun information(): Notification = graphic(ImageView(Images.information))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'warning' graphic.
      */
-    fun warning(): Notification = graphic(ImageView(UIResources.Images.warning))
+    fun warning(): Notification = graphic(ImageView(Images.warning))
 
     /**
      * Instructs the notification to be shown, and that it should use the
      * built-in 'error' graphic.
      */
-    fun error(): Notification = graphic(ImageView(UIResources.Images.error))
+    fun error(): Notification = graphic(ImageView(Images.error))
 
     /**
      * Specify the position of the notification on screen, by default it is
