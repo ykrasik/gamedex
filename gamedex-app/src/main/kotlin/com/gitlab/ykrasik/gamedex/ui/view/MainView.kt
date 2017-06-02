@@ -164,9 +164,11 @@ class MainView : View("Gamedex") {
 
         private val persistentNotification = NotificationPane().apply {
             isCloseButtonVisible = false
+            isShowFromTop = false
         }
 
-        // TODO: Do not allow a new notification while a one is running
+        val canShowPersistentNotificationProperty = persistentNotification.showingProperty().not()
+
         fun showPersistentNotification(graphic: Node) {
             persistentNotification.graphic = graphic
             persistentNotification.show()

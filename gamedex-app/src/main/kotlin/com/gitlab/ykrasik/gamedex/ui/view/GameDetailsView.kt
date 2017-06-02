@@ -52,19 +52,13 @@ class GameDetailsView(displayVideos: Boolean = true) : GamedexScreen("Details") 
 
         verticalSeparator()
         searchButton {
-            setOnAction {
-                val task = gameController.searchGame(game)
-                disableWhen { task.runningProperty }
-                reloadGame { task.result }
-            }
+            enableWhen { gameController.canRunLongTask }
+            setOnAction { reloadGame { gameController.searchGame(game).result } }
         }
         verticalSeparator()
         refreshButton {
-            setOnAction {
-                val task = gameController.refreshGame(game)
-                disableWhen { task.runningProperty }
-                reloadGame { task.result }
-            }
+            enableWhen { gameController.canRunLongTask }
+            setOnAction { reloadGame { gameController.refreshGame(game).result } }
         }
         verticalSeparator()
         deleteButton("Delete") {

@@ -10,9 +10,9 @@ import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
+import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import org.controlsfx.control.PopOver
@@ -34,6 +34,7 @@ class GameView : GamedexScreen("Games") {
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
 
+    // FIXME: Change search -> sync, refresh maybe to download?
     override fun ToolBar.constructToolbar() {
         gamesLabel()
         verticalSeparator()
@@ -184,25 +185,36 @@ class GameView : GamedexScreen("Games") {
         tooltip("Ctrl+f")
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = FontAwesome.Glyph.SORT.toGraphic { size(toolbarGraphicSize) }) {
-        GameSettings.Sort.values().forEach { sort ->
-            popoverMenuItem(sort.key, styleClass = Style.sortItem) {
-                val prevSort = gameController.sortedFilteredGames.sort
-                if (prevSort == sort) {
-                    gameController.sortedFilteredGames.sortOrder = gameController.sortedFilteredGames.sortOrder.toggle()
-                } else {
-                    gameController.sortedFilteredGames.sortOrder = TableColumn.SortType.DESCENDING
-                }
-                gameController.sortedFilteredGames.sort = sort
+    private fun EventTarget.sortButton() {
+        val sortProperty = gameController.sortedFilteredGames.sortProperty
+        val sortOrderProperty = gameController.sortedFilteredGames.sortOrderProperty
+
+        fun constructPossibleItems() =
+            GameSettings.Sort.values().toList().map { sort ->
+                sort to (if (sort == sortProperty.value) sortOrderProperty.value.toggle() else TableColumn.SortType.DESCENDING)
             }
+
+        val possibleItems = constructPossibleItems().observable()
+        sortProperty.onChange { possibleItems.setAll(constructPossibleItems()) }
+        sortOrderProperty.onChange { possibleItems.setAll(constructPossibleItems()) }
+
+        val selectedItemProperty = SimpleObjectProperty(sortProperty.value to sortOrderProperty.value)
+        popoverComboMenu(
+            possibleItems = possibleItems,
+            selectedItemProperty = selectedItemProperty,
+            itemStyleClass = Style.sortItem,
+            text = { it.first.key },
+            graphic = { it.second.toGraphic() }
+        )
+        selectedItemProperty.onChange {
+            val (sort, order) = it!!
+            sortProperty.value = sort
+            sortOrderProperty.value = order
         }
-    }.apply {
-        textProperty().bind(gameController.sortedFilteredGames.sortProperty.map { it!!.toString() })
-        graphicProperty().bind(gameController.sortedFilteredGames.sortOrderProperty.map { it!!.toGraphic() })
-        contentDisplay = ContentDisplay.LEFT
     }
 
     private fun EventTarget.reportButton() = buttonWithPopover("Report", reportGraphic()) {
+        // TODO: Does using a form make all buttons the same size without a custom style?
         popoverContent.apply {
             reportButton("Duplicate Games") {
                 addClass(Style.reportButton)
@@ -211,7 +223,6 @@ class GameView : GamedexScreen("Games") {
                     this@buttonWithPopover.hide()
                     TODO()  // FIXME: Implement - consider checking for provider apiUrl duplication.
 //                    val task = gameController.refreshAllGames()
-//                    disableWhen { task.runningProperty }
                 }
             }
             separator()
@@ -224,6 +235,8 @@ class GameView : GamedexScreen("Games") {
                 }
             }
         }
+    }.apply {
+        enableWhen { gameController.canRunLongTask }
     }
 
     private fun EventTarget.searchButton() = buttonWithPopover("Search", searchGraphic()) {
@@ -243,8 +256,7 @@ class GameView : GamedexScreen("Games") {
                 tooltip("Search all libraries for new games")
                 setOnAction {
                     this@buttonWithPopover.hide()
-                    val task = gameController.scanNewGames(chooseResultsProperty.value)
-                    disableWhen { task.runningProperty }
+                    gameController.scanNewGames(chooseResultsProperty.value)
                 }
             }
             separator()
@@ -253,8 +265,7 @@ class GameView : GamedexScreen("Games") {
                 tooltip("Search all games that don't already have all available providers")
                 setOnAction {
                     this@buttonWithPopover.hide()
-                    val task = gameController.rediscoverAllGames(chooseResultsProperty.value)
-                    disableWhen { task.runningProperty }
+                    gameController.rediscoverAllGames(chooseResultsProperty.value)
                 }
             }
             separator()
@@ -265,10 +276,11 @@ class GameView : GamedexScreen("Games") {
                     this@buttonWithPopover.hide()
                     TODO()      // FIXME: Implement
 //                    val task = gameController.rediscoverAllGames(chooseResultsProperty.value)
-//                    disableWhen { task.runningProperty }
                 }
             }
         }
+    }.apply {
+        enableWhen { gameController.canRunLongTask }
     }
 
     private fun EventTarget.refreshButton() = buttonWithPopover("Refresh", refreshGraphic()) {
@@ -289,8 +301,7 @@ class GameView : GamedexScreen("Games") {
                 tooltip("Refresh all games older than") // TODO: insert currently set older than duration
                 setOnAction {
                     this@buttonWithPopover.hide()
-                    val task = gameController.refreshAllGames()
-                    disableWhen { task.runningProperty }
+                    gameController.refreshAllGames()
                 }
             }
             separator()
@@ -303,14 +314,14 @@ class GameView : GamedexScreen("Games") {
                 }
             }
         }
+    }.apply {
+        enableWhen { gameController.canRunLongTask }
     }
 
     private fun EventTarget.cleanupButton() = deleteButton("Cleanup") {
         addClass(CommonStyle.toolbarButton)
-        setOnAction {
-            val task = gameController.cleanup()
-            disableWhen { task.runningProperty }
-        }
+        enableWhen { gameController.canRunLongTask }
+        setOnAction { gameController.cleanup() }
     }
 
     private fun GameSettings.DisplayType.toNode() = when (this) {
@@ -337,8 +348,8 @@ class GameView : GamedexScreen("Games") {
             separator()
             menuitem("Tag", graphic = tagGraphic(20.0)) { controller.tag(game()) }
             separator()
-            menuitem("Refresh", graphic = refreshGraphic(20.0)) { controller.refreshGame(game()) }
-            menuitem("Search", graphic = searchGraphic(20.0)) { controller.searchGame(game()) }
+            menuitem("Refresh", graphic = refreshGraphic(20.0)) { controller.refreshGame(game()) }.apply { enableWhen { controller.canRunLongTask } }
+            menuitem("Search", graphic = searchGraphic(20.0)) { controller.searchGame(game()) }.apply { enableWhen { controller.canRunLongTask } }
             separator()
             menuitem("Delete", graphic = deleteGraphic(20.0)) { controller.delete(game()) }
         }
@@ -395,7 +406,7 @@ class GameView : GamedexScreen("Games") {
             }
 
             sortItem {
-                prefWidth = 100.px
+                prefWidth = 140.px
                 alignment = Pos.CENTER_LEFT
             }
 

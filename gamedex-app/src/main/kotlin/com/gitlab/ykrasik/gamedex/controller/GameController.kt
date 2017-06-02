@@ -44,6 +44,8 @@ class GameController @Inject constructor(
         sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }
 
+    val canRunLongTask get() = MainView.canShowPersistentNotificationProperty
+
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
     fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Deferred<Game> = async(JavaFx) {
         val choice = EditGameDataFragment(game, initialTab).show()
