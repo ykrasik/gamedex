@@ -83,14 +83,14 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     jfxButton(text = text, graphic = graphic) {
         if (styleClass != null) addClass(styleClass)
         val popover = popOver(arrowLocation, closeOnClick, op)
-        setOnAction { if (popover.isShowing) popover.hide() else popover.show(this) }
+        setOnAction { popover.toggle(this) }
     }
 
 // TODO: This is a bit too much.
 fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                     styleClass: CssRule? = CommonStyle.toolbarButton,
+                                     styleClass: CssRule? = null,
                                      itemStyleClass: CssRule? = null,
                                      text: ((T) -> String)? = null,
                                      graphic: ((T) -> Node)? = null,
@@ -168,6 +168,8 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     content.addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) hide() }
     op?.invoke(content)
 }
+
+fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 
 private val PopOver.popoverContent: VBox get() {
     return if (contentNode !is VBox) {

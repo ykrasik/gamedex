@@ -12,6 +12,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
+import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -80,6 +81,7 @@ class GameView : GamedexScreen("Games") {
         popoverComboMenu(
             possibleItems = possibleItems,
             selectedItemProperty = selectedItemProperty,
+            styleClass = CommonStyle.toolbarButton,
             itemStyleClass = Style.sortItem,
             text = { it.first.key },
             graphic = { it.second.toGraphic() }
@@ -113,43 +115,42 @@ class GameView : GamedexScreen("Games") {
         enableWhen { gameController.canRunLongTask }
     }
 
-    private fun EventTarget.searchButton() = buttonWithPopover("Search", Theme.Icon.search()) {
-        val chooseResultsProperty = GameProviderService.SearchConstraints.ChooseResults.chooseIfNonExact.toProperty()
-        popoverComboMenu(
-            possibleItems = GameProviderService.SearchConstraints.ChooseResults.values().toList().observable(),
-            selectedItemProperty = chooseResultsProperty,
-            arrowLocation = PopOver.ArrowLocation.RIGHT_TOP,
-            styleClass = Style.searchButton,
-            itemStyleClass = Style.chooseResultsItem,
-            text = GameProviderService.SearchConstraints.ChooseResults::key
-        )
-        separator()
-        searchButton("New Games") {
-            addClass(Style.searchButton)
-            tooltip("Search all libraries for new games")
-            setOnAction {
-                gameController.scanNewGames(chooseResultsProperty.value)
-            }
-        }
-        separator()
-        searchButton("Games without Providers") {
-            addClass(Style.searchButton)
-            tooltip("Search all games that don't already have all available providers")
-            setOnAction {
-                gameController.rediscoverAllGames(chooseResultsProperty.value)
-            }
-        }
-        separator()
-        searchButton("Filtered Games") {
-            addClass(Style.searchButton)
-            tooltip("Search currently filtered games that don't already have all available providers")
-            setOnAction {
-                TODO()      // FIXME: Implement
-//                    val task = gameController.rediscoverAllGames(chooseResultsProperty.value)
-            }
-        }
-    }.apply {
+    private fun EventTarget.searchButton() = searchButton {
         enableWhen { gameController.canRunLongTask }
+        val chooseResultsProperty = GameProviderService.SearchConstraints.ChooseResults.chooseIfNonExact.toProperty()
+        val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
+            popoverComboMenu(
+                possibleItems = GameProviderService.SearchConstraints.ChooseResults.values().toList().observable(),
+                selectedItemProperty = chooseResultsProperty,
+                styleClass = Style.searchButton,
+                itemStyleClass = Style.chooseResultsItem,
+                text = GameProviderService.SearchConstraints.ChooseResults::key
+            )
+        }
+        val downPopover = popOver {
+            addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
+            searchButton("New Games") {
+                addClass(Style.searchButton)
+                tooltip("Search all libraries for new games")
+                setOnAction { gameController.scanNewGames(chooseResultsProperty.value) }
+            }
+            separator()
+            searchButton("Games without Providers") {
+                addClass(Style.searchButton)
+                tooltip("Search all games that don't already have all available providers")
+                setOnAction { gameController.rediscoverAllGames(chooseResultsProperty.value) }
+            }
+            separator()
+            searchButton("Filtered Games") {
+                addClass(Style.searchButton)
+                tooltip("Search currently filtered games that don't already have all available providers")
+                setOnAction {
+                    TODO()      // FIXME: Implement
+//                    val task = gameController.rediscoverAllGames(chooseResultsProperty.value)
+                }
+            }
+        }
+        setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }
     }
 
     private fun EventTarget.refreshButton() = buttonWithPopover("Refresh", Theme.Icon.refresh()) {

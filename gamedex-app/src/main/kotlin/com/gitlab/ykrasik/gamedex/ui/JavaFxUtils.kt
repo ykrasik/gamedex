@@ -217,6 +217,6 @@ fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
 
 fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     val shouldShow = expr()
-    managedProperty().bind(shouldShow)
+    managedWhen { shouldShow }
     visibleWhen { shouldShow }
 }
