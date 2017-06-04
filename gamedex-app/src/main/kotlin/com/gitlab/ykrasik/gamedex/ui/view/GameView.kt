@@ -165,17 +165,13 @@ class GameView : GamedexScreen("Games") {
         refreshButton("All Games") {
             addClass(Style.searchButton)
             tooltip("Refresh all games older than") // TODO: insert currently set older than duration
-            setOnAction {
-                gameController.refreshAllGames()
-            }
+            setOnAction { gameController.refreshAllGames() }
         }
         separator()
         refreshButton("Filtered Games") {
             addClass(Style.searchButton)
             tooltip("Refresh filtered games older than") // TODO: insert currently set older than duration
-            setOnAction {
-                TODO()      // FIXME: Implement
-            }
+            setOnAction { setOnAction { gameController.refreshFilteredGames() } }
         }
     }.apply {
         enableWhen { gameController.canRunLongTask }

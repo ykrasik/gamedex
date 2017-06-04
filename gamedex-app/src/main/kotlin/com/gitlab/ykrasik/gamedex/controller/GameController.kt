@@ -2,10 +2,12 @@ package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.GameTasks
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.task.GameTasks
+import com.gitlab.ykrasik.gamedex.task.RefreshTasks
+import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.distincting
 import com.gitlab.ykrasik.gamedex.ui.flatMapping
@@ -29,6 +31,8 @@ import javax.inject.Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
     private val gameTasks: GameTasks,
+    private val searchTasks: SearchTasks,
+    private val refreshTasks: RefreshTasks,
     settings: GameSettings
 ) : Controller() {
     private val mainView: MainView by inject()
@@ -63,6 +67,15 @@ class GameController @Inject constructor(
         }
     }
 
+    private fun RawGame.withDataOverrides(overrides: Map<GameDataType, GameDataOverride>): RawGame {
+        // If new overrides are empty and userData is null, or userData has empty overrides -> nothing to do
+        // If new overrides are not empty and userData is not null, but has the same overrides -> nothing to do
+        if (overrides == userData?.overrides ?: emptyMap<GameDataType, GameDataOverride>()) return this
+
+        val userData = this.userData ?: UserData()
+        return copy(userData = userData.copy(overrides = overrides))
+    }
+
     fun tag(game: Game): Deferred<Game> = async(JavaFx) {
         val choice = TagFragment(game).show()
         val tags = when (choice) {
@@ -78,21 +91,31 @@ class GameController @Inject constructor(
         }
     }
 
-    // TODO: Since these are called from multiple places, consider placing the ui icons in one central place for consistency.
-    fun scanNewGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) = gameTasks.ScanNewGamesTask(chooseResults).apply { start() }
+    private fun RawGame.withTags(tags: List<String>): RawGame {
+        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
+        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
+        if (tags == userData?.tags ?: emptyList<String>()) return this
+
+        val userData = this.userData ?: UserData()
+        return copy(userData = userData.copy(tags = tags))
+    }
+
+    fun scanNewGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
+        gameTasks.ScanNewGamesTask(chooseResults).apply { start() }
     fun cleanup(): GameTasks.CleanupTask {
         // TODO: Detect stale games, confirm, then delete.
         return gameTasks.CleanupTask().apply { start() }
     }
 
-    fun refreshAllGames() = gameTasks.RefreshAllGamesTask().apply { start() }
-    fun refreshGame(game: Game) = gameTasks.RefreshGameTask(game).apply { start() }
-
     fun rediscoverAllGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
-        gameTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
+        searchTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
     fun rediscoverFilteredGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
-        gameTasks.RediscoverFilteredGamesTask(chooseResults, sortedFilteredGames).apply { start() }
-    fun searchGame(game: Game) = gameTasks.SearchGameTask(game).apply { start() }
+        searchTasks.RediscoverGamesTask(chooseResults, sortedFilteredGames.games).apply { start() }
+    fun searchGame(game: Game) = searchTasks.SearchGameTask(game).apply { start() }
+
+    fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }
+    fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames.games).apply { start() }
+    fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false
@@ -102,23 +125,5 @@ class GameController @Inject constructor(
             MainView.showFlashInfoNotification("Deleted game: '${game.name}'.")
         }
         return true
-    }
-
-    private fun RawGame.withDataOverrides(overrides: Map<GameDataType, GameDataOverride>): RawGame {
-        // If new overrides are empty and userData is null, or userData has empty overrides -> nothing to do
-        // If new overrides are not empty and userData is not null, but has the same overrides -> nothing to do
-        if (overrides == userData?.overrides ?: emptyMap<GameDataType, GameDataOverride>()) return this
-
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(overrides = overrides))
-    }
-
-    private fun RawGame.withTags(tags: List<String>): RawGame {
-        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
-        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-        if (tags == userData?.tags ?: emptyList<String>()) return this
-
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(tags = tags))
     }
 }
