@@ -144,10 +144,7 @@ class GameView : GamedexScreen("Games") {
             searchButton("Filtered Games") {
                 addClass(Style.searchButton)
                 tooltip("Search currently filtered games that don't already have all available providers")
-                setOnAction {
-                    TODO()      // FIXME: Implement
-//                    val task = gameController.rediscoverAllGames(chooseResultsProperty.value)
-                }
+                setOnAction { gameController.rediscoverFilteredGames(chooseResultsProperty.value) }
             }
         }
         setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }

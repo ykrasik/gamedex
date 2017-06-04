@@ -166,27 +166,18 @@ class GameTasks @Inject constructor(
         return updateGame(game, newProviderData, newUserData = game.userData)
     }
 
+    // TODO: Move all search tasks into their own class
     // TODO: This only rediscovers non-excluded providers - find a way to add to name
     inner class RediscoverAllGamesTask(private val chooseResults: GameProviderService.SearchConstraints.ChooseResults) :
         Task<Unit>("Rediscovering all games...") {
 
-        private var numRetried = 0
-        private var numSucceeded = 0
+        private var numUpdated = 0
 
         override suspend fun doRun() {
             // Operate on a copy of the games to avoid concurrent modifications
-            val gamesToRetry = gameRepository.games.filter { it.hasMissingProviders }
-            gamesToRetry.sortedBy { it.name }.forEachIndexed { i, game ->
-                progress.progress(i, gamesToRetry.size - 1)
-
-                val constraints = GameProviderService.SearchConstraints(
-                    chooseResults = chooseResults,
-                    excludedProviders = game.existingProviders + game.excludedProviders
-                )
-                if (doSearchAgain(game, constraints) != null) {
-                    numSucceeded += 1
-                }
-                numRetried += 1
+            val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }
+            doRediscover(chooseResults, gamesWithMissingProviders) {
+                numUpdated += 1
             }
         }
 
@@ -194,10 +185,22 @@ class GameTasks @Inject constructor(
         private val Game.hasMissingProviders: Boolean
             get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
 
-        private val Game.existingProviders get() = rawGame.providerData.map { it.header.id }
-        private val Game.excludedProviders get() = userData?.excludedProviders ?: emptyList()
+        override fun doneMessage() = "Done: Updated $numUpdated games."
+    }
 
-        override fun doneMessage() = "Done: Rediscovered $numSucceeded/$numRetried games."
+    inner class RediscoverFilteredGamesTask(private val chooseResults: GameProviderService.SearchConstraints.ChooseResults,
+                                            private val filteredGames: SortedFilteredGames) :
+        Task<Unit>("Rediscovering filtered games...") {
+
+        private var numUpdated = 0
+
+        override suspend fun doRun() {
+            doRediscover(chooseResults, filteredGames.games) {
+                numUpdated += 1
+            }
+        }
+
+        override fun doneMessage() = "Done: Updated $numUpdated games."
     }
 
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
@@ -210,6 +213,26 @@ class GameTasks @Inject constructor(
         }
         override fun doneMessage() = "Done searching: '${game.name}'."
     }
+
+    private suspend fun Task<*>.doRediscover(chooseResults: GameProviderService.SearchConstraints.ChooseResults,
+                                             gamesToRediscover: List<Game>,
+                                             onSuccess: (Game) -> Unit) {
+        // Operate on a copy of the games to avoid concurrent modifications
+        gamesToRediscover.sortedBy { it.name }.forEachIndexed { i, game ->
+            progress.progress(i, gamesToRediscover.size - 1)
+
+            val constraints = GameProviderService.SearchConstraints(
+                chooseResults = chooseResults,
+                excludedProviders = game.existingProviders + game.excludedProviders
+            )
+            if (doSearchAgain(game, constraints) != null) {
+                onSuccess(game)
+            }
+        }
+    }
+
+    private val Game.existingProviders get() = rawGame.providerData.map { it.header.id }
+    private val Game.excludedProviders get() = userData?.excludedProviders ?: emptyList()
 
     private suspend fun Task<*>.doSearchAgain(game: Game, constraints: GameProviderService.SearchConstraints): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)

@@ -24,6 +24,7 @@ import javax.inject.Singleton
  * Date: 01/05/2017
  * Time: 19:42
  */
+// TODO: Create this using a gameProperty and have it reload?
 @Singleton
 class GameDetailSnippetFactory @Inject constructor(private val providerRepository: GameProviderRepository) {
 

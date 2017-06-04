@@ -88,7 +88,10 @@ class GameController @Inject constructor(
     fun refreshAllGames() = gameTasks.RefreshAllGamesTask().apply { start() }
     fun refreshGame(game: Game) = gameTasks.RefreshGameTask(game).apply { start() }
 
-    fun rediscoverAllGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) = gameTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
+    fun rediscoverAllGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
+        gameTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
+    fun rediscoverFilteredGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
+        gameTasks.RediscoverFilteredGamesTask(chooseResults, sortedFilteredGames).apply { start() }
     fun searchGame(game: Game) = gameTasks.SearchGameTask(game).apply { start() }
 
     fun delete(game: Game): Boolean {
