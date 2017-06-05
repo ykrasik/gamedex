@@ -12,7 +12,6 @@ import com.gitlab.ykrasik.gamedex.ui.theme.reportButton
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.ui.view.game.wall.GameWallView
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.TableColumn
@@ -71,31 +70,23 @@ class GameScreen : GamedexScreen("Games") {
 
     private fun EventTarget.sortButton() {
         val sortProperty = gameController.sortedFilteredGames.sortProperty
-        val sortOrderProperty = gameController.sortedFilteredGames.sortOrderProperty
-
-        fun constructPossibleItems() =
-            GameSettings.Sort.values().toList().map { sort ->
-                sort to (if (sort == sortProperty.value) sortOrderProperty.value.toggle() else TableColumn.SortType.DESCENDING)
+        val possibleItems = sortProperty.mapToList { sort ->
+            GameSettings.SortBy.values().toList().map { sortBy ->
+                GameSettings.Sort(
+                    sortBy = sortBy,
+                    order = if (sortBy == sort.sortBy) sort.order.toggle() else TableColumn.SortType.DESCENDING
+                )
             }
+        }
 
-        val possibleItems = constructPossibleItems().observable()
-        sortProperty.onChange { possibleItems.setAll(constructPossibleItems()) }
-        sortOrderProperty.onChange { possibleItems.setAll(constructPossibleItems()) }
-
-        val selectedItemProperty = SimpleObjectProperty(sortProperty.value to sortOrderProperty.value)
         popoverComboMenu(
             possibleItems = possibleItems,
-            selectedItemProperty = selectedItemProperty,
+            selectedItemProperty = sortProperty,
             styleClass = CommonStyle.toolbarButton,
             itemStyleClass = Style.sortItem,
-            text = { it.first.key },
-            graphic = { it.second.toGraphic() }
+            text = { it.sortBy.key },
+            graphic = { it.order.toGraphic() }
         )
-        selectedItemProperty.onChange {
-            val (sort, order) = it!!
-            sortProperty.value = sort
-            sortOrderProperty.value = order
-        }
     }
 
     private fun EventTarget.reportButton() = buttonWithPopover("Report", Theme.Icon.report()) {

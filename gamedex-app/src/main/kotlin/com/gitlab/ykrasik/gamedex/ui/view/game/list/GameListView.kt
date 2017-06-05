@@ -114,11 +114,11 @@ class GameListView : View("Game List") {
     }
 
     private fun onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.genreFilter = genre
+        gameController.sortedFilteredGames.filterGenres(listOf(genre))
     }
 
     private fun onTagPressed(tag: String) {
-        gameController.sortedFilteredGames.tagFilter = tag
+        gameController.sortedFilteredGames.filterTags(listOf(tag))
     }
 
     class Style : Stylesheet() {

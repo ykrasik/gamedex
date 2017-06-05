@@ -9,7 +9,6 @@ import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.Property
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.ImageView
@@ -18,6 +17,7 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
+import javafx.stage.Screen
 import javafx.util.Callback
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
@@ -103,9 +103,6 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                         if (itemStyleClass != null) addClass(itemStyleClass)
                         setOnAction { selectedItemProperty.value = item }
                     }
-                    if (item == selectedItemProperty) {
-                        selectedItemProperty.value = item
-                    }
                     menuOp?.invoke(this@buttonWithPopover, item)
                 }
             }
@@ -116,42 +113,37 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
     }
 }
 
-fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
+fun <T> EventTarget.popoverToggleMenu(possibleItems: List<T>,
                                       selectedItems: Property<List<T>>,
                                       arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                      styleClass: CssRule? = CommonStyle.toolbarButton,
-                                      itemStyleClass: CssRule? = null,
+                                      styleClasses: List<CssRule> = emptyList(),
+                                      itemStyleClasses: List<CssRule> = emptyList(),
                                       text: ((T) -> String)? = null,
                                       graphic: ((T) -> Node)? = null,
                                       menuOp: (VBox.(T) -> Unit)? = null) {
-    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass, closeOnClick = false) {
-        possibleItems.performing { items ->
-            replaceChildren {
-                items.forEach { item ->
-                    hbox {
-                        jfxToggleButton {
-                            if (itemStyleClass != null) addClass(itemStyleClass)
-                            this.text = text?.invoke(item)
-                            isSelected = selectedItems.value.contains(item)
-                            selectedProperty().onChange {
-                                if (it) selectedItems.value += item else selectedItems.value -= item
-                            }
-                        }
-                        if (graphic != null) {
-                            children += graphic(item).apply {
-                                alignment = Pos.CENTER
-                                paddingRight = 5.0
-                            }
-                        }
-                    }
-                    menuOp?.invoke(this@buttonWithPopover, item)
+    buttonWithPopover(arrowLocation = arrowLocation, styleClass = null, closeOnClick = false) {
+        possibleItems.forEach { item ->
+            jfxToggleNode {
+                addClass(CommonStyle.toggleMenuButton)
+                this.graphic = label {
+                    addClass(CommonStyle.toggleMenuContent)
+                    itemStyleClasses.forEach { addClass(it) }
+                    this.text = text?.invoke(item)
+                    this.graphic = graphic?.invoke(item)
+                }
+                isSelected = selectedItems.value.contains(item)
+                selectedProperty().onChange {
+                    if (it) selectedItems.value += item else selectedItems.value -= item
                 }
             }
+            menuOp?.invoke(this@buttonWithPopover, item)
         }
     }.apply {
+        styleClasses.forEach { addClass(it) }
         if (text != null) {
             textProperty().bind(selectedItems.map { selectedItems ->
-                if (selectedItems!!.isEmpty() || selectedItems == possibleItems) "All" else selectedItems.map(text).sorted().joinToString(", ")
+                if (selectedItems!!.isEmpty() || selectedItems.toSet() == possibleItems.toSet()) "All"
+                else selectedItems.map(text).sorted().joinToString(", ")
             })
         }
     }
@@ -163,24 +155,24 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
     isDetachable = false
-    val content = popoverContent
+
+    val scrollpane = ScrollPane().apply {
+        maxHeight = Screen.getPrimary().bounds.height * 3 / 4
+        isFitToWidth = true
+        isFitToHeight = true
+        hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+    }
+    contentNode = scrollpane
+    val content = VBox().apply {
+        addClass(CommonStyle.popoverMenu)
+        scrollpane.content = this
+    }
     if (closeOnClick) content.addEventFilter(MouseEvent.MOUSE_CLICKED) { hide() }
     content.addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) hide() }
     op?.invoke(content)
 }
 
 fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
-
-private val PopOver.popoverContent: VBox get() {
-    return if (contentNode !is VBox) {
-        VBox().apply {
-            addClass(CommonStyle.popoverMenu)
-            contentNode = this
-        }
-    } else {
-        contentNode as VBox
-    }
-}
 
 //fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
 //    val popover = popOver(arrowLocation)

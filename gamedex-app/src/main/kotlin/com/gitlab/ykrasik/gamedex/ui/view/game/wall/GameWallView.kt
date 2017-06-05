@@ -39,6 +39,7 @@ class GameWallView : View("Games Wall") {
         horizontalCellSpacingProperty().bind(settings.cellHorizontalSpacingProperty)
         verticalCellSpacingProperty().bind(settings.cellVerticalSpacingProperty)
 
+        // TODO: Hide the popover with a filter.
         val popOver = popOver()
 
         setCellFactory {
@@ -76,12 +77,12 @@ class GameWallView : View("Games Wall") {
     }
 
     private fun PopOver.onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.genreFilter = genre
+        gameController.sortedFilteredGames.filterGenres(listOf(genre))
         hide()
     }
 
     private fun PopOver.onTagPressed(tag: String) {
-        gameController.sortedFilteredGames.tagFilter = tag
+        gameController.sortedFilteredGames.filterTags(listOf(tag))
         hide()
     }
 

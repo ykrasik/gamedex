@@ -13,6 +13,7 @@ import com.gitlab.ykrasik.gamedex.ui.flatMapping
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
+import javafx.beans.binding.BooleanBinding
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -41,13 +42,12 @@ class GameController @Inject constructor(
     val tags = gameRepository.games.flatMapping(Game::tags).distincting()
 
     init {
-        sortedFilteredGames.platformFilterProperty.bindBidirectional(settings.platformProperty)
-        sortedFilteredGames.sourceIdsPerPlatformFilterProperty.bindBidirectional(settings.sourceIdsPerPlatformProperty)
+        sortedFilteredGames.platformProperty.bindBidirectional(settings.platformProperty)
+        sortedFilteredGames.filtersProperty.bindBidirectional(settings.filtersProperty)
         sortedFilteredGames.sortProperty.bindBidirectional(settings.sortProperty)
-        sortedFilteredGames.sortOrderProperty.bindBidirectional(settings.sortOrderProperty)
     }
 
-    val canRunLongTask get() = MainView.canShowPersistentNotificationProperty
+    val canRunLongTask: BooleanBinding get() = MainView.canShowPersistentNotificationProperty
 
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
     fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Deferred<Game> = async(JavaFx) {

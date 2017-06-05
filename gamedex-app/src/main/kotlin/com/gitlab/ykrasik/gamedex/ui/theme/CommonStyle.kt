@@ -33,6 +33,9 @@ class CommonStyle : Stylesheet() {
 
         val popoverMenu by cssclass()
 
+        val toggleMenuButton by cssclass()
+        val toggleMenuContent by cssclass()
+
         fun Any?.toDisplayString() = toStringOr("NA")
 
         init {
@@ -103,6 +106,18 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
+        }
+
+        toggleMenuButton {
+            maxWidth = Double.MAX_VALUE.px
+            backgroundColor = multi(Color.TRANSPARENT)
+            and(hover) {
+                backgroundColor = multi(Color.LIGHTBLUE)
+            }
+        }
+
+        toggleMenuContent {
+            padding = box(vertical = 0.px, horizontal = 5.px)
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

@@ -8,7 +8,7 @@ import com.gitlab.ykrasik.gamedex.test.rnd
  * Date: 01/04/2017
  * Time: 14:06
  */
-object GameDetailsViewTestApp : BaseTestApp() {
+object GameDetailsScreenTestApp : BaseTestApp() {
     override fun init() {
         val game = Game(
             rawGame = RawGame(

@@ -25,16 +25,12 @@ class GameSettings private constructor() : AbstractSettings("game") {
     var platform by platformProperty
 
     @Transient
-    val sourceIdsPerPlatformProperty = preferenceProperty(emptyMap<Platform, List<Int>>())
-    var sourceIdsPerPlatform by sourceIdsPerPlatformProperty
+    val filtersProperty = preferenceProperty(emptyMap<Platform, FilterSet>())
+    var filters by filtersProperty
 
     @Transient
-    val sortProperty = preferenceProperty(Sort.criticScore)
+    val sortProperty = preferenceProperty(Sort())
     var sort by sortProperty
-
-    @Transient
-    val sortOrderProperty = preferenceProperty(TableColumn.SortType.DESCENDING)
-    var sortOrder by sortOrderProperty
 
     @Transient
     val chooseResultsProperty = preferenceProperty(ChooseResults.chooseIfNonExact)
@@ -44,7 +40,18 @@ class GameSettings private constructor() : AbstractSettings("game") {
     val stalePeriodProperty = preferenceProperty(Period.months(2).normalizedStandard())
     var stalePeriod by stalePeriodProperty
 
-    enum class Sort(val key: String) {
+    data class FilterSet(
+        val libraries: List<Int> = emptyList(),
+        val genres: List<String> = emptyList(),
+        val tags: List<String> = emptyList()
+    )
+
+    data class Sort(
+        val sortBy: SortBy = SortBy.criticScore,
+        val order: TableColumn.SortType = TableColumn.SortType.DESCENDING
+    )
+
+    enum class SortBy(val key: String) {
         name_("Name"),
         criticScore("Critic Score"),
         userScore("User Score"),

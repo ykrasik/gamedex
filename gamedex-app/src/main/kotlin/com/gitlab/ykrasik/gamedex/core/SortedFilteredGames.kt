@@ -1,20 +1,16 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.ui.and
-import com.gitlab.ykrasik.gamedex.ui.gettingOrElse
-import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
-import com.gitlab.ykrasik.gamedex.ui.toPredicate
-import javafx.beans.property.ObjectProperty
+import com.gitlab.ykrasik.gamedex.ui.*
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.TableColumn
 import tornadofx.SortedFilteredList
 import tornadofx.getValue
-import tornadofx.onChange
 import tornadofx.setValue
 
 /**
@@ -23,29 +19,19 @@ import tornadofx.setValue
  * Time: 12:48
  */
 class SortedFilteredGames(_games: ObservableList<Game>) {
-    val platformFilterProperty = SimpleObjectProperty<Platform>()
-    var platformFilter by platformFilterProperty
+    val platformProperty = SimpleObjectProperty<Platform>()
+    var platform by platformProperty
 
-    val sourceIdsPerPlatformFilterProperty = SimpleObjectProperty(emptyMap<Platform, List<Int>>())
-    var sourceIdsPerPlatformFilter by sourceIdsPerPlatformFilterProperty
+    val filtersProperty = SimpleObjectProperty(emptyMap<Platform, GameSettings.FilterSet>())
+    var filters by filtersProperty
 
-    val sourceIdsFilterProperty = sourceIdsPerPlatformFilterProperty.gettingOrElse(platformFilterProperty, emptyList())
-    val sourceIdsFilter by sourceIdsFilterProperty
-
-    val genreFilterProperty = SimpleStringProperty(allGenres)
-    var genreFilter by genreFilterProperty
-
-    val tagFilterProperty = SimpleStringProperty(allTags)
-    var tagFilter by tagFilterProperty
+    val filtersForPlatformProperty = filtersProperty.gettingOrElse(platformProperty, GameSettings.FilterSet())
 
     val searchQueryProperty = SimpleStringProperty("")
     var searchQuery by searchQueryProperty
 
-    val sortProperty = SimpleObjectProperty<GameSettings.Sort>(GameSettings.Sort.name_)
+    val sortProperty = SimpleObjectProperty(GameSettings.Sort())
     var sort by sortProperty
-
-    val sortOrderProperty = SimpleObjectProperty<TableColumn.SortType>(TableColumn.SortType.ASCENDING)
-    var sortOrder by sortOrderProperty
 
     val games: ObservableList<Game> = _games.sortedFiltered()
 
@@ -54,73 +40,71 @@ class SortedFilteredGames(_games: ObservableList<Game>) {
     private val userScoreComparator = compareBy(Game::userScore)
 
     init {
-        val platformPredicate = platformFilterProperty.toPredicate { platform, game: Game ->
+        val platformPredicate = platformProperty.toPredicate { platform, game: Game ->
             game.platform == platform
         }
 
-        val sourcePredicate = sourceIdsFilterProperty.toPredicate { sourceIds, game: Game ->
-            sourceIds!!.isEmpty() || sourceIds.any { game.library.id == it }
+        val libraryPredicate = filtersForPlatformProperty.toPredicate { filters, game: Game ->
+            filters!!.libraries.let { libraries ->
+                libraries.isEmpty() || libraries.any { game.library.id == it }
+            }
+        }
+
+        val genrePredicate = filtersForPlatformProperty.toPredicate { filters, game: Game ->
+            filters!!.genres.let { genres ->
+                genres.isEmpty() || genres.any { g -> game.genres.any { it == g } }
+            }
+        }
+
+        val tagPredicate = filtersForPlatformProperty.toPredicate { filters, game: Game ->
+            filters!!.tags.let { tags ->
+                tags.isEmpty() || tags.any { t -> game.tags.any { it == t } }
+            }
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game ->
             query!!.isEmpty() || query.split(" ").all { word -> game.name.contains(word, ignoreCase = true) }
         }
 
-        val genrePredicate = genreFilterProperty.toPredicate { genre, game: Game ->
-            genre.isNullOrEmpty() || genre == allGenres || game.genres.contains(genre)
-        }
-
-        val tagPredicate = tagFilterProperty.toPredicate { tag, game: Game ->
-            tag.isNullOrEmpty() || tag == allTags || game.tags.contains(tag)
-        }
-
-        val gameFilterPredicate = platformPredicate and sourcePredicate and
-            searchPredicate and genrePredicate and tagPredicate
+        val gameFilterPredicate =
+            platformPredicate and libraryPredicate and genrePredicate and tagPredicate and searchPredicate
 
         games as SortedFilteredList<Game>
         games.filteredItems.predicateProperty().bind(gameFilterPredicate)
         games.sortedItems.comparatorProperty().bind(sortComparator())
     }
 
+    fun filterLibraries(libraries: List<Library>) = setFilters { it.copy(libraries = libraries.map { it.id }) }
+    fun filterGenres(genres: List<String>) = setFilters { it.copy(genres = genres) }
+    fun filterTags(tags: List<String>) = setFilters { it.copy(tags = tags) }
+
     fun clearFilters() {
-        genreFilter = allGenres
-        tagFilter = allTags
+        filters += (platform to GameSettings.FilterSet())
         searchQuery = ""
     }
 
-    private fun sortComparator(): ObjectProperty<Comparator<Game>> {
-        fun comparator(): Comparator<Game> {
-            val comparator = when (sortProperty.value!!) {
-                GameSettings.Sort.name_ -> nameComparator
-                GameSettings.Sort.criticScore -> criticScoreComparator.then(nameComparator)
-                GameSettings.Sort.userScore -> userScoreComparator.then(nameComparator)
-                GameSettings.Sort.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                GameSettings.Sort.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                GameSettings.Sort.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                GameSettings.Sort.updateDate -> compareBy(Game::updateDate)
-            }
-            return if (sortOrderProperty.value == TableColumn.SortType.ASCENDING) {
-                comparator
-            } else {
-                comparator.reversed()
-            }
-        }
+    private fun setFilters(f: (GameSettings.FilterSet) -> GameSettings.FilterSet) {
+        filters += (platform to f(filtersForPlatformProperty.value))
+    }
 
-        val property = SimpleObjectProperty(comparator())
-        sortOrderProperty.onChange {
-            property.value = comparator()
+    private fun sortComparator() = sortProperty.map { sort ->
+        val comparator = when (sort!!.sortBy) {
+            GameSettings.SortBy.name_ -> nameComparator
+            GameSettings.SortBy.criticScore -> criticScoreComparator.then(nameComparator)
+            GameSettings.SortBy.userScore -> userScoreComparator.then(nameComparator)
+            GameSettings.SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            GameSettings.SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            GameSettings.SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+            GameSettings.SortBy.updateDate -> compareBy(Game::updateDate)
         }
-        sortProperty.onChange {
-            property.value = comparator()
+        if (sort.order == TableColumn.SortType.ASCENDING) {
+            comparator
+        } else {
+            comparator.reversed()
+
         }
-        return property
     }
 
     private val Game.minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c.score, u.score) } }
     private val Game.avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c.score + u.score) / 2 } }
-
-    companion object {
-        val allGenres = "All"
-        val allTags = "All"
-    }
 }
