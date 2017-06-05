@@ -14,6 +14,8 @@ import tornadofx.*
  */
 class CommonStyle : Stylesheet() {
     companion object {
+        val tabbedNavigation by cssclass()
+
         val hoverable by cssclass()
 
         // TODO: Move this to the GameWallStyle?
@@ -39,6 +41,14 @@ class CommonStyle : Stylesheet() {
     }
 
     init {
+        tabbedNavigation {
+            tabMaxHeight = 0.px
+
+            tabHeaderArea {
+                visibility = FXVisibility.HIDDEN
+            }
+        }
+
         hoverable {
             and(hover) {
                 translateX = 1.px

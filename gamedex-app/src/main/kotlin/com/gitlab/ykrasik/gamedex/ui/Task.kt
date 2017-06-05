@@ -3,7 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
-import com.gitlab.ykrasik.gamedex.ui.view.MainView
+import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.util.Logger
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.DoubleProperty

@@ -4,9 +4,9 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.fragment.LibraryFragment
 import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
-import com.gitlab.ykrasik.gamedex.ui.view.MainView
+import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryFragment
+import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller

@@ -10,9 +10,9 @@ import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.distincting
 import com.gitlab.ykrasik.gamedex.ui.flatMapping
-import com.gitlab.ykrasik.gamedex.ui.fragment.EditGameDataFragment
-import com.gitlab.ykrasik.gamedex.ui.fragment.TagFragment
-import com.gitlab.ykrasik.gamedex.ui.view.MainView
+import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
+import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx

@@ -4,7 +4,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
-import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.search.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CancellationException
@@ -140,7 +140,7 @@ class GameProviderServiceImpl @Inject constructor(
 
         private suspend fun chooseResult(provider: GameProvider, allSearchResults: List<ProviderSearchResult>): SearchChooser.Choice {
             // We only get here when we have no exact matches.
-            when (chooseResults) {
+            when (chooseResults!!) {
                 GameSettings.ChooseResults.skipIfNonExact -> return SearchChooser.Choice.Cancel
                 GameSettings.ChooseResults.proceedWithoutIfNonExact -> return SearchChooser.Choice.ProceedWithout
                 GameSettings.ChooseResults.chooseIfNonExact,

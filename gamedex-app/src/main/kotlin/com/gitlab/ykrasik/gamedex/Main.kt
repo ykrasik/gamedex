@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.ui.fragment.ChooseSearchResultFragment
-import com.gitlab.ykrasik.gamedex.ui.view.PreloaderView
+import com.gitlab.ykrasik.gamedex.ui.view.game.search.ChooseSearchResultFragment
+import com.gitlab.ykrasik.gamedex.ui.view.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.util.LoggerFactory
 import com.gitlab.ykrasik.gamedex.util.UILoggerFactory
 import javafx.application.Application
