@@ -26,7 +26,7 @@ class GameTasks @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val providerService: GameProviderService
 ) {
-    inner class ScanNewGamesTask(private val chooseResults: GameProviderService.SearchConstraints.ChooseResults) : Task<Unit>("Scanning new games...") {
+    inner class ScanNewGamesTask : Task<Unit>("Scanning new games...") {
         private var numNewGames = 0
 
         override suspend fun doRun() {
@@ -67,8 +67,7 @@ class GameTasks @Inject constructor(
 
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
-            val constraints = GameProviderService.SearchConstraints(chooseResults, excludedProviders = emptyList())
-            val results = providerService.search(taskData, constraints) ?: return null
+            val results = providerService.search(taskData, excludedProviders = emptyList()) ?: return null
             val relativePath = library.path.toPath().relativize(directory.toPath()).toFile()
             val metaData = MetaData(library.id, relativePath, updateDate = now)
             val userData = if (results.excludedProviders.isNotEmpty()) {

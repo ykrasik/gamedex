@@ -39,6 +39,8 @@ abstract class Task<out T>(private val title: String) {
     private lateinit var _context: CoroutineContext
     val context: CoroutineContext get() = _context
 
+    val isActive get() = result.isActive
+
     val progress = Progress(log)
 
     private var loadingGraphic: ImageView by singleAssign()

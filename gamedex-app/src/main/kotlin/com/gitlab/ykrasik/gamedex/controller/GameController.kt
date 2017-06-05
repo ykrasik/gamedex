@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.SortedFilteredGames
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
@@ -100,17 +99,14 @@ class GameController @Inject constructor(
         return copy(userData = userData.copy(tags = tags))
     }
 
-    fun scanNewGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
-        gameTasks.ScanNewGamesTask(chooseResults).apply { start() }
+    fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
     fun cleanup(): GameTasks.CleanupTask {
         // TODO: Detect stale games, confirm, then delete.
         return gameTasks.CleanupTask().apply { start() }
     }
 
-    fun rediscoverAllGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
-        searchTasks.RediscoverAllGamesTask(chooseResults).apply { start() }
-    fun rediscoverFilteredGames(chooseResults: GameProviderService.SearchConstraints.ChooseResults) =
-        searchTasks.RediscoverGamesTask(chooseResults, sortedFilteredGames.games).apply { start() }
+    fun rediscoverGamesWithoutProviders() = searchTasks.RediscoverAllGamesTask().apply { start() }
+    fun rediscoverFilteredGames() = searchTasks.RediscoverGamesTask(sortedFilteredGames.games).apply { start() }
     fun searchGame(game: Game) = searchTasks.SearchGameTask(game).apply { start() }
 
     fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }

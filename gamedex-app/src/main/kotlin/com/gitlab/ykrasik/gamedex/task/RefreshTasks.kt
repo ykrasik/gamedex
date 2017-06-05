@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,7 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class RefreshTasks @Inject constructor(
     private val gameRepository: GameRepository,
-    private val providerService: GameProviderService
+    private val providerService: GameProviderService,
+    private val settings: GameSettings
 ) {
     // TODO: Consider renaming 'refresh' to 'redownload'
     inner class RefreshGamesTask(private val games: List<Game>) : Task<Unit>("Refreshing ${games.size} games...") {
@@ -30,8 +32,7 @@ class RefreshTasks @Inject constructor(
                 progress.progress(i, games.size - 1)
 
                 val providersToDownload = game.providerHeaders.filter { header ->
-                    // TODO: Store stale duration as config or parameter.
-                    header.updateDate.plusMonths(1).isBeforeNow
+                    header.updateDate.plus(settings.stalePeriod).isBeforeNow
                 }
                 if (providersToDownload.isNotEmpty()) {
                     doRefreshGame(game, providersToDownload)

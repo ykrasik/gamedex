@@ -3,17 +3,17 @@ package com.gitlab.ykrasik.gamedex.ui.view
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.GameProviderService
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.*
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.ui.theme.reportButton
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
-import javafx.scene.input.MouseEvent
-import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -29,6 +29,8 @@ class GameView : GamedexScreen("Games") {
     private val gameListView: GameListView by inject()
 
     private val filterMenu: GameFilterMenu by inject()
+    private val searchMenu: GameSearchMenu by inject()
+    private val refreshMenu: GameRefreshMenu by inject()
 
     // FIXME: Change search -> sync, refresh maybe to download?
     override fun ToolBar.constructToolbar() {
@@ -44,9 +46,9 @@ class GameView : GamedexScreen("Games") {
         spacer()
 
         verticalSeparator()
-        searchButton()
+        items += searchMenu.root
         verticalSeparator()
-        refreshButton()
+        items += refreshMenu.root
         verticalSeparator()
         cleanupButton()
         verticalSeparator()
@@ -115,68 +117,6 @@ class GameView : GamedexScreen("Games") {
         enableWhen { gameController.canRunLongTask }
     }
 
-    private fun EventTarget.searchButton() = searchButton {
-        enableWhen { gameController.canRunLongTask }
-        val chooseResultsProperty = GameProviderService.SearchConstraints.ChooseResults.chooseIfNonExact.toProperty()
-        val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-            popoverComboMenu(
-                possibleItems = GameProviderService.SearchConstraints.ChooseResults.values().toList().observable(),
-                selectedItemProperty = chooseResultsProperty,
-                styleClass = Style.searchButton,
-                itemStyleClass = Style.chooseResultsItem,
-                text = GameProviderService.SearchConstraints.ChooseResults::key
-            )
-        }
-        val downPopover = popOver {
-            addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
-            searchButton("New Games") {
-                addClass(Style.searchButton)
-                tooltip("Search all libraries for new games")
-                setOnAction { gameController.scanNewGames(chooseResultsProperty.value) }
-            }
-            separator()
-            searchButton("Games without Providers") {
-                addClass(Style.searchButton)
-                tooltip("Search all games that don't already have all available providers")
-                setOnAction { gameController.rediscoverAllGames(chooseResultsProperty.value) }
-            }
-            separator()
-            searchButton("Filtered Games") {
-                addClass(Style.searchButton)
-                tooltip("Search currently filtered games that don't already have all available providers")
-                setOnAction { gameController.rediscoverFilteredGames(chooseResultsProperty.value) }
-            }
-        }
-        setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }
-    }
-
-    private fun EventTarget.refreshButton() = buttonWithPopover("Refresh", Theme.Icon.refresh()) {
-        // TODO: Instead, display a "Games Older Than"
-//            val chooseResultsProperty = GameProviderService.SearchConstraints.ChooseResults.chooseIfNonExact.toProperty()
-//            popoverComboMenu(
-//                possibleItems = GameProviderService.SearchConstraints.ChooseResults.values().toList().observable(),
-//                selectedItemProperty = chooseResultsProperty,
-//                arrowLocation = PopOver.ArrowLocation.RIGHT_TOP,
-//                styleClass = Style.searchButton,
-//                itemStyleClass = Style.chooseResultsItem,
-//                text = GameProviderService.SearchConstraints.ChooseResults::key
-//            )
-        separator()
-        refreshButton("All Games") {
-            addClass(Style.searchButton)
-            tooltip("Refresh all games older than") // TODO: insert currently set older than duration
-            setOnAction { gameController.refreshAllGames() }
-        }
-        separator()
-        refreshButton("Filtered Games") {
-            addClass(Style.searchButton)
-            tooltip("Refresh filtered games older than") // TODO: insert currently set older than duration
-            setOnAction { setOnAction { gameController.refreshFilteredGames() } }
-        }
-    }.apply {
-        enableWhen { gameController.canRunLongTask }
-    }
-
     private fun EventTarget.cleanupButton() = deleteButton("Cleanup") {
         addClass(CommonStyle.toolbarButton)
         enableWhen { gameController.canRunLongTask }
@@ -232,9 +172,6 @@ class GameView : GamedexScreen("Games") {
         companion object {
             val sortItem by cssclass()
             val reportButton by cssclass()
-            val searchButton by cssclass()
-            val chooseResultsItem by cssclass()
-            val refreshButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -249,21 +186,6 @@ class GameView : GamedexScreen("Games") {
 
             reportButton {
                 prefWidth = 180.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            searchButton {
-                prefWidth = 200.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            chooseResultsItem {
-                prefWidth = 240.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            refreshButton {
-                prefWidth = 160.px
                 alignment = Pos.CENTER_LEFT
             }
         }
