@@ -7,7 +7,6 @@ import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.Pane
@@ -36,8 +35,6 @@ class GameFilterMenu : View() {
                 separator()
                 field("Search") { searchText() }
                 separator()
-                field("Platform") { platformFilter() }
-                separator()
                 libraryFilter()
                 genreFilter()
                 tagFilter()
@@ -49,7 +46,8 @@ class GameFilterMenu : View() {
     }
 
     private fun EventTarget.clearAllButton() {
-        jfxButton("Clear all", Theme.Icon.clear()) {
+        // FIXME: Doesn't deselect items
+        jfxButton("Clear all", Theme.Icon.clear(22.0)) {
             addClass(Style.filterButton)
             isCancelButton = true
             isFocusTraversable = false
@@ -68,22 +66,6 @@ class GameFilterMenu : View() {
         children += search
     }
 
-    private fun EventTarget.platformFilter() {
-        // SortedFilteredList because regular sortedList doesn't fire changeEvents, for some reason.
-        val platformsWithLibraries = libraries.mapping { it.platform }.distincting().sortedFiltered()
-        platformsWithLibraries.sortedItems.setComparator { o1, o2 -> o1.key.compareTo(o2.key) }
-
-        popoverComboMenu(
-            possibleItems = platformsWithLibraries,
-            selectedItemProperty = platformFilterProperty,
-            arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-            styleClass = Style.filterButton,
-            itemStyleClass = Style.filterButton,
-            text = Platform::key,
-            graphic = { it.toLogo() }
-        )
-    }
-
     private fun Fieldset.libraryFilter() {
         val platformLibraries = libraries.filtering(platformFilterProperty.toPredicateF { platform, library: Library ->
             library.platform == platform
@@ -98,27 +80,19 @@ class GameFilterMenu : View() {
         val shouldShow = platformLibraries.mapProperty { it.size > 1 }
 
         field("Library") {
-            platformLibraries.performing { platformLibraries ->
-                replaceChildren {
-                    if (!shouldShow.value) return@replaceChildren
-
-                    popoverToggleMenu(
-                        possibleItems = platformLibraries,
-                        selectedItems = selectedLibraries,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClasses = listOf(Style.filterButton),
-                        itemStyleClasses = listOf(Style.filterButton, Style.filterItem),
-                        text = Library::name
-                    )
-                }
-            }
+            popoverToggleMenu(
+                possibleItems = platformLibraries,
+                selectedItems = selectedLibraries,
+                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                styleClasses = listOf(Style.filterButton),
+                itemStyleClasses = listOf(Style.filterItem),
+                text = Library::name
+            )
         }.apply {
             showWhen { shouldShow }
         }
 
-        separator {
-            showWhen { shouldShow }
-        }
+        separator { showWhen { shouldShow } }
     }
 
     private fun Fieldset.genreFilter() {
@@ -135,20 +109,14 @@ class GameFilterMenu : View() {
         val shouldShow = platformGenres.mapProperty { it.size > 1 }
 
         field("Genres") {
-            platformGenres.performing { genres ->
-                replaceChildren {
-                    if (!shouldShow.value) return@replaceChildren
-
-                    popoverToggleMenu(
-                        possibleItems = genres,
-                        selectedItems = selectedGenres,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClasses = listOf(Style.filterButton),
-                        itemStyleClasses = listOf(Style.filterButton, Style.filterItem),
-                        text = { it }
-                    )
-                }
-            }
+            popoverToggleMenu(
+                possibleItems = platformGenres,
+                selectedItems = selectedGenres,
+                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                styleClasses = listOf(Style.filterButton),
+                itemStyleClasses = listOf(Style.filterItem),
+                text = { it }
+            )
         }.apply {
             showWhen { shouldShow }
         }
@@ -173,20 +141,14 @@ class GameFilterMenu : View() {
         val shouldShow = platformTags.mapProperty { it.isNotEmpty() }
 
         field("Tags") {
-            platformTags.performing { tags ->
-                replaceChildren {
-                    if (!shouldShow.value) return@replaceChildren
-
-                    popoverToggleMenu(
-                        possibleItems = tags,
-                        selectedItems = selectedTags,
-                        arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                        styleClasses = listOf(Style.filterButton),
-                        itemStyleClasses = listOf(Style.filterButton, Style.filterItem),
-                        text = { it }
-                    )
-                }
-            }
+            popoverToggleMenu(
+                possibleItems = platformTags,
+                selectedItems = selectedTags,
+                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                styleClasses = listOf(Style.filterButton),
+                itemStyleClasses = listOf(Style.filterItem),
+                text = { it }
+            )
         }.apply {
             showWhen { shouldShow }
         }

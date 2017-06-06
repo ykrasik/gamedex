@@ -33,6 +33,8 @@ class CommonStyle : Stylesheet() {
 
         val popoverMenu by cssclass()
 
+        val fillAvailableWidth by cssclass()
+
         val toggleMenuButton by cssclass()
         val toggleMenuContent by cssclass()
 
@@ -106,6 +108,11 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
+        }
+
+        fillAvailableWidth {
+            maxWidth = Double.MAX_VALUE.px
+            alignment = Pos.CENTER_LEFT
         }
 
         toggleMenuButton {

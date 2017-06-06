@@ -26,7 +26,7 @@ fun <T> emptyObservableList() = FXCollections.emptyObservableList<T>()
 fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
 fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
     val p = SimpleIntegerProperty(this.size)
-    this.addListener(ListChangeListener { p.set(this.size) })
+    this.onChange { p.set(this.size) }
     return p
 }
 
@@ -37,9 +37,7 @@ fun <T, R> ObservableList<T>.flatMapping(f: (T) -> List<R>): ObservableList<R> {
     fun doFlatMap() = this.flatMap(f)
 
     val list = FXCollections.observableArrayList(doFlatMap())
-    this.onChange {
-        list.setAll(doFlatMap())
-    }
+    this.onChange { list.setAll(doFlatMap()) }
     return list
 }
 
@@ -47,9 +45,7 @@ fun <T, R> ObservableList<T>.flatMapping(f: (T) -> List<R>): ObservableList<R> {
 fun <T> ObservableList<T>.performing(f: (ObservableList<T>) -> Unit) {
     fun doPerform() = f(this)
     doPerform()
-    this.onChange {
-        doPerform()
-    }
+    this.onChange { doPerform() }
 }
 
 // TODO: This is the un-optimized version
@@ -57,9 +53,7 @@ fun <T> ObservableList<T>.distincting(): ObservableList<T> {
     fun doDistinct() = this.distinct()
 
     val list = FXCollections.observableArrayList(doDistinct())
-    this.onChange {
-        list.setAll(doDistinct())
-    }
+    this.onChange { list.setAll(doDistinct()) }
     return list
 }
 
@@ -67,12 +61,8 @@ fun <T> ObservableList<T>.containing(value: Property<T>): BooleanProperty {
     fun doesContain() = this.contains(value.value)
 
     val property = SimpleBooleanProperty(doesContain())
-    this.onChange {
-        property.value = doesContain()
-    }
-    value.onChange {
-        property.value = doesContain()
-    }
+    this.onChange { property.value = doesContain() }
+    value.onChange { property.value = doesContain() }
     return property
 }
 
@@ -80,12 +70,8 @@ fun <T> ObservableList<T>.adding(other: ObservableList<T>): ObservableList<T> {
     fun doAdd() = this + other
 
     val list = doAdd().observable()
-    this.onChange {
-        list.setAll(doAdd())
-    }
-    other.onChange {
-        list.setAll(doAdd())
-    }
+    this.onChange { list.setAll(doAdd()) }
+    other.onChange { list.setAll(doAdd()) }
     return list
 }
 
@@ -93,12 +79,8 @@ fun <T> ObservableList<T>.filtering(property: Property<(T) -> Boolean>): Observa
     fun doFilter() = this.filter(property.value)
 
     val list = doFilter().observable()
-    this.onChange {
-        list.setAll(doFilter())
-    }
-    property.onChange {
-        list.setAll(doFilter())
-    }
+    this.onChange { list.setAll(doFilter()) }
+    property.onChange { list.setAll(doFilter()) }
     return list
 }
 
@@ -106,18 +88,14 @@ fun <T> ObservableList<T>.existing(f: (T) -> Boolean): BooleanProperty {
     fun doesExist() = this.any(f)
 
     val property = SimpleBooleanProperty(doesExist())
-    this.onChange {
-        property.value = doesExist()
-    }
+    this.onChange { property.value = doesExist() }
     return property
 }
 
 // TODO: Look at using objectBinding()
 fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
     val property = SimpleObjectProperty(f(this))
-    this.onChange {
-        property.set(f(this))
-    }
+    this.onChange { property.set(f(this)) }
     return property
 }
 

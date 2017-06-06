@@ -60,6 +60,7 @@ class GameListView : View("Game List") {
                                     }
                                     label(game.name) { addClass(Style.gameItemValue, Style.nameHeader, Style.nameValue) }
                                     label(game.releaseDate.toDisplayString()) { addClass(Style.gameItemValue, Style.releaseDateHeader, Style.releaseDateValue) }
+                                    // TODO: Displays score wrong.
                                     label(game.criticScore.toDisplayString()) { addClass(Style.gameItemValue, Style.criticScoreHeader, Style.criticScoreValue) }
                                     label(game.userScore.toDisplayString()) { addClass(Style.gameItemValue, Style.userScoreHeader, Style.userScoreValue) }
                                 }

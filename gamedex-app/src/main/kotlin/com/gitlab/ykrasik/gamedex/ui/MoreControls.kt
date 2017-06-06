@@ -94,13 +94,14 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                      itemStyleClass: CssRule? = null,
                                      text: ((T) -> String)? = null,
                                      graphic: ((T) -> Node)? = null,
-                                     menuOp: (VBox.(T) -> Unit)? = null) {
+                                     menuOp: (VBox.(T) -> Unit)? = null) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
         possibleItems.performing { items ->
             replaceChildren {
                 items.forEach { item ->
                     jfxButton(text?.invoke(item), graphic?.invoke(item)) {
                         if (itemStyleClass != null) addClass(itemStyleClass)
+                        addClass(CommonStyle.fillAvailableWidth)
                         setOnAction { selectedItemProperty.value = item }
                     }
                     menuOp?.invoke(this@buttonWithPopover, item)
@@ -111,32 +112,35 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
         if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
         if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
     }
-}
 
-fun <T> EventTarget.popoverToggleMenu(possibleItems: List<T>,
+fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
                                       selectedItems: Property<List<T>>,
                                       arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                       styleClasses: List<CssRule> = emptyList(),
                                       itemStyleClasses: List<CssRule> = emptyList(),
                                       text: ((T) -> String)? = null,
                                       graphic: ((T) -> Node)? = null,
-                                      menuOp: (VBox.(T) -> Unit)? = null) {
+                                      menuOp: (VBox.(T) -> Unit)? = null) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = null, closeOnClick = false) {
-        possibleItems.forEach { item ->
-            jfxToggleNode {
-                addClass(CommonStyle.toggleMenuButton)
-                this.graphic = label {
-                    addClass(CommonStyle.toggleMenuContent)
-                    itemStyleClasses.forEach { addClass(it) }
-                    this.text = text?.invoke(item)
-                    this.graphic = graphic?.invoke(item)
-                }
-                isSelected = selectedItems.value.contains(item)
-                selectedProperty().onChange {
-                    if (it) selectedItems.value += item else selectedItems.value -= item
+        possibleItems.performing { items ->
+            replaceChildren {
+                items.forEach { item ->
+                    jfxToggleNode {
+                        addClass(CommonStyle.toggleMenuButton)
+                        this.graphic = label {
+                            addClass(CommonStyle.toggleMenuContent, CommonStyle.fillAvailableWidth)
+                            itemStyleClasses.forEach { addClass(it) }
+                            this.text = text?.invoke(item)
+                            this.graphic = graphic?.invoke(item)
+                        }
+                        isSelected = selectedItems.value.contains(item)
+                        selectedProperty().onChange {
+                            if (it) selectedItems.value += item else selectedItems.value -= item
+                        }
+                    }
+                    menuOp?.invoke(this@buttonWithPopover, item)
                 }
             }
-            menuOp?.invoke(this@buttonWithPopover, item)
         }
     }.apply {
         styleClasses.forEach { addClass(it) }
@@ -147,7 +151,6 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: List<T>,
             })
         }
     }
-}
 
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
             closeOnClick: Boolean = true,

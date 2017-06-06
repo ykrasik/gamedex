@@ -2,18 +2,16 @@ package com.gitlab.ykrasik.gamedex.ui.view.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
+import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
-import com.gitlab.ykrasik.gamedex.ui.theme.reportButton
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.ui.view.game.wall.GameWallView
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import tornadofx.*
@@ -25,6 +23,7 @@ import tornadofx.*
  */
 class GameScreen : GamedexScreen("Games") {
     private val gameController: GameController by di()
+    private val libraryController: LibraryController by di()
     private val settings: GameSettings by di()
 
     private val gameWallView: GameWallView by inject()
@@ -36,17 +35,17 @@ class GameScreen : GamedexScreen("Games") {
 
     // FIXME: Change search -> sync, refresh maybe to download?
     override fun ToolBar.constructToolbar() {
-        gamesLabel()
+        platformButton()
         verticalSeparator()
         items += filterMenu.root
         verticalSeparator()
         sortButton()
         verticalSeparator()
-        reportButton()
-        verticalSeparator()
 
         spacer()
 
+        verticalSeparator()
+        reportButton()
         verticalSeparator()
         items += searchMenu.root
         verticalSeparator()
@@ -64,8 +63,19 @@ class GameScreen : GamedexScreen("Games") {
         }
     }
 
-    private fun EventTarget.gamesLabel() = label {
-        textProperty().bind(gameController.sortedFilteredGames.games.sizeProperty().asString("Games: %d"))
+    private fun EventTarget.platformButton() {
+        val platformsWithLibraries = libraryController.libraries.mapping { it.platform }.distincting().filtered { it != Platform.excluded }
+
+        popoverComboMenu(
+            possibleItems = platformsWithLibraries,
+            selectedItemProperty = gameController.sortedFilteredGames.platformProperty,
+            styleClass = CommonStyle.toolbarButton,
+            text = { it.key },
+            graphic = { it.toLogo(26.0) }
+        ).apply {
+            textProperty().cleanBind(gameController.sortedFilteredGames.games.sizeProperty().stringBinding { "Games: $it" })
+            mouseTransparentProperty().cleanBind(platformsWithLibraries.mapProperty { it.size <= 1 })
+        }
     }
 
     private fun EventTarget.sortButton() {
@@ -83,16 +93,14 @@ class GameScreen : GamedexScreen("Games") {
             possibleItems = possibleItems,
             selectedItemProperty = sortProperty,
             styleClass = CommonStyle.toolbarButton,
-            itemStyleClass = Style.sortItem,
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }
         )
     }
 
     private fun EventTarget.reportButton() = buttonWithPopover("Report", Theme.Icon.report()) {
-        // TODO: Does using a form make all buttons the same size without a custom style?
         reportButton("Duplicate Games") {
-            addClass(Style.reportButton)
+            addClass(CommonStyle.fillAvailableWidth)
             tooltip("Duplicate games report")
             setOnAction {
                 TODO()  // FIXME: Implement - consider checking for provider apiUrl duplication.
@@ -101,7 +109,7 @@ class GameScreen : GamedexScreen("Games") {
         }
         separator()
         reportButton("Name-Folder Mismatch") {
-            addClass(Style.reportButton)
+            addClass(CommonStyle.fillAvailableWidth)
             tooltip("Detect all games whose name doesn't match their folder name")
             setOnAction {
                 TODO()  // FIXME: Implement
@@ -164,24 +172,12 @@ class GameScreen : GamedexScreen("Games") {
 
     class Style : Stylesheet() {
         companion object {
-            val sortItem by cssclass()
-            val reportButton by cssclass()
-
             init {
                 importStylesheet(Style::class)
             }
         }
 
         init {
-            sortItem {
-                prefWidth = 140.px
-                alignment = Pos.CENTER_LEFT
-            }
-
-            reportButton {
-                prefWidth = 180.px
-                alignment = Pos.CENTER_LEFT
-            }
         }
     }
 }
