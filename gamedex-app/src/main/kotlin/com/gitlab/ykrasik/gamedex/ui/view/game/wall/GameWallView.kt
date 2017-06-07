@@ -33,7 +33,7 @@ class GameWallView : View("Games Wall") {
     private val imageLoader: ImageLoader by di()
     private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
-    override val root = GridView<Game>(gameController.sortedFilteredGames.games).apply {
+    override val root = GridView(gameController.sortedFilteredGames).apply {
         cellHeightProperty().bind(settings.cellHeightProperty)
         cellWidthProperty().bind(settings.cellWidthProperty)
         horizontalCellSpacingProperty().bind(settings.cellHorizontalSpacingProperty)
@@ -77,12 +77,12 @@ class GameWallView : View("Games Wall") {
     }
 
     private fun PopOver.onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.filterGenres(listOf(genre))
+        gameController.filterGenres(listOf(genre))
         hide()
     }
 
     private fun PopOver.onTagPressed(tag: String) {
-        gameController.sortedFilteredGames.filterTags(listOf(tag))
+        gameController.filterTags(listOf(tag))
         hide()
     }
 

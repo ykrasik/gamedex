@@ -37,7 +37,7 @@ class LibraryScreen : GamedexScreen("Libraries") {
         }
     }
 
-    override val root = tableview(libraryController.libraries) {
+    override val root = tableview(libraryController.allLibraries) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 

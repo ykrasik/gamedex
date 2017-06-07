@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.ui.view.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
@@ -64,23 +63,21 @@ class GameScreen : GamedexScreen("Games") {
     }
 
     private fun EventTarget.platformButton() {
-        val platformsWithLibraries = libraryController.libraries.mapping { it.platform }.distincting().filtered { it != Platform.excluded }
-
+        val platformsWithLibraries = libraryController.realLibraries.mapping { it.platform }.distincting()
         popoverComboMenu(
             possibleItems = platformsWithLibraries,
-            selectedItemProperty = gameController.sortedFilteredGames.platformProperty,
+            selectedItemProperty = settings.platformProperty,
             styleClass = CommonStyle.toolbarButton,
             text = { it.key },
             graphic = { it.toLogo(26.0) }
         ).apply {
-            textProperty().cleanBind(gameController.sortedFilteredGames.games.sizeProperty().stringBinding { "Games: $it" })
+            textProperty().cleanBind(gameController.sortedFilteredGames.sizeProperty().stringBinding { "Games: $it" })
             mouseTransparentProperty().cleanBind(platformsWithLibraries.mapProperty { it.size <= 1 })
         }
     }
 
     private fun EventTarget.sortButton() {
-        val sortProperty = gameController.sortedFilteredGames.sortProperty
-        val possibleItems = sortProperty.mapToList { sort ->
+        val possibleItems = settings.sortProperty.mapToList { sort ->
             GameSettings.SortBy.values().toList().map { sortBy ->
                 GameSettings.Sort(
                     sortBy = sortBy,
@@ -91,7 +88,7 @@ class GameScreen : GamedexScreen("Games") {
 
         popoverComboMenu(
             possibleItems = possibleItems,
-            selectedItemProperty = sortProperty,
+            selectedItemProperty = settings.sortProperty,
             styleClass = CommonStyle.toolbarButton,
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }

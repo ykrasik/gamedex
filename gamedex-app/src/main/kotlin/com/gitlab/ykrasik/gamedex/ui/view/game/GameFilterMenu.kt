@@ -1,14 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.layout.Pane
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
@@ -23,10 +21,8 @@ import tornadofx.*
 class GameFilterMenu : View() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
-    private val gameRepository: GameRepository by di()
 
-    private val libraries = libraryController.libraries.filtered { it.platform != Platform.excluded }
-    private val platformFilterProperty = gameController.sortedFilteredGames.platformProperty
+    // TODO: Add individual clear buttons (genres, tags).
 
     override val root = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         form {
@@ -46,45 +42,41 @@ class GameFilterMenu : View() {
     }
 
     private fun EventTarget.clearAllButton() {
-        // FIXME: Doesn't deselect items
         jfxButton("Clear all", Theme.Icon.clear(22.0)) {
-            addClass(Style.filterButton)
+            addClass(CommonStyle.fillAvailableWidth)
             isCancelButton = true
             isFocusTraversable = false
-            setOnAction { gameController.sortedFilteredGames.clearFilters() }
+            setOnAction { gameController.clearFilters() }
         }
     }
 
     private fun Pane.searchText() {
         val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-            addClass(Style.filterButton)
+            addClass(CommonStyle.fillAvailableWidth)
             promptText = "Search"
             left = Theme.Icon.search(18.0)
-            gameController.sortedFilteredGames.searchQueryProperty.bindBidirectional(textProperty())
+            gameController.searchQueryProperty.bindBidirectional(textProperty())
             requestFocus()
         }
         children += search
     }
 
     private fun Fieldset.libraryFilter() {
-        val platformLibraries = libraries.filtering(platformFilterProperty.toPredicateF { platform, library: Library ->
-            library.platform == platform
-        })
-        val selectedLibraries = gameController.sortedFilteredGames.filtersForPlatformProperty.map { filters ->
-            filters!!.libraries.map { filteredLibraryId ->
-                libraries.find { it.id == filteredLibraryId }!!
+        val selectedLibraries = gameController.filteredLibrariesProperty.map { libraryIds ->
+            libraryIds!!.map { filteredLibraryId ->
+                libraryController.realLibraries.find { it.id == filteredLibraryId }!!
             }
         }
-        selectedLibraries.onChange { gameController.sortedFilteredGames.filterLibraries(it!!) }
+        selectedLibraries.onChange { gameController.filteredLibrariesProperty.value = it!!.map { it.id } }
 
-        val shouldShow = platformLibraries.mapProperty { it.size > 1 }
+        val shouldShow = libraryController.platformLibraries.mapProperty { it.size > 1 }
 
         field("Library") {
             popoverToggleMenu(
-                possibleItems = platformLibraries,
+                possibleItems = libraryController.platformLibraries,
                 selectedItems = selectedLibraries,
                 arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                styleClasses = listOf(Style.filterButton),
+                styleClasses = listOf(CommonStyle.fillAvailableWidth),
                 itemStyleClasses = listOf(Style.filterItem),
                 text = Library::name
             )
@@ -96,24 +88,17 @@ class GameFilterMenu : View() {
     }
 
     private fun Fieldset.genreFilter() {
-        val platformGenres = gameController.genres.filtering(platformFilterProperty.toPredicateF { platform, genre: String ->
-            gameRepository.games.any { it.platform == platform && it.genres.contains(genre) }
-        }).sortedFiltered()
+        val platformGenres = gameController.platformGames.flatMapping { it.genres }.distincting().sortedFiltered()
         platformGenres.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
-
-        val selectedGenres = gameController.sortedFilteredGames.filtersForPlatformProperty.map { filters ->
-            filters!!.genres
-        }
-        selectedGenres.onChange { gameController.sortedFilteredGames.filterGenres(it!!) }
 
         val shouldShow = platformGenres.mapProperty { it.size > 1 }
 
         field("Genres") {
             popoverToggleMenu(
                 possibleItems = platformGenres,
-                selectedItems = selectedGenres,
+                selectedItems = gameController.filteredGenresProperty,
                 arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                styleClasses = listOf(Style.filterButton),
+                styleClasses = listOf(CommonStyle.fillAvailableWidth),
                 itemStyleClasses = listOf(Style.filterItem),
                 text = { it }
             )
@@ -121,31 +106,21 @@ class GameFilterMenu : View() {
             showWhen { shouldShow }
         }
 
-        separator {
-            showWhen { shouldShow }
-        }
+        separator { showWhen { shouldShow } }
     }
 
     private fun Fieldset.tagFilter() {
-        val platformTags = gameController.tags.filtering(platformFilterProperty.toPredicateF { platform, tag: String ->
-            gameRepository.games.any { it.platform == platform && it.tags.contains(tag) }
-        }).sortedFiltered()
+        val platformTags = gameController.platformGames.flatMapping { it.tags }.distincting().sortedFiltered()
         platformTags.sortedItems.setComparator { o1, o2 -> o1.compareTo(o2) }
-
-        val selectedTags = gameController.sortedFilteredGames.filtersForPlatformProperty.map { filters ->
-            filters!!.tags
-        }
-
-        selectedTags.onChange { gameController.sortedFilteredGames.filterTags(it!!) }
 
         val shouldShow = platformTags.mapProperty { it.isNotEmpty() }
 
         field("Tags") {
             popoverToggleMenu(
                 possibleItems = platformTags,
-                selectedItems = selectedTags,
+                selectedItems = gameController.filteredTagsProperty,
                 arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
-                styleClasses = listOf(Style.filterButton),
+                styleClasses = listOf(CommonStyle.fillAvailableWidth),
                 itemStyleClasses = listOf(Style.filterItem),
                 text = { it }
             )
@@ -153,14 +128,11 @@ class GameFilterMenu : View() {
             showWhen { shouldShow }
         }
 
-        separator {
-            showWhen { shouldShow }
-        }
+        separator { showWhen { shouldShow } }
     }
 
     class Style : Stylesheet() {
         companion object {
-            val filterButton by cssclass()
             val filterItem by cssclass()
 
             init {
@@ -169,11 +141,6 @@ class GameFilterMenu : View() {
         }
 
         init {
-            filterButton {
-                maxWidth = Double.MAX_VALUE.px
-                alignment = Pos.CENTER_LEFT
-            }
-
             filterItem {
                 minWidth = 160.px
             }

@@ -44,7 +44,7 @@ class GameListView : View("Game List") {
                     }
                 }
                 center {
-                    listview = listview(gameController.sortedFilteredGames.games) {
+                    listview = listview(gameController.sortedFilteredGames) {
                         minHeight = Screen.getPrimary().bounds.height
                         cellFormat { game ->
                             graphic = gridpane {
@@ -115,11 +115,11 @@ class GameListView : View("Game List") {
     }
 
     private fun onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.filterGenres(listOf(genre))
+        gameController.filterGenres(listOf(genre))
     }
 
     private fun onTagPressed(tag: String) {
-        gameController.sortedFilteredGames.filterTags(listOf(tag))
+        gameController.filterTags(listOf(tag))
     }
 
     class Style : Stylesheet() {

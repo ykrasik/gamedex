@@ -180,12 +180,12 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
     }
 
     private fun onGenrePressed(genre: String) {
-        gameController.sortedFilteredGames.filterGenres(listOf(genre))
+        gameController.filterGenres(listOf(genre))
         goBackScreen()
     }
 
     private fun onTagPressed(tag: String) {
-        gameController.sortedFilteredGames.filterTags(listOf(tag))
+        gameController.filterTags(listOf(tag))
         goBackScreen()
     }
 

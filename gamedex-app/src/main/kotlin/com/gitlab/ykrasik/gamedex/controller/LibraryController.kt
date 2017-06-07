@@ -1,10 +1,14 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.filtering
 import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
+import com.gitlab.ykrasik.gamedex.ui.toPredicateF
 import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -24,10 +28,15 @@ import javax.inject.Singleton
 @Singleton
 class LibraryController @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val gameRepository: GameRepository
+    private val gameRepository: GameRepository,
+    settings: GameSettings
 ) : Controller() {
 
-    val libraries = libraryRepository.libraries.sortedFiltered()
+    val allLibraries = libraryRepository.libraries.sortedFiltered()
+    val realLibraries = allLibraries.filtered { it.platform != Platform.excluded }
+    val platformLibraries = realLibraries.filtering(settings.platformProperty.toPredicateF { platform, library: Library ->
+        library.platform == platform
+    })
 
     fun addLibrary(): Boolean {
         var added = false
