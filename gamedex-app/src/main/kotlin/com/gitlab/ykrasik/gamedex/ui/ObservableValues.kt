@@ -4,8 +4,10 @@ import javafx.beans.binding.Bindings
 import javafx.beans.binding.ListExpression
 import javafx.beans.binding.NumberBinding
 import javafx.beans.property.*
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
+import javafx.beans.value.WeakChangeListener
 import javafx.collections.ObservableList
 import tornadofx.cleanBind
 import tornadofx.observable
@@ -17,6 +19,11 @@ import java.util.function.Predicate
  * Date: 16/05/2017
  * Time: 10:24
  */
+fun <T> ObservableValue<T>.onWeakChange(op: (T?) -> Unit): ChangeListener<T> =
+    ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(WeakChangeListener(this)) }
+
+fun <T> ObservableValue<T>.changeListener(op: (T?) -> Unit): ChangeListener<T> =
+    ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(this) }
 
 fun <T> ObservableValue<T>.printChanges(id: String) = addListener { _, o, v -> println("$id changed: $o -> $v") }
 

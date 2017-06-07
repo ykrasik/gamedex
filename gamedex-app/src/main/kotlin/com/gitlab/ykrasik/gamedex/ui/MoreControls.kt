@@ -7,6 +7,7 @@ import com.jfoenix.controls.JFXButton
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.Property
+import javafx.beans.value.ChangeListener
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -122,7 +123,12 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
                                       graphic: ((T) -> Node)? = null,
                                       menuOp: (VBox.(T) -> Unit)? = null) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = null, closeOnClick = false) {
+        val selectedItemsListeners = mutableListOf<ChangeListener<List<T>>>()
         possibleItems.performing { items ->
+            selectedItemsListeners.forEach { selectedItems.removeListener(it) }
+            selectedItemsListeners.clear()
+
+            // TODO: Review all places where this is used for listener leaks.
             replaceChildren {
                 items.forEach { item ->
                     jfxToggleNode {
@@ -134,8 +140,13 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
                             this.graphic = graphic?.invoke(item)
                         }
                         isSelected = selectedItems.value.contains(item)
+
                         selectedProperty().onChange {
-                            if (it) selectedItems.value += item else selectedItems.value -= item
+                            selectedItems.value = if (it) (selectedItems.value + item).distinct() else selectedItems.value - item
+                        }
+
+                        selectedItemsListeners += selectedItems.changeListener {
+                            isSelected = selectedItems.value.contains(item)
                         }
                     }
                     menuOp?.invoke(this@buttonWithPopover, item)
