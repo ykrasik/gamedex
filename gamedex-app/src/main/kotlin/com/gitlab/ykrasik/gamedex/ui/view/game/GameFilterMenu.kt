@@ -7,10 +7,8 @@ import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import javafx.event.EventTarget
-import javafx.scene.layout.Pane
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
-import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
 
 /**
@@ -22,14 +20,12 @@ class GameFilterMenu : View() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
 
-    // TODO: Add individual clear buttons (genres, tags).
-
     override val root = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         form {
             fieldset {
                 field { clearAllButton() }
                 separator()
-                field("Search") { searchText() }
+                searchText()
                 separator()
                 libraryFilter()
                 genreFilter()
@@ -50,31 +46,39 @@ class GameFilterMenu : View() {
         }
     }
 
-    private fun Pane.searchText() {
-        val search = (TextFields.createClearableTextField() as CustomTextField).apply {
-            addClass(CommonStyle.fillAvailableWidth)
-            promptText = "Search"
-            left = Theme.Icon.search(18.0)
-            gameController.searchQueryProperty.bindBidirectional(textProperty())
-            requestFocus()
+    private fun Fieldset.searchText() {
+        field("Search") {
+            val search = CustomTextField().apply {
+                addClass(CommonStyle.fillAvailableWidth)
+                promptText = "Search"
+                left = Theme.Icon.search(18.0)
+                gameController.searchQueryProperty.bindBidirectional(textProperty())
+                requestFocus()
+            }
+            children += search
+        }.apply {
+            label.replaceWith(jfxButton("Search") {
+                isFocusTraversable = false
+                mouseTransparentProperty().bind(gameController.searchQueryProperty.isEmpty)
+                setOnAction { gameController.searchQueryProperty.value = "" }
+            })
         }
-        children += search
     }
 
     private fun Fieldset.libraryFilter() {
-        val selectedLibraries = gameController.filteredLibrariesProperty.map { libraryIds ->
-            libraryIds!!.map { filteredLibraryId ->
-                libraryController.realLibraries.find { it.id == filteredLibraryId }!!
+        val filteredLibraries = gameController.filteredLibrariesProperty.map { libraryIds ->
+            libraryIds!!.map { id ->
+                libraryController.realLibraries.find { it.id == id }!!
             }
         }
-        selectedLibraries.onChange { gameController.filteredLibrariesProperty.value = it!!.map { it.id } }
+        filteredLibraries.onChange { gameController.filteredLibrariesProperty.value = it!!.map { it.id } }
 
         val shouldShow = libraryController.platformLibraries.mapProperty { it.size > 1 }
 
-        field("Library") {
+        field("Libraries") {
             popoverToggleMenu(
                 possibleItems = libraryController.platformLibraries,
-                selectedItems = selectedLibraries,
+                selectedItems = filteredLibraries,
                 arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
                 styleClasses = listOf(CommonStyle.fillAvailableWidth),
                 itemStyleClasses = listOf(Style.filterItem),
@@ -82,6 +86,12 @@ class GameFilterMenu : View() {
             )
         }.apply {
             showWhen { shouldShow }
+            // TODO: Display a 'clear' graphic on mouse over
+            label.replaceWith(jfxButton("Libraries") {
+                isFocusTraversable = false
+                mouseTransparentProperty().bind(gameController.filteredLibrariesProperty.booleanBinding { it!!.isEmpty() })
+                setOnAction { gameController.filterLibraries(emptyList()) }
+            })
         }
 
         separator { showWhen { shouldShow } }
@@ -104,6 +114,11 @@ class GameFilterMenu : View() {
             )
         }.apply {
             showWhen { shouldShow }
+            label.replaceWith(jfxButton("Genres") {
+                isFocusTraversable = false
+                mouseTransparentProperty().bind(gameController.filteredGenresProperty.booleanBinding { it!!.isEmpty() })
+                setOnAction { gameController.filterGenres(emptyList()) }
+            })
         }
 
         separator { showWhen { shouldShow } }
@@ -126,6 +141,11 @@ class GameFilterMenu : View() {
             )
         }.apply {
             showWhen { shouldShow }
+            label.replaceWith(jfxButton("Tags") {
+                isFocusTraversable = false
+                mouseTransparentProperty().bind(gameController.filteredTagsProperty.booleanBinding { it!!.isEmpty() })
+                setOnAction { gameController.filterTags(emptyList()) }
+            })
         }
 
         separator { showWhen { shouldShow } }
