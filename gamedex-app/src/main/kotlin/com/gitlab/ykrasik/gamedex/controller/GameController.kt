@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.task.GameTasks
@@ -31,6 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
+    private val providerRepository: GameProviderRepository,
     private val gameTasks: GameTasks,
     private val searchTasks: SearchTasks,
     private val refreshTasks: RefreshTasks,
@@ -198,9 +200,16 @@ class GameController @Inject constructor(
         return areYouSureDialog(sb.toString())
     }
 
-    fun rediscoverGamesWithoutProviders() = searchTasks.RediscoverAllGamesTask().apply { start() }
-    fun rediscoverFilteredGames() = searchTasks.RediscoverGamesTask(sortedFilteredGames).apply { start() }
+    fun rediscoverAllGamesWithoutAllProviders() {
+        val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }
+        searchTasks.RediscoverGamesTask(gamesWithMissingProviders).apply { start() }
+    }
+    fun rediscoverFilteredGamesWithoutAllProviders() = searchTasks.RediscoverGamesTask(sortedFilteredGames).apply { start() }
     fun searchGame(game: Game) = searchTasks.SearchGameTask(game).apply { start() }
+
+    // TODO: Can consider checking if the missing providers support the game's platform, to avoid an empty call.
+    private val Game.hasMissingProviders: Boolean
+        get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
 
     fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }

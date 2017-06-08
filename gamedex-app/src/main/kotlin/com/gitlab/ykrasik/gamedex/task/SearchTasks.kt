@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderId
 import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.core.GameProviderService
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import javax.inject.Inject
@@ -20,26 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class SearchTasks @Inject constructor(
     private val gameRepository: GameRepository,
-    private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService
 ) {
-    // TODO: This only rediscovers non-excluded providers - find a way to add to name
-    // TODO: Merge with RediscoverGamesTask
-    inner class RediscoverAllGamesTask : Task<Unit>("Rediscovering all games...") {
-        private var numUpdated = 0
-
-        override suspend fun doRun() {
-            val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }
-            doRediscover(gamesWithMissingProviders) { numUpdated += 1 }
-        }
-
-        // TODO: Can consider checking if the missing providers support the game's platform, to avoid an empty call.
-        private val Game.hasMissingProviders: Boolean
-            get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
-
-        override fun doneMessage() = "Done: Updated $numUpdated games."
-    }
-
     inner class RediscoverGamesTask(private val games: List<Game>) : Task<Unit>("Rediscovering ${games.size} games...") {
         private var numUpdated = 0
         override suspend fun doRun() = doRediscover(games) { numUpdated += 1 }
@@ -64,9 +45,6 @@ class SearchTasks @Inject constructor(
             }
         }
     }
-
-    private val Game.existingProviders get() = rawGame.providerData.map { it.header.id }
-    private val Game.excludedProviders get() = userData?.excludedProviders ?: emptyList()
 
     private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<ProviderId>): Game? {
         val taskData = GameProviderService.ProviderTaskData(this, game.name, game.platform, game.path)

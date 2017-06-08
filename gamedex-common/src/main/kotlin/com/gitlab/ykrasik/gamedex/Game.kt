@@ -39,6 +39,9 @@ data class Game(
 
     val tags get() = rawGame.userData?.tags ?: emptyList()
 
+    val existingProviders get() = rawGame.providerData.map { it.header.id }
+    val excludedProviders get() = userData?.excludedProviders ?: emptyList()
+
     override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
 }
 
