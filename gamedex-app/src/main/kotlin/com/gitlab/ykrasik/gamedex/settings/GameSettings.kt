@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.settings
 import com.gitlab.ykrasik.gamedex.Platform
 import javafx.scene.control.TableColumn
 import org.joda.time.Period
+import org.joda.time.PeriodType
 import tornadofx.getValue
 import tornadofx.setValue
 
@@ -37,7 +38,7 @@ class GameSettings private constructor() : AbstractSettings("game") {
     var chooseResults by chooseResultsProperty
 
     @Transient
-    val stalePeriodProperty = preferenceProperty(Period.months(2).normalizedStandard())
+    val stalePeriodProperty = preferenceProperty(Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime()))
     var stalePeriod by stalePeriodProperty
 
     data class FilterSet(

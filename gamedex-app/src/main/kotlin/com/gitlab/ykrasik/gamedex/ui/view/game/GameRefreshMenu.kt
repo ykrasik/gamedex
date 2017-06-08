@@ -2,16 +2,19 @@ package com.gitlab.ykrasik.gamedex.ui.view.game
 
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.popOver
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.refreshButton
 import com.gitlab.ykrasik.gamedex.ui.toggle
-import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.geometry.Pos
+import javafx.beans.property.Property
+import javafx.geometry.HPos
+import javafx.scene.control.TextField
 import javafx.scene.input.MouseEvent
+import javafx.scene.text.FontWeight
 import org.controlsfx.control.PopOver
-import org.joda.time.Period
+import org.joda.time.PeriodType
+import org.joda.time.format.PeriodFormatterBuilder
 import tornadofx.*
 
 /**
@@ -23,40 +26,67 @@ class GameRefreshMenu : View() {
     private val gameController: GameController by di()
     private val settings: GameSettings by di()
 
+    private var staleDurationTextField: TextField by singleAssign()
+
     override val root = refreshButton {
         enableWhen { gameController.canRunLongTask }
+
+        val staleDurationFormatter = PeriodFormatterBuilder()
+            .appendYears().appendSuffix("y").appendSeparator(" ")
+            .appendMonths().appendSuffix("mo").appendSeparator(" ")
+            .appendDays().appendSuffix("d").appendSeparator(" ")
+            .appendHours().appendSuffix("h").appendSeparator(" ")
+            .appendMinutes().appendSuffix("m").appendSeparator(" ")
+            .appendSeconds().appendSuffix("s").toFormatter()
+
+        val stalePeriodTextProperty = settings.stalePeriodProperty.map {
+            val sb = StringBuffer()
+            staleDurationFormatter.printTo(sb, it!!.normalizedStandard(PeriodType.yearMonthDayTime()))
+            sb.toString()
+        }
+        val stalePeriodViewModel = PeriodViewModel(stalePeriodTextProperty)
+        stalePeriodViewModel.textProperty.onChange { stalePeriodViewModel.commit() }
+        stalePeriodViewModel.validate(decorateErrors = true)
+
+        stalePeriodTextProperty.onChange {
+            settings.stalePeriod = staleDurationFormatter.parsePeriod(it)
+        }
+
         val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-            form {
-                val years = SimpleObjectProperty(settings.stalePeriod.years).stalePeriod { it::withYears }
-                val months = SimpleObjectProperty(settings.stalePeriod.months).stalePeriod { it::withMonths }
-                val weeks = SimpleObjectProperty(settings.stalePeriod.weeks).stalePeriod { it::withWeeks }
-                val days = SimpleObjectProperty(settings.stalePeriod.days).stalePeriod { it::withDays }
-                val hours = SimpleObjectProperty(settings.stalePeriod.hours).stalePeriod { it::withHours }
-                val minutes = SimpleObjectProperty(settings.stalePeriod.minutes).stalePeriod { it::withMinutes }
-                val seconds = SimpleObjectProperty(settings.stalePeriod.seconds).stalePeriod { it::withSeconds }
-                //TODO: This takes up too much space and attention.
-                fieldset("Stale Duration") {
-                    addClass(Style.staleDurationField)
-                    field("Years") { adjustableTextField(years, "years", min = 0, max = Int.MAX_VALUE) }
-                    field("Months") { adjustableTextField(months, "months", min = 0, max = 11) }
-                    field("Weeks") { adjustableTextField(weeks, "weeks", min = 0, max = 4) }
-                    field("Days") { adjustableTextField(days, "days", min = 0, max = 31) }
-                    field("Hours") { adjustableTextField(hours, "hours", min = 0, max = 23) }
-                    field("Minutes") { adjustableTextField(minutes, "minutes", min = 0, max = 59) }
-                    field("Seconds") { adjustableTextField(seconds, "seconds", min = 0, max = 59) }
+            gridpane {
+                vgap = 5.0
+                row {
+                    label("Stale Duration") {
+                        setId(Style.staleDurationLabel)
+                        gridpaneConstraints { hAlignment = HPos.CENTER }
+                    }
+                }
+                row {
+                    staleDurationTextField = textfield(stalePeriodViewModel.textProperty) {
+                        isFocusTraversable = false
+                        validator {
+                            val valid = try {
+                                staleDurationFormatter.parsePeriod(it); true
+                            } catch (e: Exception) {
+                                false
+                            }
+                            if (!valid) error("Invalid duration! Format: {x}y {x}mo {x}d {x}h {x}m {x}s") else null
+                        }
+                    }
                 }
             }
         }
         val downPopover = popOver {
             addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
+            disableWhen { staleDurationTextField.focusedProperty().or(stalePeriodViewModel.valid.not()) }
             refreshButton("All Stale Games") {
-                addClass(Style.refreshButton)
+                addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Refresh all games that were last refreshed before the stale duration")
                 setOnAction { gameController.refreshAllGames() }
             }
             separator()
             refreshButton("Filtered Stale Games") {
-                addClass(Style.refreshButton)
+                addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Refresh filtered games that were last refreshed before the stale duration")
                 setOnAction { setOnAction { gameController.refreshFilteredGames() } }
             }
@@ -64,16 +94,13 @@ class GameRefreshMenu : View() {
         setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }
     }
 
-    private fun ObjectProperty<Int>.stalePeriod(f: (Period) -> (Int) -> Period) = apply {
-        this.onChange {
-            settings.stalePeriod = f(settings.stalePeriod)(it!!)
-        }
+    private class PeriodViewModel(p: Property<String>) : ViewModel() {
+        val textProperty = bind { p }
     }
 
     class Style : Stylesheet() {
         companion object {
-            val staleDurationField by cssclass()
-            val refreshButton by cssclass()
+            val staleDurationLabel by cssid()
 
             init {
                 importStylesheet(Style::class)
@@ -81,13 +108,9 @@ class GameRefreshMenu : View() {
         }
 
         init {
-            staleDurationField {
-                maxWidth = 200.px
-            }
-
-            refreshButton {
-                maxWidth = Double.MAX_VALUE.px
-                alignment = Pos.CENTER_LEFT
+            staleDurationLabel {
+                fontSize = 15.px
+                fontWeight = FontWeight.BOLD
             }
         }
     }
