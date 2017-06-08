@@ -36,12 +36,12 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        siteUrl = "",       // Not used.
+        siteUrl = "", // Not used.
         name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         criticScore = firstBy(settings.criticScoreOrder, userData?.criticScoreOverride(), { Score(it as Double, 1) }) { it.gameData.criticScore },
-        userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1)}) { it.gameData.userScore },
+        userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1) }) { it.gameData.userScore },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
     )
 
@@ -103,16 +103,68 @@ class GameFactory @Inject constructor(
         this.asSequence().map(extractor).firstNotNull()
 
     private fun processGenre(genre: String): List<String> = when (genre) {
-        "Action-Adventure", "Action Adventure" -> listOf("Action", "Adventure")
-        "Driving/Racing" -> listOf("Racing")
-        "Dual-Joystick Shooter" -> emptyList()
-        "Educational" -> emptyList()
-        "Fishing" -> emptyList()
-        "Flight Simulator" -> listOf("Simulation")
-        "Football" -> listOf("Sport")
-        "Music/Rhythm" -> listOf()
-        "Real-Time Strategy" -> listOf("Real Time Strategy (RTS)")
-        "Role-Playing" -> listOf("Role-Playing Game (RPG)")
-        else -> listOf(genre)
+        "Action-Adventure", "Action Adventure" ->
+            listOf("Action", "Adventure")
+
+        "Action RPG" ->
+            listOf("Action", "Role-Playing Game (RPG)")
+
+        "Flight Simulator", "Small Spaceship" ->
+            listOf("Simulation")
+
+        "Real-Time Strategy" ->
+            listOf("Real Time Strategy (RTS)")
+
+        "Turn-Based" ->
+            listOf("Turn-Based Strategy (TBS)")
+
+        "First-Person" ->
+            listOf("First-Person Shooter")
+
+        "Shoot 'Em Up", "Shoot-'Em-Up" ->
+            listOf("Shooter")
+
+        "Music/Rhythm", "Music", "Rhythm" ->
+            listOf("Music / Rhythm")
+
+        "Minigame Collection" ->
+            listOf("Compilation")
+
+        "Defense", "Military", "Command", "Tactical", "Tactics" ->
+            listOf("Strategy")
+
+        "Logic", "Matching" ->
+            listOf("Puzzle")
+
+        "Text Adventure" ->
+            listOf("Adventure")
+
+        "City Building", "Business / Tycoon", "Tycoon", "Breeding/Constructing", "Career", "Government" ->
+            listOf("Management")
+
+        "Role-Playing", "Console-style RPG", "PC-style RPG", "Japanese-Style", "Western-Style" ->
+            listOf("Role-Playing Game (RPG)")
+
+        "Hack & Slash/Beat 'Em Up", "Beat-'Em-Up", "Brawler", "Fighting" ->
+            listOf("Hack & Slash / Beat 'Em Up")
+
+        "Sports", "Football", "Boxing", "Bowling", "Golf" ->
+            listOf("Sport")
+
+        "Board Games", "Card Battle", "Card Game", "Gambling", "Quiz/Trivia", "Parlor", "Trivia/Board Game" ->
+            listOf("Board / Card Game")
+
+        "Driving/Racing", "Automobile", "Car Combat", "GT / Street", "Motocross", "Motorcycle", "Racing", "Vehicle",
+        "Vehicular Combat", "Driving" ->
+            listOf("Driving / Racing")
+
+        "General", "Miscellaneous", "Modern", "Traditional", "Horizontal", "Vertical", "Virtual", "Linear", "Other",
+        "Scrolling", "Static", "Civilian", "Individual", "3D", "Combat", "Dual-Joystick Shooter", "Educational",
+        "Real-Time", "Fishing", "Train", "Light Gun", "Block-Breaking",
+        "Historic", "Fantasy", "Sci-Fi", "Space" ->
+            emptyList()
+
+        else ->
+            listOf(genre)
     }
 }

@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import javafx.event.EventTarget
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
@@ -23,7 +22,7 @@ class GameFilterMenu : View() {
     override val root = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         form {
             fieldset {
-                field { clearAllButton() }
+                clearAllButton()
                 separator()
                 searchText()
                 separator()
@@ -37,7 +36,7 @@ class GameFilterMenu : View() {
         tooltip("Ctrl+f")
     }
 
-    private fun EventTarget.clearAllButton() {
+    private fun Fieldset.clearAllButton() = field {
         jfxButton("Clear all", Theme.Icon.clear(22.0)) {
             addClass(CommonStyle.fillAvailableWidth)
             isCancelButton = true
