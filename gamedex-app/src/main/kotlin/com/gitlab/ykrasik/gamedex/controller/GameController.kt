@@ -169,9 +169,33 @@ class GameController @Inject constructor(
     }
 
     fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
-    fun cleanup(): GameTasks.CleanupTask {
-        // TODO: Detect stale games, confirm, then delete.
-        return gameTasks.CleanupTask().apply { start() }
+
+    fun cleanup() = launch(JavaFx) {
+        val staleData = gameTasks.DetectStaleDataTask().apply { start() }.result.await()
+        if (confirmCleanup(staleData)) {
+            // TODO: Create backup before deleting
+            gameTasks.CleanupStaleDataTask(staleData).apply { start() }
+        }
+    }
+
+    private fun confirmCleanup(staleData: GameTasks.StaleData): Boolean {
+        val (games, libraries) = staleData
+        if (games.isEmpty() && libraries.isEmpty()) return false
+
+        val sb = StringBuilder("Delete ")
+        var needAnd = false
+        if (games.isNotEmpty()) {
+            sb.append(games.size)
+            sb.append(" stale games")
+            needAnd = true
+        }
+        if (libraries.isNotEmpty()) {
+            if (needAnd) sb.append(" and ")
+            sb.append(libraries.size)
+            sb.append(" stale libraries")
+        }
+        sb.append("?")
+        return areYouSureDialog(sb.toString())
     }
 
     fun rediscoverGamesWithoutProviders() = searchTasks.RediscoverAllGamesTask().apply { start() }

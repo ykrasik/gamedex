@@ -106,7 +106,6 @@ class GameWallView : View("Games Wall") {
         return arrowLocation
     }
 
-    // TODO: Allow to overlay the library name as a ribbon over the image.
     // TODO: Consider adding an option to display the game name under the cell
     private inner class GameWallCell : GridCell<Game>() {
         private val imageView = ImageView().fadeOnImageChange()

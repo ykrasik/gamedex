@@ -18,7 +18,6 @@ class CommonStyle : Stylesheet() {
 
         val hoverable by cssclass()
 
-        // TODO: Move this to the GameWallStyle?
         val card by cssclass()
 
         val jfxButton by cssclass()

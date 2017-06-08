@@ -368,8 +368,6 @@ class Notification {
                 popup.hide()
                 removePopupFromMap(notification.position, popup)
             }
-
-            // TODO: Recalc popup positions now
         }
 
         fun isShowing(notification: Notification) = notificationsMap.containsKey(notification)
@@ -408,8 +406,6 @@ class Notification {
             parallelTransition.children.clear()
 
             val isShowFromTop = isShowFromTop(p)
-
-            // TODO: Add notifications below the current one?
 
             // animate all other popups in the list upwards so that the new one is in the 'new' area.
             // firstly, we need to determine the target positions for all popups

@@ -85,46 +85,60 @@ class GameTasks @Inject constructor(
         override fun doneMessage() = "Done: Added $numNewGames new games."
     }
 
-    inner class CleanupTask : Task<Unit>("Cleaning up...") {
+    inner class DetectStaleDataTask : Task<StaleData>("Detecting stale data...") {
         private var staleGames = 0
         private var staleLibraries = 0
 
-        override suspend fun doRun() {
-            // TODO: First detect stale, then confirm, then delete.
-            // TODO: Create backup before deleting
-            staleGames = cleanupStaleGames()
-            staleLibraries = cleanupStaleLibraries()
+        override suspend fun doRun(): StaleData {
+            val games = detectStaleGames()
+            staleGames = games.size
+            val libraries = detectStaleLibraries()
+            staleLibraries = libraries.size
+            return StaleData(games, libraries)
         }
 
-        private suspend fun cleanupStaleGames(): Int {
+        private fun detectStaleGames(): List<Game> {
             progress.message = "Detecting stales games..."
             val staleGames = gameRepository.games.filterIndexed { i, game ->
-                (!game.path.isDirectory).apply {
-                    progress.progress(i, gameRepository.games.size)
-                }
+                progress.progress(i, gameRepository.games.size)
+                !game.path.isDirectory
             }
-
-            progress.message = "Cleaning up ${staleGames.size} stales games..."
-            gameRepository.deleteAll(staleGames, progress)
-
-            return staleGames.size
+            progress.message = "Detected ${staleGames.size} stale games."
+            return staleGames
         }
 
-        private suspend fun cleanupStaleLibraries(): Int {
+        private fun detectStaleLibraries(): List<Library> {
             progress.message = "Detecting stales libraries..."
             val staleLibraries = libraryRepository.libraries.filterIndexed { i, library ->
-                (!library.path.isDirectory).apply {
-                    progress.progress(i, libraryRepository.libraries.size)
-                }
+                progress.progress(i, libraryRepository.libraries.size)
+                !library.path.isDirectory
             }
-
-            progress.message = "Cleaning up ${staleLibraries.size} stales libraries..."
-            libraryRepository.deleteAll(staleLibraries, progress)
-            return staleLibraries.size
+            progress.message = "Detected ${staleLibraries.size} stale libraries."
+            return staleLibraries
         }
 
-        override fun doneMessage() = "Done cleaning up: Removed $staleGames stale games and $staleLibraries stale libraries."
+        override fun doneMessage() = if (staleGames == 0 && staleLibraries == 0 ) {
+            "No stale data detected."
+        } else {
+            "Detected $staleGames stale games and $staleLibraries stale libraries."
+        }
     }
+
+    inner class CleanupStaleDataTask(private val staleData: StaleData) : Task<Unit>(
+        "Cleaning up ${staleData.games} stale games and ${staleData.libraries} stale libraries..."
+    ) {
+        override suspend fun doRun() {
+            gameRepository.deleteAll(staleData.games, progress)
+            libraryRepository.deleteAll(staleData.libraries, progress)
+        }
+
+        override fun doneMessage() = "Removed ${staleData.games} stale games and ${staleData.libraries} stale libraries."
+    }
+
+    data class StaleData(
+        val games: List<Game>,
+        val libraries: List<Library>
+    )
 
     // TODO: Finish this.
     inner class DetectDuplicateGames : Task<List<Game>>("Detecting duplicate games...") {
