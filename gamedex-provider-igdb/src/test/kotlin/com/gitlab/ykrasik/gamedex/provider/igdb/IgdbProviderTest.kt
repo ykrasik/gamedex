@@ -255,8 +255,8 @@ class IgdbProviderTest : ScopedWordSpec() {
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
 
-        fun thumbnailUrl(imageId: String) = "$baseImageUrl/t_thumb_2x/$imageId.png"
-        fun posterUrl(imageId: String) = "$baseImageUrl/t_screenshot_huge/$imageId.png"
+        fun thumbnailUrl(imageId: String) = "$baseImageUrl/t_thumb_2x/$imageId.jpg"
+        fun posterUrl(imageId: String) = "$baseImageUrl/t_screenshot_huge/$imageId.jpg"
         fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
         fun searchResult(name: String = this.name,

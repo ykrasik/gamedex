@@ -93,7 +93,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private fun String.toThumbnailUrl() = toImageUrl(thumbnailImageType)
     private fun String.toPosterUrl() = toImageUrl(posterImageType)
     private fun String.toScreenshotUrl() = toImageUrl(screenshotImageType)
-    private fun String.toImageUrl(type: IgdbImageType) = "${config.baseImageUrl}/t_$type/$this.png"
+    private fun String.toImageUrl(type: IgdbImageType) = "${config.baseImageUrl}/t_$type/$this.jpg"
 
     private enum class IgdbImageType {
         micro, // 35 x 35
