@@ -19,8 +19,7 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import tornadofx.Controller
-import tornadofx.onChange
+import tornadofx.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -181,23 +180,33 @@ class GameController @Inject constructor(
     }
 
     private fun confirmCleanup(staleData: GameTasks.StaleData): Boolean {
-        val (games, libraries) = staleData
-        if (games.isEmpty() && libraries.isEmpty()) return false
+        val (libraries, games) = staleData
+        if (libraries.isEmpty() && games.isEmpty()) return false
 
         val sb = StringBuilder("Delete ")
         var needAnd = false
-        if (games.isNotEmpty()) {
-            sb.append(games.size)
-            sb.append(" stale games")
-            needAnd = true
-        }
         if (libraries.isNotEmpty()) {
-            if (needAnd) sb.append(" and ")
             sb.append(libraries.size)
             sb.append(" stale libraries")
+            needAnd = true
+        }
+        if (games.isNotEmpty()) {
+            if (needAnd) sb.append(" and ")
+            sb.append(games.size)
+            sb.append(" stale games")
         }
         sb.append("?")
-        return areYouSureDialog(sb.toString())
+
+        return areYouSureDialog(sb.toString()) {
+            if (libraries.isNotEmpty()) {
+                label("Stale Libraries:")
+                listview(libraries.map { it.name }.observable()) { fitAtMost(10) }
+            }
+            if (games.isNotEmpty()) {
+                label("Stale Games:")
+                listview(games.map { it.name }.observable()) { fitAtMost(10) }
+            }
+        }
     }
 
     fun rediscoverAllGamesWithoutAllProviders() {

@@ -86,25 +86,15 @@ class GameTasks @Inject constructor(
     }
 
     inner class DetectStaleDataTask : Task<StaleData>("Detecting stale data...") {
-        private var staleGames = 0
         private var staleLibraries = 0
+        private var staleGames = 0
 
         override suspend fun doRun(): StaleData {
-            val games = detectStaleGames()
-            staleGames = games.size
             val libraries = detectStaleLibraries()
             staleLibraries = libraries.size
-            return StaleData(games, libraries)
-        }
-
-        private fun detectStaleGames(): List<Game> {
-            progress.message = "Detecting stales games..."
-            val staleGames = gameRepository.games.filterIndexed { i, game ->
-                progress.progress(i, gameRepository.games.size)
-                !game.path.isDirectory
-            }
-            progress.message = "Detected ${staleGames.size} stale games."
-            return staleGames
+            val games = detectStaleGames()
+            staleGames = games.size
+            return StaleData(libraries, games)
         }
 
         private fun detectStaleLibraries(): List<Library> {
@@ -117,6 +107,16 @@ class GameTasks @Inject constructor(
             return staleLibraries
         }
 
+        private fun detectStaleGames(): List<Game> {
+            progress.message = "Detecting stales games..."
+            val staleGames = gameRepository.games.filterIndexed { i, game ->
+                progress.progress(i, gameRepository.games.size)
+                !game.path.isDirectory
+            }
+            progress.message = "Detected ${staleGames.size} stale games."
+            return staleGames
+        }
+
         override fun doneMessage() = if (staleGames == 0 && staleLibraries == 0 ) {
             "No stale data detected."
         } else {
@@ -125,19 +125,19 @@ class GameTasks @Inject constructor(
     }
 
     inner class CleanupStaleDataTask(private val staleData: StaleData) : Task<Unit>(
-        "Cleaning up ${staleData.games} stale games and ${staleData.libraries} stale libraries..."
+        "Cleaning up ${staleData.libraries} stale libraries and ${staleData.games} stale games..."
     ) {
         override suspend fun doRun() {
-            gameRepository.deleteAll(staleData.games, progress)
             libraryRepository.deleteAll(staleData.libraries, progress)
+            gameRepository.deleteAll(staleData.games, progress)
         }
 
-        override fun doneMessage() = "Removed ${staleData.games} stale games and ${staleData.libraries} stale libraries."
+        override fun doneMessage() = "Removed ${staleData.libraries} stale libraries and ${staleData.games} stale games."
     }
 
     data class StaleData(
-        val games: List<Game>,
-        val libraries: List<Library>
+        val libraries: List<Library>,
+        val games: List<Game>
     )
 
     // TODO: Finish this.

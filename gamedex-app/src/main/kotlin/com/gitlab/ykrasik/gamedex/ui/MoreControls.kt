@@ -188,6 +188,10 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
 
 fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 
+fun <T> ListView<T>.fitAtMost(numItems: Int) {
+    maxHeightProperty().bind(itemsProperty().map { minOf(it!!.size, numItems) * 24.3 })
+}
+
 //fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
 //    val popover = popOver(arrowLocation)
 //    this@dropDownMenu.setOnMouseEntered {

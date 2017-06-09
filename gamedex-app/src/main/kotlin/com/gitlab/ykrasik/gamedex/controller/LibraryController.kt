@@ -5,10 +5,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.filtering
-import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
-import com.gitlab.ykrasik.gamedex.ui.toPredicateF
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -76,19 +73,15 @@ class LibraryController @Inject constructor(
     }
 
     private fun confirmDelete(library: Library): Boolean {
-        val gamesToBeDeleted = gameRepository.games.filter { it.library.id == library.id }
+        val gamesToBeDeleted = gameRepository.games
+            .asSequence()
+            .filter { it.library.id == library.id }
+            .map { it.name }
+            .toList()
         return areYouSureDialog("Delete library '${library.name}'?") {
             if (gamesToBeDeleted.isNotEmpty()) {
-                label("The following games will also be deleted:")
-                val maxGamesToDisplay = 10
-                val messages = gamesToBeDeleted.asSequence().map { it.name }.take(maxGamesToDisplay).let {
-                    if (gamesToBeDeleted.size > maxGamesToDisplay) {
-                        it + "And ${gamesToBeDeleted.size - maxGamesToDisplay} other games..."
-                    } else {
-                        it
-                    }
-                }.toList()
-                listview(messages.observable())
+                label("The following ${gamesToBeDeleted.size} games will also be deleted:")
+                listview(gamesToBeDeleted.observable()) { fitAtMost(10) }
             }
         }
     }
