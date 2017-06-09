@@ -2,6 +2,8 @@ package com.gitlab.ykrasik.gamedex.util
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValue
+import com.typesafe.config.ConfigValueFactory
 
 /**
  * User: ykrasik
@@ -26,3 +28,5 @@ fun <K, V> Config.getObjectMap(path: String, keyParser: (String) -> K, valuePars
         valueTransform = { valueParser(it.value.unwrapped()) }
     )
 }
+
+fun stringConfig(str: String): ConfigValue = ConfigValueFactory.fromAnyRef(str)

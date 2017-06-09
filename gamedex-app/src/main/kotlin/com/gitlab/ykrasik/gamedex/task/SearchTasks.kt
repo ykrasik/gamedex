@@ -23,27 +23,26 @@ class SearchTasks @Inject constructor(
 ) {
     inner class RediscoverGamesTask(private val games: List<Game>) : Task<Unit>("Rediscovering ${games.size} games...") {
         private var numUpdated = 0
-        override suspend fun doRun() = doRediscover(games) { numUpdated += 1 }
+
+        override suspend fun doRun() {
+            // Operate on a copy of the games to avoid concurrent modifications
+            games.sortedBy { it.name }.forEachIndexed { i, game ->
+                if (!isActive) return@forEachIndexed
+                progress.progress(i, games.size - 1)
+
+                val excludedProviders = game.existingProviders + game.excludedProviders
+                if (doSearchAgain(game, excludedProviders) != null) {
+                    numUpdated += 1
+                }
+            }
+        }
+
         override fun doneMessage() = "Done: Updated $numUpdated games."
     }
 
     inner class SearchGameTask(private val game: Game) : Task<Game>("Searching '${game.name}'...") {
         override suspend fun doRun() = doSearchAgain(game, excludedProviders = emptyList()) ?: game
         override fun doneMessage() = "Done searching: '${game.name}'."
-    }
-
-    private suspend fun Task<*>.doRediscover(games: List<Game>,
-                                             onSuccess: (Game) -> Unit) {
-        // Operate on a copy of the games to avoid concurrent modifications
-        games.sortedBy { it.name }.forEachIndexed { i, game ->
-            if (!isActive) return@forEachIndexed
-            progress.progress(i, games.size - 1)
-
-            val excludedProviders = game.existingProviders + game.excludedProviders
-            if (doSearchAgain(game, excludedProviders) != null) {
-                onSuccess(game)
-            }
-        }
     }
 
     private suspend fun Task<*>.doSearchAgain(game: Game, excludedProviders: List<ProviderId>): Game? {

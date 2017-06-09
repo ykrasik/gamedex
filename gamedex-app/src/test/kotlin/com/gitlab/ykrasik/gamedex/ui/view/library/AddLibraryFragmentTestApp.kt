@@ -1,20 +1,15 @@
 package com.gitlab.ykrasik.gamedex.ui.view.library
 
-import com.gitlab.ykrasik.gamedex.BaseTestApp
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
 
 /**
  * User: ykrasik
  * Date: 18/03/2017
  * Time: 17:11
  */
-object AddLibraryFragmentTestApp : BaseTestApp() {
+object AddLibraryFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        launch(CommonPool) {
-            println("Result: " + LibraryFragment(emptyList(), library = null).show())
-            System.exit(0)
-        }
+        println("Result: " + LibraryFragment(emptyList(), library = null).show())
     }
 
     @JvmStatic fun main(args: Array<String>) {  }

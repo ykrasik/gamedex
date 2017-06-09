@@ -9,10 +9,10 @@ import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.appConfig
+import com.gitlab.ykrasik.gamedex.util.stringConfig
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.mock
-import com.typesafe.config.ConfigValueFactory
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -23,16 +23,16 @@ import java.util.concurrent.Executors
  * Date: 18/03/2017
  * Time: 21:59
  */
-object TestMain {
+object TestApplication {
     val giantBombServer = GiantBombFakeServer(9001)
     val igdbServer = IgdbFakeServer(9002)
 
     @JvmStatic fun main(args: Array<String>) {
         appConfig = appConfig
-            .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:./test"))
-            .withValue("gameDex.provider.giantBomb.endpoint", ConfigValueFactory.fromAnyRef(giantBombServer.endpointUrl))
-            .withValue("gameDex.provider.igdb.endpoint", ConfigValueFactory.fromAnyRef(igdbServer.endpointUrl))
-            .withValue("gameDex.provider.igdb.baseImageUrl", ConfigValueFactory.fromAnyRef(igdbServer.baseImageUrl))
+            .withValue("gameDex.persistence.dbUrl", stringConfig("jdbc:h2:./test"))
+            .withValue("gameDex.provider.giantBomb.endpoint", stringConfig(giantBombServer.endpointUrl))
+            .withValue("gameDex.provider.igdb.endpoint", stringConfig(igdbServer.endpointUrl))
+            .withValue("gameDex.provider.igdb.baseImageUrl", stringConfig(igdbServer.baseImageUrl))
 
         newDirectoryDetector = mock {
             on { detectNewDirectories(any(), any()) } doAnswer { List(rnd.nextInt(4)) { randomFile() } }

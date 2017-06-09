@@ -25,7 +25,7 @@ import java.net.URLEncoder
  * Time: 18:17
  */
 // TODO: This class is too big
-class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details") {
+class GameDetailsScreen : GamedexScreen("Details") {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
 
@@ -117,15 +117,13 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
             }
 
             // Bottom
-            if (displayVideos) {
-                separator { padding { top = 10; bottom = 10 } }
-                children += browser.root.apply { vgrow = Priority.ALWAYS }
-                gameProperty.perform { game ->
-                    if (game != null) {
-                        val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
-                        val url = "https://www.youtube.com/results?search_query=$search"
-                        browser.load(url)
-                    }
+            separator { padding { top = 10; bottom = 10 } }
+            children += browser.root.apply { vgrow = Priority.ALWAYS }
+            gameProperty.perform { game ->
+                if (game != null) {
+                    val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
+                    val url = "https://www.youtube.com/results?search_query=$search"
+                    browser.load(url)
                 }
             }
         }

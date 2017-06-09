@@ -7,11 +7,14 @@ import com.jfoenix.controls.JFXButton
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.Property
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.control.*
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -39,6 +42,15 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>?
     return combobox(property, enumValues, op)
 }
 
+inline fun <reified S> TableView<S>.customColumn(title: String,
+                                                 crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>): TableColumn<S, S> {
+    val column = TableColumn<S, S>(title)
+    addColumnInternal(column)
+    column.cellValueFactory = Callback { SimpleObjectProperty(it.value) }
+    column.setCellFactory { cellFactory(it) }
+    return column
+}
+
 inline fun <reified S, T> TableView<S>.customColumn(title: String,
                                                     prop: KProperty1<S, T>,
                                                     crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
@@ -48,6 +60,49 @@ inline fun <reified S, T> TableView<S>.customColumn(title: String,
     column.setCellFactory { cellFactory(it) }
     return column
 }
+
+
+inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinline graphicFactory: (S) -> Node): TableColumn<S, S> =
+    customColumn(title) {
+        object : TableCell<S, S>() {
+            override fun updateItem(item: S?, empty: Boolean) {
+                graphic = item?.let { graphicFactory(it) }
+            }
+        }
+    }
+
+// TODO: Can probably rewrite this using customGraphicColumn
+inline fun <reified S> TableView<S>.imageViewColumn(title: String,
+                                                    fitWidth: Double,
+                                                    fitHeight: Double,
+                                                    isPreserveRatio: Boolean = true,
+                                                    crossinline imageRetriever: (S) -> ObservableValue<Image>): TableColumn<S, S> =
+    customColumn(title) {
+        object : TableCell<S, S>() {
+            private val imageView = ImageView().apply {
+                fadeOnImageChange()
+                this@apply.fitHeight = fitHeight
+                this@apply.fitWidth = fitWidth
+                this@apply.isPreserveRatio = isPreserveRatio
+            }
+
+            init {
+                addClass(CommonStyle.centered)
+                graphic = imageView
+            }
+
+            override fun updateItem(item: S?, empty: Boolean) {
+                if (item != null) {
+                    val image = imageRetriever(item)
+                    imageView.imageProperty().cleanBind(image)
+                } else {
+                    imageView.imageProperty().unbind()
+                    imageView.image = null
+                }
+            }
+        }
+    }
+
 
 fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() -> Unit)? = null) = opcr(this, Rating(max), op).apply {
     isPartialRating = isPartial
@@ -189,7 +244,9 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
 fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 
 fun <T> ListView<T>.fitAtMost(numItems: Int) {
-    maxHeightProperty().bind(itemsProperty().map { minOf(it!!.size, numItems) * 24.3 })
+    val size = itemsProperty().map { minOf(it!!.size, numItems) * 24.1 }
+    minHeightProperty().bind(size)
+    maxHeightProperty().bind(size)
 }
 
 //fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {

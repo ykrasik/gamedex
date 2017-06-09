@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.util.LogLevel
-import javafx.beans.property.ObjectProperty
 import tornadofx.getValue
 import tornadofx.setValue
 import java.io.File
@@ -17,8 +16,12 @@ class GeneralSettings private constructor() : AbstractSettings("general") {
     }
 
     @Transient
-    val prevDirectoryProperty: ObjectProperty<File?> = preferenceProperty(null)
+    val prevDirectoryProperty = preferenceProperty<File?>(null)
     var prevDirectory by prevDirectoryProperty
+
+    @Transient
+    val exportDbDirectoryProperty = preferenceProperty<File?>(null)
+    var exportDbDirectory by exportDbDirectoryProperty
 
     @Transient
     val logFilterLevelProperty = preferenceProperty(LogLevel.info)

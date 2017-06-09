@@ -140,7 +140,7 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
     }
 
     fun show(): Boolean {
-        openModal(block = true, stageStyle = StageStyle.UTILITY)
+        openModal(block = true, stageStyle = StageStyle.UNIFIED)
         return accept
     }
 }.show()

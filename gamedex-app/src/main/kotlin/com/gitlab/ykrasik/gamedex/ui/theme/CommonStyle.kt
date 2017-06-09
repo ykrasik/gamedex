@@ -1,6 +1,5 @@
 package com.gitlab.ykrasik.gamedex.ui.theme
 
-import com.gitlab.ykrasik.gamedex.util.toStringOr
 import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.effect.DropShadow
@@ -16,14 +15,17 @@ class CommonStyle : Stylesheet() {
     companion object {
         val tabbedNavigation by cssclass()
 
+        val fillAvailableWidth by cssclass()
+        val centered by cssclass()
+
         val hoverable by cssclass()
 
         val card by cssclass()
 
         val jfxButton by cssclass()
-
         val acceptButton by cssclass()
         val cancelButton by cssclass()
+
         val deleteButton by cssclass()
 
         val extraMenu by cssclass()
@@ -32,12 +34,8 @@ class CommonStyle : Stylesheet() {
 
         val popoverMenu by cssclass()
 
-        val fillAvailableWidth by cssclass()
-
         val toggleMenuButton by cssclass()
         val toggleMenuContent by cssclass()
-
-        fun Any?.toDisplayString() = toStringOr("NA")
 
         init {
             importStylesheet(CommonStyle::class)
@@ -51,6 +49,15 @@ class CommonStyle : Stylesheet() {
             tabHeaderArea {
                 visibility = FXVisibility.HIDDEN
             }
+        }
+
+        fillAvailableWidth {
+            maxWidth = Double.MAX_VALUE.px
+            alignment = Pos.CENTER_LEFT
+        }
+
+        centered {
+            alignment = Pos.TOP_CENTER
         }
 
         hoverable {
@@ -107,11 +114,6 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
-        }
-
-        fillAvailableWidth {
-            maxWidth = Double.MAX_VALUE.px
-            alignment = Pos.CENTER_LEFT
         }
 
         toggleMenuButton {

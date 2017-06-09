@@ -5,7 +5,7 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.perform
-import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle.Companion.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen.Companion.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import javafx.geometry.HPos

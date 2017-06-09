@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.module.AppModule
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.test.TestImages
 import com.gitlab.ykrasik.gamedex.util.appConfig
+import com.gitlab.ykrasik.gamedex.util.stringConfig
 import com.google.inject.AbstractModule
 import com.google.inject.Binding
 import com.google.inject.Key
@@ -12,60 +13,56 @@ import com.google.inject.spi.Elements
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.mock
-import com.typesafe.config.ConfigValueFactory
 import javafx.application.Application
 import javafx.beans.property.SimpleObjectProperty
-import javafx.scene.Parent
-import tornadofx.App
-import tornadofx.FX
-import tornadofx.View
-import tornadofx.vbox
+import tornadofx.*
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 12/03/2017
- * Time: 13:53
+ * Date: 10/06/2017
+ * Time: 11:36
  */
-abstract class BaseTestApp {
+abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
     init {
-        appConfig = appConfig
-            .withValue("gameDex.persistence.dbUrl", ConfigValueFactory.fromAnyRef("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"))
+        // Use an in-memory test db.
+        appConfig = appConfig.withValue("gameDex.persistence.dbUrl", stringConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"))
 
-        initializer = this::init
-        Application.launch(TestApplication::class.java)
-    }
-
-
-    protected abstract fun init(): Unit
-
-    companion object {
-        var initializer: () -> Unit = { }
-
-        class TestApplication : App(TestView::class)
-
-        class TestView : View("Test") {
-            override val root: Parent = vbox {
-                prepare()
-                initializer()
-            }
-
-            private fun prepare() {
-                val appModuleWithoutImageLoader = Elements.getModule(Elements.getElements(AppModule).filter {
-                    it is Binding<*> && it.key != Key.get(ImageLoader::class.java)
-                })
-                val mockImageLoaderModule = object : AbstractModule() {
-                    override fun configure() {
-                        val imageLoader = mock<ImageLoader> {
-                            on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
-                            on { fetchImage(any(), anyOrNull(), any()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
-                        }
-                        bind(ImageLoader::class.java).toInstance(imageLoader)
-                    }
+        // Mock imageLoader.
+        val appModuleWithoutImageLoader = Elements.getModule(Elements.getElements(AppModule).filter {
+            it is Binding<*> && it.key != Key.get(ImageLoader::class.java)
+        })
+        val mockImageLoaderModule = object : AbstractModule() {
+            override fun configure() {
+                val imageLoader = mock<ImageLoader> {
+                    on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
+                    on { fetchImage(any(), anyOrNull(), any()) }.thenAnswer { SimpleObjectProperty(TestImages.randomImage()) }
                 }
-                FX.dicontainer = GuiceDiContainer(
-                    GuiceDiContainer.defaultModules - AppModule + appModuleWithoutImageLoader + mockImageLoaderModule
-                )
+                bind(ImageLoader::class.java).toInstance(imageLoader)
             }
         }
+        FX.dicontainer = GuiceDiContainer(
+            GuiceDiContainer.defaultModules - AppModule + appModuleWithoutImageLoader + mockImageLoaderModule
+        )
+
+        BaseTestApp.view = view
+        BaseTestApp.initializer = { v -> init((v as T)) }
+        Application.launch(TestLauncher::class.java)
+    }
+
+    protected abstract fun init(view: T): Unit
+
+    class TestLauncher : App(TestInitialView::class)
+    class TestInitialView : View() {
+        override val root = run {
+            val concreteView = find(view, scope)
+            initializer(concreteView)
+            concreteView.root
+        }
+    }
+
+    companion object {
+        private lateinit var view: KClass<out UIComponent>
+        private lateinit var initializer: (Any) -> Unit
     }
 }

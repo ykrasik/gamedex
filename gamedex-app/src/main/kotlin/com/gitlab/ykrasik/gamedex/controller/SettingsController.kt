@@ -12,6 +12,7 @@ import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
+import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.create
@@ -37,7 +38,8 @@ import javax.inject.Singleton
 class SettingsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
-    private val persistenceService: PersistenceService
+    private val persistenceService: PersistenceService,
+    private val settings: GeneralSettings
 ) : Controller() {
 
     private val objectMapper = ObjectMapper()
@@ -63,11 +65,15 @@ class SettingsController @Inject constructor(
         ImportDatabaseTask(file).start()
     }
 
-    private fun browseDirectory(): File? = chooseDirectory("Choose database export directory...", initialDirectory = ".".toFile())
+    private fun browseDirectory(): File? {
+        val dir = chooseDirectory("Choose database export directory...", initialDirectory = settings.exportDbDirectory) ?: return null
+        settings.exportDbDirectory = dir
+        return dir
+    }
 
     private fun browse(mode: FileChooserMode): File? {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
-            initialDirectory = ".".toFile()
+            initialDirectory = settings.exportDbDirectory
             initialFileName = "db.json"
         }
         return file.firstOrNull()

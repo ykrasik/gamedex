@@ -5,9 +5,9 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
 import com.gitlab.ykrasik.gamedex.ui.imageview
-import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle.Companion.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
+import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.event.EventTarget
@@ -17,7 +17,6 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import tornadofx.*
-import java.awt.Desktop
 
 /**
  * User: ykrasik
@@ -52,11 +51,7 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
 
     private fun GridPane.path() = row {
         detailsHeader("Path")
-        jfxButton(game.path.path) {
-            addClass(Style.detailsContent, CommonStyle.hoverable)
-            isFocusTraversable = false
-            setOnAction { Desktop.getDesktop().open(game.path) }
-        }
+        pathButton(game.path) { addClass(CommonStyle.hoverable, Style.detailsContent) }
     }
 
     private fun GridPane.description() = row {
@@ -87,7 +82,7 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
             if (score != null) {
                 fixedRating(10) { rating = score.score / 10 }
                 detailsContent(score.score.format(3))
-                detailsContent("Based on ${score.numReviews} $name reviews.")
+                detailsContent("Based on ${score.numReviews} $name reviews")
             } else {
                 detailsContent("NA")
             }

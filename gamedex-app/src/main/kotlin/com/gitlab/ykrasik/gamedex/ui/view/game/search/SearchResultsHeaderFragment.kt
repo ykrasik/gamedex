@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.HPos
@@ -14,7 +15,6 @@ import javafx.geometry.VPos
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import tornadofx.*
-import java.awt.Desktop
 
 /**
  * User: ykrasik
@@ -30,11 +30,9 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
     override val root = gridpane {
         hgap = 10.0
 
-        jfxButton(data.path.path) {
+        pathButton(data.path) {
             gridpaneConstraints { columnRowIndex(0, 0); vAlignment = VPos.TOP; hAlignment = HPos.LEFT }
             setId(Style.pathLabel)
-            isFocusTraversable = false
-            setOnAction { Desktop.getDesktop().open(data.path) }
         }
         region { gridpaneConstraints { columnRowIndex(1, 0); hGrow = Priority.ALWAYS } }
         stackpane {

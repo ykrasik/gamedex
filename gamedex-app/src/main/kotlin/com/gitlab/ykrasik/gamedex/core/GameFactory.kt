@@ -102,6 +102,7 @@ class GameFactory @Inject constructor(
     private fun <T> List<ProviderData>.findFirst(extractor: (ProviderData) -> T?): T? =
         this.asSequence().map(extractor).firstNotNull()
 
+    // TODO: This looks like something that can sit as configuration, maybe configurable through a UI.
     private fun processGenre(genre: String): List<String> = when (genre) {
         "Action-Adventure", "Action Adventure" ->
             listOf("Action", "Adventure")
@@ -159,9 +160,9 @@ class GameFactory @Inject constructor(
             listOf("Driving / Racing")
 
         "General", "Miscellaneous", "Modern", "Traditional", "Horizontal", "Vertical", "Virtual", "Linear", "Other",
-        "Scrolling", "Static", "Civilian", "Individual", "3D", "Combat", "Dual-Joystick Shooter", "Educational",
+        "Scrolling", "Static", "Civilian", "Individual", "Team", "3D", "Combat", "Dual-Joystick Shooter", "Educational",
         "Real-Time", "Fishing", "Train", "Light Gun", "Block-Breaking",
-        "Historic", "Fantasy", "Sci-Fi", "Space" ->
+        "Historic", "Futuristic", "Fantasy", "Sci-Fi", "Space" ->
             emptyList()
 
         else ->

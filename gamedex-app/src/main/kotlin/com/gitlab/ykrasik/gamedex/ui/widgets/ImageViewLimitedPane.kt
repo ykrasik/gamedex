@@ -17,6 +17,7 @@ import javafx.scene.layout.Pane
  * Date: 25/12/2016
  * Time: 17:36
  */
+// TODO: This distorts images sometimes.
 class ImageViewLimitedPane(
     private val imageView: ImageView,
     private val imageDisplayType: ObjectProperty<GameWallSettings.ImageDisplayType>

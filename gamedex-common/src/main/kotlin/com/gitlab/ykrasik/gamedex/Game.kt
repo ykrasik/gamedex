@@ -29,8 +29,8 @@ data class Game(
     val name get() = gameData.name
     val description get() = gameData.description
     val releaseDate get() = gameData.releaseDate
-    val criticScore get() = gameData.criticScore
-    val userScore get() = gameData.userScore
+    val criticScore get() = gameData.criticScore?.let { if (it.numReviews >= 4) it else null }
+    val userScore get() = gameData.userScore?.let { if (it.numReviews >= 4) it else null }
     val genres get() = gameData.genres
 
     val thumbnailUrl get() = imageUrls.thumbnailUrl

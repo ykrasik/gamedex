@@ -14,6 +14,7 @@ import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
@@ -38,8 +39,9 @@ class GameWallView : View("Games Wall") {
         horizontalCellSpacingProperty().bind(settings.cellHorizontalSpacingProperty)
         verticalCellSpacingProperty().bind(settings.cellVerticalSpacingProperty)
 
-        // TODO: Hide the popover with a filter.
-        val popOver = popOver()
+        val popOver = popOver().apply {
+            addEventHandler(MouseEvent.MOUSE_PRESSED) { hide() }
+        }
 
         setCellFactory {
             val cell = GameWallCell()

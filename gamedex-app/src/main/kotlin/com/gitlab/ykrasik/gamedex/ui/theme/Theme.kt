@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Icon.defaultIconSize
 import com.gitlab.ykrasik.gamedex.ui.toGraphic
+import com.gitlab.ykrasik.gamedex.util.toStringOr
 import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -16,6 +17,8 @@ import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.addClass
 import tornadofx.tooltip
+import java.awt.Desktop
+import java.io.File
 
 /**
  * User: ykrasik
@@ -156,3 +159,11 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
 }.apply {
     minWidth = Region.USE_PREF_SIZE
 }
+
+fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfxButton(path.path) {
+    isFocusTraversable = false
+    setOnAction { Desktop.getDesktop().open(path) }
+    op?.invoke(this)
+}
+
+fun Any?.toDisplayString() = toStringOr("NA")

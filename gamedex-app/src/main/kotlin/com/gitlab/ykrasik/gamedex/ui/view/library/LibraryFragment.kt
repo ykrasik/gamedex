@@ -24,7 +24,7 @@ import tornadofx.*
  * Date: 12/10/2016
  * Time: 10:56
  */
-class LibraryFragment(existingLibraries: List<Library>, private val library: Library?) :
+class LibraryFragment(private val existingLibraries: List<Library>, private val library: Library?) :
     Fragment(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
 
     private val settings: GeneralSettings by di()
@@ -49,54 +49,59 @@ class LibraryFragment(existingLibraries: List<Library>, private val library: Lib
         center {
             form {
                 minWidth = 600.0
-
                 fieldset(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
-                    field("Path") {
-                        textfield(model.pathProperty) {
-                            validator { path ->
-                                when {
-                                    path.isNullOrBlank() -> error("Path is required!")
-                                    !path!!.toFile().isDirectory -> error("Path doesn't exist!")
-                                    existingLibraries.any { it != library && it.path == path.toFile() } -> error("Path already in use!")
-                                    else -> null
-                                }
-                            }
-                            if (library != null) text = library.path.toString()
-                        }
-                        jfxButton("Browse", Theme.Icon.search(17.0)) { setOnAction { browse() } }
-                    }
-                    field("Name") {
-                        textfield(model.nameProperty) {
-                            validator { name ->
-                                when {
-                                    name.isNullOrBlank() -> error("Name is required!")
-                                    existingLibraries.any { it != library && it.name == name && it.platform == model.platform } ->
-                                        error("Name already in use for this platform!")
-                                    else -> null
-                                }
-                            }
-                            if (library != null) text = library.name
-                        }
-                    }
-                    field("Platform") {
-                        isDisable = library != null
-                        model.platformProperty.value = library?.platform ?: Platform.pc
-                        model.platformProperty.onChange {
-                            model.validate()
-                        }
-                        popoverComboMenu(
-                            possibleItems = Platform.values().toList().observable(),
-                            selectedItemProperty = model.platformProperty,
-                            arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                            styleClass = Style.platformItem,
-                            itemStyleClass = Style.platformItem,
-                            text = Platform::key,
-                            graphic = { it.toLogo() }
-                        )
-                    }
+                    pathField()
+                    nameField()
+                    platformField()
                 }
             }
         }
+    }
+
+    private fun Fieldset.pathField() = field("Path") {
+        textfield(model.pathProperty) {
+            validator { path ->
+                when {
+                    path.isNullOrBlank() -> error("Path is required!")
+                    !path!!.toFile().isDirectory -> error("Path doesn't exist!")
+                    existingLibraries.any { it != library && it.path == path.toFile() } -> error("Path already in use!")
+                    else -> null
+                }
+            }
+            if (library != null) text = library.path.toString()
+        }
+        jfxButton("Browse", Theme.Icon.search(17.0)) { setOnAction { browse() } }
+    }
+
+    private fun Fieldset.nameField() = field("Name") {
+        textfield(model.nameProperty) {
+            validator { name ->
+                when {
+                    name.isNullOrBlank() -> error("Name is required!")
+                    existingLibraries.any { it != library && it.name == name && it.platform == model.platform } ->
+                        error("Name already in use for this platform!")
+                    else -> null
+                }
+            }
+            if (library != null) text = library.name
+        }
+    }
+
+    private fun Fieldset.platformField() = field("Platform") {
+        isDisable = library != null
+        model.platformProperty.value = library?.platform ?: Platform.pc
+        model.platformProperty.onChange {
+            model.validate()
+        }
+        popoverComboMenu(
+            possibleItems = Platform.values().toList().observable(),
+            selectedItemProperty = model.platformProperty,
+            arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+            styleClass = Style.platformItem,
+            itemStyleClass = Style.platformItem,
+            text = Platform::key,
+            graphic = { it.toLogo() }
+        )
     }
 
     init {

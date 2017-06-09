@@ -132,7 +132,7 @@ class GameTasks @Inject constructor(
             gameRepository.deleteAll(staleData.games, progress)
         }
 
-        override fun doneMessage() = "Removed ${staleData.libraries} stale libraries and ${staleData.games} stale games."
+        override fun doneMessage() = "Removed ${staleData.games.size} stale games and ${staleData.libraries.size} stale libraries."
     }
 
     data class StaleData(

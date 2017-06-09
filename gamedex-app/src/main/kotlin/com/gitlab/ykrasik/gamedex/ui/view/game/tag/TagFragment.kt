@@ -7,6 +7,7 @@ import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import javafx.collections.FXCollections
+import javafx.event.EventTarget
 import javafx.geometry.Orientation
 import tornadofx.*
 
@@ -40,53 +41,57 @@ class TagFragment(game: Game) : Fragment("Tag") {
                 gridpane {
                     hgap = 5.0
                     row {
-                        jfxToggleButton {
-                            tooltip("Toggle all")
-                            isSelected = tags.toSet() == checkedTags
-                            selectedProperty().onChange {
-                                if (it) checkedTags.addAll(tags) else checkedTags.clear()
-                                tags.invalidate()
-                            }
-                        }
-
+                        toggleAllButton()
                         verticalSeparator()
-
-                        label("New Tag:")
-                        val newTagName = textfield {
-                            setId(Style.newTagTextField)
-                            promptText = "Tag Name"
-                            isFocusTraversable = false
-                        }
-                        val alreadyExists = tags.containing(newTagName.textProperty())
-                        jfxButton(graphic = Theme.Icon.plus(20.0)) {
-                            disableWhen {
-                                newTagName.textProperty().let { name ->
-                                    name.isEmpty.or(name.isNull).or(alreadyExists)
-                                }
-                            }
-                            defaultButtonProperty().bind(newTagName.focusedProperty())
-                            setOnAction {
-                                checkTag(newTagName.text)
-                                tags += newTagName.text
-                                newTagName.clear()
-                            }
-                        }
+                        addTagButton()
                     }
                 }
                 separator()
-                flowpane {
-                    addClass(Style.tagDisplay)
-                    tags.performing { tags ->
-                        replaceChildren {
-                            tags.sorted().forEach { tag ->
-                                jfxToggleButton {
-                                    text = tag
-                                    isSelected = checkedTags.contains(tag)
-                                    selectedProperty().onChange {
-                                        if (it) checkTag(tag) else uncheckTag(tag)
-                                    }
-                                }
-                            }
+                existingTags()
+            }
+        }
+    }
+
+    private fun EventTarget.toggleAllButton() = jfxToggleButton {
+        tooltip("Toggle all")
+        isSelected = tags.toSet() == checkedTags
+        selectedProperty().onChange {
+            if (it) checkedTags.addAll(tags) else checkedTags.clear()
+            tags.invalidate()
+        }
+    }
+
+    private fun EventTarget.addTagButton() {
+        label("New Tag:")
+        val newTagName = textfield {
+            setId(Style.newTagTextField)
+            promptText = "Tag Name"
+            isFocusTraversable = false
+        }
+
+        val alreadyExists = tags.containing(newTagName.textProperty())
+        jfxButton(graphic = Theme.Icon.plus(20.0)) {
+            disableWhen { newTagName.textProperty().let { name -> name.isEmpty.or(name.isNull).or(alreadyExists) } }
+            defaultButtonProperty().bind(newTagName.focusedProperty())
+            setOnAction {
+                checkTag(newTagName.text)
+                tags += newTagName.text
+                newTagName.clear()
+            }
+        }
+    }
+
+    private fun EventTarget.existingTags() = flowpane {
+        addClass(Style.tagDisplay)
+        tags.performing { tags ->
+            replaceChildren {
+                tags.sorted().forEach { tag ->
+                    // TODO: Display the same way that genres are displayed in the filter menu?
+                    jfxToggleButton {
+                        text = tag
+                        isSelected = checkedTags.contains(tag)
+                        selectedProperty().onChange {
+                            if (it) checkTag(tag) else uncheckTag(tag)
                         }
                     }
                 }

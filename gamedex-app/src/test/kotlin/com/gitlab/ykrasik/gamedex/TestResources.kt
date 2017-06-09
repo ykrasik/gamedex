@@ -19,6 +19,28 @@ fun randomLibrary() = Library(
     )
 )
 
+fun randomGame(): Game {
+    val providerData = testProviderIds.map { id ->
+        ProviderData(
+            header = randomProviderHeader(id),
+            gameData = randomGameData(),
+            imageUrls = randomImageUrls()
+        )
+    }
+    return Game(
+        rawGame = RawGame(
+            id = rnd.nextInt(),
+            metaData = randomMetaData(),
+            providerData = providerData,
+            userData = null
+        ),
+        library = randomLibrary(),
+        gameData = providerData.randomElement().gameData,
+        providerHeaders = randomProviderHeaders(),
+        imageUrls = randomImageUrls()
+    )
+}
+
 fun randomMetaData(libraryId: Int = 1) = MetaData(
     libraryId = libraryId,
     path = randomFile(),

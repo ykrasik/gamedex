@@ -18,7 +18,7 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
     private val results = ArrayList(data.results).observable()
 
     private val header = SearchResultsHeaderFragment(data) { close(it) }
-    private val content = SearchResultContentFragment(results) { close(it) }
+    private val content = SearchResultsContentFragment(results) { close(it) }
 
     private var choice: SearchChooser.Choice = SearchChooser.Choice.Cancel
 
@@ -30,18 +30,11 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
         center {
             borderpane {
                 paddingAll = 20
-                top {
-                    vbox {
-                        paddingBottom = 10
-                        children += header.root
-                    }
+                top = header.root.apply {
+                    paddingBottom = 10
                 }
-                center {
-                    vbox {
-                        children += content.root.apply {
-                            vgrow = Priority.ALWAYS
-                        }
-                    }
+                center = content.root.apply {
+                    vgrow = Priority.ALWAYS
                 }
             }
         }

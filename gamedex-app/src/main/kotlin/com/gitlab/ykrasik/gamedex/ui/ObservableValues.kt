@@ -37,6 +37,8 @@ fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
     return property
 }
 
+// FIXME: Add a bidirectionalMapBind
+
 fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
     fun doFlatMap() = f(this.value)
     val property = SimpleObjectProperty<R>()
