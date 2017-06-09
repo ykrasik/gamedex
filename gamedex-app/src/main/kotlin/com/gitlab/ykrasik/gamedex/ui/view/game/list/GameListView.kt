@@ -7,7 +7,7 @@ import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle.Companion.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen.Companion.gameContextMenu
-import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
+import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.control.ListView
@@ -23,7 +23,6 @@ import tornadofx.*
 class GameListView : View("Game List") {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
-    private val detailSnippetFactory: GameDetailSnippetFactory by di()
 
     private var listview: ListView<Game> by singleAssign()
 
@@ -96,15 +95,8 @@ class GameListView : View("Game List") {
                                     }
                                 }
                                 row {
-                                    form {
-                                        fieldset {
-                                            gridpaneConstraints { hAlignment = HPos.CENTER }
-                                            children += detailSnippetFactory.create(
-                                                game,
-                                                onGenrePressed = this@GameListView::onGenrePressed,
-                                                onTagPressed = this@GameListView::onTagPressed)
-                                        }
-                                    }
+                                    gridpaneConstraints { hAlignment = HPos.CENTER }
+                                    children += GameDetailsFragment(game).root
                                 }
                             }
                         }
@@ -112,14 +104,6 @@ class GameListView : View("Game List") {
                 }
             }
         }
-    }
-
-    private fun onGenrePressed(genre: String) {
-        gameController.filterGenres(listOf(genre))
-    }
-
-    private fun onTagPressed(tag: String) {
-        gameController.filterTags(listOf(tag))
     }
 
     class Style : Stylesheet() {

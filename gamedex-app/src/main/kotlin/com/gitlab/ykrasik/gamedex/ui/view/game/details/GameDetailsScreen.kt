@@ -7,7 +7,6 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
-import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
@@ -32,7 +31,6 @@ import java.net.URLEncoder
 class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details") {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
-    private val detailsSnippetFactory: GameDetailSnippetFactory by di()
 
     private var webView: WebView by singleAssign()
     private var backButton: Button by singleAssign()
@@ -119,11 +117,7 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
                     game ?: return@perform
                     // TODO: Can just replaceWith instead?
                     replaceChildren {
-                        children += detailsSnippetFactory.create(
-                            game,
-                            onGenrePressed = this@GameDetailsScreen::onGenrePressed,
-                            onTagPressed = this@GameDetailsScreen::onTagPressed
-                        )
+                        children += GameDetailsFragment(game).root
                     }
                 }
             }
@@ -177,16 +171,6 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
 
     override fun onUndock() {
         webView.engine.load(null)
-    }
-
-    private fun onGenrePressed(genre: String) {
-        gameController.filterGenres(listOf(genre))
-        goBackScreen()
-    }
-
-    private fun onTagPressed(tag: String) {
-        gameController.filterTags(listOf(tag))
-        goBackScreen()
     }
 
     private fun editDetails(type: GameDataType = GameDataType.name_) = reloadGame {

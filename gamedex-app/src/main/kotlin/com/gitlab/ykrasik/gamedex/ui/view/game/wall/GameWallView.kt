@@ -8,7 +8,7 @@ import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen.Companion.gameContextMenu
-import com.gitlab.ykrasik.gamedex.ui.widgets.GameDetailSnippetFactory
+import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
@@ -31,7 +31,6 @@ class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
     private val settings: GameWallSettings by di()
     private val imageLoader: ImageLoader by di()
-    private val gameDetailSnippetFactory: GameDetailSnippetFactory by di()
 
     override val root = GridView(gameController.sortedFilteredGames).apply {
         cellHeightProperty().bind(settings.cellHeightProperty)
@@ -51,13 +50,7 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = gameDetailSnippetFactory.create(
-                                cell.item!!,
-                                withDescription = false,
-                                withUrls = false,
-                                onGenrePressed = { onGenrePressed(it) },
-                                onTagPressed = { onTagPressed(it) }
-                            ).apply {
+                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false, withUrls = false).root.apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)
@@ -74,16 +67,6 @@ class GameWallView : View("Games Wall") {
             cell.gameContextMenu(gameController) { cell.item }
             cell
         }
-    }
-
-    private fun PopOver.onGenrePressed(genre: String) {
-        gameController.filterGenres(listOf(genre))
-        hide()
-    }
-
-    private fun PopOver.onTagPressed(tag: String) {
-        gameController.filterTags(listOf(tag))
-        hide()
     }
 
     private fun determineArrowLocation(x: Double, y: Double): PopOver.ArrowLocation {
