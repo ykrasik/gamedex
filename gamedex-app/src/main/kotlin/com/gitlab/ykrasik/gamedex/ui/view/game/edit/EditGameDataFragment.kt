@@ -250,16 +250,6 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         customText.validate(decorateErrors = false)
     }
 
-    private fun VBox.scoreDisplay(score: Score) = textDisplay("${score.score} Based on ${score.numReviews} reviews.")
-    private fun VBox.textDisplay(text: String) = textDisplay(text.toProperty())
-    private fun VBox.textDisplay(text: StringProperty) {
-        paddingAll = 20.0
-        label(text) {
-            addClass(Style.textData)
-            isWrapText = true
-        }
-    }
-
     private fun VBox.customImageChoice(toggleGroup: ToggleGroup, type: GameDataType) {
         val imageProperty = SimpleObjectProperty<Image>()
         val imageUrlProperty = SimpleStringProperty("")
@@ -306,8 +296,17 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         }
     }
 
-    private fun VBox.imageDisplay(url: String) = imageDisplay(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
+    private fun VBox.scoreDisplay(score: Score) = textDisplay("${score.score} Based on ${score.numReviews} reviews.")
+    private fun VBox.textDisplay(text: String) = textDisplay(text.toProperty())
+    private fun VBox.textDisplay(text: StringProperty) {
+        paddingAll = 20.0
+        label(text) {
+            addClass(Style.textData)
+            isWrapText = true
+        }
+    }
 
+    private fun VBox.imageDisplay(url: String) = imageDisplay(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
     private fun VBox.imageDisplay(image: ObservableValue<Image>) = imageview {
         paddingAll = 20.0
         fitHeight = 300.0       // TODO: Config?

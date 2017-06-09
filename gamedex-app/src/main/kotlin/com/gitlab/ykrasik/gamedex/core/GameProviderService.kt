@@ -4,7 +4,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
-import com.gitlab.ykrasik.gamedex.ui.view.game.search.ChooseSearchResultFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.search.SearchResultsFragment
 import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CancellationException
@@ -203,6 +203,6 @@ interface SearchChooser {
 @Singleton
 class UISearchChooser : SearchChooser {
     override suspend fun choose(data: SearchChooser.Data) = run(JavaFx) {
-        ChooseSearchResultFragment(data).show()
+        SearchResultsFragment(data).show()
     }
 }

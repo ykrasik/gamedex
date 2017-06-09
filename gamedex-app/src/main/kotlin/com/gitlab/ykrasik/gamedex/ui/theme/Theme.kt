@@ -9,6 +9,7 @@ import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.image.Image
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
@@ -152,4 +153,6 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
     Platform.android -> Theme.Icon.android(size)
     Platform.mac -> Theme.Icon.apple(size)
     else -> Theme.Icon.question(size)
+}.apply {
+    minWidth = Region.USE_PREF_SIZE
 }

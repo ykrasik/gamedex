@@ -1,13 +1,11 @@
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.ui.view.game.search.ChooseSearchResultFragment
 import com.gitlab.ykrasik.gamedex.ui.view.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.util.LoggerFactory
 import com.gitlab.ykrasik.gamedex.util.UILoggerFactory
 import javafx.application.Application
 import org.slf4j.bridge.SLF4JBridgeHandler
 import tornadofx.App
-import tornadofx.importStylesheet
 
 /**
  * User: ykrasik
@@ -22,8 +20,6 @@ class Main : App(PreloaderView::class) {
             SLF4JBridgeHandler.removeHandlersForRootLogger()
             SLF4JBridgeHandler.install()
             LoggerFactory = UILoggerFactory
-
-            importStylesheet(ChooseSearchResultFragment.Style::class)
 
             Application.launch(Main::class.java, *args)
         }
