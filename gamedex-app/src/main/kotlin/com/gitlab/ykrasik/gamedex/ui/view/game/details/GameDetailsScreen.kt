@@ -8,13 +8,10 @@ import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import javafx.beans.property.ObjectProperty
-import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
-import javafx.scene.control.Button
 import javafx.scene.control.ToolBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import javafx.scene.web.WebView
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -32,9 +29,7 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
 
-    private var webView: WebView by singleAssign()
-    private var backButton: Button by singleAssign()
-    private var forwardButton: Button by singleAssign()
+    private val browser: WebBrowser by inject()
 
     val gameProperty: ObjectProperty<Game> = SimpleObjectProperty()
     var game by gameProperty
@@ -115,7 +110,6 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
             stackpane {
                 gameProperty.perform { game ->
                     game ?: return@perform
-                    // TODO: Can just replaceWith instead?
                     replaceChildren {
                         children += GameDetailsFragment(game).root
                     }
@@ -123,42 +117,14 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
             }
 
             // Bottom
-            separator { padding { top = 10; bottom = 10 } }
-            gridpane {
-                padding { top = 5; bottom = 5 }
-                hgap = 10.0
-                row {
-                    backButton = button(graphic = Theme.Icon.arrowLeft(18.0))
-                    forwardButton = button(graphic = Theme.Icon.arrowRight(18.0))
-                }
-            }
-            webView = webview {
-                fun canNavigate(back: Boolean): Property<Boolean> {
-                    val history = engine.history
-                    val entries = history.entries
-                    return history.currentIndexProperty().map { i ->
-                        val currentIndex = i!!.toInt()
-                        entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
-                    }
-                }
-
-                fun navigate(back: Boolean) = engine.history.go(if (back) -1 else 1)
-
-                with(backButton) {
-                    enableWhen { canNavigate(back = true) }
-                    setOnAction { navigate(back = true) }
-                }
-                with(forwardButton) {
-                    enableWhen { canNavigate(back = false) }
-                    setOnAction { navigate(back = false) }
-                }
-                if (displayVideos) {
-                    vgrow = Priority.ALWAYS
-                    gameProperty.perform { game ->
-                        game ?: return@perform
+            if (displayVideos) {
+                separator { padding { top = 10; bottom = 10 } }
+                children += browser.root.apply { vgrow = Priority.ALWAYS }
+                gameProperty.perform { game ->
+                    if (game != null) {
                         val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
                         val url = "https://www.youtube.com/results?search_query=$search"
-                        engine.load(url)
+                        browser.load(url)
                     }
                 }
             }
@@ -170,7 +136,7 @@ class GameDetailsScreen(displayVideos: Boolean = true) : GamedexScreen("Details"
     }
 
     override fun onUndock() {
-        webView.engine.load(null)
+        browser.stop()
     }
 
     private fun editDetails(type: GameDataType = GameDataType.name_) = reloadGame {
