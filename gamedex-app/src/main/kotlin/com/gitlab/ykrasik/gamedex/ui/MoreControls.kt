@@ -119,19 +119,34 @@ fun Node.clipRectangle(op: Rectangle.() -> Unit) {
 }
 
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
+
 fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
+    addClass(CommonStyle.jfxHoverable)
     this.graphic = graphic
     this.toggleGroup = group
 }, op)
 
+fun Node.jfxToggleNode(text: String? = null,
+                       graphic: Node? = null,
+                       group: ToggleGroup? = getToggleGroup(),
+                       labelStyleClasses: List<CssRule> = emptyList(),
+                       op: (JFXToggleNode.() -> Unit)? = null): JFXToggleNode {
+    val label = Label(text ?: "", graphic).apply {
+        addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
+        labelStyleClasses.forEach { addClass(it) }
+    }
+    return jfxToggleNode(label, group, op)
+}
+
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
     opcr(this, JFXButton().apply {
-        addClass(CommonStyle.jfxButton)
+        addClass(CommonStyle.jfxHoverable)
         this.text = text
         this.graphic = graphic
         this.buttonType = type
     }, op)
 
+// TODO: Change style classes to lists.
 fun EventTarget.buttonWithPopover(text: String? = null,
                                   graphic: Node? = null,
                                   styleClass: CssRule? = CommonStyle.toolbarButton,
@@ -144,6 +159,7 @@ fun EventTarget.buttonWithPopover(text: String? = null,
         setOnAction { popover.toggle(this) }
     }
 
+// TODO: Change style classes to lists.
 fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
@@ -170,45 +186,18 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
         if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
     }
 
-fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
-                                      selectedItems: Property<List<T>>,
-                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                      styleClasses: List<CssRule> = emptyList(),
-                                      itemStyleClasses: List<CssRule> = emptyList(),
-                                      text: ((T) -> String)? = null,
-                                      graphic: ((T) -> Node)? = null,
-                                      menuOp: (VBox.(T) -> Unit)? = null) =
+// TODO: This smells like it should be a class
+fun <T> Node.popoverToggleMenu(possibleItems: ObservableList<T>,
+                               selectedItems: Property<List<T>>,
+                               group: ToggleGroup? = getToggleGroup(),
+                               arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                               styleClasses: List<CssRule> = emptyList(),
+                               itemStyleClasses: List<CssRule> = emptyList(),
+                               text: ((T) -> String)? = null,
+                               graphic: ((T) -> Node)? = null,
+                               menuOp: (VBox.(T) -> Unit)? = null) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = null, closeOnClick = false) {
-        val selectedItemsListeners = mutableListOf<ChangeListener<List<T>>>()
-        possibleItems.performing { items ->
-            selectedItemsListeners.forEach { selectedItems.removeListener(it) }
-            selectedItemsListeners.clear()
-
-            // TODO: Review all places where this is used for listener leaks.
-            replaceChildren {
-                items.forEach { item ->
-                    jfxToggleNode {
-                        addClass(CommonStyle.toggleMenuButton)
-                        this.graphic = label {
-                            addClass(CommonStyle.toggleMenuContent, CommonStyle.fillAvailableWidth)
-                            itemStyleClasses.forEach { addClass(it) }
-                            this.text = text?.invoke(item)
-                            this.graphic = graphic?.invoke(item)
-                        }
-                        isSelected = selectedItems.value.contains(item)
-
-                        selectedProperty().onChange {
-                            selectedItems.value = if (it) (selectedItems.value + item).distinct() else selectedItems.value - item
-                        }
-
-                        selectedItemsListeners += selectedItems.changeListener {
-                            isSelected = selectedItems.value.contains(item)
-                        }
-                    }
-                    menuOp?.invoke(this@buttonWithPopover, item)
-                }
-            }
-        }
+        toggleMenu(possibleItems, selectedItems, group, itemStyleClasses, text, graphic, menuOp)
     }.apply {
         styleClasses.forEach { addClass(it) }
         if (text != null) {
@@ -219,9 +208,43 @@ fun <T> EventTarget.popoverToggleMenu(possibleItems: ObservableList<T>,
         }
     }
 
+fun <T> VBox.toggleMenu(possibleItems: ObservableList<T>,
+                        selectedItems: Property<List<T>>,
+                        group: ToggleGroup? = getToggleGroup(),
+                        itemStyleClasses: List<CssRule> = emptyList(),
+                        text: ((T) -> String)? = null,
+                        graphic: ((T) -> Node)? = null,
+                        menuOp: (VBox.(T) -> Unit)? = null) {
+    val selectedItemsListeners = mutableListOf<ChangeListener<List<T>>>()
+    possibleItems.performing { items ->
+        selectedItemsListeners.forEach { selectedItems.removeListener(it) }
+        selectedItemsListeners.clear()
+
+        // TODO: Review all places where this is used for listener leaks.
+        replaceChildren {
+            items.forEach { item ->
+                jfxToggleNode(text?.invoke(item), graphic?.invoke(item), group, itemStyleClasses) {
+                    addClass(CommonStyle.fillAvailableWidth)
+                    isSelected = selectedItems.value.contains(item)
+
+                    selectedProperty().onChange {
+                        selectedItems.value = if (it) (selectedItems.value + item).distinct() else selectedItems.value - item
+                    }
+
+                    selectedItemsListeners += selectedItems.changeListener {
+                        isSelected = selectedItems.value.contains(item)
+                    }
+                }
+                menuOp?.invoke(this@toggleMenu, item)
+            }
+        }
+    }
+}
+
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
             closeOnClick: Boolean = true,
             op: (VBox.() -> Unit)? = null): PopOver = PopOver().apply {
+    val popover = this
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
     isDetachable = false
@@ -231,15 +254,18 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
         isFitToWidth = true
         isFitToHeight = true
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+        if (closeOnClick) addEventFilter(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+        addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) popover.hide() }
+    }
+    scrollpane.content = VBox().apply {
+        addClass(CommonStyle.popoverMenu)
+        op?.invoke(this)
     }
     contentNode = scrollpane
-    val content = VBox().apply {
-        addClass(CommonStyle.popoverMenu)
-        scrollpane.content = this
-    }
-    if (closeOnClick) content.addEventFilter(MouseEvent.MOUSE_CLICKED) { hide() }
-    content.addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) hide() }
-    op?.invoke(content)
+}
+
+fun PopOver.replaceContent(content: Node) {
+    (contentNode as ScrollPane).content = content
 }
 
 fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
@@ -261,19 +287,33 @@ inline fun View.skipFirstTime(op: () -> Unit) {
     }
 }
 
-//fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {
-//    val popover = popOver(arrowLocation)
-//    this@dropDownMenu.setOnMouseEntered {
-//        if (!popover.isShowing) {
-//            popover.show(this@dropDownMenu)
-//        }
-//    }
-//    this@dropDownMenu.setOnMouseExited {
-//        if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
-//            it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
-//            popover.hide()
-//        }
-//    }
-//    op?.invoke(popover)
-//    return popover
-//}
+fun Node.popoverContextMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                            closeOnClick: Boolean = true,
+                            op: (VBox.() -> Unit)? = null): PopOver {
+    val popover = popOver(arrowLocation, closeOnClick, op).apply { isAutoFix = false; isAutoHide = true }
+    addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+    setOnContextMenuRequested { e -> popover.show(this@popoverContextMenu, e.screenX, e.screenY) }
+    return popover
+}
+
+fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                      closeOnClick: Boolean = true,
+                      op: (VBox.() -> Unit)? = null): PopOver {
+    var popoverHack: PopOver? = null
+    val popover = popOver(arrowLocation, closeOnClick) {
+        addEventHandler(MouseEvent.MOUSE_EXITED) { popoverHack!!.hide() }
+        op?.invoke(this)
+    }
+    popoverHack = popover
+
+    addEventHandler(MouseEvent.MOUSE_ENTERED) {
+        if (!popover.isShowing) popover.show(this@dropDownMenu)
+    }
+    setOnMouseExited {
+        if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
+            it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
+            popover.hide()
+        }
+    }
+    return popover
+}

@@ -5,9 +5,9 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.perform
-import com.gitlab.ykrasik.gamedex.ui.theme.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.control.ListView
@@ -23,6 +23,8 @@ import tornadofx.*
 class GameListView : View("Game List") {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
+
+    private val gameContextMenu: GameContextMenu by di()
 
     private var listview: ListView<Game> by singleAssign()
 
@@ -71,7 +73,7 @@ class GameListView : View("Game List") {
                             }
                         }
 
-                        gameContextMenu(gameController) { selectedItem!! }
+                        gameContextMenu.install(this) { selectedItem!! }
                     }
                 }
             }

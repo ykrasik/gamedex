@@ -10,6 +10,9 @@ import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameFilterMenu
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameRefreshMenu
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameSearchMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.wall.GameWallView
 import javafx.event.EventTarget
 import javafx.scene.control.TableColumn

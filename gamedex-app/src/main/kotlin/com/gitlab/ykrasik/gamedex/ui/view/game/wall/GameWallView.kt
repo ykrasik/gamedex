@@ -7,8 +7,8 @@ import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.theme.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
@@ -32,6 +32,8 @@ class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
     private val settings: GameWallSettings by di()
     private val imageLoader: ImageLoader by di()
+
+    private val gameContextMenu: GameContextMenu by inject()
 
     override val root = GridView(gameController.sortedFilteredGames).apply {
         cellHeightProperty().bind(settings.cellHeightProperty)
@@ -66,7 +68,7 @@ class GameWallView : View("Games Wall") {
                     }
                 }
             }
-            cell.gameContextMenu(gameController) { cell.item }
+            gameContextMenu.install(cell) { cell.item!! }
             cell
         }
     }

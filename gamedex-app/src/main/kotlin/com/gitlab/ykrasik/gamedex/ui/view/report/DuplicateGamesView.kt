@@ -8,8 +8,8 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.geometry.Pos
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
@@ -26,6 +26,8 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
     private val providerRepository: GameProviderRepository by di()
     private val gameController: GameController by di()
     private val reportsController: ReportsController by di()
+
+    private val gameContextMenu: GameContextMenu by inject()
 
     private var mainTable: TableView<Game> by singleAssign()
 
@@ -47,7 +49,7 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
                 pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
             }
 
-            gameContextMenu(gameController) { selectionModel.selectedItem }
+            gameContextMenu.install(this) { selectionModel.selectedItem }
             onUserSelect { gameController.viewDetails(it) }
 
             reportsController.gameDuplications.onChange {

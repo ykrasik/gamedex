@@ -20,9 +20,11 @@ class CommonStyle : Stylesheet() {
 
         val hoverable by cssclass()
 
+        val jfxHoverable by cssclass()
+        val jfxToggleNodeLabel by cssclass()
+
         val card by cssclass()
 
-        val jfxButton by cssclass()
         val acceptButton by cssclass()
         val cancelButton by cssclass()
 
@@ -33,9 +35,6 @@ class CommonStyle : Stylesheet() {
         val toolbarButton by cssclass()
 
         val popoverMenu by cssclass()
-
-        val toggleMenuButton by cssclass()
-        val toggleMenuContent by cssclass()
 
         init {
             importStylesheet(CommonStyle::class)
@@ -68,18 +67,23 @@ class CommonStyle : Stylesheet() {
             }
         }
 
+        jfxHoverable {
+            backgroundColor = multi(Color.TRANSPARENT)
+            and(hover) {
+                backgroundColor = multi(Color.LIGHTBLUE)
+            }
+        }
+
+        jfxToggleNodeLabel {
+            padding = box(vertical = 0.px, horizontal = 5.px)
+            alignment = Pos.CENTER_LEFT
+        }
+
         card {
             borderColor = multi(box(Color.BLACK))
             borderRadius = multi(box(10.px))
             backgroundColor = multi(Color.LIGHTGRAY)
             backgroundRadius = multi(box(10.px))
-        }
-
-        jfxButton {
-            backgroundColor = multi(Color.TRANSPARENT)
-            and(hover) {
-                backgroundColor = multi(Color.LIGHTBLUE)
-            }
         }
 
         acceptButton {
@@ -115,18 +119,6 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
-        }
-
-        toggleMenuButton {
-            maxWidth = Double.MAX_VALUE.px
-            backgroundColor = multi(Color.TRANSPARENT)
-            and(hover) {
-                backgroundColor = multi(Color.LIGHTBLUE)
-            }
-        }
-
-        toggleMenuContent {
-            padding = box(vertical = 0.px, horizontal = 5.px)
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

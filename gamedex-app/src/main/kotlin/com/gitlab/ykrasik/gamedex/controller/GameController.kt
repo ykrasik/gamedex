@@ -35,7 +35,7 @@ class GameController @Inject constructor(
     private val gameTasks: GameTasks,
     private val searchTasks: SearchTasks,
     private val refreshTasks: RefreshTasks,
-    private val settings: GameSettings
+    val settings: GameSettings
 ) : Controller() {
     private val mainView: MainView by inject()
 

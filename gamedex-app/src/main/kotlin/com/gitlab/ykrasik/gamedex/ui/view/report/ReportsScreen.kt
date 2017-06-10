@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import javafx.geometry.Pos
-import javafx.scene.control.Label
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
@@ -37,11 +36,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         spacer()
         togglegroup {
             root.tabs.forEach { tab ->
-                val graphic = Label(tab.text).apply {
-                    addClass(Style.tabGraphic)
-                    graphic = tab.graphic
-                }
-                jfxToggleNode(graphic) {
+                jfxToggleNode(tab.text, tab.graphic) {
                     isSelected = root.selectionModel.selectedItem == tab
                     setOnAction { root.selectionModel.select(tab) }
                 }

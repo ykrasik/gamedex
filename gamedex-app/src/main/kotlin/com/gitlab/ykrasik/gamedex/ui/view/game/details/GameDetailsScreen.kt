@@ -7,6 +7,7 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import com.gitlab.ykrasik.gamedex.ui.view.game.menu.ChooseSearchResultsToggleMenu
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
@@ -16,6 +17,7 @@ import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
+import org.controlsfx.control.PopOver
 import tornadofx.*
 import java.net.URLEncoder
 
@@ -47,6 +49,9 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
         verticalSeparator()
         searchButton {
             enableWhen { gameController.canRunLongTask }
+            dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
+                ChooseSearchResultsToggleMenu().install(this)
+            }
             setOnAction { reloadGame { gameController.searchGame(game).result } }
         }
         verticalSeparator()

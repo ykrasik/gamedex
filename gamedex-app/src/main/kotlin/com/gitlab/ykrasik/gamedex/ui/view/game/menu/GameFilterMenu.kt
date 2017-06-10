@@ -1,4 +1,4 @@
-package com.gitlab.ykrasik.gamedex.ui.view.game
+package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.controller.GameController
