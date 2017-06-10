@@ -76,6 +76,7 @@ class CommonStyle : Stylesheet() {
         }
 
         jfxButton {
+            backgroundColor = multi(Color.TRANSPARENT)
             and(hover) {
                 backgroundColor = multi(Color.LIGHTBLUE)
             }

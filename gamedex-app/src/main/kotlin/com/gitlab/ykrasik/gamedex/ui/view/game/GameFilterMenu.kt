@@ -58,7 +58,7 @@ class GameFilterMenu : View() {
         }.apply {
             label.replaceWith(jfxButton("Search") {
                 isFocusTraversable = false
-                mouseTransparentProperty().bind(gameController.searchQueryProperty.isEmpty)
+                mouseTransparentWhen { gameController.searchQueryProperty.isEmpty }
                 setOnAction { gameController.searchQueryProperty.value = "" }
             })
         }
@@ -88,7 +88,7 @@ class GameFilterMenu : View() {
             // TODO: Display a 'clear' graphic on mouse over
             label.replaceWith(jfxButton("Libraries") {
                 isFocusTraversable = false
-                mouseTransparentProperty().bind(gameController.filteredLibrariesProperty.booleanBinding { it!!.isEmpty() })
+                mouseTransparentWhen { gameController.filteredLibrariesProperty.booleanBinding { it!!.isEmpty() } }
                 setOnAction { gameController.filterLibraries(emptyList()) }
             })
         }
@@ -115,7 +115,7 @@ class GameFilterMenu : View() {
             showWhen { shouldShow }
             label.replaceWith(jfxButton("Genres") {
                 isFocusTraversable = false
-                mouseTransparentProperty().bind(gameController.filteredGenresProperty.booleanBinding { it!!.isEmpty() })
+                mouseTransparentWhen { gameController.filteredGenresProperty.booleanBinding { it!!.isEmpty() } }
                 setOnAction { gameController.filterGenres(emptyList()) }
             })
         }
@@ -142,7 +142,7 @@ class GameFilterMenu : View() {
             showWhen { shouldShow }
             label.replaceWith(jfxButton("Tags") {
                 isFocusTraversable = false
-                mouseTransparentProperty().bind(gameController.filteredTagsProperty.booleanBinding { it!!.isEmpty() })
+                mouseTransparentWhen { gameController.filteredTagsProperty.booleanBinding { it!!.isEmpty() } }
                 setOnAction { gameController.filterTags(emptyList()) }
             })
         }

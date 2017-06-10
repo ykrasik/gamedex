@@ -9,6 +9,7 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.channels.produce
+import org.joda.time.DateTime
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -117,7 +118,7 @@ class GameTasks @Inject constructor(
             return staleGames
         }
 
-        override fun doneMessage() = if (staleGames == 0 && staleLibraries == 0 ) {
+        override fun doneMessage() = if (staleGames == 0 && staleLibraries == 0) {
             "No stale data detected."
         } else {
             "Detected $staleGames stale games and $staleLibraries stale libraries."
@@ -140,19 +141,39 @@ class GameTasks @Inject constructor(
         val games: List<Game>
     )
 
-    // TODO: Finish this.
-    inner class DetectDuplicateGames : Task<List<Game>>("Detecting duplicate games...") {
+    inner class DetectDuplicateGamesTask : Task<Map<Game, List<GameDuplication>>>("Detecting duplicate games...") {
         private var duplicates = 0
 
-        override suspend fun doRun() = gameRepository.games.let { games ->
-            games.filterIndexed { i, game ->
-                (games.any { it != game && it.name == game.name }).apply {
-                    if (this) duplicates += 1
-                    progress.progress(i, games.size)
+        override suspend fun doRun(): Map<Game, List<GameDuplication>> {
+            val headerToGames = gameRepository.games.asSequence()
+                .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
+                .groupBy({ it.first }, { it.second })
+
+            // Only detect duplications in the same platform.
+            val duplicateHeaders = headerToGames
+                .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
+                .filterValues { it.size > 1 }
+
+            val duplicateGames = duplicateHeaders.asSequence().flatMap { (header, games) ->
+                games.asSequence().flatMap { game ->
+                    (games - game).asSequence().map { dup ->
+                        game to GameDuplication(dup, header)
+                    }
                 }
-            }
+            }.groupBy({ it.first }, { it.second })
+
+            duplicates = duplicateGames.size
+
+            return duplicateGames
         }
 
         override fun doneMessage() = "Detected $duplicates duplicate games."
     }
+
+    data class GameDuplication(
+        val game: Game,
+        val provider: ProviderHeader
+    )
+
+    private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
 }

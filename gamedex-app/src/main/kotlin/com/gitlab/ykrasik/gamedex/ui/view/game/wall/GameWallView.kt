@@ -7,7 +7,7 @@ import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen.Companion.gameContextMenu
+import com.gitlab.ykrasik.gamedex.ui.theme.gameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
 import javafx.scene.effect.DropShadow

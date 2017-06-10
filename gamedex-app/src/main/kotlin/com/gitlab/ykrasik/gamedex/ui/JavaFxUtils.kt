@@ -220,3 +220,7 @@ fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     managedWhen { shouldShow }
     visibleWhen { shouldShow }
 }
+
+fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
+    mouseTransparentProperty().cleanBind(expr())
+}

@@ -1,7 +1,5 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
@@ -72,7 +70,7 @@ class GameScreen : GamedexScreen("Games") {
             graphic = { it.toLogo(26.0) }
         ).apply {
             textProperty().cleanBind(gameController.sortedFilteredGames.sizeProperty().stringBinding { "Games: $it" })
-            mouseTransparentProperty().cleanBind(platformsWithLibraries.mapProperty { it.size <= 1 })
+            mouseTransparentWhen { platformsWithLibraries.mapProperty { it.size <= 1 } }
         }
     }
 
@@ -99,10 +97,7 @@ class GameScreen : GamedexScreen("Games") {
         reportButton("Duplicate Games") {
             addClass(CommonStyle.fillAvailableWidth)
             tooltip("Duplicate games report")
-            setOnAction {
-                TODO()  // FIXME: Implement - consider checking for provider apiUrl duplication.
-//                    val task = gameController.refreshAllGames()
-            }
+            setOnAction { gameController.detectDuplicateGames() }
         }
         separator()
         reportButton("Name-Folder Mismatch") {
@@ -135,46 +130,5 @@ class GameScreen : GamedexScreen("Games") {
     private fun TableColumn.SortType.toggle() = when (this) {
         TableColumn.SortType.ASCENDING -> TableColumn.SortType.DESCENDING
         TableColumn.SortType.DESCENDING -> TableColumn.SortType.ASCENDING
-    }
-
-    companion object {
-        inline fun EventTarget.gameContextMenu(controller: GameController, crossinline game: () -> Game) = contextmenu {
-            menuitem("View", graphic = Theme.Icon.view(20.0)) {
-                controller.viewDetails(game())
-            }
-            separator()
-            menuitem("Edit", graphic = Theme.Icon.edit(20.0)) {
-                controller.editDetails(game())
-            }
-            menuitem("Change Thumbnail", graphic = Theme.Icon.thumbnail(22.0)) {
-                controller.editDetails(game(), initialTab = GameDataType.thumbnail)
-            }
-            separator()
-            menuitem("Tag", graphic = Theme.Icon.tag(20.0)) {
-                controller.tag(game())
-            }
-            separator()
-            menuitem("Refresh", graphic = Theme.Icon.refresh(20.0)) {
-                controller.refreshGame(game())
-            }.apply { enableWhen { controller.canRunLongTask } }
-            menuitem("Search", graphic = Theme.Icon.search(20.0)) {
-                controller.searchGame(game())
-            }.apply { enableWhen { controller.canRunLongTask } }
-            separator()
-            menuitem("Delete", graphic = Theme.Icon.delete(20.0)) {
-                controller.delete(game())
-            }
-        }
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            init {
-                importStylesheet(Style::class)
-            }
-        }
-
-        init {
-        }
     }
 }

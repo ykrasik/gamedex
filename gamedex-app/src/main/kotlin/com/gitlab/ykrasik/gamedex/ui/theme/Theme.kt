@@ -1,6 +1,9 @@
 package com.gitlab.ykrasik.gamedex.ui.theme
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Icon.defaultIconSize
@@ -15,8 +18,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
-import tornadofx.addClass
-import tornadofx.tooltip
+import tornadofx.*
 import java.awt.Desktop
 import java.io.File
 
@@ -167,3 +169,31 @@ fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfx
 }
 
 fun Any?.toDisplayString() = toStringOr("NA")
+
+inline fun EventTarget.gameContextMenu(controller: GameController, crossinline game: () -> Game) = contextmenu {
+    menuitem("View", graphic = Theme.Icon.view(20.0)) {
+        controller.viewDetails(game())
+    }
+    separator()
+    menuitem("Edit", graphic = Theme.Icon.edit(20.0)) {
+        controller.editDetails(game())
+    }
+    menuitem("Change Thumbnail", graphic = Theme.Icon.thumbnail(22.0)) {
+        controller.editDetails(game(), initialTab = GameDataType.thumbnail)
+    }
+    separator()
+    menuitem("Tag", graphic = Theme.Icon.tag(20.0)) {
+        controller.tag(game())
+    }
+    separator()
+    menuitem("Refresh", graphic = Theme.Icon.refresh(20.0)) {
+        controller.refreshGame(game())
+    }.apply { enableWhen { controller.canRunLongTask } }
+    menuitem("Search", graphic = Theme.Icon.search(20.0)) {
+        controller.searchGame(game())
+    }.apply { enableWhen { controller.canRunLongTask } }
+    separator()
+    menuitem("Delete", graphic = Theme.Icon.delete(20.0)) {
+        controller.delete(game())
+    }
+}
