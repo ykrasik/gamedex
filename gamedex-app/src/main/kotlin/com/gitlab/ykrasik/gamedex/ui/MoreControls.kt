@@ -142,7 +142,6 @@ fun EventTarget.buttonWithPopover(text: String? = null,
         setOnAction { popover.toggle(this) }
     }
 
-// TODO: This is a bit too much.
 fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
