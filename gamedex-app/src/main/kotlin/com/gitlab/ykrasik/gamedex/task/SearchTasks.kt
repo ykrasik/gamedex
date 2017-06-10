@@ -25,10 +25,14 @@ class SearchTasks @Inject constructor(
         private var numUpdated = 0
 
         override suspend fun doRun() {
+            var remaining = games.size
+
             // Operate on a copy of the games to avoid concurrent modifications
             games.sortedBy { it.name }.forEachIndexed { i, game ->
                 if (!isActive) return@forEachIndexed
                 progress.progress(i, games.size - 1)
+                remaining -= 1
+                titleProperty.set("Rediscovering $remaining games...")
 
                 val excludedProviders = game.existingProviders + game.excludedProviders
                 if (doSearchAgain(game, excludedProviders) != null) {

@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
+import java.awt.Desktop
 import java.io.File
 import java.net.URI
 
@@ -17,3 +18,5 @@ fun File.create() {
 }
 
 fun File.existsOrNull(): File? = if (exists()) this else null
+
+fun browse(path: File) = Desktop.getDesktop().open(path)

@@ -15,10 +15,7 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.util.create
-import com.gitlab.ykrasik.gamedex.util.now
-import com.gitlab.ykrasik.gamedex.util.toDateTime
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.DateTimeZone
 import tornadofx.Controller
 import tornadofx.FileChooserMode
@@ -57,10 +54,11 @@ class SettingsController @Inject constructor(
         ).toFile()
         timestamptedPath.create()
         ExportDatabaseTask(timestamptedPath).start()
+        browse(timestamptedPath.parentFile)
     }
 
     fun importDatabase() {
-        val file = browse(FileChooserMode.Single) ?: return
+        val file = browseFile(FileChooserMode.Single) ?: return
         if (!areYouSureDialog("This will overwrite the existing database.")) return
         ImportDatabaseTask(file).start()
     }
@@ -71,7 +69,7 @@ class SettingsController @Inject constructor(
         return dir
     }
 
-    private fun browse(mode: FileChooserMode): File? {
+    private fun browseFile(mode: FileChooserMode): File? {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
             initialDirectory = settings.exportDbDirectory
             initialFileName = "db.json"

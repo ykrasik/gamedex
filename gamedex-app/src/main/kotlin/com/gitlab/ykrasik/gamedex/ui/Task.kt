@@ -30,7 +30,9 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Date: 16/03/2017
  * Time: 18:04
  */
-abstract class Task<out T>(private val title: String) {
+abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
+    constructor(title: String) : this(ThreadAwareStringProperty(title))
+    
     protected val log = logger()
 
     private lateinit var _result: Deferred<T>
@@ -64,7 +66,7 @@ abstract class Task<out T>(private val title: String) {
                     hgap = 10.0
                     vgap = 5.0
                     row {
-                        label(title) {
+                        label(titleProperty) {
                             minWidth = 170.0
                         }
                         progressbar(progress.progressProperty) {

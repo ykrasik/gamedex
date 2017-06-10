@@ -51,7 +51,7 @@ class ThreadAwareObjectProperty<T> : SimpleObjectProperty<T>() {
     }
 }
 
-class ThreadAwareStringProperty : SimpleStringProperty() {
+class ThreadAwareStringProperty(initialValue: String? = null) : SimpleStringProperty(initialValue) {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }
