@@ -19,10 +19,12 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
 import javafx.util.Callback
+import org.controlsfx.control.MaskerPane
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
 import tornadofx.*
@@ -246,6 +248,17 @@ fun <T> ListView<T>.fitAtMost(numItems: Int) {
     val size = itemsProperty().map { minOf(it!!.size, numItems) * 24.1 }
     minHeightProperty().bind(size)
     maxHeightProperty().bind(size)
+}
+
+fun StackPane.maskerPane(op: (MaskerPane.() -> Unit)? = null) = opcr(this, MaskerPane(), op)
+
+inline fun View.skipFirstTime(op: () -> Unit) {
+    val skip = properties.getOrDefault("Gamedex.skipFirstTime", true) as Boolean
+    if (skip) {
+        properties["Gamedex.skipFirstTime"] = false
+    } else {
+        op()
+    }
 }
 
 //fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT, op: (PopOver.() -> Unit)? = null): PopOver {

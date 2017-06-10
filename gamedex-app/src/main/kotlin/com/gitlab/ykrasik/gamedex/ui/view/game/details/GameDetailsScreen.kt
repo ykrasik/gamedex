@@ -25,7 +25,7 @@ import java.net.URLEncoder
  * Time: 18:17
  */
 // TODO: This class is too big
-class GameDetailsScreen : GamedexScreen("Details") {
+class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
 

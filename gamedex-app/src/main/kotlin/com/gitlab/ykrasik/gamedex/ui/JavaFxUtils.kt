@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import javafx.application.Platform.runLater
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -57,6 +58,12 @@ class ThreadAwareStringProperty : SimpleStringProperty() {
 }
 
 class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
+    override fun fireValueChangedEvent() {
+        runLaterIfNecessary { super.fireValueChangedEvent() }
+    }
+}
+
+class ThreadAwareBooleanProperty(initialValue: Boolean) : SimpleBooleanProperty(initialValue) {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }

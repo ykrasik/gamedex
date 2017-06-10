@@ -23,6 +23,9 @@ import tornadofx.onChange
  *******************************************************************************************************/
 fun <T> emptyObservableList() = FXCollections.emptyObservableList<T>()
 
+fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
+    ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
+
 fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
 fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
     val p = SimpleIntegerProperty(this.size)
@@ -42,10 +45,10 @@ fun <T, R> ObservableList<T>.flatMapping(f: (T) -> List<R>): ObservableList<R> {
 }
 
 // Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableList<T>.performing(f: (ObservableList<T>) -> Unit) {
+fun <T> ObservableList<T>.performing(f: (ObservableList<T>) -> Unit): ListChangeListener<T> {
     fun doPerform() = f(this)
     doPerform()
-    this.onChange { doPerform() }
+    return this.changeListener { doPerform() }
 }
 
 // TODO: This is the un-optimized version

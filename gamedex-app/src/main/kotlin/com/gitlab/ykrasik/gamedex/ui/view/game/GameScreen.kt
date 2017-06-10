@@ -4,7 +4,10 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.LibraryController
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.*
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.ui.view.game.wall.GameWallView
@@ -18,7 +21,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameScreen : GamedexScreen("Games") {
+class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
     private val settings: GameSettings by di()
@@ -41,8 +44,6 @@ class GameScreen : GamedexScreen("Games") {
 
         spacer()
 
-        verticalSeparator()
-        reportButton()
         verticalSeparator()
         items += searchMenu.root
         verticalSeparator()
@@ -91,24 +92,6 @@ class GameScreen : GamedexScreen("Games") {
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }
         )
-    }
-
-    private fun EventTarget.reportButton() = buttonWithPopover("Report", Theme.Icon.report()) {
-        reportButton("Duplicate Games") {
-            addClass(CommonStyle.fillAvailableWidth)
-            tooltip("Duplicate games report")
-            setOnAction { gameController.detectDuplicateGames() }
-        }
-        separator()
-        reportButton("Name-Folder Mismatch") {
-            addClass(CommonStyle.fillAvailableWidth)
-            tooltip("Detect all games whose name doesn't match their folder name")
-            setOnAction {
-                TODO()  // FIXME: Implement
-            }
-        }
-    }.apply {
-        enableWhen { gameController.canRunLongTask }
     }
 
     private fun EventTarget.cleanupButton() = deleteButton("Cleanup") {

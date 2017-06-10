@@ -25,7 +25,7 @@ class GameProviderRepository @Inject constructor(
     private val _providers = run {
         check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
         val providers = allProviders.toList().sortedFiltered()
-        log.info("Detected providers: ${providers.items.sortBy { it.id }}")
+        log.info("Detected providers: ${providers.items.sortedBy { it.id }}")
         providers.sortedItems.comparatorProperty().bind(settings.searchOrderProperty.map { it!!.toComparator() })
         providers
     }

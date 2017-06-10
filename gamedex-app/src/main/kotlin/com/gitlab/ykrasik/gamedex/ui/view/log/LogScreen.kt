@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.log
 
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.util.*
 import javafx.scene.control.ListCell
@@ -15,7 +16,7 @@ import tornadofx.*
  * Date: 28/04/2017
  * Time: 11:14
  */
-class LogScreen : GamedexScreen("Log") {
+class LogScreen : GamedexScreen("Log", Theme.Icon.report()) {
     private val settings: GeneralSettings by di()
 
     private val logItems = SortedFilteredList(Log.entries)
@@ -85,42 +86,40 @@ class LogScreen : GamedexScreen("Log") {
         }
     }
 
-    companion object {
-        class Style : Stylesheet() {
-            companion object {
-                val logView by cssclass()
+    class Style : Stylesheet() {
+        companion object {
+            val logView by cssclass()
 
-                val trace by csspseudoclass()
-                val debug by csspseudoclass()
-                val info by csspseudoclass()
-                val warn by csspseudoclass()
-                val error by csspseudoclass()
-
-                init {
-                    importStylesheet(Style::class)
-                }
-            }
+            val trace by csspseudoclass()
+            val debug by csspseudoclass()
+            val info by csspseudoclass()
+            val warn by csspseudoclass()
+            val error by csspseudoclass()
 
             init {
-                logView {
-                    listCell {
-                        backgroundColor = multi(Color.WHITE) // removes alternating list gray cells.
+                importStylesheet(Style::class)
+            }
+        }
 
-                        and(trace) {
-                            textFill = Color.LIGHTGRAY
-                        }
-                        and(debug) {
-                            textFill = Color.GRAY
-                        }
-                        and(warn) {
-                            textFill = Color.ORANGE
-                        }
-                        and(error) {
-                            textFill = Color.RED
-                        }
-                        and(selected) {
-                            backgroundColor = multi(Color.LIGHTBLUE)
-                        }
+        init {
+            logView {
+                listCell {
+                    backgroundColor = multi(Color.WHITE) // removes alternating list gray cells.
+
+                    and(trace) {
+                        textFill = Color.LIGHTGRAY
+                    }
+                    and(debug) {
+                        textFill = Color.GRAY
+                    }
+                    and(warn) {
+                        textFill = Color.ORANGE
+                    }
+                    and(error) {
+                        textFill = Color.RED
+                    }
+                    and(selected) {
+                        backgroundColor = multi(Color.LIGHTBLUE)
                     }
                 }
             }

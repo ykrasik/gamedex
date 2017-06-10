@@ -18,7 +18,7 @@ import tornadofx.*
  * Time: 22:17
  */
 // TODO: This screen needs some work
-class LibraryScreen : GamedexScreen("Libraries") {
+class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
     private val libraryController: LibraryController by di()
 
     override fun ToolBar.constructToolbar() {

@@ -8,9 +8,9 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WeakChangeListener
+import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import tornadofx.cleanBind
-import tornadofx.observable
 import tornadofx.onChange
 import java.util.function.Predicate
 
@@ -127,7 +127,7 @@ fun <T, R> ObservableValue<List<T>>.mapping(f: (T) -> R): Property<List<R>> {
 fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {
     fun doMap() = f(this.value)
 
-    val list = doMap().observable()
+    val list = FXCollections.observableArrayList(doMap())
     this.onChange { list.setAll(doMap()) }
     return list
 }

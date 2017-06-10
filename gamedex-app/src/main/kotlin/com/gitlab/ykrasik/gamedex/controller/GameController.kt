@@ -8,7 +8,6 @@ import com.gitlab.ykrasik.gamedex.task.GameTasks
 import com.gitlab.ykrasik.gamedex.task.RefreshTasks
 import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.view.game.duplicate.DuplicateGamesFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
@@ -16,8 +15,10 @@ import javafx.beans.binding.BooleanBinding
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.TableColumn
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -204,15 +205,6 @@ class GameController @Inject constructor(
             if (games.isNotEmpty()) {
                 label("Stale Games:")
                 listview(games.map { it.name }.observable()) { fitAtMost(10) }
-            }
-        }
-    }
-
-    fun detectDuplicateGames() = launch(CommonPool) {
-        val duplicates = gameTasks.DetectDuplicateGamesTask().apply { start() }.result.await()
-        if (duplicates.isNotEmpty()) {
-            run(JavaFx) {
-                DuplicateGamesFragment(duplicates).show()
             }
         }
     }

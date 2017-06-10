@@ -9,7 +9,6 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.channels.produce
-import org.joda.time.DateTime
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -140,40 +139,4 @@ class GameTasks @Inject constructor(
         val libraries: List<Library>,
         val games: List<Game>
     )
-
-    inner class DetectDuplicateGamesTask : Task<Map<Game, List<GameDuplication>>>("Detecting duplicate games...") {
-        private var duplicates = 0
-
-        override suspend fun doRun(): Map<Game, List<GameDuplication>> {
-            val headerToGames = gameRepository.games.asSequence()
-                .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
-                .groupBy({ it.first }, { it.second })
-
-            // Only detect duplications in the same platform.
-            val duplicateHeaders = headerToGames
-                .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
-                .filterValues { it.size > 1 }
-
-            val duplicateGames = duplicateHeaders.asSequence().flatMap { (header, games) ->
-                games.asSequence().flatMap { game ->
-                    (games - game).asSequence().map { dup ->
-                        game to GameDuplication(dup, header)
-                    }
-                }
-            }.groupBy({ it.first }, { it.second })
-
-            duplicates = duplicateGames.size
-
-            return duplicateGames
-        }
-
-        override fun doneMessage() = "Detected $duplicates duplicate games."
-    }
-
-    data class GameDuplication(
-        val game: Game,
-        val provider: ProviderHeader
-    )
-
-    private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
 }

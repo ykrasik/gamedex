@@ -1,15 +1,19 @@
 package com.gitlab.ykrasik.gamedex.ui.view.main
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.backButton
+import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryScreen
 import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen
+import com.gitlab.ykrasik.gamedex.ui.view.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import javafx.event.EventTarget
@@ -29,7 +33,9 @@ import tornadofx.*
 class MainView : View("Gamedex") {
     private val gameScreen: GameScreen by inject()
     private val libraryScreen: LibraryScreen by inject()
+    private val reportsScreen: ReportsScreen by inject()
     private val logScreen: LogScreen by inject()
+
     private val gameDetailsScreen: GameDetailsScreen by inject()
 
     private var tabPane: TabPane by singleAssign()
@@ -52,38 +58,35 @@ class MainView : View("Gamedex") {
                 tabPane = tabpane {
                     addClass(CommonStyle.tabbedNavigation)
 
-                    tab(gameScreen) {
-                        userData = gameScreen
-                        graphic = Theme.Icon.games()
-                        previousScreen = this
-                    }
-                    tab(libraryScreen) {
-                        userData = libraryScreen
-                        graphic = Theme.Icon.hdd()
-                    }
-                    tab(logScreen) {
-                        userData = logScreen
-                        graphic = Theme.Icon.report()
-                    }
-                    tab(gameDetailsScreen) {
-                        userData = gameDetailsScreen
-                    }
+                    previousScreen = screenTab(gameScreen)
+                    screenTab(libraryScreen)
+                    screenTab(reportsScreen)
+                    screenTab(logScreen)
+                    screenTab(gameDetailsScreen)
 
-                    selectionModel.select(0)
+                    selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
+                        cleanupClosedTab(oldValue)
+                        prepareNewTab(newValue)
+                    }
                 }
             }
         }
     }
 
+    private fun TabPane.screenTab(screen: GamedexScreen) = tab(screen) {
+        userData = screen
+        graphic = screen.icon
+    }
+
     private val mainNavigationButton = buttonWithPopover(graphic = Theme.Icon.bars()) {
         tabPane.tabs.forEach { tab ->
-            val gamedexScreen = tab.userData as GamedexScreen
-            if (gamedexScreen.useDefaultNavigationButton) {
+            val screen = tab.userData as GamedexScreen
+            if (screen.useDefaultNavigationButton) {
                 navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
             }
-            gamedexScreen.closeRequestedProperty.onChange {
+            screen.closeRequestedProperty.onChange {
                 if (it) {
-                    gamedexScreen.closeRequestedProperty.value = false
+                    screen.closeRequestedProperty.value = false
                     selectPreviousScreen()
                 }
             }
@@ -101,10 +104,17 @@ class MainView : View("Gamedex") {
     }
 
     init {
-        tabPane.selectionModel.selectedItemProperty().perform { it!!.populateToolbar() }
-        tabPane.selectionModel.selectedItemProperty().addListener { _, oldValue, _ ->
-            previousScreen = oldValue
-        }
+        prepareNewTab(tabPane.selectionModel.selectedItem)
+    }
+
+    private fun cleanupClosedTab(tab: Tab) {
+        previousScreen = tab
+        (tab.userData as GamedexScreen).onUndock()
+    }
+
+    private fun prepareNewTab(tab: Tab) {
+        (tab.userData as GamedexScreen).onDock()
+        tab.populateToolbar()
     }
 
     private fun Tab.populateToolbar() = (userData as GamedexScreen).populateToolbar()
@@ -127,10 +137,7 @@ class MainView : View("Gamedex") {
         setOnAction { action() }
     }
 
-    private fun selectPreviousScreen() {
-        (tabPane.selectionModel.selectedItem.userData as GamedexScreen).onUndock()
-        tabPane.selectionModel.select(previousScreen)
-    }
+    private fun selectPreviousScreen() = tabPane.selectionModel.select(previousScreen)
 
     override fun onDock() {
         primaryStage.isMaximized = true
@@ -139,7 +146,7 @@ class MainView : View("Gamedex") {
 
     fun showGameDetails(game: Game) {
         gameDetailsScreen.game = game
-        tabPane.selectionModel.select(3)
+        tabPane.selectionModel.selectLast()
     }
 
     class Style : Stylesheet() {
