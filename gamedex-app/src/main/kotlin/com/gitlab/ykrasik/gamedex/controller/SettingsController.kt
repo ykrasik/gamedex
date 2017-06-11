@@ -14,7 +14,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
-import com.gitlab.ykrasik.gamedex.ui.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.DateTimeZone
 import tornadofx.Controller

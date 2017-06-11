@@ -16,7 +16,7 @@ import tornadofx.*
  * Date: 28/04/2017
  * Time: 11:14
  */
-class LogScreen : GamedexScreen("Log", Theme.Icon.report()) {
+class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
     private val settings: GeneralSettings by di()
 
     private val logItems = SortedFilteredList(Log.entries)

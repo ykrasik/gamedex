@@ -16,7 +16,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 11:32
  */
-class DuplicateGamesView : ReportView<GameDuplication>("Duplicate Games", Theme.Icon.report()) {
+class DuplicateGamesView : ReportView<GameDuplication>("Duplicate Games", Theme.Icon.book()) {
     private val providerRepository: GameProviderRepository by di()
 
     override val reportHeader get() = "Duplications"
@@ -32,14 +32,14 @@ class DuplicateGamesView : ReportView<GameDuplication>("Duplicate Games", Theme.
         customGraphicColumn("Game") { (_, game) ->
             jfxButton(game.name) {
                 setOnAction {
-                    gamesTable.selectionModel.select(game)
-                    gamesTable.scrollTo(game)
+                    selectGame(game)
+                    scrollTo(game)
                 }
             }
         }
         customGraphicColumn("Path") { pathButton(it.duplicatedGame.path) }
 
-        gamesTable.selectionModel.selectedItemProperty().onChange { selectedGame ->
+        selectedGameProperty.onChange { selectedGame ->
             items = selectedGame?.let { ongoingReport.resultsProperty.value[it]!!.observable() }
             resizeColumnsToFitContent()
         }

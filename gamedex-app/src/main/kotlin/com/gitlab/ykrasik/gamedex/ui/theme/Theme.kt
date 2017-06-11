@@ -53,8 +53,9 @@ object Theme {
         fun search(size: Double = defaultIconSize) = FontAwesome.Glyph.SEARCH.toGraphic { size(size); color(Color.DARKGOLDENROD) }
         fun refresh(size: Double = defaultIconSize) = FontAwesome.Glyph.REFRESH.toGraphic { size(size); color(Color.DARKCYAN) }
         fun chart(size: Double = defaultIconSize) = FontAwesome.Glyph.BAR_CHART.toGraphic { size(size); color(Color.BURLYWOOD) }
-        fun report(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.DARKBLUE) }
+        fun book(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.DARKBLUE) }
         fun filter(size: Double = defaultIconSize) = FontAwesome.Glyph.FILTER.toGraphic { size(size) }
+        fun folder(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER.toGraphic { size(size) }
 
         fun download(size: Double = defaultIconSize) = FontAwesome.Glyph.DOWNLOAD.toGraphic { size(size) }
         fun upload(size: Double = defaultIconSize) = FontAwesome.Glyph.UPLOAD.toGraphic { size(size) }
@@ -142,7 +143,7 @@ fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultI
     toolbarButton(text, Theme.Icon.refresh(size), op)
 
 fun EventTarget.reportButton(text: String? = "Report", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
-    toolbarButton(text, Theme.Icon.report(size), op)
+    toolbarButton(text, Theme.Icon.book(size), op)
 
 
 fun EventTarget.extraMenu(size: Double = defaultIconSize, op: (VBox.() -> Unit)? = null) = buttonWithPopover(

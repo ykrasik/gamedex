@@ -9,8 +9,10 @@ import com.gitlab.ykrasik.gamedex.ui.popOver
 import com.gitlab.ykrasik.gamedex.ui.replaceContent
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -26,32 +28,21 @@ class GameContextMenu : View() {
 
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
-        jfxButton("View", Theme.Icon.view(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
-            setOnAction { controller.viewDetails(game) }
-        }
+        val size = 20.0
+        item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        jfxButton("Edit", Theme.Icon.edit(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
-            setOnAction { controller.editDetails(game) }
-        }
-        jfxButton("Change Thumbnail", Theme.Icon.thumbnail(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
+        item("Edit", Theme.Icon.edit(size)) { setOnAction { controller.editDetails(game) } }
+        item("Change Thumbnail", Theme.Icon.thumbnail(size)) {
             setOnAction { controller.editDetails(game, initialTab = GameDataType.thumbnail) }
         }
         separator()
-        jfxButton("Tag", Theme.Icon.tag(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
-            setOnAction { controller.tag(game) }
-        }
+        item("Tag", Theme.Icon.tag(size)) { setOnAction { controller.tag(game) } }
         separator()
-        jfxButton("Refresh", Theme.Icon.refresh(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
+        item("Refresh", Theme.Icon.refresh(size)) {
             enableWhen { controller.canRunLongTask }
             setOnAction { controller.refreshGame(game) }
         }
-        jfxButton("Search", Theme.Icon.search(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
+        item("Search", Theme.Icon.search(size)) {
             enableWhen { controller.canRunLongTask }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 ChooseSearchResultsToggleMenu().install(this)
@@ -59,10 +50,11 @@ class GameContextMenu : View() {
             setOnAction { controller.searchGame(game) }
         }
         separator()
-        jfxButton("Delete", Theme.Icon.delete(20.0)) {
-            addClass(CommonStyle.fillAvailableWidth)
-            setOnAction { controller.delete(game) }
-        }
+        item("Delete", Theme.Icon.delete(size)) { setOnAction { controller.delete(game) } }
+    }
+
+    private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {
+        addClass(CommonStyle.fillAvailableWidth)
     }
 
     private val popover = popOver { children += root }.apply { isAutoFix = false }

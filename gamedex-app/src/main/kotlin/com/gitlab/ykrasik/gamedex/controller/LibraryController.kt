@@ -5,7 +5,11 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.filtering
+import com.gitlab.ykrasik.gamedex.ui.fitAtMost
+import com.gitlab.ykrasik.gamedex.ui.sortedFiltered
+import com.gitlab.ykrasik.gamedex.ui.toPredicateF
+import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import kotlinx.coroutines.experimental.javafx.JavaFx

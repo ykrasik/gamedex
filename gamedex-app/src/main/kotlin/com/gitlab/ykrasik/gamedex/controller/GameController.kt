@@ -8,9 +8,12 @@ import com.gitlab.ykrasik.gamedex.task.GameTasks
 import com.gitlab.ykrasik.gamedex.task.RefreshTasks
 import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.view.dialog.errorAlert
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
+import com.gitlab.ykrasik.gamedex.ui.view.report.RenameFolderFragment
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
@@ -20,6 +23,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -214,6 +218,7 @@ class GameController @Inject constructor(
         val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }
         searchTasks.RediscoverGamesTask(gamesWithMissingProviders).apply { start() }
     }
+
     fun rediscoverFilteredGamesWithoutAllProviders() = searchTasks.RediscoverGamesTask(sortedFilteredGames).apply { start() }
     fun searchGame(game: Game) = searchTasks.SearchGameTask(game).apply { start() }
 
@@ -224,6 +229,25 @@ class GameController @Inject constructor(
     fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
+
+    fun renameFolder(game: Game, initialSuggestion: String) = launch(JavaFx) {
+        val newRelativePath = RenameFolderFragment(game, initialSuggestion).show() ?: return@launch
+        val newAbsolutePath = File(game.path.parentFile, newRelativePath.path)
+        if (game.path.renameTo(newAbsolutePath)) {
+            val rawGame = game.rawGame
+            val metaData = rawGame.metaData
+            gameRepository.update(rawGame.copy(metaData = metaData.copy(path = newRelativePath)))
+        } else {
+            errorAlert("Error renaming folder!") {
+                form {
+                    fieldset {
+                        field("From") { label(game.path.path) }
+                        field("To") { label(newAbsolutePath.path) }
+                    }
+                }
+            }
+        }
+    }
 
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false

@@ -27,9 +27,9 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     private val gameContextMenu: GameContextMenu by inject()
 
     protected val reportsController: ReportsController by di()
-    private val gameController: GameController by di()
+    protected val gameController: GameController by di()
 
-    protected var gamesTable: TableView<Game> by singleAssign()
+    private var gamesTable: TableView<Game> by singleAssign()
     protected var reportsView: Node by singleAssign()
 
     abstract val ongoingReport: ReportsController.OngoingReport<T>
@@ -63,6 +63,11 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
 
         ongoingReport.resultsProperty.onChange { resizeColumnsToFitContent() }
     }
+
+    protected val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
+    protected val selectedGame get() = gamesTable.selectionModel.selectedItem
+    protected fun selectGame(game: Game) = gamesTable.selectionModel.select(game)
+    protected fun scrollTo(game: Game) = gamesTable.scrollTo(game)
 
     private fun container(text: String, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER

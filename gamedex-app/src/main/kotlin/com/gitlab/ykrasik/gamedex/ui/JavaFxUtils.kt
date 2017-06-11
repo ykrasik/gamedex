@@ -1,8 +1,5 @@
 package com.gitlab.ykrasik.gamedex.ui
 
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
-import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
-import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import javafx.application.Platform.runLater
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -12,17 +9,13 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
-import javafx.scene.layout.VBox
-import javafx.scene.text.Font
 import javafx.stage.Stage
-import javafx.stage.StageStyle
 import javafx.util.Duration
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
@@ -102,93 +95,6 @@ private fun printSize(id: String,
     pref?.printChanges("$id pref-$sizeName")
     actual.printChanges("$id $sizeName")
 }
-
-fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
-    private var accept = false
-
-    override val root = borderpane {
-        minWidth = 400.0
-        minHeight = 100.0
-        top {
-            toolbar {
-                acceptButton {
-                    setOnAction { close(accept = true) }
-                }
-                spacer()
-                cancelButton {
-                    isCancelButton = true
-                    setOnAction { close(accept = false) }
-                }
-            }
-        }
-        center {
-            vbox(spacing = 10.0) {
-                hbox {
-                    paddingAll = 20.0
-                    alignment = Pos.CENTER_LEFT
-                    label(text)
-                    spacer()
-                    imageview(Images.warning)
-                }
-                if (op != null) {
-                    separator()
-                    vbox(spacing = 10.0) {
-                        paddingAll = 20.0
-                        paddingRight = 30.0
-                        op(this)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun close(accept: Boolean) {
-        this.accept = accept
-        close()
-    }
-
-    fun show(): Boolean {
-        openModal(block = true, stageStyle = StageStyle.UNIFIED)
-        return accept
-    }
-}.show()
-
-fun infoAlert(title: String = "Are You Sure?", op: (VBox.() -> Unit)? = null) = object : Fragment(title) {
-    override val root = borderpane {
-        minWidth = 400.0
-        minHeight = 100.0
-        top {
-            toolbar {
-                acceptButton { setOnAction { close() } }
-            }
-        }
-        center {
-            vbox(spacing = 10.0) {
-                hbox {
-                    paddingAll = 20.0
-                    alignment = Pos.CENTER_LEFT
-                    label(title) {
-                        font = Font.font(16.0)
-                    }
-                    spacer()
-                    imageview(Images.information)
-                }
-                if (op != null) {
-                    separator()
-                    vbox(spacing = 10.0) {
-                        paddingAll = 20.0
-                        paddingRight = 30.0
-                        op(this)
-                    }
-                }
-            }
-        }
-    }
-
-    fun show() {
-        openModal(block = true, stageStyle = StageStyle.UNIFIED)
-    }
-}.show()
 
 fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView {
     imageProperty().onChange {

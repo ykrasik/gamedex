@@ -7,10 +7,7 @@ import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.popoverComboMenu
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
-import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.SimpleObjectProperty
@@ -29,7 +26,7 @@ class LibraryFragment(private val existingLibraries: List<Library>, private val 
 
     private val settings: GeneralSettings by di()
 
-    private val model = SourceViewModel()
+    private val model = LibraryViewModel()
     private var accept = false
 
     override val root = borderpane {
@@ -98,7 +95,7 @@ class LibraryFragment(private val existingLibraries: List<Library>, private val 
             selectedItemProperty = model.platformProperty,
             arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
             styleClass = Style.platformItem,
-            itemStyleClass = Style.platformItem,
+            itemStyleClass = CommonStyle.fillAvailableWidth,
             text = Platform::key,
             graphic = { it.toLogo() }
         )
@@ -143,7 +140,7 @@ class LibraryFragment(private val existingLibraries: List<Library>, private val 
         object Cancel : Choice()
     }
 
-    private class SourceViewModel : ViewModel() {
+    private class LibraryViewModel : ViewModel() {
         val pathProperty = bind { SimpleStringProperty() }
         var path by pathProperty
 
