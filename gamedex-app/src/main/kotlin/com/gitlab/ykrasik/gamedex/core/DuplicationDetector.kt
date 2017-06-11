@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.ProviderId
 import org.joda.time.DateTime
 import javax.inject.Singleton
 
@@ -24,8 +25,8 @@ class DuplicationDetector {
 
         val duplicateGames = duplicateHeaders.asSequence().flatMap { (header, games) ->
             games.asSequence().flatMap { game ->
-                (games - game).asSequence().map { dup ->
-                    game to GameDuplication(dup, header)
+                (games - game).asSequence().map { duplicatedGame ->
+                    game to GameDuplication(header.id, duplicatedGame)
                 }
             }
         }.groupBy({ it.first }, { it.second })
@@ -37,4 +38,7 @@ class DuplicationDetector {
 }
 
 typealias GameDuplications = Map<Game, List<GameDuplication>>
-typealias GameDuplication = Pair<Game, ProviderHeader>
+data class GameDuplication(
+    val providerId: ProviderId,
+    val duplicatedGame: Game
+)

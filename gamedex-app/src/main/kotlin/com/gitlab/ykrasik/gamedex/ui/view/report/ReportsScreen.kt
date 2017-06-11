@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
-import com.gitlab.ykrasik.gamedex.ui.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.ui.skipFirstTime
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
@@ -16,37 +15,51 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 16:25
  */
+// TODO: Add games below a certain score, games without any (or not all) providers
 class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private val duplicateGamesView: DuplicateGamesView by inject()
     private val nameFolderMismatchView: NameFolderMismatchView by inject()
 
-    override val root = tabpane {
-        addClass(CommonStyle.tabbedNavigation)
+    private var tabPane: TabPane by singleAssign()
 
-        reportTab(duplicateGamesView)
-        reportTab(nameFolderMismatchView)
+    // Lazy because the tabPane, defined above, is only assigned later on.
+    private val currentTab by lazy { tabPane.selectionModel.selectedItemProperty() }
+    private val currentView by lazy { currentTab.map { it!!.userData as ReportView<*> } }
+    private val currentReport by lazy { currentView.map { it!!.ongoingReport } }
 
-        selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
-            cleanupClosedTab(oldValue)
-            prepareNewTab(newValue)
+    override val root = stackpane {
+        tabPane = tabpane {
+            addClass(CommonStyle.tabbedNavigation)
+
+            reportTab(duplicateGamesView)
+            reportTab(nameFolderMismatchView)
+
+            selectionModel.selectedItemProperty().addListener { _, closedTab, openedTab ->
+                cleanupClosedTab(closedTab)
+                prepareNewTab(openedTab)
+            }
+        }
+        maskerPane {
+            visibleWhen { currentReport.flatMap { it!!.isCalculatingProperty } }
+            currentTab.onChange {
+                progressProperty().cleanBind(currentReport.flatMap { it!!.progressProperty })
+            }
         }
     }
 
     override fun ToolBar.constructToolbar() {
         spacer()
         togglegroup {
-            root.tabs.forEach { tab ->
+            tabPane.tabs.forEach { tab ->
                 jfxToggleNode(tab.text, tab.graphic) {
-                    isSelected = root.selectionModel.selectedItem == tab
-                    setOnAction { root.selectionModel.select(tab) }
+                    isSelected = tab == currentTab.value
+                    setOnAction { tabPane.selectionModel.select(tab) }
                 }
                 separator()
             }
 
             selectedToggleProperty().addListener { _, oldValue, newValue ->
-                if (oldValue != null && newValue == null) {
-                    selectToggle(oldValue)
-                }
+                if (oldValue != null && newValue == null) selectToggle(oldValue)
             }
         }
     }
@@ -56,21 +69,21 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         graphic = view.icon
     }
 
-    private fun cleanupClosedTab(tab: Tab) = (tab.userData as View).onUndock()
-    private fun prepareNewTab(tab: Tab) = (tab.userData as View).onDock()
-
     override fun onDock() {
         skipFirstTime {
             // This is called on application startup, but we don't want to dock any of the child views
             // (which will cause them to start calculating stuff)  before the user explicitly enters the reports screen.
             // A bit of a hack.
-            prepareNewTab(root.selectionModel.selectedItem)
+            prepareNewTab(currentTab.value)
         }
     }
 
     override fun onUndock() {
-        cleanupClosedTab(root.selectionModel.selectedItem)
+        cleanupClosedTab(currentTab.value)
     }
+
+    private fun cleanupClosedTab(tab: Tab) = (tab.userData as View).onUndock()
+    private fun prepareNewTab(tab: Tab) = (tab.userData as View).onDock()
 
     class Style : Stylesheet() {
         companion object {

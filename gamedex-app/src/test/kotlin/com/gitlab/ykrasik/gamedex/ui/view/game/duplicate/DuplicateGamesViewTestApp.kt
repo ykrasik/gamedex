@@ -24,7 +24,7 @@ object DuplicateGamesViewTestApp : BaseTestApp<DuplicateGamesView>(DuplicateGame
             }
         }.toMap()
 
-        FX.dicontainer!!.getInstance(ReportsController::class).gameDuplications.value = duplicates
+        FX.dicontainer!!.getInstance(ReportsController::class).duplications.resultsProperty.value = duplicates
     }
 
     @JvmStatic fun main(args: Array<String>) {}

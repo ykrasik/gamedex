@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.GameDuplication
+import com.gitlab.ykrasik.gamedex.core.GameDuplications
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
@@ -22,7 +23,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 11:32
  */
-class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
+class DuplicateGamesView : ReportView<GameDuplications>("Duplicate Games", Theme.Icon.report()) {
     private val providerRepository: GameProviderRepository by di()
     private val gameController: GameController by di()
     private val reportsController: ReportsController by di()
@@ -31,15 +32,17 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
 
     private var mainTable: TableView<Game> by singleAssign()
 
-    override val root = stackpane {
+    override val ongoingReport = reportsController.duplications
+    private val duplications = ongoingReport.resultsProperty
+
+    override val root = run {
         val left = mainTable()
         val right = sideTable()
         splitpane(left, right) { setDividerPositions(0.5) }
-        maskerPane { visibleWhen { reportsController.calculatingDuplicationsProperty } }
     }
 
     private fun mainTable() = container("Source") {
-        mainTable = tableview(reportsController.gameDuplications.mapToList { it.keys.sortedBy { it.name } }) {
+        mainTable = tableview(duplications.mapToList { it.keys.sortedBy { it.name } }) {
             vgrow = Priority.ALWAYS
             fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
@@ -52,9 +55,7 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
             gameContextMenu.install(this) { selectionModel.selectedItem }
             onUserSelect { gameController.viewDetails(it) }
 
-            reportsController.gameDuplications.onChange {
-                resizeColumnsToFitContent()
-            }
+            duplications.onChange { resizeColumnsToFitContent() }
         }
     }
 
@@ -64,10 +65,10 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
             allowDeselection(onClickAgain = true)
 
             makeIndexColumn().apply { addClass(CommonStyle.centered) }
-            imageViewColumn("Provider", fitHeight = 80.0, fitWidth = 160.0, isPreserveRatio = true) { (_, providerHeader) ->
-                providerRepository.logo(providerHeader.id).toProperty()
+            imageViewColumn("Provider", fitHeight = 80.0, fitWidth = 160.0, isPreserveRatio = true) { (providerId, _) ->
+                providerRepository.logo(providerId).toProperty()
             }
-            customGraphicColumn("Name") { (game, _) ->
+            customGraphicColumn("Name") { (_, game) ->
                 jfxButton(game.name) {
                     setOnAction {
                         mainTable.selectionModel.select(game)
@@ -75,10 +76,10 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
                     }
                 }
             }
-            customGraphicColumn("Path") { pathButton(it.first.path) }
+            customGraphicColumn("Path") { pathButton(it.duplicatedGame.path) }
 
             mainTable.selectionModel.selectedItemProperty().onChange { selectedGame ->
-                items = selectedGame?.let { reportsController.gameDuplications.value[it]!!.observable() }
+                items = selectedGame?.let { duplications.value[it]!!.observable() }
                 resizeColumnsToFitContent()
             }
         }
@@ -88,18 +89,6 @@ class DuplicateGamesView : View("Duplicate Games", Theme.Icon.report()) {
         alignment = Pos.CENTER
         label(text) { addClass(Style.headerLabel) }
         op(this)
-    }
-
-    override fun onDock() {
-        // This is called on application startup, but we don't want to start any calculations before the user explicitly entered the reports screen.
-        // A bit of a hack.
-        skipFirstTime {
-            reportsController.startDetectingDuplications()
-        }
-    }
-
-    override fun onUndock() {
-        reportsController.stopDetectingDuplications()
     }
 
     class Style : Stylesheet() {

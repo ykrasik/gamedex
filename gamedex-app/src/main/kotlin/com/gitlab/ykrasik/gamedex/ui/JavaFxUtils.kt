@@ -57,13 +57,13 @@ class ThreadAwareStringProperty(initialValue: String? = null) : SimpleStringProp
     }
 }
 
-class ThreadAwareDoubleProperty : SimpleDoubleProperty() {
+class ThreadAwareDoubleProperty(initialValue: Double = 0.0) : SimpleDoubleProperty(initialValue) {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }
 }
 
-class ThreadAwareBooleanProperty(initialValue: Boolean) : SimpleBooleanProperty(initialValue) {
+class ThreadAwareBooleanProperty(initialValue: Boolean = false) : SimpleBooleanProperty(initialValue) {
     override fun fireValueChangedEvent() {
         runLaterIfNecessary { super.fireValueChangedEvent() }
     }
