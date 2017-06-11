@@ -23,21 +23,21 @@ class GameProviderRepository @Inject constructor(
     private val log = logger()
 
     private val _providers = run {
-        check(allProviders.isNotEmpty()) { "No providers are active! Please activate at least 1 provider." }
-        val providers = allProviders.toList().sortedFiltered()
+        val providers = allProviders.map { GameProviderWithLogo(it) }.sortedFiltered()
         log.info("Detected providers: ${providers.items.sortedBy { it.id }}")
         providers.sortedItems.comparatorProperty().bind(settings.searchOrderProperty.map { it!!.toComparator() })
         providers
     }
 
     // TODO: Allow enabling / disabling providers? Is this needed?
-    val providers: List<GameProvider> get() = _providers
+    val providers: List<GameProviderWithLogo> get() = _providers
 
-    private val providersById = allProviders.associateBy { it.id }
-    private val providerLogos = providersById.mapValues { it.value.logo.toImage() }
+    private val providersById = _providers.associateBy { it.id }
 
     operator fun get(id: ProviderId) = providersById[id]!!
+}
 
-    // TODO: Create a ProviderWithLogo class instead?
-    fun logo(id: ProviderId) = providerLogos[id]!!
+class GameProviderWithLogo(private val provider: GameProvider) : GameProvider by provider {
+    val logoImage = provider.logo.toImage()
+    override fun toString() = provider.toString()
 }

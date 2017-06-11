@@ -144,7 +144,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                                     fitHeight = 120.0
                                     fitWidth = 120.0
                                     isPreserveRatio = true
-                                    image = providerRepository.logo(providerData.header.id)
+                                    image = providerRepository[providerData.header.id].logoImage
                                 }
                                 spacer()
                                 dataDisplay(data)

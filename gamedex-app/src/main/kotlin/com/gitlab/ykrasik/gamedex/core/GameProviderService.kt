@@ -91,7 +91,7 @@ class GameProviderServiceImpl @Inject constructor(
         }
 
         private suspend fun search(provider: GameProvider): ProviderHeader? {
-            task.providerLogo = providerRepository.logo(provider.id)
+            task.providerLogo = providerRepository[provider.id].logoImage
             task.progress.message = "[$platform][${provider.id}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             task.progress.message = "[$platform][${provider.id}] Searching '$searchedName': ${results.size} results."

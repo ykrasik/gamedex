@@ -27,7 +27,7 @@ class DuplicateGamesView : ReportView<GameDuplication>("Duplicate Games", Theme.
 
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Provider", fitHeight = 80.0, fitWidth = 160.0, isPreserveRatio = true) { (providerId, _) ->
-            providerRepository.logo(providerId).toProperty()
+            providerRepository[providerId].logoImage.toProperty()
         }
         customGraphicColumn("Name") { (_, game) ->
             jfxButton(game.name) {

@@ -51,15 +51,15 @@ class ProviderSettingsView : View("Provider Settings", Theme.Icon.settings()) {
             orderProperty.perform { order ->
                 var dragging: ProviderId? = null
                 replaceChildren {
-                    order.ordered().map { provider ->
+                    order.ordered().map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
-                            graphic = imageview(providerRepository.logo(provider)) {
+                            graphic = imageview(providerRepository[providerId].logoImage) {
                                 fitWidth = 100.0
                                 fitHeight = 50.0
                                 isPreserveRatio = true
                             }
-                            userData = provider
+                            userData = providerId
 
                             val dropShadow = DropShadow()
                             val glow = Glow()
@@ -71,7 +71,7 @@ class ProviderSettingsView : View("Provider Settings", Theme.Icon.settings()) {
                                 // record a delta distance for the drag and drop operation.
                                 dragX = layoutX - mouseEvent.sceneX
                                 cursor = Cursor.MOVE
-                                dragging = provider
+                                dragging = providerId
                                 this@hbox.children.forEach { it.isManaged = false }
                             }
                             setOnMouseReleased {

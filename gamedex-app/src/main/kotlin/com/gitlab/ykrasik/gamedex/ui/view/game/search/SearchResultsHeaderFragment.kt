@@ -40,7 +40,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
             alignment = Pos.TOP_RIGHT
             children += data.platform.toLogo(46.0)
         }
-        imageview(providerRepository.logo(data.providerId)) {
+        imageview(providerRepository[data.providerId].logoImage) {
             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
             fitHeight = 80.0
             fitWidth = 160.0

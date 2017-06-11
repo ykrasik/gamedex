@@ -25,7 +25,7 @@ class NameFolderMismatchView : ReportView<GameNameFolderMismatch>("Name-Folder M
 
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Provider", fitHeight = 80.0, fitWidth = 160.0, isPreserveRatio = true) { mismatch ->
-            providerRepository.logo(mismatch.providerId).toProperty()
+            providerRepository[mismatch.providerId].logoImage.toProperty()
         }
         customGraphicColumn("Expected Name") { mismatch -> label(mismatch.expectedName) }
 

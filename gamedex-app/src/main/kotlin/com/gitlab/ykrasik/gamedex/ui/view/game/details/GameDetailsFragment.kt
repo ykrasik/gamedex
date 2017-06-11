@@ -110,7 +110,7 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
             vgap = 3.0
             game.rawGame.providerData.sortedBy { it.header.id }.forEach { providerData ->
                 row {
-                    imageview(providerRepository.logo(providerData.header.id)) {
+                    imageview(providerRepository[providerData.header.id].logoImage) {
                         fitHeight = 30.0
                         fitWidth = 70.0
                         isPreserveRatio = true
