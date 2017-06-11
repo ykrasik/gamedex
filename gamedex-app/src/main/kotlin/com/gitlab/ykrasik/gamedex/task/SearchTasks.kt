@@ -31,13 +31,13 @@ class SearchTasks @Inject constructor(
             games.sortedBy { it.name }.forEachIndexed { i, game ->
                 if (!isActive) return@forEachIndexed
                 progress.progress(i, games.size - 1)
-                remaining -= 1
                 titleProperty.set("Rediscovering $remaining games...")
 
                 val excludedProviders = game.existingProviders + game.excludedProviders
                 if (doSearchAgain(game, excludedProviders) != null) {
                     numUpdated += 1
                 }
+                remaining -= 1
             }
         }
 

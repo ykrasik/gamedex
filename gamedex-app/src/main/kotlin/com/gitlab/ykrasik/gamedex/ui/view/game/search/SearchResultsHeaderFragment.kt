@@ -84,6 +84,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
         label {
             gridpaneConstraints { columnRowIndex(5, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
             setId(Style.searchResultsLabel)
+            minWidth = Region.USE_PREF_SIZE
             textProperty().bind(showingFilteredProperty.map {
                 "Search results: ${if (it!!) data.results.size + data.filteredResults.size else data.results.size}"
             })

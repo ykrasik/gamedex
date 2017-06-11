@@ -125,7 +125,7 @@ class GameProviderServiceImpl @Inject constructor(
                 is SearchChooser.Choice.ExactMatch -> choice.result.apply { userExactMatch = name; searchedName = name }.markChosen()
                 is SearchChooser.Choice.NotExactMatch -> choice.result.markChosen()
                 is SearchChooser.Choice.NewSearch -> {
-                    searchedName = choice.newSearch
+                    searchedName = choice.newSearch.trim()
                     canAutoContinue = false
                     search(provider)
                 }

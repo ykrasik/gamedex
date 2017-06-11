@@ -23,13 +23,17 @@ class RefreshTasks @Inject constructor(
     private val settings: GameSettings
 ) {
     // TODO: Consider renaming 'refresh' to 'redownload'
+    // TODO: Allow refreshing with a user-specified excluded provider.
     inner class RefreshGamesTask(private val games: List<Game>) : Task<Unit>("Refreshing ${games.size} games...") {
         private var numRefreshed = 0
 
         override suspend fun doRun() {
+            var remaining = games.size
+
             // Operate on a copy of the games to avoid concurrent modifications
             games.sortedBy { it.name }.forEachIndexed { i, game ->
                 progress.progress(i, games.size - 1)
+                titleProperty.set("Refreshing $remaining games...")
 
                 val providersToDownload = game.providerHeaders.filter { header ->
                     header.updateDate.plus(settings.stalePeriod).isBeforeNow
@@ -38,6 +42,7 @@ class RefreshTasks @Inject constructor(
                     doRefreshGame(game, providersToDownload)
                     numRefreshed += 1
                 }
+                remaining -= 1
             }
         }
 

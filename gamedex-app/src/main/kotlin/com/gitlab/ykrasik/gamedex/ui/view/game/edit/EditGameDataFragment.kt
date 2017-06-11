@@ -30,6 +30,8 @@ import java.time.LocalDate
  * Date: 13/05/2017
  * Time: 11:06
  */
+// TODO: Consider allowing to delete provider data.
+// TODO: Add a way to clear provider excludes.
 class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment("'${game.name}': Change Data") {
     private val providerRepository: GameProviderRepository by di()
     private val imageLoader: ImageLoader by di()

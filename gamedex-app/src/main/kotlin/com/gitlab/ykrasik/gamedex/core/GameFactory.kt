@@ -40,6 +40,7 @@ class GameFactory @Inject constructor(
         name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
+        // TODO: Choose score with most votes.
         criticScore = firstBy(settings.criticScoreOrder, userData?.criticScoreOverride(), { Score(it as Double, 1) }) { it.gameData.criticScore },
         userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1) }) { it.gameData.userScore },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
@@ -110,7 +111,7 @@ class GameFactory @Inject constructor(
         "Action RPG" ->
             listOf("Action", "Role-Playing Game (RPG)")
 
-        "Flight Simulator", "Small Spaceship" ->
+        "Flight Simulator", "Small Spaceship", "Large Spaceship", "Virtual Life" ->
             listOf("Simulation")
 
         "Real-Time Strategy" ->
@@ -122,7 +123,7 @@ class GameFactory @Inject constructor(
         "First-Person" ->
             listOf("First-Person Shooter")
 
-        "Shoot 'Em Up", "Shoot-'Em-Up" ->
+        "Shoot 'Em Up", "Shoot-'Em-Up", "Artillery" ->
             listOf("Shooter")
 
         "Music/Rhythm", "Music", "Rhythm" ->
@@ -131,7 +132,7 @@ class GameFactory @Inject constructor(
         "Minigame Collection" ->
             listOf("Compilation")
 
-        "Defense", "Military", "Command", "Tactical", "Tactics" ->
+        "Defense", "Military", "Command", "Tactical", "Tactics", "Wargame" ->
             listOf("Strategy")
 
         "Logic", "Matching" ->
@@ -161,7 +162,7 @@ class GameFactory @Inject constructor(
 
         "General", "Miscellaneous", "Modern", "Traditional", "Horizontal", "Vertical", "Virtual", "Linear", "Other",
         "Scrolling", "Static", "Civilian", "Individual", "Team", "3D", "Combat", "Dual-Joystick Shooter", "Educational",
-        "Real-Time", "Fishing", "Train", "Light Gun", "Block-Breaking",
+        "Real-Time", "Fishing", "Train", "Rail", "Light Gun", "Block-Breaking",
         "Historic", "Futuristic", "Fantasy", "Sci-Fi", "Space" ->
             emptyList()
 

@@ -23,6 +23,7 @@ import kotlin.reflect.KClass
  * Date: 10/06/2017
  * Time: 11:36
  */
+@Suppress("UNCHECKED_CAST")
 abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
     init {
         // Use an in-memory test db.
