@@ -29,15 +29,15 @@ import javax.inject.Singleton
 class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val gameDuplicationReportGenerator: GameDuplicationReportGenerator,
-    private val nameFolderMismatchReportGenerator: NameFolderMismatchReportGenerator
+    private val nameFolderDiffReportGenerator: NameFolderDiffReportGenerator
 ) : Controller() {
 
     val duplications: OngoingReport<GameDuplication> = OngoingReport{ games ->
         gameDuplicationReportGenerator.detectDuplications(games)
     }
 
-    val nameFolderMismatches: OngoingReport<GameNameFolderMismatch> = OngoingReport { games ->
-        nameFolderMismatchReportGenerator.detectGamesWithNameFolderMismatch(games)
+    val nameFolderDiffs: OngoingReport<GameNameFolderDiff> = OngoingReport { games ->
+        nameFolderDiffReportGenerator.detectGamesWithNameFolderDiff(games)
     }
 
     inner class OngoingReport<T>(private val calculate: (List<Game>) -> Report<T>) {

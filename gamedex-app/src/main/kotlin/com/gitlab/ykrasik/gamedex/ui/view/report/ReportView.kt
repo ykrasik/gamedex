@@ -30,6 +30,7 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     private val gameController: GameController by di()
 
     protected var gamesTable: TableView<Game> by singleAssign()
+    protected var reportsView: Node by singleAssign()
 
     abstract val ongoingReport: ReportsController.OngoingReport<T>
     protected abstract val reportHeader: String
@@ -41,7 +42,8 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
             children += gamesTable
         }
         val right = container(reportHeader) {
-            children += reportsView().apply { vgrow = Priority.ALWAYS }
+            reportsView = reportsView().apply { vgrow = Priority.ALWAYS }
+            children += reportsView
         }
         splitpane(left, right) { setDividerPositions(0.5) }
     }
@@ -51,7 +53,7 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        column("Name", Game::name)
+        column("Game", Game::name)
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }

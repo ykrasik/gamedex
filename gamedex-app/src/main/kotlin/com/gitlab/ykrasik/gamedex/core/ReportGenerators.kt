@@ -1,9 +1,13 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.ProviderId
+import difflib.DiffUtils
+import difflib.Patch
 import org.joda.time.DateTime
+import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -44,18 +48,34 @@ data class GameDuplication(
     val duplicatedGame: Game
 )
 
-// TODO: Sanitize path names.
 @Singleton
-class NameFolderMismatchReportGenerator {
-    fun detectGamesWithNameFolderMismatch(games: List<Game>): Report<GameNameFolderMismatch> {
-        return games.asSequence()
-            .flatMap { game -> game.rawGame.providerData.map { game to GameNameFolderMismatch(it.header.id, it.gameData.name) }.asSequence()}
-            .filter { (game, mismatch) -> game.path.name != mismatch.expectedName }
-            .groupBy({ it.first }, { it.second })
+class NameFolderDiffReportGenerator @Inject constructor(private val sanitizer: NameSanitizer) {
+    fun detectGamesWithNameFolderDiff(games: List<Game>): Report<GameNameFolderDiff> =
+        games.asSequence().flatMap { game ->
+            game.rawGame.providerData.mapNotNull { providerData ->
+                val difference = diff(game, providerData) ?: return@mapNotNull null
+                game to difference
+            }.asSequence()
+        }.groupBy({ it.first }, { it.second })
+
+    private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
+        val actualName = sanitizer.removeMetaSymbols(game.path.name)
+        val expectedName = sanitizer.toValidFileName(providerData.gameData.name)
+        if (actualName == expectedName) return null
+
+        val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
+        return GameNameFolderDiff(
+            providerId = providerData.header.id,
+            actual = actualName,
+            expected = expectedName,
+            patch = patch
+        )
     }
 }
 
-data class GameNameFolderMismatch(
+data class GameNameFolderDiff(
     val providerId: ProviderId,
-    val expectedName: String
+    val actual: String,
+    val expected: String,
+    val patch: Patch<Char>
 )

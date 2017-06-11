@@ -44,6 +44,13 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>?
     return combobox(property, enumValues, op)
 }
 
+fun <S, T> TableView<S>.simpleColumn(title: String, valueProvider: (S) -> T): TableColumn<S, T> {
+    val column = TableColumn<S, T>(title)
+    column.cellValueFactory = Callback { SimpleObjectProperty(valueProvider(it.value)) }
+    columns.add(column)
+    return column
+}
+
 inline fun <reified S> TableView<S>.customColumn(title: String,
                                                  crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>): TableColumn<S, S> {
     val column = TableColumn<S, S>(title)

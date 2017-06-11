@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Icon.defaultIconSize
 import com.gitlab.ykrasik.gamedex.ui.toGraphic
 import com.gitlab.ykrasik.gamedex.util.browse
-import com.gitlab.ykrasik.gamedex.util.toStringOr
 import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -167,4 +166,4 @@ fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfx
     op?.invoke(this)
 }
 
-fun Any?.toDisplayString() = toStringOr("NA")
+fun Any?.toDisplayString() = this?.toString() ?: "NA"

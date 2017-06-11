@@ -5,7 +5,6 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.view.game.search.SearchResultsFragment
-import com.gitlab.ykrasik.gamedex.util.collapseSpaces
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
@@ -44,10 +43,9 @@ interface GameProviderService {
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val settings: GameSettings,
+    private val sanitizer: NameSanitizer,
     private val chooser: SearchChooser
 ) : GameProviderService {
-
-    private val metaDataRegex = "(\\[.*?\\])".toRegex()
 
     override suspend fun search(taskData: GameProviderService.ProviderTaskData,
                                 excludedProviders: List<ProviderId>): GameProviderService.SearchResults? =
@@ -57,14 +55,11 @@ class GameProviderServiceImpl @Inject constructor(
             null
         }
 
-    // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-    private fun String.normalizeName(): String = this.replace(metaDataRegex, "").collapseSpaces().replace(" - ", ": ").trim()
-
     private inner class SearchContext(
         private val taskData: GameProviderService.ProviderTaskData,
         private val excludedProviders: List<ProviderId>
     ) {
-        private var searchedName = taskData.name.normalizeName()
+        private var searchedName = sanitizer.sanitize(taskData.name)
         private var canAutoContinue = chooseResults != GameSettings.ChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()

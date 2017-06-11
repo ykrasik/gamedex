@@ -20,6 +20,7 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
+import javafx.scene.text.Font
 import javafx.stage.Stage
 import javafx.stage.StageStyle
 import javafx.util.Duration
@@ -103,7 +104,7 @@ private fun printSize(id: String,
 }
 
 fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
-    var accept = false
+    private var accept = false
 
     override val root = borderpane {
         minWidth = 400.0
@@ -149,6 +150,43 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
     fun show(): Boolean {
         openModal(block = true, stageStyle = StageStyle.UNIFIED)
         return accept
+    }
+}.show()
+
+fun infoAlert(title: String = "Are You Sure?", op: (VBox.() -> Unit)? = null) = object : Fragment(title) {
+    override val root = borderpane {
+        minWidth = 400.0
+        minHeight = 100.0
+        top {
+            toolbar {
+                acceptButton { setOnAction { close() } }
+            }
+        }
+        center {
+            vbox(spacing = 10.0) {
+                hbox {
+                    paddingAll = 20.0
+                    alignment = Pos.CENTER_LEFT
+                    label(title) {
+                        font = Font.font(16.0)
+                    }
+                    spacer()
+                    imageview(Images.information)
+                }
+                if (op != null) {
+                    separator()
+                    vbox(spacing = 10.0) {
+                        paddingAll = 20.0
+                        paddingRight = 30.0
+                        op(this)
+                    }
+                }
+            }
+        }
+    }
+
+    fun show() {
+        openModal(block = true, stageStyle = StageStyle.UNIFIED)
     }
 }.show()
 
