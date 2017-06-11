@@ -20,7 +20,7 @@ object DuplicateGamesViewTestApp : BaseTestApp<DuplicateGamesView>(DuplicateGame
         val games = List(10) { randomGame() }
         val duplicates = games.map { game ->
             game to List(rnd.nextInt(3) + 1) {
-                GameDuplication(games.randomElementExcluding(game), randomProviderHeader())
+                GameDuplication(randomProviderHeader().id, games.randomElementExcluding(game))
             }
         }.toMap()
 

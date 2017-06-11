@@ -1,10 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.DuplicationDetector
-import com.gitlab.ykrasik.gamedex.core.GameDuplications
-import com.gitlab.ykrasik.gamedex.core.GameNameFolderMismatches
-import com.gitlab.ykrasik.gamedex.core.NameFolderMismatchDetector
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.performing
 import javafx.beans.property.Property
@@ -31,20 +28,20 @@ import javax.inject.Singleton
 @Singleton
 class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val duplicationDetector: DuplicationDetector,
-    private val nameFolderMismatchDetector: NameFolderMismatchDetector
+    private val gameDuplicationReportGenerator: GameDuplicationReportGenerator,
+    private val nameFolderMismatchReportGenerator: NameFolderMismatchReportGenerator
 ) : Controller() {
 
-    val duplications: OngoingReport<GameDuplications> = OngoingReport(emptyMap()) { games ->
-        duplicationDetector.detectDuplications(games)
+    val duplications: OngoingReport<GameDuplication> = OngoingReport{ games ->
+        gameDuplicationReportGenerator.detectDuplications(games)
     }
 
-    val nameFolderMismatches: OngoingReport<GameNameFolderMismatches> = OngoingReport(emptyMap()) { games ->
-        nameFolderMismatchDetector.detectGamesWithNameFolderMismatch(games)
+    val nameFolderMismatches: OngoingReport<GameNameFolderMismatch> = OngoingReport { games ->
+        nameFolderMismatchReportGenerator.detectGamesWithNameFolderMismatch(games)
     }
 
-    inner class OngoingReport<T>(emptyValue: T, private val calculate: (List<Game>) -> T) {
-        val resultsProperty: Property<T> = SimpleObjectProperty(emptyValue)
+    inner class OngoingReport<T>(private val calculate: (List<Game>) -> Report<T>) {
+        val resultsProperty: Property<Report<T>> = SimpleObjectProperty(emptyMap())
         private var duplicationListener: ListChangeListener<Game>? = null
 
         val isCalculatingProperty = SimpleBooleanProperty(false)

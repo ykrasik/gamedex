@@ -8,12 +8,14 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 10/06/2017
- * Time: 16:48
+ * Date: 11/06/2017
+ * Time: 11:29
  */
+typealias Report<T> = Map<Game, List<T>>
+
 @Singleton
-class DuplicationDetector {
-    fun detectDuplications(games: List<Game>): GameDuplications {
+class GameDuplicationReportGenerator {
+    fun detectDuplications(games: List<Game>): Report<GameDuplication> {
         val headerToGames = games.asSequence()
             .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
             .groupBy({ it.first }, { it.second })
@@ -37,8 +39,22 @@ class DuplicationDetector {
     private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
 }
 
-typealias GameDuplications = Map<Game, List<GameDuplication>>
 data class GameDuplication(
     val providerId: ProviderId,
     val duplicatedGame: Game
+)
+
+@Singleton
+class NameFolderMismatchReportGenerator {
+    fun detectGamesWithNameFolderMismatch(games: List<Game>): Report<GameNameFolderMismatch> {
+        return games.asSequence()
+            .flatMap { game -> game.rawGame.providerData.map { game to GameNameFolderMismatch(it.header.id, it.gameData.name) }.asSequence()}
+            .filter { (game, mismatch) -> game.path.name != mismatch.expectedName }
+            .groupBy({ it.first }, { it.second })
+    }
+}
+
+data class GameNameFolderMismatch(
+    val providerId: ProviderId,
+    val expectedName: String
 )
