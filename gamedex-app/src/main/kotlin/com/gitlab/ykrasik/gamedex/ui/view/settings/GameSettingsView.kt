@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.settings.Settings
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
@@ -13,7 +13,7 @@ import tornadofx.*
  * Time: 15:21
  */
 class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
-    private val settings: AllSettings by di()
+    private val settings: Settings by di()
 
     override val root = form {
         fieldset("Game Display Type") {

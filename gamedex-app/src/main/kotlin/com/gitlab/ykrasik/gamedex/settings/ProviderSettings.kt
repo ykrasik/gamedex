@@ -10,13 +10,11 @@ import tornadofx.setValue
  * Date: 23/04/2017
  * Time: 12:48
  */
-class ProviderSettings private constructor() : AbstractSettings("provider") {
-    companion object {
-        operator fun invoke(): ProviderSettings = readOrUse(ProviderSettings())
-
+class ProviderSettings : SettingsScope() {
+    private companion object {
         // TODO: Does this mean that each provider needs to declare these fields?
-        private val Igdb = "Igdb"
-        private val GiantBomb = "GiantBomb"
+        val Igdb = "Igdb"
+        val GiantBomb = "GiantBomb"
     }
 
     @Transient

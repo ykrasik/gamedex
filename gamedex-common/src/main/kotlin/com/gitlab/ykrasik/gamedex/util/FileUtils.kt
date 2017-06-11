@@ -13,7 +13,7 @@ fun String.toFile(): File = File(this)
 fun URI.toFile(): File = File(this)
 
 fun File.create() {
-    parentFile.mkdirs()
+    parentFile?.mkdirs()
     createNewFile()
 }
 

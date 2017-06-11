@@ -35,7 +35,7 @@ class GameController @Inject constructor(
     private val gameTasks: GameTasks,
     private val searchTasks: SearchTasks,
     private val refreshTasks: RefreshTasks,
-    val settings: GameSettings
+    private val settings: GameSettings
 ) : Controller() {
     private val mainView: MainView by inject()
 
@@ -111,6 +111,7 @@ class GameController @Inject constructor(
     fun filterGenres(genres: List<String>) = setFilters { it.copy(genres = genres) }
     fun filterTags(tags: List<String>) = setFilters { it.copy(tags = tags) }
     private fun setFilters(f: (GameSettings.FilterSet) -> GameSettings.FilterSet) {
+        // TODO: Move this logic to the settings class?
         settings.filters += (settings.platform to f(filtersForPlatformProperty.value))
     }
 

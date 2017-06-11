@@ -55,7 +55,7 @@ class SettingsFragment : Fragment("Settings") {
     }
 
     fun show() {
-        openModal(block = true)
+        openWindow(block = true)
     }
 
     class Style : Stylesheet() {

@@ -44,6 +44,7 @@ data class GameDuplication(
     val duplicatedGame: Game
 )
 
+// TODO: Sanitize path names.
 @Singleton
 class NameFolderMismatchReportGenerator {
     fun detectGamesWithNameFolderMismatch(games: List<Game>): Report<GameNameFolderMismatch> {

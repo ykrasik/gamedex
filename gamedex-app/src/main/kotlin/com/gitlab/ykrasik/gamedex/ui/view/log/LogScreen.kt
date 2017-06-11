@@ -24,7 +24,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.report()) {
     override fun ToolBar.constructToolbar() {
         enumComboBox(settings.logFilterLevelProperty)
         togglebutton("Tail") {
-            settings.logTailProperty.bindBidirectional(selectedProperty())
+            selectedProperty().bindBidirectional(settings.logTailProperty)
         }
     }
 

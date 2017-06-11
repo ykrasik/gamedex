@@ -30,8 +30,8 @@ import tornadofx.*
  */
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
-    private val settings: GameWallSettings by di()
     private val imageLoader: ImageLoader by di()
+    private val settings: GameWallSettings by di()
 
     private val gameContextMenu: GameContextMenu by inject()
 

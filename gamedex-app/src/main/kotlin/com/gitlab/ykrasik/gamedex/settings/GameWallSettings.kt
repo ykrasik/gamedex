@@ -8,11 +8,7 @@ import tornadofx.setValue
  * Date: 01/05/2017
  * Time: 19:05
  */
-class GameWallSettings private constructor() : AbstractSettings("gameWall") {
-    companion object {
-        operator fun invoke(): GameWallSettings = readOrUse(GameWallSettings())
-    }
-
+class GameWallSettings : SettingsScope() {
     @Transient
     val imageDisplayTypeProperty = preferenceProperty(ImageDisplayType.fit)
     var imageDisplayType by imageDisplayTypeProperty

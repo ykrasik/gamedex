@@ -34,15 +34,7 @@ class GameRepository @Inject constructor(
     val games: ObservableList<Game> = fetchAllGames()
 
     init {
-        // TODO: Find a more intelligent way
-        settings.nameOrderProperty.onChange { rebuildGames() }
-        settings.descriptionOrderProperty.onChange { rebuildGames() }
-        settings.releaseDateOrderProperty.onChange { rebuildGames() }
-        settings.criticScoreOrderProperty.onChange { rebuildGames() }
-        settings.userScoreOrderProperty.onChange { rebuildGames() }
-        settings.thumbnailOrderProperty.onChange { rebuildGames() }
-        settings.posterOrderProperty.onChange { rebuildGames() }
-        settings.screenshotOrderProperty.onChange { rebuildGames() }
+        settings.changedProperty.onChange { rebuildGames() }
     }
 
     private fun fetchAllGames(): ObservableList<Game> {
