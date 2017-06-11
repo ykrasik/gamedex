@@ -35,6 +35,7 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     abstract val ongoingReport: ReportsController.OngoingReport<T>
     protected abstract val reportHeader: String
     protected abstract fun reportsView(): Node
+    open val extraOptions: VBox? = null
 
     override val root = run {
         val left = container("Games") {

@@ -37,6 +37,10 @@ class GameSettings : SettingsScope() {
     val stalePeriodProperty = preferenceProperty(Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime()))
     var stalePeriod by stalePeriodProperty
 
+    @Transient
+    val nameFolderDiffIgnoreVersionMetadataProperty = preferenceProperty(true)
+    var nameFolderDiffIgnoreVersion by nameFolderDiffIgnoreVersionMetadataProperty
+
     data class FilterSet(
         val libraries: List<Int> = emptyList(),
         val genres: List<String> = emptyList(),

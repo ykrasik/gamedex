@@ -70,5 +70,10 @@ class ReportsController @Inject constructor(
                 duplicationListener = null
             }
         }
+
+        fun reload() {
+            stop()
+            start()
+        }
     }
 }

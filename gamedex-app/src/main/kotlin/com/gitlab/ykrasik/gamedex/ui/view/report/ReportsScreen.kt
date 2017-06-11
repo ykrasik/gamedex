@@ -8,6 +8,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
+import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -54,6 +55,14 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
                 jfxToggleNode(tab.text, tab.graphic) {
                     isSelected = tab == currentTab.value
                     setOnAction { tabPane.selectionModel.select(tab) }
+
+                    val reportView = tab.userData as ReportView<*>
+                    if (reportView.extraOptions != null) {
+                        // TODO: Try to find a more elegant way
+                        dropDownMenu(arrowLocation = PopOver.ArrowLocation.TOP_RIGHT) {
+                            children += reportView.extraOptions
+                        }
+                    }
                 }
                 separator()
             }
