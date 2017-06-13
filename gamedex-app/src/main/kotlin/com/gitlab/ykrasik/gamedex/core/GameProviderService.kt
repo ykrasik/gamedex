@@ -43,7 +43,6 @@ interface GameProviderService {
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val settings: GameSettings,
-    private val sanitizer: NameSanitizer,
     private val chooser: SearchChooser
 ) : GameProviderService {
 
@@ -59,7 +58,7 @@ class GameProviderServiceImpl @Inject constructor(
         private val taskData: GameProviderService.ProviderTaskData,
         private val excludedProviders: List<ProviderId>
     ) {
-        private var searchedName = sanitizer.sanitize(taskData.name)
+        private var searchedName = NameHandler.fromFileName(NameHandler.analyze(taskData.name).gameName)
         private var canAutoContinue = chooseResults != GameSettings.ChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()

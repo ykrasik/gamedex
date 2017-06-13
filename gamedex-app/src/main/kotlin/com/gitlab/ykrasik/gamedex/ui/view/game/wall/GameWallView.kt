@@ -10,11 +10,14 @@ import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import com.gitlab.ykrasik.gamedex.ui.widgets.ImageViewLimitedPane
+import javafx.geometry.Pos
+import javafx.scene.control.Label
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.stage.Screen
@@ -98,51 +101,66 @@ class GameWallView : View("Games Wall") {
         private val imageView = ImageView().fadeOnImageChange()
         private val imageViewLimitedPane = ImageViewLimitedPane(imageView, settings.imageDisplayTypeProperty)
 
+        private val overlay = Label().apply {
+            addClass(Style.overlayText, CommonStyle.fillAvailableWidth)
+            StackPane.setAlignment(this, Pos.BOTTOM_CENTER)
+        }
+        private val content = StackPane(imageViewLimitedPane, overlay)
+
         init {
             // Really annoying, no idea why JavaFX does this, but it offsets by 1 pixel.
             imageViewLimitedPane.translateX = -1.0
 
             imageViewLimitedPane.maxHeightProperty().bind(this.heightProperty())
             imageViewLimitedPane.maxWidthProperty().bind(this.widthProperty())
-            imageViewLimitedPane.clip = createClippingArea()
 
             addClass(CommonStyle.card)
-            val dropshadow = DropShadow().apply {
-                input = Glow()
-            }
+            val dropshadow = DropShadow().apply { input = Glow() }
             setOnMouseEntered { effect = dropshadow }
             setOnMouseExited { effect = null }
 
-            graphic = imageViewLimitedPane
+            content.clip = createClippingArea()
+            graphic = content
         }
 
-        private fun createClippingArea(): Rectangle {
-            val clip = Rectangle()
-            clip.x = 1.0
-            clip.y = 1.0
-            clip.arcWidth = 20.0
-            clip.arcHeight = 20.0
-            clip.heightProperty().bind(imageViewLimitedPane.heightProperty().subtract(2))
-            clip.widthProperty().bind(imageViewLimitedPane.widthProperty().subtract(2))
-            return clip
+        private fun createClippingArea() = Rectangle().apply {
+            x = 1.0
+            y = 1.0
+            arcWidth = 20.0
+            arcHeight = 20.0
+            heightProperty().bind(imageViewLimitedPane.heightProperty().subtract(2))
+            widthProperty().bind(imageViewLimitedPane.widthProperty().subtract(2))
         }
 
         override fun updateItem(game: Game?, empty: Boolean) {
             super.updateItem(game, empty)
 
             if (game != null) {
+                game.folderMetaData.metaTag?.overlay() ?: clearOverlay()
                 imageView.imageProperty().cleanBind(imageLoader.fetchImage(game.id, game.thumbnailUrl, persistIfAbsent = true))
                 tooltip(game.name)
             } else {
+                clearOverlay()
                 imageView.imageProperty().unbind()
                 imageView.image = null
             }
+        }
+
+        private fun String.overlay() {
+            overlay.isVisible = true
+            overlay.text = this
+        }
+
+        private fun clearOverlay() {
+            overlay.isVisible = false
+            overlay.text = null
         }
     }
 
     class Style : Stylesheet() {
         companion object {
             val quickDetails by cssclass()
+            val overlayText by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -157,6 +175,13 @@ class GameWallView : View("Games Wall") {
                 label {
                     textFill = Color.BLACK
                 }
+            }
+
+            overlayText {
+                backgroundColor = multi(Color.LIGHTGRAY)
+                opacity = 0.85
+                padding = box(5.px)
+                alignment = Pos.BASELINE_CENTER
             }
         }
     }

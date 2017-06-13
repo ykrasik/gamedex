@@ -1,9 +1,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamedex.ProviderHeader
-import com.gitlab.ykrasik.gamedex.ProviderId
+import com.gitlab.ykrasik.gamedex.*
 import difflib.DiffUtils
 import difflib.Patch
 import org.joda.time.DateTime
@@ -48,8 +45,11 @@ data class GameDuplication(
     val duplicatedGame: Game
 )
 
+// TODO: Add ignore case option
+// TODO: Add option that makes metadata an optional match.
+// TODO: Renaming loses the original metadata tags, fix it.
 @Singleton
-class NameFolderDiffReportGenerator @Inject constructor(private val sanitizer: NameSanitizer) {
+class NameFolderDiffReportGenerator @Inject constructor() {
     fun detectGamesWithNameFolderDiff(games: List<Game>): Report<GameNameFolderDiff> =
         games.asSequence().flatMap { game ->
             game.rawGame.providerData.mapNotNull { providerData ->
@@ -59,14 +59,17 @@ class NameFolderDiffReportGenerator @Inject constructor(private val sanitizer: N
         }.groupBy({ it.first }, { it.second })
 
     private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
-        val actualName = sanitizer.removeMetaSymbols(game.path.name)
-        val expectedName = sanitizer.toValidFileName(providerData.gameData.name)
+        val folderMetaData = NameHandler.analyze(game.path.name)
+        val actualName = folderMetaData.gameName
+        val expectedName = NameHandler.toFileName(providerData.gameData.name)
+
+        // TODO: This comparison needs to be smarter - account for metaTag.
         if (actualName == expectedName) return null
 
         val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
         return GameNameFolderDiff(
             providerId = providerData.header.id,
-            actual = actualName,
+            actualName = folderMetaData,
             expected = expectedName,
             patch = patch
         )
@@ -75,7 +78,7 @@ class NameFolderDiffReportGenerator @Inject constructor(private val sanitizer: N
 
 data class GameNameFolderDiff(
     val providerId: ProviderId,
-    val actual: String,
+    val actualName: FolderMetaData,
     val expected: String,
     val patch: Patch<Char>
 )

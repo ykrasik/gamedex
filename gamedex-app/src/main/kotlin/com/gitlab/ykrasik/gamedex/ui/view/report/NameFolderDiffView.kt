@@ -2,11 +2,12 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.core.GameNameFolderDiff
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.ui.*
+import com.gitlab.ykrasik.gamedex.ui.customGraphicColumn
+import com.gitlab.ykrasik.gamedex.ui.imageViewColumn
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import javafx.scene.layout.VBox
 import tornadofx.*
 
 /**
@@ -16,7 +17,6 @@ import tornadofx.*
  */
 class NameFolderDiffView : ReportView<GameNameFolderDiff>("Name-Folder Diff", Theme.Icon.book()) {
     private val providerRepository: GameProviderRepository by di()
-    private val gameSettings: GameSettings by di()
 
     override val reportHeader get() = "Differences"
     override val ongoingReport get() = reportsController.nameFolderDiffs
@@ -46,21 +46,9 @@ class NameFolderDiffView : ReportView<GameNameFolderDiff>("Name-Folder Diff", Th
                     gameController.renameFolder(selectedGame, selectionModel.selectedItem.expected)
                 }
             }
+            // TODO: Add a 'search only this provider' option
         }
 
         onUserSelect { gameController.renameFolder(selectedGame, it.expected) }
-    }
-
-    override val extraOptions = VBox().apply {
-        jfxToggleButton {
-            text = "Ignore version metadata"
-            selectedProperty().bindBidirectional(gameSettings.nameFolderDiffIgnoreVersionMetadataProperty)
-        }
-    }
-
-    init {
-        gameSettings.nameFolderDiffIgnoreVersionMetadataProperty.onChange {
-            ongoingReport.reload()
-        }
     }
 }

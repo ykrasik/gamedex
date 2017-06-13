@@ -25,13 +25,15 @@ class GameFactory @Inject constructor(
         val gameData = rawGame.toGameData()
         val imageUrls = rawGame.toImageUrls()
         val providerHeaders = rawGame.toProviderHeaders()
+        val folderMetaData = NameHandler.analyze(rawGame.metaData.path.name)
 
         return Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
             providerHeaders = providerHeaders,
-            imageUrls = imageUrls
+            imageUrls = imageUrls,
+            folderMetaData = folderMetaData
         )
     }
 

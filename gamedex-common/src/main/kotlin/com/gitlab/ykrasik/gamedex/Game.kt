@@ -16,7 +16,8 @@ data class Game(
     val library: Library,
     private val gameData: GameData,
     val providerHeaders: List<ProviderHeader>,
-    val imageUrls: ImageUrls
+    val imageUrls: ImageUrls,
+    val folderMetaData: FolderMetaData  // TODO: Is this the best place to put this?
 ) {
     val id get() = rawGame.id
     val path: File = Paths.get(library.path.toString(), metaData.path.toString()).toFile()
@@ -91,6 +92,13 @@ data class MetaData(
     val libraryId: Int,
     val path: File,
     val updateDate: DateTime
+)
+
+data class FolderMetaData(
+    val rawName: String,
+    val gameName: String,
+    val metaTag: String?,
+    val version: String?
 )
 
 enum class GameDataType(val displayName: String) {

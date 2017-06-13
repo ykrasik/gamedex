@@ -1,34 +1,42 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.FolderMetaData
 
 /**
  * User: ykrasik
  * Date: 11/06/2017
  * Time: 13:54
  */
-@Singleton
-class NameSanitizer @Inject constructor(private val settings: GameSettings){
-    private val metaDataRegex = "(\\[.*?\\])".toRegex()
-    private val metaDataDigitsRegex = "(\\[[\\d\\.]*\\])".toRegex()
+object NameHandler {
+    private val metaTagRegex = "(\\[.*?\\])".toRegex()
+    private val versionRegex = "(\\[(?i:Alpha|Beta|Update|[A-Za-z])? ?v? ?[\\d\\.]*[A-Za-z]?[\\d\\.]*\\])".toRegex()
     private val spacesRegex = "\\s+".toRegex()
 
-    // Remove all metaData enclosed with '[]' from the file name and collapse all spaces into a single space.
-    fun sanitize(unsanitized: String) = unsanitized.replace(metaDataRegex, "").collapseSpaces().sanitizeDash().trim()
+    fun analyze(rawName: String): FolderMetaData {
+        val (rawNameWithoutVersion, version) = extractMetaData(rawName, versionRegex)
+        val (rawNameWithoutMetaData, metaTag) = extractMetaData(rawNameWithoutVersion, metaTagRegex)
 
-    fun removeMetaSymbols(unsanitized: String): String {
-        return if (settings.nameFolderDiffIgnoreVersion) {
-            unsanitized.replace(metaDataDigitsRegex, "")
-        } else {
-            unsanitized
-        }.replace("[", "").replace("]", "").collapseSpaces().trim()
+        return FolderMetaData(
+            rawName = rawName,
+            gameName = rawNameWithoutMetaData.collapseSpaces(),
+            metaTag = metaTag,
+            version = version
+        )
     }
 
-    fun toValidFileName(unsanitized: String) =
-        unsanitized.replace(": ", " - ").replace("/", " ").replace("\\", " ").collapseSpaces().trim()
+    private fun extractMetaData(rawName: String, regex: Regex): Pair<String, String?> {
+        val match = regex.find(rawName) ?: return rawName to null
+        val metaData = match.value.let { it.substring(1, it.length - 1) }
+        val rawNameWithoutMetaData = rawName.removeRange(match.range)
+        return rawNameWithoutMetaData to metaData
+    }
 
-    private fun String.sanitizeDash() = replace(" - ", ": ")
-    private fun String.collapseSpaces() = spacesRegex.replace(this, " ")
+    fun fromFileName(name: String) = name.replace(" - ", ": ").collapseSpaces()
+    fun toFileName(name: String) = name.replace(": ", " - ")
+        .replace("/", " ")
+        .replace("\\", " ")
+        .replace("?", " ")
+        .collapseSpaces()
+
+    private fun String.collapseSpaces() = spacesRegex.replace(this, " ").trim()
 }

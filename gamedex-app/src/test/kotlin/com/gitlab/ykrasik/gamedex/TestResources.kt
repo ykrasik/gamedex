@@ -37,7 +37,8 @@ fun randomGame(): Game {
         library = randomLibrary(),
         gameData = providerData.randomElement().gameData,
         providerHeaders = randomProviderHeaders(),
-        imageUrls = randomImageUrls()
+        imageUrls = randomImageUrls(),
+        folderMetaData = randomFolderMetaData()
     )
 }
 
@@ -72,4 +73,11 @@ fun randomImageUrls() = ImageUrls(
     thumbnailUrl = randomUrl(),
     posterUrl = randomUrl(),
     screenshotUrls = List(rnd.nextInt(10)) { randomUrl() }
+)
+
+fun randomFolderMetaData() = FolderMetaData(
+    rawName = randomString(),
+    gameName = randomString(),
+    metaTag = null,
+    version = null
 )

@@ -14,7 +14,7 @@ import tornadofx.*
  * Time: 15:42
  */
 object DiffRenderer {
-    fun renderActual(diff: GameNameFolderDiff): TextFlow = render(diff.actual, diff.patch.deltas) { it.original }
+    fun renderActual(diff: GameNameFolderDiff): TextFlow = render(diff.actualName.gameName, diff.patch.deltas) { it.original }
     fun renderExpected(diff: GameNameFolderDiff): TextFlow = render(diff.expected, diff.patch.deltas) { it.revised }
 
     private fun render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = TextFlow().apply {
