@@ -1,9 +1,7 @@
 package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.util.*
-import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.*
 import tornadofx.onChange
 
 /**
@@ -56,13 +54,23 @@ abstract class SettingsScope {
     @Transient
     val changedProperty = SimpleBooleanProperty()
 
-    protected fun <T> preferenceProperty(initialValue: T): ObjectProperty<T> {
-        val property = SimpleObjectProperty<T>(initialValue)
-        property.onChange {
+    protected fun <T> preferenceProperty(initialValue: T): ObjectProperty<T> = SimpleObjectProperty(initialValue).notifyOnChange()
+    protected fun preferenceProperty(initialValue: Boolean): BooleanProperty = SimpleBooleanProperty(initialValue).notifyOnChange()
+    protected fun preferenceProperty(initialValue: Int): IntegerProperty = SimpleIntegerProperty(initialValue).notifyOnChange()
+    protected fun preferenceProperty(initialValue: Double): DoubleProperty = SimpleDoubleProperty(initialValue).notifyOnChange()
+    protected fun preferenceProperty(initialValue: String): StringProperty = SimpleStringProperty(initialValue).notifyOnChange()
+
+    private fun <T : Property<R>, R> T.notifyOnChange() = apply {
+        onChange {
             // Fire a change event and reset the value.
             changedProperty.value = true
             changedProperty.value = false
         }
-        return property
+    }
+
+    abstract inner class SubSettings : SettingsScope() {
+        init {
+            this.changedProperty.onChange { this@SettingsScope.changedProperty.value = it }
+        }
     }
 }

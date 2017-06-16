@@ -15,11 +15,14 @@ import tornadofx.*
  * Time: 11:41
  */
 inline fun <reified T : Number> EventTarget.adjustableTextField(property: Property<T>, name: String, min: T, max: T) {
-    val (parse, stringify) = when(T::class.javaPrimitiveType) {
-        Int::class.javaPrimitiveType -> Pair({ s: String -> s.toInt() as T }, { d: Double -> d.toInt().toString() })
-        Long::class.javaPrimitiveType -> Pair({ s -> s.toLong() as T }, { d -> d.toLong().toString() })
-        Double::class.javaPrimitiveType -> Pair({ s -> s.toDouble() as T }, { d -> d.toString() })
-        else -> error("Unsupported type: ${T::class}")
+    val (parse, stringify) = when(T::class) {
+        Number::class ->  Pair({ s: String -> s.toDouble() as T }, { d: Double -> d.toString() })
+        else -> when (T::class.javaPrimitiveType) {
+            Int::class.javaPrimitiveType -> Pair({ s -> s.toInt() as T }, { d -> d.toInt().toString() })
+            Long::class.javaPrimitiveType -> Pair({ s -> s.toLong() as T }, { d -> d.toLong().toString() })
+            Double::class.javaPrimitiveType -> Pair({ s -> s.toDouble() as T }, { d -> d.toString() })
+            else -> error("Unsupported type: ${T::class}")
+        }
     }
     val textStringProperty = SimpleStringProperty(stringify(property.value.toDouble()))
     textStringProperty.onChange {
