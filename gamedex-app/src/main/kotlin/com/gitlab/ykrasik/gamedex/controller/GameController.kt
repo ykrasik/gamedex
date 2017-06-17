@@ -205,11 +205,11 @@ class GameController @Inject constructor(
         return areYouSureDialog(sb.toString()) {
             if (libraries.isNotEmpty()) {
                 label("Stale Libraries:")
-                listview(libraries.map { it.name }.observable()) { fitAtMost(10) }
+                listview(libraries.map { it.path }.observable()) { fitAtMost(10) }
             }
             if (games.isNotEmpty()) {
                 label("Stale Games:")
-                listview(games.map { it.name }.observable()) { fitAtMost(10) }
+                listview(games.map { it.path }.observable()) { fitAtMost(10) }
             }
         }
     }
