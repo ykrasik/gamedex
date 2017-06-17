@@ -3,10 +3,12 @@ package com.gitlab.ykrasik.gamedex.ui.theme
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.popoverComboMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Icon.defaultIconSize
 import com.gitlab.ykrasik.gamedex.ui.toGraphic
 import com.gitlab.ykrasik.gamedex.util.browse
 import com.jfoenix.controls.JFXButton
+import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.image.Image
@@ -16,6 +18,7 @@ import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
 import tornadofx.addClass
+import tornadofx.observable
 import tornadofx.tooltip
 import java.io.File
 
@@ -160,6 +163,15 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
 }.apply {
     minWidth = Region.USE_PREF_SIZE
 }
+
+fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMenu(
+    possibleItems = Platform.values().toList().observable(),
+    selectedItemProperty = selected,
+    styleClass = CommonStyle.platformItem,
+    itemStyleClass = CommonStyle.fillAvailableWidth,
+    text = Platform::key,
+    graphic = { it.toLogo() }
+)
 
 fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfxButton(path.path) {
     isFocusTraversable = false

@@ -6,14 +6,14 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
-import com.gitlab.ykrasik.gamedex.ui.popoverComboMenu
-import com.gitlab.ykrasik.gamedex.ui.theme.*
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.theme.platformComboBox
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.geometry.Pos
-import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -87,18 +87,8 @@ class LibraryFragment(private val existingLibraries: List<Library>, private val 
     private fun Fieldset.platformField() = field("Platform") {
         isDisable = library != null
         model.platformProperty.value = library?.platform ?: Platform.pc
-        model.platformProperty.onChange {
-            model.validate()
-        }
-        popoverComboMenu(
-            possibleItems = Platform.values().toList().observable(),
-            selectedItemProperty = model.platformProperty,
-            arrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-            styleClass = Style.platformItem,
-            itemStyleClass = CommonStyle.fillAvailableWidth,
-            text = Platform::key,
-            graphic = { it.toLogo() }
-        )
+        model.platformProperty.onChange { model.validate() }
+        platformComboBox(model.platformProperty)
     }
 
     init {
@@ -159,22 +149,5 @@ class LibraryFragment(private val existingLibraries: List<Library>, private val 
         )
 
         override fun toString() = "SourceViewModel(name = $name, platform = $platform, path = $path)"
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val platformItem by cssclass()
-
-            init {
-                importStylesheet(Style::class)
-            }
-        }
-
-        init {
-            platformItem {
-                prefWidth = 100.px
-                alignment = Pos.CENTER_LEFT
-            }
-        }
     }
 }

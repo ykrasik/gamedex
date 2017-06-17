@@ -21,3 +21,6 @@ fun <T> MutableList<T>.replaceFirst(replacement: T, pred: (T) -> Boolean): Boole
     }
     return false
 }
+
+fun <T, R> Iterable<Pair<T, R>>.toMultiMap(): Map<T, List<R>> = groupBy({ it.first }, { it.second })
+fun <T, R> Sequence<Pair<T, R>>.toMultiMap(): Map<T, List<R>> = groupBy({ it.first }, { it.second })

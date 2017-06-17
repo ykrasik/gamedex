@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.ui.performing
+import com.gitlab.ykrasik.gamedex.ui.view.report.ViolationRulesFragment
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -16,6 +17,7 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
 import tornadofx.Controller
 import tornadofx.getValue
+import tornadofx.onChange
 import tornadofx.setValue
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,16 +30,32 @@ import javax.inject.Singleton
 @Singleton
 class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
+    private val violationsReportGenerator: ViolationsReportGenerator,
     private val gameDuplicationReportGenerator: GameDuplicationReportGenerator,
     private val nameFolderDiffReportGenerator: NameFolderDiffReportGenerator
 ) : Controller() {
 
-    val duplications: OngoingReport<GameDuplication> = OngoingReport{ games ->
+    private val violationRules = SimpleObjectProperty<ReportRule>(ReportRule.Nop())
+
+    val violations: OngoingReport<RuleResult.Fail> = OngoingReport { games ->
+        violationsReportGenerator.generateReport(games, violationRules.value)
+    }
+
+    val duplications: OngoingReport<GameDuplication> = OngoingReport { games ->
         gameDuplicationReportGenerator.detectDuplications(games)
     }
 
     val nameFolderDiffs: OngoingReport<GameNameFolderDiff> = OngoingReport { games ->
         nameFolderDiffReportGenerator.detectGamesWithNameFolderDiff(games)
+    }
+
+    init {
+        violationRules.onChange { violations.reload() }
+    }
+
+    fun editViolationRules() {
+        val rules = ViolationRulesFragment(violationRules.value).show() ?: return
+        violationRules.value = rules
     }
 
     inner class OngoingReport<T>(private val calculate: (List<Game>) -> Report<T>) {

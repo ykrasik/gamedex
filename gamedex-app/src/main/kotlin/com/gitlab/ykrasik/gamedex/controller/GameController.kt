@@ -97,9 +97,6 @@ class GameController @Inject constructor(
         }
     }
 
-    private val Game.minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c.score, u.score) } }
-    private val Game.avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c.score + u.score) / 2 } }
-
     val allGames: ObservableList<Game> = gameRepository.games
     val platformGames = allGames.filtering(settings.platformProperty.toPredicateF { platform, game: Game ->
         game.platform == platform

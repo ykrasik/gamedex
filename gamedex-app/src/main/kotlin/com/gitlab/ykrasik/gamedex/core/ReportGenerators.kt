@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import difflib.DiffUtils
 import difflib.Patch
 import org.joda.time.DateTime
@@ -32,7 +33,7 @@ class GameDuplicationReportGenerator {
                     game to GameDuplication(header.id, duplicatedGame)
                 }
             }
-        }.groupBy({ it.first }, { it.second })
+        }.toMultiMap()
 
         return duplicateGames
     }
@@ -56,7 +57,7 @@ class NameFolderDiffReportGenerator @Inject constructor() {
                 val difference = diff(game, providerData) ?: return@mapNotNull null
                 game to difference
             }
-        }.groupBy({ it.first }, { it.second })
+        }.toMultiMap()
 
     private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
         val actualName = game.folderMetaData.rawName

@@ -10,8 +10,8 @@ import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
+import javafx.scene.layout.HBox
 import javafx.scene.layout.StackPane
-import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
@@ -23,11 +23,16 @@ import tornadofx.*
  */
 // TODO: Add games below a certain score, games without any (or not all) providers
 class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
+    private val violationsReportView: ViolationsReportView by inject()
     private val duplicateGamesReportView: DuplicateGamesReportView by inject()
     private val nameFolderDiffReportView: NameFolderDiffReportView by inject()
 
     private val searchTextfield = searchTextfield()
     private var tabPane: TabPane by singleAssign()
+    private val extraMenuPlaceholder = HBox(5.0).apply {
+        isFillHeight = true
+        useMaxHeight = true
+    }
 
     // Lazy because the tabPane, defined above, is only assigned later on.
     private val currentTab by lazy { tabPane.selectionModel.selectedItemProperty() }
@@ -38,6 +43,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         tabPane = tabpane {
             addClass(CommonStyle.tabbedNavigation)
 
+            reportTab(violationsReportView)
             reportTab(duplicateGamesReportView)
             reportTab(nameFolderDiffReportView)
 
@@ -56,21 +62,16 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
 
     override fun ToolBar.constructToolbar() {
         items += searchTextfield
+        verticalSeparator()
+        items += extraMenuPlaceholder
         spacer()
+
+        verticalSeparator()
         togglegroup {
             tabPane.tabs.forEach { tab ->
                 jfxToggleNode(tab.text, tab.graphic) {
                     isSelected = tab == currentTab.value
                     setOnAction { tabPane.selectionModel.select(tab) }
-
-                    tab.withView { view ->
-                        if (view.extraOptions != null) {
-                            // TODO: Try to find a more elegant way
-                            dropDownMenu(arrowLocation = PopOver.ArrowLocation.TOP_RIGHT) {
-                                children += view.extraOptions
-                            }
-                        }
-                    }
                 }
                 separator()
             }
@@ -120,6 +121,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private fun prepareNewTab(tab: Tab) = tab.withView { view ->
         view.onDock()
         searchTextfield.textProperty().bindBidirectional(view.searchProperty)
+        extraMenuPlaceholder.replaceChildren { view.extraReportMenu(this) }
     }
 
     private fun Tab.withView(f: (ReportView<*>) -> Unit) = f(userData as ReportView<*>)

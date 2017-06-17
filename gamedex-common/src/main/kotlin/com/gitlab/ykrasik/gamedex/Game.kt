@@ -32,6 +32,8 @@ data class Game(
     val releaseDate get() = gameData.releaseDate
     val criticScore get() = gameData.criticScore?.let { if (it.numReviews >= 4) it else null }
     val userScore get() = gameData.userScore?.let { if (it.numReviews >= 4) it else null }
+    val minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c.score, u.score) } }
+    val avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c.score + u.score) / 2 } }
     val genres get() = gameData.genres
 
     val thumbnailUrl get() = imageUrls.thumbnailUrl

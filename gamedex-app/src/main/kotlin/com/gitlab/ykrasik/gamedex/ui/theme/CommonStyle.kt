@@ -36,6 +36,8 @@ class CommonStyle : Stylesheet() {
 
         val popoverMenu by cssclass()
 
+        val platformItem by cssclass()
+
         init {
             importStylesheet(CommonStyle::class)
         }
@@ -119,6 +121,11 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
+        }
+
+        platformItem {
+            prefWidth = 100.px
+            alignment = Pos.CENTER_LEFT
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

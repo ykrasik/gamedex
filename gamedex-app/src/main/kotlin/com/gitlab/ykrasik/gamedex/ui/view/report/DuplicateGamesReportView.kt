@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.core.GameDuplication
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.allowDeselection
 import com.gitlab.ykrasik.gamedex.ui.customGraphicColumn
 import com.gitlab.ykrasik.gamedex.ui.imageViewColumn
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
@@ -23,8 +22,6 @@ class DuplicateGamesReportView : ReportView<GameDuplication>("Duplicate Games", 
     override val ongoingReport get() = reportsController.duplications
 
     override fun reportsView() = tableview<GameDuplication> {
-        allowDeselection(onClickAgain = true)
-
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Provider", fitHeight = 80.0, fitWidth = 160.0, isPreserveRatio = true) { (providerId, _) ->
             providerRepository[providerId].logoImage.toProperty()

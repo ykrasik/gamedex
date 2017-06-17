@@ -37,7 +37,22 @@ fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
     return property
 }
 
-// FIXME: Add a bidirectionalMapBind
+fun <T, R> Property<T>.mapBidirectional(f: (T?) -> R, reverseF: (R?) -> T): Property<R> {
+    val p = SimpleObjectProperty(f(this.value))
+
+    var shouldCall = true
+    this.onChange {
+        shouldCall = false
+        p.value = f(it)
+        shouldCall = true
+    }
+    p.onChange {
+        if (shouldCall) {
+            this.value = reverseF(it)
+        }
+    }
+    return p
+}
 
 fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
     fun doFlatMap() = f(this.value)

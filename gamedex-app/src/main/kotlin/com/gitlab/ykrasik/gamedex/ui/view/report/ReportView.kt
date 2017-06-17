@@ -4,17 +4,17 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
-import com.gitlab.ykrasik.gamedex.ui.customGraphicColumn
-import com.gitlab.ykrasik.gamedex.ui.mapToList
-import com.gitlab.ykrasik.gamedex.ui.mouseTransparentWhen
-import com.gitlab.ykrasik.gamedex.ui.skipFirstTime
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.beans.property.SimpleStringProperty
+import javafx.beans.value.ObservableValue
+import javafx.collections.ObservableList
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.TableView
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
@@ -37,23 +37,25 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     abstract val ongoingReport: ReportsController.OngoingReport<T>
     protected abstract val reportHeader: String
     protected abstract fun reportsView(): Node
-    open val extraOptions: VBox? = null
+
+    open fun extraReportMenu(hbox: HBox) {}        // TODO: Not an amazing solution
 
     val searchProperty = SimpleStringProperty("")
 
     override val root = run {
-        val left = container("Games") {
-            gamesTable = gamesView()
+        val games = ongoingReport.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
+        val left = container(games.sizeProperty().map { "Games: $it" }) {
+            gamesTable = gamesView(games)
             children += gamesTable
         }
-        val right = container(reportHeader) {
+        val right = container(reportHeader.toProperty()) {  // TODO: Display amount of reports
             reportsView = reportsView().apply { vgrow = Priority.ALWAYS }
             children += reportsView
         }
         splitpane(left, right) { setDividerPositions(0.5) }
     }
 
-    private fun gamesView() = tableview(ongoingReport.resultsProperty.mapToList { it.keys.sortedBy { it.name } }) {
+    private fun gamesView(games: ObservableList<Game>) = tableview(games) {
         vgrow = Priority.ALWAYS
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
@@ -67,7 +69,7 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
         onUserSelect { gameController.viewDetails(it) }
 
         searchProperty.onChange { query ->
-            if (query.isNullOrEmpty()) return@onChange 
+            if (query.isNullOrEmpty()) return@onChange
             val match = items.filter { it.matchesSearchQuery(query!!) }.firstOrNull()
             if (match != null) {
                 selectionModel.select(match)
@@ -83,7 +85,7 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     protected fun selectGame(game: Game) = gamesTable.selectionModel.select(game)
     protected fun scrollTo(game: Game) = gamesTable.scrollTo(game)
 
-    private fun container(text: String, op: VBox.() -> Unit) = vbox {
+    private fun container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER
         label(text) { addClass(Style.headerLabel) }
         op(this)
