@@ -43,12 +43,13 @@ class NameFolderDiffReportView : ReportView<GameNameFolderDiff>("Name-Folder Dif
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
                 setOnAction {
-                    gameController.renameFolder(selectedGame, selectionModel.selectedItem.expected)
+                    gameController.renameFolder(selectedGame, selectionModel.selectedItem.expectedName)
                 }
             }
             // TODO: Add a 'search only this provider' option
+            // TODO: Consider adding an 'ignore this diff' option.
         }
 
-        onUserSelect { gameController.renameFolder(selectedGame, it.expected) }
+        onUserSelect { gameController.renameFolder(selectedGame, it.expectedName) }
     }
 }

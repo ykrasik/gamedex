@@ -47,7 +47,6 @@ data class GameDuplication(
 
 // TODO: Add ignore case option
 // TODO: Add option that makes metadata an optional match.
-// TODO: Renaming loses the original metadata tags, fix it.
 @Singleton
 class NameFolderDiffReportGenerator @Inject constructor() {
     fun detectGamesWithNameFolderDiff(games: List<Game>): Report<GameNameFolderDiff> =
@@ -60,37 +59,33 @@ class NameFolderDiffReportGenerator @Inject constructor() {
         }.groupBy({ it.first }, { it.second })
 
     private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
-        val actual = game.folderMetaData
-        val expected = expectedFrom(actual, providerData)
-        if (actual == expected) return null
+        val actualName = game.folderMetaData.rawName
+        val expectedName = expectedFrom(game.folderMetaData, providerData)
+        if (actualName == expectedName) return null
 
-        val patch = DiffUtils.diff(actual.rawName.toList(), expected.rawName.toList())
+        val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
         return GameNameFolderDiff(
             providerId = providerData.header.id,
-            actual = actual,
-            expected = expected,
+            actualName = actualName,
+            expectedName = expectedName,
             patch = patch
         )
     }
 
-    private fun expectedFrom(actual: FolderMetaData, providerData: ProviderData): FolderMetaData {
-        val gameName = NameHandler.toFileName(providerData.gameData.name)
-        val expected = StringBuilder(gameName)
-        // TODO: Add MetaTag
+    // TODO: This logic looks like it should sit on FolderMetaData.
+    private fun expectedFrom(actual: FolderMetaData, providerData: ProviderData): String {
+        val expected = StringBuilder()
+        actual.order?.let { order -> expected.append("[$order] ") }
+        expected.append(NameHandler.toFileName(providerData.gameData.name))
+        actual.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
         actual.version?.let { version -> expected.append(" [$version]") }
-
-        return FolderMetaData(
-            rawName = expected.toString(),
-            gameName = gameName,
-            metaTag = null,
-            version = actual.version
-        )
+        return expected.toString()
     }
 }
 
 data class GameNameFolderDiff(
     val providerId: ProviderId,
-    val actual: FolderMetaData,
-    val expected: FolderMetaData,
+    val actualName: String,
+    val expectedName: String,
     val patch: Patch<Char>
 )

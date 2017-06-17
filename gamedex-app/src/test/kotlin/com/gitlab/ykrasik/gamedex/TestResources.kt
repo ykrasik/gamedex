@@ -78,6 +78,7 @@ fun randomImageUrls() = ImageUrls(
 fun randomFolderMetaData() = FolderMetaData(
     rawName = randomString(),
     gameName = randomString(),
+    order = null,
     metaTag = null,
     version = null
 )

@@ -97,6 +97,7 @@ data class MetaData(
 data class FolderMetaData(
     val rawName: String,
     val gameName: String,
+    val order: Int?,            // TODO: Consider adding option to display this.
     val metaTag: String?,
     val version: String?
 )

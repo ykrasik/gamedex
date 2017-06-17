@@ -8,17 +8,20 @@ import com.gitlab.ykrasik.gamedex.FolderMetaData
  * Time: 13:54
  */
 object NameHandler {
-    private val metaTagRegex = "(\\[.*?\\])".toRegex()
-    private val versionRegex = "(\\[(?i:Alpha|Beta|Update|[A-Za-z])? ?v? ?[\\d\\.]*[A-Za-z]?[\\d\\.]*\\])".toRegex()
+    private val orderRegex = "^\\[\\d*\\]".toRegex()
+    private val versionRegex = "\\[(?i:Alpha|Beta|Update|[A-Za-z])? ?v? ?[\\d\\.]*[A-Za-z]?[\\d\\.]*\\]".toRegex()
+    private val metaTagRegex = "\\[.*?\\]".toRegex()
     private val spacesRegex = "\\s+".toRegex()
 
     fun analyze(rawName: String): FolderMetaData {
-        val (rawNameWithoutVersion, version) = extractMetaData(rawName, versionRegex)
+        val (rawNameWithoutOrder, order) = extractMetaData(rawName, orderRegex)
+        val (rawNameWithoutVersion, version) = extractMetaData(rawNameWithoutOrder, versionRegex)
         val (rawNameWithoutMetaData, metaTag) = extractMetaData(rawNameWithoutVersion, metaTagRegex)
 
         return FolderMetaData(
             rawName = rawName,
             gameName = rawNameWithoutMetaData.collapseSpaces(),
+            order = order?.toInt(),
             metaTag = metaTag,
             version = version
         )
@@ -31,7 +34,7 @@ object NameHandler {
         return rawNameWithoutMetaData to metaData
     }
 
-    fun fromFileName(name: String) = name.replace(" - ", ": ").collapseSpaces()
+    fun fromFileName(name: String) = name.collapseSpaces().replace(" - ", ": ")
     fun toFileName(name: String) = name.replace(": ", " - ")
         .replace("/", " ")
         .replace("\\", " ")

@@ -233,14 +233,16 @@ class GameController @Inject constructor(
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
-    fun renameFolder(game: Game, initialSuggestion: FolderMetaData) = launch(JavaFx) {
-        val newRelativePath = RenameFolderFragment(game, initialSuggestion.rawName).show() ?: return@launch
-        val newAbsolutePath = File(game.path.parent, newRelativePath.path)
+    // FIXME: Add full support for rename/move
+    fun renameFolder(game: Game, initialSuggestion: String) = launch(JavaFx) {
+        val relativePath = RenameFolderFragment(game, initialSuggestion).show() ?: return@launch
+        val newAbsolutePath = File(game.path.parent, relativePath.path)
         logger.info("Renaming: ${game.path} -> $newAbsolutePath")
         
         if (game.path.renameTo(newAbsolutePath)) {
             val rawGame = game.rawGame
             val metaData = rawGame.metaData
+            val newRelativePath = newAbsolutePath.relativeTo(game.library.path)
             gameRepository.update(rawGame.copy(metaData = metaData.copy(path = newRelativePath)))
         } else {
             errorAlert("Error renaming folder!") {
