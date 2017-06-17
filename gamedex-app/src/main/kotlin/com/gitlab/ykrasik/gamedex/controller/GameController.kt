@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
@@ -66,9 +67,7 @@ class GameController @Inject constructor(
             listFilter(tags) { t -> game.tags.any { it == t } }
         }
 
-        val searchPredicate = searchQueryProperty.toPredicate { query, game: Game ->
-            query!!.isEmpty() || query.split(" ").all { word -> game.name.contains(word, ignoreCase = true) }
-        }
+        val searchPredicate = searchQueryProperty.toPredicate { query, game: Game -> game.matchesSearchQuery(query!!) }
 
         libraryPredicate and genrePredicate and tagPredicate and searchPredicate
     }

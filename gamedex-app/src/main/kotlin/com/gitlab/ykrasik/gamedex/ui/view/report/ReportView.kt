@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
+import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.ui.customGraphicColumn
 import com.gitlab.ykrasik.gamedex.ui.mapToList
 import com.gitlab.ykrasik.gamedex.ui.mouseTransparentWhen
@@ -10,6 +11,7 @@ import com.gitlab.ykrasik.gamedex.ui.skipFirstTime
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
+import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.TableView
@@ -37,6 +39,8 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     protected abstract fun reportsView(): Node
     open val extraOptions: VBox? = null
 
+    val searchProperty = SimpleStringProperty("")
+
     override val root = run {
         val left = container("Games") {
             gamesTable = gamesView()
@@ -61,6 +65,15 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
         onUserSelect { gameController.viewDetails(it) }
+
+        searchProperty.onChange { query ->
+            if (query.isNullOrEmpty()) return@onChange 
+            val match = items.filter { it.matchesSearchQuery(query!!) }.firstOrNull()
+            if (match != null) {
+                selectionModel.select(match)
+                scrollTo(match)
+            }
+        }
 
         ongoingReport.resultsProperty.onChange { resizeColumnsToFitContent() }
     }
