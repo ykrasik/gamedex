@@ -15,7 +15,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 18:41
  */
-class NameFolderDiffView : ReportView<GameNameFolderDiff>("Name-Folder Diff", Theme.Icon.book()) {
+class NameFolderDiffReportView : ReportView<GameNameFolderDiff>("Name-Folder Diff", Theme.Icon.book()) {
     private val providerRepository: GameProviderRepository by di()
 
     override val reportHeader get() = "Differences"

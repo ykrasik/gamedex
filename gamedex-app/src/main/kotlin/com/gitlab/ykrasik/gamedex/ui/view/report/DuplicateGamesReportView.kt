@@ -16,7 +16,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 11:32
  */
-class DuplicateGamesView : ReportView<GameDuplication>("Duplicate Games", Theme.Icon.book()) {
+class DuplicateGamesReportView : ReportView<GameDuplication>("Duplicate Games", Theme.Icon.book()) {
     private val providerRepository: GameProviderRepository by di()
 
     override val reportHeader get() = "Duplications"

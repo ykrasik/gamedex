@@ -14,6 +14,7 @@ import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.ui.view.report.RenameFolderFragment
+import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
@@ -42,6 +43,8 @@ class GameController @Inject constructor(
     private val settings: GameSettings
 ) : Controller() {
     private val mainView: MainView by inject()
+
+    private val logger = logger()
 
     private val filtersForPlatformProperty = settings.filtersProperty.gettingOrElse(settings.platformProperty, GameSettings.FilterSet())
     val filteredLibrariesProperty = filtersForPlatformProperty.map { it!!.libraries }.apply { onChange { filterLibraries(it!!) } }
@@ -230,9 +233,11 @@ class GameController @Inject constructor(
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
-    fun renameFolder(game: Game, initialSuggestion: String) = launch(JavaFx) {
-        val newRelativePath = RenameFolderFragment(game, initialSuggestion).show() ?: return@launch
-        val newAbsolutePath = File(game.path.parentFile, newRelativePath.path)
+    fun renameFolder(game: Game, initialSuggestion: FolderMetaData) = launch(JavaFx) {
+        val newRelativePath = RenameFolderFragment(game, initialSuggestion.rawName).show() ?: return@launch
+        val newAbsolutePath = File(game.path.parent, newRelativePath.path)
+        logger.info("Renaming: ${game.path} -> $newAbsolutePath")
+        
         if (game.path.renameTo(newAbsolutePath)) {
             val rawGame = game.rawGame
             val metaData = rawGame.metaData

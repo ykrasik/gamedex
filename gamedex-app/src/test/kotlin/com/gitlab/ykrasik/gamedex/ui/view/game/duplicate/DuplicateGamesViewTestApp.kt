@@ -7,7 +7,7 @@ import com.gitlab.ykrasik.gamedex.randomGame
 import com.gitlab.ykrasik.gamedex.randomProviderHeader
 import com.gitlab.ykrasik.gamedex.test.randomElementExcluding
 import com.gitlab.ykrasik.gamedex.test.rnd
-import com.gitlab.ykrasik.gamedex.ui.view.report.DuplicateGamesView
+import com.gitlab.ykrasik.gamedex.ui.view.report.DuplicateGamesReportView
 import tornadofx.FX
 
 /**
@@ -15,8 +15,8 @@ import tornadofx.FX
  * Date: 10/06/2017
  * Time: 12:41
  */
-object DuplicateGamesViewTestApp : BaseTestApp<DuplicateGamesView>(DuplicateGamesView::class) {
-    override fun init(view: DuplicateGamesView) {
+object DuplicateGamesViewTestApp : BaseTestApp<DuplicateGamesReportView>(DuplicateGamesReportView::class) {
+    override fun init(view: DuplicateGamesReportView) {
         val games = List(10) { randomGame() }
         val duplicates = games.map { game ->
             game to List(rnd.nextInt(3) + 1) {

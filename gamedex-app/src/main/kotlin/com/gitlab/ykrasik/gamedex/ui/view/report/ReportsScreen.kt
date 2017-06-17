@@ -18,8 +18,8 @@ import tornadofx.*
  */
 // TODO: Add games below a certain score, games without any (or not all) providers
 class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
-    private val duplicateGamesView: DuplicateGamesView by inject()
-    private val nameFolderDiffView: NameFolderDiffView by inject()
+    private val duplicateGamesReportView: DuplicateGamesReportView by inject()
+    private val nameFolderDiffReportView: NameFolderDiffReportView by inject()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -32,8 +32,8 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         tabPane = tabpane {
             addClass(CommonStyle.tabbedNavigation)
 
-            reportTab(duplicateGamesView)
-            reportTab(nameFolderDiffView)
+            reportTab(duplicateGamesReportView)
+            reportTab(nameFolderDiffReportView)
 
             selectionModel.selectedItemProperty().addListener { _, closedTab, openedTab ->
                 cleanupClosedTab(closedTab)

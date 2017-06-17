@@ -51,34 +51,46 @@ data class GameDuplication(
 @Singleton
 class NameFolderDiffReportGenerator @Inject constructor() {
     fun detectGamesWithNameFolderDiff(games: List<Game>): Report<GameNameFolderDiff> =
-        games.asSequence().flatMap { game ->
+        games.flatMap { game ->
+            // TODO: If the majority of providers agree with the name, it is not a diff.
             game.rawGame.providerData.mapNotNull { providerData ->
                 val difference = diff(game, providerData) ?: return@mapNotNull null
                 game to difference
-            }.asSequence()
+            }
         }.groupBy({ it.first }, { it.second })
 
     private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
-        val folderMetaData = NameHandler.analyze(game.path.name)
-        val actualName = folderMetaData.gameName
-        val expectedName = NameHandler.toFileName(providerData.gameData.name)
+        val actual = game.folderMetaData
+        val expected = expectedFrom(actual, providerData)
+        if (actual == expected) return null
 
-        // TODO: This comparison needs to be smarter - account for metaTag.
-        if (actualName == expectedName) return null
-
-        val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
+        val patch = DiffUtils.diff(actual.rawName.toList(), expected.rawName.toList())
         return GameNameFolderDiff(
             providerId = providerData.header.id,
-            actualName = folderMetaData,
-            expected = expectedName,
+            actual = actual,
+            expected = expected,
             patch = patch
+        )
+    }
+
+    private fun expectedFrom(actual: FolderMetaData, providerData: ProviderData): FolderMetaData {
+        val gameName = NameHandler.toFileName(providerData.gameData.name)
+        val expected = StringBuilder(gameName)
+        // TODO: Add MetaTag
+        actual.version?.let { version -> expected.append(" [$version]") }
+
+        return FolderMetaData(
+            rawName = expected.toString(),
+            gameName = gameName,
+            metaTag = null,
+            version = actual.version
         )
     }
 }
 
 data class GameNameFolderDiff(
     val providerId: ProviderId,
-    val actualName: FolderMetaData,
-    val expected: String,
+    val actual: FolderMetaData,
+    val expected: FolderMetaData,
     val patch: Patch<Char>
 )
