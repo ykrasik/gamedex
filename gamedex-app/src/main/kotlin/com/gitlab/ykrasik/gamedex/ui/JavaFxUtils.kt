@@ -9,11 +9,13 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Stage
 import javafx.util.Duration
@@ -96,13 +98,12 @@ private fun printSize(id: String,
     actual.printChanges("$id $sizeName")
 }
 
-fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView {
+fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView = apply {
     imageProperty().onChange {
         fade(fadeInDuration, 1.0, play = true) {
             fromValue = 0.0
         }
     }
-    return this
 }
 
 fun Region.padding(op: (InsetBuilder.() -> Unit)) {
@@ -174,4 +175,13 @@ fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
 
 fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
+}
+
+fun EventTarget.labeled(text: String, f: Pane.() -> Unit) = hbox(spacing = 5.0) {
+    alignment = Pos.CENTER_LEFT
+    val label = label(text)
+    val fakePane = Pane()
+    f(fakePane)
+    label.labelFor = fakePane.children.first()
+    children += fakePane.children
 }

@@ -27,49 +27,48 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
             field("Type") { enumComboBox(settings.game.displayTypeProperty) }
         }
 
-        overlaySettings("MetaTag", settings.gameWall.metaTagOverlay)
-        overlaySettings("Version", settings.gameWall.versionOverlay)
-        cellSettings()
+        fieldset("Overlay") {
+            visibleWhen { isWallDisplay }
+            overlaySettings("MetaTag", settings.gameWall.metaTagOverlay)
+            overlaySettings("Version", settings.gameWall.versionOverlay)
+        }
+        fieldset("Cell") {
+            setId(Style.gameWallSettings)
+            visibleWhen { isWallDisplay }
+            cellSettings()
+        }
     }
 
     // TODO: Configure overlay color.
-    private fun Form.overlaySettings(name: String, settings: GameWallSettings.GameWallOverlaySettings) =
-        fieldset("Game Wall $name Overlay") {
-            visibleWhen { isWallDisplay }
-
-            field("Display $name Overlay") {
-                hbox(spacing = 5.0) {
-                    alignment = Pos.CENTER_LEFT
-                    jfxToggleButton(settings.isShowProperty)
-                    labeled("Location") { enumComboBox(settings.locationProperty) }.apply { showWhen { settings.isShowProperty } }
-                    jfxToggleButton(settings.fillWidthProperty) {
-                        showWhen { settings.isShowProperty }
-                        text = "Fill Width"
-                    }
+    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.GameWallOverlaySettings) =
+        field("Display $name Overlay") {
+            hbox(spacing = 5.0) {
+                alignment = Pos.CENTER_LEFT
+                jfxToggleButton(settings.isShowProperty)
+                labeled("Location") { enumComboBox(settings.locationProperty) }.apply { showWhen { settings.isShowProperty } }
+                jfxToggleButton(settings.fillWidthProperty) {
+                    showWhen { settings.isShowProperty }
+                    text = "Fill Width"
                 }
             }
         }
 
-    private fun Form.cellSettings() =
-        fieldset("Game Wall Cell") {
-            setId(Style.gameWallSettings)
-            visibleWhen { isWallDisplay }
-
-            field("Cell Fixed Size") {
-                hbox(spacing = 5.0) {
-                    alignment = Pos.CENTER_LEFT
-                    jfxToggleButton(settings.gameWall.cell.isFixedSizeProperty)
-                    labeled("Thumbnail") { enumComboBox(settings.gameWall.cell.imageDisplayTypeProperty) }.apply {
-                        showWhen { settings.gameWall.cell.isFixedSizeProperty.not() }
-                    }
+    private fun Fieldset.cellSettings() {
+        field("Fixed Size") {
+            hbox(spacing = 5.0) {
+                alignment = Pos.CENTER_LEFT
+                jfxToggleButton(settings.gameWall.cell.isFixedSizeProperty)
+                labeled("Thumbnail") { enumComboBox(settings.gameWall.cell.imageDisplayTypeProperty) }.apply {
+                    showWhen { settings.gameWall.cell.isFixedSizeProperty }
                 }
             }
-            field("Show Border") { jfxToggleButton(settings.gameWall.cell.isShowBorderProperty) }
-            field("Width") { adjustableTextField(settings.gameWall.cell.widthProperty, "cell width", min = 20.0, max = 500.0) }
-            field("Height") { adjustableTextField(settings.gameWall.cell.heightProperty, "cell height", min = 20.0, max = 500.0) }
-            field("Horizontal Spacing") { adjustableTextField(settings.gameWall.cell.horizontalSpacingProperty, "horizontal spacing", min = 0.0, max = 100.0) }
-            field("Vertical Spacing") { adjustableTextField(settings.gameWall.cell.verticalSpacingProperty, "vertical spacing", min = 0.0, max = 100.0) }
         }
+        field("Border") { jfxToggleButton(settings.gameWall.cell.isShowBorderProperty) }
+        field("Width") { adjustableTextField(settings.gameWall.cell.widthProperty, "cell width", min = 20.0, max = 500.0) }
+        field("Height") { adjustableTextField(settings.gameWall.cell.heightProperty, "cell height", min = 20.0, max = 500.0) }
+        field("Horizontal Spacing") { adjustableTextField(settings.gameWall.cell.horizontalSpacingProperty, "horizontal spacing", min = 0.0, max = 100.0) }
+        field("Vertical Spacing") { adjustableTextField(settings.gameWall.cell.verticalSpacingProperty, "vertical spacing", min = 0.0, max = 100.0) }
+    }
 
     class Style : Stylesheet() {
         companion object {

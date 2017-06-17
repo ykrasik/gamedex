@@ -22,11 +22,11 @@ class GameWallSettings : SettingsScope() {
 
     inner class GameWallCellSettings : SubSettings() {
         @Transient
-        val imageDisplayTypeProperty = preferenceProperty(ImageDisplayType.fit)
+        val imageDisplayTypeProperty = preferenceProperty(ImageDisplayType.stretch)
         var imageDisplayType by imageDisplayTypeProperty
 
         @Transient
-        val isFixedSizeProperty = preferenceProperty(false)
+        val isFixedSizeProperty = preferenceProperty(true)
         var isFixedSize by isFixedSizeProperty
 
         @Transient
@@ -34,15 +34,15 @@ class GameWallSettings : SettingsScope() {
         var isShowBorder by isShowBorderProperty
 
         @Transient
-        val widthProperty = preferenceProperty(168.9)
+        val widthProperty = preferenceProperty(166)
         var width by widthProperty
 
         @Transient
-        val heightProperty = preferenceProperty(168.9)
+        val heightProperty = preferenceProperty(166)
         var height by heightProperty
 
         @Transient
-        val horizontalSpacingProperty = preferenceProperty(2.0)
+        val horizontalSpacingProperty = preferenceProperty(3.0)
         var horizontalSpacing by horizontalSpacingProperty
 
         @Transient

@@ -55,6 +55,12 @@ fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
     this.onChange { doPerform() }
 }
 
+fun <T> ObservableValue<T>.weakPerform(f: (T) -> Unit): ChangeListener<T> {
+    fun doPerform() = f(value)
+    doPerform()
+    return this.onWeakChange { doPerform() }
+}
+
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
     map { t -> Predicate { r: R -> f(t, r) } }
 

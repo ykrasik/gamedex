@@ -11,6 +11,7 @@ import javafx.scene.layout.Pane
  * Date: 30/03/2017
  * Time: 08:36
  */
+// TODO: Distorts the image sometimes.
 class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
     init {
         children += imageView

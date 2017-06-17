@@ -39,6 +39,7 @@ fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(tex
     isClosable = false
 }
 
+// TODO: Should probably replace with popoverComboMenu
 inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: (ComboBox<T>.() -> Unit)? = null): ComboBox<T> {
     val enumValues = T::class.java.enumConstants.asList().observable<T>()
     return combobox(property, enumValues, op)
@@ -125,6 +126,10 @@ fun Node.clipRectangle(op: Rectangle.() -> Unit) {
     clip = Rectangle().apply(op)
 }
 
+fun EventTarget.jfxToggleButton(p: Property<Boolean>, op: (JFXToggleButton.() -> Unit)? = null) = jfxToggleButton {
+    selectedProperty().bindBidirectional(p)
+    op?.invoke(this)
+}
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
 
 fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
