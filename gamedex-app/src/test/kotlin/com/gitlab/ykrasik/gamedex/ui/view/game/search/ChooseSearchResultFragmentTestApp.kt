@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.testProviderIds
 
 /**
  * User: ykrasik

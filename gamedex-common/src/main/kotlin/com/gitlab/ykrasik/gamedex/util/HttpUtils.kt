@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.GameDexException
+import com.gitlab.ykrasik.gamedex.GamedexException
 import khttp.get
 import khttp.responses.Response
 import java.io.ByteArrayOutputStream
@@ -29,7 +29,7 @@ fun Response.assertOk(errorParser: (String) -> String = String::toString) {
         } else {
             ""
         }
-        throw GameDexException("[${request.method}] ${request.url} returned $statusCode$errorMessage")
+        throw GamedexException("[${request.method}] ${request.url} returned $statusCode$errorMessage")
     }
 }
 

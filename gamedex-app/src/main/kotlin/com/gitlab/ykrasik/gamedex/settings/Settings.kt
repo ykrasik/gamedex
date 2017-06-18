@@ -14,7 +14,8 @@ class Settings private constructor(
     val general: GeneralSettings = GeneralSettings(),
     val provider: ProviderSettings = ProviderSettings(),
     val game: GameSettings = GameSettings(),
-    val gameWall: GameWallSettings = GameWallSettings()
+    val gameWall: GameWallSettings = GameWallSettings(),
+    val report: ReportSettings = ReportSettings()
 ) {
     // Jackson constructs the objects by calling it's setters on the properties. Calling a setter = write to file.
     // Disable writing the object to the file while it is being constructed.
@@ -26,6 +27,7 @@ class Settings private constructor(
         provider.updateOnChange()
         game.updateOnChange()
         gameWall.updateOnChange()
+        report.updateOnChange()
     }
 
     private fun SettingsScope.updateOnChange() = changedProperty.onChange {

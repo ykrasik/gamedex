@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.tag
 
 import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.randomGame
+import com.gitlab.ykrasik.gamedex.test.randomGame
 
 /**
  * User: ykrasik

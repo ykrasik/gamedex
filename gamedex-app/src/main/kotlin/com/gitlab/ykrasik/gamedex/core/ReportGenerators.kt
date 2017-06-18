@@ -16,6 +16,23 @@ import javax.inject.Singleton
 typealias Report<T> = Map<Game, List<T>>
 
 @Singleton
+class ViolationsReportGenerator {
+    fun generateReport(games: List<Game>, config: ReportConfig): Report<RuleResult.Fail> {
+        // Detect candidates
+        var context = ReportRule.ReportContext(games)
+        val candidates = games.filter { game -> config.filters.check(game, context) == RuleResult.Pass }
+
+        // Evaluate rules
+        context = context.copy(games = candidates)
+        val violations = candidates.mapNotNull { game ->
+            val violation = config.rules.check(game, context)
+            if (violation is RuleResult.Fail) game to violation else null
+        }
+        return violations.toMultiMap()
+    }
+}
+
+@Singleton
 class GameDuplicationReportGenerator {
     fun detectDuplications(games: List<Game>): Report<GameDuplication> {
         val headerToGames = games.asSequence()

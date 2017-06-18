@@ -65,7 +65,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
             "throw GameDexException on invalid response status".inScope(Scope()) {
                 givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.badFormat, emptyList()))
 
-                shouldThrow<GameDexException> {
+                shouldThrow<GamedexException> {
                     search()
                 }
             }
@@ -128,7 +128,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
             "throw GameDexException on invalid response status".inScope(Scope()) {
                 givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
 
-                shouldThrow<GameDexException> {
+                shouldThrow<GamedexException> {
                     download()
                 }
             }

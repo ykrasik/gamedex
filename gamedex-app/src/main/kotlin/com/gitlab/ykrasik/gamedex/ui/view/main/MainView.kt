@@ -16,6 +16,7 @@ import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
+import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -42,6 +43,8 @@ class MainView : View("Gamedex") {
     private var toolbar: ToolBar by singleAssign()
 
     private lateinit var previousScreen: Tab
+
+    private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
 
     override val root = persistentNotification.apply {
         content = borderpane {
@@ -119,16 +122,20 @@ class MainView : View("Gamedex") {
 
     private fun Tab.populateToolbar() = (userData as GamedexScreen).populateToolbar()
 
-    // TODO: Should really consider only constructing this once.
     private fun GamedexScreen.populateToolbar() {
         toolbar.replaceChildren {
-            if (useDefaultNavigationButton) {
-                items += mainNavigationButton
-            } else {
-                backButton { setOnAction { selectPreviousScreen() } }
+            items += screenToolbars.getOrPut(this@populateToolbar) {
+                // TODO: Find a neater solution, like not using ToolBar.constructToolbar()
+                ToolBar().apply {
+                    if (useDefaultNavigationButton) {
+                        items += mainNavigationButton
+                    } else {
+                        backButton { setOnAction { selectPreviousScreen() } }
+                    }
+                    verticalSeparator()
+                    this.constructToolbar()
+                }.items
             }
-            verticalSeparator()
-            this.constructToolbar()
         }
     }
 

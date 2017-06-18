@@ -3,9 +3,9 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.duplicate
 import com.gitlab.ykrasik.gamedex.BaseTestApp
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.GameDuplication
-import com.gitlab.ykrasik.gamedex.randomGame
-import com.gitlab.ykrasik.gamedex.randomProviderHeader
 import com.gitlab.ykrasik.gamedex.test.randomElementExcluding
+import com.gitlab.ykrasik.gamedex.test.randomGame
+import com.gitlab.ykrasik.gamedex.test.randomProviderHeader
 import com.gitlab.ykrasik.gamedex.test.rnd
 import com.gitlab.ykrasik.gamedex.ui.view.report.DuplicateGamesReportView
 import tornadofx.FX

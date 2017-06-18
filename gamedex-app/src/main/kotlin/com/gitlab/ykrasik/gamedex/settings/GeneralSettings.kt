@@ -28,6 +28,6 @@ class GeneralSettings : SettingsScope() {
     var logTail by logTailProperty
 
     @Transient
-    val amountOfDiComponentsProperty = preferenceProperty(25)
+    val amountOfDiComponentsProperty = preferenceProperty(27)
     var amountOfDiComponents by amountOfDiComponentsProperty
 }

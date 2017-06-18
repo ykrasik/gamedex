@@ -3,18 +3,21 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
+import com.gitlab.ykrasik.gamedex.core.ReportConfig
+import com.gitlab.ykrasik.gamedex.core.RuleResult
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
+import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
+import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.Node
 import javafx.scene.control.TableView
-import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
@@ -25,20 +28,15 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
+class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.book()) {
     private val gameContextMenu: GameContextMenu by inject()
 
-    protected val reportsController: ReportsController by di()
-    protected val gameController: GameController by di()
+    private val reportsController: ReportsController by di()
+    private val gameController: GameController by di()
 
     private var gamesTable: TableView<Game> by singleAssign()
-    protected var reportsView: Node by singleAssign()
 
-    abstract val ongoingReport: ReportsController.OngoingReport<T>
-    protected abstract val reportHeader: String
-    protected abstract fun reportsView(): Node
-
-    open fun extraReportMenu(hbox: HBox) {}        // TODO: Not an amazing solution
+    val ongoingReport: ReportsController.OngoingReport = reportsController.generateReport(reportConfig)
 
     val searchProperty = SimpleStringProperty("")
 
@@ -46,16 +44,16 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
         val games = ongoingReport.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
         val left = container(games.sizeProperty().map { "Games: $it" }) {
             gamesTable = gamesView(games)
-            children += gamesTable
+            gamesTable
         }
-        val right = container(reportHeader.toProperty()) {  // TODO: Display amount of reports
-            reportsView = reportsView().apply { vgrow = Priority.ALWAYS }
-            children += reportsView
+
+        val right = container(selectedGameProperty.map { "Violations: ${ongoingReport.resultsProperty.value[it]?.size ?: 0}" }) {
+            violationsView()
         }
-        splitpane(left, right) { setDividerPositions(0.5) }
+        splitpane(left, right) { setDividerPositions(0.45) }
     }
 
-    private fun gamesView(games: ObservableList<Game>) = tableview(games) {
+    private fun EventTarget.gamesView(games: ObservableList<Game>) = tableview(games) {
         vgrow = Priority.ALWAYS
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
@@ -80,10 +78,24 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
         ongoingReport.resultsProperty.onChange { resizeColumnsToFitContent() }
     }
 
-    protected val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
-    protected val selectedGame get() = gamesTable.selectionModel.selectedItem
-    protected fun selectGame(game: Game) = gamesTable.selectionModel.select(game)
-    protected fun scrollTo(game: Game) = gamesTable.scrollTo(game)
+    private fun EventTarget.violationsView() = tableview<RuleResult.Fail> {
+        vgrow = Priority.ALWAYS
+
+        // FIXME: Render each violation in a per-report way.
+        makeIndexColumn().apply { addClass(CommonStyle.centered) }
+        simpleColumn("Rule") { violation -> violation.rule }
+        simpleColumn("Value") { violation -> violation.value.toDisplayString() }
+
+        selectedGameProperty.onChange { selectedGame ->
+            items = selectedGame?.let { ongoingReport.resultsProperty.value[it]!!.observable() }
+            resizeColumnsToFitContent()
+        }
+    }
+
+    private val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
+    private val selectedGame get() = gamesTable.selectionModel.selectedItem
+    private fun selectGame(game: Game) = gamesTable.selectionModel.select(game)
+    private fun scrollTo(game: Game) = gamesTable.scrollTo(game)
 
     private fun container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER
@@ -92,9 +104,8 @@ abstract class ReportView<T>(title: String, icon: Node) : View(title, icon) {
     }
 
     override fun onDock() {
-        // This is called on application startup, but we don't want to start any calculations before
-        // the user explicitly entered the reports screen. A bit of a hack.
-        skipFirstTime { ongoingReport.start() }
+        println("$this: Starting: $reportConfig")
+        ongoingReport.start()
     }
 
     override fun onUndock() = ongoingReport.stop()

@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import com.gitlab.ykrasik.gamedex.GameDexException
+import com.gitlab.ykrasik.gamedex.GamedexException
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
@@ -43,7 +43,7 @@ class IgdbClientIT : ScopedWordSpec() {
             "throw GameDexException on invalid http response status".inScope(Scope()) {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
-                val e = shouldThrow<GameDexException> {
+                val e = shouldThrow<GamedexException> {
                     client.search(name, platform)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
@@ -67,7 +67,7 @@ class IgdbClientIT : ScopedWordSpec() {
             "throw GameDexException on invalid http response status".inScope(Scope()) {
                 server.aFetchRequest(id) willFailWith HttpStatus.BAD_REQUEST_400
 
-                val e = shouldThrow<GameDexException> {
+                val e = shouldThrow<GamedexException> {
                     client.fetch(detailUrl)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())

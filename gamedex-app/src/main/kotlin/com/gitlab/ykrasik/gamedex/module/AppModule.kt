@@ -25,27 +25,12 @@ object AppModule : AbstractModule() {
         bind(ImageLoader::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun newDirectoryDetector() = newDirectoryDetector
+    @Provides @Singleton fun newDirectoryDetector() = newDirectoryDetector
 
-    @Provides
-    @Singleton
-    fun settings() = Settings()
-
-    @Provides
-    @Singleton
-    fun generalSettings(settings: Settings) = settings.general
-
-    @Provides
-    @Singleton
-    fun providerSettings(settings: Settings) = settings.provider
-
-    @Provides
-    @Singleton
-    fun gameSettings(settings: Settings) = settings.game
-
-    @Provides
-    @Singleton
-    fun gameWallSettings(settings: Settings) = settings.gameWall
+    @Provides @Singleton fun settings() = Settings()
+    @Provides @Singleton fun generalSettings(settings: Settings) = settings.general
+    @Provides @Singleton fun providerSettings(settings: Settings) = settings.provider
+    @Provides @Singleton fun gameSettings(settings: Settings) = settings.game
+    @Provides @Singleton fun gameWallSettings(settings: Settings) = settings.gameWall
+    @Provides @Singleton fun reportSettings(settings: Settings) = settings.report
 }

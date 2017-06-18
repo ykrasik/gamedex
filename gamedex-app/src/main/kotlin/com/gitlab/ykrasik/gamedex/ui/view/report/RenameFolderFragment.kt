@@ -16,6 +16,7 @@ import java.nio.file.Paths
  * Date: 11/06/2017
  * Time: 19:47
  */
+// TODO: Make this something available outside of reports.
 class RenameFolderFragment(private val game: Game, initialSuggestion: String) : Fragment("Rename '${game.path}'") {
     private var accept = false
 

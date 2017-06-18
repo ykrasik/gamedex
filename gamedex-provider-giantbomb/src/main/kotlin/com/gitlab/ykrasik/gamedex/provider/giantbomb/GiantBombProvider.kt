@@ -73,7 +73,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
 
     private fun assertOk(status: GiantBombClient.Status) {
         if (status != GiantBombClient.Status.ok) {
-            throw GameDexException("Invalid statusCode: $status")
+            throw GamedexException("Invalid statusCode: $status")
         }
     }
 

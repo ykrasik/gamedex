@@ -14,7 +14,7 @@ import java.nio.file.Paths
 data class Game(
     val rawGame: RawGame,
     val library: Library,
-    private val gameData: GameData,
+    val gameData: GameData,
     val providerHeaders: List<ProviderHeader>,
     val imageUrls: ImageUrls,
     val folderMetaData: FolderMetaData  // TODO: Is this the best place to put this?
