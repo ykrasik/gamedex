@@ -3,10 +3,10 @@ package com.gitlab.ykrasik.gamedex.core
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.util.toMultiMap
+import difflib.DiffUtils
+import difflib.Patch
 import org.joda.time.DateTime
 
 /**
@@ -37,7 +37,8 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Rules.True::class, name = "trueRule"),
     JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "criticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "userScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.NoDuplications::class, name = "duplications")
+    JsonSubTypes.Type(value = ReportRule.Rules.NoDuplications::class, name = "duplications"),
+    JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
 )
 @JsonIgnoreProperties("name")
 sealed class ReportRule {
@@ -179,7 +180,8 @@ sealed class ReportRule {
             (True().name to { True() }) +
             (CriticScore().name to { CriticScore() }) +
             (UserScore().name to { UserScore() }) +
-            (NoDuplications().name to { NoDuplications() })
+            (NoDuplications().name to { NoDuplications() }) +
+            (NameDiff().name to { NameDiff() })
 
         abstract class Rule(override val name: String) : ReportRule()
 
@@ -201,17 +203,16 @@ sealed class ReportRule {
             override fun toString() = "userScore >= $min"
         }
 
+        // TODO: Add ignore case option
+        // TODO: Add option that makes metadata an optional match.
         class NoDuplications : Rule("No Duplications") {
-            private val key = "NoDuplications.result"
-
             override fun check(game: Game, context: ReportContext): RuleResult {
                 val allDuplications = calculate(context)
                 val duplication = allDuplications[game]
                 return if (duplication != null) RuleResult.Fail(duplication, this) else RuleResult.Pass
             }
 
-            @Suppress("UNCHECKED_CAST")
-            private fun calculate(context: ReportContext): Report<GameDuplication> = context.getOrPut(key) {
+            private fun calculate(context: ReportContext) = context.getOrPut("NoDuplications.result") {
                 val headerToGames = context.games.asSequence()
                     .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
                     .toMultiMap()
@@ -230,16 +231,72 @@ sealed class ReportRule {
                 }.toMultiMap()
 
                 duplicateGames
-            } as Report<GameDuplication>
+            }
 
             private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
         }
+
+        data class GameDuplication(
+            val providerId: ProviderId,
+            val duplicatedGame: Game
+        )
+
+        class NameDiff : Rule("Name-Folder Diff") {
+            override fun check(game: Game, context: ReportContext): RuleResult {
+                val allDuplications = calculate(context)
+                val duplication = allDuplications[game]
+                return if (duplication != null) RuleResult.Fail(duplication, this) else RuleResult.Pass
+            }
+
+            private fun calculate(context: ReportContext) = context.getOrPut("NameDiff.result") {
+                context.games.flatMap { game ->
+                    // TODO: If the majority of providers agree with the name, it is not a diff.
+                    game.rawGame.providerData.mapNotNull { providerData ->
+                        val difference = diff(game, providerData) ?: return@mapNotNull null
+                        game to difference
+                    }
+                }.toMultiMap()
+            }
+
+            private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
+                val actualName = game.folderMetaData.rawName
+                val expectedName = expectedFrom(game.folderMetaData, providerData)
+                if (actualName == expectedName) return null
+
+                val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
+                return GameNameFolderDiff(
+                    providerId = providerData.header.id,
+                    actualName = actualName,
+                    expectedName = expectedName,
+                    patch = patch
+                )
+            }
+
+            // TODO: This logic looks like it should sit on FolderMetaData.
+            private fun expectedFrom(actual: FolderMetaData, providerData: ProviderData): String {
+                val expected = StringBuilder()
+                actual.order?.let { order -> expected.append("[$order] ") }
+                expected.append(NameHandler.toFileName(providerData.gameData.name))
+                actual.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
+                actual.version?.let { version -> expected.append(" [$version]") }
+                return expected.toString()
+            }
+        }
+
+        data class GameNameFolderDiff(
+            val providerId: ProviderId,
+            val actualName: String,
+            val expectedName: String,
+            val patch: Patch<Char>
+        )
     }
 
     data class ReportContext(val games: List<Game>) {
         private val properties = mutableMapOf<String, Any>()
         operator fun get(key: String) = properties[key]
-        fun getOrPut(key: String, defaultValue: () -> Any) = properties.getOrPut(key, defaultValue)
+
+        @Suppress("UNCHECKED_CAST")
+        fun <T> getOrPut(key: String, defaultValue: () -> T) = properties.getOrPut(key, defaultValue as () -> Any) as T
     }
 }
 

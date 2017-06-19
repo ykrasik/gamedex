@@ -15,6 +15,7 @@ import tornadofx.*
  * Date: 17/06/2017
  * Time: 16:56
  */
+// TOOD: Add unallowed names
 class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Config") {
     private val reportConfigProperty = SimpleObjectProperty(initialConfig)
     private var reportConfig by reportConfigProperty

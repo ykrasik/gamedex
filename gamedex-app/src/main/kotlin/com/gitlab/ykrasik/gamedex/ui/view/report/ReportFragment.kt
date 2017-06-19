@@ -28,6 +28,7 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
+// TODO: Should consider making this a view and just re-binding the report to it.
 class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.book()) {
     private val gameContextMenu: GameContextMenu by inject()
 
@@ -36,18 +37,18 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
     private var gamesTable: TableView<Game> by singleAssign()
 
-    val ongoingReport: ReportsController.OngoingReport = reportsController.generateReport(reportConfig)
+    val report = reportsController.generateReport(reportConfig)
 
     val searchProperty = SimpleStringProperty("")
 
     override val root = run {
-        val games = ongoingReport.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
-        val left = container(games.sizeProperty().map { "Games: $it" }) {
+        val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
+        val left = container(games.mapProperty { "Games: ${it.size}" }) {
             gamesTable = gamesView(games)
             gamesTable
         }
 
-        val right = container(selectedGameProperty.map { "Violations: ${ongoingReport.resultsProperty.value[it]?.size ?: 0}" }) {
+        val right = container(selectedGameProperty.map { "Violations: ${report.results[it]?.size ?: 0}" }) {
             violationsView()
         }
         splitpane(left, right) { setDividerPositions(0.45) }
@@ -75,7 +76,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
             }
         }
 
-        ongoingReport.resultsProperty.onChange { resizeColumnsToFitContent() }
+        report.resultsProperty.onChange { resizeColumnsToFitContent() }
     }
 
     private fun EventTarget.violationsView() = tableview<RuleResult.Fail> {
@@ -87,7 +88,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         simpleColumn("Value") { violation -> violation.value.toDisplayString() }
 
         selectedGameProperty.onChange { selectedGame ->
-            items = selectedGame?.let { ongoingReport.resultsProperty.value[it]!!.observable() }
+            items = selectedGame?.let { report.results[it]!!.observable() }
             resizeColumnsToFitContent()
         }
     }
@@ -103,12 +104,8 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         op(this)
     }
 
-    override fun onDock() {
-        println("$this: Starting: $reportConfig")
-        ongoingReport.start()
-    }
-
-    override fun onUndock() = ongoingReport.stop()
+    override fun onDock() = report.start()
+    override fun onUndock() = report.stop()
 
     class Style : Stylesheet() {
         companion object {

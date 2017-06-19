@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
+import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
@@ -10,15 +11,13 @@ import com.gitlab.ykrasik.gamedex.ui.theme.editButton
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
-import javafx.scene.control.ProgressIndicator
-import javafx.scene.control.Toggle
-import javafx.scene.control.ToggleGroup
-import javafx.scene.control.ToolBar
+import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
+import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
 import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
@@ -32,16 +31,17 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private val reportSettings: ReportSettings by di()
     private val reportsController: ReportsController by di()
 
-    private val searchTextfield = searchTextfield()
     private var content: VBox by singleAssign()
+    private var searchTextfield: TextField by singleAssign()
+
     private val selection = ToggleGroup()
     private val screens = FXCollections.observableArrayList<ReportFragment>()
 
     private val currentToggle get() = selection.selectedToggleProperty()
     private val currentScreen = currentToggle.map { it?.userData as? ReportFragment }
-    private val currentReport = currentScreen.map { it?.ongoingReport }
+    private val currentReport = currentScreen.map { it?.report }
 
-    private var isReplacingScreens = false
+    private var isChangingSettings = false
 
     override val root: StackPane = stackpane {
         content = vbox()
@@ -55,17 +55,23 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
 
     init {
         reportSettings.reportsProperty.perform { reports ->
+            isChangingSettings = true
+
             // TODO: Check for listener leaks.
-            screens.forEach { it.onUndock() }
+            cleanupClosedScreen(currentToggle.value)
             selection.toggles.clear()
 
             screens.setAll(reports.map { ReportFragment(it.value) })
+
+            isChangingSettings = false
         }
 
         selection.selectedToggleProperty().addListener { _, oldToggle, newToggle ->
-            println("${(oldToggle?.userData as? ReportFragment)?.reportConfig} -> ${(newToggle?.userData as? ReportFragment)?.reportConfig}")
             if (oldToggle != null && newToggle == null) {
-                if (!isReplacingScreens) {
+                // This piece of code prevents a toggle from being 'unselected', as we always want one active.
+                // It will get called also when we are re-constructing the screens after a change to the settings,
+                // where it must allow the old toggle to be unselected (it is about to be dropped completely).
+                if (!isChangingSettings) {
                     selection.selectToggle(oldToggle)
                 }
             } else {
@@ -76,48 +82,41 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     }
 
     override fun ToolBar.constructToolbar() {
+        searchTextfield = (TextFields.createClearableTextField() as CustomTextField).apply {
+            promptText = "Search"
+            left = Theme.Icon.search(18.0)
+            isFocusTraversable = false
+
+            addEventHandler(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ESCAPE) {
+                    text = ""
+                    root.requestFocus()
+                }
+            }
+        }
         items += searchTextfield
         verticalSeparator()
-        addButton {
-            setOnAction {
-                val newConfig = reportsController.addReport() ?: return@setOnAction
-                // TODO: This is a dirty solution, move this logic out of here.
-                isReplacingScreens = true
-                reportSettings.reports += newConfig.name to newConfig
-                isReplacingScreens = false
-                val newToggle = selection.toggles.find { (it.userData as ReportFragment).reportConfig == newConfig }
-                selection.selectToggle(newToggle)
-            }
-        }
+        addButton { setOnAction { upsertReport { reportsController.addReport() } } }
         verticalSeparator()
-        // TODO: Move these buttons to the context menu
-        editButton {
-            disableWhen { currentToggle.isNull }
-            setOnAction {
-                val editedConfig = reportsController.editReport(currentScreen.value!!.reportConfig) ?: return@setOnAction
-                // TODO: This is a dirty solution, move this logic out of here.
-                isReplacingScreens = true
-                reportSettings.reports += editedConfig.name to editedConfig // TODO: Works incorrectly if name changes.
-                isReplacingScreens = false
-                val editedToggle = selection.toggles.find { (it.userData as ReportFragment).reportConfig == editedConfig }
-                selection.selectToggle(editedToggle)
-            }
-        }
-        verticalSeparator()
-        deleteButton("Delete") {
-            disableWhen { currentToggle.isNull }
-            setOnAction { deleteReport(currentScreen.value!!) }
-        }
-
         spacer()
-
         verticalSeparator()
         hbox(spacing = 5.0) {
             alignment = Pos.CENTER_RIGHT
+            // TODO: Check for listener leaks.
             screens.performing { screens ->
                 replaceChildren {
                     screens.forEach { screen ->
                         jfxToggleNode(screen.title, screen.icon, group = selection) {
+                            popoverContextMenu(PopOver.ArrowLocation.TOP_RIGHT) {
+                                editButton {
+                                    addClass(Style.reportContextMenu)
+                                    setOnAction { upsertReport { reportsController.editReport(screen.reportConfig) } }
+                                }
+                                deleteButton("Delete") {
+                                    addClass(Style.reportContextMenu)
+                                    setOnAction { deleteReport(screen) }
+                                }
+                            }
                             userData = screen
                             isSelected = this == currentToggle.value
                         }
@@ -127,37 +126,21 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         }
     }
 
-    // FIXME: Deleting the last report doesn't clear the screen.
+    private fun upsertReport(f: () -> ReportConfig?) {
+        val newConfig = f() ?: return
+        // Select the newly upserted config.
+        val newToggle = selection.toggles.find { (it.userData as ReportFragment).reportConfig == newConfig }
+        selection.selectToggle(newToggle)
+    }
+
     private fun deleteReport(view: ReportFragment) {
-        if (reportsController.delete(view.reportConfig)) {
-            // TODO: This is a dirty solution, move this logic out of here.
-            isReplacingScreens = true
-            reportSettings.reports -= view.reportConfig.name
-            isReplacingScreens = false
+        if (reportsController.deleteReport(view.reportConfig)) {
             selection.selectToggle(selection.toggles.firstOrNull())
         }
     }
 
-    private fun searchTextfield() = (TextFields.createClearableTextField() as CustomTextField).apply {
-        promptText = "Search"
-        left = Theme.Icon.search(18.0)
-        isFocusTraversable = false
-
-        addEventHandler(KeyEvent.KEY_PRESSED) { e ->
-            if (e.code == KeyCode.ESCAPE) {
-                text = ""
-                root.requestFocus()
-            }
-        }
-    }
-
     override fun onDock() {
-        skipFirstTime {
-            // This is called on application startup, but we don't want to dock any of the child views
-            // (which will cause them to start calculating stuff)  before the user explicitly enters the reports screen.
-            // A bit of a hack.
-            prepareNewScreen(currentToggle.value)
-        }
+        prepareNewScreen(currentToggle.value)
     }
 
     override fun onUndock() {
@@ -167,6 +150,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private fun cleanupClosedScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
         searchTextfield.textProperty().unbindBidirectional(screen.searchProperty)
         screen.onUndock()
+        content.clear()
     }
 
     private fun prepareNewScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
@@ -181,7 +165,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
 
     class Style : Stylesheet() {
         companion object {
-            val tabGraphic by cssclass()
+            val reportContextMenu by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -189,8 +173,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         }
 
         init {
-            tabGraphic {
-                padding = box(vertical = 0.px, horizontal = 5.px)
+            reportContextMenu {
                 alignment = Pos.CENTER_LEFT
             }
         }

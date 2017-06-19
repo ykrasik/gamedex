@@ -33,8 +33,8 @@ import tornadofx.*
  */
 class MainView : View("Gamedex") {
     private val gameScreen: GameScreen by inject()
-    private val libraryScreen: LibraryScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
+    private val libraryScreen: LibraryScreen by inject()
     private val logScreen: LogScreen by inject()
 
     private val gameDetailsScreen: GameDetailsScreen by inject()
@@ -62,8 +62,8 @@ class MainView : View("Gamedex") {
                     addClass(CommonStyle.tabbedNavigation)
 
                     previousScreen = screenTab(gameScreen)
-                    screenTab(libraryScreen)
                     screenTab(reportsScreen)
+                    screenTab(libraryScreen)
                     screenTab(logScreen)
                     screenTab(gameDetailsScreen)
 

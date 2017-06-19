@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
-import com.gitlab.ykrasik.gamedex.core.GameNameFolderDiff
+import com.gitlab.ykrasik.gamedex.core.ReportRule
 import difflib.Chunk
 import difflib.Delta
 import javafx.scene.paint.Color
@@ -14,8 +14,8 @@ import tornadofx.*
  * Time: 15:42
  */
 object DiffRenderer {
-    fun renderActual(diff: GameNameFolderDiff): TextFlow = render(diff.actualName, diff.patch.deltas) { it.original }
-    fun renderExpected(diff: GameNameFolderDiff): TextFlow = render(diff.expectedName, diff.patch.deltas) { it.revised }
+    fun renderActual(diff: ReportRule.Rules.GameNameFolderDiff): TextFlow = render(diff.actualName, diff.patch.deltas) { it.original }
+    fun renderExpected(diff: ReportRule.Rules.GameNameFolderDiff): TextFlow = render(diff.expectedName, diff.patch.deltas) { it.revised }
 
     private fun render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = TextFlow().apply {
         var currentIndex = 0
