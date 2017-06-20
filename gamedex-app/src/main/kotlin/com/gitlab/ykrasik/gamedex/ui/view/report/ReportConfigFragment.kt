@@ -7,6 +7,8 @@ import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
+import javafx.event.EventTarget
+import javafx.geometry.Pos
 import javafx.scene.text.FontWeight
 import tornadofx.*
 
@@ -34,19 +36,26 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
             }
         }
         center {
-            vbox {
+            vbox(spacing = 10) {
                 addClass(Style.rulesContent)
-                // FIXME: Make something less ugly, and validate the name.
-                textfield(initialConfig.name) {
-                    textProperty().onChange {
-                        reportConfig = reportConfig.copy(name = it!!)
+                hbox(spacing = 10) {
+                    alignment = Pos.CENTER_LEFT
+                    title("Name")
+                    // FIXME: Validate the name.
+                    textfield(initialConfig.name) {
+                        textProperty().onChange {
+                            reportConfig = reportConfig.copy(name = it!!)
+                        }
                     }
                 }
+
+                separator()
+
                 vbox(spacing = 10) {
                     reportConfigProperty.perform { config ->
                         // TODO: This is probably leaking a lot of listeners.
                         replaceChildren {
-                            label("Rules") { addClass(Style.ruleTitle) }
+                            title("Rules")
                             children += ReportRulesFragment(
                                 all = ReportRule.Rules.all,
                                 defaultValue = { ReportRule.Rules.True() },
@@ -57,7 +66,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
 
                             separator()
 
-                            label("Filters") { addClass(Style.ruleTitle) }
+                            title("Filters")
                             children += ReportRulesFragment(
                                 all = ReportRule.Filters.all,
                                 defaultValue = { ReportRule.Filters.True() },
@@ -71,6 +80,8 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
             }
         }
     }
+
+    private fun EventTarget.title(text: String) = label(text) { addClass(Style.ruleTitle )}
 
     fun show(): ReportConfig? {
         openWindow(block = true, owner = null)

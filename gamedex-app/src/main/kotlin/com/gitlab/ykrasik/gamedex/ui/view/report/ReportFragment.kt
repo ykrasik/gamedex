@@ -4,8 +4,10 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
+import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.core.RuleResult
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
@@ -34,6 +36,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
     private val reportsController: ReportsController by di()
     private val gameController: GameController by di()
+    private val providerRepository: GameProviderRepository by di()
 
     private var gamesTable: TableView<Game> by singleAssign()
 
@@ -85,7 +88,28 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         // FIXME: Render each violation in a per-report way.
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         simpleColumn("Rule") { violation -> violation.rule }
-        simpleColumn("Value") { violation -> violation.value.toDisplayString() }
+        customGraphicColumn("Value") { violation ->
+            when (violation.value) {
+                is ReportRule.Rules.GameNameFolderDiff ->
+                    // TODO: Move all of this into the diff renderer and rename it to diff fragment.
+                    Form().apply {
+                        val diff = violation.value
+                        addClass(CommonStyle.centered)
+                        fieldset {
+                            field {
+                                imageview(providerRepository[diff.providerId].logoImage) {
+                                    fitHeight = 80.0
+                                    fitWidth = 160.0
+                                    isPreserveRatio = true
+                                }
+                            }
+                            field("Expected") { children += DiffRenderer.renderExpected(diff) }
+                            field("Actual") { children += DiffRenderer.renderActual(diff) }
+                        }
+                    }
+                else -> label(violation.value.toDisplayString())
+            }
+        }
 
         selectedGameProperty.onChange { selectedGame ->
             items = selectedGame?.let { report.results[it]!!.observable() }

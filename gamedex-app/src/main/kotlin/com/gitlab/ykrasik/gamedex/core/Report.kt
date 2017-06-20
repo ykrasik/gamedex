@@ -243,9 +243,9 @@ sealed class ReportRule {
 
         class NameDiff : Rule("Name-Folder Diff") {
             override fun check(game: Game, context: ReportContext): RuleResult {
-                val allDuplications = calculate(context)
-                val duplication = allDuplications[game]
-                return if (duplication != null) RuleResult.Fail(duplication, this) else RuleResult.Pass
+                val allDiffs = calculate(context)
+                val diff = allDiffs[game]
+                return if (diff != null) RuleResult.Fail(diff, this) else RuleResult.Pass
             }
 
             private fun calculate(context: ReportContext) = context.getOrPut("NameDiff.result") {

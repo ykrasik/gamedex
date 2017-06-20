@@ -96,12 +96,17 @@ class ReportsController @Inject constructor(
 
             // Evaluate rules
             context = context.copy(games = candidates)
-            val violations = candidates.mapIndexedNotNull { i, game ->
-                progressProperty.value = i.toDouble() / (candidates.size - 1)
+            val violations = candidates.flatMap { game ->
+//                progressProperty.value = i.toDouble() / (candidates.size - 1)
                 val violation = config.rules.check(game, context)
-                if (violation is RuleResult.Fail) game to violation else null
+                if (violation is RuleResult.Fail) {
+                    val violations = (violation.value as? List<*>)?.map { RuleResult.Fail(it, violation.rule) } ?: listOf(violation)
+                    violations.map { game to it }
+                } else {
+                    emptyList<Pair<Game,RuleResult.Fail>>()
+                }
             }
-            progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
+//            progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
             return violations.toMultiMap()
         }
 

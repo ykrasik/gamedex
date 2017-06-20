@@ -92,41 +92,56 @@ class ReportRulesFragment(
 
         selectedRuleProperty.onChange { currentRule.value = all[it]!!() }
 
-        currentRule.addListener { _, oldValue, newValue ->
-            reportConfig = modifier(reportConfig)({ it.replace(oldValue, newValue) })
-        }
+        currentRule.addListener { _, oldValue, newValue -> replaceRule(oldValue, newValue) }
 
         op?.invoke(this, currentRule)
 
         spacer()
 
         operatorSelection(currentRule)
-        jfxButton(graphic = Theme.Icon.delete()) {
-            setOnAction {
-                val current = currentRule.value
-                reportConfig = if (current is ReportRule.Operators.Not) {
-                    // Deleting a 'not' simply replaces it with it's child rule.
-                    modifier(reportConfig)({ it.replace(current, current.rule) })
-                } else {
-                    modifier(reportConfig)({ it.delete(current) ?: defaultValue() })
-                }
-            }
-        }
+        jfxButton(graphic = Theme.Icon.delete()) { setOnAction { deleteRule(currentRule.value) } }
     }
 
     private fun HBox.operatorSelection(currentRule: SimpleObjectProperty<ReportRule>) =
         buttonWithPopover(graphic = Theme.Icon.plus(), styleClass = null) {
             fun operatorButton(name: String, f: (ReportRule) -> ReportRule) = jfxButton(name) {
                 addClass(CommonStyle.fillAvailableWidth)
-                setOnAction {
-                    reportConfig = modifier(reportConfig)({ it.replace(currentRule.value, f(currentRule.value)) })
-                }
+                setOnAction { replaceRule(currentRule.value, f(currentRule.value), optimize = false) }
             }
 
             operatorButton("And") { ReportRule.Operators.And(it, defaultValue()) }
             operatorButton("Or") { ReportRule.Operators.Or(it, defaultValue()) }
             operatorButton("Not") { ReportRule.Operators.Not(it) }
         }
+
+    private fun replaceRule(target: ReportRule, with: ReportRule, optimize: Boolean = true) {
+        val newWith = if (!optimize) with else when (target) {
+            is ReportRule.Operators.BinaryOperator -> when (with) {
+                is ReportRule.Operators.BinaryOperator -> with.new(target.left, target.right)
+                is ReportRule.Operators.UnaryOperator -> with.new(target.left)
+                else -> with
+            }
+            is ReportRule.Operators.UnaryOperator -> when (with) {
+                is ReportRule.Operators.BinaryOperator -> with.new(target.rule, with.right)
+                is ReportRule.Operators.UnaryOperator -> with.new(target.rule)
+                else -> with
+            }
+            else -> with
+        }
+        modifyRules { it.replace(target, newWith) }
+    }
+
+    private fun deleteRule(target: ReportRule) {
+        if (target is ReportRule.Operators.UnaryOperator) {
+            replaceRule(target, target.rule)
+        } else {
+            modifyRules { it.delete(target) ?: defaultValue() }
+        }
+    }
+
+    private fun modifyRules(f: (ReportRule) -> ReportRule) {
+        reportConfig = modifier(reportConfig)(f)
+    }
 
     class Style : Stylesheet() {
         companion object {
