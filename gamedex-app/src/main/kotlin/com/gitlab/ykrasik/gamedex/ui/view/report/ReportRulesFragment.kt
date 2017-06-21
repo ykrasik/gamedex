@@ -2,14 +2,11 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
-import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.ui.jfxButton
-import com.gitlab.ykrasik.gamedex.ui.popoverComboMenu
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.view.report.ReportRuleRenderer.criticScoreRule
-import com.gitlab.ykrasik.gamedex.ui.view.report.ReportRuleRenderer.platformFilter
-import com.gitlab.ykrasik.gamedex.ui.view.report.ReportRuleRenderer.userScoreRule
+import com.gitlab.ykrasik.gamedex.ui.theme.platformComboBox
+import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -27,20 +24,19 @@ import tornadofx.*
  * Time: 14:34
  */
 class ReportRulesFragment(
-    private val all: Map<String, () -> ReportRule>,
-    private val defaultValue: () -> ReportRule,
     private val modifier: ConfigModifier,
     reportConfigProperty: ObjectProperty<ReportConfig>,
-    private val rule: ReportRule
+    rootRule: ReportRule
 ) : Fragment() {
 
     private var reportConfig by reportConfigProperty
     private var indent = 0
 
     override val root = vbox {
-        render(rule)
+        render(rootRule)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun EventTarget.render(rule: ReportRule) {
         when (rule) {
             is ReportRule.Operators.BinaryOperator -> renderOperator(rule) {
@@ -50,12 +46,13 @@ class ReportRulesFragment(
             is ReportRule.Operators.UnaryOperator -> renderOperator(rule) {
                 render(rule.rule)
             }
-            is ReportRule.Filters.Filter -> renderBasicRule(rule, all) { currentRule ->
-                platformFilter(currentRule)
-            }
-            is ReportRule.Rules.Rule -> renderBasicRule(rule, all) { currentRule ->
-                criticScoreRule(currentRule)
-                userScoreRule(currentRule)
+            is ReportRule.Rules.Rule -> renderBasicRule(rule, ReportRule.Rules.all) { ruleProperty ->
+                when (ruleProperty.value) {
+                    is ReportRule.Rules.PlatformRule -> renderPlatformRule(ruleProperty as ObjectProperty<ReportRule.Rules.PlatformRule>)
+                    is ReportRule.Rules.CriticScore -> renderCriticScoreRule(ruleProperty as ObjectProperty<ReportRule.Rules.CriticScore>)
+                    is ReportRule.Rules.UserScore -> renderUserScoreRule(ruleProperty as ObjectProperty<ReportRule.Rules.UserScore>)
+                    else -> { /* Nothing to render */ }
+                }
             }
         }
     }
@@ -71,35 +68,61 @@ class ReportRulesFragment(
 
     private fun EventTarget.renderBasicRule(rule: ReportRule,
                                             all: Map<String, () -> ReportRule>,
-                                            op: (HBox.(SimpleObjectProperty<ReportRule>) -> Unit)? = null) = hbox {
+                                            op: (HBox.(SimpleObjectProperty<ReportRule>) -> Unit)? = null) = hbox(spacing = 5.0) {
         addClass(CommonStyle.fillAvailableWidth)
-        spacing = 5.0
         alignment = Pos.CENTER_LEFT
 
         region { minWidth = indent * 10.0 }
 
-        val currentRule = rule.toProperty()
+        val ruleProperty = rule.toProperty()
 
         val possibleRules = all.keys.toList().observable()
-        val selectedRuleProperty = SimpleStringProperty(currentRule.value.name)
+        val ruleNameProperty = SimpleStringProperty(ruleProperty.value.name)
 
         popoverComboMenu(
             possibleItems = possibleRules,
-            selectedItemProperty = selectedRuleProperty,
+            selectedItemProperty = ruleNameProperty,
             styleClass = Style.ruleButton,
             text = { it }
         )
 
-        selectedRuleProperty.onChange { currentRule.value = all[it]!!() }
+        ruleNameProperty.onChange { ruleProperty.value = all[it]!!() }
 
-        currentRule.addListener { _, oldValue, newValue -> replaceRule(oldValue, newValue) }
+        ruleProperty.addListener { _, oldValue, newValue -> replaceRule(oldValue, newValue) }
 
-        op?.invoke(this, currentRule)
+        op?.invoke(this, ruleProperty)
 
         spacer()
 
-        operatorSelection(currentRule)
-        jfxButton(graphic = Theme.Icon.delete()) { setOnAction { deleteRule(currentRule.value) } }
+        operatorSelection(ruleProperty)
+        jfxButton(graphic = Theme.Icon.delete()) { setOnAction { deleteRule(ruleProperty.value) } }
+    }
+
+    private fun HBox.renderPlatformRule(rule: ObjectProperty<ReportRule.Rules.PlatformRule>) {
+        val platform = rule.mapBidirectional({ it!!.platform }, { ReportRule.Rules.PlatformRule(it!!) })
+        platformComboBox(platform)
+    }
+
+    private fun HBox.renderCriticScoreRule(rule: ObjectProperty<ReportRule.Rules.CriticScore>) =
+        renderScoreRule(rule, "Critic Score") { target, isGt -> ReportRule.Rules.CriticScore(target, isGt) }
+
+    private fun HBox.renderUserScoreRule(rule: ObjectProperty<ReportRule.Rules.UserScore>) =
+        renderScoreRule(rule, "User Score") { target, isGt -> ReportRule.Rules.UserScore(target, isGt) }
+
+    private fun <T : ReportRule.Rules.TargetScoreRule> HBox.renderScoreRule(rule: ObjectProperty<T>,
+                                                                            name: String,
+                                                                            factory: (Double, Boolean) -> T) = hbox {
+        alignment = Pos.CENTER_LEFT
+        val targetValue = rule.mapBidirectional({ it!!.target }, { factory(it!!, rule.value.greaterThan) })
+        adjustableTextField(targetValue, name, min = 0.0, max = 100.0)
+
+        val isGt = rule.mapBidirectional(
+            { it!!.greaterThan }, { factory(rule.value.target, it!!) }
+        )
+        jfxToggleButton {
+            selectedProperty().bindBidirectional(isGt)
+            textProperty().bind(isGt.map { if (it!!) ">=" else "<=" })
+        }
     }
 
     private fun HBox.operatorSelection(currentRule: SimpleObjectProperty<ReportRule>) =
@@ -109,8 +132,8 @@ class ReportRulesFragment(
                 setOnAction { replaceRule(currentRule.value, f(currentRule.value), optimize = false) }
             }
 
-            operatorButton("And") { ReportRule.Operators.And(it, defaultValue()) }
-            operatorButton("Or") { ReportRule.Operators.Or(it, defaultValue()) }
+            operatorButton("And") { ReportRule.Operators.And(it, ReportRule.Rules.True()) }
+            operatorButton("Or") { ReportRule.Operators.Or(it, ReportRule.Rules.True()) }
             operatorButton("Not") { ReportRule.Operators.Not(it) }
         }
 
@@ -135,7 +158,7 @@ class ReportRulesFragment(
         if (target is ReportRule.Operators.UnaryOperator) {
             replaceRule(target, target.rule)
         } else {
-            modifyRules { it.delete(target) ?: defaultValue() }
+            modifyRules { it.delete(target) ?: ReportRule.Rules.True() }
         }
     }
 

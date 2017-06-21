@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
@@ -57,22 +56,18 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
                         replaceChildren {
                             title("Rules")
                             children += ReportRulesFragment(
-                                all = ReportRule.Rules.all,
-                                defaultValue = { ReportRule.Rules.True() },
                                 modifier = { it::withRules },
                                 reportConfigProperty = reportConfigProperty,
-                                rule = config.rules
+                                rootRule = config.rules
                             ).root
 
                             separator()
 
                             title("Filters")
                             children += ReportRulesFragment(
-                                all = ReportRule.Filters.all,
-                                defaultValue = { ReportRule.Filters.True() },
                                 modifier = { it::withFilters },
                                 reportConfigProperty = reportConfigProperty,
-                                rule = config.filters
+                                rootRule = config.filters
                             ).root
                         }
                     }

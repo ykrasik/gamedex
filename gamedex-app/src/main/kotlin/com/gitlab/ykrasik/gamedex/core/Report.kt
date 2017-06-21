@@ -16,12 +16,14 @@ import org.joda.time.DateTime
  */
 data class ReportConfig(
     val name: String = "",
-    val filters: ReportRule = ReportRule.Filters.True(),
+    val filters: ReportRule = ReportRule.Rules.True(),
     val rules: ReportRule = ReportRule.Rules.True()
 ) {
     inline fun withFilters(f: (ReportRule) -> ReportRule) = copy(filters = f(filters))
     inline fun withRules(f: (ReportRule) -> ReportRule) = copy(rules = f(rules))
 }
+
+// FIXME: Reverse the logic - only games that pass the rules are shown, along with the value.
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -29,14 +31,12 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Operators.Or::class, name = "or"),
     JsonSubTypes.Type(value = ReportRule.Operators.Not::class, name = "not"),
 
-    JsonSubTypes.Type(value = ReportRule.Filters.True::class, name = "trueFilter"),
-    JsonSubTypes.Type(value = ReportRule.Filters.PlatformFilter::class, name = "platform"),
-    JsonSubTypes.Type(value = ReportRule.Filters.HasCriticScoreFilter::class, name = "hasCriticScore"),
-    JsonSubTypes.Type(value = ReportRule.Filters.HasUserScoreFilter::class, name = "hasUserScore"),
-
-    JsonSubTypes.Type(value = ReportRule.Rules.True::class, name = "trueRule"),
-    JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "criticScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "userScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.True::class, name = "true"),
+    JsonSubTypes.Type(value = ReportRule.Rules.PlatformRule::class, name = "platform"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "targetCriticScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "targetUserScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.NoDuplications::class, name = "duplications"),
     JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
 )
@@ -45,7 +45,7 @@ sealed class ReportRule {
     abstract val name: String
     abstract fun check(game: Game, context: ReportContext): RuleResult
 
-    override fun toString() = name.toLowerCase()
+    override fun toString() = name
 
     fun replace(target: ReportRule, with: ReportRule): ReportRule {
         fun doReplace(current: ReportRule): ReportRule = when {
@@ -101,9 +101,8 @@ sealed class ReportRule {
             override fun check(game: Game, context: ReportContext): RuleResult {
                 val leftResult = left.check(game, context)
                 val rightResult = right.check(game, context)
-                return when {
-                    leftResult is RuleResult.Filter || rightResult is RuleResult.Filter -> RuleResult.Filter
-                    leftResult is RuleResult.Fail -> leftResult
+                return when (leftResult) {
+                    is RuleResult.Fail -> leftResult    // TODO: Aggregate failures.
                     else -> rightResult
                 }
             }
@@ -117,10 +116,9 @@ sealed class ReportRule {
             override fun check(game: Game, context: ReportContext): RuleResult {
                 val leftResult = left.check(game, context)
                 val rightResult = right.check(game, context)
-                return when {
-                    leftResult is RuleResult.Pass || rightResult is RuleResult.Pass -> RuleResult.Pass
-                    leftResult is RuleResult.Filter || rightResult is RuleResult.Filter -> RuleResult.Filter
-                    else -> leftResult  // TODO: Both left & right are failures at this point - combine failures
+                return when (leftResult) {
+                    is RuleResult.Pass -> leftResult
+                    else -> rightResult  // TODO: Aggregate failures.
                 }
             }
 
@@ -134,9 +132,7 @@ sealed class ReportRule {
                 val result = rule.check(game, context)
                 return when (result) {
                     is RuleResult.Fail -> RuleResult.Pass
-                    is RuleResult.Filter -> RuleResult.Pass
-                    is RuleResult.Pass ->
-                        if (rule is Filters.Filter) RuleResult.Filter else RuleResult.Fail(null, rule)  // TODO: Add value
+                    is RuleResult.Pass -> RuleResult.Fail(null, rule)  // TODO: Add value
                 }
             }
 
@@ -145,39 +141,12 @@ sealed class ReportRule {
         }
     }
 
-    object Filters {
-        val all = emptyMap<String, () -> Filter>() +
-            (True().name to { True() }) +
-            (PlatformFilter().name to { PlatformFilter() }) +
-            (HasCriticScoreFilter().name to { HasCriticScoreFilter() }) +
-            (HasUserScoreFilter().name to { HasUserScoreFilter() })
-
-        abstract class Filter(override val name: String) : ReportRule() {
-            override fun check(game: Game, context: ReportContext) = if (doCheck(game)) RuleResult.Pass else RuleResult.Filter
-            protected abstract fun doCheck(game: Game): Boolean
-        }
-
-        class True : Filter("True") {
-            override fun doCheck(game: Game) = true
-        }
-
-        class PlatformFilter(val platform: Platform = Platform.pc) : Filter("Platform") {
-            override fun doCheck(game: Game) = game.platform == platform
-            override fun toString() = "platform == $platform"
-        }
-
-        class HasCriticScoreFilter : Filter("Has Critic Score") {
-            override fun doCheck(game: Game) = game.criticScore != null
-        }
-
-        class HasUserScoreFilter : Filter("Has User Score") {
-            override fun doCheck(game: Game) = game.userScore != null
-        }
-    }
-
     object Rules {
         val all = emptyMap<String, () -> Rule>() +
             (True().name to { True() }) +
+            (PlatformRule().name to { PlatformRule() }) +
+            (HasCriticScore().name to { HasCriticScore() }) +
+            (HasUserScore().name to { HasUserScore() }) +
             (CriticScore().name to { CriticScore() }) +
             (UserScore().name to { UserScore() }) +
             (NoDuplications().name to { NoDuplications() }) +
@@ -189,18 +158,45 @@ sealed class ReportRule {
             override fun check(game: Game, context: ReportContext) = RuleResult.Pass
         }
 
-        class CriticScore(val min: Double = 65.0) : Rule("Critic Score At Least") {
-            override fun check(game: Game, context: ReportContext) = (game.criticScore?.score).let { score ->
-                if (score ?: -1.0 >= min) RuleResult.Pass else RuleResult.Fail(score, this)
-            }
-            override fun toString() = "criticScore >= $min"
+        class PlatformRule(val platform: Platform = Platform.pc) : Rule("Platform") {
+            override fun check(game: Game, context: ReportContext): RuleResult =
+                if (game.platform == platform) RuleResult.Pass else RuleResult.Fail(game.platform, this)
+
+            override fun toString() = "platform == $platform"
         }
 
-        class UserScore(val min: Double = 65.0) : Rule("User Score At Least") {
-            override fun check(game: Game, context: ReportContext) = (game.userScore?.score).let { score ->
-                if (score ?: -1.0 >= min) RuleResult.Pass else RuleResult.Fail(score, this)
+        abstract class HasScoreRule(name: String) : Rule("Has $name") {
+            override fun check(game: Game, context: ReportContext) = extractScore(game).let { score ->
+                if (score != null) RuleResult.Pass else RuleResult.Fail(score, this)
             }
-            override fun toString() = "userScore >= $min"
+
+            abstract protected fun extractScore(game: Game): Double?
+        }
+
+        class HasCriticScore : HasScoreRule("Critic Score") {
+            override fun extractScore(game: Game) = game.criticScore?.score
+        }
+
+        class HasUserScore : HasScoreRule("User Score") {
+            override fun extractScore(game: Game) = game.criticScore?.score
+        }
+
+        abstract class TargetScoreRule(name: String, val target: Double, val greaterThan: Boolean) : Rule(name) {
+            override fun check(game: Game, context: ReportContext) = extractScore(game).let { score ->
+                val result = if (greaterThan) (score ?: -1.0 >= target) else (score ?: -1.0 <= target)
+                if (result) RuleResult.Pass else RuleResult.Fail(score, this)
+            }
+
+            abstract protected fun extractScore(game: Game): Double?
+            override fun toString() = "$name ${if (greaterThan) ">=" else "<="} $target"
+        }
+
+        class CriticScore(target: Double = 60.0, isGt: Boolean = true) : TargetScoreRule("Critic Score", target, isGt) {
+            override fun extractScore(game: Game) = game.criticScore?.score
+        }
+
+        class UserScore(target: Double = 60.0, isGt: Boolean = true) : TargetScoreRule("User Score", target, isGt) {
+            override fun extractScore(game: Game) = game.userScore?.score
         }
 
         // TODO: Add ignore case option
@@ -303,5 +299,4 @@ sealed class ReportRule {
 sealed class RuleResult {
     object Pass : RuleResult()
     data class Fail(val value: Any?, val rule: ReportRule) : RuleResult()  // TODO: Add a 'cause' rule?
-    object Filter : RuleResult()
 }
