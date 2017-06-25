@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.util
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.io.File
@@ -18,7 +17,6 @@ val objectMapper: ObjectMapper = ObjectMapper()
     .registerModule(JodaModule())
     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
     .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
-    .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)   // FIXME: Why?
 
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 

@@ -41,7 +41,7 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Rules.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
 )
-@JsonIgnoreProperties("name", "rule_id")
+@JsonIgnoreProperties("name", "ruleId")
 sealed class ReportRule(val name: String) {
     abstract fun evaluate(game: Game, context: Context): Boolean
     open val ruleId get() = name

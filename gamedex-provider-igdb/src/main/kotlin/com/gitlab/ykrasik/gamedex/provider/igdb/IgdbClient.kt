@@ -1,6 +1,8 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import javax.inject.Inject
@@ -69,7 +71,8 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         )
         val fetchDetailsFieldsStr = fetchDetailsFields.joinToString(",")
     }
-    
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     data class SearchResult(
         val id: Int,
         val name: String,
@@ -81,6 +84,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val cover: Image?
     )
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class ReleaseDate(
         val platform: Int,
@@ -88,6 +92,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val human: String
     )
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class DetailsResult(
         val url: String,
@@ -103,11 +108,13 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val genres: List<Int>?
     )
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Image(
         val cloudinaryId: String?
     )
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Error(
         val error: List<String>
