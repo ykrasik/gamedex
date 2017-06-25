@@ -22,5 +22,14 @@ fun <T> MutableList<T>.replaceFirst(replacement: T, pred: (T) -> Boolean): Boole
     return false
 }
 
-fun <T, R> Iterable<Pair<T, R>>.toMultiMap(): Map<T, List<R>> = groupBy({ it.first }, { it.second })
-fun <T, R> Sequence<Pair<T, R>>.toMultiMap(): Map<T, List<R>> = groupBy({ it.first }, { it.second })
+inline fun <T, R> Iterable<T>.flatMapIndexed(transform: (index: Int, T) -> Iterable<R>): List<R> = flatMapIndexedTo(ArrayList<R>(), transform)
+inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedTo(destination: C, transform: (index: Int, T) -> Iterable<R>): C {
+    var index = 0
+    for (item in this) destination.addAll(transform(index++, item))
+    return destination
+}
+
+typealias MultiMap<K, V> = Map<K, List<V>>
+
+fun <T, R> Iterable<Pair<T, R>>.toMultiMap(): MultiMap<T, R> = groupBy({ it.first }, { it.second })
+fun <T, R> Sequence<Pair<T, R>>.toMultiMap(): MultiMap<T, R> = groupBy({ it.first }, { it.second })

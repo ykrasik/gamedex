@@ -1,9 +1,11 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.MultiMap
 import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import difflib.DiffUtils
 import difflib.Patch
@@ -16,14 +18,10 @@ import org.joda.time.DateTime
  */
 data class ReportConfig(
     val name: String = "",
-    val filters: ReportRule = ReportRule.Rules.True(),
     val rules: ReportRule = ReportRule.Rules.True()
 ) {
-    inline fun withFilters(f: (ReportRule) -> ReportRule) = copy(filters = f(filters))
     inline fun withRules(f: (ReportRule) -> ReportRule) = copy(rules = f(rules))
 }
-
-// FIXME: Reverse the logic - only games that pass the rules are shown, along with the value.
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -32,20 +30,22 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Operators.Not::class, name = "not"),
 
     JsonSubTypes.Type(value = ReportRule.Rules.True::class, name = "true"),
-    JsonSubTypes.Type(value = ReportRule.Rules.PlatformRule::class, name = "platform"),
-    JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "targetCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "targetUserScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.NoDuplications::class, name = "duplications"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasPlatform::class, name = "hasPlatform"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasProvider::class, name = "hasProvider"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasLibrary::class, name = "hasLibrary"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasTag::class, name = "hasTag"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
 )
-@JsonIgnoreProperties("name")
-sealed class ReportRule {
-    abstract val name: String
-    abstract fun check(game: Game, context: ReportContext): RuleResult
-
-    override fun toString() = name
+@JsonIgnoreProperties("name", "rule_id")
+sealed class ReportRule(val name: String) {
+    abstract fun evaluate(game: Game, context: Context): Boolean
+    open val ruleId get() = name
+    override fun toString() = ruleId
 
     fun replace(target: ReportRule, with: ReportRule): ReportRule {
         fun doReplace(current: ReportRule): ReportRule = when {
@@ -79,155 +79,149 @@ sealed class ReportRule {
     }
 
     object Operators {
-        val all = emptyMap<String, () -> Operator>() +
-            (And().name to { And() }) +
-            (Or().name to { Or() }) +
-            (Not().name to { Not() })
+        abstract class Operator(name: String) : ReportRule(name)
 
-        abstract class Operator : ReportRule()
-
-        abstract class BinaryOperator(val left: ReportRule, val right: ReportRule) : Operator() {
+        abstract class BinaryOperator(name: String, val left: ReportRule, val right: ReportRule) : Operator(name) {
             fun map(f: (ReportRule) -> ReportRule): BinaryOperator = new(f(left), f(right))
             abstract fun new(newLeft: ReportRule, newRight: ReportRule): BinaryOperator
         }
 
-        abstract class UnaryOperator(val rule: ReportRule) : Operator() {
+        abstract class UnaryOperator(name: String, val rule: ReportRule) : Operator(name) {
             fun map(f: (ReportRule) -> ReportRule): UnaryOperator = new(f(rule))
             abstract fun new(newRule: ReportRule): UnaryOperator
         }
 
-        class And(left: ReportRule = Rules.True(), right: ReportRule = Rules.True()) : BinaryOperator(left, right) {
-            override val name = "And"
-            override fun check(game: Game, context: ReportContext): RuleResult {
-                val leftResult = left.check(game, context)
-                val rightResult = right.check(game, context)
-                return when (leftResult) {
-                    is RuleResult.Fail -> leftResult    // TODO: Aggregate failures.
-                    else -> rightResult
-                }
+        class And(left: ReportRule, right: ReportRule) : BinaryOperator("And", left, right) {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val leftResult = left.evaluate(game, context)
+                val rightResult = right.evaluate(game, context)
+                return leftResult && rightResult    // Don't short-circuit to allow all rules to deposit their results in the context.
             }
 
             override fun new(newLeft: ReportRule, newRight: ReportRule) = And(newLeft, newRight)
-            override fun toString() = "($left and $right)"
+            override fun toString() = "($left) and ($right)"
         }
 
-        class Or(left: ReportRule = Rules.True(), right: ReportRule = Rules.True()) : BinaryOperator(left, right) {
-            override val name = "Or"
-            override fun check(game: Game, context: ReportContext): RuleResult {
-                val leftResult = left.check(game, context)
-                val rightResult = right.check(game, context)
-                return when (leftResult) {
-                    is RuleResult.Pass -> leftResult
-                    else -> rightResult  // TODO: Aggregate failures.
-                }
+        class Or(left: ReportRule, right: ReportRule) : BinaryOperator("Or", left, right) {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val leftResult = left.evaluate(game, context)
+                val rightResult = right.evaluate(game, context)
+                return leftResult || rightResult    // Don't short-circuit to allow all rules to deposit their results in the context.
             }
 
             override fun new(newLeft: ReportRule, newRight: ReportRule) = Or(newLeft, newRight)
-            override fun toString() = "($left or $right)"
+            override fun toString() = "($left) or ($right)"
         }
 
-        class Not(rule: ReportRule = Rules.True()) : UnaryOperator(rule) {
-            override val name = "Not"
-            override fun check(game: Game, context: ReportContext): RuleResult {
-                val result = rule.check(game, context)
-                return when (result) {
-                    is RuleResult.Fail -> RuleResult.Pass
-                    is RuleResult.Pass -> RuleResult.Fail(null, rule)  // TODO: Add value
-                }
+        class Not(rule: ReportRule) : UnaryOperator("Not", rule) {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val result = rule.evaluate(game, context)
+                return !result
             }
 
             override fun new(newRule: ReportRule) = Not(newRule)
-            override fun toString() = "not($rule)"
+            override fun toString() = "!($rule)"
         }
     }
 
     object Rules {
-        val all = emptyMap<String, () -> Rule>() +
-            (True().name to { True() }) +
-            (PlatformRule().name to { PlatformRule() }) +
-            (HasCriticScore().name to { HasCriticScore() }) +
-            (HasUserScore().name to { HasUserScore() }) +
-            (CriticScore().name to { CriticScore() }) +
-            (UserScore().name to { UserScore() }) +
-            (NoDuplications().name to { NoDuplications() }) +
-            (NameDiff().name to { NameDiff() })
+        abstract class Rule(name: String) : ReportRule(name)
 
-        abstract class Rule(override val name: String) : ReportRule()
+        abstract class SimpleRule<T>(name: String) : Rule(name) {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val value = extractValue(game, context)
+                if (value is List<*>) {
+                    value.forEach { context.addResult(game, rule = this, value = it) }
+                } else {
+                    context.addResult(game, rule = this, value = value)
+                }
+                return doCheck(value)
+            }
+
+            abstract protected fun extractValue(game: Game, context: Context): T
+            abstract protected fun doCheck(value: T): Boolean
+        }
 
         class True : Rule("True") {
-            override fun check(game: Game, context: ReportContext) = RuleResult.Pass
+            override fun evaluate(game: Game, context: Context) = true
         }
 
-        class PlatformRule(val platform: Platform = Platform.pc) : Rule("Platform") {
-            override fun check(game: Game, context: ReportContext): RuleResult =
-                if (game.platform == platform) RuleResult.Pass else RuleResult.Fail(game.platform, this)
-
-            override fun toString() = "platform == $platform"
+        abstract class HasRule(name: String) : SimpleRule<Boolean>("Has $name") {
+            override fun extractValue(game: Game, context: Context) = extractNullableValue(game, context) != null
+            protected abstract fun extractNullableValue(game: Game, context: Context): Any?
+            override fun doCheck(value: Boolean) = value
         }
 
-        abstract class HasScoreRule(name: String) : Rule("Has $name") {
-            override fun check(game: Game, context: ReportContext) = extractScore(game).let { score ->
-                if (score != null) RuleResult.Pass else RuleResult.Fail(score, this)
+        class HasPlatform(val platform: Platform) : HasRule("Platform") {
+            override fun extractNullableValue(game: Game, context: Context) = if (game.platform == platform) platform else null
+            override val ruleId = "$name '$platform'"
+        }
+
+        class HasProvider(val providerId: ProviderId) : HasRule("Provider") {
+            override fun extractNullableValue(game: Game, context: Context) = game.providerHeaders.find { it.id == providerId }
+            override val ruleId = "$name '$providerId'"
+        }
+
+        class HasLibrary(val platform: Platform, val libraryName: String) : HasRule("Library") {
+            override fun extractNullableValue(game: Game, context: Context) = game.library.let { lib ->
+                if (lib.platform == platform && lib.name == libraryName) lib else null
             }
-
-            abstract protected fun extractScore(game: Game): Double?
+            override val ruleId = "$name '[$platform] $libraryName'"
         }
 
-        class HasCriticScore : HasScoreRule("Critic Score") {
-            override fun extractScore(game: Game) = game.criticScore?.score
+        class HasTag(val tag: String) : HasRule("Tag") {
+            override fun extractNullableValue(game: Game, context: Context) = game.tags.find { it == tag }
+            override val ruleId = "$name '$tag'"
         }
 
-        class HasUserScore : HasScoreRule("User Score") {
-            override fun extractScore(game: Game) = game.criticScore?.score
+        class HasCriticScore : HasRule("Critic Score") {
+            override fun extractNullableValue(game: Game, context: Context) = game.criticScore?.score
         }
 
-        abstract class TargetScoreRule(name: String, val target: Double, val greaterThan: Boolean) : Rule(name) {
-            override fun check(game: Game, context: ReportContext) = extractScore(game).let { score ->
-                val result = if (greaterThan) (score ?: -1.0 >= target) else (score ?: -1.0 <= target)
-                if (result) RuleResult.Pass else RuleResult.Fail(score, this)
-            }
+        class HasUserScore : HasRule("User Score") {
+            override fun extractNullableValue(game: Game, context: Context) = game.userScore?.score
+        }
 
-            abstract protected fun extractScore(game: Game): Double?
+        abstract class TargetScoreRule(name: String, val target: Double, @get:JsonProperty("greaterThan") val greaterThan: Boolean) : SimpleRule<Double?>(name) {
+            override fun doCheck(value: Double?) = if (greaterThan) (value ?: -1.0 >= target) else (value ?: -1.0 <= target)
             override fun toString() = "$name ${if (greaterThan) ">=" else "<="} $target"
         }
 
-        class CriticScore(target: Double = 60.0, isGt: Boolean = true) : TargetScoreRule("Critic Score", target, isGt) {
-            override fun extractScore(game: Game) = game.criticScore?.score
+        class CriticScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Critic Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.criticScore?.score
         }
 
-        class UserScore(target: Double = 60.0, isGt: Boolean = true) : TargetScoreRule("User Score", target, isGt) {
-            override fun extractScore(game: Game) = game.userScore?.score
+        class UserScore(target: Double, greaterThan: Boolean) : TargetScoreRule("User Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.userScore?.score
         }
 
         // TODO: Add ignore case option
         // TODO: Add option that makes metadata an optional match.
-        class NoDuplications : Rule("No Duplications") {
-            override fun check(game: Game, context: ReportContext): RuleResult {
-                val allDuplications = calculate(context)
-                val duplication = allDuplications[game]
-                return if (duplication != null) RuleResult.Fail(duplication, this) else RuleResult.Pass
-            }
+        class Duplications : SimpleRule<List<ReportRule.Rules.GameDuplication>>("Duplications") {
+            override fun extractValue(game: Game, context: Context): List<GameDuplication> {
+                val duplicates = context.cache("NoDuplications.result") {
+                    val headerToGames = context.games.asSequence()
+                        .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
+                        .toMultiMap()
 
-            private fun calculate(context: ReportContext) = context.getOrPut("NoDuplications.result") {
-                val headerToGames = context.games.asSequence()
-                    .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
-                    .toMultiMap()
+                    // TODO: Does this belong here?
+                    // Only detect duplications in the same platform.
+                    val duplicateHeaders = headerToGames
+                        .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
+                        .filterValues { it.size > 1 }
 
-                // Only detect duplications in the same platform.
-                val duplicateHeaders = headerToGames
-                    .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
-                    .filterValues { it.size > 1 }
-
-                val duplicateGames = duplicateHeaders.asSequence().flatMap { (header, games) ->
-                    games.asSequence().flatMap { game ->
-                        (games - game).asSequence().map { duplicatedGame ->
-                            game to GameDuplication(header.id, duplicatedGame)
+                    duplicateHeaders.asSequence().flatMap { (header, games) ->
+                        games.asSequence().flatMap { game ->
+                            (games - game).asSequence().map { duplicatedGame ->
+                                game to GameDuplication(header.id, duplicatedGame)
+                            }
                         }
-                    }
-                }.toMultiMap()
-
-                duplicateGames
+                    }.toMultiMap()
+                }
+                return duplicates[game] ?: emptyList()
             }
+
+            override fun doCheck(value: List<GameDuplication>) = value.isNotEmpty()
 
             private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
         }
@@ -237,22 +231,21 @@ sealed class ReportRule {
             val duplicatedGame: Game
         )
 
-        class NameDiff : Rule("Name-Folder Diff") {
-            override fun check(game: Game, context: ReportContext): RuleResult {
-                val allDiffs = calculate(context)
-                val diff = allDiffs[game]
-                return if (diff != null) RuleResult.Fail(diff, this) else RuleResult.Pass
+        class NameDiff : SimpleRule<List<GameNameFolderDiff>>("Name-Folder Diff") {
+            override fun extractValue(game: Game, context: Context): List<GameNameFolderDiff> {
+                val diffs = context.cache("NameDiff.result") {
+                    context.games.flatMap { game ->
+                        // TODO: If the majority of providers agree with the name, it is not a diff.
+                        game.rawGame.providerData.mapNotNull { providerData ->
+                            val difference = diff(game, providerData) ?: return@mapNotNull null
+                            game to difference
+                        }
+                    }.toMultiMap()
+                }
+                return diffs[game] ?: emptyList()
             }
 
-            private fun calculate(context: ReportContext) = context.getOrPut("NameDiff.result") {
-                context.games.flatMap { game ->
-                    // TODO: If the majority of providers agree with the name, it is not a diff.
-                    game.rawGame.providerData.mapNotNull { providerData ->
-                        val difference = diff(game, providerData) ?: return@mapNotNull null
-                        game to difference
-                    }
-                }.toMultiMap()
-            }
+            override fun doCheck(value: List<GameNameFolderDiff>) = value.isNotEmpty()
 
             private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
                 val actualName = game.folderMetaData.rawName
@@ -287,16 +280,20 @@ sealed class ReportRule {
         )
     }
 
-    data class ReportContext(val games: List<Game>) {
-        private val properties = mutableMapOf<String, Any>()
-        operator fun get(key: String) = properties[key]
+    data class Context(val games: List<Game>) {
+        private val cache = mutableMapOf<String, Any>()
+        private val _results = mutableMapOf<Game, MutableList<Result>>()
+        val results: MultiMap<Game, Result> get() = _results
 
         @Suppress("UNCHECKED_CAST")
-        fun <T> getOrPut(key: String, defaultValue: () -> T) = properties.getOrPut(key, defaultValue as () -> Any) as T
-    }
-}
+        fun <T> cache(key: String, defaultValue: () -> T) = cache.getOrPut(key, defaultValue as () -> Any) as T
 
-sealed class RuleResult {
-    object Pass : RuleResult()
-    data class Fail(val value: Any?, val rule: ReportRule) : RuleResult()  // TODO: Add a 'cause' rule?
+        fun addResult(game: Game, rule: Rules.Rule, value: Any?) {
+            val gameResults = _results.getOrPut(game) { mutableListOf() }
+            val result = Result(rule.ruleId, value)
+            if (!gameResults.contains(result)) gameResults += result
+        }
+    }
+
+    data class Result(val ruleName: String, val value: Any?)
 }

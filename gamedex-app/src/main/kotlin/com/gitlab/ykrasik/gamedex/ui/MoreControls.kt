@@ -172,7 +172,7 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     }
 
 // TODO: Change style classes to lists.
-fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
+fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,  // FIXME: This really shouldn't be observable
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = null,

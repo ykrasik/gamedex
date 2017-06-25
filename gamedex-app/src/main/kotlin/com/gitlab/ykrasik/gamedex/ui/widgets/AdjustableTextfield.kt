@@ -42,7 +42,6 @@ inline fun <reified T : Number> EventTarget.adjustableTextField(property: Proper
             }
             if (!valid) error("Invalid $name value!") else null
         }
-
     }
 
     jfxButton(graphic = Theme.Icon.plus(20.0), type = JFXButton.ButtonType.RAISED) {

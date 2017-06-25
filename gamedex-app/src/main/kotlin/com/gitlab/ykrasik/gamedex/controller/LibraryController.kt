@@ -89,4 +89,6 @@ class LibraryController @Inject constructor(
             }
         }
     }
+
+    fun getBy(platform: Platform, name: String) = libraryRepository.getBy(platform, name)
 }

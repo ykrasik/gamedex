@@ -1,11 +1,14 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
+import com.gitlab.ykrasik.gamedex.settings.ReportSettings
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.text.FontWeight
@@ -16,18 +19,32 @@ import tornadofx.*
  * Date: 17/06/2017
  * Time: 16:56
  */
-// TOOD: Add unallowed names
 class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Config") {
+    private val settings: ReportSettings by di()
+
     private val reportConfigProperty = SimpleObjectProperty(initialConfig)
     private var reportConfig by reportConfigProperty
 
+    private val unallowedNames = settings.reports.keys - initialConfig.name
+    private val viewModel = ReportNameViewModel(initialConfig.name).apply {
+        textProperty.onChange { commit() }
+        validate(decorateErrors = false)
+    }
+
     private var accept = false
 
+    // TODO: Generate name according to rules.toString unless custom name typed
     override val root = borderpane {
         addClass(Style.ruleWindow)
         top {
             toolbar {
-                acceptButton { setOnAction { close(accept = true) } }
+                acceptButton {
+                    enableWhen { viewModel.valid }
+                    setOnAction {
+                        reportConfig = reportConfig.copy(name = viewModel.text)
+                        close(accept = true)
+                    }
+                }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
@@ -40,35 +57,31 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
                 hbox(spacing = 10) {
                     alignment = Pos.CENTER_LEFT
                     title("Name")
-                    // FIXME: Validate the name.
-                    textfield(initialConfig.name) {
-                        textProperty().onChange {
-                            reportConfig = reportConfig.copy(name = it!!)
+
+                    textfield(viewModel.textProperty) {
+                        validator {
+                            if (it.isNullOrEmpty()) error("Report name cannot be empty!")
+                            else if (unallowedNames.contains(it)) error("Report with such a name already exists!")
+                            else null
                         }
                     }
                 }
 
                 separator()
 
+                label {
+                    isWrapText = true
+                    textProperty().bind(reportConfigProperty.map { it!!.rules.toString() })
+                }
+
+                separator()
+
                 vbox(spacing = 10) {
-                    reportConfigProperty.perform { config ->
+                    reportConfigProperty.perform {
                         // TODO: This is probably leaking a lot of listeners.
                         replaceChildren {
                             title("Rules")
-                            children += ReportRulesFragment(
-                                modifier = { it::withRules },
-                                reportConfigProperty = reportConfigProperty,
-                                rootRule = config.rules
-                            ).root
-
-                            separator()
-
-                            title("Filters")
-                            children += ReportRulesFragment(
-                                modifier = { it::withFilters },
-                                reportConfigProperty = reportConfigProperty,
-                                rootRule = config.filters
-                            ).root
+                            children += ReportRuleFragment(reportConfigProperty).root
                         }
                     }
                 }
@@ -76,7 +89,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         }
     }
 
-    private fun EventTarget.title(text: String) = label(text) { addClass(Style.ruleTitle )}
+    private fun EventTarget.title(text: String) = label(text) { addClass(Style.ruleTitle) }
 
     fun show(): ReportConfig? {
         openWindow(block = true, owner = null)
@@ -88,8 +101,9 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         close()
     }
 
-    init {
-        reportConfigProperty.onChange { println(it) }
+    private class ReportNameViewModel(initialName: String) : ViewModel() {
+        val textProperty = bind { SimpleStringProperty(initialName) }
+        var text by textProperty
     }
 
     class Style : Stylesheet() {
@@ -97,6 +111,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
             val ruleWindow by cssclass()
             val rulesContent by cssclass()
             val ruleTitle by cssclass()
+            val ruleButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -116,6 +131,11 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
             ruleTitle {
                 fontSize = 16.px
                 fontWeight = FontWeight.BOLD
+            }
+
+            ruleButton {
+                minWidth = 120.px
+                alignment = Pos.CENTER_LEFT
             }
         }
     }

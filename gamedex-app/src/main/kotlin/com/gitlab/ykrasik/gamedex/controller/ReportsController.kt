@@ -3,15 +3,13 @@ package com.gitlab.ykrasik.gamedex.controller
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
-import com.gitlab.ykrasik.gamedex.core.RuleResult
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.ThreadAwareDoubleProperty
 import com.gitlab.ykrasik.gamedex.ui.performing
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfigFragment
-import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.toMultiMap
+import com.gitlab.ykrasik.gamedex.util.MultiMap
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -23,6 +21,7 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
 import tornadofx.Controller
 import tornadofx.getValue
+import tornadofx.label
 import tornadofx.setValue
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,8 +36,6 @@ class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val settings: ReportSettings
 ) : Controller() {
-    private val logger = logger()
-
     fun addReport() = editReport(ReportConfig())
 
     fun editReport(config: ReportConfig): ReportConfig? {
@@ -51,8 +48,9 @@ class ReportsController @Inject constructor(
     }
 
     fun deleteReport(config: ReportConfig): Boolean {
-        // TODO: Display config content.
-        return areYouSureDialog("Delete report '${config.name}'?").apply {
+        return areYouSureDialog("Delete report '${config.name}'?") {
+            label("Rules: ${config.rules}")
+        }.apply {
             if (this) {
                 settings.reports -= config.name
             }
@@ -62,7 +60,7 @@ class ReportsController @Inject constructor(
     fun generateReport(config: ReportConfig) = OngoingReport(config)
 
     inner class OngoingReport(private val config: ReportConfig) {
-        val resultsProperty: Property<Map<Game, List<RuleResult.Fail>>> = SimpleObjectProperty(emptyMap())
+        val resultsProperty: Property<MultiMap<Game, ReportRule.Result>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
         private var reportListener: ListChangeListener<Game>? = null
@@ -77,37 +75,24 @@ class ReportsController @Inject constructor(
 
             reportListener = gameRepository.games.performing { games ->
                 isCalculating = true
-                logger.info("Calculating report '${config.name}'...")
                 launch(CommonPool) {
                     val result = calculate(games)
                     run(JavaFx) {
                         resultsProperty.value = result
-                        logger.info("Calculating report '${config.name}': ${result.size} results.")
                         isCalculating = false
                     }
                 }
             }
         }
 
-        private fun calculate(games: List<Game>): Map<Game, List<RuleResult.Fail>> {
-            // Detect candidates
-            var context = ReportRule.ReportContext(games)
-            val candidates = games.filter { game -> config.filters.check(game, context) == RuleResult.Pass }
-
-            // Evaluate rules
-            context = context.copy(games = candidates)
-            val violations = candidates.flatMap { game ->
-//                progressProperty.value = i.toDouble() / (candidates.size - 1)
-                val violation = config.rules.check(game, context)
-                if (violation is RuleResult.Fail) {
-                    val violations = (violation.value as? List<*>)?.map { RuleResult.Fail(it, violation.rule) } ?: listOf(violation)
-                    violations.map { game to it }
-                } else {
-                    emptyList<Pair<Game,RuleResult.Fail>>()
-                }
+        private fun calculate(games: List<Game>): MultiMap<Game, ReportRule.Result> {
+            val context = ReportRule.Context(games)
+            val matchingGames = games.filterIndexed { i, game ->
+                progressProperty.value = i.toDouble() / (games.size - 1)
+                config.rules.evaluate(game, context)
             }
-//            progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
-            return violations.toMultiMap()
+            progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
+            return context.results.filterKeys { matchingGames.contains(it) }
         }
 
         fun stop() {
@@ -115,11 +100,6 @@ class ReportsController @Inject constructor(
                 gameRepository.games.removeListener(reportListener)
                 reportListener = null
             }
-        }
-
-        fun reload() {
-            stop()
-            start()
         }
     }
 }

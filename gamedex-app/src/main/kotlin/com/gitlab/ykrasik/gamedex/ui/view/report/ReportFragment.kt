@@ -5,9 +5,7 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
-import com.gitlab.ykrasik.gamedex.core.RuleResult
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
@@ -36,7 +34,6 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
     private val reportsController: ReportsController by di()
     private val gameController: GameController by di()
-    private val providerRepository: GameProviderRepository by di()
 
     private var gamesTable: TableView<Game> by singleAssign()
 
@@ -51,8 +48,8 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
             gamesTable
         }
 
-        val right = container(selectedGameProperty.map { "Violations: ${report.results[it]?.size ?: 0}" }) {
-            violationsView()
+        val right = container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
+            resultsView()
         }
         splitpane(left, right) { setDividerPositions(0.45) }
     }
@@ -82,45 +79,28 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         report.resultsProperty.onChange { resizeColumnsToFitContent() }
     }
 
-    private fun EventTarget.violationsView() = tableview<RuleResult.Fail> {
+    private fun EventTarget.resultsView() = tableview<ReportRule.Result> {
         vgrow = Priority.ALWAYS
 
-        // FIXME: Render each violation in a per-report way.
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        simpleColumn("Rule") { violation -> violation.rule }
-        customGraphicColumn("Value") { violation ->
-            when (violation.value) {
-                is ReportRule.Rules.GameNameFolderDiff ->
-                    // TODO: Move all of this into the diff renderer and rename it to diff fragment.
-                    Form().apply {
-                        val diff = violation.value
-                        addClass(CommonStyle.centered)
-                        fieldset {
-                            field {
-                                imageview(providerRepository[diff.providerId].logoImage) {
-                                    fitHeight = 80.0
-                                    fitWidth = 160.0
-                                    isPreserveRatio = true
-                                }
-                            }
-                            field("Expected") { children += DiffRenderer.renderExpected(diff) }
-                            field("Actual") { children += DiffRenderer.renderActual(diff) }
-                        }
-                    }
-                else -> label(violation.value.toDisplayString())
+        simpleColumn("Rule") { result -> result.ruleName }
+        customGraphicColumn("Value") { result ->
+            when (result.value) {
+                is ReportRule.Rules.GameNameFolderDiff -> DiffResultFragment(result.value, selectedGame).root
+                is ReportRule.Rules.GameDuplication -> DuplicationFragment(result.value, gamesTable).root
+                else -> label(result.value.toDisplayString())
             }
         }
 
         selectedGameProperty.onChange { selectedGame ->
-            items = selectedGame?.let { report.results[it]!!.observable() }
+            // The selected game may not appear in the report (can happen with programmatic selection).
+            items = selectedGame?.let { report.results[it]?.observable() }
             resizeColumnsToFitContent()
         }
     }
 
     private val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
-    private val selectedGame get() = gamesTable.selectionModel.selectedItem
-    private fun selectGame(game: Game) = gamesTable.selectionModel.select(game)
-    private fun scrollTo(game: Game) = gamesTable.scrollTo(game)
+    private val selectedGame by selectedGameProperty
 
     private fun container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER

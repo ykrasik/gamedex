@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.repository
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -97,6 +98,8 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")
+    fun getBy(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name } ?:
+        throw IllegalStateException("No library found for platform=$platform, name=$name!")
 
     private fun removeById(id: Int) {
         check(libraries.removeIf { it.id == id }) { "Error! Doesn't exist: Library($id)" }

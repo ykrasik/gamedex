@@ -1,8 +1,17 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import difflib.Chunk
 import difflib.Delta
+import javafx.event.EventTarget
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextFlow
@@ -10,14 +19,39 @@ import tornadofx.*
 
 /**
  * User: ykrasik
- * Date: 11/06/2017
- * Time: 15:42
+ * Date: 24/06/2017
+ * Time: 18:52
  */
-object DiffRenderer {
-    fun renderActual(diff: ReportRule.Rules.GameNameFolderDiff): TextFlow = render(diff.actualName, diff.patch.deltas) { it.original }
-    fun renderExpected(diff: ReportRule.Rules.GameNameFolderDiff): TextFlow = render(diff.expectedName, diff.patch.deltas) { it.revised }
+class DiffResultFragment(diff: ReportRule.Rules.GameNameFolderDiff, game: Game) : Fragment() {
+    private val gameController: GameController by di()
+    private val providerRepository: GameProviderRepository by di()
 
-    private fun render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = TextFlow().apply {
+    override val root = form {
+        addClass(CommonStyle.centered)
+        fieldset {
+            field {
+                imageview(providerRepository[diff.providerId].logoImage) {
+                    fitHeight = 80.0
+                    fitWidth = 160.0
+                    isPreserveRatio = true
+                }
+            }
+            field("Expected") { render(diff.expectedName, diff.patch.deltas) { it.revised } }
+            field("Actual") { render(diff.actualName, diff.patch.deltas) { it.original } }
+        }
+
+        popoverContextMenu {
+            jfxButton("Rename to Expected", Theme.Icon.folder()) {
+                setOnAction {
+                    gameController.renameFolder(game, diff.expectedName)
+                }
+            }
+            // TODO: Add a 'search only this provider' option
+            // TODO: Consider adding an 'ignore this diff' option.
+        }
+    }
+
+    private fun EventTarget.render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = textflow {
         var currentIndex = 0
         deltas.sortedBy { chunkExtractor(it).position }.forEach { delta ->
             val chunk = chunkExtractor(delta)
@@ -32,7 +66,7 @@ object DiffRenderer {
     }
 
     private fun TextFlow.match(text: String) = label(text) { addClass(Style.match) }
-    
+
     private fun TextFlow.diff(text: String, type: Delta.TYPE) = label(text) {
         addClass(Style.match, Style.diff, when (type) {
             Delta.TYPE.CHANGE -> Style.change
