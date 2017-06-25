@@ -90,7 +90,8 @@ class SettingsController @Inject constructor(
         override fun doneMessage() = "Done: Exported ${gameRepository.games.size} games."
     }
 
-    // TODO: This isn't actually cancellable. Do I want it to be?
+    // TODO: This isn't actually cancellable. Do I want it to be? Should probably use a maskerPane instead.
+    // TODO: Split long running tasks into cancellable and non-cancellable.
     inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 

@@ -1,11 +1,14 @@
-package com.gitlab.ykrasik.gamedex.ui.view.report
+package com.gitlab.ykrasik.gamedex.ui.view.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
-import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.Property
+import javafx.geometry.Pos
+import javafx.scene.layout.Priority
 import javafx.stage.StageStyle
 import tornadofx.*
 import java.io.File
@@ -16,16 +19,19 @@ import java.nio.file.Paths
  * Date: 11/06/2017
  * Time: 19:47
  */
-// TODO: Make this something available outside of reports.
-class RenameFolderFragment(private val game: Game, initialSuggestion: String) : Fragment("Rename '${game.path}'") {
+class RenameFolderFragment(private val game: Game, initialSuggestion: String) : Fragment("Rename/Move '${game.path}'") {
     private var accept = false
 
-    private val basePath = game.path.parentFile
     private val newPathProperty = initialSuggestion.toProperty()
     private val model = RenameFolderViewModel(newPathProperty)
 
+    private val basePathProperty = game.path.parentFile.toProperty().apply {
+        onChange { model.commit() }
+    }
+    private var basePath by basePathProperty
+
     override val root = borderpane {
-        minWidth = 400.0
+        minWidth = 700.0
         minHeight = 100.0
         top {
             toolbar {
@@ -46,14 +52,24 @@ class RenameFolderFragment(private val game: Game, initialSuggestion: String) : 
                 fieldset {
                     field("From") { pathButton(game.path) }
                     field("To") {
-                        textfield(model.pathProperty) {
-                            validator {
-                                val valid = try {
-                                    it!!.isValidFile()
-                                } catch (e: Exception) {
-                                    false
+                        hbox(spacing = 1.0) {
+                            alignment = Pos.CENTER_LEFT
+                            jfxButton {
+                                textProperty().bind(basePathProperty.map { it!!.toString() })
+                                setOnAction {
+                                    basePath = chooseDirectory("Browse Game Path...", initialDirectory = basePath) ?: return@setOnAction
                                 }
-                                if (!valid) error("Invalid folder name!") else null
+                            }
+                            textfield(model.pathProperty) {
+                                hgrow = Priority.ALWAYS
+                                validator {
+                                    val valid = try {
+                                        it!!.isValidFile()
+                                    } catch (e: Exception) {
+                                        false
+                                    }
+                                    if (!valid) error("Invalid folder name!") else null
+                                }
                             }
                         }
                     }
@@ -88,7 +104,7 @@ class RenameFolderFragment(private val game: Game, initialSuggestion: String) : 
     fun show(): File? {
         openModal(block = true, stageStyle = StageStyle.UNIFIED)
         return if (accept && model.commit()) {
-            model.pathProperty.value.toFile()
+            File(basePath, model.pathProperty.value)
         } else {
             null
         }

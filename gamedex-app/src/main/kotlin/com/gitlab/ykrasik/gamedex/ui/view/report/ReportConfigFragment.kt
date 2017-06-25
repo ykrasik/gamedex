@@ -26,10 +26,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     private var reportConfig by reportConfigProperty
 
     private val unallowedNames = settings.reports.keys - initialConfig.name
-    private val viewModel = ReportNameViewModel(initialConfig.name).apply {
-        textProperty.onChange { commit() }
-        validate(decorateErrors = false)
-    }
+    private val viewModel = ReportNameViewModel(initialConfig.name)
 
     private var accept = false
 
@@ -104,6 +101,11 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     private class ReportNameViewModel(initialName: String) : ViewModel() {
         val textProperty = bind { SimpleStringProperty(initialName) }
         var text by textProperty
+
+        init {
+            textProperty.onChange { commit() }
+            validate(decorateErrors = true)
+        }
     }
 
     class Style : Stylesheet() {

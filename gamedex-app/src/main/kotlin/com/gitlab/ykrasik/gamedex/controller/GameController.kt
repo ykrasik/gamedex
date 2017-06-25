@@ -10,11 +10,10 @@ import com.gitlab.ykrasik.gamedex.task.RefreshTasks
 import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.view.dialog.errorAlert
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameFolderFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
-import com.gitlab.ykrasik.gamedex.ui.view.report.RenameFolderFragment
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.binding.BooleanBinding
 import javafx.beans.property.SimpleStringProperty
@@ -25,7 +24,7 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
-import java.io.File
+import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -229,29 +228,24 @@ class GameController @Inject constructor(
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
-    // FIXME: Add full support for rename/move
-    fun renameFolder(game: Game, initialSuggestion: String) = launch(JavaFx) {
-        val relativePath = RenameFolderFragment(game, initialSuggestion).show() ?: return@launch
-        val newAbsolutePath = File(game.path.parent, relativePath.path)
-        logger.info("Renaming: ${game.path} -> $newAbsolutePath")
-        
-        if (game.path.renameTo(newAbsolutePath)) {
-            val rawGame = game.rawGame
-            val metaData = rawGame.metaData
-            val newRelativePath = newAbsolutePath.relativeTo(game.library.path)
-            gameRepository.update(rawGame.copy(metaData = metaData.copy(path = newRelativePath)))
-        } else {
-            errorAlert("Error renaming folder!") {
-                form {
-                    fieldset {
-                        field("From") { label(game.path.path) }
-                        field("To") { label(newAbsolutePath.path) }
-                    }
-                }
-            }
+    fun renameFolder(game: Game, initialSuggestion: String? = null) = launch(JavaFx) {
+        val newPath = RenameFolderFragment(game, initialSuggestion ?: game.path.name).show() ?: return@launch
+        logger.info("Renaming/Moving: ${game.path} -> $newPath")
+
+        if (!game.path.renameTo(newPath)) {
+            // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
+            // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
+            // and throws an exception if it fails.
+            Files.move(game.path.toPath(), newPath.toPath())
         }
+
+        val rawGame = game.rawGame
+        val metaData = rawGame.metaData
+        val newRelativePath = newPath.relativeTo(game.library.path)
+        gameRepository.update(rawGame.copy(metaData = metaData.copy(path = newRelativePath)))
     }
 
+    // TODO: Rename/Move affects the fileSystem, this does not. Should be more obvious.
     fun delete(game: Game): Boolean {
         if (!areYouSureDialog("Delete game '${game.name}'?")) return false
 

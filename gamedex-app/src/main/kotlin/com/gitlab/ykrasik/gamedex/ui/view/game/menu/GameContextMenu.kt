@@ -50,6 +50,8 @@ class GameContextMenu : View() {
             setOnAction { controller.searchGame(game) }
         }
         separator()
+        item("Rename/Move Folder", Theme.Icon.folder(size)) { setOnAction { controller.renameFolder(game) }}
+        separator()
         item("Delete", Theme.Icon.delete(size)) { setOnAction { controller.delete(game) } }
     }
 

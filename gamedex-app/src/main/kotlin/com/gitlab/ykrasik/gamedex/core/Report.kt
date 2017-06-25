@@ -201,7 +201,7 @@ sealed class ReportRule(val name: String) {
             override fun extractValue(game: Game, context: Context): List<GameDuplication> {
                 val duplicates = context.cache("NoDuplications.result") {
                     val headerToGames = context.games.asSequence()
-                        .flatMap { game -> game.providerHeaders.asSequence().map { it.withoutUpdateDate() to game } }
+                        .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutUpdateDate() to checkedGame } }
                         .toMultiMap()
 
                     // TODO: Does this belong here?
@@ -211,9 +211,9 @@ sealed class ReportRule(val name: String) {
                         .filterValues { it.size > 1 }
 
                     duplicateHeaders.asSequence().flatMap { (header, games) ->
-                        games.asSequence().flatMap { game ->
-                            (games - game).asSequence().map { duplicatedGame ->
-                                game to GameDuplication(header.id, duplicatedGame)
+                        games.asSequence().flatMap { checkedGame ->
+                            (games - checkedGame).asSequence().map { duplicatedGame ->
+                                checkedGame to GameDuplication(header.id, duplicatedGame)
                             }
                         }
                     }.toMultiMap()
@@ -234,11 +234,11 @@ sealed class ReportRule(val name: String) {
         class NameDiff : SimpleRule<List<GameNameFolderDiff>>("Name-Folder Diff") {
             override fun extractValue(game: Game, context: Context): List<GameNameFolderDiff> {
                 val diffs = context.cache("NameDiff.result") {
-                    context.games.flatMap { game ->
+                    context.games.flatMap { checkedGame ->
                         // TODO: If the majority of providers agree with the name, it is not a diff.
-                        game.rawGame.providerData.mapNotNull { providerData ->
-                            val difference = diff(game, providerData) ?: return@mapNotNull null
-                            game to difference
+                        checkedGame.rawGame.providerData.mapNotNull { providerData ->
+                            val difference = diff(checkedGame, providerData) ?: return@mapNotNull null
+                            checkedGame to difference
                         }
                     }.toMultiMap()
                 }
