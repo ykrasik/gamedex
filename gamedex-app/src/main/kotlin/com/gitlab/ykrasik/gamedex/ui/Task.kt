@@ -15,7 +15,6 @@ import javafx.geometry.VPos
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.GridPane
-import javafx.stage.Screen
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
@@ -70,7 +69,7 @@ abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
                             minWidth = 170.0
                         }
                         progressbar(progress.progressProperty) {
-                            prefWidth = Screen.getPrimary().bounds.width
+                            prefWidth = screenBounds.width
                             gridpaneConstraints { hAlignment = HPos.CENTER }
                         }
                         button(graphic = Images.error.toImageView().apply { fitWidth = 30.0; fitHeight = 30.0; isPreserveRatio = true }) {

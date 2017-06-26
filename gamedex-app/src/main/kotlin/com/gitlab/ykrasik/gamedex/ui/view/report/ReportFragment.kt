@@ -11,6 +11,8 @@ import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.details.WebBrowser
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
@@ -31,6 +33,7 @@ import tornadofx.*
 // TODO: Should consider making this a view and just re-binding the report to it.
 class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.book()) {
     private val gameContextMenu: GameContextMenu by inject()
+    private val browser = WebBrowser()
 
     private val reportsController: ReportsController by di()
     private val gameController: GameController by di()
@@ -41,17 +44,55 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
     val searchProperty = SimpleStringProperty("")
 
-    override val root = run {
+    override val root = hbox {
+        useMaxSize = true
         val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
-        val left = container(games.mapProperty { "Games: ${it.size}" }) {
-            gamesTable = gamesView(games)
-            gamesTable
+
+        // Left
+        vbox {
+            hgrow = Priority.ALWAYS
+            maxWidth = screenBounds.width / 2
+
+            // Top
+            container(games.mapProperty { "Games: ${it.size}" }) {
+                vgrow = Priority.ALWAYS
+                minHeight = screenBounds.height / 2
+                gamesTable = gamesView(games)
+            }
+
+            // Bottom
+            stackpane {
+                paddingAll = 10.0
+                selectedGameProperty.perform { game ->
+                    if (game != null) {
+                        replaceChildren {
+                            children += GameDetailsFragment(game).root
+                        }
+                    }
+                }
+            }
         }
 
-        val right = container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
-            resultsView()
+        verticalSeparator(padding = 4.0 )
+
+        // Right
+        vbox {
+            hgrow = Priority.ALWAYS
+            maxWidth = screenBounds.width / 2
+
+            // Top
+            container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
+                vgrow = Priority.ALWAYS
+                minHeight = screenBounds.height / 2
+                resultsView()
+            }
+
+            // Bottom
+            children += browser.root.apply { paddingTop = 4.0 }
+            selectedGameProperty.perform { game ->
+                if (game != null) browser.searchYoutube(game)
+            }
         }
-        splitpane(left, right) { setDividerPositions(0.45) }
     }
 
     private fun EventTarget.gamesView(games: ObservableList<Game>) = tableview(games) {
@@ -102,14 +143,21 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
     private val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
     private val selectedGame by selectedGameProperty
 
-    private fun container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
+    private fun EventTarget.container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER
         label(text) { addClass(Style.headerLabel) }
         op(this)
     }
 
-    override fun onDock() = report.start()
-    override fun onUndock() = report.stop()
+    override fun onDock() {
+        browser.stop()
+        report.start()
+    }
+
+    override fun onUndock() {
+        browser.stop()
+        report.stop()
+    }
 
     class Style : Stylesheet() {
         companion object {

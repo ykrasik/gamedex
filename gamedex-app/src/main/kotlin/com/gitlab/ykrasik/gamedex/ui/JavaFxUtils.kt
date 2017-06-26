@@ -17,6 +17,7 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
+import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.util.Duration
 import org.controlsfx.glyphfont.FontAwesome
@@ -34,6 +35,8 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
 } else {
     runLater(f)
 }
+
+val screenBounds = Screen.getPrimary().bounds
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()

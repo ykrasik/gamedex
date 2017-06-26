@@ -1,17 +1,19 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import javafx.beans.property.Property
 import javafx.scene.web.WebView
 import tornadofx.*
+import java.net.URLEncoder
 
 /**
  * User: ykrasik
  * Date: 09/06/2017
  * Time: 22:29
  */
-class WebBrowser : View() {
+class WebBrowser : Fragment() {
     private var webView: WebView by singleAssign()
 
     override val root = borderpane {
@@ -34,10 +36,18 @@ class WebBrowser : View() {
         }
     }
 
+    fun searchYoutube(game: Game) {
+        val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
+        val url = "https://www.youtube.com/results?search_query=$search"
+        load(url)
+    }
+
     fun load(url: String) = webView.engine.load(url)
 
     // TODO: Find a way to clear browsing history on stop.
-    fun stop() = webView.engine.load(null)
+    fun stop() {
+        webView.engine.load(null)
+    }
 
     private fun canNavigate(back: Boolean): Property<Boolean> {
         val history = webView.engine.history

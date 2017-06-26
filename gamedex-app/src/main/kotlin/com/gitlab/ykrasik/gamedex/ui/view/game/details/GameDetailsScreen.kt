@@ -13,13 +13,11 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import javafx.stage.Screen
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
-import java.net.URLEncoder
 
 /**
  * User: ykrasik
@@ -31,7 +29,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
 
-    private val browser: WebBrowser by inject()
+    private val browser = WebBrowser()
 
     val gameProperty: ObjectProperty<Game> = SimpleObjectProperty()
     var game by gameProperty
@@ -72,7 +70,6 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
     override val root = hbox {
         setId(Style.gameDetailsViewContent)
-        val screenWidth = Screen.getPrimary().bounds.width
 
         // Left
         stackpane {
@@ -90,7 +87,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             }
 
             imageViewResizingPane(poster) {
-                maxWidth = screenWidth * maxPosterWidthPercent
+                maxWidth = screenBounds.width * maxPosterWidthPercent
 
                 // Clip the posterPane's corners to be round after the posterPane's size is calculated.
                 clipRectangle {
@@ -114,9 +111,10 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             // Top
             stackpane {
                 gameProperty.perform { game ->
-                    game ?: return@perform
-                    replaceChildren {
-                        children += GameDetailsFragment(game).root
+                    if (game != null) {
+                        replaceChildren {
+                            children += GameDetailsFragment(game).root
+                        }
                     }
                 }
             }
@@ -125,11 +123,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             separator { padding { top = 10; bottom = 10 } }
             children += browser.root.apply { vgrow = Priority.ALWAYS }
             gameProperty.perform { game ->
-                if (game != null) {
-                    val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
-                    val url = "https://www.youtube.com/results?search_query=$search"
-                    browser.load(url)
-                }
+                if (game != null) browser.searchYoutube(game)
             }
         }
     }

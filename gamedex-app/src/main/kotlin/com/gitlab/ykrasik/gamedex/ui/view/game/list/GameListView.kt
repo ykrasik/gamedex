@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.perform
+import com.gitlab.ykrasik.gamedex.ui.screenBounds
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
@@ -12,7 +13,6 @@ import javafx.geometry.HPos
 import javafx.geometry.Pos
 import javafx.scene.control.ListView
 import javafx.scene.paint.Color
-import javafx.stage.Screen
 import tornadofx.*
 
 /**
@@ -46,7 +46,7 @@ class GameListView : View("Game List") {
                 }
                 center {
                     listview = listview(gameController.sortedFilteredGames) {
-                        minHeight = Screen.getPrimary().bounds.height
+                        minHeight = screenBounds.height
                         cellFormat { game ->
                             graphic = gridpane {
                                 hgap = 10.0

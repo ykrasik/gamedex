@@ -22,7 +22,6 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
-import javafx.stage.Screen
 import javafx.util.Callback
 import org.controlsfx.control.MaskerPane
 import org.controlsfx.control.PopOver
@@ -262,7 +261,7 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     isDetachable = false
 
     val scrollpane = ScrollPane().apply {
-        maxHeight = Screen.getPrimary().bounds.height * 3 / 4
+        maxHeight = screenBounds.height * 3 / 4
         isFitToWidth = true
         isFitToHeight = true
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
