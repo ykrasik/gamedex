@@ -16,6 +16,7 @@ import org.joda.time.DateTime
  * Date: 17/06/2017
  * Time: 16:02
  */
+// TODO: Add excluded games.
 data class ReportConfig(
     val name: String = "",
     val rules: ReportRule = ReportRule.Rules.True()
@@ -30,14 +31,21 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Operators.Not::class, name = "not"),
 
     JsonSubTypes.Type(value = ReportRule.Rules.True::class, name = "true"),
+
     JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "targetCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "targetUserScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.MinScore::class, name = "targetMinScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.AvgScore::class, name = "targetAvgScore"),
+
     JsonSubTypes.Type(value = ReportRule.Rules.HasPlatform::class, name = "hasPlatform"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasProvider::class, name = "hasProvider"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasLibrary::class, name = "hasLibrary"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasTag::class, name = "hasTag"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasMinScore::class, name = "hasMinScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasAvgScore::class, name = "hasAvgScore"),
+
     JsonSubTypes.Type(value = ReportRule.Rules.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
 )
@@ -182,6 +190,14 @@ sealed class ReportRule(val name: String) {
             override fun extractNullableValue(game: Game, context: Context) = game.userScore?.score
         }
 
+        class HasMinScore : HasRule("Min Score") {
+            override fun extractNullableValue(game: Game, context: Context) = game.minScore
+        }
+
+        class HasAvgScore : HasRule("Avg Score") {
+            override fun extractNullableValue(game: Game, context: Context) = game.avgScore
+        }
+
         abstract class TargetScoreRule(name: String, val target: Double, @get:JsonProperty("greaterThan") val greaterThan: Boolean) : SimpleRule<Double?>(name) {
             override fun doCheck(value: Double?) = if (greaterThan) (value ?: -1.0 >= target) else (value ?: -1.0 <= target)
             override fun toString() = "$name ${if (greaterThan) ">=" else "<="} $target"
@@ -193,6 +209,14 @@ sealed class ReportRule(val name: String) {
 
         class UserScore(target: Double, greaterThan: Boolean) : TargetScoreRule("User Score", target, greaterThan) {
             override fun extractValue(game: Game, context: Context) = game.userScore?.score
+        }
+
+        class MinScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Min Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.minScore
+        }
+
+        class AvgScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Avg Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.avgScore
         }
 
         // TODO: Add ignore case option

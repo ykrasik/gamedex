@@ -44,13 +44,22 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
     // TODO: I failed at decoupling the rule display name from the actual rule name
     private val rules = mapOf(
         "Critic Score" to { ReportRule.Rules.CriticScore(60.0, greaterThan = false) },
-        "User Score" to { ReportRule.Rules.UserScore(60.0, greaterThan = false) },
         "Has Critic Score" to { ReportRule.Rules.HasCriticScore() },
+
+        "User Score" to { ReportRule.Rules.UserScore(60.0, greaterThan = false) },
         "Has User Score" to { ReportRule.Rules.HasUserScore() },
+
+        "Min Score" to { ReportRule.Rules.MinScore(60.0, greaterThan = false) },
+        "Has Min Score" to { ReportRule.Rules.HasMinScore() },
+
+        "Avg Score" to { ReportRule.Rules.AvgScore(60.0, greaterThan = false) },
+        "Has Avg Score" to { ReportRule.Rules.HasAvgScore() },
+
         "Has Platform" to { ReportRule.Rules.HasPlatform(Platform.pc) },
         "Has Provider" to { ReportRule.Rules.HasProvider(providerRepository.providers.first().id) },
         "Has Library" to { ReportRule.Rules.HasLibrary(Platform.pc, libraryController.realLibraries.firstOrNull()?.name ?: "") },
         "Has Tag" to { ReportRule.Rules.HasTag(gameController.tags.firstOrNull() ?: "") },
+
         "Has Duplications" to { ReportRule.Rules.Duplications() },
         "Name-Folder Diff" to { ReportRule.Rules.NameDiff() }
     )
@@ -76,8 +85,10 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
                     is ReportRule.Rules.HasProvider -> renderProviderRule(rule)
                     is ReportRule.Rules.HasLibrary -> renderLibraryRule(rule)
                     is ReportRule.Rules.HasTag -> renderTagRule(rule)
-                    is ReportRule.Rules.CriticScore -> renderCriticScoreRule(rule)
-                    is ReportRule.Rules.UserScore -> renderUserScoreRule(rule)
+                    is ReportRule.Rules.CriticScore -> renderScoreRule(rule, "Critic Score", ReportRule.Rules::CriticScore)
+                    is ReportRule.Rules.UserScore -> renderScoreRule(rule, "User Score", ReportRule.Rules::UserScore)
+                    is ReportRule.Rules.MinScore -> renderScoreRule(rule, "Min Score", ReportRule.Rules::MinScore)
+                    is ReportRule.Rules.AvgScore -> renderScoreRule(rule, "Avg Score", ReportRule.Rules::AvgScore)
                     else -> rule.toProperty()
                 }
                 ruleProperty.onChange { replaceRule(rule, it!!) }
@@ -111,7 +122,13 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
             possibleItems = possibleRules,
             selectedItemProperty = ruleNameProperty,
             styleClass = ReportConfigFragment.Style.ruleButton,
-            text = { it }
+            text = { it },
+            menuOp = {      // TODO: Dirty solution!
+                when (it) {
+                    "Has Critic Score", "Has User Score", "Has Min Score", "Has Avg Score", "Has Tag" -> separator()
+                    else -> {}
+                }
+            }
         )
 
         ruleNameProperty.onChange { ruleProperty.value = all[it]!!() }
@@ -200,12 +217,6 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
         combobox(provider, gameController.tags)
         return ruleProperty
     }
-
-    private fun HBox.renderCriticScoreRule(rule: ReportRule.Rules.CriticScore): ObjectProperty<ReportRule.Rules.TargetScoreRule> =
-        renderScoreRule(rule, "Critic Score") { target, isGt -> ReportRule.Rules.CriticScore(target, isGt) }
-
-    private fun HBox.renderUserScoreRule(rule: ReportRule.Rules.UserScore): ObjectProperty<ReportRule.Rules.TargetScoreRule> =
-        renderScoreRule(rule, "User Score") { target, isGt -> ReportRule.Rules.UserScore(target, isGt) }
 
     private fun HBox.renderScoreRule(rule: ReportRule.Rules.TargetScoreRule,
                                      name: String,
