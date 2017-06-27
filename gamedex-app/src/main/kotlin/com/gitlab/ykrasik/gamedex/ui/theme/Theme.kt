@@ -55,8 +55,8 @@ object Theme {
 
         fun search(size: Double = defaultIconSize) = FontAwesome.Glyph.SEARCH.toGraphic { size(size); color(Color.DARKGOLDENROD) }
         fun refresh(size: Double = defaultIconSize) = FontAwesome.Glyph.REFRESH.toGraphic { size(size); color(Color.DARKCYAN) }
-        fun chart(size: Double = defaultIconSize) = FontAwesome.Glyph.BAR_CHART.toGraphic { size(size); color(Color.BURLYWOOD) }
-        fun book(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.DARKBLUE) }
+        fun chart(size: Double = defaultIconSize) = FontAwesome.Glyph.BAR_CHART.toGraphic { size(size); color(Color.DARKBLUE) }
+        fun book(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.BURLYWOOD) }
         fun filter(size: Double = defaultIconSize) = FontAwesome.Glyph.FILTER.toGraphic { size(size) }
         fun folder(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER.toGraphic { size(size) }
 

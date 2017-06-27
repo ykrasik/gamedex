@@ -29,7 +29,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
 
-    private val browser = WebBrowser()
+    private val browser = YouTubeWebBrowser()
 
     val gameProperty: ObjectProperty<Game> = SimpleObjectProperty()
     var game by gameProperty
@@ -113,7 +113,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
                 gameProperty.perform { game ->
                     if (game != null) {
                         replaceChildren {
-                            children += GameDetailsFragment(game).root
+                            children += GameDetailsFragment(game, evenIfEmpty = true).root
                         }
                     }
                 }

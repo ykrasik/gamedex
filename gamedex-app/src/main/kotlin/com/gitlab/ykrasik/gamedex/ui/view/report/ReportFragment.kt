@@ -12,7 +12,7 @@ import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
-import com.gitlab.ykrasik.gamedex.ui.view.game.details.WebBrowser
+import com.gitlab.ykrasik.gamedex.ui.view.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
@@ -31,9 +31,9 @@ import tornadofx.*
  * Time: 09:48
  */
 // TODO: Should consider making this a view and just re-binding the report to it.
-class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.book()) {
+class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.chart()) {
     private val gameContextMenu: GameContextMenu by inject()
-    private val browser = WebBrowser()
+    private val browser = YouTubeWebBrowser()
 
     private val reportsController: ReportsController by di()
     private val gameController: GameController by di()
@@ -61,6 +61,19 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
             }
 
             // Bottom
+            container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
+                resultsView()
+            }
+        }
+
+        verticalSeparator(padding = 4.0)
+
+        // Right
+        vbox {
+            hgrow = Priority.ALWAYS
+            maxWidth = screenBounds.width / 2
+
+            // Top
             stackpane {
                 paddingAll = 10.0
                 selectedGameProperty.perform { game ->
@@ -71,24 +84,11 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
                     }
                 }
             }
-        }
 
-        verticalSeparator(padding = 4.0 )
-
-        // Right
-        vbox {
-            hgrow = Priority.ALWAYS
-            maxWidth = screenBounds.width / 2
-
-            // Top
-            container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
-                vgrow = Priority.ALWAYS
-                minHeight = screenBounds.height / 2
-                resultsView()
-            }
+            separator { padding { top = 2.0; bottom = 2.0 } }
 
             // Bottom
-            children += browser.root.apply { paddingTop = 4.0 }
+            children += browser.root.apply { paddingTop = 4.0; vgrow = Priority.ALWAYS }
             selectedGameProperty.perform { game ->
                 if (game != null) browser.searchYoutube(game)
             }
@@ -121,8 +121,6 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
     }
 
     private fun EventTarget.resultsView() = tableview<ReportRule.Result> {
-        vgrow = Priority.ALWAYS
-
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         simpleColumn("Rule") { result -> result.ruleName }
         customGraphicColumn("Value") { result ->
@@ -130,6 +128,13 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
                 is ReportRule.Rules.GameNameFolderDiff -> DiffResultFragment(result.value, selectedGame).root
                 is ReportRule.Rules.GameDuplication -> DuplicationFragment(result.value, gamesTable).root
                 else -> label(result.value.toDisplayString())
+            }
+        }
+        customGraphicColumn("Extra") { result ->
+            when (result.value) {
+                is ReportRule.Rules.GameNameFolderDiff -> ProviderLogoFragment(result.value.providerId).root
+                is ReportRule.Rules.GameDuplication -> ProviderLogoFragment(result.value.providerId).root
+                else -> label()
             }
         }
 

@@ -13,7 +13,7 @@ import java.net.URLEncoder
  * Date: 09/06/2017
  * Time: 22:29
  */
-class WebBrowser : Fragment() {
+class YouTubeWebBrowser : Fragment() {
     private var webView: WebView by singleAssign()
 
     override val root = borderpane {

@@ -252,7 +252,7 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
                 contentDisplay = ContentDisplay.TOP
                 padding = box(2.px)
                 borderColor = multi(box(Color.BLACK))
-                borderWidth = multi(box(1.px))
+                borderWidth = multi(box(0.5.px))
             }
         }
     }

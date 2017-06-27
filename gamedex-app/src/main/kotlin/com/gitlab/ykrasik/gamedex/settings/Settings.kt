@@ -34,6 +34,7 @@ class Settings private constructor(
         if (it && updateEnabled) update()
     }
 
+    // TODO: This happens on UI thread.
     private fun update() = objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, this)
 
     companion object {

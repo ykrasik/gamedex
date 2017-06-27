@@ -3,8 +3,6 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ReportRule
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
@@ -24,18 +22,10 @@ import tornadofx.*
  */
 class DiffResultFragment(diff: ReportRule.Rules.GameNameFolderDiff, game: Game) : Fragment() {
     private val gameController: GameController by di()
-    private val providerRepository: GameProviderRepository by di()
 
     override val root = form {
         addClass(CommonStyle.centered)
         fieldset {
-            field {
-                imageview(providerRepository[diff.providerId].logoImage) {
-                    fitHeight = 80.0
-                    fitWidth = 160.0
-                    isPreserveRatio = true
-                }
-            }
             field("Expected") { render(diff.expectedName, diff.patch.deltas) { it.revised } }
             field("Actual") { render(diff.actualName, diff.patch.deltas) { it.original } }
         }

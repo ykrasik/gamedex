@@ -23,7 +23,12 @@ import tornadofx.*
  * Date: 01/05/2017
  * Time: 19:42
  */
-class GameDetailsFragment(private val game: Game, withDescription: Boolean = true, withUrls: Boolean = true) : View() {
+class GameDetailsFragment(
+    private val game: Game,
+    private val withDescription: Boolean = true,
+    private val withUrls: Boolean = true,
+    private val evenIfEmpty: Boolean = false
+) : Fragment() {
     private val providerRepository: GameProviderRepository by di()
 
     override val root = gridpane {
@@ -32,13 +37,13 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
 
         name()
         path()
-        if (withDescription) description()
+        description()
         releaseDate()
         criticScore()
         userScore()
-        if (game.genres.isNotEmpty()) genres()
-        if (game.tags.isNotEmpty()) tags()
-        if (withUrls) urls()
+        genres()
+        tags()
+        urls()
     }
 
     private fun GridPane.name() = row {
@@ -54,71 +59,75 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
         pathButton(game.path) { addClass(CommonStyle.hoverable, Style.detailsContent) }
     }
 
-    private fun GridPane.description() = row {
-        detailsHeader("Description")
-        detailsContent(game.description.toDisplayString()) {
-            isWrapText = true
-            minHeight = Region.USE_PREF_SIZE
-        }
-    }
-
-    private fun GridPane.releaseDate() = row {
-        detailsHeader("Release Date")
-        detailsContent(game.releaseDate.toDisplayString())
-    }
-
-    private fun GridPane.criticScore() = row {
-        detailsHeader("Critic Score")
-        score(game.criticScore, "critic")
-    }
-
-    private fun GridPane.userScore() = row {
-        detailsHeader("User Score")
-        score(game.userScore, "user")
-    }
-
-    private fun EventTarget.score(score: Score?, name: String) {
-        hbox(spacing = 5.0) {
-            if (score != null) {
-                fixedRating(10) { rating = score.score / 10 }
-                detailsContent(score.score.format(3))
-                detailsContent("Based on ${score.numReviews} $name reviews")
-            } else {
-                detailsContent("NA")
+    private fun GridPane.description() = game.description.let { description ->
+        if (withDescription && (description != null || evenIfEmpty)) row {
+            detailsHeader("Description")
+            detailsContent(description.toDisplayString()) {
+                isWrapText = true
+                minHeight = Region.USE_PREF_SIZE
             }
         }
     }
 
-    private fun GridPane.genres() = row {
-        detailsHeader("Genres")
-        hbox(spacing = 5.0) {
-            game.genres.forEach { detailsContent(it) }
+    private fun GridPane.releaseDate() = game.releaseDate.let { releaseDate ->
+        if (releaseDate != null || evenIfEmpty) row {
+            detailsHeader("Release Date")
+            detailsContent(releaseDate.toDisplayString())
         }
     }
 
-    private fun GridPane.tags() = row {
-        detailsHeader("Tags")
-        hbox(spacing = 5.0) {
-            game.tags.forEach { detailsContent(it) }
+    private fun GridPane.criticScore() = score(game.userScore, "Critic")
+    private fun GridPane.userScore() = score(game.userScore, "User")
+    private fun GridPane.score(score: Score?, name: String) {
+        if (score != null || evenIfEmpty) row {
+            detailsHeader("$name Score")
+            hbox(spacing = 5.0) {
+                if (score != null) {
+                    fixedRating(10) { rating = score.score / 10 }
+                    detailsContent(score.score.format(3))
+                    detailsContent("Based on ${score.numReviews} $name reviews")
+                } else {
+                    noContent()
+                }
+            }
         }
     }
 
-    private fun GridPane.urls() = row {
-        detailsHeader("URL")
-        gridpane {
-            hgap = 7.0
-            vgap = 3.0
-            game.rawGame.providerData.sortedBy { it.header.id }.forEach { providerData ->
-                row {
-                    imageview(providerRepository[providerData.header.id].logoImage) {
-                        fitHeight = 30.0
-                        fitWidth = 70.0
-                        isPreserveRatio = true
-                    }
-                    hyperlink(providerData.gameData.siteUrl) {
-                        setOnAction { providerData.gameData.siteUrl.browseToUrl() }
+    private fun GridPane.genres() = elementList(game.genres, "Genres")
+    private fun GridPane.tags() = elementList(game.tags, "Tags")
+    private fun GridPane.elementList(elements: List<String>, name: String) {
+        if (elements.isNotEmpty()) row {
+            detailsHeader(name)
+            hbox(spacing = 5.0) {
+                if (elements.isNotEmpty()) {
+                    elements.forEach { detailsContent(it) }
+                } else {
+                    noContent()
+                }
+            }
+        }
+    }
+
+    private fun GridPane.urls() = game.rawGame.providerData.let { providerData ->
+        if (withUrls && (providerData.isNotEmpty() || evenIfEmpty)) row {
+            detailsHeader("URL")
+            if (providerData.isNotEmpty()) {
+                gridpane {
+                    hgap = 7.0
+                    vgap = 3.0
+                    providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
+                        row {
+                            imageview(providerRepository[header.id].logoImage) {
+                                fitHeight = 30.0
+                                fitWidth = 70.0
+                                isPreserveRatio = true
+                            }
+                            hyperlink(gameData.siteUrl) { setOnAction { gameData.siteUrl.browseToUrl() } }
+                        }
                     }
                 }
+            } else {
+                noContent()
             }
         }
     }
@@ -128,6 +137,8 @@ class GameDetailsFragment(private val game: Game, withDescription: Boolean = tru
         addClass(Style.detailsContent)
         op?.invoke(this)
     }
+
+    private fun EventTarget.noContent() = detailsContent(null.toDisplayString())
 
     private fun Double.format(digits: Int) = String.format("%.${digits}f", this)
 
