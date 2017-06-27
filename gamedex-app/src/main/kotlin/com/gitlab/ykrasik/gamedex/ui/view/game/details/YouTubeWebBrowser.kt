@@ -2,8 +2,10 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ui.map
+import com.gitlab.ykrasik.gamedex.ui.screenBounds
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import javafx.beans.property.Property
+import javafx.scene.layout.Pane
 import javafx.scene.web.WebView
 import tornadofx.*
 import java.net.URLEncoder
@@ -16,13 +18,16 @@ import java.net.URLEncoder
 class YouTubeWebBrowser : Fragment() {
     private var webView: WebView by singleAssign()
 
+    private val standalone by lazy { StandaloneBrowserFragment() }
+    private lateinit var prevParent: Pane
+
     override val root = borderpane {
         center {
             webView = webview()
         }
         top {
             hbox(spacing = 10.0) {
-                paddingBottom = 5.0
+                paddingAll = 5.0
 
                 button(graphic = Theme.Icon.arrowLeft(18.0)) {
                     enableWhen { canNavigate(back = true) }
@@ -31,6 +36,10 @@ class YouTubeWebBrowser : Fragment() {
                 button(graphic = Theme.Icon.arrowRight(18.0)) {
                     enableWhen { canNavigate(back = false) }
                     setOnAction { navigate(back = false) }
+                }
+                spacer()
+                button(graphic = Theme.Icon.maximize(18.0)) {
+                    setOnAction { toggleStandalone() }
                 }
             }
         }
@@ -45,8 +54,23 @@ class YouTubeWebBrowser : Fragment() {
     fun load(url: String) = webView.engine.load(url)
 
     // TODO: Find a way to clear browsing history on stop.
+    // TODO: Don't stop if in standalone mode.
     fun stop() {
         webView.engine.load(null)
+    }
+
+    private fun toggleStandalone() {
+        if (standalone.isDocked) {
+            standalone.close()
+        } else {
+            openStandalone()
+        }
+    }
+
+    private fun openStandalone() {
+        prevParent = root.parent as Pane
+        standalone.openWindow(block = true, owner = null)
+        prevParent.children += root
     }
 
     private fun canNavigate(back: Boolean): Property<Boolean> {
@@ -59,4 +83,20 @@ class YouTubeWebBrowser : Fragment() {
     }
 
     private fun navigate(back: Boolean) = webView.engine.history.go(if (back) -1 else 1)
+
+    inner class StandaloneBrowserFragment : Fragment() {
+        override val root = stackpane {
+            minWidth = screenBounds.width * 2 / 3
+            minHeight = screenBounds.height * 2 / 3
+        }
+
+        init {
+            titleProperty.bind(webView.engine.locationProperty())
+        }
+
+        override fun onDock() {
+            modalStage!!.isMaximized = true
+            root.children += this@YouTubeWebBrowser.root
+        }
+    }
 }

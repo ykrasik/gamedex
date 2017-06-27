@@ -51,7 +51,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         // Left
         vbox {
             hgrow = Priority.ALWAYS
-            maxWidth = screenBounds.width / 2
+//            maxWidth = screenBounds.width / 2
 
             // Top
             container(games.mapProperty { "Games: ${it.size}" }) {
@@ -71,11 +71,11 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         // Right
         vbox {
             hgrow = Priority.ALWAYS
-            maxWidth = screenBounds.width / 2
+            maxWidth = screenBounds.width / 1.9
 
             // Top
             stackpane {
-                paddingAll = 10.0
+                paddingAll = 5.0
                 selectedGameProperty.perform { game ->
                     if (game != null) {
                         replaceChildren {
@@ -85,10 +85,10 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
                 }
             }
 
-            separator { padding { top = 2.0; bottom = 2.0 } }
+            separator()
 
             // Bottom
-            children += browser.root.apply { paddingTop = 4.0; vgrow = Priority.ALWAYS }
+            children += browser.root.apply { vgrow = Priority.ALWAYS }
             selectedGameProperty.perform { game ->
                 if (game != null) browser.searchYoutube(game)
             }

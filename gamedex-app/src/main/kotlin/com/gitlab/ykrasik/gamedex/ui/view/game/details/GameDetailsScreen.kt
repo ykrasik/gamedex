@@ -119,8 +119,9 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
                 }
             }
 
+            separator { paddingTop = 10.0 }
+            
             // Bottom
-            separator { padding { top = 10; bottom = 10 } }
             children += browser.root.apply { vgrow = Priority.ALWAYS }
             gameProperty.perform { game ->
                 if (game != null) browser.searchYoutube(game)

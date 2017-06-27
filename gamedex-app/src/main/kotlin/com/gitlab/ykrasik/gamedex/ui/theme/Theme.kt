@@ -42,6 +42,7 @@ object Theme {
         fun minus(size: Double = defaultIconSize) = FontAwesome.Glyph.MINUS.toGraphic { size(size); color(Color.INDIANRED) }
         fun arrowLeft(size: Double = defaultIconSize) = FontAwesome.Glyph.ARROW_LEFT.toGraphic { size(size) }
         fun arrowRight(size: Double = defaultIconSize) = FontAwesome.Glyph.ARROW_RIGHT.toGraphic { size(size) }
+        fun maximize(size: Double = defaultIconSize) = FontAwesome.Glyph.ARROWS_ALT.toGraphic { size(size) }
         fun ascending(size: Double = defaultIconSize) = FontAwesome.Glyph.SORT_ASC.toGraphic { size(size) }
         fun descending(size: Double = defaultIconSize) = FontAwesome.Glyph.SORT_DESC.toGraphic { size(size) }
 
