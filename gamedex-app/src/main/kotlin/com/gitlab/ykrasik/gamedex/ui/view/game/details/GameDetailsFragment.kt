@@ -14,7 +14,6 @@ import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
-import javafx.scene.layout.Region
 import javafx.scene.paint.Color
 import tornadofx.*
 
@@ -64,7 +63,8 @@ class GameDetailsFragment(
             detailsHeader("Description")
             detailsContent(description.toDisplayString()) {
                 isWrapText = true
-                minHeight = Region.USE_PREF_SIZE
+                // TOOD: Allow expanding when it doesn't fit
+                maxHeight = 400.0
             }
         }
     }
