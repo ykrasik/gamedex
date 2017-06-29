@@ -3,8 +3,6 @@ package com.gitlab.ykrasik.gamedex
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.joda.time.DateTime
-import java.io.File
-import java.nio.file.Paths
 
 /**
  * User: ykrasik
@@ -20,7 +18,7 @@ data class Game(
     val folderMetaData: FolderMetaData  // TODO: Is this the best place to put this?
 ) {
     val id get() = rawGame.id
-    val path: File = Paths.get(library.path.toString(), metaData.path.toString()).toFile()
+    val path = library.path.resolve(metaData.path)
     val updateDate get() = metaData.updateDate
     val userData get() = rawGame.userData
     private val metaData get() = rawGame.metaData
@@ -53,7 +51,10 @@ data class RawGame(
     val metaData: MetaData,
     val providerData: List<ProviderData>,
     val userData: UserData?    // TODO: Make this non-nullable
-)
+) {
+    fun withMetadata(metaData: MetaData) = copy(metaData = metaData)
+    fun withMetadata(f: (MetaData) -> MetaData) = withMetadata(f(metaData))
+}
 
 data class ProviderData(
     val header: ProviderHeader,
@@ -90,9 +91,10 @@ data class ImageUrls(
     val screenshotUrls: List<String>
 )
 
+// TODO: Rename to Metadata
 data class MetaData(
     val libraryId: Int,
-    val path: File,
+    val path: String,
     val updateDate: DateTime
 )
 

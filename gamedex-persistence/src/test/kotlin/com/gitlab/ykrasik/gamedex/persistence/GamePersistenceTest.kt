@@ -152,7 +152,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val library2 = givenLibraryExists()
                 val game = givenGameExists()
 
-                val updatedGame = persistenceService.updateGame(game.copy(metaData = randomMetaData(library = library2)))
+                val updatedGame = persistenceService.updateGame(game.withMetadata(randomMetaData(library = library2)))
 
                 persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
             }
@@ -170,7 +170,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game2 = givenGameExists(library)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game1.copy(metaData = game1.metaData.copy(path = game2.metaData.path)))
+                    persistenceService.updateGame(game1.withMetadata { it.copy(path = game2.metaData.path) })
                 }
 
                 persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
@@ -182,7 +182,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val library2 = givenLibraryExists()
                 val game2 = givenGameExists(library = library2, path = path)
 
-                val updatedGame1 = persistenceService.updateGame(game1.copy(metaData = game1.metaData.copy(path = path.toFile())))
+                val updatedGame1 = persistenceService.updateGame(game1.withMetadata { it.copy(path = path) })
 
                 persistenceService.fetchAllGames() shouldBe listOf(updatedGame1, game2)
             }
@@ -194,7 +194,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game2 = givenGameExists(library = library2, path = path)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game1.copy(metaData = randomMetaData(library = library2, path = path)))
+                    persistenceService.updateGame(game1.withMetadata(randomMetaData(library = library2, path = path)))
                 }
 
                 persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
@@ -205,7 +205,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val nonExistingLibrary = Library(2, "".toFile(), LibraryData(Platform.pc, ""))
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game.copy(metaData = randomMetaData(library = nonExistingLibrary)))
+                    persistenceService.updateGame(game.withMetadata(randomMetaData(library = nonExistingLibrary)))
                 }
             }
         }

@@ -49,7 +49,7 @@ fun Game.withUserScore(score: Double?) = copy(gameData = gameData.withUserScore(
 
 fun randomMetaData(libraryId: Int = 1) = MetaData(
     libraryId = libraryId,
-    path = randomFile(),
+    path = randomPath(),
     updateDate = now
 )
 

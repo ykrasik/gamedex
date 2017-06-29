@@ -9,17 +9,17 @@ import com.gitlab.ykrasik.gamedex.ui.toGraphic
 import com.gitlab.ykrasik.gamedex.util.browse
 import com.jfoenix.controls.JFXButton
 import javafx.beans.property.Property
+import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.scene.Node
+import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
-import tornadofx.addClass
-import tornadofx.observable
-import tornadofx.tooltip
+import tornadofx.*
 import java.io.File
 
 /**
@@ -184,6 +184,12 @@ fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMen
 fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfxButton(path.path) {
     isFocusTraversable = false
     setOnAction { browse(path) }
+    op?.invoke(this)
+}
+
+fun EventTarget.header(text: String, op: (Label.() -> Unit)? = null) = header(text.toProperty(), op)
+fun EventTarget.header(textProperty: ObservableValue<String>, op: (Label.() -> Unit)? = null) = label(textProperty) {
+    addClass(CommonStyle.headerLabel)
     op?.invoke(this)
 }
 

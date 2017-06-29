@@ -2,10 +2,10 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.map
+import com.gitlab.ykrasik.gamedex.ui.theme.header
 import javafx.beans.property.Property
 import javafx.geometry.HPos
 import javafx.scene.control.TextField
-import javafx.scene.text.FontWeight
 import org.joda.time.PeriodType
 import org.joda.time.format.PeriodFormatterBuilder
 import tornadofx.*
@@ -42,8 +42,7 @@ class GameStaleDurationMenu : View() {
     override val root = gridpane {
         vgap = 5.0
         row {
-            label("Stale Duration") {
-                setId(Style.staleDurationLabel)
+            header("Stale Duration") {
                 gridpaneConstraints { hAlignment = HPos.CENTER }
             }
         }
@@ -74,22 +73,5 @@ class GameStaleDurationMenu : View() {
 
     private class PeriodViewModel(p: Property<String>) : ViewModel() {
         val textProperty = bind { p }
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val staleDurationLabel by cssid()
-
-            init {
-                importStylesheet(Style::class)
-            }
-        }
-
-        init {
-            staleDurationLabel {
-                fontSize = 15.px
-                fontWeight = FontWeight.BOLD
-            }
-        }
     }
 }

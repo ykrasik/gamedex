@@ -44,7 +44,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun randomMetaData(library: Library = this.library, path: String = randomPath()) = MetaData(
             libraryId = library.id,
-            path = path.toFile(),
+            path = path,
             updateDate = randomDateTime()
         )
 

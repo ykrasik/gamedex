@@ -105,7 +105,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             RawGame(
                 id = it[Games.id].value,
                 metaData = MetaData(
-                    path = it[Games.path].toFile(),
+                    path = it[Games.path],
                     updateDate = it[Games.updateDate].withZone(DateTimeZone.UTC),
                     libraryId = it[Games.libraryId].value
                 ),
@@ -124,7 +124,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
 
         val id = Games.insertAndGetId {
             it[Games.libraryId] = metaData.libraryId.toLibraryId()
-            it[Games.path] = metaData.path.path
+            it[Games.path] = metaData.path
             it[Games.updateDate] = updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
@@ -139,8 +139,8 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val updateDate = now
 
         val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
-            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()  // TODO: Why am I allowing this?
-            it[Games.path] = rawGame.metaData.path.path
+            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
+            it[Games.path] = rawGame.metaData.path
             it[Games.updateDate] = updateDate
             it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
@@ -171,7 +171,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         }
     }
 
-    private fun RawGame.updated(updateDate: DateTime) = copy(metaData = metaData.updated(updateDate))
+    private fun RawGame.updated(updateDate: DateTime) = withMetadata { it.updated(updateDate) }
     private fun MetaData.updated(updateDate: DateTime) = copy(updateDate = updateDate)
 
     private fun Int.toLibraryId() = EntityID(this, Libraries)

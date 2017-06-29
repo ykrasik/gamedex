@@ -7,10 +7,7 @@ import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
-import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
-import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -18,7 +15,6 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
-import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -66,7 +62,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
                 addClass(Style.rulesContent)
                 hbox(spacing = 10) {
                     alignment = Pos.CENTER_LEFT
-                    title("Name")
+                    header("Name")
 
                     textfield(viewModel.textProperty) {
                         validator {
@@ -92,14 +88,14 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
                         replaceChildren {
                             vbox(spacing = 10.0) {
                                 hgrow = Priority.ALWAYS
-                                title("Rules")
+                                header("Rules")
                                 renderRules()
                             }
                             if (reportConfig.excludedGames.isNotEmpty()) {
                                 verticalSeparator()
                                 vbox(spacing = 10.0) {
                                     hgrow = Priority.ALWAYS
-                                    title("Excluded Games")
+                                    header("Excluded Games")
                                     renderExcludedGames()
                                 }
                             }
@@ -109,8 +105,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
             }
         }
     }
-
-    private fun EventTarget.title(text: String) = label(text) { addClass(Style.ruleTitle) }
 
     private fun Pane.renderRules() {
         children += ReportRuleFragment(reportConfigProperty).root
@@ -154,7 +148,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     class Style : Stylesheet() {
         companion object {
             val rulesContent by cssclass()
-            val ruleTitle by cssclass()
             val ruleButton by cssclass()
 
             init {
@@ -165,11 +158,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         init {
             rulesContent {
                 padding = box(20.px)
-            }
-
-            ruleTitle {
-                fontSize = 16.px
-                fontWeight = FontWeight.BOLD
             }
 
             ruleButton {

@@ -4,6 +4,7 @@ import javafx.geometry.Pos
 import javafx.scene.control.ContentDisplay
 import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
+import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -37,6 +38,8 @@ class CommonStyle : Stylesheet() {
         val popoverMenu by cssclass()
 
         val platformItem by cssclass()
+
+        val headerLabel by cssclass()
 
         init {
             importStylesheet(CommonStyle::class)
@@ -132,6 +135,11 @@ class CommonStyle : Stylesheet() {
         platformItem {
             prefWidth = 100.px
             alignment = Pos.CENTER_LEFT
+        }
+
+        headerLabel {
+            fontSize = 16.px
+            fontWeight = FontWeight.BOLD
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

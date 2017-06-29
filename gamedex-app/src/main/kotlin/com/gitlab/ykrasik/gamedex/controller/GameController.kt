@@ -11,7 +11,7 @@ import com.gitlab.ykrasik.gamedex.task.SearchTasks
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
-import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameFolderFragment
+import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -229,20 +229,18 @@ class GameController @Inject constructor(
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
     fun renameFolder(game: Game, initialSuggestion: String? = null) = launch(JavaFx) {
-        val newPath = RenameFolderFragment(game, initialSuggestion ?: game.path.name).show() ?: return@launch
-        logger.info("Renaming/Moving: ${game.path} -> $newPath")
+        val (library, newPath) = RenameMoveFolderFragment(game, initialSuggestion ?: game.path.name).show() ?: return@launch
+        val fullPath = library.path.resolve(newPath)
+        logger.info("Renaming/Moving: ${game.path} -> $fullPath")
 
-        if (!game.path.renameTo(newPath)) {
+        if (!game.path.renameTo(fullPath)) {
             // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
             // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
             // and throws an exception if it fails.
-            Files.move(game.path.toPath(), newPath.toPath())
+            Files.move(game.path.toPath(), fullPath.toPath())
         }
 
-        val rawGame = game.rawGame
-        val metaData = rawGame.metaData
-        val newRelativePath = newPath.relativeTo(game.library.path)
-        gameRepository.update(rawGame.copy(metaData = metaData.copy(path = newRelativePath)))
+        gameRepository.update(game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) })
     }
 
     // TODO: Rename/Move affects the fileSystem, this does not. Should be more obvious.

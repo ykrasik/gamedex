@@ -152,7 +152,7 @@ class SettingsController @Inject constructor(
         fun toGameRequest(libraries: Map<Int, Library>) = AddGameRequest(
             metaData = MetaData(
                 libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
-                path = path.toFile(),
+                path = path,
                 updateDate = updateDate.toDateTime()
             ),
             providerData = providerData.map { it.toProviderData() },
@@ -162,7 +162,7 @@ class SettingsController @Inject constructor(
 
     private fun Game.toPortable() = PortableGame(
         libraryId = library.id,
-        path = rawGame.metaData.path.toString(),
+        path = rawGame.metaData.path,
         updateDate = updateDate.millis,
         providerData = rawGame.providerData.map { it.toPortable() },
         userData = userData?.toPortable()

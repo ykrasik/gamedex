@@ -7,10 +7,7 @@ import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
-import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
@@ -22,7 +19,6 @@ import javafx.geometry.Pos
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -150,7 +146,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
     private fun EventTarget.container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER
-        label(text) { addClass(Style.headerLabel) }
+        header(text)
         op(this)
     }
 
@@ -162,22 +158,5 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
     override fun onUndock() {
         browser.stop()
         report.stop()
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val headerLabel by cssclass()
-
-            init {
-                importStylesheet(Style::class)
-            }
-        }
-
-        init {
-            headerLabel {
-                fontSize = 18.px
-                fontWeight = FontWeight.BOLD
-            }
-        }
     }
 }

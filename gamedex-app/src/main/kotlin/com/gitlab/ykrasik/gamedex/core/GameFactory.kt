@@ -4,6 +4,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
+import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +26,7 @@ class GameFactory @Inject constructor(
         val gameData = rawGame.toGameData()
         val imageUrls = rawGame.toImageUrls()
         val providerHeaders = rawGame.toProviderHeaders()
-        val folderMetaData = NameHandler.analyze(rawGame.metaData.path.name)
+        val folderMetaData = NameHandler.analyze(rawGame.metaData.path.toFile().name)
 
         return Game(
             library = library,
@@ -39,7 +40,7 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.toGameData(): GameData = GameData(
         siteUrl = "", // Not used.
-        name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.name,
+        name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.toFile().name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.
