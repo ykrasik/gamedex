@@ -27,7 +27,7 @@ interface PersistenceService {
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
-    fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame
+    fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?): RawGame
     fun updateGame(rawGame: RawGame): RawGame
     fun deleteGame(id: Int)
 
@@ -104,7 +104,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val games = Games.selectAll().map {
             RawGame(
                 id = it[Games.id].value,
-                metaData = MetaData(
+                metadata = Metadata(
                     path = it[Games.path],
                     updateDate = it[Games.updateDate].withZone(DateTimeZone.UTC),
                     libraryId = it[Games.libraryId].value
@@ -117,20 +117,20 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         games
     }
 
-    override fun insertGame(metaData: MetaData, providerData: List<ProviderData>, userData: UserData?): RawGame = transaction {
-        log.trace("Inserting game: metaData=$metaData, rawGameData=$providerData...")
+    override fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?): RawGame = transaction {
+        log.trace("Inserting game: metadata=$metadata, rawGameData=$providerData...")
 
         val updateDate = now
 
         val id = Games.insertAndGetId {
-            it[Games.libraryId] = metaData.libraryId.toLibraryId()
-            it[Games.path] = metaData.path
+            it[Games.libraryId] = metadata.libraryId.toLibraryId()
+            it[Games.path] = metadata.path
             it[Games.updateDate] = updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
         }!!.value
 
-        val game = RawGame(id = id, metaData = metaData.updated(updateDate), providerData = providerData, userData = userData)
+        val game = RawGame(id = id, metadata = metadata.updated(updateDate), providerData = providerData, userData = userData)
         log.trace("Result: $game.")
         game
     }
@@ -139,8 +139,8 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val updateDate = now
 
         val rowsUpdated = Games.update(where = { Games.id.eq(rawGame.id.toGameId()) }) {
-            it[Games.libraryId] = rawGame.metaData.libraryId.toLibraryId()
-            it[Games.path] = rawGame.metaData.path
+            it[Games.libraryId] = rawGame.metadata.libraryId.toLibraryId()
+            it[Games.path] = rawGame.metadata.path
             it[Games.updateDate] = updateDate
             it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
@@ -172,7 +172,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     private fun RawGame.updated(updateDate: DateTime) = withMetadata { it.updated(updateDate) }
-    private fun MetaData.updated(updateDate: DateTime) = copy(updateDate = updateDate)
+    private fun Metadata.updated(updateDate: DateTime) = copy(updateDate = updateDate)
 
     private fun Int.toLibraryId() = EntityID(this, Libraries)
     private fun Int.toGameId() = EntityID(this, Games)

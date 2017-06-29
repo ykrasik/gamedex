@@ -69,7 +69,7 @@ object TestApplication {
                 async(context) {
                     val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
                     persistenceService.insertGame(
-                        metaData = randomMetaData(libraries.randomElement().id),
+                        metadata = randomMetadata(libraries.randomElement().id),
                         providerData = List(rnd.nextInt(providerIds.size + 1)) {
                             val providerId = providerIds.randomElement()
                             providerIds -= providerId

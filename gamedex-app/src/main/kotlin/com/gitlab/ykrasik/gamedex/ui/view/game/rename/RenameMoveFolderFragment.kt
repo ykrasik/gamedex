@@ -41,7 +41,7 @@ class RenameMoveFolderFragment(private val game: Game, initialSuggestion: String
     }
     private var library by libraryProperty
 
-    private var pathProperty = game.rawGame.metaData.path.toFile().let { it.parentFile?.path ?: "" }.toProperty().apply {
+    private var pathProperty = game.rawGame.metadata.path.toFile().let { it.parentFile?.path ?: "" }.toProperty().apply {
         onChange { model.commit() }
     }
     private var path by pathProperty

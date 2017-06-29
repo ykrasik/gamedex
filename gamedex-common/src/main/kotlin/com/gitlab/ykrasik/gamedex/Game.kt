@@ -15,13 +15,13 @@ data class Game(
     val gameData: GameData,
     val providerHeaders: List<ProviderHeader>,
     val imageUrls: ImageUrls,
-    val folderMetaData: FolderMetaData  // TODO: Is this the best place to put this?
+    val folderMetadata: FolderMetadata  // TODO: Is this the best place to put this?
 ) {
     val id get() = rawGame.id
-    val path = library.path.resolve(metaData.path)
-    val updateDate get() = metaData.updateDate
+    val path = library.path.resolve(metadata.path)
+    val updateDate get() = metadata.updateDate
     val userData get() = rawGame.userData
-    private val metaData get() = rawGame.metaData
+    private val metadata get() = rawGame.metadata
 
     val platform get() = library.platform
 
@@ -48,12 +48,12 @@ data class Game(
 
 data class RawGame(
     val id: Int,
-    val metaData: MetaData,
+    val metadata: Metadata,
     val providerData: List<ProviderData>,
     val userData: UserData?    // TODO: Make this non-nullable
 ) {
-    fun withMetadata(metaData: MetaData) = copy(metaData = metaData)
-    fun withMetadata(f: (MetaData) -> MetaData) = withMetadata(f(metaData))
+    fun withMetadata(metadata: Metadata) = copy(metadata = metadata)
+    fun withMetadata(f: (Metadata) -> Metadata) = withMetadata(f(metadata))
 }
 
 data class ProviderData(
@@ -91,14 +91,13 @@ data class ImageUrls(
     val screenshotUrls: List<String>
 )
 
-// TODO: Rename to Metadata
-data class MetaData(
+data class Metadata(
     val libraryId: Int,
     val path: String,
     val updateDate: DateTime
 )
 
-data class FolderMetaData(
+data class FolderMetadata(
     val rawName: String,
     val gameName: String,
     val order: Int?,            // TODO: Consider adding option to display this.

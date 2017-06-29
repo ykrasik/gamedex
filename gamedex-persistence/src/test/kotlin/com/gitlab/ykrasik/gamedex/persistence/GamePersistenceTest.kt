@@ -16,12 +16,12 @@ class GamePersistenceTest : AbstractPersistenceTest() {
     init {
         "Game persistence insert" should {
             "insert and retrieve a single game with userData".inLazyScope({ GameScope() }) {
-                val metaData = randomMetaData()
+                val metadata = randomMetadata()
                 val providerData = listOf(randomProviderData(), randomProviderData())
                 val userData = randomUserData()
 
-                val game = insertGame(metaData, providerData, userData)
-                game.metaData shouldBe metaData.copy(updateDate = nowMock)
+                val game = insertGame(metadata, providerData, userData)
+                game.metadata shouldBe metadata.copy(updateDate = nowMock)
                 game.providerData shouldBe providerData
                 game.userData shouldBe userData
 
@@ -100,16 +100,16 @@ class GamePersistenceTest : AbstractPersistenceTest() {
         "Game persistence update" should {
             "update game".inLazyScope({ GameScope() }) {
                 val game = givenGameExists()
-                val updatedMetaData = randomMetaData()
+                val updatedMetadata = randomMetadata()
                 val updatedProviderData = listOf(randomProviderData())
                 val updatedUserData = randomUserData()
 
                 val updatedGame = persistenceService.updateGame(game.copy(
-                    metaData = updatedMetaData,
+                    metadata = updatedMetadata,
                     providerData = updatedProviderData,
                     userData = updatedUserData
                 ))
-                updatedGame.metaData shouldBe updatedMetaData.copy(updateDate = nowMock)
+                updatedGame.metadata shouldBe updatedMetadata.copy(updateDate = nowMock)
                 updatedGame.providerData shouldBe updatedProviderData
                 updatedGame.userData shouldBe updatedUserData
 
@@ -148,11 +148,11 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
             }
 
-            "update game metaData to a different library".inLazyScope({ GameScope() }) {
+            "update game metadata to a different library".inLazyScope({ GameScope() }) {
                 val library2 = givenLibraryExists()
                 val game = givenGameExists()
 
-                val updatedGame = persistenceService.updateGame(game.withMetadata(randomMetaData(library = library2)))
+                val updatedGame = persistenceService.updateGame(game.withMetadata(randomMetadata(library = library2)))
 
                 persistenceService.fetchAllGames() shouldBe listOf(updatedGame)
             }
@@ -170,7 +170,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game2 = givenGameExists(library)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game1.withMetadata { it.copy(path = game2.metaData.path) })
+                    persistenceService.updateGame(game1.withMetadata { it.copy(path = game2.metadata.path) })
                 }
 
                 persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
@@ -194,7 +194,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game2 = givenGameExists(library = library2, path = path)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game1.withMetadata(randomMetaData(library = library2, path = path)))
+                    persistenceService.updateGame(game1.withMetadata(randomMetadata(library = library2, path = path)))
                 }
 
                 persistenceService.fetchAllGames() shouldBe listOf(game1, game2)
@@ -205,7 +205,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val nonExistingLibrary = Library(2, "".toFile(), LibraryData(Platform.pc, ""))
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game.withMetadata(randomMetaData(library = nonExistingLibrary)))
+                    persistenceService.updateGame(game.withMetadata(randomMetadata(library = nonExistingLibrary)))
                 }
             }
         }

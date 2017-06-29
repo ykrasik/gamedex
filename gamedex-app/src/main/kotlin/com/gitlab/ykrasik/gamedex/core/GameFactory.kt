@@ -22,11 +22,11 @@ class GameFactory @Inject constructor(
     private val maxGenres = 7
 
     fun create(rawGame: RawGame): Game {
-        val library = libraryRepository[rawGame.metaData.libraryId]
+        val library = libraryRepository[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
         val imageUrls = rawGame.toImageUrls()
         val providerHeaders = rawGame.toProviderHeaders()
-        val folderMetaData = NameHandler.analyze(rawGame.metaData.path.toFile().name)
+        val folderMetadata = NameHandler.analyze(rawGame.metadata.path.toFile().name)
 
         return Game(
             library = library,
@@ -34,13 +34,13 @@ class GameFactory @Inject constructor(
             gameData = gameData,
             providerHeaders = providerHeaders,
             imageUrls = imageUrls,
-            folderMetaData = folderMetaData
+            folderMetadata = folderMetadata
         )
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
         siteUrl = "", // Not used.
-        name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metaData.path.toFile().name,
+        name = firstBy(settings.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metadata.path.toFile().name,
         description = firstBy(settings.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settings.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.

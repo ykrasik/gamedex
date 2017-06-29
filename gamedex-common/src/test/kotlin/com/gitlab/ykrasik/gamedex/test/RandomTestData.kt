@@ -31,7 +31,7 @@ fun randomGame(): Game {
     return Game(
         rawGame = RawGame(
             id = rnd.nextInt(),
-            metaData = randomMetaData(),
+            metadata = randomMetadata(),
             providerData = providerData,
             userData = null
         ),
@@ -39,7 +39,7 @@ fun randomGame(): Game {
         gameData = providerData.randomElement().gameData,
         providerHeaders = randomProviderHeaders(),
         imageUrls = randomImageUrls(),
-        folderMetaData = randomFolderMetaData()
+        folderMetadata = randomFolderMetadata()
     )
 }
 
@@ -47,7 +47,7 @@ fun Game.withPlatform(platform: Platform) = copy(library = library.withPlatform(
 fun Game.withCriticScore(score: Double?) = copy(gameData = gameData.withCriticScore(score))
 fun Game.withUserScore(score: Double?) = copy(gameData = gameData.withUserScore(score))
 
-fun randomMetaData(libraryId: Int = 1) = MetaData(
+fun randomMetadata(libraryId: Int = 1) = Metadata(
     libraryId = libraryId,
     path = randomPath(),
     updateDate = now
@@ -85,7 +85,7 @@ fun randomImageUrls() = ImageUrls(
     screenshotUrls = List(rnd.nextInt(10)) { randomUrl() }
 )
 
-fun randomFolderMetaData() = FolderMetaData(
+fun randomFolderMetadata() = FolderMetadata(
     rawName = randomString(),
     gameName = randomString(),
     order = null,

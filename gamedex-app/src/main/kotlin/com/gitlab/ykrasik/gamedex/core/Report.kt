@@ -272,8 +272,8 @@ sealed class ReportRule(val name: String) {
             override fun doCheck(value: List<GameNameFolderDiff>) = value.isNotEmpty()
 
             private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
-                val actualName = game.folderMetaData.rawName
-                val expectedName = expectedFrom(game.folderMetaData, providerData)
+                val actualName = game.folderMetadata.rawName
+                val expectedName = expectedFrom(game.folderMetadata, providerData)
                 if (actualName == expectedName) return null
 
                 val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
@@ -285,8 +285,8 @@ sealed class ReportRule(val name: String) {
                 )
             }
 
-            // TODO: This logic looks like it should sit on FolderMetaData.
-            private fun expectedFrom(actual: FolderMetaData, providerData: ProviderData): String {
+            // TODO: This logic looks like it should sit on FolderMetadata.
+            private fun expectedFrom(actual: FolderMetadata, providerData: ProviderData): String {
                 val expected = StringBuilder()
                 actual.order?.let { order -> expected.append("[$order] ") }
                 expected.append(NameHandler.toFileName(providerData.gameData.name))

@@ -42,7 +42,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
     inner open class GameScope : LibraryScope() {
         val library = givenLibraryExists()
 
-        fun randomMetaData(library: Library = this.library, path: String = randomPath()) = MetaData(
+        fun randomMetadata(library: Library = this.library, path: String = randomPath()) = Metadata(
             libraryId = library.id,
             path = path,
             updateDate = randomDateTime()
@@ -106,12 +106,12 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
 
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
-            insertGame(metaData = randomMetaData(library, path))
+            insertGame(metadata = randomMetadata(library, path))
 
-        fun insertGame(metaData: MetaData = randomMetaData(),
+        fun insertGame(metadata: Metadata = randomMetadata(),
                        providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
                        userData: UserData? = randomUserData()): RawGame =
-            persistenceService.insertGame(metaData, providerData, userData)
+            persistenceService.insertGame(metadata, providerData, userData)
     }
 
     inner open class ImageScope : GameScope() {
