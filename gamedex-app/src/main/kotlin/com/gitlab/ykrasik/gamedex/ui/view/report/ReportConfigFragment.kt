@@ -1,16 +1,23 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.perform
+import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
 import tornadofx.*
 
@@ -21,6 +28,7 @@ import tornadofx.*
  */
 class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Config") {
     private val settings: ReportSettings by di()
+    private val gameController: GameController by di()
 
     private val reportConfigProperty = SimpleObjectProperty(initialConfig)
     private var reportConfig by reportConfigProperty
@@ -32,7 +40,12 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
 
     // TODO: Generate name according to rules.toString unless custom name typed
     override val root = borderpane {
-        addClass(Style.ruleWindow)
+        if (reportConfig.excludedGames.isEmpty()) {
+            minWidth = 800.0
+        } else {
+            minWidth = 1300.0
+        }
+        minHeight = 800.0
         top {
             toolbar {
                 acceptButton {
@@ -73,12 +86,23 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
 
                 separator()
 
-                vbox(spacing = 10) {
-                    reportConfigProperty.perform {
+                hbox {
+                    reportConfigProperty.perform { reportConfig ->
                         // TODO: This is probably leaking a lot of listeners.
                         replaceChildren {
-                            title("Rules")
-                            children += ReportRuleFragment(reportConfigProperty).root
+                            vbox(spacing = 10.0) {
+                                hgrow = Priority.ALWAYS
+                                title("Rules")
+                                renderRules()
+                            }
+                            if (reportConfig.excludedGames.isNotEmpty()) {
+                                verticalSeparator()
+                                vbox(spacing = 10.0) {
+                                    hgrow = Priority.ALWAYS
+                                    title("Excluded Games")
+                                    renderExcludedGames()
+                                }
+                            }
                         }
                     }
                 }
@@ -87,6 +111,25 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     }
 
     private fun EventTarget.title(text: String) = label(text) { addClass(Style.ruleTitle) }
+
+    private fun Pane.renderRules() {
+        children += ReportRuleFragment(reportConfigProperty).root
+    }
+
+    private fun EventTarget.renderExcludedGames() =
+        tableview(reportConfig.excludedGames.map { gameController.byId(it) }.observable()) {
+            makeIndexColumn().apply { addClass(CommonStyle.centered) }
+            column("Game", Game::name)
+            column("Path", Game::path)
+
+            popoverContextMenu {
+                deleteButton("Un-exclude") {
+                    setOnAction {
+                        reportConfig = reportConfig.copy(excludedGames = (reportConfig.excludedGames - selectedItem!!.id))
+                    }
+                }
+            }
+        }
 
     fun show(): ReportConfig? {
         openWindow(block = true, owner = null)
@@ -110,7 +153,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
 
     class Style : Stylesheet() {
         companion object {
-            val ruleWindow by cssclass()
             val rulesContent by cssclass()
             val ruleTitle by cssclass()
             val ruleButton by cssclass()
@@ -121,11 +163,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         }
 
         init {
-            ruleWindow {
-                minWidth = 800.px
-                minHeight = 800.px
-            }
-
             rulesContent {
                 padding = box(20.px)
             }

@@ -1,14 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.addButton
-import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
-import com.gitlab.ykrasik.gamedex.ui.theme.editButton
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
 import javafx.scene.control.*
@@ -40,6 +39,8 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private val currentToggle get() = selection.selectedToggleProperty()
     private val currentScreen = currentToggle.map { it?.userData as? ReportFragment }
     private val currentReport = currentScreen.map { it?.report }
+    private val currentReportConfig = currentScreen.map { it?.reportConfig }
+    private val currentlySelectedGame = currentScreen.flatMap { it?.selectedGameProperty ?: SimpleObjectProperty<Game>() }
 
     private var isChangingSettings = false
 
@@ -97,6 +98,13 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         items += searchTextfield
         verticalSeparator()
         addButton { setOnAction { upsertReport { reportsController.addReport() } } }
+        verticalSeparator()
+        excludeButton {
+            val text = currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" }
+            textProperty().bind(text)
+            enableWhen { currentlySelectedGame.isNotNull }
+            setOnAction { upsertReport { reportsController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) }  }
+        }
         verticalSeparator()
         spacer()
         verticalSeparator()

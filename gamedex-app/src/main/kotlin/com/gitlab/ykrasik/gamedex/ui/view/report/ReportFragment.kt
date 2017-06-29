@@ -145,7 +145,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         }
     }
 
-    private val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
+    val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
     private val selectedGame by selectedGameProperty
 
     private fun EventTarget.container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {

@@ -255,4 +255,6 @@ class GameController @Inject constructor(
         }
         return true
     }
+
+    fun byId(id: Int): Game = gameRepository[id]
 }

@@ -54,7 +54,7 @@ fun <T, R> Property<T>.mapBidirectional(f: (T?) -> R, reverseF: (R?) -> T): Prop
     return p
 }
 
-fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): Property<R> {
+fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): ObjectProperty<R> {
     fun doFlatMap() = f(this.value)
     val property = SimpleObjectProperty<R>()
     property.bind(doFlatMap())

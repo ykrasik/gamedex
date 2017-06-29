@@ -134,6 +134,13 @@ fun EventTarget.deleteButton(text: String? = null, size: Double = defaultIconSiz
         op?.invoke(this)
     }
 
+fun EventTarget.excludeButton(text: String = "Exclude", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+    toolbarButton(text, Theme.Icon.exclamationTriangle(size)) {
+        addClass(CommonStyle.excludeButton)
+        tooltip(text)
+        op?.invoke(this)
+    }
+
 fun EventTarget.editButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
     toolbarButton("Edit", Theme.Icon.edit(size), op)
 
@@ -147,7 +154,7 @@ fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultI
     toolbarButton(text, Theme.Icon.refresh(size), op)
 
 fun EventTarget.reportButton(text: String? = "Report", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
-    toolbarButton(text, Theme.Icon.book(size), op)
+    toolbarButton(text, Theme.Icon.chart(size), op)
 
 
 fun EventTarget.extraMenu(size: Double = defaultIconSize, op: (VBox.() -> Unit)? = null) = buttonWithPopover(

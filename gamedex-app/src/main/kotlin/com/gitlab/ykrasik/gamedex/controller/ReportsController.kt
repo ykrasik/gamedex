@@ -36,12 +36,19 @@ class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val settings: ReportSettings
 ) : Controller() {
+    
     fun addReport() = editReport(ReportConfig())
 
-    fun editReport(config: ReportConfig): ReportConfig? {
-        val newConfig = ReportConfigFragment(config).show() ?: return null
-        if (newConfig.name != config.name) {
-            settings.reports -= config.name
+    fun editReport(config: ReportConfig): ReportConfig? =
+        updateConfig(config) { ReportConfigFragment(config).show() ?: return null }
+
+    fun excludeGame(config: ReportConfig, game: Game): ReportConfig =
+        updateConfig(config) { config.copy(excludedGames = (config.excludedGames + game.id).distinct()) }
+
+    private inline fun updateConfig(oldConfig: ReportConfig, newConfigFactory: () -> ReportConfig): ReportConfig {
+        val newConfig = newConfigFactory()
+        if (newConfig.name != oldConfig.name) {
+            settings.reports -= oldConfig.name
         }
         settings.reports += newConfig.name to newConfig
         return newConfig
@@ -89,7 +96,7 @@ class ReportsController @Inject constructor(
             val context = ReportRule.Context(games)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
-                config.rules.evaluate(game, context)
+                !config.excludedGames.contains(game.id) && config.rules.evaluate(game, context)
             }
             progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
             return context.results.filterKeys { matchingGames.contains(it) }

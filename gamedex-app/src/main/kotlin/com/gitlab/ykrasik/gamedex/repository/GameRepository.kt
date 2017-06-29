@@ -147,6 +147,8 @@ class GameRepository @Inject constructor(
     private fun removeById(id: Int) {
         check(games.removeIf { it.id == id }) { "Error! Doesn't exist: Game($id)" }
     }
+
+    operator fun get(id: Int): Game = games.find { it.id == id } ?: throw IllegalStateException("No Game found for id: $id!")
 }
 
 data class AddGameRequest(

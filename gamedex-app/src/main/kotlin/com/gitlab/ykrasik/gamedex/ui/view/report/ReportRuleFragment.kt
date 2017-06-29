@@ -123,10 +123,12 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
             selectedItemProperty = ruleNameProperty,
             styleClass = ReportConfigFragment.Style.ruleButton,
             text = { it },
-            menuOp = {      // TODO: Dirty solution!
+            menuOp = {
+                // TODO: Dirty solution!
                 when (it) {
                     "Has Critic Score", "Has User Score", "Has Min Score", "Has Avg Score", "Has Tag" -> separator()
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
         )
@@ -206,7 +208,7 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
         popoverComboMenu(
             possibleItems = ArrayList(libraryController.realLibraries).observable(), // Avoid listener leak.
             selectedItemProperty = library,
-            text = { "[${it.platform}] ${it.name}"}
+            text = { "[${it.platform}] ${it.name}" }
         )
         return ruleProperty
     }

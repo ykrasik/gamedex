@@ -16,10 +16,10 @@ import org.joda.time.DateTime
  * Date: 17/06/2017
  * Time: 16:02
  */
-// TODO: Add excluded games.
 data class ReportConfig(
     val name: String = "",
-    val rules: ReportRule = ReportRule.Rules.True()
+    val rules: ReportRule = ReportRule.Rules.True(),
+    val excludedGames: List<Int> = emptyList()
 ) {
     inline fun withRules(f: (ReportRule) -> ReportRule) = copy(rules = f(rules))
 }

@@ -60,8 +60,7 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                toolbarButton("Exclude ${data.providerId}", Theme.Icon.exclamationTriangle()) {
-                    setId(Style.excludeProvider)
+                excludeButton("Exclude ${data.providerId}") {
                     tooltip("Exclude searching ${data.providerId} for '${data.name}'")
                     setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId)) }
                 }
@@ -101,7 +100,6 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
         companion object {
             val notExactMatch by cssid()
             val proceedWithout by cssid()
-            val excludeProvider by cssid()
 
             init {
                 importStylesheet(Style::class)
@@ -117,11 +115,6 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
             proceedWithout {
                 and(hover) {
                     backgroundColor = multi(Color.YELLOW)
-                }
-            }
-            excludeProvider {
-                and(hover) {
-                    backgroundColor = multi(Color.ORANGE)
                 }
             }
         }

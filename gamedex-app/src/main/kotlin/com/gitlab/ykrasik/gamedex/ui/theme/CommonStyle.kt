@@ -27,8 +27,8 @@ class CommonStyle : Stylesheet() {
 
         val acceptButton by cssclass()
         val cancelButton by cssclass()
-
         val deleteButton by cssclass()
+        val excludeButton by cssclass()
 
         val extraMenu by cssclass()
 
@@ -103,6 +103,12 @@ class CommonStyle : Stylesheet() {
         deleteButton {
             and(hover) {
                 backgroundColor = multi(Color.RED)
+            }
+        }
+
+        excludeButton {
+            and(hover) {
+                backgroundColor = multi(Color.ORANGE)
             }
         }
 
