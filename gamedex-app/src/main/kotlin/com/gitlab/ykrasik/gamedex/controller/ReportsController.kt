@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -34,7 +35,8 @@ import javax.inject.Singleton
 @Singleton
 class ReportsController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val settings: ReportSettings
+    private val settings: ReportSettings,
+    private val fileSystemOps: FileSystemOps
 ) : Controller() {
     
     fun addReport() = editReport(ReportConfig())
@@ -93,7 +95,7 @@ class ReportsController @Inject constructor(
         }
 
         private fun calculate(games: List<Game>): MultiMap<Game, ReportRule.Result> {
-            val context = ReportRule.Context(games)
+            val context = ReportRule.Context(games, fileSystemOps)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
                 !config.excludedGames.contains(game.id) && config.rules.evaluate(game, context)

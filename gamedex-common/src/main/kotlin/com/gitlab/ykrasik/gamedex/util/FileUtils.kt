@@ -1,8 +1,10 @@
 package com.gitlab.ykrasik.gamedex.util
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
+import java.math.BigDecimal
 import java.net.URI
 import java.nio.file.Files
 
@@ -12,6 +14,7 @@ import java.nio.file.Files
  * Time: 19:52
  */
 fun String.toFile(): File = File(this)
+
 fun URI.toFile(): File = File(this)
 
 fun File.create() {
@@ -32,6 +35,7 @@ fun browse(path: File) = Desktop.getDesktop().open(path)
 
 fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
 
+@JsonIgnoreProperties("humanReadable")
 data class FileSize(val bytes: Long) : Comparable<FileSize> {
     val humanReadable by lazy {
         val unit = 1024
@@ -44,23 +48,16 @@ data class FileSize(val bytes: Long) : Comparable<FileSize> {
 
     override fun compareTo(other: FileSize) = bytes.compareTo(other.bytes)
 
-    //    companion object {
-//        operator fun invoke(humanReadable: String): FileSize {
-//            var returnValue: Long = -1
-//            val patt = Pattern.compile("([\\d.]+)([GMK]B)", Pattern.CASE_INSENSITIVE)
-//            val matcher = patt.matcher(filesize)
-//            val powerMap = HashMap<String, Int>()
-//            powerMap.put("GB", 3)
-//            powerMap.put("MB", 2)
-//            powerMap.put("KB", 1)
-//            if (matcher.find()) {
-//                val number = matcher.group(1)
-//                val pow = powerMap[matcher.group(2).toUpperCase()]
-//                var bytes = BigDecimal(number)
-//                bytes = bytes.multiply(BigDecimal.valueOf(1024).pow(pow))
-//                returnValue = bytes.toLong()
-//            }
-//            return returnValue
-//        }
-//    }
+    companion object {
+        private val regex = "([\\d.]+)[\\s]?([KMGTPE]?B)".toRegex(RegexOption.IGNORE_CASE)
+        private val powerMap = mapOf("B" to 0, "KB" to 1, "MB" to 2, "GB" to 3, "TB" to 4, "PB" to 5, "EB" to 6)
+
+        operator fun invoke(humanReadable: String): FileSize {
+            val result = regex.find(humanReadable) ?: throw IllegalArgumentException("Invalid input: '$humanReadable'")
+            val (number, scale) = result.destructured
+            val pow = powerMap[scale.toUpperCase()]!!
+            val bytes = BigDecimal(number).multiply(BigDecimal.valueOf(1024).pow(pow))
+            return FileSize(bytes.toLong())
+        }
+    }
 }

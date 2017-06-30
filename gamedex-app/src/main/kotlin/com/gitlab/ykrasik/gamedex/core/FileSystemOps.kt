@@ -9,6 +9,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.run
+import tornadofx.toProperty
 import java.io.File
 import javax.inject.Singleton
 
@@ -31,5 +32,13 @@ class FileSystemOps {
             }
         }
         return sizeProperty
+    }
+
+    fun sizeSync(file: File): FileSize {
+        sizeCache[file]?.let { if (it.value.bytes > 0) return it.value }
+
+        val size = file.sizeTaken()
+        sizeCache[file] = size.toProperty()
+        return size
     }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import difflib.DiffUtils
@@ -34,7 +35,6 @@ data class ReportConfig(
 
     JsonSubTypes.Type(value = ReportRule.Rules.CriticScore::class, name = "targetCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.UserScore::class, name = "targetUserScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.MinScore::class, name = "targetMinScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.AvgScore::class, name = "targetAvgScore"),
 
     JsonSubTypes.Type(value = ReportRule.Rules.HasPlatform::class, name = "hasPlatform"),
@@ -43,8 +43,8 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Rules.HasTag::class, name = "hasTag"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
-    JsonSubTypes.Type(value = ReportRule.Rules.HasMinScore::class, name = "hasMinScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasAvgScore::class, name = "hasAvgScore"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasFileSize::class, name = "size"),
 
     JsonSubTypes.Type(value = ReportRule.Rules.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = ReportRule.Rules.NameDiff::class, name = "nameDiff")
@@ -154,6 +154,30 @@ sealed class ReportRule(val name: String) {
             override fun evaluate(game: Game, context: Context) = true
         }
 
+        abstract class TargetScoreRule(name: String, val target: Double, @get:JsonProperty("greaterThan") val greaterThan: Boolean) : SimpleRule<Double?>(name) {
+            override fun doCheck(value: Double?) = if (greaterThan) (value ?: -1.0 >= target) else (value ?: -1.0 <= target)
+            override fun toString() = "$name ${if (greaterThan) ">=" else "<="} $target"
+        }
+
+        class CriticScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Critic Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.criticScore?.score
+        }
+
+        class UserScore(target: Double, greaterThan: Boolean) : TargetScoreRule("User Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.userScore?.score
+        }
+
+        class AvgScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Avg Score", target, greaterThan) {
+            override fun extractValue(game: Game, context: Context) = game.avgScore
+        }
+
+        // TODO: Save FileSize directly?
+        class HasFileSize(val target: Long, @get:JsonProperty("greaterThan") val greaterThan: Boolean) : SimpleRule<Long>("File Size") {
+            override fun extractValue(game: Game, context: Context) = context.fileSystemOps.sizeSync(game.path).bytes
+            override fun doCheck(value: Long) = if (greaterThan) (value >= target) else (value <= target)
+            override fun toString() = "$name ${if (greaterThan) ">=" else "<="} ${FileSize(target).humanReadable}"
+        }
+
         abstract class HasRule(name: String) : SimpleRule<Boolean>("Has $name") {
             override fun extractValue(game: Game, context: Context) = extractNullableValue(game, context) != null
             protected abstract fun extractNullableValue(game: Game, context: Context): Any?
@@ -190,33 +214,8 @@ sealed class ReportRule(val name: String) {
             override fun extractNullableValue(game: Game, context: Context) = game.userScore?.score
         }
 
-        class HasMinScore : HasRule("Min Score") {
-            override fun extractNullableValue(game: Game, context: Context) = game.minScore
-        }
-
         class HasAvgScore : HasRule("Avg Score") {
             override fun extractNullableValue(game: Game, context: Context) = game.avgScore
-        }
-
-        abstract class TargetScoreRule(name: String, val target: Double, @get:JsonProperty("greaterThan") val greaterThan: Boolean) : SimpleRule<Double?>(name) {
-            override fun doCheck(value: Double?) = if (greaterThan) (value ?: -1.0 >= target) else (value ?: -1.0 <= target)
-            override fun toString() = "$name ${if (greaterThan) ">=" else "<="} $target"
-        }
-
-        class CriticScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Critic Score", target, greaterThan) {
-            override fun extractValue(game: Game, context: Context) = game.criticScore?.score
-        }
-
-        class UserScore(target: Double, greaterThan: Boolean) : TargetScoreRule("User Score", target, greaterThan) {
-            override fun extractValue(game: Game, context: Context) = game.userScore?.score
-        }
-
-        class MinScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Min Score", target, greaterThan) {
-            override fun extractValue(game: Game, context: Context) = game.minScore
-        }
-
-        class AvgScore(target: Double, greaterThan: Boolean) : TargetScoreRule("Avg Score", target, greaterThan) {
-            override fun extractValue(game: Game, context: Context) = game.avgScore
         }
 
         // TODO: Add ignore case option
@@ -304,7 +303,10 @@ sealed class ReportRule(val name: String) {
         )
     }
 
-    data class Context(val games: List<Game>) {
+    data class Context(
+        val games: List<Game>,
+        val fileSystemOps: FileSystemOps
+    ) {
         private val cache = mutableMapOf<String, Any>()
         private val _results = mutableMapOf<Game, MutableList<Result>>()
         val results: MultiMap<Game, Result> get() = _results

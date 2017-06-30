@@ -18,9 +18,9 @@ import tornadofx.*
 class GameStaleDurationMenu : View() {
     private val settings: GameSettings by di()
 
-    private var staleDurationTextField: TextField by singleAssign()
+    private var textField: TextField by singleAssign()
 
-    private val staleDurationFormatter = PeriodFormatterBuilder()
+    private val formatter = PeriodFormatterBuilder()
         .appendYears().appendSuffix("y").appendSeparator(" ")
         .appendMonths().appendSuffix("mo").appendSeparator(" ")
         .appendDays().appendSuffix("d").appendSeparator(" ")
@@ -30,11 +30,11 @@ class GameStaleDurationMenu : View() {
 
     private val stalePeriodTextProperty = settings.stalePeriodProperty.map {
         val sb = StringBuffer()
-        staleDurationFormatter.printTo(sb, it!!.normalizedStandard(PeriodType.yearMonthDayTime()))
+        formatter.printTo(sb, it!!.normalizedStandard(PeriodType.yearMonthDayTime()))
         sb.toString()
     }
 
-    private val stalePeriodViewModel = PeriodViewModel(stalePeriodTextProperty).apply {
+    private val viewModel = PeriodViewModel(stalePeriodTextProperty).apply {
         textProperty.onChange { this@apply.commit() }
         validate(decorateErrors = true)
     }
@@ -47,11 +47,11 @@ class GameStaleDurationMenu : View() {
             }
         }
         row {
-            staleDurationTextField = textfield(stalePeriodViewModel.textProperty) {
+            textField = textfield(viewModel.textProperty) {
                 isFocusTraversable = false
                 validator {
                     val valid = try {
-                        staleDurationFormatter.parsePeriod(it); true
+                        formatter.parsePeriod(it); true
                     } catch (e: Exception) {
                         false
                     }
@@ -61,13 +61,13 @@ class GameStaleDurationMenu : View() {
         }
     }
 
-    val isValid = stalePeriodViewModel.valid
-    val isFocused = staleDurationTextField.focusedProperty()
+    val isValid = viewModel.valid
+    val isFocused = textField.focusedProperty()
 
     init {
         // TODO: Use a bidirectional binding
         stalePeriodTextProperty.onChange {
-            settings.stalePeriod = staleDurationFormatter.parsePeriod(it)
+            settings.stalePeriod = formatter.parsePeriod(it)
         }
     }
 

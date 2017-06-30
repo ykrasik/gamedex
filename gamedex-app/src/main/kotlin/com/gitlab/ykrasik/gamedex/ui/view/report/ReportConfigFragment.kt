@@ -9,6 +9,7 @@ import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.jfoenix.controls.JFXButton
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
@@ -32,6 +33,8 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     private val unallowedNames = settings.reports.keys - initialConfig.name
     private val viewModel = ReportNameViewModel(initialConfig.name)
 
+    private var acceptButton: JFXButton by singleAssign()
+
     private var accept = false
 
     // TODO: Generate name according to rules.toString unless custom name typed
@@ -44,8 +47,7 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         minHeight = 800.0
         top {
             toolbar {
-                acceptButton {
-                    enableWhen { viewModel.valid }
+                acceptButton = acceptButton {
                     setOnAction {
                         reportConfig = reportConfig.copy(name = viewModel.text)
                         close(accept = true)
@@ -107,7 +109,9 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     }
 
     private fun Pane.renderRules() {
-        children += ReportRuleFragment(reportConfigProperty).root
+        val fragment = ReportRuleFragment(reportConfigProperty)
+        acceptButton.enableWhen { viewModel.valid.and(fragment.isValid) }
+        children += fragment.root
     }
 
     private fun EventTarget.renderExcludedGames() =

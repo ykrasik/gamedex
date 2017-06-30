@@ -12,6 +12,7 @@ import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.platformComboBox
 import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
 import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
@@ -49,9 +50,6 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
         "User Score" to { ReportRule.Rules.UserScore(60.0, greaterThan = false) },
         "Has User Score" to { ReportRule.Rules.HasUserScore() },
 
-        "Min Score" to { ReportRule.Rules.MinScore(60.0, greaterThan = false) },
-        "Has Min Score" to { ReportRule.Rules.HasMinScore() },
-
         "Avg Score" to { ReportRule.Rules.AvgScore(60.0, greaterThan = false) },
         "Has Avg Score" to { ReportRule.Rules.HasAvgScore() },
 
@@ -60,11 +58,15 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
         "Has Library" to { ReportRule.Rules.HasLibrary(Platform.pc, libraryController.realLibraries.firstOrNull()?.name ?: "") },
         "Has Tag" to { ReportRule.Rules.HasTag(gameController.tags.firstOrNull() ?: "") },
 
+        "File Size" to { ReportRule.Rules.HasFileSize(1024L * 1024 * 1024 * 10, greaterThan = true) },
+
         "Has Duplications" to { ReportRule.Rules.Duplications() },
         "Name-Folder Diff" to { ReportRule.Rules.NameDiff() }
     )
 
     private var indent = 0
+
+    val isValid = SimpleBooleanProperty(true)
 
     override val root = vbox {
         render(reportConfig.rules)
@@ -87,8 +89,8 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
                     is ReportRule.Rules.HasTag -> renderTagRule(rule)
                     is ReportRule.Rules.CriticScore -> renderScoreRule(rule, "Critic Score", ReportRule.Rules::CriticScore)
                     is ReportRule.Rules.UserScore -> renderScoreRule(rule, "User Score", ReportRule.Rules::UserScore)
-                    is ReportRule.Rules.MinScore -> renderScoreRule(rule, "Min Score", ReportRule.Rules::MinScore)
                     is ReportRule.Rules.AvgScore -> renderScoreRule(rule, "Avg Score", ReportRule.Rules::AvgScore)
+                    is ReportRule.Rules.HasFileSize -> renderFileSizeRule(rule)
                     else -> rule.toProperty()
                 }
                 ruleProperty.onChange { replaceRule(rule, it!!) }
@@ -126,7 +128,7 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
             menuOp = {
                 // TODO: Dirty solution!
                 when (it) {
-                    "Has Critic Score", "Has User Score", "Has Min Score", "Has Avg Score", "Has Tag" -> separator()
+                    "Has Critic Score", "Has User Score", "Has Min Score", "Has Avg Score", "Has Tag", "File Size" -> separator()
                     else -> {
                     }
                 }
@@ -238,6 +240,14 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
             }
         }
         return ruleProperty
+    }
+
+    private fun HBox.renderFileSizeRule(rule: ReportRule.Rules.HasFileSize): ObjectProperty<ReportRule.Rules.HasFileSize> {
+        val fragment = FileSizeRuleFragment(rule)
+        children += fragment.root
+        isValid.bind(fragment.isValid)  // TODO: What if there is more than 1 rule that can be invalid?
+        isValid.printChanges("ruleValid")
+        return fragment.ruleProperty
     }
 
     class Style : Stylesheet() {
