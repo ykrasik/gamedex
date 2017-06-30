@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.ui.imageViewColumn
+import com.gitlab.ykrasik.gamedex.ui.minWidthFitContent
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.value.ObservableValue
@@ -35,10 +36,7 @@ class SearchResultsContentFragment(results: ObservableList<ProviderSearchResult>
             addClass(CommonStyle.centered)
         }
 
-        minTableWidth.bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
-            binding.add(column.widthProperty())
-        })
-        minWidthProperty().bind(minTableWidth)
+        minWidthFitContent(indexColumn)
 
         onUserSelect(clickCount = 2) { close(SearchChooser.Choice.ExactMatch(this@tableview.selectedItem!!)) }
     }

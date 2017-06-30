@@ -116,9 +116,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
         report.resultsProperty.onChange { resizeColumnsToFitContent() }
 
-        minWidthProperty().bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
-            binding.add(column.widthProperty())
-        })
+        minWidthFitContent(indexColumn)
     }
 
     private fun EventTarget.resultsView() = tableview<ReportRule.Result> {

@@ -80,7 +80,7 @@ class GameDetailsFragment(
         }
     }
 
-    private fun GridPane.criticScore() = score(game.userScore, "Critic")
+    private fun GridPane.criticScore() = score(game.criticScore, "Critic")
     private fun GridPane.userScore() = score(game.userScore, "User")
     private fun GridPane.score(score: Score?, name: String) {
         if (score != null || evenIfEmpty) row {

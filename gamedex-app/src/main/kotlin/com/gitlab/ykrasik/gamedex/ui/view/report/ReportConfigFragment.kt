@@ -123,6 +123,8 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
                     }
                 }
             }
+
+            resizeColumnsToFitContent()
         }
 
     fun show(): ReportConfig? {

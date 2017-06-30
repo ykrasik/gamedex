@@ -161,8 +161,8 @@ fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
         }
     }
     addEventFilter(MouseEvent.MOUSE_CLICKED) { e ->
-        lastSelectedRow?.let { lastSelectedRow ->
-            val boundsOfSelectedRow = lastSelectedRow.localToScene(lastSelectedRow.layoutBounds)
+        lastSelectedRow?.let { row ->
+            val boundsOfSelectedRow = row.localToScene(row.layoutBounds)
             if (!boundsOfSelectedRow.contains(e.sceneX, e.sceneY)) {
                 tableView.selectionModel.clearSelection()
             }
@@ -187,4 +187,10 @@ fun EventTarget.labeled(text: String, f: Pane.() -> Unit) = hbox(spacing = 5.0) 
     f(fakePane)
     label.labelFor = fakePane.children.first()
     children += fakePane.children
+}
+
+fun <T> TableView<T>.minWidthFitContent(indexColumn: TableColumn<T, Number>? = null) {
+    minWidthProperty().bind(contentColumns.fold(indexColumn?.widthProperty()?.subtract(10) ?: 0.0.toProperty()) { binding, column ->
+        binding.add(column.widthProperty())
+    })
 }
