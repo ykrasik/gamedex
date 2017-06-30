@@ -14,8 +14,10 @@ import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
+import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.binding.BooleanBinding
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import javafx.scene.control.TableColumn
@@ -243,9 +245,18 @@ class GameController @Inject constructor(
         gameRepository.update(game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) })
     }
 
-    // TODO: Rename/Move affects the fileSystem, this does not. Should be more obvious.
     fun delete(game: Game): Boolean {
-        if (!areYouSureDialog("Delete game '${game.name}'?")) return false
+        val fromFileSystem = SimpleBooleanProperty(false)
+        if (!areYouSureDialog("Delete game '${game.name}'?") {
+            jfxToggleButton {
+                text = "From File System"
+                selectedProperty().bindBidirectional(fromFileSystem)
+            }
+        }) return false
+
+        if (fromFileSystem.value) {
+            game.path.deleteWithChildren()
+        }
 
         launch(JavaFx) {
             gameRepository.delete(game)
