@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
+import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
@@ -28,11 +29,12 @@ import tornadofx.*
  */
 // TODO: Should consider making this a view and just re-binding the report to it.
 class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.chart()) {
-    private val gameContextMenu: GameContextMenu by inject()
-    private val browser = YouTubeWebBrowser()
-
     private val reportsController: ReportsController by di()
     private val gameController: GameController by di()
+    private val fileSystemOps: FileSystemOps by di()
+
+    private val gameContextMenu: GameContextMenu by inject()
+    private val browser = YouTubeWebBrowser()
 
     private var gamesTable: TableView<Game> by singleAssign()
 
@@ -46,9 +48,6 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
         // Left
         vbox {
-            hgrow = Priority.ALWAYS
-//            maxWidth = screenBounds.width / 2
-
             // Top
             container(games.mapProperty { "Games: ${it.size}" }) {
                 vgrow = Priority.ALWAYS
@@ -67,7 +66,6 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         // Right
         vbox {
             hgrow = Priority.ALWAYS
-            maxWidth = screenBounds.width / 1.9
 
             // Top
             stackpane {
@@ -95,10 +93,13 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         vgrow = Priority.ALWAYS
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
-        makeIndexColumn().apply { addClass(CommonStyle.centered) }
+        val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
         column("Game", Game::name)
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
+        }
+        customGraphicColumn("Size") { game ->
+            label(fileSystemOps.size(game.path)) { minWidth = 60.0 }
         }
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
@@ -114,6 +115,10 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         }
 
         report.resultsProperty.onChange { resizeColumnsToFitContent() }
+
+        minWidthProperty().bind(contentColumns.fold(indexColumn.widthProperty().subtract(10)) { binding, column ->
+            binding.add(column.widthProperty())
+        })
     }
 
     private fun EventTarget.resultsView() = tableview<ReportRule.Result> {

@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
 import com.gitlab.ykrasik.gamedex.ui.imageview
@@ -14,6 +15,7 @@ import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import tornadofx.*
 
@@ -29,6 +31,7 @@ class GameDetailsFragment(
     private val evenIfEmpty: Boolean = false
 ) : Fragment() {
     private val providerRepository: GameProviderRepository by di()
+    private val fileSystemOps: FileSystemOps by di()
 
     override val root = gridpane {
         hgap = 5.0
@@ -49,8 +52,9 @@ class GameDetailsFragment(
         children += game.platform.toLogo()
         label(game.name) {
             setId(Style.nameLabel)
-            gridpaneConstraints { hAlignment = HPos.CENTER }
+            gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
+        label(fileSystemOps.size(game.path)) { minWidth = 60.0 }
     }
 
     private fun GridPane.path() = row {
