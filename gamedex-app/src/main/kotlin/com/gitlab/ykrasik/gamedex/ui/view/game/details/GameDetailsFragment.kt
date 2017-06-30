@@ -6,6 +6,7 @@ import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
 import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
@@ -54,7 +55,7 @@ class GameDetailsFragment(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        label(fileSystemOps.size(game.path)) { minWidth = 60.0 }
+        label(fileSystemOps.size(game.path).map { it?.humanReadable ?: "" }) { minWidth = 60.0 }
     }
 
     private fun GridPane.path() = row {

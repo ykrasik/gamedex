@@ -25,7 +25,10 @@ fun <T> ObservableValue<T>.onWeakChange(op: (T?) -> Unit): ChangeListener<T> =
 fun <T> ObservableValue<T>.changeListener(op: (T?) -> Unit): ChangeListener<T> =
     ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(this) }
 
-fun <T> ObservableValue<T>.printChanges(id: String) = addListener { _, o, v -> println("$id changed: $o -> $v") }
+fun <T> ObservableValue<T>.printChanges(id: String) {
+    println("$id: $value")
+    addListener { _, o, v -> println("$id changed: $o -> $v") }
+}
 
 fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
 

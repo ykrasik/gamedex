@@ -98,9 +98,9 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }
-        customGraphicColumn("Size") { game ->
-            label(fileSystemOps.size(game.path)) { minWidth = 60.0 }
-        }
+        customGraphicColumn("Size", { game -> fileSystemOps.size(game.path) }) { size ->
+            label(size.humanReadable)
+        }.apply { minWidth = 60.0 }
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
         onUserSelect { gameController.viewDetails(it) }

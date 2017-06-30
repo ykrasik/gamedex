@@ -60,6 +60,16 @@ inline fun <reified S> TableView<S>.customColumn(title: String,
     return column
 }
 
+fun <S, T> TableView<S>.customColumn(title: String,
+                                     valueProvider: (S) -> ObservableValue<T>,
+                                     cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
+    val column = TableColumn<S, T>(title)
+    addColumnInternal(column)
+    column.cellValueFactory = Callback { valueProvider(it.value) }
+    column.setCellFactory { cellFactory(it) }
+    return column
+}
+
 inline fun <reified S, T> TableView<S>.customColumn(title: String,
                                                     prop: KProperty1<S, T>,
                                                     crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
@@ -70,6 +80,16 @@ inline fun <reified S, T> TableView<S>.customColumn(title: String,
     return column
 }
 
+fun <S, T> TableView<S>.customGraphicColumn(title: String,
+                                            valueProvider: (S) -> ObservableValue<T>,
+                                            graphicFactory: (T) -> Node): TableColumn<S, T> =
+    customColumn(title, valueProvider) {
+        object : TableCell<S, T>() {
+            override fun updateItem(item: T?, empty: Boolean) {
+                graphic = item?.let { graphicFactory(it) }
+            }
+        }
+    }
 
 inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinline graphicFactory: (S) -> Node): TableColumn<S, S> =
     customColumn(title) {
@@ -129,6 +149,7 @@ fun EventTarget.jfxToggleButton(p: Property<Boolean>, op: (JFXToggleButton.() ->
     selectedProperty().bindBidirectional(p)
     op?.invoke(this)
 }
+
 fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
 
 fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
@@ -171,7 +192,7 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     }
 
 // TODO: Change style classes to lists.
-fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,  // FIXME: This really shouldn't be observable
+fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>, // FIXME: This really shouldn't be observable
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = null,

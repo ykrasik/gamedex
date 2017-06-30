@@ -1,9 +1,10 @@
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.util.toHumanReadableFileSize
-import javafx.beans.property.ReadOnlyStringProperty
-import javafx.beans.property.SimpleStringProperty
-import javafx.beans.property.StringProperty
+import com.gitlab.ykrasik.gamedex.util.FileSize
+import com.gitlab.ykrasik.gamedex.util.sizeTaken
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.SimpleObjectProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -17,20 +18,17 @@ import javax.inject.Singleton
  * Time: 20:09
  */
 @Singleton
-open class FileSystemOps {
-    // TODO: not the cleanest solution, whatever
-    private val sizeCache = mutableMapOf<File, StringProperty>()
+class FileSystemOps {
+    private val sizeCache = mutableMapOf<File, ObjectProperty<FileSize>>()
 
-    fun size(file: File): ReadOnlyStringProperty = sizeCache.getOrElse(file) {
-        val sizeProperty = SimpleStringProperty()
+    fun size(file: File): ReadOnlyObjectProperty<FileSize> = sizeCache.getOrElse(file) {
+        val sizeProperty = SimpleObjectProperty<FileSize>()
         launch(CommonPool) {
-            val size = file.walkBottomUp()
-                .fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc }
-                .toHumanReadableFileSize()
+            val size = file.sizeTaken()
+            sizeCache[file] = sizeProperty
             run(JavaFx) {
                 sizeProperty.value = size
             }
-            sizeCache[file] = sizeProperty
         }
         return sizeProperty
     }
