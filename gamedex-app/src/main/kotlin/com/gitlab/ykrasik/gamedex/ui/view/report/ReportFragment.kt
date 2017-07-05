@@ -36,15 +36,20 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
     private val gameContextMenu: GameContextMenu by inject()
     private val browser = YouTubeWebBrowser()
 
-    private var gamesTable: TableView<Game> by singleAssign()
-
     val report = reportsController.generateReport(reportConfig)
+    private val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
 
     val searchProperty = SimpleStringProperty("")
 
+    private val gamesTable = gamesView(games)
+
+    val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
+    private val selectedGame by selectedGameProperty
+
+    private val additionalInfoProperty = selectedGameProperty.map { report.results[it] }
+
     override val root = hbox {
         useMaxSize = true
-        val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
 
         // Left
         vbox {
@@ -52,12 +57,13 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
             container(games.mapProperty { "Games: ${it.size}" }) {
                 vgrow = Priority.ALWAYS
                 minHeight = screenBounds.height / 2
-                gamesTable = gamesView(games)
+                children += gamesTable
             }
 
             // Bottom
-            container(selectedGameProperty.map { "Rules: ${report.results[it]?.size ?: 0}" }) {
-                resultsView()
+            container("Additional Info".toProperty()) {
+                showWhen { additionalInfoProperty.map { it?.isNotEmpty() ?: false } }
+                additionalInfoView()
             }
         }
 
@@ -89,7 +95,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         }
     }
 
-    private fun EventTarget.gamesView(games: ObservableList<Game>) = tableview(games) {
+    private fun gamesView(games: ObservableList<Game>) = TableView(games).apply {
         vgrow = Priority.ALWAYS
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
@@ -119,7 +125,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         minWidthFitContent(indexColumn)
     }
 
-    private fun EventTarget.resultsView() = tableview<ReportRule.Result> {
+    private fun EventTarget.additionalInfoView() = tableview<ReportRule.ReportInfo> {
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
         simpleColumn("Rule") { result -> result.ruleName }
         customGraphicColumn("Value") { result ->
@@ -137,15 +143,12 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
             }
         }
 
-        selectedGameProperty.onChange { selectedGame ->
+        additionalInfoProperty.onChange { additionalInfo ->
             // The selected game may not appear in the report (can happen with programmatic selection).
-            items = selectedGame?.let { report.results[it]?.observable() }
+            items = additionalInfo?.observable() 
             resizeColumnsToFitContent()
         }
     }
-
-    val selectedGameProperty get() = gamesTable.selectionModel.selectedItemProperty()
-    private val selectedGame by selectedGameProperty
 
     private fun EventTarget.container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
         alignment = Pos.CENTER

@@ -18,6 +18,7 @@ import tornadofx.*
  * Time: 22:17
  */
 // TODO: This screen needs some work
+// TODO: Show total amount of games and total game size.
 class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
     private val libraryController: LibraryController by di()
 

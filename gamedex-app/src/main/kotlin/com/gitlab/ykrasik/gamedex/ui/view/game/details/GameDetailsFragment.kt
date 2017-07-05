@@ -28,7 +28,6 @@ import tornadofx.*
 class GameDetailsFragment(
     private val game: Game,
     private val withDescription: Boolean = true,
-    private val withUrls: Boolean = true,
     private val evenIfEmpty: Boolean = false
 ) : Fragment() {
     private val providerRepository: GameProviderRepository by di()
@@ -46,7 +45,7 @@ class GameDetailsFragment(
         userScore()
         genres()
         tags()
-        urls()
+        urls()  // TODO: Should consider having a 'reviews' button.
     }
 
     private fun GridPane.name() = row {
@@ -114,7 +113,7 @@ class GameDetailsFragment(
     }
 
     private fun GridPane.urls() = game.rawGame.providerData.let { providerData ->
-        if (withUrls && (providerData.isNotEmpty() || evenIfEmpty)) row {
+        if (providerData.isNotEmpty() || evenIfEmpty) row {
             detailsHeader("URL")
             if (providerData.isNotEmpty()) {
                 gridpane {

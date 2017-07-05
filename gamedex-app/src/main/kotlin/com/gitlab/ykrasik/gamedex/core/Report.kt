@@ -25,6 +25,8 @@ data class ReportConfig(
     inline fun withRules(f: (ReportRule) -> ReportRule) = copy(rules = f(rules))
 }
 
+// TODO: Find a way to merge 'hasScore' rules with 'targetScore' rules.
+// TODO: Add releaseDate rule
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = ReportRule.Operators.And::class, name = "and"),
@@ -138,11 +140,6 @@ sealed class ReportRule(val name: String) {
         abstract class SimpleRule<T>(name: String) : Rule(name) {
             override fun evaluate(game: Game, context: Context): Boolean {
                 val value = extractValue(game, context)
-                if (value is List<*>) {
-                    value.forEach { context.addResult(game, rule = this, value = it) }
-                } else {
-                    context.addResult(game, rule = this, value = value)
-                }
                 return doCheck(value)
             }
 
@@ -220,31 +217,35 @@ sealed class ReportRule(val name: String) {
 
         // TODO: Add ignore case option
         // TODO: Add option that makes metadata an optional match.
-        class Duplications : SimpleRule<List<ReportRule.Rules.GameDuplication>>("Duplications") {
-            override fun extractValue(game: Game, context: Context): List<GameDuplication> {
-                val duplicates = context.cache("NoDuplications.result") {
-                    val headerToGames = context.games.asSequence()
-                        .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutUpdateDate() to checkedGame } }
-                        .toMultiMap()
-
-                    // TODO: Does this belong here?
-                    // Only detect duplications in the same platform.
-                    val duplicateHeaders = headerToGames
-                        .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
-                        .filterValues { it.size > 1 }
-
-                    duplicateHeaders.asSequence().flatMap { (header, games) ->
-                        games.asSequence().flatMap { checkedGame ->
-                            (games - checkedGame).asSequence().map { duplicatedGame ->
-                                checkedGame to GameDuplication(header.id, duplicatedGame)
-                            }
-                        }
-                    }.toMultiMap()
+        class Duplications : Rule("Duplications") {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val allDuplications = calcDuplications(context)
+                val gameDuplications = allDuplications[game]
+                if (gameDuplications != null) {
+                    context.addAdditionalInfo(game, this, gameDuplications)
                 }
-                return duplicates[game] ?: emptyList()
+                return gameDuplications != null
             }
 
-            override fun doCheck(value: List<GameDuplication>) = value.isNotEmpty()
+            private fun calcDuplications(context: Context): MultiMap<Game, GameDuplication> = context.cache("Duplications.result") {
+                val headerToGames = context.games.asSequence()
+                    .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutUpdateDate() to checkedGame } }
+                    .toMultiMap()
+
+                // TODO: Does this belong here?
+                // Only detect duplications in the same platform.
+                val duplicateHeaders = headerToGames
+                    .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
+                    .filterValues { it.size > 1 }
+
+                duplicateHeaders.asSequence().flatMap { (header, games) ->
+                    games.asSequence().flatMap { checkedGame ->
+                        (games - checkedGame).asSequence().map { duplicatedGame ->
+                            checkedGame to GameDuplication(header.id, duplicatedGame)
+                        }
+                    }
+                }.toMultiMap()
+            }
 
             private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
         }
@@ -254,21 +255,25 @@ sealed class ReportRule(val name: String) {
             val duplicatedGame: Game
         )
 
-        class NameDiff : SimpleRule<List<GameNameFolderDiff>>("Name-Folder Diff") {
-            override fun extractValue(game: Game, context: Context): List<GameNameFolderDiff> {
-                val diffs = context.cache("NameDiff.result") {
-                    context.games.flatMap { checkedGame ->
-                        // TODO: If the majority of providers agree with the name, it is not a diff.
-                        checkedGame.rawGame.providerData.mapNotNull { providerData ->
-                            val difference = diff(checkedGame, providerData) ?: return@mapNotNull null
-                            checkedGame to difference
-                        }
-                    }.toMultiMap()
+        class NameDiff : Rule("Name-Folder Diff") {
+            override fun evaluate(game: Game, context: Context): Boolean {
+                val allDiffs = calcDiffs(context)
+                val gameDiffs = allDiffs[game]
+                if (gameDiffs != null) {
+                    context.addAdditionalInfo(game, this, gameDiffs)
                 }
-                return diffs[game] ?: emptyList()
+                return gameDiffs != null
             }
 
-            override fun doCheck(value: List<GameNameFolderDiff>) = value.isNotEmpty()
+            private fun calcDiffs(context: Context): MultiMap<Game, GameNameFolderDiff> = context.cache("NameDiff.result") {
+                context.games.flatMap { checkedGame ->
+                    // TODO: If the majority of providers agree with the name, it is not a diff.
+                    checkedGame.rawGame.providerData.mapNotNull { providerData ->
+                        val difference = diff(checkedGame, providerData) ?: return@mapNotNull null
+                        checkedGame to difference
+                    }
+                }.toMultiMap()
+            }
 
             private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
                 val actualName = game.folderMetadata.rawName
@@ -308,18 +313,21 @@ sealed class ReportRule(val name: String) {
         val fileSystemOps: FileSystemOps
     ) {
         private val cache = mutableMapOf<String, Any>()
-        private val _results = mutableMapOf<Game, MutableList<Result>>()
-        val results: MultiMap<Game, Result> get() = _results
+        private val _additionalInfo = mutableMapOf<Game, MutableList<ReportInfo>>()
+        val additionalInfo: MultiMap<Game, ReportInfo> get() = _additionalInfo
 
         @Suppress("UNCHECKED_CAST")
         fun <T> cache(key: String, defaultValue: () -> T) = cache.getOrPut(key, defaultValue as () -> Any) as T
 
-        fun addResult(game: Game, rule: Rules.Rule, value: Any?) {
-            val gameResults = _results.getOrPut(game) { mutableListOf() }
-            val result = Result(rule.ruleId, value)
-            if (!gameResults.contains(result)) gameResults += result
+        fun addAdditionalInfo(game: Game, rule: Rules.Rule, values: List<Any>) =
+            values.forEach { addAdditionalInfo(game, rule, it) }
+
+        fun addAdditionalInfo(game: Game, rule: Rules.Rule, value: Any?) {
+            val gameAdditionalInfo = _additionalInfo.getOrPut(game) { mutableListOf() }
+            val additionalInfo = ReportInfo(rule.name, value)
+            if (!gameAdditionalInfo.contains(additionalInfo)) gameAdditionalInfo += additionalInfo
         }
     }
 
-    data class Result(val ruleName: String, val value: Any?)
+    data class ReportInfo(val ruleName: String, val value: Any?)
 }

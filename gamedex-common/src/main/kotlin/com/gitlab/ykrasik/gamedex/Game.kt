@@ -85,6 +85,7 @@ data class ProviderHeader(
     val updateDate: DateTime
 )
 
+// TODO: Why not put this as part of GameData?
 data class ImageUrls(
     val thumbnailUrl: String?,
     val posterUrl: String?,

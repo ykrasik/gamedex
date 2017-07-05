@@ -69,7 +69,7 @@ class ReportsController @Inject constructor(
     fun generateReport(config: ReportConfig) = OngoingReport(config)
 
     inner class OngoingReport(private val config: ReportConfig) {
-        val resultsProperty: Property<MultiMap<Game, ReportRule.Result>> = SimpleObjectProperty(emptyMap())
+        val resultsProperty: Property<MultiMap<Game, ReportRule.ReportInfo>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
         private var reportListener: ListChangeListener<Game>? = null
@@ -94,14 +94,14 @@ class ReportsController @Inject constructor(
             }
         }
 
-        private fun calculate(games: List<Game>): MultiMap<Game, ReportRule.Result> {
+        private fun calculate(games: List<Game>): MultiMap<Game, ReportRule.ReportInfo> {
             val context = ReportRule.Context(games, fileSystemOps)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
                 !config.excludedGames.contains(game.id) && config.rules.evaluate(game, context)
             }
             progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
-            return context.results.filterKeys { matchingGames.contains(it) }
+            return matchingGames.map { it to emptyList<ReportRule.ReportInfo>() }.toMap() + context.additionalInfo
         }
 
         fun stop() {

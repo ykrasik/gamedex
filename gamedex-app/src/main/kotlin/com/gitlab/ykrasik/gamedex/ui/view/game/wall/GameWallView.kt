@@ -49,7 +49,7 @@ class GameWallView : View("Games Wall") {
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false, withUrls = false).root.apply {
+                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false).root.apply {
                                 addClass(Style.quickDetails)
                             }
                             show(cell)
