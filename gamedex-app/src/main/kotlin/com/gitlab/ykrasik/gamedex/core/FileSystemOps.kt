@@ -22,16 +22,20 @@ import javax.inject.Singleton
 class FileSystemOps {
     private val sizeCache = mutableMapOf<File, ObjectProperty<FileSize>>()
 
-    fun size(file: File): ReadOnlyObjectProperty<FileSize> = sizeCache.getOrElse(file) {
-        val sizeProperty = SimpleObjectProperty<FileSize>()
-        launch(CommonPool) {
-            val size = file.sizeTaken()
+    fun size(file: File): ReadOnlyObjectProperty<FileSize> {
+        val existing = sizeCache[file]
+        if (existing?.value?.bytes ?: 0L != 0L) return existing!!
+
+        return SimpleObjectProperty<FileSize>(FileSize(0L)).let { sizeProperty ->
             sizeCache[file] = sizeProperty
-            run(JavaFx) {
-                sizeProperty.value = size
+            launch(CommonPool) {
+                val size = file.sizeTaken()
+                run(JavaFx) {
+                    sizeProperty.value = size
+                }
             }
+            sizeProperty
         }
-        return sizeProperty
     }
 
     fun sizeSync(file: File): FileSize {
