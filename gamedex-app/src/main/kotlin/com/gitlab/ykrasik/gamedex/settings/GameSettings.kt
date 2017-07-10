@@ -54,6 +54,7 @@ class GameSettings : SettingsScope() {
         userScore("User Score"),
         minScore("Min Score"),
         avgScore("Average Score"),
+        size("Size"),
         releaseDate("Release Date"),
         updateDate("Update Date");
 

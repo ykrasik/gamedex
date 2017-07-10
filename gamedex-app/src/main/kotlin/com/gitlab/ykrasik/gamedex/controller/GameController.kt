@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -42,7 +43,8 @@ class GameController @Inject constructor(
     private val gameTasks: GameTasks,
     private val searchTasks: SearchTasks,
     private val refreshTasks: RefreshTasks,
-    private val settings: GameSettings
+    private val settings: GameSettings,
+    private val fileSystemOps: FileSystemOps
 ) : Controller() {
     private val mainView: MainView by inject()
 
@@ -87,6 +89,7 @@ class GameController @Inject constructor(
             GameSettings.SortBy.userScore -> userScoreComparator.then(nameComparator)
             GameSettings.SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             GameSettings.SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            GameSettings.SortBy.size -> compareBy<Game> { fileSystemOps.sizeSync(it.path) }.then(nameComparator)
             GameSettings.SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
             GameSettings.SortBy.updateDate -> compareBy(Game::updateDate)
         }
