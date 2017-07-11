@@ -37,7 +37,6 @@ class DiffResultFragment(diff: ReportRule.Rules.GameNameFolderDiff, game: Game) 
                 }
             }
             // TODO: Add a 'search only this provider' option
-            // TODO: Consider adding an 'ignore this diff' option.
         }
     }
 

@@ -24,7 +24,6 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-// TODO: This class is too big
 class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
@@ -101,7 +100,6 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
         region { setId(Style.middleGameDetailsView) }
 
-        // TODO: See if this can be made collapsible - squeezebox?
         // Right
         vbox {
             setId(Style.rightGameDetailsView)

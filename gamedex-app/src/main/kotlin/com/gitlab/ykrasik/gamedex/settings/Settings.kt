@@ -2,6 +2,8 @@ package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.util.*
 import javafx.beans.property.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import tornadofx.onChange
 
 /**
@@ -9,53 +11,21 @@ import tornadofx.onChange
  * Date: 11/10/2016
  * Time: 10:34
  */
-// TODO: This could create an issue for testing.
-class Settings private constructor(
-    val general: GeneralSettings = GeneralSettings(),
-    val provider: ProviderSettings = ProviderSettings(),
-    val game: GameSettings = GameSettings(),
-    val gameWall: GameWallSettings = GameWallSettings(),
-    val report: ReportSettings = ReportSettings()
-) {
+abstract class Settings(name: String) {
+    @Transient
+    protected val file = "conf/$name.json".toFile()
+
     // Jackson constructs the objects by calling it's setters on the properties. Calling a setter = write to file.
     // Disable writing the object to the file while it is being constructed.
     @Transient
-    private var updateEnabled = false
+    protected var updateEnabled = false
 
-    init {
-        general.updateOnChange()
-        provider.updateOnChange()
-        game.updateOnChange()
-        gameWall.updateOnChange()
-        report.updateOnChange()
-    }
-
-    private fun SettingsScope.updateOnChange() = changedProperty.onChange {
-        if (it && updateEnabled) update()
-    }
-
-    // TODO: This happens on UI thread.
-    private fun update() = objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, this)
-
-    companion object {
-        private val file = "settings.json".toFile()
-
-        operator fun invoke(): Settings {
-            val settings = if (file.exists()) {
-                file.readJson<Settings>()
-            } else {
-                file.create()
-                Settings().apply { file.writeJson(this) }
-            }
-            settings.updateEnabled = true
-            return settings
+    @Transient
+    val changedProperty = SimpleBooleanProperty().apply {
+        onChange {
+            if (it && updateEnabled) update()
         }
     }
-}
-
-abstract class SettingsScope {
-    @Transient
-    val changedProperty = SimpleBooleanProperty()
 
     protected fun <T> preferenceProperty(initialValue: T): ObjectProperty<T> = SimpleObjectProperty(initialValue).notifyOnChange()
     protected fun preferenceProperty(initialValue: Boolean): BooleanProperty = SimpleBooleanProperty(initialValue).notifyOnChange()
@@ -71,9 +41,23 @@ abstract class SettingsScope {
         }
     }
 
-    abstract inner class SubSettings : SettingsScope() {
-        init {
-            this.changedProperty.onChange { this@SettingsScope.changedProperty.value = it }
+    private fun update() = launch(CommonPool) {
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, this@Settings)
+    }
+
+    companion object {
+        @JvmStatic
+        protected inline fun <reified T : Settings> readOrUse(settings: T): T {
+            val file = settings.file
+            val p = if (file.exists()) {
+                file.readJson<T>()
+            } else {
+                file.create()
+                file.writeJson(settings)
+                settings
+            }
+            p.updateEnabled = true
+            return p
         }
     }
 }

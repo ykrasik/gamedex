@@ -12,7 +12,11 @@ import tornadofx.setValue
  * Date: 01/05/2017
  * Time: 19:08
  */
-class GameSettings : SettingsScope() {
+class GameSettings private constructor() : Settings("game") {
+    companion object {
+        operator fun invoke(): GameSettings = readOrUse(GameSettings())
+    }
+
     @Transient
     val displayTypeProperty = preferenceProperty(DisplayType.wall)
     var displayType by displayTypeProperty

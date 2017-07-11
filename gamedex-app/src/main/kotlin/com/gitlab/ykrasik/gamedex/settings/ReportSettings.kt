@@ -10,12 +10,10 @@ import tornadofx.setValue
  * Date: 18/06/2017
  * Time: 11:33
  */
-class ReportSettings : SettingsScope() {
-    @Transient
-    val reportsProperty = preferenceProperty(defaultReports)
-    var reports by reportsProperty
-
+class ReportSettings private constructor() : Settings("report") {
     companion object {
+        operator fun invoke(): ReportSettings = readOrUse(ReportSettings())
+
         val defaultReports = listOf(
             ReportConfig("Name Diff", ReportRule.Rules.NameDiff()),
             ReportConfig("Duplications", ReportRule.Rules.Duplications()),
@@ -33,4 +31,8 @@ class ReportSettings : SettingsScope() {
             ))
         ).associateBy { it.name }
     }
+
+    @Transient
+    val reportsProperty = preferenceProperty(defaultReports)
+    var reports by reportsProperty
 }

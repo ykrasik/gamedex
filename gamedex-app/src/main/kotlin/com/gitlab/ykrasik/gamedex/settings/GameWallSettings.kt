@@ -9,18 +9,24 @@ import tornadofx.setValue
  * Date: 01/05/2017
  * Time: 19:05
  */
-class GameWallSettings : SettingsScope() {
-    val cell = GameWallCellSettings()
-    val metaTagOverlay = GameWallOverlaySettings().apply {
+class GameWallSettings private constructor() : Settings("gameWall") {
+    companion object {
+        operator fun invoke(): GameWallSettings = readOrUse(GameWallSettings())
+    }
+
+    val cell = CellSettings()
+
+    val metaTagOverlay = OverlaySettings().apply {
         location = Pos.BOTTOM_CENTER
         fillWidth = true
     }
-    val versionOverlay = GameWallOverlaySettings().apply {
+
+    val versionOverlay = OverlaySettings().apply {
         location = Pos.TOP_RIGHT
         fillWidth = false
     }
 
-    inner class GameWallCellSettings : SubSettings() {
+    inner class CellSettings {
         @Transient
         val imageDisplayTypeProperty = preferenceProperty(ImageDisplayType.stretch)
         var imageDisplayType by imageDisplayTypeProperty
@@ -50,7 +56,7 @@ class GameWallSettings : SettingsScope() {
         var verticalSpacing by verticalSpacingProperty
     }
 
-    inner class GameWallOverlaySettings : SubSettings() {
+    inner class OverlaySettings {
         @Transient
         val isShowProperty = preferenceProperty(true)
         var isShow by isShowProperty

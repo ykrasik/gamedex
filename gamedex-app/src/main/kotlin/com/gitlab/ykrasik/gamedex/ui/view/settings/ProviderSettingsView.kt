@@ -25,7 +25,6 @@ class ProviderSettingsView : View("Provider Settings", Theme.Icon.settings()) {
 
     override val root = form {
         // FIXME: Forms take a long time to load!!!
-        // TODO: Consider ControlsFx PropertySheet
         fieldset("Provider Order") {
             listOf(
                 "Search" to settings.searchOrderProperty,

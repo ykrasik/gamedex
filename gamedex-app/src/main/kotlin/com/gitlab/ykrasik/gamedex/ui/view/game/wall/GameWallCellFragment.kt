@@ -96,7 +96,7 @@ class GameWallCellFragment : Fragment() {
     }
 
     // TODO: Allow configuring the overlay color / opacity.
-    private fun EventTarget.overlayLabel(settings: GameWallSettings.GameWallOverlaySettings) = label {
+    private fun EventTarget.overlayLabel(settings: GameWallSettings.OverlaySettings) = label {
         addClass(Style.overlayText)
 
         visibleWhen { settings.isShowProperty.and(textProperty().isNotNull.and(textProperty().isNotEmpty)) }

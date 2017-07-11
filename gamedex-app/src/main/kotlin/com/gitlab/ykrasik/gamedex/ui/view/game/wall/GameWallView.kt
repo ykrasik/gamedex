@@ -88,7 +88,6 @@ class GameWallView : View("Games Wall") {
         return arrowLocation
     }
 
-    // TODO: Consider adding an option to display the game name under the cell
     private inner class GameWallCell : GridCell<Game>() {
         private val fragment = GameWallCellFragment()
         private val imageView get() = fragment.imageView

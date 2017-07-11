@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.ui.view.settings
 
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
-import com.gitlab.ykrasik.gamedex.settings.Settings
 import com.gitlab.ykrasik.gamedex.ui.enumComboBox
 import com.gitlab.ykrasik.gamedex.ui.jfxToggleButton
 import com.gitlab.ykrasik.gamedex.ui.labeled
@@ -18,19 +17,20 @@ import tornadofx.*
  * Time: 15:21
  */
 class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
-    private val settings: Settings by di()
+    private val gameSettings: GameSettings by di()
+    private val gameWallSettings: GameWallSettings by di()
 
-    private val isWallDisplay = settings.game.displayTypeProperty.isEqualTo(GameSettings.DisplayType.wall)
+    private val isWallDisplay = gameSettings.displayTypeProperty.isEqualTo(GameSettings.DisplayType.wall)
 
     override val root = form {
         fieldset("Game Display Type") {
-            field("Type") { enumComboBox(settings.game.displayTypeProperty) }
+            field("Type") { enumComboBox(gameSettings.displayTypeProperty) }
         }
 
         fieldset("Overlay") {
             visibleWhen { isWallDisplay }
-            overlaySettings("MetaTag", settings.gameWall.metaTagOverlay)
-            overlaySettings("Version", settings.gameWall.versionOverlay)
+            overlaySettings("MetaTag", gameWallSettings.metaTagOverlay)
+            overlaySettings("Version", gameWallSettings.versionOverlay)
         }
         fieldset("Cell") {
             setId(Style.gameWallSettings)
@@ -40,7 +40,7 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
     }
 
     // TODO: Configure overlay color.
-    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.GameWallOverlaySettings) =
+    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.OverlaySettings) =
         field("Display $name Overlay") {
             hbox(spacing = 5.0) {
                 alignment = Pos.CENTER_LEFT
@@ -57,17 +57,17 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
         field("Fixed Size") {
             hbox(spacing = 5.0) {
                 alignment = Pos.CENTER_LEFT
-                jfxToggleButton(settings.gameWall.cell.isFixedSizeProperty)
-                labeled("Thumbnail") { enumComboBox(settings.gameWall.cell.imageDisplayTypeProperty) }.apply {
-                    showWhen { settings.gameWall.cell.isFixedSizeProperty }
+                jfxToggleButton(gameWallSettings.cell.isFixedSizeProperty)
+                labeled("Thumbnail") { enumComboBox(gameWallSettings.cell.imageDisplayTypeProperty) }.apply {
+                    showWhen { gameWallSettings.cell.isFixedSizeProperty }
                 }
             }
         }
-        field("Border") { jfxToggleButton(settings.gameWall.cell.isShowBorderProperty) }
-        field("Width") { adjustableTextField(settings.gameWall.cell.widthProperty, "cell width", min = 20.0, max = 500.0) }
-        field("Height") { adjustableTextField(settings.gameWall.cell.heightProperty, "cell height", min = 20.0, max = 500.0) }
-        field("Horizontal Spacing") { adjustableTextField(settings.gameWall.cell.horizontalSpacingProperty, "horizontal spacing", min = 0.0, max = 100.0) }
-        field("Vertical Spacing") { adjustableTextField(settings.gameWall.cell.verticalSpacingProperty, "vertical spacing", min = 0.0, max = 100.0) }
+        field("Border") { jfxToggleButton(gameWallSettings.cell.isShowBorderProperty) }
+        field("Width") { adjustableTextField(gameWallSettings.cell.widthProperty, "cell width", min = 20.0, max = 500.0) }
+        field("Height") { adjustableTextField(gameWallSettings.cell.heightProperty, "cell height", min = 20.0, max = 500.0) }
+        field("Horizontal Spacing") { adjustableTextField(gameWallSettings.cell.horizontalSpacingProperty, "horizontal spacing", min = 0.0, max = 100.0) }
+        field("Vertical Spacing") { adjustableTextField(gameWallSettings.cell.verticalSpacingProperty, "vertical spacing", min = 0.0, max = 100.0) }
     }
 
     class Style : Stylesheet() {

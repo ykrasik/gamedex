@@ -28,7 +28,6 @@ class GameListView : View("Game List") {
 
     private var listview: ListView<Game> by singleAssign()
 
-    // TODO: This should probably be a master-detail pane
     override val root = borderpane {
         center {
             borderpane {

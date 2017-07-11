@@ -133,7 +133,7 @@ class IgdbFakeServer(port: Int) : Closeable {
             5 -> date.toString("YYYY-'Q3'")
             6 -> date.toString("YYYY-'Q4'")
             7 -> "TBD"
-            else -> TODO()
+            else -> error("Unsupported format: $category")
         }
         return IgdbClient.ReleaseDate(
             platform = randomPlatform(),

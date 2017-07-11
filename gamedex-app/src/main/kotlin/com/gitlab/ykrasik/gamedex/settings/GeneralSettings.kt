@@ -10,7 +10,11 @@ import java.io.File
  * Date: 01/05/2017
  * Time: 19:10
  */
-class GeneralSettings : SettingsScope() {
+class GeneralSettings private constructor() : Settings("general") {
+    companion object {
+        operator fun invoke(): GeneralSettings = readOrUse(GeneralSettings())
+    }
+
     @Transient
     val prevDirectoryProperty = preferenceProperty<File?>(null)
     var prevDirectory by prevDirectoryProperty

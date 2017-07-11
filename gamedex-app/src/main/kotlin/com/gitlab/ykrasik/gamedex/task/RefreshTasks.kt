@@ -23,7 +23,6 @@ class RefreshTasks @Inject constructor(
     private val settings: GameSettings
 ) {
     // TODO: Consider renaming 'refresh' to 'redownload'
-    // TODO: Allow refreshing with a user-specified excluded provider.
     inner class RefreshGamesTask(private val games: List<Game>) : Task<Unit>("Refreshing ${games.size} games...") {
         private var numRefreshed = 0
 

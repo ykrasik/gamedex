@@ -35,6 +35,7 @@ fun browse(path: File) = Desktop.getDesktop().open(path)
 
 fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
 
+// TODO: Why is this needed? Can just use a Long with extensions and factory.
 @JsonIgnoreProperties("humanReadable")
 data class FileSize(val bytes: Long) : Comparable<FileSize> {
     val humanReadable by lazy {
