@@ -238,6 +238,10 @@ class GameController @Inject constructor(
         val fullPath = library.path.resolve(newPath)
         logger.info("Renaming/Moving: ${game.path} -> $fullPath")
 
+        val parent = fullPath.parentFile
+        if (parent != library.path && !parent.exists()) {
+            parent.mkdirs()
+        }
         if (!game.path.renameTo(fullPath)) {
             // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
             // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
