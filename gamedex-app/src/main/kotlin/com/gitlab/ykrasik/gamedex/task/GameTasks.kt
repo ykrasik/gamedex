@@ -68,7 +68,7 @@ class GameTasks @Inject constructor(
         private suspend fun processDirectory(directory: File, library: Library): AddGameRequest? {
             val taskData = GameProviderService.ProviderTaskData(this, directory.name, library.platform, directory)
             val results = providerService.search(taskData, excludedProviders = emptyList()) ?: return null
-            val relativePath = library.path.relativeTo(directory).path
+            val relativePath = directory.relativeTo(library.path).path
             val metadata = Metadata(library.id, relativePath, updateDate = now)
             val userData = if (results.excludedProviders.isNotEmpty()) {
                 UserData(excludedProviders = results.excludedProviders)
@@ -125,7 +125,7 @@ class GameTasks @Inject constructor(
     }
 
     inner class CleanupStaleDataTask(private val staleData: StaleData) : Task<Unit>(
-        "Cleaning up ${staleData.libraries} stale libraries and ${staleData.games} stale games..."
+        "Cleaning up ${staleData.libraries.size} stale libraries and ${staleData.games.size} stale games..."
     ) {
         override suspend fun doRun() {
             libraryRepository.deleteAll(staleData.libraries, progress)

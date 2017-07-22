@@ -229,6 +229,8 @@ class GameController @Inject constructor(
         get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
 
     fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }
+
+    // TODO: This should appear in reports - refresh all games in report.
     fun refreshFilteredGames() = refreshTasks.RefreshGamesTask(sortedFilteredGames).apply { start() }
     fun refreshGame(game: Game) = refreshTasks.RefreshGameTask(game).apply { start() }
 
