@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
+import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,8 @@ import javax.inject.Singleton
  */
 @Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
+    private val log = logger()
+
     open fun search(name: String, platform: Platform): List<SearchResult> {
         val response = getRequest("${config.endpoint}/",
             "search" to name,
@@ -22,6 +25,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "limit" to config.maxSearchResults.toString(),
             "fields" to searchFieldsStr
         )
+        log.trace("[$platform] Search 'name': ${response.text}")
         return response.listFromJson()
     }
 
@@ -29,6 +33,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val response = getRequest(url,
             "fields" to fetchDetailsFieldsStr
         )
+        log.trace("Fetch '$url': ${response.text}")
 
         // IGDB returns a list, even though we're fetching by id :/
         return response.listFromJson<DetailsResult> { parseError(it) }.first()
@@ -38,7 +43,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         params = parameters.toMap(),
         headers = mapOf(
             "Accept" to "application/json",
-            "X-Mashape-Key" to config.apiKey
+            "user-key" to config.apiKey
         )
     )
 

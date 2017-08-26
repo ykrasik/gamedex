@@ -10,7 +10,7 @@ import io.kotlintest.matchers.shouldBe
  * Date: 08/10/2016
  * Time: 17:59
  */
-class GiantBombProviderRealIT : ScopedWordSpec() {
+class GiantBombProviderContractTest : ScopedWordSpec() {
     val provider = GiantBombProvider(GiantBombClient(GiantBombConfig(appConfig)))
 
     init {
@@ -61,6 +61,16 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
     val deck = "A procedurally generated space exploration game from Hello Games, the creators of Joe Danger."
     val genres = listOf("Simulation", "Action-Adventure")
     val screenshotUrls = listOf(
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958078-2017-08-19_1304_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958077-2017-08-19_1237_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958076-2017-08-16_2318_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958075-2017-08-13_1537_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958074-2017-08-13_1530_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958073-2017-08-13_1335_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958072-2017-08-13_0151_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958071-2017-08-13_0011_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958070-2017-08-12_1626_1.jpg",
+        "https://static.giantbomb.com/uploads/scale_large/6/66643/2958069-2017-08-19_1325_1.jpg",
         "https://static.giantbomb.com/uploads/scale_large/0/3699/2927125-no+man%27s+sky.jpg",
         "https://static.giantbomb.com/uploads/scale_large/0/5684/2888664-20160918132648_1.jpg",
         "https://static.giantbomb.com/uploads/scale_large/0/5684/2888663-20160918132159_1.jpg",
@@ -80,16 +90,6 @@ class GiantBombProviderRealIT : ScopedWordSpec() {
         "https://static.giantbomb.com/uploads/scale_large/0/5684/2888649-20160918120220_1.jpg",
         "https://static.giantbomb.com/uploads/scale_large/0/5684/2888648-20160918120210_1.jpg",
         "https://static.giantbomb.com/uploads/scale_large/0/5684/2888647-20160918120147_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888646-20160918120022_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888645-20160918120015_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888644-20160918115459_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888643-20160918115418_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888642-20160918115408_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888641-20160918115344_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888640-20160918115337_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888639-20160918115328_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888638-20160918115100_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888637-20160918114757_1.jpg",
-        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888636-20160918114629_1.jpg"
+        "https://static.giantbomb.com/uploads/scale_large/0/5684/2888646-20160918120022_1.jpg"
     )
 }

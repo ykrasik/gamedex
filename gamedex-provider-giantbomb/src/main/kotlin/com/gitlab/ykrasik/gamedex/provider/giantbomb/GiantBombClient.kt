@@ -9,6 +9,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.EnumIdConverter
 import com.gitlab.ykrasik.gamedex.util.IdentifiableEnum
 import com.gitlab.ykrasik.gamedex.util.fromJson
+import com.gitlab.ykrasik.gamedex.util.logger
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,16 +22,20 @@ import javax.inject.Singleton
 // TODO: GiantBomb can return a number of user reviews
 @Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
+    private val log = logger()
+
     open fun search(name: String, platform: Platform): SearchResponse {
         val response = getRequest(config.endpoint,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFieldsStr
         )
+        log.trace("[$platform] Search 'name': ${response.text}")
         return response.fromJson()
     }
 
     open fun fetch(apiUrl: String): DetailsResponse {
         val response = getRequest(apiUrl, "field_list" to fetchDetailsFieldsStr)
+        log.trace("Fetch '$apiUrl': ${response.text}")
         return response.fromJson()
     }
 

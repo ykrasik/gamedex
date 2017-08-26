@@ -32,7 +32,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/"))
                         .withHeader("Accept", "application/json")
-                        .withHeader("X-Mashape-Key", apiKey)
+                        .withHeader("user-key", apiKey)
                         .withQueryParam("search", name)
                         .withQueryParam("filter[release_dates.platform][eq]", platformId.toString())
                         .withQueryParam("limit", maxSearchResults.toString())
@@ -59,7 +59,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/$id"))
                         .withHeader("Accept", "application/json")
-                        .withHeader("X-Mashape-Key", apiKey)
+                        .withHeader("user-key", apiKey)
                         .withQueryParam("fields", fetchDetailsFields.joinToString(","))
                 )
             }
