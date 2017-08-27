@@ -77,7 +77,8 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
             val poster = ImageView()
             val gamePosterProperty = gameProperty.flatMap { game ->
-                imageLoader.fetchImage(game?.id ?: -1, game?.posterUrl, persistIfAbsent = true)
+                // TODO: Make persistIfAbsent a configuration value.
+                imageLoader.fetchImage(game?.id ?: -1, game?.posterUrl, persistIfAbsent = false)
             }
             poster.imageProperty().bind(gamePosterProperty)
 
