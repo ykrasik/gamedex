@@ -14,14 +14,14 @@ data class PersistenceConfig(
     val password: String
 ) {
     companion object {
-        operator fun invoke(config: Config): PersistenceConfig =
-            config.getConfig("gameDex.persistence").let { config ->
-                PersistenceConfig(
-                    dbUrl = config.getString("dbUrl"),
-                    driver = config.getString("driver"),
-                    user = config.getString("user"),
-                    password = config.getString("password")
-                )
-            }
+        @Suppress("NAME_SHADOWING")
+        operator fun invoke(config: Config): PersistenceConfig = config.getConfig("gameDex.persistence").let { config ->
+            PersistenceConfig(
+                dbUrl = config.getString("dbUrl"),
+                driver = config.getString("driver"),
+                user = config.getString("user"),
+                password = config.getString("password")
+            )
+        }
     }
 }

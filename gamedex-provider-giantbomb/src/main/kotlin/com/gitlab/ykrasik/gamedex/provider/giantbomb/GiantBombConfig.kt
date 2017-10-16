@@ -17,6 +17,7 @@ data class GiantBombConfig(
     fun getPlatformId(platform: Platform) = platforms[platform]!!
 
     companion object {
+        @Suppress("NAME_SHADOWING")
         operator fun invoke(config: Config): GiantBombConfig = config.getConfig("gameDex.provider.giantBomb").let { config ->
             GiantBombConfig(
                 endpoint = config.getString("endpoint"),

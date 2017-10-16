@@ -21,6 +21,7 @@ data class IgdbConfig(
     fun getGenreName(genreId: Int): String = genres[genreId]!!
 
     companion object {
+        @Suppress("NAME_SHADOWING")
         operator fun invoke(config: Config): IgdbConfig = config.getConfig("gameDex.provider.igdb").let { config ->
             IgdbConfig(
                 endpoint = config.getString("endpoint"),
