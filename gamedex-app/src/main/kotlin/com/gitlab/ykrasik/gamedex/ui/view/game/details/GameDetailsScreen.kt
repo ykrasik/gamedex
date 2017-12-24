@@ -83,7 +83,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             poster.imageProperty().bind(gamePosterProperty)
 
             contextmenu {
-                menuitem("Change", graphic = Theme.Icon.poster(20.0)) { editDetails(GameDataType.poster) }
+                item("Change", graphic = Theme.Icon.poster(20.0)).action { editDetails(GameDataType.poster) }
             }
 
             imageViewResizingPane(poster) {

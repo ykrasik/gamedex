@@ -57,15 +57,15 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
         }
 
         contextmenu {
-            menuitem("Add", graphic = Theme.Icon.plus(20.0)) { addLibrary() }
+            item("Add", graphic = Theme.Icon.plus(20.0)).action { addLibrary() }
             separator()
-            menuitem("Edit", graphic = Theme.Icon.edit(20.0)) { editLibrary() }.apply {
+            item("Edit", graphic = Theme.Icon.edit(20.0)) {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }
+            }.action { editLibrary() }
             separator()
-            menuitem("Delete", graphic = Theme.Icon.delete(20.0)) { deleteLibrary() }.apply {
+            item("Delete", graphic = Theme.Icon.delete(20.0)) {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }
+            }.action { deleteLibrary() }
 
         }
 

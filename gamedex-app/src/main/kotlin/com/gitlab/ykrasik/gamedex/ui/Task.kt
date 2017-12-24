@@ -56,7 +56,7 @@ abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
 
     fun start() {
         _result = async(CommonPool) {
-            this@Task._context = context
+            this@Task._context = coroutineContext
 
             run(JavaFx) {
                 runningProperty.set(true)

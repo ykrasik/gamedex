@@ -39,7 +39,7 @@ fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(tex
 }
 
 // TODO: Should probably replace with popoverComboMenu
-inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: (ComboBox<T>.() -> Unit)? = null): ComboBox<T> {
+inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: ComboBox<T>.() -> Unit = {}): ComboBox<T> {
     val enumValues = T::class.java.enumConstants.asList().observable<T>()
     return combobox(property, enumValues, op)
 }
@@ -133,12 +133,12 @@ inline fun <reified S> TableView<S>.imageViewColumn(title: String,
     }
 
 
-fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: (Rating.() -> Unit)? = null) = opcr(this, Rating(max), op).apply {
+fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rating.() -> Unit = {}) = opcr(this, Rating(max), op).apply {
     isPartialRating = isPartial
     skin = FixedRatingSkin(this)
 }
 
-fun EventTarget.imageViewResizingPane(imageView: ImageView, op: (ImageViewResizingPane.() -> Unit)? = null) =
+fun EventTarget.imageViewResizingPane(imageView: ImageView, op: ImageViewResizingPane.() -> Unit = {}) =
     opcr(this, ImageViewResizingPane(imageView), op)
 
 fun Node.clipRectangle(op: Rectangle.() -> Unit) {
@@ -150,9 +150,9 @@ fun EventTarget.jfxToggleButton(p: Property<Boolean>, op: (JFXToggleButton.() ->
     op?.invoke(this)
 }
 
-fun EventTarget.jfxToggleButton(op: (JFXToggleButton.() -> Unit)? = null) = opcr(this, JFXToggleButton(), op)
+fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) = opcr(this, JFXToggleButton(), op)
 
-fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: (JFXToggleNode.() -> Unit)? = null) = opcr(this, JFXToggleNode().apply {
+fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: JFXToggleNode.() -> Unit = {}) = opcr(this, JFXToggleNode().apply {
     addClass(CommonStyle.jfxHoverable)
     this.graphic = graphic
     this.toggleGroup = group
@@ -162,7 +162,7 @@ fun Node.jfxToggleNode(text: String? = null,
                        graphic: Node? = null,
                        group: ToggleGroup? = getToggleGroup(),
                        labelStyleClasses: List<CssRule> = emptyList(),
-                       op: (JFXToggleNode.() -> Unit)? = null): JFXToggleNode {
+                       op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
     val label = Label(text ?: "", graphic).apply {
         addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
         labelStyleClasses.forEach { addClass(it) }
@@ -170,7 +170,7 @@ fun Node.jfxToggleNode(text: String? = null,
     return jfxToggleNode(label, group, op)
 }
 
-fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: (JFXButton.() -> Unit)? = null) =
+fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: JFXButton.() -> Unit = {}) =
     opcr(this, JFXButton().apply {
         addClass(CommonStyle.jfxHoverable)
         this.text = text
@@ -308,7 +308,7 @@ fun <T> ListView<T>.fitAtMost(numItems: Int) {
     maxHeightProperty().bind(size)
 }
 
-fun StackPane.maskerPane(op: (MaskerPane.() -> Unit)? = null) = opcr(this, MaskerPane(), op)
+fun StackPane.maskerPane(op: MaskerPane.() -> Unit = {}) = opcr(this, MaskerPane(), op)
 
 inline fun View.skipFirstTime(op: () -> Unit) {
     val skip = properties.getOrDefault("Gamedex.skipFirstTime", true) as Boolean

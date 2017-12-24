@@ -36,7 +36,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
             object : ListCell<LogEntry>() {
                 init {
                     contextmenu {
-                        menuitem("Copy to Clipboard", KeyCombination.keyCombination("ctrl+c")) {
+                        item("Copy to Clipboard", KeyCombination.keyCombination("ctrl+c")).action {
                             clipboard.putString(item.message)
                         }
                     }

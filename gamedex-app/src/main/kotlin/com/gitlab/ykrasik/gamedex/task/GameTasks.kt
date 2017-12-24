@@ -31,7 +31,7 @@ class GameTasks @Inject constructor(
 
         override suspend fun doRun() {
             val requestsJob = scan()
-            for (addGameRequest in requestsJob.channel) {
+            for (addGameRequest in requestsJob) {
                 gameRepository.add(addGameRequest)
                 numNewGames += 1
             }

@@ -122,7 +122,7 @@ class InsetBuilder(region: Region) {
     var left: Number = region.padding.left
 }
 
-fun EventTarget.verticalSeparator(padding: Double? = 10.0, op: (Separator.() -> Unit)? = null) = separator(Orientation.VERTICAL, op).apply {
+fun EventTarget.verticalSeparator(padding: Double? = 10.0, op: Separator.() -> Unit = {}) = separator(Orientation.VERTICAL, op).apply {
     padding?.let {
         padding { right = it; left = it }
     }
@@ -132,8 +132,8 @@ fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwe
     op?.invoke(this)
 }
 
-fun EventTarget.imageview(image: Image, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView(image), op)
-fun EventTarget.imageview(imageProperty: ObservableValue<Image>, op: (ImageView.() -> Unit)? = null) = opcr(this, ImageView().apply {
+fun EventTarget.imageview(image: Image, op: ImageView.() -> Unit = {}) = opcr(this, ImageView(image), op)
+fun EventTarget.imageview(imageProperty: ObservableValue<Image>, op: ImageView.() -> Unit = {}) = opcr(this, ImageView().apply {
     imageProperty().bind(imageProperty)
 }, op)
 
