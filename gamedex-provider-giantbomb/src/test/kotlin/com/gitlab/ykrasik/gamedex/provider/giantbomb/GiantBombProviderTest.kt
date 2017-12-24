@@ -62,6 +62,14 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
+            "consider GiantBomb logo url as absent image".inScope(Scope()) {
+                givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/2853576-gblogo.png"))))
+
+                search() should haveASingleSearchResultThat {
+                    it.thumbnailUrl shouldBe null
+                }
+            }
+
             "throw GameDexException on invalid response status".inScope(Scope()) {
                 givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.badFormat, emptyList()))
 
@@ -125,6 +133,25 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 download().imageUrls.posterUrl shouldBe null
             }
 
+            "consider GiantBomb logo url as absent thumbnail".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/2853576-gblogo.png")))
+
+                download().imageUrls.thumbnailUrl shouldBe null
+            }
+
+            "consider GiantBomb logo url as absent poster".inScope(Scope()) {
+                givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/2853576-gblogo.png")))
+
+                download().imageUrls.posterUrl shouldBe null
+            }
+
+            "filter out GiantBomb logo url from screenshots".inScope(Scope()) {
+                val screenshot1 = randomImage()
+                givenClientFetchReturns(detailsResult().copy(images = listOf(randomImage().copy(superUrl = "${randomUrl()}/2853576-gblogo.png"), screenshot1)))
+
+                download().imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
+            }
+
             "throw GameDexException on invalid response status".inScope(Scope()) {
                 givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
 
@@ -140,7 +167,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
         val name = randomName()
         val apiDetailUrl = randomUrl()
 
-        private fun randomImage() =  GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
+        fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
         fun searchResult(name: String = this.name) = GiantBombClient.SearchResult(
             apiDetailUrl = randomUrl(),

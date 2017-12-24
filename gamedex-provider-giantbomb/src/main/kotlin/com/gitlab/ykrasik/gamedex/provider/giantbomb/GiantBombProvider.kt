@@ -15,6 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class GiantBombProvider @Inject constructor(private val client: GiantBombClient) : GameProvider {
     private val log = logger()
+    private val gbLogoImage = "2853576-gblogo.png"
 
     override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
         log.debug("[$platform] Searching: '$name'...")
@@ -32,7 +33,7 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         releaseDate = originalReleaseDate?.toString(),
         criticScore = null,
         userScore = null,
-        thumbnailUrl = image?.thumbUrl,
+        thumbnailUrl = image?.thumbUrl?.filterEmpty(),
         apiUrl = apiDetailUrl
     )
 
@@ -65,11 +66,14 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
             genres = this.genres?.map { it.name } ?: emptyList()
         ),
         imageUrls = ImageUrls(
-            thumbnailUrl = this.image?.thumbUrl,
-            posterUrl = this.image?.superUrl,
-            screenshotUrls = this.images.map { it.superUrl }
+            thumbnailUrl = this.image?.thumbUrl?.filterEmpty(),
+            posterUrl = this.image?.superUrl?.filterEmpty(),
+            screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmpty() }
         )
     )
+
+    private fun String.filterEmpty(): String? =
+        if (endsWith(gbLogoImage)) null else this
 
     private fun assertOk(status: GiantBombClient.Status) {
         if (status != GiantBombClient.Status.ok) {
