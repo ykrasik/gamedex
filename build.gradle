@@ -39,7 +39,7 @@ buildscript {
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.9.2'
+            v = '2.9.1'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -53,7 +53,7 @@ buildscript {
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '1.11.1']
         tornadoFx = [:].with {
             core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.14']
-            controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.5']
+            controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
             delegate
         }
 

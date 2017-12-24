@@ -54,7 +54,7 @@ class GameFilterMenu : View() {
                 gameController.searchQueryProperty.bindBidirectional(textProperty())
                 requestFocus()
             }
-            children += search
+            addChildIfPossible(search)
         }.apply {
             label.replaceWith(jfxButton("Search") {
                 isFocusTraversable = false

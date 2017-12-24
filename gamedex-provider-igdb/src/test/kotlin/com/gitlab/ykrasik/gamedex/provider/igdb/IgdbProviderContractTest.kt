@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
-import com.gitlab.ykrasik.gamedex.test.assert
+import com.gitlab.ykrasik.gamedex.test.assertScore
 import com.gitlab.ykrasik.gamedex.util.appConfig
 import io.kotlintest.matchers.haveSize
 import io.kotlintest.matchers.should
@@ -64,8 +64,8 @@ class IgdbProviderContractTest : ScopedWordSpec() {
     val name = "No Man's Sky"
     val apiUrl = "https://api-2445582011268.apicast.io/games/3225"
     val releaseDate = "2016-08-12"
-    val Score?.verifiedCriticScore get() = assert(min = 72, max = 74, numReviews = 30)
-    val Score?.verifiedUserScore get() = assert(min = 62, max = 66, numReviews = 80)
+    val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 30)
+    val Score?.verifiedUserScore get() = assertScore(min = 62, max = 66, numReviews = 80)
     val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.jpg"
     val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/sixpdbypwojsyly22a1l.jpg"
     val url = "https://www.igdb.com/games/no-man-s-sky"

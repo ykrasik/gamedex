@@ -35,7 +35,7 @@ abstract class ScopedWordSpec : WordSpec() {
     fun <T> String.inLazyScope(scope: () -> T, test: T.() -> Unit): TestCase = this.invoke { test(scope()) }
 }
 
-fun Score?.assert(min: Number, max: Number, numReviews: Int): Score {
+fun Score?.assertScore(min: Number, max: Number, numReviews: Int): Score {
     this shouldNotBe null
     this!!.score should (beGreaterThanOrEqualTo(min.toDouble()) and beLessThanOrEqualTo(max.toDouble()))
     this.numReviews should beGreaterThanOrEqualTo(numReviews)
