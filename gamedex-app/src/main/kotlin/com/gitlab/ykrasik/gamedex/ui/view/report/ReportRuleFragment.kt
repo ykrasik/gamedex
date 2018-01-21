@@ -246,7 +246,6 @@ class ReportRuleFragment(reportConfigProperty: ObjectProperty<ReportConfig>) : F
         val fragment = FileSizeRuleFragment(rule)
         children += fragment.root
         isValid.bind(fragment.isValid)  // TODO: What if there is more than 1 rule that can be invalid?
-        isValid.printChanges("ruleValid")
         return fragment.ruleProperty
     }
 
