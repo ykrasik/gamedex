@@ -25,6 +25,7 @@ data class ReportConfig(
     inline fun withRules(f: (ReportRule) -> ReportRule) = copy(rules = f(rules))
 }
 
+// FIXME: Rename to Filter
 // TODO: Find a way to merge 'hasScore' rules with 'targetScore' rules.
 // TODO: Add releaseDate rule
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -42,6 +43,7 @@ data class ReportConfig(
     JsonSubTypes.Type(value = ReportRule.Rules.HasPlatform::class, name = "hasPlatform"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasProvider::class, name = "hasProvider"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasLibrary::class, name = "hasLibrary"),
+    JsonSubTypes.Type(value = ReportRule.Rules.HasGenre::class, name = "hasGenre"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasTag::class, name = "hasTag"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasCriticScore::class, name = "hasCriticScore"),
     JsonSubTypes.Type(value = ReportRule.Rules.HasUserScore::class, name = "hasUserScore"),
@@ -57,6 +59,7 @@ sealed class ReportRule(val name: String) {
     open val ruleId get() = name
     override fun toString() = ruleId
 
+    // TODO: Move the smart replace logic here, it's already present in delete.
     fun replace(target: ReportRule, with: ReportRule): ReportRule {
         fun doReplace(current: ReportRule): ReportRule = when {
             current === target -> with
@@ -143,8 +146,8 @@ sealed class ReportRule(val name: String) {
                 return doCheck(value)
             }
 
-            abstract protected fun extractValue(game: Game, context: Context): T
-            abstract protected fun doCheck(value: T): Boolean
+            protected abstract fun extractValue(game: Game, context: Context): T
+            protected abstract fun doCheck(value: T): Boolean
         }
 
         class True : Rule("True") {
@@ -201,6 +204,11 @@ sealed class ReportRule(val name: String) {
         class HasTag(val tag: String) : HasRule("Tag") {
             override fun extractNullableValue(game: Game, context: Context) = game.tags.find { it == tag }
             override val ruleId = "$name '$tag'"
+        }
+
+        class HasGenre(val genre: String) : HasRule("Genre") {
+            override fun extractNullableValue(game: Game, context: Context) = game.genres.find { it == genre }
+            override val ruleId = "$name '$genre'"
         }
 
         class HasCriticScore : HasRule("Critic Score") {

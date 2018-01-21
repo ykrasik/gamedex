@@ -2,10 +2,12 @@ package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.FileSystemOps
+import com.gitlab.ykrasik.gamedex.core.ReportRule
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.settings.setFilter
 import com.gitlab.ykrasik.gamedex.task.GameTasks
 import com.gitlab.ykrasik.gamedex.task.RefreshTasks
 import com.gitlab.ykrasik.gamedex.task.SearchTasks
@@ -26,7 +28,10 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import tornadofx.*
+import tornadofx.Controller
+import tornadofx.label
+import tornadofx.listview
+import tornadofx.observable
 import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,33 +55,18 @@ class GameController @Inject constructor(
 
     private val logger = logger()
 
-    private val filtersForPlatformProperty = settings.filtersProperty.gettingOrElse(settings.platformProperty, GameSettings.FilterSet())
-    val filteredLibrariesProperty = filtersForPlatformProperty.map { it!!.libraries }.apply { onChange { filterLibraries(it!!) } }
-    val filteredGenresProperty = filtersForPlatformProperty.map { it!!.genres }.apply { onChange { filterGenres(it!!) } }
-    val filteredTagsProperty = filtersForPlatformProperty.map { it!!.tags }.apply { onChange { filterTags(it!!) } }
-
     val searchQueryProperty = SimpleStringProperty("")
 
     private val compositeFilterPredicate = run {
-        val libraryPredicate = filteredLibrariesProperty.toPredicate { libraries, game: Game ->
-            listFilter(libraries) { game.library.id == it }
-        }
-
-        val genrePredicate = filteredGenresProperty.toPredicate { genres, game: Game ->
-            listFilter(genres) { g -> game.genres.any { it == g } }
-        }
-
-        val tagPredicate = filteredTagsProperty.toPredicate { tags, game: Game ->
-            listFilter(tags) { t -> game.tags.any { it == t } }
+        val context = ReportRule.Context(emptyList(), fileSystemOps)
+        val filterPredicate = settings.filterForPlatformProperty.toPredicate { rules, game: Game ->
+            rules!!.evaluate(game, context)
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game -> game.matchesSearchQuery(query!!) }
 
-        libraryPredicate and genrePredicate and tagPredicate and searchPredicate
+        filterPredicate and searchPredicate
     }
-
-    private inline fun <T> listFilter(filteredItems: List<T>?, predicate: (T) -> Boolean) =
-        filteredItems!!.isEmpty() || filteredItems.any(predicate)
 
     private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
     private val criticScoreComparator = compareBy(Game::criticScore)
@@ -110,19 +100,13 @@ class GameController @Inject constructor(
         sortedItems.comparatorProperty().bind(sortComparator)
     }
 
+    val genres = allGames.flatMapping(Game::genres).distincting().sorted()
     val tags = allGames.flatMapping(Game::tags).distincting()
 
     val canRunLongTask: BooleanBinding get() = MainView.canShowPersistentNotificationProperty
 
-    fun filterLibraries(libraries: List<Int>) = setFilters { it.copy(libraries = libraries) }
-    fun filterGenres(genres: List<String>) = setFilters { it.copy(genres = genres) }
-    fun filterTags(tags: List<String>) = setFilters { it.copy(tags = tags) }
-    private fun setFilters(f: (GameSettings.FilterSet) -> GameSettings.FilterSet) {
-        settings.filters += (settings.platform to f(filtersForPlatformProperty.value))
-    }
-
     fun clearFilters() {
-        settings.filters += (settings.platform to GameSettings.FilterSet())
+        settings.setFilter(ReportRule.Rules.True())
         searchQueryProperty.value = ""
     }
 
