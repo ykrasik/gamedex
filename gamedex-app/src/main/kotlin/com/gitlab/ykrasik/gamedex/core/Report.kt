@@ -265,22 +265,14 @@ sealed class ReportRule(val name: String) {
 
         class NameDiff : Rule("Name-Folder Diff") {
             override fun evaluate(game: Game, context: Context): Boolean {
-                val allDiffs = calcDiffs(context)
-                val gameDiffs = allDiffs[game]
-                if (gameDiffs != null) {
-                    context.addAdditionalInfo(game, this, gameDiffs)
+                // TODO: If the majority of providers agree with the name, it is not a diff.
+                val diffs = game.rawGame.providerData.mapNotNull { providerData ->
+                    diff(game, providerData)
                 }
-                return gameDiffs != null
-            }
-
-            private fun calcDiffs(context: Context): MultiMap<Game, GameNameFolderDiff> = context.cache("NameDiff.result") {
-                context.games.flatMap { checkedGame ->
-                    // TODO: If the majority of providers agree with the name, it is not a diff.
-                    checkedGame.rawGame.providerData.mapNotNull { providerData ->
-                        val difference = diff(checkedGame, providerData) ?: return@mapNotNull null
-                        checkedGame to difference
-                    }
-                }.toMultiMap()
+                if (diffs.isNotEmpty()) {
+                    context.addAdditionalInfo(game, this, diffs)
+                }
+                return diffs.isNotEmpty()
             }
 
             private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {

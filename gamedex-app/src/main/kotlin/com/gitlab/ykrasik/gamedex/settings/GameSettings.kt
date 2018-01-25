@@ -28,11 +28,11 @@ class GameSettings private constructor() : Settings("game") {
     var platform by platformProperty
 
     @Transient
-    val filterProperty = preferenceProperty(emptyMap<Platform, ReportRule>())
-    var filter by filterProperty
+    val filtersProperty = preferenceProperty(emptyMap<Platform, ReportRule>())
+    var filters by filtersProperty
 
     @Transient
-    val filterForPlatformProperty = filterProperty.gettingOrElse(platformProperty, ReportRule.Rules.True())
+    val filterForPlatformProperty = filtersProperty.gettingOrElse(platformProperty, ReportRule.Rules.True())
 
     @Transient
     val sortProperty = preferenceProperty(Sort())
@@ -74,8 +74,8 @@ class GameSettings private constructor() : Settings("game") {
     }
 }
 
-fun GameSettings.setFilter(rule: ReportRule) {
-    filter += (platform to rule)
+fun GameSettings.setFilter(filter: ReportRule) {
+    filters += (platform to filter)
 }
 
 fun GameSettings.modifyFilter(f: (ReportRule) -> ReportRule) {

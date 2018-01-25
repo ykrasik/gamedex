@@ -14,7 +14,6 @@ import com.gitlab.ykrasik.gamedex.ui.view.report.FileSizeRuleFragment
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfigFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
 import javafx.beans.property.ObjectProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -38,8 +37,7 @@ class GameFilterMenu : View() {
 
     private val operators = mapOf(
         "And" to { ReportRule.Operators.And(ReportRule.Rules.True(), ReportRule.Rules.True()) },
-        "Or" to { ReportRule.Operators.Or(ReportRule.Rules.True(), ReportRule.Rules.True()) },
-        "Not" to { ReportRule.Operators.Not(ReportRule.Rules.True()) }
+        "Or" to { ReportRule.Operators.Or(ReportRule.Rules.True(), ReportRule.Rules.True()) }
     )
 
     // TODO: I failed at decoupling the rule display name from the actual rule name
@@ -113,22 +111,20 @@ class GameFilterMenu : View() {
             // TODO: Listener leak here
             settings.filterForPlatformProperty.perform { filter ->
                 replaceChildren {
-                    render(filter)
+                    render(filter, ReportRule.Rules.True())
                 }
             }
         }
     }
 
-    private fun EventTarget.render(rule: ReportRule) {
+    private fun EventTarget.render(rule: ReportRule, parentRule: ReportRule) {
         when (rule) {
-            is ReportRule.Operators.BinaryOperator -> renderOperator(rule) {
-                render(rule.left)
-                render(rule.right)
+            is ReportRule.Operators.BinaryOperator -> withIndent(rule, parentRule) {
+                render(rule.left, rule)
+                render(rule.right, rule)
             }
-            is ReportRule.Operators.UnaryOperator -> renderOperator(rule) {
-                render(rule.rule)
-            }
-            is ReportRule.Rules.Rule -> renderBasicRule(rule, rules) {
+            is ReportRule.Operators.UnaryOperator -> render(rule.rule, rule)
+            is ReportRule.Rules.Rule -> renderBasicRule(rule, parentRule, rules) {
                 val ruleProperty = when (rule) {
                     is ReportRule.Rules.HasPlatform -> renderPlatformRule(rule)
                     is ReportRule.Rules.HasProvider -> renderProviderRule(rule)
@@ -146,9 +142,9 @@ class GameFilterMenu : View() {
         }
     }
 
-    private fun EventTarget.renderOperator(operator: ReportRule.Operators.Operator, op: VBox.() -> Unit) = vbox(spacing = 2.0) {
+    private fun EventTarget.withIndent(operator: ReportRule.Operators.Operator, parentRule: ReportRule, op: VBox.() -> Unit) = vbox(spacing = 2.0) {
         addClass(Style.borderedContent)
-        renderBasicRule(operator, operators)
+        renderBasicRule(operator, parentRule, operators)
 
         indent += 1
         op(this)
@@ -156,6 +152,7 @@ class GameFilterMenu : View() {
     }
 
     private fun EventTarget.renderBasicRule(rule: ReportRule,
+                                            parentRule: ReportRule,
                                             all: Map<String, () -> ReportRule>,
                                             op: (HBox.() -> Unit)? = null) = hbox(spacing = 5.0) {
         addClass(CommonStyle.fillAvailableWidth)
@@ -166,7 +163,7 @@ class GameFilterMenu : View() {
         val ruleProperty = rule.toProperty()
 
         val possibleRules = all.keys.toList().observable()
-        val ruleNameProperty = SimpleStringProperty(ruleProperty.value.name)
+        val ruleNameProperty = SimpleStringProperty(rule.name)
 
         popoverComboMenu(
             possibleItems = possibleRules,
@@ -191,45 +188,46 @@ class GameFilterMenu : View() {
 
         spacer()
 
-        operatorSelection(ruleProperty)
-        jfxButton(graphic = Theme.Icon.delete()) { setOnAction { deleteRule(ruleProperty.value) } }
+        operatorSelection(rule, parentRule)
     }
 
-    private fun HBox.operatorSelection(currentRule: SimpleObjectProperty<ReportRule>) =
+    private fun HBox.operatorSelection(currentRule: ReportRule, parentRule: ReportRule) {
+        val negated = parentRule is ReportRule.Operators.Not
+        val target = if (negated) parentRule else currentRule
+        fun replaceRule(f: (ReportRule) -> ReportRule) = replaceRule(target, f(target))
         buttonWithPopover(graphic = Theme.Icon.plus(), styleClass = null) {
             fun operatorButton(name: String, f: (ReportRule) -> ReportRule) = jfxButton(name) {
                 addClass(CommonStyle.fillAvailableWidth)
-                setOnAction { replaceRule(currentRule.value, f(currentRule.value), optimize = false) }
+                setOnAction { replaceRule(f) }
             }
 
             operatorButton("And") { ReportRule.Operators.And(it, ReportRule.Rules.True()) }
             operatorButton("Or") { ReportRule.Operators.Or(it, ReportRule.Rules.True()) }
-            operatorButton("Not") { ReportRule.Operators.Not(it) }
         }
-
-    private fun replaceRule(target: ReportRule, with: ReportRule, optimize: Boolean = true) {
-        val newWith = if (!optimize) with else when (target) {
-            is ReportRule.Operators.BinaryOperator -> when (with) {
-                is ReportRule.Operators.BinaryOperator -> with.new(target.left, target.right)
-                is ReportRule.Operators.UnaryOperator -> with.new(target.left)
-                else -> with
+        jfxToggleNode(graphic = Theme.Icon.not()) {
+            tooltip("Not")
+            isSelected = negated
+            selectedProperty().onChange { selected ->
+                when {
+                    selected && !negated -> replaceRule { ReportRule.Operators.Not(it) }
+                    !selected && negated -> replaceRule(target, (target as ReportRule.Operators.Not).rule)
+                }
             }
-            is ReportRule.Operators.UnaryOperator -> when (with) {
-                is ReportRule.Operators.BinaryOperator -> with.new(target.rule, with.right)
-                is ReportRule.Operators.UnaryOperator -> with.new(target.rule)
-                else -> with
-            }
-            else -> with
         }
-        modifyFilter { it.replace(target, newWith) }
+        jfxButton(graphic = Theme.Icon.delete()) {
+            setOnAction {
+                modifyFilter { it.delete(target) ?: ReportRule.Rules.True() }
+            } 
+        }
     }
 
-    private fun deleteRule(target: ReportRule) {
-        if (target is ReportRule.Operators.UnaryOperator) {
-            replaceRule(target, target.rule)
+    private fun replaceRule(target: ReportRule, with: ReportRule) {
+        val newWith = if (target is ReportRule.Operators.BinaryOperator && with is ReportRule.Operators.BinaryOperator) {
+            with.new(target.left, target.right)
         } else {
-            modifyFilter { it.delete(target) ?: ReportRule.Rules.True() }
+            with
         }
+        modifyFilter { it.replace(target, newWith) }
     }
 
     private fun modifyFilter(f: (ReportRule) -> ReportRule) = settings.modifyFilter(f)

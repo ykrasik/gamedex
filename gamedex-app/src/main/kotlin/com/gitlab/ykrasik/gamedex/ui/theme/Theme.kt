@@ -49,6 +49,7 @@ object Theme {
         fun delete(size: Double = defaultIconSize) = FontAwesome.Glyph.TRASH.toGraphic { size(size); color(Color.INDIANRED) }
         fun edit(size: Double = defaultIconSize) = FontAwesome.Glyph.PENCIL.toGraphic { size(size); color(Color.ORANGE) }
         fun view(size: Double = defaultIconSize) = FontAwesome.Glyph.EYE.toGraphic { size(size) }
+        fun not(size: Double = defaultIconSize) = FontAwesome.Glyph.EXCLAMATION.toGraphic { size(size); color(Color.MEDIUMVIOLETRED) }
 
         fun thumbnail(size: Double = defaultIconSize) = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic { size(size) }
         fun poster(size: Double = defaultIconSize) = FontAwesome.Glyph.PICTURE_ALT.toGraphic { size(size) }
