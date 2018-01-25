@@ -172,7 +172,7 @@ class GameFactory @Inject constructor(
         "General", "Miscellaneous", "Modern", "Traditional", "Horizontal", "Vertical", "Virtual", "Linear", "Other",
         "Scrolling", "Static", "Civilian", "Individual", "Team", "3D", "Combat", "Dual-Joystick Shooter", "Educational",
         "Real-Time", "Fishing", "Train", "Rail", "Light Gun", "Block-Breaking",
-        "Historic", "Futuristic", "Fantasy", "Sci-Fi", "Space" ->
+        "Historic", "Futuristic", "Fantasy", "Sci-Fi", "Space", "Baseball" ->
             emptyList()
 
         else ->
