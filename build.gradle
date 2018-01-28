@@ -1,5 +1,7 @@
 buildscript {
     ext {
+        javaMaxHeap = '3g'
+
         kotlin_version = '1.2.20'
         ktlin = [:].with {
             v = '1.2.20'
@@ -150,7 +152,7 @@ subprojects {
 }
 
 project("gamedex-app") {
-    apply plugin: "application"
+    apply gradleFile('application.gradle')
     mainClassName = "com.gitlab.ykrasik.gamedex.Main"
 
     dependencies {
@@ -170,8 +172,8 @@ project("gamedex-app") {
 
         compile diff
 
-        testCompile project(path: ":gamedex-provider-giantbomb", configuration: 'testArtifacts')
-        testCompile project(path: ":gamedex-provider-igdb", configuration: 'testArtifacts')
+        testDependency ":gamedex-provider-giantbomb"
+        testDependency ":gamedex-provider-igdb"
     }
 }
 
@@ -185,7 +187,7 @@ project("gamedex-common") {
 
         compile jodaTime
 
-        compile (khttp) {
+        compile(khttp) {
             exclude module: 'spek-api'
             exclude module: 'spek-junit-platform-engine'
         }
@@ -195,11 +197,11 @@ project("gamedex-common") {
         compile jackson.joda
 
         testCompile wiremock
-        testCompile (ktor.core) {
+        testCompile(ktor.core) {
             exclude module: 'kotlin-stdlib-jre7'
             exclude module: 'kotlin-stdlib-jre8'
         }
-        testCompile (ktor.netty) {
+        testCompile(ktor.netty) {
             exclude module: 'kotlin-stdlib-jre7'
             exclude module: 'kotlin-stdlib-jre8'
         }
@@ -245,24 +247,24 @@ project("gamedex-common") {
 project("gamedex-persistence") {
     dependencies {
         compile project(":gamedex-common")
-        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
-
         compile h2
         compile exposed
+
+        testDependency(":gamedex-common")
     }
 }
 
 project("gamedex-provider-giantbomb") {
     dependencies {
         compile project(":gamedex-common")
-        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
+        testDependency(":gamedex-common")
     }
 }
 
 project("gamedex-provider-igdb") {
     dependencies {
         compile project(":gamedex-common")
-        testCompile project(path: ":gamedex-common", configuration: 'testArtifacts')
+        testDependency(":gamedex-common")
     }
 }
 

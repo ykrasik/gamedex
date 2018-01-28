@@ -1,0 +1,39 @@
+apply plugin: 'application'
+
+applicationDefaultJvmArgs = [ "-Xmx$javaMaxHeap", "-XX:+UseConcMarkSweepGC", "-XX:+HeapDumpOnOutOfMemoryError", "-server" ]
+executableDir = ''
+
+task('launcherJar', type: Jar) {
+    dependsOn configurations.runtime
+    classifier 'launcher'
+
+    doFirst {
+        manifest {
+            attributes 'Main-Class': mainClassName
+            attributes 'Class-Path': (configurations.runtime.files + jar.archivePath).collect { it.name }.join(' ')
+        }
+    }
+}
+
+distributions {
+    main {
+        contents {
+            into('lib') {
+                from(launcherJar.archivePath)
+            }
+        }
+    }
+}
+
+startScripts {
+    dependsOn launcherJar
+
+    classpath = files(launcherJar.archivePath)
+
+    doLast {
+        def windowsScriptFile = getWindowsScript()
+//        def unixScriptFile = getUnixScript()
+        windowsScriptFile.text = windowsScriptFile.text.replace('set APP_HOME=%DIRNAME%..', 'set APP_HOME=%DIRNAME%')
+//        unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/conf', '$APP_HOME/conf')
+    }
+}
