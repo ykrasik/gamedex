@@ -2,7 +2,6 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
-import com.gitlab.ykrasik.gamedex.core.ReportConfig
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
@@ -40,7 +39,9 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private val currentScreen = currentToggle.map { it?.userData as? ReportFragment }
     private val currentReport = currentScreen.map { it?.report }
     private val currentReportConfig = currentScreen.map { it?.reportConfig }
-    private val currentlySelectedGame = currentScreen.flatMap { it?.selectedGameProperty ?: SimpleObjectProperty<Game>() }
+    private val currentlySelectedGame = currentScreen.flatMap {
+        it?.selectedGameProperty ?: SimpleObjectProperty<Game>()
+    }
 
     private var isChangingSettings = false
 
@@ -49,7 +50,9 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         maskerPane {
             visibleWhen { currentReport.flatMap { it?.isCalculatingProperty ?: false.toProperty() } }
             currentScreen.onChange {
-                progressProperty().cleanBind(currentReport.flatMap { it?.progressProperty ?: ProgressIndicator.INDETERMINATE_PROGRESS.toProperty() })
+                progressProperty().cleanBind(currentReport.flatMap {
+                    it?.progressProperty ?: ProgressIndicator.INDETERMINATE_PROGRESS.toProperty()
+                })
             }
         }
     }
@@ -103,7 +106,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
             val text = currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" }
             textProperty().bind(text)
             enableWhen { currentlySelectedGame.isNotNull }
-            setOnAction { upsertReport { reportsController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) }  }
+            setOnAction { upsertReport { reportsController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) } }
         }
         verticalSeparator()
         spacer()

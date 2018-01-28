@@ -4,8 +4,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.controller.ReportsController
 import com.gitlab.ykrasik.gamedex.core.FileSystemOps
-import com.gitlab.ykrasik.gamedex.core.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.*
@@ -125,20 +124,20 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         minWidthFitContent(indexColumn)
     }
 
-    private fun EventTarget.additionalInfoView() = tableview<ReportRule.ReportInfo> {
+    private fun EventTarget.additionalInfoView() = tableview<Filter.AdditionalData> {
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        simpleColumn("Rule") { result -> result.ruleName }
+//        simpleColumn("Rule") { result -> result.rule.name }
         customGraphicColumn("Value") { result ->
             when (result.value) {
-                is ReportRule.Rules.GameNameFolderDiff -> DiffResultFragment(result.value, selectedGame).root
-                is ReportRule.Rules.GameDuplication -> DuplicationFragment(result.value, gamesTable).root
+                is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result.value, selectedGame).root
+                is Filter.Duplications.GameDuplication -> DuplicationFragment(result.value, gamesTable).root
                 else -> label(result.value.toDisplayString())
             }
         }
         customGraphicColumn("Extra") { result ->
             when (result.value) {
-                is ReportRule.Rules.GameNameFolderDiff -> ProviderLogoFragment(result.value.providerId).root
-                is ReportRule.Rules.GameDuplication -> ProviderLogoFragment(result.value.providerId).root
+                is Filter.NameDiff.GameNameFolderDiff -> ProviderLogoFragment(result.value.providerId).root
+                is Filter.Duplications.GameDuplication -> ProviderLogoFragment(result.value.providerId).root
                 else -> label()
             }
         }

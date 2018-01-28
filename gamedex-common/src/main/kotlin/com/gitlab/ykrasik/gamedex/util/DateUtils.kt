@@ -13,3 +13,4 @@ val now: DateTime get() = DateTime.now(DateTimeZone.UTC)
 val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
 
 fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
+fun String.toDate(): LocalDate = LocalDate.parse(this)

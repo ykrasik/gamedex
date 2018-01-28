@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
@@ -20,7 +20,7 @@ import tornadofx.*
  * Date: 24/06/2017
  * Time: 18:52
  */
-class DiffResultFragment(diff: ReportRule.Rules.GameNameFolderDiff, game: Game) : Fragment() {
+class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : Fragment() {
     private val gameController: GameController by di()
 
     override val root = form {

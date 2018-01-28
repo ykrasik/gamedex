@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.ui.gettingOrElse
 import javafx.scene.control.TableColumn
 import org.joda.time.Period
@@ -28,11 +28,11 @@ class GameSettings private constructor() : Settings("game") {
     var platform by platformProperty
 
     @Transient
-    val filtersProperty = preferenceProperty(emptyMap<Platform, ReportRule>())
+    val filtersProperty = preferenceProperty(emptyMap<Platform, Filter>())
     var filters by filtersProperty
 
     @Transient
-    val filterForPlatformProperty = filtersProperty.gettingOrElse(platformProperty, ReportRule.Rules.True())
+    val filterForCurrentPlatformProperty = filtersProperty.gettingOrElse(platformProperty, Filter.`true`)
 
     @Transient
     val sortProperty = preferenceProperty(Sort())
@@ -74,10 +74,6 @@ class GameSettings private constructor() : Settings("game") {
     }
 }
 
-fun GameSettings.setFilter(filter: ReportRule) {
-    filters += (platform to filter)
-}
-
-fun GameSettings.modifyFilter(f: (ReportRule) -> ReportRule) {
-    setFilter(f(filterForPlatformProperty.value))
+fun GameSettings.setFilter(filter: Filter) {
+    this.filters += (platform to filter)
 }

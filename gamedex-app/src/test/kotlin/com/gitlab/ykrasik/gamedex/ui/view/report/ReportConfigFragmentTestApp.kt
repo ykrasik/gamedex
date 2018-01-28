@@ -1,7 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.core.ReportConfig
 
 /**
  * User: ykrasik

@@ -2,13 +2,13 @@ package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.FileSystemOps
-import com.gitlab.ykrasik.gamedex.core.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.ThreadAwareDoubleProperty
 import com.gitlab.ykrasik.gamedex.ui.performing
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfigFragment
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import javafx.beans.property.Property
@@ -58,7 +58,7 @@ class ReportsController @Inject constructor(
 
     fun deleteReport(config: ReportConfig): Boolean {
         return areYouSureDialog("Delete report '${config.name}'?") {
-            label("Rules: ${config.rules}")
+            label("Rules: ${config.filter}")
         }.apply {
             if (this) {
                 settings.reports -= config.name
@@ -69,7 +69,7 @@ class ReportsController @Inject constructor(
     fun generateReport(config: ReportConfig) = OngoingReport(config)
 
     inner class OngoingReport(private val config: ReportConfig) {
-        val resultsProperty: Property<MultiMap<Game, ReportRule.ReportInfo>> = SimpleObjectProperty(emptyMap())
+        val resultsProperty: Property<MultiMap<Game, Filter.AdditionalData>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
         private var reportListener: ListChangeListener<Game>? = null
@@ -94,14 +94,14 @@ class ReportsController @Inject constructor(
             }
         }
 
-        private fun calculate(games: List<Game>): MultiMap<Game, ReportRule.ReportInfo> {
-            val context = ReportRule.Context(games, fileSystemOps)
+        private fun calculate(games: List<Game>): MultiMap<Game, Filter.AdditionalData> {
+            val context = Filter.Context(games, fileSystemOps)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
-                !config.excludedGames.contains(game.id) && config.rules.evaluate(game, context)
+                !config.excludedGames.contains(game.id) && config.filter.evaluate(game, context)
             }
             progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
-            return matchingGames.map { it to emptyList<ReportRule.ReportInfo>() }.toMap() + context.additionalInfo
+            return matchingGames.map { it to emptyList<Filter.AdditionalData>() }.toMap() + context.additionalData
         }
 
         fun stop() {

@@ -19,7 +19,10 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import org.controlsfx.control.PopOver
 import org.controlsfx.glyphfont.FontAwesome
-import tornadofx.*
+import tornadofx.addClass
+import tornadofx.label
+import tornadofx.toProperty
+import tornadofx.tooltip
 import java.io.File
 
 /**
@@ -50,6 +53,8 @@ object Theme {
         fun edit(size: Double = defaultIconSize) = FontAwesome.Glyph.PENCIL.toGraphic { size(size); color(Color.ORANGE) }
         fun view(size: Double = defaultIconSize) = FontAwesome.Glyph.EYE.toGraphic { size(size) }
         fun not(size: Double = defaultIconSize) = FontAwesome.Glyph.EXCLAMATION.toGraphic { size(size); color(Color.MEDIUMVIOLETRED) }
+        fun checked(size: Double = defaultIconSize) = FontAwesome.Glyph.CHECK_CIRCLE_ALT.toGraphic { size(size) }
+        fun unchecked(size: Double = defaultIconSize) = FontAwesome.Glyph.CIRCLE_ALT.toGraphic { size(size) }
 
         fun thumbnail(size: Double = defaultIconSize) = FontAwesome.Glyph.FILE_IMAGE_ALT.toGraphic { size(size) }
         fun poster(size: Double = defaultIconSize) = FontAwesome.Glyph.PICTURE_ALT.toGraphic { size(size) }
@@ -174,7 +179,7 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
 }
 
 fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMenu(
-    possibleItems = Platform.values().toList().observable(),
+    possibleItems = Platform.values().toList(),
     selectedItemProperty = selected,
     styleClass = CommonStyle.platformItem,
     itemStyleClass = CommonStyle.fillAvailableWidth,

@@ -93,8 +93,8 @@ infix fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate
     return property
 }
 
-fun <T> ObservableValue<T>.nonNull(): Property<T> {
-    val property = SimpleObjectProperty(this.value)
+fun <T> ObservableValue<T?>.nonNull(): Property<T> {
+    val property = SimpleObjectProperty(this.value!!)
     this.onChange { newValue ->
         if (newValue != null) {
             property.value = newValue

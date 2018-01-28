@@ -1,8 +1,6 @@
-package com.gitlab.ykrasik.gamedex.ui.view.report
+package com.gitlab.ykrasik.gamedex.ui.view.game.filter
 
-import com.gitlab.ykrasik.gamedex.core.ReportRule
-import com.gitlab.ykrasik.gamedex.ui.jfxToggleButton
-import com.gitlab.ykrasik.gamedex.ui.map
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.ui.mapBidirectional
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import javafx.beans.property.Property
@@ -15,12 +13,10 @@ import tornadofx.*
  * Date: 01/07/2017
  * Time: 11:36
  */
-class FileSizeRuleFragment(rule: ReportRule.Rules.HasFileSize) : Fragment() {
-    val ruleProperty = rule.toProperty()
-
+class FileSizeRuleFragment(rule: Property<Filter.FileSize>) : Fragment() {
     private var textField: TextField by singleAssign()
 
-    private val sizeTextProperty = FileSize(rule.target).humanReadable.toProperty()
+    private val sizeTextProperty = rule.mapBidirectional({ it!!.target.humanReadable }, { Filter.FileSize(FileSize(it!!)) })
 
     private val viewModel = FileSizeViewModel(sizeTextProperty).apply {
         textProperty.onChange { this@apply.commit() }
@@ -40,24 +36,9 @@ class FileSizeRuleFragment(rule: ReportRule.Rules.HasFileSize) : Fragment() {
                 if (!valid) error("Invalid file size! Format: {x} B KB MB GB TB PB EB") else null
             }
         }
-
-        val isGt = ruleProperty.mapBidirectional(
-            { it!!.greaterThan }, { ReportRule.Rules.HasFileSize(rule.target, it!!) }
-        )
-        jfxToggleButton {
-            selectedProperty().bindBidirectional(isGt)
-            textProperty().bind(isGt.map { if (it!!) ">=" else "<=" })
-        }
     }
 
     val isValid = viewModel.valid
-
-    init {
-        // TODO: Use a bidirectional binding
-        sizeTextProperty.onChange {
-            ruleProperty.value = ReportRule.Rules.HasFileSize(FileSize(it!!).bytes, rule.greaterThan)
-        }
-    }
 
     private class FileSizeViewModel(p: Property<String>) : ViewModel() {
         val textProperty = bind { p }

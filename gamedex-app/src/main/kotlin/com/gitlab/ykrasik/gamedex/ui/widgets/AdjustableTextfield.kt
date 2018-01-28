@@ -14,7 +14,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 11:41
  */
-inline fun <reified T : Number> EventTarget.adjustableTextField(property: Property<T>, name: String, min: T, max: T) {
+inline fun <reified T : Number> EventTarget.adjustableTextField(property: Property<T>, name: String, min: T, max: T, withButtons: Boolean = true) {
     val (parse, stringify) = when (T::class) {
         Number::class -> Pair({ s: String -> s.toDouble() as T }, { d: Double -> d.toString() })
         else -> when (T::class.javaPrimitiveType) {
@@ -44,16 +44,18 @@ inline fun <reified T : Number> EventTarget.adjustableTextField(property: Proper
         }
     }
 
-    jfxButton(graphic = Theme.Icon.plus(20.0), type = JFXButton.ButtonType.RAISED) {
-        val canUse = property.booleanBinding { it!!.toDouble() + 1 <= max.toDouble() }
-        enableWhen { viewModel.valid.and(canUse) }
-        setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
-    }
+    if (withButtons) {
+        jfxButton(graphic = Theme.Icon.plus(20.0), type = JFXButton.ButtonType.RAISED) {
+            val canUse = property.booleanBinding { it!!.toDouble() + 1 <= max.toDouble() }
+            enableWhen { viewModel.valid.and(canUse) }
+            setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
+        }
 
-    jfxButton(graphic = Theme.Icon.minus(20.0), type = JFXButton.ButtonType.RAISED) {
-        val canUse = property.booleanBinding { it!!.toDouble() - 1 >= min.toDouble() }
-        enableWhen { viewModel.valid.and(canUse) }
-        setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
+        jfxButton(graphic = Theme.Icon.minus(20.0), type = JFXButton.ButtonType.RAISED) {
+            val canUse = property.booleanBinding { it!!.toDouble() - 1 >= min.toDouble() }
+            enableWhen { viewModel.valid.and(canUse) }
+            setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
+        }
     }
 
     viewModel.validate(decorateErrors = true)

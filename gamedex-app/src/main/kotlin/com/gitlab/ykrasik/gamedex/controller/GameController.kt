@@ -2,7 +2,7 @@ package com.gitlab.ykrasik.gamedex.controller
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.FileSystemOps
-import com.gitlab.ykrasik.gamedex.core.ReportRule
+import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
@@ -58,9 +58,9 @@ class GameController @Inject constructor(
     val searchQueryProperty = SimpleStringProperty("")
 
     private val compositeFilterPredicate = run {
-        val context = ReportRule.Context(emptyList(), fileSystemOps)
-        val filterPredicate = settings.filterForPlatformProperty.toPredicate { rules, game: Game ->
-            rules!!.evaluate(game, context)
+        val context = Filter.Context(emptyList(), fileSystemOps)
+        val filterPredicate = settings.filterForCurrentPlatformProperty.toPredicate { filter, game: Game ->
+            filter!!.evaluate(game, context)
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game -> game.matchesSearchQuery(query!!) }
@@ -106,7 +106,7 @@ class GameController @Inject constructor(
     val canRunLongTask: BooleanBinding get() = MainView.canShowPersistentNotificationProperty
 
     fun clearFilters() {
-        settings.setFilter(ReportRule.Rules.True())
+        settings.setFilter(Filter.`true`)
         searchQueryProperty.value = ""
     }
 

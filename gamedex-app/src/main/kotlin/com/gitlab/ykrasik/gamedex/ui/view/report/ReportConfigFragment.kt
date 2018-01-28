@@ -2,15 +2,17 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.ReportConfig
+import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.core.FilterSet
+import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
-import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.ui.theme.*
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.gitlab.ykrasik.gamedex.ui.view.game.filter.FilterFragment
 import com.jfoenix.controls.JFXButton
-import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -25,9 +27,14 @@ import tornadofx.*
  */
 class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Config") {
     private val settings: ReportSettings by di()
+    private val gameSettings: GameSettings by di()
+    private val libraryController: LibraryController by di()
     private val gameController: GameController by di()
+    private val providerRepository: GameProviderRepository by di()
 
-    private val reportConfigProperty = SimpleObjectProperty(initialConfig)
+    private val filterSet = FilterSet.Builder(gameSettings, libraryController, gameController, providerRepository).build()
+
+    private val reportConfigProperty = initialConfig.toProperty()
     private var reportConfig by reportConfigProperty
 
     private val unallowedNames = settings.reports.keys - initialConfig.name
@@ -77,13 +84,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
 
                 separator()
 
-                label {
-                    isWrapText = true
-                    textProperty().bind(reportConfigProperty.map { it!!.rules.toString() })
-                }
-
-                separator()
-
                 hbox {
                     reportConfigProperty.perform { reportConfig ->
                         // TODO: This is probably leaking a lot of listeners.
@@ -109,7 +109,11 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     }
 
     private fun Pane.renderRules() {
-        val fragment = ReportRuleFragment(reportConfigProperty)
+        val filterProperty = reportConfig.filter.toProperty()
+        val fragment = FilterFragment(filterProperty, filterSet)
+        filterProperty.onChange {
+            reportConfig = reportConfig.copy(filter = it!!)
+        }
         acceptButton.enableWhen { viewModel.valid.and(fragment.isValid) }
         children += fragment.root
     }
@@ -154,7 +158,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     class Style : Stylesheet() {
         companion object {
             val rulesContent by cssclass()
-            val ruleButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -164,11 +167,6 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
         init {
             rulesContent {
                 padding = box(20.px)
-            }
-
-            ruleButton {
-                minWidth = 120.px
-                alignment = Pos.CENTER_LEFT
             }
         }
     }
