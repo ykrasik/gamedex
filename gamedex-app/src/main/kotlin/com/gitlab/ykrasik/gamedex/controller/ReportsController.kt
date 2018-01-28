@@ -19,7 +19,7 @@ import javafx.scene.control.ProgressIndicator
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
 import tornadofx.getValue
 import tornadofx.label
@@ -86,7 +86,7 @@ class ReportsController @Inject constructor(
                 isCalculating = true
                 launch(CommonPool) {
                     val result = calculate(games)
-                    run(JavaFx) {
+                    withContext(JavaFx) {
                         resultsProperty.value = result
                         isCalculating = false
                     }

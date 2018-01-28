@@ -3,11 +3,12 @@ buildscript {
         kotlin_version = '1.2.20'
         ktlin = [:].with {
             v = '1.2.20'
-            couroutinesVersion = '0.20'
-            std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: v]
+            majorV = '1.2'
+            couroutinesVersion = '0.22'
+            std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
-            dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.13']
+//            dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.15']
             coroutinesCore = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: couroutinesVersion]
             coroutinesJavaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: couroutinesVersion]
             delegate
@@ -47,10 +48,10 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.194']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.8']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.9.1']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.12']
-        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '1.11.1']
+        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.1']
         tornadoFx = [:].with {
             core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.14']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
@@ -59,16 +60,16 @@ buildscript {
 
         diff = [group: 'com.googlecode.java-diff-utils', name: 'diffutils', version: '1.3.0']
 
-        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.3']
+        kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
         junit = [group: 'junit', name: 'junit', version: '4.12']
         mockito = [:].with {
             core = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
-            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.4.0']
+            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.5.0']
             delegate
         }
 
         ktor = [:].with {
-            v = '0.3.0'
+            v = '0.4.0'
             core = [group: 'org.jetbrains.ktor', name: 'ktor-core', version: v]
             netty = [group: 'org.jetbrains.ktor', name: 'ktor-netty', version: v]
             delegate
@@ -84,7 +85,7 @@ buildscript {
 
     dependencies {
         classpath ktlin.gradle
-        classpath ktlin.dokka
+//        classpath ktlin.dokka
     }
 }
 
@@ -110,7 +111,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'kotlin'
-    apply plugin: 'org.jetbrains.dokka'
+//    apply plugin: 'org.jetbrains.dokka'
     apply gradleFile('test.gradle')
 
     dependencies {
@@ -130,14 +131,16 @@ subprojects {
         testCompile mockito.kotlin
     }
 
-    dokka {
-        outputFormat = 'javadoc'
-        outputDirectory = "$buildDir/javadoc"
-        processConfigurations = ['compile']
-    }
+//    dokka {
+//        outputFormat = 'javadoc'
+//        outputDirectory = "$buildDir/javadoc"
+//        processConfigurations = ['compile']
+//    }
 
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = '1.8'
+        kotlinOptions.apiVersion = ktlin.majorV
+        kotlinOptions.languageVersion = ktlin.majorV
     }
     kotlin {
         experimental {
@@ -182,15 +185,24 @@ project("gamedex-common") {
 
         compile jodaTime
 
-        compile khttp
+        compile (khttp) {
+            exclude module: 'spek-api'
+            exclude module: 'spek-junit-platform-engine'
+        }
 
         compile jackson.core
         compile jackson.kotlin
         compile jackson.joda
 
         testCompile wiremock
-        testCompile ktor.core
-        testCompile ktor.netty
+        testCompile (ktor.core) {
+            exclude module: 'kotlin-stdlib-jre7'
+            exclude module: 'kotlin-stdlib-jre8'
+        }
+        testCompile (ktor.netty) {
+            exclude module: 'kotlin-stdlib-jre7'
+            exclude module: 'kotlin-stdlib-jre8'
+        }
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {

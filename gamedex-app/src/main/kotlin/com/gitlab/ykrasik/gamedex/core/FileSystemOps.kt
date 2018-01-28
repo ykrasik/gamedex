@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleObjectProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import tornadofx.toProperty
 import java.io.File
 import javax.inject.Singleton
@@ -30,7 +30,7 @@ class FileSystemOps {
             sizeCache[file] = sizeProperty
             launch(CommonPool) {
                 val size = file.sizeTaken()
-                run(JavaFx) {
+                withContext(JavaFx) {
                     sizeProperty.value = size
                 }
             }

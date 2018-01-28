@@ -10,7 +10,7 @@ import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import tornadofx.observable
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
@@ -35,26 +35,26 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
         return libraries.observable()
     }
 
-    suspend fun add(request: AddLibraryRequest) = run(CommonPool) {
+    suspend fun add(request: AddLibraryRequest) = withContext(CommonPool) {
         val library = persistenceService.insertLibrary(request.path, request.data)
-        run(JavaFx) {
+        withContext(JavaFx) {
             libraries += library
         }
         library
     }
 
-    suspend fun addAll(requests: List<AddLibraryRequest>): List<Library> = run(CommonPool) {
+    suspend fun addAll(requests: List<AddLibraryRequest>): List<Library> = withContext(CommonPool) {
         val libraries = requests.map { request ->
             persistenceService.insertLibrary(request.path, request.data)
         }
-        run(JavaFx) {
+        withContext(JavaFx) {
             this.libraries += libraries
         }
         libraries
     }
 
-    suspend fun update(library: Library): Library = run(JavaFx) {
-        run(CommonPool) {
+    suspend fun update(library: Library): Library = withContext(JavaFx) {
+        withContext(CommonPool) {
             persistenceService.updateLibrary(library)
         }
 
@@ -65,16 +65,16 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
 
     suspend fun delete(library: Library) {
         log.info("Deleting '${library.name}'...")
-        run(CommonPool) {
+        withContext(CommonPool) {
             persistenceService.deleteLibrary(library.id)
         }
-        run(JavaFx) {
+        withContext(JavaFx) {
             check(libraries.remove(library)) { "Error! Library doesn't exist: $library" }
         }
         log.info("Deleting '${library.name}': Done.")
     }
 
-    suspend fun deleteAll(libraries: List<Library>, progress: Task.Progress) = run(CommonPool) {
+    suspend fun deleteAll(libraries: List<Library>, progress: Task.Progress) = withContext(CommonPool) {
         val deleted = AtomicInteger(0)
 
         progress.message = "Deleting ${libraries.size} libraries..."
@@ -86,13 +86,13 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
         }.forEach { it.await() }
         progress.message = "Deleted ${libraries.size} libraries."
 
-        run(JavaFx) {
+        withContext(JavaFx) {
             progress.message = "Updating UI..."
             this.libraries.setAll(this.libraries.filterNot { library -> libraries.any { it.id == library.id } }.observable())
         }
     }
 
-    suspend fun invalidate() = run(JavaFx) {
+    suspend fun invalidate() = withContext(JavaFx) {
         // Re-fetch all libraries from persistence
         libraries.setAll(fetchAllLibraries())
     }

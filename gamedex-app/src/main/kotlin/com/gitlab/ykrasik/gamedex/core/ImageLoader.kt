@@ -14,7 +14,7 @@ import javafx.scene.image.Image
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 
 /**
  * User: ykrasik
@@ -58,7 +58,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
         val imageProperty = SimpleObjectProperty(Images.loading)
         launch(CommonPool) {
             val image = f().toImage()
-            run(JavaFx) {
+            withContext(JavaFx) {
                 imageProperty.value = image
             }
         }

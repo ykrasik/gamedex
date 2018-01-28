@@ -9,7 +9,7 @@ import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -196,7 +196,7 @@ interface SearchChooser {
 
 @Singleton
 class UISearchChooser : SearchChooser {
-    override suspend fun choose(data: SearchChooser.Data) = run(JavaFx) {
+    override suspend fun choose(data: SearchChooser.Data) = withContext(JavaFx) {
         SearchResultsFragment(data).show()
     }
 }

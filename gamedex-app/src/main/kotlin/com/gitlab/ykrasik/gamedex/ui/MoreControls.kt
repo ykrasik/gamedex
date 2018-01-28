@@ -192,7 +192,30 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     }
 
 // TODO: Change style classes to lists.
-fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>, // FIXME: This really shouldn't be observable
+fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
+                                     selectedItemProperty: Property<T>,
+                                     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                     styleClass: CssRule? = null,
+                                     itemStyleClass: CssRule? = null,
+                                     text: ((T) -> String)? = null,
+                                     graphic: ((T) -> Node)? = null,
+                                     menuOp: (VBox.(T) -> Unit)? = null) =
+    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
+        possibleItems.forEach { item ->
+            jfxButton(text?.invoke(item), graphic?.invoke(item)) {
+                if (itemStyleClass != null) addClass(itemStyleClass)
+                addClass(CommonStyle.fillAvailableWidth)
+                setOnAction { selectedItemProperty.value = item }
+            }
+            menuOp?.invoke(this@buttonWithPopover, item)
+        }
+    }.apply {
+        if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
+        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
+    }
+
+// TODO: Change style classes to lists.
+fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                      selectedItemProperty: Property<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = null,
@@ -343,7 +366,7 @@ fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocati
     }
     setOnMouseExited {
         if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
-            it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
+                it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
             popover.hide()
         }
     }

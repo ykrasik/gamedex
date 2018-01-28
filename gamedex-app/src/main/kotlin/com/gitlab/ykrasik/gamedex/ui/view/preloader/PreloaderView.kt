@@ -15,7 +15,7 @@ import javafx.stage.Screen
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
 
 /**
@@ -69,7 +69,7 @@ class PreloaderView : View("Gamedex") {
 
         launch(CommonPool) {
             loadGamdex()
-            run(JavaFx) {
+            withContext(JavaFx) {
                 replaceWith(MainView::class)
             }
         }

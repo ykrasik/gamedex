@@ -19,7 +19,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.run
+import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.CoroutineContext
@@ -58,7 +58,7 @@ abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
         _result = async(CommonPool) {
             this@Task._context = coroutineContext
 
-            run(JavaFx) {
+            withContext(JavaFx) {
                 runningProperty.set(true)
                 MainView.showPersistentNotification(GridPane().apply {
                     paddingAll = 10.0
@@ -120,7 +120,7 @@ abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
                 }
                 throw e
             } finally {
-                run(JavaFx) {
+                withContext(JavaFx) {
                     loadingGraphic.image = Images.tick
                     runningProperty.set(false)
                     MainView.hidePersistentNotification()

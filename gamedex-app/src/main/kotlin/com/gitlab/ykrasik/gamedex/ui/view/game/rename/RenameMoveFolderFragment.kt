@@ -13,7 +13,6 @@ import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.Property
-import javafx.collections.FXCollections
 import javafx.geometry.HPos
 import javafx.scene.layout.Priority
 import javafx.stage.StageStyle
@@ -74,8 +73,7 @@ class RenameMoveFolderFragment(private val game: Game, initialSuggestion: String
                         gridpane {
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
                             popoverComboMenu(
-                                // TODO: This is to avoid a listener leak, due to possibleItems being observable
-                                possibleItems = FXCollections.observableArrayList(libraryController.allLibraries),
+                                possibleItems = libraryController.allLibraries as List<Library>,
                                 selectedItemProperty = libraryProperty,
                                 text = { it.path.path }
                             ).apply {

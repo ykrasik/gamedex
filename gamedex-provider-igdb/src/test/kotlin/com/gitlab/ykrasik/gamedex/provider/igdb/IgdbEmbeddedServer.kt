@@ -6,10 +6,11 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import kotlinx.coroutines.experimental.delay
-import org.jetbrains.ktor.application.call
+import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.netty.embeddedNettyServer
+import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.*
 import java.io.Closeable
@@ -62,7 +63,7 @@ class IgdbFakeServer(port: Int) : Closeable {
     val posterUrl = "$baseImageUrl/$posterPath"
     val screenshotUrl = posterUrl
 
-    private val ktor = embeddedNettyServer(port) {
+    private val ktor = embeddedServer(Netty, port) {
         routing {
             route("/") {
                 method(HttpMethod.Get) {
