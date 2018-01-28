@@ -9,7 +9,7 @@ import tornadofx.setValue
  * Date: 01/05/2017
  * Time: 19:05
  */
-class GameWallSettings private constructor() : Settings("gameWall") {
+class GameWallSettings private constructor() : Settings("wall") {
     companion object {
         operator fun invoke(): GameWallSettings = readOrUse(GameWallSettings())
     }
