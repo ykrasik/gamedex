@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.preloader
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
+import com.gitlab.ykrasik.gamedex.ui.clipRectangle
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
@@ -10,7 +11,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import javafx.collections.ListChangeListener
-import javafx.scene.effect.DropShadow
 import javafx.stage.Screen
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -23,8 +23,8 @@ import tornadofx.*
  * Date: 01/04/2017
  * Time: 21:53
  */
-class PreloaderView : View("Gamedex") {
-    private var logo = resources.image("gamedex.png")
+class PreloaderView : View("GameDex") {
+    private var logo = resources.image("gamedex.jpg")
     private val progress = Task.Progress(log = null)
 
     private val messageListener = ListChangeListener<LogEntry> {
@@ -38,13 +38,22 @@ class PreloaderView : View("Gamedex") {
     }
 
     override val root = borderpane {
+        paddingAll = 5.0
         center {
             imageview {
                 image = logo
+
+                clipRectangle {
+                    arcWidth = 10.0
+                    arcHeight = 10.0
+                    heightProperty().bind(logo.heightProperty())
+                    widthProperty().bind(logo.widthProperty())
+                }
             }
         }
         bottom {
             gridpane {
+                paddingTop = 5.0
                 vgap = 5.0
                 row {
                     val progressBar = progressbar(0.0) { prefWidth = logo.width }
@@ -55,27 +64,22 @@ class PreloaderView : View("Gamedex") {
                 }
             }
         }
-
-        // TODO: Stylesheet.
-        style = "-fx-padding: 5; -fx-background-color: cornsilk; -fx-border-width:5; -fx-border-color: linear-gradient(to bottom, chocolate, derive(chocolate, 50%));"
-        effect = DropShadow()
     }
 
     override fun onDock() {
-//        primaryStage.initStyle(StageStyle.UNDECORATED)
         val bounds = Screen.getPrimary().bounds
         primaryStage.x = bounds.minX + bounds.width / 2 - logo.width / 2
         primaryStage.y = bounds.minY + bounds.height / 3 - logo.height / 2
 
         launch(CommonPool) {
-            loadGamdex()
+            load()
             withContext(JavaFx) {
                 replaceWith(MainView::class)
             }
         }
     }
 
-    private fun loadGamdex() {
+    private fun load() {
         progress.message = "Loading..."
 
         // TODO: Meh, not super clean, but I'm not super bothered
