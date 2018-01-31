@@ -1,5 +1,10 @@
+// Equivalent to calling --continue from the command line.
+// Will run all tests and produce a report of all failed tests at the end.
+gradle.startParameter.continueOnFailure = true
+
 buildscript {
     ext {
+        appVersion = '0.1.0'
         javaMaxHeap = '3g'
 
         kotlin_version = '1.2.20'
@@ -77,6 +82,9 @@ buildscript {
             delegate
         }
         wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0']
+
+        gradleLaunch4j = [group: 'edu.sc.seis.gradle', name: 'launch4j', version: '2.4.3']
+        gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
     }
 
     repositories {
@@ -88,6 +96,8 @@ buildscript {
     dependencies {
         classpath ktlin.gradle
 //        classpath ktlin.dokka
+        classpath gradleLaunch4j
+        classpath gradleJavaFx
     }
 }
 
@@ -99,7 +109,7 @@ allprojects {
     targetCompatibility = 1.8
 
     group 'com.gitlab.ykrasik'
-    version '0.1.0'
+    version appVersion
 
     repositories {
         mavenLocal()
@@ -154,6 +164,8 @@ subprojects {
 project("gamedex-app") {
     apply gradleFile('application.gradle')
     mainClassName = "com.gitlab.ykrasik.gamedex.Main"
+    apply plugin: 'edu.sc.seis.launch4j'
+    apply plugin: 'javafx-gradle-plugin'
 
     dependencies {
         compile project(":gamedex-common")
@@ -174,6 +186,38 @@ project("gamedex-app") {
 
         testDependency ":gamedex-provider-giantbomb"
         testDependency ":gamedex-provider-igdb"
+    }
+
+    launch4j {
+        mainClassName = "com.gitlab.ykrasik.gamedex.Main"
+        icon = "${projectDir}/src/main/resources/com/gitlab/ykrasik/gamedex/ui/view/preloader/gamedex_ico.jpg"
+        outfile = "gamedex.exe"
+//        maxHeapSize = 3 * 1024 * 1024 * 1024
+    }
+
+    jfx {
+        verbose = true
+        mainClass = mainClassName
+        jfxMainAppJarName = "gamedex.jar"
+        identifier = "faeb5e02-a70d-4f15-b09b-77022499cd18"
+        vendor = "ykrasik"
+//        bundler = "ALL" // set this to some specific, if your don't want all bundlers running, examples "windows.app", "jnlp", ...
+        jvmProperties = ["-Xmx": javaMaxHeap]
+        nativeReleaseVersion = version
+//        needShortcut = false
+//        needMenu = false
+//        bundleArguments = [
+//            // dont bundle JRE (not recommended, but increases build-size/-speed)
+//            runtime: null
+//        ]
+        appName = "gamedex"
+//        noBlobSigning = false // when using bundler "jnlp", you can choose to NOT use blob signing
+//        failOnError = false
+//        skipJNLP = false
+        skipMainClassScanning = true
+
+        // per default the outcome of the gradle "jarTask" will be used, set this to specify otherwise (like proguard-output)
+//        alternativePathToJarFile = null // String
     }
 }
 
