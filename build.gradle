@@ -83,7 +83,6 @@ buildscript {
         }
         wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0']
 
-        gradleLaunch4j = [group: 'edu.sc.seis.gradle', name: 'launch4j', version: '2.4.3']
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
     }
 
@@ -96,7 +95,6 @@ buildscript {
     dependencies {
         classpath ktlin.gradle
 //        classpath ktlin.dokka
-        classpath gradleLaunch4j
         classpath gradleJavaFx
     }
 }
@@ -164,7 +162,6 @@ subprojects {
 project("gamedex-app") {
     apply gradleFile('application.gradle')
     mainClassName = "com.gitlab.ykrasik.gamedex.Main"
-    apply plugin: 'edu.sc.seis.launch4j'
     apply plugin: 'javafx-gradle-plugin'
 
     dependencies {
@@ -186,13 +183,6 @@ project("gamedex-app") {
 
         testDependency ":gamedex-provider-giantbomb"
         testDependency ":gamedex-provider-igdb"
-    }
-
-    launch4j {
-        mainClassName = "com.gitlab.ykrasik.gamedex.Main"
-        icon = "${projectDir}/src/main/resources/com/gitlab/ykrasik/gamedex/ui/view/preloader/gamedex_ico.jpg"
-        outfile = "gamedex.exe"
-//        maxHeapSize = 3 * 1024 * 1024 * 1024
     }
 
     jfx {
