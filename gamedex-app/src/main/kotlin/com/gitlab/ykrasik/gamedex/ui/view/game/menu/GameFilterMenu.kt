@@ -77,7 +77,7 @@ class GameFilterMenu : View() {
 
     private fun Fieldset.filter() = field {
         vbox {
-            val filterProperty = settings.filterForCurrentPlatformProperty.value.toProperty()
+            val filterProperty = settings.filterForCurrentPlatformProperty
             filterProperty.perform {
                 replaceChildren {
                     children += FilterFragment(filterProperty, filterSet).root

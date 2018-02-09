@@ -12,7 +12,6 @@ import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.platformComboBox
 import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
@@ -30,7 +29,7 @@ import tornadofx.*
  * Time: 13:07
  */
 class FilterFragment(
-    private val filter: ObjectProperty<Filter>,
+    private val filter: Property<Filter>,
     private val filterSet: FilterSet
 ) : Fragment() {
     private val gameController: GameController by di()
