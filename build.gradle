@@ -168,8 +168,8 @@ project("gamedex-app") {
         compile project(":gamedex-common")
         compile project(":gamedex-persistence")
 
-        compile project(":gamedex-provider-giantbomb")
-        compile project(":gamedex-provider-igdb")
+        fullDependency(":gamedex-provider-giantbomb")
+        fullDependency(":gamedex-provider-igdb")
 
         compile slf4j.julBridge
         compile logback
@@ -180,13 +180,10 @@ project("gamedex-app") {
         compile tornadoFx.controls
 
         compile diff
-
-        testDependency ":gamedex-provider-giantbomb"
-        testDependency ":gamedex-provider-igdb"
     }
 
     jfx {
-        verbose = true
+//        verbose = true
         mainClass = mainClassName
         jfxMainAppJarName = "gamedex.jar"
         identifier = "faeb5e02-a70d-4f15-b09b-77022499cd18"
@@ -194,20 +191,36 @@ project("gamedex-app") {
 //        bundler = "ALL" // set this to some specific, if your don't want all bundlers running, examples "windows.app", "jnlp", ...
         jvmProperties = ["-Xmx": javaMaxHeap]
         nativeReleaseVersion = version
-//        needShortcut = false
-//        needMenu = false
+        needShortcut = true
+        needMenu = true
 //        bundleArguments = [
 //            // dont bundle JRE (not recommended, but increases build-size/-speed)
 //            runtime: null
 //        ]
-        appName = "gamedex"
+        appName = "GameDex"
 //        noBlobSigning = false // when using bundler "jnlp", you can choose to NOT use blob signing
 //        failOnError = false
-//        skipJNLP = false
+        skipJNLP = true
         skipMainClassScanning = true
 
         // per default the outcome of the gradle "jarTask" will be used, set this to specify otherwise (like proguard-output)
 //        alternativePathToJarFile = null // String
+    }
+
+    task customizeWindowsInstaller(type: Copy) {
+        from 'src/main/deploy/package/windows/'
+        into 'src/main/deploy/package/windows/'
+        include 'gamedex.iss.template'
+        rename { file -> 'gamedex.iss' }
+        expand(version: version)
+    }
+
+    jfxNative {
+        dependsOn customizeWindowsInstaller
+
+        doLast {
+            delete 'src/main/deploy/package/windows/gamedex.iss'
+        }
     }
 }
 
@@ -280,25 +293,21 @@ project("gamedex-common") {
 
 project("gamedex-persistence") {
     dependencies {
-        compile project(":gamedex-common")
+        fullDependency(":gamedex-common")
         compile h2
         compile exposed
-
-        testDependency(":gamedex-common")
     }
 }
 
 project("gamedex-provider-giantbomb") {
     dependencies {
-        compile project(":gamedex-common")
-        testDependency(":gamedex-common")
+        fullDependency(":gamedex-common")
     }
 }
 
 project("gamedex-provider-igdb") {
     dependencies {
-        compile project(":gamedex-common")
-        testDependency(":gamedex-common")
+        fullDependency(":gamedex-common")
     }
 }
 
