@@ -34,8 +34,9 @@ import kotlin.reflect.KProperty1
  * Date: 16/05/2017
  * Time: 09:33
  */
-fun TabPane.nonClosableTab(text: String, op: (Tab.() -> Unit)? = null) = tab(text, op).apply {
+fun TabPane.nonClosableTab(text: String, op: Tab.() -> Unit = {}) = tab(text).apply {
     isClosable = false
+    op()
 }
 
 // TODO: Should probably replace with popoverComboMenu

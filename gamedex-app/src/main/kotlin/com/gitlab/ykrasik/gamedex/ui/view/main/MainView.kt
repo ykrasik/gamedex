@@ -31,7 +31,7 @@ import tornadofx.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : View("Gamedex") {
+class MainView : View("GameDex") {
     private val gameScreen: GameScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: LibraryScreen by inject()

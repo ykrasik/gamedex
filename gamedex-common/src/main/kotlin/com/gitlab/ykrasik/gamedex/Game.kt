@@ -30,8 +30,11 @@ data class Game(
     val releaseDate get() = gameData.releaseDate
     val criticScore get() = gameData.criticScore
     val userScore get() = gameData.userScore
-    val minScore get() = criticScore?.let { c -> userScore?.let { u -> minOf(c.score, u.score) } }
-    val avgScore get() = criticScore?.let { c -> userScore?.let { u -> (c.score + u.score) / 2 } }
+    val minScore get() = withBothScores { c, u -> minOf(c, u) }
+    val avgScore get() = withBothScores { c, u -> (c + u) / 2 }
+    private inline fun withBothScores(f: (criticScore: Double, userScore: Double) -> Double): Double? =
+        criticScore?.let { c -> userScore?.let { u -> f(c.score, u.score) } }
+
     val genres get() = gameData.genres
 
     val thumbnailUrl get() = imageUrls.thumbnailUrl
