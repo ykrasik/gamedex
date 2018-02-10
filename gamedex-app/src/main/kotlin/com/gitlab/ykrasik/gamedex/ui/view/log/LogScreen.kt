@@ -1,10 +1,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view.log
 
+import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
-import com.gitlab.ykrasik.gamedex.ui.enumComboBox
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.Log
+import com.gitlab.ykrasik.gamedex.util.LogEntry
 import javafx.scene.control.ListCell
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
@@ -20,15 +22,15 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
     private val settings: GeneralSettings by di()
 
     private val logItems = SortedFilteredList(Log.entries)
+    private var displayLevel = settings.logFilterLevelProperty.map(Level::toLevel)
 
     override fun ToolBar.constructToolbar() {
-        enumComboBox(settings.logFilterLevelProperty)
+        combobox(settings.logFilterLevelProperty, listOf(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR).map { it.levelStr.toLowerCase() })
         togglebutton("Tail") {
             selectedProperty().bindBidirectional(settings.logTailProperty)
         }
     }
 
-    // TODO: TableView?
     override val root = listview(logItems) {
         addClass(Style.logView)
 
@@ -56,14 +58,14 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
                         return
                     }
 
-                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.context}] ${item.message}"
+                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] ${item.message}"
 
                     when (item.level) {
-                        LogLevel.trace -> toggleClass(Style.trace, true)
-                        LogLevel.debug -> toggleClass(Style.debug, true)
-                        LogLevel.info -> toggleClass(Style.info, true)
-                        LogLevel.warn -> toggleClass(Style.warn, true)
-                        LogLevel.error -> toggleClass(Style.error, true)
+                        Level.TRACE -> toggleClass(Style.trace, true)
+                        Level.DEBUG -> toggleClass(Style.debug, true)
+                        Level.INFO -> toggleClass(Style.info, true)
+                        Level.WARN -> toggleClass(Style.warn, true)
+                        Level.ERROR -> toggleClass(Style.error, true)
                     }
                 }
             }
@@ -77,13 +79,8 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
     }
 
     init {
-        globalLogLevel = settings.logFilterLevel
-        logItems.predicate = { Logger.shouldLog(it.level) }
-
-        settings.logFilterLevelProperty.onChange { level ->
-            globalLogLevel = level!!
-            logItems.refilter()
-        }
+        logItems.predicate = { entry -> entry.level.isGreaterOrEqual(displayLevel.value) }
+        settings.logFilterLevelProperty.onChange { logItems.refilter() }
     }
 
     class Style : Stylesheet() {

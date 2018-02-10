@@ -1,6 +1,6 @@
 package com.gitlab.ykrasik.gamedex.settings
 
-import com.gitlab.ykrasik.gamedex.util.LogLevel
+import ch.qos.logback.classic.Level
 import tornadofx.getValue
 import tornadofx.setValue
 import java.io.File
@@ -24,7 +24,7 @@ class GeneralSettings private constructor() : Settings("general") {
     var exportDbDirectory by exportDbDirectoryProperty
 
     @Transient
-    val logFilterLevelProperty = preferenceProperty(LogLevel.info)
+    val logFilterLevelProperty = preferenceProperty(Level.INFO.levelStr)
     var logFilterLevel by logFilterLevelProperty
 
     @Transient

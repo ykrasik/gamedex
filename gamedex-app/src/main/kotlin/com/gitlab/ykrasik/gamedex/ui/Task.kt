@@ -4,7 +4,6 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme.Images
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
-import com.gitlab.ykrasik.gamedex.util.Logger
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleBooleanProperty
@@ -20,6 +19,7 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
+import org.slf4j.Logger
 import tornadofx.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.CoroutineContext

@@ -5,7 +5,11 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <root level="trace">
         <appender-ref ref="STDOUT" />
     </root>
+
+    <logger name="Exposed" level="info" />
+    <logger name="org.reflections.Reflections" level="off" />
+    <logger name="javafx.scene.control" level="off" />
 </configuration>
