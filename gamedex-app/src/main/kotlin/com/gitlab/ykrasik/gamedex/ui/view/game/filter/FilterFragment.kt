@@ -12,6 +12,8 @@ import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.platformComboBox
 import com.gitlab.ykrasik.gamedex.ui.widgets.adjustableTextField
+import com.gitlab.ykrasik.gamedex.util.toJava
+import com.gitlab.ykrasik.gamedex.util.toJoda
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
@@ -57,6 +59,7 @@ class FilterFragment(
                     is Filter.Library -> renderLibraryRule(rule)
                     is Filter.Genre -> renderGenreRule(rule)
                     is Filter.Tag -> renderTagRule(rule)
+                    is Filter.ReleaseDate -> renderReleaseDateRule(rule)
                     is Filter.Provider -> renderProviderRule(rule)
                     is Filter.CriticScore -> renderScoreRule(rule, Filter::CriticScore)
                     is Filter.UserScore -> renderScoreRule(rule, Filter::UserScore)
@@ -183,6 +186,13 @@ class FilterFragment(
     private fun HBox.renderTagRule(rule: Filter.Tag) = rule.toProperty().apply {
         val tag = mapBidirectional({ it!!.tag }, { Filter.Tag(it!!) })
         combobox(tag, gameController.tags)
+    }
+
+    private fun HBox.renderReleaseDateRule(rule: Filter.ReleaseDate) = rule.toProperty().apply {
+        val releaseDate = mapBidirectional({ it!!.releaseDate.toJava() }, { Filter.ReleaseDate(it!!.toJoda()) })
+        datepicker {
+            valueProperty().bindBidirectional(releaseDate)
+        }
     }
 
     private fun HBox.renderScoreRule(rule: Filter.ScoreRule, factory: (Double?) -> Filter.ScoreRule) = rule.toProperty().apply {

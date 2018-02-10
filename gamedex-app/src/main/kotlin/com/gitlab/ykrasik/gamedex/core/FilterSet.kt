@@ -43,7 +43,7 @@ class FilterSet private constructor(
             },
             Filter.Genre::class to { Filter.Genre(gameController.genres.firstOrNull() ?: "") },
             Filter.Tag::class to { Filter.Tag(gameController.tags.firstOrNull() ?: "") },
-            Filter.ReleaseDate::class to { Filter.ReleaseDate("1986-12-12".toDate()) },
+            Filter.ReleaseDate::class to { Filter.ReleaseDate("2014-01-01".toDate()) },
             Filter.Provider::class to { Filter.Provider(providerRepository.providers.first().id) },
             Filter.CriticScore::class to { Filter.CriticScore(60.0) },
             Filter.UserScore::class to { Filter.UserScore(60.0) },

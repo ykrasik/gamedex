@@ -14,3 +14,6 @@ val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
 
 fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
 fun String.toDate(): LocalDate = LocalDate.parse(this)
+
+fun LocalDate.toJava(): java.time.LocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
+fun java.time.LocalDate.toJoda(): LocalDate = LocalDate(year, monthValue, dayOfMonth)
