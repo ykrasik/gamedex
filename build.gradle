@@ -40,7 +40,6 @@ buildscript {
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.3.1']
 
         guava = [group: 'com.google.guava', name: 'guava', version: '21.0']
-        commonsLang3 = [group: 'org.apache.commons', name: 'commons-lang3', version: '3.5']
 
         jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.9']
 
@@ -229,7 +228,6 @@ project("gamedex-common") {
         compile typesafeConfig
 
         compile guava
-        compile commonsLang3
         compile reflections
 
         compile jodaTime
