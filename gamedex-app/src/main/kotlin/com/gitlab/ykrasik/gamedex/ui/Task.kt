@@ -120,7 +120,8 @@ abstract class Task<out T>(val titleProperty: ThreadAwareStringProperty) {
                 }
                 throw e
             } finally {
-                withContext(JavaFx) {
+//              FIXME: use  withContext(JavaFx) {
+                runLaterIfNecessary {
                     loadingGraphic.image = Images.tick
                     runningProperty.set(false)
                     MainView.hidePersistentNotification()
