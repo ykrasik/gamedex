@@ -121,8 +121,8 @@ class ReportConfigFragment(initialConfig: ReportConfig) : Fragment("Report Confi
     private fun EventTarget.renderExcludedGames() =
         tableview(reportConfig.excludedGames.map { gameController.byId(it) }.observable()) {
             makeIndexColumn().apply { addClass(CommonStyle.centered) }
-            column("Game", Game::name)
-            column("Path", Game::path)
+            readonlyColumn("Game", Game::name)
+            readonlyColumn("Path", Game::path)
 
             popoverContextMenu {
                 deleteButton("Un-exclude") {

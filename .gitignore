@@ -109,3 +109,5 @@ conf/
 *.trace.db.old
 *.hprof
 logs/
+db/
+*.iss

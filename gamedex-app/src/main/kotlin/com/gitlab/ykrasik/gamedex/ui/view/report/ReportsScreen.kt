@@ -46,7 +46,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private var isChangingSettings = false
 
     override val root: StackPane = stackpane {
-        content = vbox()
+        this@ReportsScreen.content = vbox()
         maskerPane {
             visibleWhen { currentReport.flatMap { it?.isCalculatingProperty ?: false.toProperty() } }
             currentScreen.onChange {

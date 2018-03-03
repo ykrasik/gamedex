@@ -27,8 +27,8 @@ class SearchResultsContentFragment(results: ObservableList<ProviderSearchResult>
         imageViewColumn("Thumbnail", fitWidth = 200.0, fitHeight = 200.0, isPreserveRatio = true) { result ->
             imageLoader.downloadImage(result.thumbnailUrl)
         }
-        column("Name", ProviderSearchResult::name)
-        column("Release Date", ProviderSearchResult::releaseDate) { addClass(CommonStyle.centered) }
+        readonlyColumn("Name", ProviderSearchResult::name)
+        readonlyColumn("Release Date", ProviderSearchResult::releaseDate) { addClass(CommonStyle.centered) }
         column<ProviderSearchResult, String>("Critic Score") { toScoreDisplay(it.value.criticScore, "critics") }.apply {
             addClass(CommonStyle.centered)
         }

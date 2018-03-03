@@ -23,7 +23,7 @@ interface PersistenceService {
 
     fun fetchAllLibraries(): List<Library>
     fun insertLibrary(path: File, data: LibraryData): Library
-    fun updateLibrary(library: Library): Unit
+    fun updateLibrary(library: Library)
     fun deleteLibrary(id: Int)
 
     fun fetchAllGames(): List<RawGame>
@@ -32,7 +32,7 @@ interface PersistenceService {
     fun deleteGame(id: Int)
 
     fun fetchImage(url: String): ByteArray?
-    fun insertImage(gameId: Int, url: String, data: ByteArray): Unit
+    fun insertImage(gameId: Int, url: String, data: ByteArray)
 }
 
 @Singleton
@@ -78,7 +78,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val id = Libraries.insertAndGetId {
             it[Libraries.path] = path.toString()
             it[Libraries.data] = data.toJsonStr()
-        }!!.value
+        }.value
         val library = Library(id, path, data)
         log.trace("Result: $library.")
         library
@@ -128,7 +128,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Games.updateDate] = updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()
-        }!!.value
+        }.value
 
         val game = RawGame(id = id, metadata = metadata.updated(updateDate), providerData = providerData, userData = userData)
         log.trace("Result: $game.")

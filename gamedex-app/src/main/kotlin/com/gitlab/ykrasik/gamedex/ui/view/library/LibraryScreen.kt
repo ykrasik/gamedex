@@ -42,15 +42,15 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
-        column("Name", Library::name) {
+        readonlyColumn("Name", Library::name) {
             isSortable = false
             contentWidth(padding = 10.0, useAsMin = true)
         }
-        column("Platform", Library::platform) {
+        readonlyColumn("Platform", Library::platform) {
             isSortable = false
             contentWidth(padding = 10.0, useAsMin = true)
         }
-        column("Path", Library::path) {
+        readonlyColumn("Path", Library::path) {
             isSortable = false
             contentWidth(padding = 100.0, useAsMin = true)
             remainingWidth()

@@ -99,7 +99,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
         val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        column("Game", Game::name)
+        readonlyColumn("Game", Game::name)
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }
@@ -112,7 +112,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
         searchProperty.onChange { query ->
             if (query.isNullOrEmpty()) return@onChange
-            val match = items.filter { it.matchesSearchQuery(query!!) }.firstOrNull()
+            val match = items.firstOrNull { it.matchesSearchQuery(query!!) }
             if (match != null) {
                 selectionModel.select(match)
                 scrollTo(match)
@@ -144,7 +144,7 @@ class ReportFragment(val reportConfig: ReportConfig) : View(reportConfig.name, T
 
         additionalInfoProperty.onChange { additionalInfo ->
             // The selected game may not appear in the report (can happen with programmatic selection).
-            items = additionalInfo?.observable() 
+            items = additionalInfo?.observable()
             resizeColumnsToFitContent()
         }
     }

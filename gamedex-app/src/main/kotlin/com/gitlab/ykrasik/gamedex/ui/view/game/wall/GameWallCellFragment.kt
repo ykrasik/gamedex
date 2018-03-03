@@ -43,7 +43,7 @@ class GameWallCellFragment : Fragment() {
         setOnMouseEntered { effect = dropshadow }
         setOnMouseExited { effect = null }
 
-        content = stackpane {
+        this@GameWallCellFragment.content = stackpane {
             val content = this
 
             // TODO: Allow configuring this.
