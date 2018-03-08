@@ -1,7 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.preloader
 
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
+import com.gitlab.ykrasik.gamedex.settings.PreloaderSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.clipRectangle
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
@@ -83,8 +83,8 @@ class PreloaderView : View("GameDex") {
         progress.message = "Loading..."
 
         // TODO: Meh, not super clean, but I'm not super bothered
-        val settings = GeneralSettings()
-        val provisionListener = GamedexProvisionListener(settings.amountOfDiComponents)
+        val settings = PreloaderSettings()
+        val provisionListener = GamedexProvisionListener(settings.diComponents)
 
         FX.dicontainer = GuiceDiContainer(
             GuiceDiContainer.defaultModules + LifecycleModule(provisionListener)
@@ -94,7 +94,7 @@ class PreloaderView : View("GameDex") {
         Log.entries.removeListener(messageListener)
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-        settings.amountOfDiComponents = provisionListener.componentCount
+        settings.diComponents = provisionListener.componentCount
     }
 
 

@@ -251,6 +251,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         val genre = randomString()
         val name = randomName()
         val releaseDate = randomLocalDateString()
+        val account = IgdbUserAccount(apiKey = randomString())
 
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
@@ -296,25 +297,29 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun image(cloudinaryId: String? = randomString()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
-            `when`(client.search(name, platform)).thenReturn(results)
+            `when`(client.search(name, platform, account)).thenReturn(results)
         }
 
         fun givenClientFetchReturns(result: IgdbClient.DetailsResult, apiUrl: String = baseUrl) {
-            `when`(client.fetch(apiUrl)).thenReturn(result)
+            `when`(client.fetch(apiUrl, account)).thenReturn(result)
         }
 
-        fun search(name: String = this.name) = provider.search(name, platform)
+        fun search(name: String = this.name) = provider.search(name, platform, account)
 
-        fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform)
+        fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform, account)
 
         private val client = mock<IgdbClient>()
         val provider = IgdbProvider(IgdbConfig(
             endpoint = baseUrl,
             baseImageUrl = baseImageUrl,
-            apiKey = randomString(),
+            accountUrl = "",
             maxSearchResults = rnd.nextInt(),
-            platforms = mapOf(platform to platformId),
-            genres = mapOf(genreId to genre)
+            thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
+            posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            defaultOrder = ProviderOrderPriorities.default,
+            platforms = mapOf(platform.toString() to platformId),
+            genres = mapOf(genreId.toString() to genre)
         ), client)
 
         fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {

@@ -65,7 +65,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
         return imageProperty
     }
 
-    private suspend fun fetchOrDownloadImage(gameId: Int, url: String, persistIfAbsent: Boolean): ByteArray {
+    private fun fetchOrDownloadImage(gameId: Int, url: String, persistIfAbsent: Boolean): ByteArray {
         val storedImage = persistenceService.fetchImage(url)
         if (storedImage != null) return storedImage
 

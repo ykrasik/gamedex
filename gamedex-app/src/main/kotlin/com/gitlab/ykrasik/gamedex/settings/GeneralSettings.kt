@@ -4,34 +4,33 @@ import ch.qos.logback.classic.Level
 import tornadofx.getValue
 import tornadofx.setValue
 import java.io.File
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 01/05/2017
  * Time: 19:10
  */
-class GeneralSettings private constructor() : Settings("general") {
-    companion object {
-        operator fun invoke(): GeneralSettings = readOrUse(GeneralSettings())
-    }
+@Singleton
+class GeneralSettings {
+    private val repo = SettingsRepo("general") { Data() }
 
-    @Transient
-    val prevDirectoryProperty = preferenceProperty<File?>(null)
+    val prevDirectoryProperty = repo.property(Data::prevDirectory) { copy(prevDirectory = it) }
     var prevDirectory by prevDirectoryProperty
 
-    @Transient
-    val exportDbDirectoryProperty = preferenceProperty<File?>(null)
+    val exportDbDirectoryProperty = repo.property(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
     var exportDbDirectory by exportDbDirectoryProperty
 
-    @Transient
-    val logFilterLevelProperty = preferenceProperty(Level.INFO.levelStr)
+    val logFilterLevelProperty = repo.stringProperty(Data::logFilterLevel) { copy(logFilterLevel = it) }
     var logFilterLevel by logFilterLevelProperty
 
-    @Transient
-    val logTailProperty = preferenceProperty(true)
+    val logTailProperty = repo.booleanProperty(Data::logTail) { copy(logTail = it) }
     var logTail by logTailProperty
 
-    @Transient
-    val amountOfDiComponentsProperty = preferenceProperty(27)
-    var amountOfDiComponents by amountOfDiComponentsProperty
+    data class Data(
+        val prevDirectory: File? = null,
+        val exportDbDirectory: File? = null,
+        val logFilterLevel: String = Level.INFO.levelStr,
+        val logTail: Boolean = true
+    )
 }

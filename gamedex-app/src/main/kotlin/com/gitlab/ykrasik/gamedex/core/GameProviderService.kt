@@ -1,7 +1,9 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.repository.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.view.game.search.SearchResultsFragment
@@ -74,18 +76,17 @@ class GameProviderServiceImpl @Inject constructor(
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): GameProviderService.SearchResults {
-            val results = providerRepository.providers.filter { shouldSearch(it) }.mapNotNull { search(it) }
+            val results = providerRepository.enabledProviders.filter { shouldSearch(it) }.mapNotNull { search(it) }
             val name = userExactMatch ?: searchedName
             val providerData = download(taskData.copy(name = name), results)
             return GameProviderService.SearchResults(providerData, newlyExcludedProviders)
         }
 
-        private fun shouldSearch(provider: GameProvider): Boolean {
-            return provider.supportedPlatforms.contains(platform) && !excludedProviders.contains(provider.id)
-        }
+        private fun shouldSearch(provider: GameProvider): Boolean =
+            provider.supports(platform) && !excludedProviders.contains(provider.id)
 
-        private suspend fun search(provider: GameProvider): ProviderHeader? {
-            task.providerLogo = providerRepository[provider.id].logoImage
+        private suspend fun search(provider: EnabledGameProvider): ProviderHeader? {
+            task.providerLogo = provider.logoImage
             task.progress.message = "[$platform][${provider.id}] Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
             task.progress.message = "[$platform][${provider.id}] Searching '$searchedName': ${results.size} results."
@@ -164,7 +165,7 @@ class GameProviderServiceImpl @Inject constructor(
         return headers.map { header ->
             async(task.context) {
                 if (task.result.isCancelled) throw CancellationException()
-                providerRepository[header.id].download(header.apiUrl, platform)
+                providerRepository.enabledProvider(header.id).download(header.apiUrl, platform)
             }
         }.map { it.await() }
     }

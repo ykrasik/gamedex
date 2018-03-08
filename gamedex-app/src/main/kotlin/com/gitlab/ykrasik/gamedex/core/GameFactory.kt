@@ -25,14 +25,12 @@ class GameFactory @Inject constructor(
         val library = libraryRepository[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
         val imageUrls = rawGame.toImageUrls()
-        val providerHeaders = rawGame.toProviderHeaders()
         val folderMetadata = NameHandler.analyze(rawGame.metadata.path.toFile().name)
 
         return Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
-            providerHeaders = providerHeaders,
             imageUrls = imageUrls,
             folderMetadata = folderMetadata
         )
@@ -67,8 +65,6 @@ class GameFactory @Inject constructor(
         )
     }
 
-    private fun RawGame.toProviderHeaders(): List<ProviderHeader> = this.providerData.map { it.header }
-
     @Suppress("UNCHECKED_CAST")
     private fun <T> RawGame.firstBy(defaultOrder: ProviderSettings.Order,
                                     override: GameDataOverride?,
@@ -101,11 +97,11 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.sortDataBy(order: ProviderSettings.Order, override: GameDataOverride.Provider?): List<ProviderData> =
         providerData.sortedBy {
-            val type = it.header.id
-            if (type == override?.provider) {
+            val providerId = it.header.id
+            if (providerId == override?.provider) {
                 ProviderSettings.Order.minOrder
             } else {
-                order[type]
+                order[providerId]
             }
         }
 

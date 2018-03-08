@@ -1,17 +1,13 @@
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.ProviderId
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
-import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.repository.logoImage
+import com.gitlab.ykrasik.gamedex.ui.jfxToggleNode
 import com.gitlab.ykrasik.gamedex.ui.perform
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import javafx.beans.property.ObjectProperty
+import com.gitlab.ykrasik.gamedex.ui.toImageView
 import javafx.geometry.Pos
-import javafx.scene.Cursor
-import javafx.scene.effect.DropShadow
-import javafx.scene.effect.Glow
-import javafx.scene.layout.Pane
+import javafx.scene.control.ToggleGroup
 import tornadofx.*
 
 /**
@@ -21,102 +17,61 @@ import tornadofx.*
  */
 class ProviderSettingsView : View("Provider Settings", Theme.Icon.settings()) {
     private val providerRepository: GameProviderRepository by di()
-    private val settings: ProviderSettings by di()
 
-    override val root = form {
-        // FIXME: Forms take a long time to load!!!
-        fieldset("Provider Order") {
-            listOf(
-                "Search" to settings.searchOrderProperty,
-                "Name" to settings.nameOrderProperty,
-                "Description" to settings.descriptionOrderProperty,
-                "Release Date" to settings.releaseDateOrderProperty,
-                "Critic Score" to settings.criticScoreOrderProperty,
-                "User Score" to settings.userScoreOrderProperty,
-                "Thumbnail" to settings.thumbnailOrderProperty,
-                "Poster" to settings.posterOrderProperty,
-                "Screenshots" to settings.screenshotOrderProperty
-            ).forEach { (name, orderProperty) ->
-                field(name) {
-                    providerOrder(orderProperty)
-                }
+    private val providerOrderView: ProviderOrderSettingsView by inject()
+
+    private val selection = ToggleGroup().apply {
+        // Disallow de-selection.
+        selectedToggleProperty().addListener { _, oldValue, newValue ->
+            if (newValue == null) {
+                selectToggle(oldValue)
             }
         }
     }
 
-    private fun Pane.providerOrder(orderProperty: ObjectProperty<ProviderSettings.Order>) {
-        hbox(spacing = 20.0) {
-            alignment = Pos.CENTER
-            orderProperty.perform { order ->
-                var dragging: ProviderId? = null
-                replaceChildren {
-                    order.ordered().map { providerId ->
-                        label {
-                            addClass(Style.providerOrderLabel)
-                            graphic = imageview(providerRepository[providerId].logoImage) {
-                                fitWidth = 100.0
-                                fitHeight = 50.0
-                                isPreserveRatio = true
-                            }
-                            userData = providerId
-
-                            val dropShadow = DropShadow()
-                            val glow = Glow()
-                            effect = dropShadow
-
-                            var dragX = 0.0
-
-                            setOnMousePressed { mouseEvent ->
-                                // record a delta distance for the drag and drop operation.
-                                dragX = layoutX - mouseEvent.sceneX
-                                cursor = Cursor.MOVE
-                                dragging = providerId
-                                this@hbox.children.forEach { it.isManaged = false }
-                            }
-                            setOnMouseReleased {
-                                cursor = Cursor.HAND
-                                dragging = null
-                                this@hbox.children.forEach { it.isManaged = true }
-                            }
-                            setOnMouseDragged { mouseEvent ->
-                                layoutX = mouseEvent.sceneX + dragX
-                                val intersect = this@hbox.children.find { label ->
-                                    this@label != label && this@label.boundsInParent.intersects(label.boundsInParent)
-                                }
-                                if (intersect != null) {
-                                    orderProperty.value = order.switch(
-                                        dragging!!,
-                                        intersect.userData as ProviderId
-                                    )
-                                }
-                            }
-                            setOnMouseEntered {
-                                cursor = Cursor.HAND
-                                dropShadow.input = glow
-                            }
-                            setOnMouseExited {
-                                dropShadow.input = null
-                            }
-                        }
+    override val root = vbox {
+        hbox(spacing = 5.0) {
+            jfxToggleNode(group = selection) {
+                graphic = hbox(spacing = 5.0) {
+                    alignment = Pos.CENTER_LEFT
+                    children += Theme.Icon.settings()
+                    stackpane {
+                        maxWidth = 100.0
+                        maxHeight = 50.0
+                        minWidth = maxWidth
+                        minHeight = maxHeight
+                        label("Order")
                     }
                 }
+                userData = providerOrderView
+                isSelected = true
+            }
+            providerRepository.allProviders.forEach { provider ->
+                jfxToggleNode(group = selection) {
+                    graphic = hbox(spacing = 5.0) {
+                        alignment = Pos.CENTER_LEFT
+                        children += Theme.Icon.settings()
+                        stackpane {
+                            maxHeight = 50.0
+                            maxWidth = 100.0
+                            minHeight = maxHeight
+                            minWidth = maxWidth
+                            children += provider.logoImage.toImageView(height = 50.0, width = 100.0)
+                        }
+                    }
+                    userData = ProviderUserSettingsFragment(provider)
+                    isSelected = false
+                }
             }
         }
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val providerOrderLabel by cssclass()
-
-            init {
-                importStylesheet(Style::class)
-            }
+        separator {
+            paddingTop = 2.0
         }
-
-        init {
-            providerOrderLabel {
-                prefWidth = 100.px
-                alignment = Pos.BASELINE_CENTER
+        stackpane {
+            selection.selectedToggleProperty().perform { selected ->
+                replaceChildren {
+                    children += (selected.userData as UIComponent).root
+                }
             }
         }
     }

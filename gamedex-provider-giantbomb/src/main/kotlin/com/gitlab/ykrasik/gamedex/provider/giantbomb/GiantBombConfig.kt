@@ -1,8 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.util.getObjectMap
+import com.gitlab.ykrasik.gamedex.ProviderOrderPriorities
 import com.typesafe.config.Config
+import io.github.config4k.extract
 
 /**
  * User: ykrasik
@@ -11,19 +12,15 @@ import com.typesafe.config.Config
  */
 data class GiantBombConfig(
     val endpoint: String,
-    val apiKey: String,
-    private val platforms: Map<Platform, Int>
+    val noImageFileName: String,
+    val accountUrl: String,
+    val defaultOrder: ProviderOrderPriorities,
+    private val platforms: Map<String, Int>
 ) {
-    fun getPlatformId(platform: Platform) = platforms[platform]!!
+    private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
+    fun getPlatformId(platform: Platform) = _platforms[platform]!!
 
     companion object {
-        @Suppress("NAME_SHADOWING")
-        operator fun invoke(config: Config): GiantBombConfig = config.getConfig("gameDex.provider.giantBomb").let { config ->
-            GiantBombConfig(
-                endpoint = config.getString("endpoint"),
-                apiKey = config.getString("apiKey"),
-                platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int })
-            )
-        }
+        operator fun invoke(config: Config): GiantBombConfig = config.extract("gameDex.provider.giantBomb")
     }
 }

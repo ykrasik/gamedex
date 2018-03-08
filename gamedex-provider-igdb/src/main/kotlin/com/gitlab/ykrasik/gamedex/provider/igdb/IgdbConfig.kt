@@ -1,8 +1,9 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.util.getObjectMap
+import com.gitlab.ykrasik.gamedex.ProviderOrderPriorities
 import com.typesafe.config.Config
+import io.github.config4k.extract
 
 /**
  * User: ykrasik
@@ -12,25 +13,22 @@ import com.typesafe.config.Config
 data class IgdbConfig(
     val endpoint: String,
     val baseImageUrl: String,
-    val apiKey: String,
+    val accountUrl: String,
     val maxSearchResults: Int,
-    private val platforms: Map<Platform, Int>,
-    private val genres: Map<Int, String>
+    val thumbnailImageType: IgdbProvider.IgdbImageType,
+    val posterImageType: IgdbProvider.IgdbImageType,
+    val screenshotImageType: IgdbProvider.IgdbImageType,
+    val defaultOrder: ProviderOrderPriorities,
+    private val platforms: Map<String, Int>,
+    private val genres: Map<String, String>
 ) {
-    fun getPlatformId(platform: Platform): Int = platforms[platform]!!
-    fun getGenreName(genreId: Int): String = genres[genreId]!!
+    private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
+    fun getPlatformId(platform: Platform) = _platforms[platform]!!
+
+    private val _genres = genres.mapKeys { it.key.toInt() }
+    fun getGenreName(genreId: Int): String = _genres[genreId]!!
 
     companion object {
-        @Suppress("NAME_SHADOWING")
-        operator fun invoke(config: Config): IgdbConfig = config.getConfig("gameDex.provider.igdb").let { config ->
-            IgdbConfig(
-                endpoint = config.getString("endpoint"),
-                baseImageUrl = config.getString("baseImageUrl"),
-                apiKey = config.getString("apiKey"),
-                maxSearchResults = config.getInt("maxSearchResults"),
-                platforms = config.getObjectMap("platforms", { Platform.valueOf(it) }, { it as Int }),
-                genres = config.getObjectMap("genres", String::toInt, Any::toString)
-            )
-        }
+        operator fun invoke(config: Config): IgdbConfig = config.extract("gameDex.provider.igdb")
     }
 }

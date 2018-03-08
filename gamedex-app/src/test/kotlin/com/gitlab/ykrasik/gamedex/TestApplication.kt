@@ -24,8 +24,8 @@ import java.util.concurrent.Executors
  * Time: 21:59
  */
 object TestApplication {
-    val giantBombServer = GiantBombFakeServer(9001)
-    val igdbServer = IgdbFakeServer(9002)
+    val giantBombServer = GiantBombFakeServer(9001, apiKey = "valid")
+    val igdbServer = IgdbFakeServer(9002, apiKey = "valid")
 
     @JvmStatic fun main(args: Array<String>) {
         appConfig = appConfig
@@ -51,7 +51,7 @@ object TestApplication {
     }
 
     private fun generateDb() {
-        val numGames = 1000
+        val numGames = 500
 
         val guice = GuiceDiContainer(listOf(PersistenceModule, ConfigModule))
         val persistenceService = guice.getInstance(PersistenceService::class)

@@ -3,14 +3,12 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.edit
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.jfxButton
-import com.gitlab.ykrasik.gamedex.ui.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.ui.nonClosableTab
+import com.gitlab.ykrasik.gamedex.repository.logoImage
+import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toolbarButton
-import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -140,12 +138,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                             userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.id))
                             graphic = vbox {
                                 alignment = Pos.CENTER
-                                imageview {
-                                    fitHeight = 120.0
-                                    fitWidth = 120.0
-                                    isPreserveRatio = true
-                                    image = providerRepository[providerData.header.id].logoImage
-                                }
+                                children += providerRepository.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 120.0)
                                 spacer()
                                 dataDisplay(data)
                             }
@@ -180,7 +173,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                         if (newValue != initialSelection || newValue.userData != initialUserData) {
                             val choice = newValue.userData as SingleChoice
                             when (choice) {
-                                is SingleChoice.Override -> overrides.put(type, choice.override)
+                                is SingleChoice.Override -> overrides[type] = choice.override
                                 is SingleChoice.Clear -> overrides.remove(type)
                             }
                         } else {

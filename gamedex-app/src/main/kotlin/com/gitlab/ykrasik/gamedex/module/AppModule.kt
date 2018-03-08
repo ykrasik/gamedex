@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.module
 import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
-import com.gitlab.ykrasik.gamedex.settings.*
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import javax.inject.Singleton
@@ -26,10 +25,4 @@ object AppModule : AbstractModule() {
     }
 
     @Provides @Singleton fun newDirectoryDetector() = newDirectoryDetector
-
-    @Provides @Singleton fun generalSettings() = GeneralSettings()
-    @Provides @Singleton fun providerSettings() = ProviderSettings()
-    @Provides @Singleton fun gameSettings() = GameSettings()
-    @Provides @Singleton fun gameWallSettings() = GameWallSettings()
-    @Provides @Singleton fun reportSettings() = ReportSettings()
 }

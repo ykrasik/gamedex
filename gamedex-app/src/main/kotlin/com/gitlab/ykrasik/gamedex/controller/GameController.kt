@@ -7,7 +7,6 @@ import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.settings.setFilter
 import com.gitlab.ykrasik.gamedex.task.GameTasks
 import com.gitlab.ykrasik.gamedex.task.RefreshTasks
 import com.gitlab.ykrasik.gamedex.task.SearchTasks
@@ -208,9 +207,11 @@ class GameController @Inject constructor(
     fun rediscoverFilteredGamesWithoutAllProviders() = searchTasks.RediscoverGamesTask(sortedFilteredGames).apply { start() }
     fun searchGame(game: Game) = searchTasks.SearchGameTask(game).apply { start() }
 
-    // TODO: Can consider checking if the missing providers support the game's platform, to avoid an empty call.
-    private val Game.hasMissingProviders: Boolean
-        get() = rawGame.providerData.size + excludedProviders.size < providerRepository.providers.size
+    private val Game.hasMissingProviders: Boolean get() =
+        providerRepository.enabledProviders.any { provider ->
+            // Provider supports the game's platform, is not excluded and game doesn't have it yet.
+            provider.supports(platform) && !excludedProviders.contains(provider.id) && rawGame.providerData.none { it.header.id == provider.id }
+        }
 
     fun refreshAllGames() = refreshTasks.RefreshGamesTask(gameRepository.games).apply { start() }
 

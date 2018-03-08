@@ -4,13 +4,14 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.FileSystemOps
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.ui.fixedRating
-import com.gitlab.ykrasik.gamedex.ui.imageview
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
+import com.gitlab.ykrasik.gamedex.ui.toImageView
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.event.EventTarget
 import javafx.geometry.HPos
@@ -121,11 +122,7 @@ class GameDetailsFragment(
                     vgap = 3.0
                     providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
                         row {
-                            imageview(providerRepository[header.id].logoImage) {
-                                fitHeight = 30.0
-                                fitWidth = 70.0
-                                isPreserveRatio = true
-                            }
+                            children += providerRepository.provider(header.id).logoImage.toImageView(height = 30.0, width = 70.0)
                             hyperlink(gameData.siteUrl) { setOnAction { gameData.siteUrl.browseToUrl() } }
                         }
                     }

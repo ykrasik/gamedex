@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.main
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.controller.SettingsController
 import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.map
@@ -14,7 +15,6 @@ import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryScreen
 import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportsScreen
-import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
 import com.gitlab.ykrasik.gamedex.ui.widgets.Notification
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
@@ -36,6 +36,7 @@ class MainView : View("GameDex") {
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: LibraryScreen by inject()
     private val logScreen: LogScreen by inject()
+    private val settingsController: SettingsController by di() // TODO: Probably not the correct way to do this.
 
     private val gameDetailsScreen: GameDetailsScreen by inject()
 
@@ -97,7 +98,7 @@ class MainView : View("GameDex") {
 
         separator()
 
-        navigationButton("Settings", Theme.Icon.settings()) { SettingsFragment().show() }
+        navigationButton("Settings", Theme.Icon.settings()) { settingsController.showSettingsMenu() }
 
         separator()
 

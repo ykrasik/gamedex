@@ -154,18 +154,18 @@ class FilterFragment(
     }
 
     private fun HBox.renderPlatformRule(rule: Filter.Platform) = rule.toProperty().apply {
-        val platform = mapBidirectional({ it!!.platform }, { Filter.Platform(it!!) })
+        val platform = mapBidirectional(Filter.Platform::platform, Filter::Platform)
         platformComboBox(platform)
     }
 
     private fun HBox.renderProviderRule(rule: Filter.Provider) = rule.toProperty().apply {
-        val provider = mapBidirectional({ it!!.providerId }, { Filter.Provider(it!!) })
-        combobox(provider, providerRepository.providers.map { it.id })
+        val provider = mapBidirectional(Filter.Provider::providerId, Filter::Provider)
+        combobox(provider, providerRepository.allProviders.map { it.id })
     }
 
     private fun HBox.renderLibraryRule(rule: Filter.Library) = rule.toProperty().apply {
         val library = mapBidirectional(
-            { libraryController.getBy(it!!.platform, it.libraryName) }, { Filter.Library(it!!.platform, it.name) }
+            { libraryController.getBy(platform, libraryName) }, { Filter.Library(platform, name) }
         )
         popoverComboMenu(
             possibleItems = libraryController.platformLibraries as List<Library>,
@@ -175,7 +175,7 @@ class FilterFragment(
     }
 
     private fun HBox.renderGenreRule(rule: Filter.Genre) = rule.toProperty().apply {
-        val genre = mapBidirectional({ it!!.genre }, { Filter.Genre(it!!) })
+        val genre = mapBidirectional(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
             possibleItems = gameController.genres as List<String>,
             selectedItemProperty = genre,
@@ -184,12 +184,12 @@ class FilterFragment(
     }
 
     private fun HBox.renderTagRule(rule: Filter.Tag) = rule.toProperty().apply {
-        val tag = mapBidirectional({ it!!.tag }, { Filter.Tag(it!!) })
+        val tag = mapBidirectional(Filter.Tag::tag, Filter::Tag)
         combobox(tag, gameController.tags)
     }
 
     private fun HBox.renderReleaseDateRule(rule: Filter.ReleaseDate) = rule.toProperty().apply {
-        val releaseDate = mapBidirectional({ it!!.releaseDate.toJava() }, { Filter.ReleaseDate(it!!.toJoda()) })
+        val releaseDate = mapBidirectional({ releaseDate.toJava() }, { Filter.ReleaseDate(toJoda()) })
         datepicker {
             valueProperty().bindBidirectional(releaseDate)
         }
@@ -199,7 +199,7 @@ class FilterFragment(
         hbox(spacing = 5.0) {
             alignment = Pos.CENTER_LEFT
 
-            val target = mapBidirectional({ it!!.target }, { factory(it) })
+            val target = mapBidirectional(Filter.ScoreRule::target, factory)
             jfxButton {
                 text = if (rule.target == null) "is null" else ">="
                 setOnAction {

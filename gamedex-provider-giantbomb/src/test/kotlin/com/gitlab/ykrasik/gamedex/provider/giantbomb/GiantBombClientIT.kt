@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GamedexException
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -27,7 +28,7 @@ class GiantBombClientIT : ScopedWordSpec() {
             "search by name & platform".inScope(Scope()) {
                 server.anySearchRequest() willReturn searchResponse
 
-                client.search(name, platform) shouldBe searchResponse
+                client.search(name, platform, account) shouldBe searchResponse
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/"))
@@ -42,7 +43,7 @@ class GiantBombClientIT : ScopedWordSpec() {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
-                    client.search(name, platform)
+                    client.search(name, platform, account)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
@@ -52,7 +53,7 @@ class GiantBombClientIT : ScopedWordSpec() {
             "fetch by url".inScope(Scope()) {
                 server.aFetchRequest(detailPath) willReturn detailsResponse
 
-                client.fetch(detailUrl) shouldBe detailsResponse
+                client.fetch(detailUrl, account) shouldBe detailsResponse
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/$detailPath"))
@@ -65,7 +66,7 @@ class GiantBombClientIT : ScopedWordSpec() {
                 server.aFetchRequest(detailPath) willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
-                    client.fetch(detailUrl)
+                    client.fetch(detailUrl, account)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
@@ -81,7 +82,7 @@ class GiantBombClientIT : ScopedWordSpec() {
         val platformId = rnd.nextInt(100)
         val name = randomName()
 
-        private fun randomImage() =  GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
+        private fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
         val searchResponse = GiantBombClient.SearchResponse(
             statusCode = GiantBombClient.Status.ok,
@@ -106,10 +107,14 @@ class GiantBombClientIT : ScopedWordSpec() {
             ))
         )
 
+        val account = GiantBombUserAccount(apiKey = apiKey)
+
         val client = GiantBombClient(GiantBombConfig(
             endpoint = baseUrl,
-            apiKey = apiKey,
-            platforms = mapOf(platform to platformId)
+            noImageFileName = "",
+            accountUrl = "",
+            defaultOrder = ProviderOrderPriorities.default,
+            platforms = mapOf(platform.toString() to platformId)
         ))
     }
 

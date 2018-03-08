@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import javafx.animation.FadeTransition
 import javafx.application.Platform.runLater
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -40,7 +41,12 @@ val screenBounds = Screen.getPrimary().bounds
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
-fun Image.toImageView(): ImageView = ImageView(this)
+fun Image.toImageView(height: Number, width: Number): ImageView = toImageView {
+    fitHeight = height.toDouble()
+    fitWidth = width.toDouble()
+    isPreserveRatio = true
+}
+fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
 
@@ -193,4 +199,11 @@ fun <T> TableView<T>.minWidthFitContent(indexColumn: TableColumn<T, Number>? = n
     minWidthProperty().bind(contentColumns.fold(indexColumn?.widthProperty()?.subtract(10) ?: 0.0.toProperty()) { binding, column ->
         binding.add(column.widthProperty())
     })
+}
+
+fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse: Boolean = false): FadeTransition =
+    fade(duration, if (reverse) 1.0 - target else target) {
+    setOnFinished {
+        fade(duration, if (reverse) 0.0 else 1.0)
+    }
 }

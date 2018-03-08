@@ -40,12 +40,12 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
     }
 
     // TODO: Configure overlay color.
-    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.OverlaySettings) =
+    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.OverlaySettingsAccessor) =
         field("Display $name Overlay") {
             hbox(spacing = 5.0) {
                 alignment = Pos.CENTER_LEFT
                 jfxToggleButton(settings.isShowProperty)
-                labeled("Location") { enumComboBox(settings.locationProperty) }.apply { showWhen { settings.isShowProperty } }
+                labeled("Position") { enumComboBox(settings.positionProperty) }.apply { showWhen { settings.isShowProperty } }
                 jfxToggleButton(settings.fillWidthProperty) {
                     showWhen { settings.isShowProperty }
                     text = "Fill Width"

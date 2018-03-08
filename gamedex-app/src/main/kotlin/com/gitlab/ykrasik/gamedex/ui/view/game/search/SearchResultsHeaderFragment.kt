@@ -2,12 +2,13 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
 import com.gitlab.ykrasik.gamedex.core.SearchChooser
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.theme.pathButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
+import com.gitlab.ykrasik.gamedex.ui.toImageView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.HPos
 import javafx.geometry.Pos
@@ -40,11 +41,8 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
             alignment = Pos.TOP_RIGHT
             children += data.platform.toLogo(46.0)
         }
-        imageview(providerRepository[data.providerId].logoImage) {
+        children += providerRepository.provider(data.providerId).logoImage.toImageView(height = 80.0, width = 160.0).apply {
             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
-            fitHeight = 80.0
-            fitWidth = 160.0
-            isPreserveRatio = true
         }
 
         val newSearch = textfield(data.name) {

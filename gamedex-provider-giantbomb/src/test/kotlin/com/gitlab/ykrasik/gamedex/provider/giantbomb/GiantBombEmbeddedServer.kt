@@ -5,14 +5,18 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.pipeline.PipelineContext
+import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.experimental.delay
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.response.respond
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.get
-import org.jetbrains.ktor.routing.routing
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +34,7 @@ class GiantBombMockServer(port: Int) : Closeable {
 
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
-    inner abstract class BaseRequest {
+    abstract inner class BaseRequest {
         infix fun willFailWith(status: Int) {
             wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status)))
         }
@@ -49,7 +53,7 @@ class GiantBombMockServer(port: Int) : Closeable {
     }
 }
 
-class GiantBombFakeServer(port: Int) : Closeable {
+class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
     private val apiDetailPath = "details"
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
@@ -64,7 +68,9 @@ class GiantBombFakeServer(port: Int) : Closeable {
     private val ktor = embeddedServer(Netty, port) {
         routing {
             get("/") {
-                call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
+                authorized {
+                    call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
+                }
             }
             get("$thumbnailPath/{imageName}") {
                 delay(rnd.nextInt(600).toLong(), TimeUnit.MILLISECONDS)
@@ -75,8 +81,18 @@ class GiantBombFakeServer(port: Int) : Closeable {
                 call.respond(TestImages.randomImageBytes())     // TODO: Return a different set of images
             }
             get(apiDetailPath) {
-                call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
+                authorized {
+                    call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
+                }
             }
+        }
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.authorized(body: suspend () -> Unit) {
+        if (call.parameters["api_key"] == apiKey) {
+            body()
+        } else {
+            call.respond(HttpStatusCode.Unauthorized, GiantBombClient.SearchResponse(GiantBombClient.Status.invalidApiKey, emptyList()).toMap().toJsonStr())
         }
     }
 
@@ -156,7 +172,7 @@ private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
 )
 
 private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> {
-    val map = mutableMapOf<String, Any>(
+    val map = mutableMapOf(
         "site_detail_url" to siteDetailUrl,
         "name" to name,
         "images" to images

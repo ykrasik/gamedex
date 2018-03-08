@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.core.Filter
 import com.gitlab.ykrasik.gamedex.core.FilterSet
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.settings.setFilter
 import com.gitlab.ykrasik.gamedex.ui.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
 import com.gitlab.ykrasik.gamedex.ui.mouseTransparentWhen
@@ -84,7 +83,7 @@ class GameFilterMenu : View() {
                 }
             }
 
-            filterProperty.onChange {settings.setFilter(it!!) }
+            filterProperty.onChange { settings.setFilter(it!!) }
         }
     }
 }

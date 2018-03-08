@@ -2,7 +2,8 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.ProviderId
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.ui.imageview
+import com.gitlab.ykrasik.gamedex.repository.logoImage
+import com.gitlab.ykrasik.gamedex.ui.toImageView
 import tornadofx.Fragment
 import tornadofx.stackpane
 
@@ -15,10 +16,6 @@ class ProviderLogoFragment(providerId: ProviderId) : Fragment() {
     private val providerRepository: GameProviderRepository by di()
 
     override val root = stackpane {
-        imageview(providerRepository[providerId].logoImage) {
-            fitHeight = 80.0
-            fitWidth = 160.0
-            isPreserveRatio = true
-        }
+        children += providerRepository.provider(providerId).logoImage.toImageView(height = 80.0, width = 160.0)
     }
 }

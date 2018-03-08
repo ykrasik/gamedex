@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.ui
 
+import com.gitlab.ykrasik.gamedex.util.Extractor
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.ListExpression
 import javafx.beans.binding.NumberBinding
@@ -32,7 +33,7 @@ fun <T> ObservableValue<T>.printChanges(id: String) {
 
 fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
 
-fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
+fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> {
     fun doMap() = f(this.value)
 
     val property = SimpleObjectProperty(doMap())
@@ -40,21 +41,61 @@ fun <T, R> ObservableValue<T>.map(f: (T?) -> R): Property<R> {
     return property
 }
 
-fun <T, R> Property<T>.mapBidirectional(f: (T?) -> R, reverseF: (R?) -> T): Property<R> {
-    val p = SimpleObjectProperty(f(this.value))
+fun <T> ObservableValue<T>.mapBoolean(f: (T?) -> Boolean): BooleanProperty {
+    fun doMap() = f(this.value)
+
+    val property = SimpleBooleanProperty(doMap())
+    this.onChange { property.set(doMap()) }
+    return property
+}
+
+fun <T, R> Property<T>.mapBidirectional(extractor: Extractor<T, R>, reverseExtractor: Extractor<R, T>): ObjectProperty<R> =
+    mapBidirectional(extractor, reverseExtractor) { SimpleObjectProperty(it) }
+
+fun <T> Property<T>.mapBidirectionalBoolean(extractor: Extractor<T, Boolean>, reverseExtractor: Extractor<Boolean, T>): BooleanProperty =
+    mapBidirectional(extractor, reverseExtractor) { SimpleBooleanProperty(it) }
+
+fun <T> Property<T>.mapBidirectionalString(extractor: Extractor<T, String>, reverseExtractor: Extractor<String, T>): StringProperty =
+    mapBidirectional(extractor, reverseExtractor) { SimpleStringProperty(it) }
+
+fun <T> Property<T>.mapBidirectionalInt(extractor: Extractor<T, Int>, reverseExtractor: Extractor<Int, T>): IntegerProperty =
+    mapBidirectional(extractor, reverseExtractor) { SimpleIntegerProperty(it) }
+
+fun <T> Property<T>.mapBidirectionalDouble(extractor: Extractor<T, Double>, reverseExtractor: Extractor<Double, T>): DoubleProperty =
+    mapBidirectional(extractor, reverseExtractor) { SimpleDoubleProperty(it) }
+
+private fun <T, R, P : Property<in R>> Property<T>.mapBidirectional(extractor: Extractor<T, R>,
+                                                                    reverseExtractor: Extractor<R, T>,
+                                                                    factory: (R) -> P): P {
+    val origin = this
+    val mapped = factory(extractor(this.value))
 
     var shouldCall = true
-    this.onChange {
+    origin.onChange {
         shouldCall = false
-        p.value = f(it)
+        mapped.value = extractor(it!!)
         shouldCall = true
     }
-    p.onChange {
+    mapped.onChange {
         if (shouldCall) {
-            this.value = reverseF(it)
+            @Suppress("UNCHECKED_CAST")
+            origin.value = reverseExtractor(it!! as R)
         }
     }
-    return p
+
+    return mapped
+}
+
+fun <T, R> Property<T>.bindBidirectional(property: Property<R>, f: (T?) -> R, reverseF: (R?) -> T) {
+    this.value = reverseF(property.value)
+    this.onChange {
+        property.value = f(it)
+    }
+
+    property.value = f(this.value)
+    property.onChange {
+        this.value = reverseF(it)
+    }
 }
 
 fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): ObjectProperty<R> {

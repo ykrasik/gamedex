@@ -96,12 +96,12 @@ class GameWallCellFragment : Fragment() {
     }
 
     // TODO: Allow configuring the overlay color / opacity.
-    private fun EventTarget.overlayLabel(settings: GameWallSettings.OverlaySettings) = label {
+    private fun EventTarget.overlayLabel(settings: GameWallSettings.OverlaySettingsAccessor) = label {
         addClass(Style.overlayText)
 
         visibleWhen { settings.isShowProperty.and(textProperty().isNotNull.and(textProperty().isNotEmpty)) }
         maxWidthProperty().bind(settings.fillWidthProperty.map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
-        settings.locationProperty.perform { location -> StackPane.setAlignment(this, location) }
+        settings.positionProperty.perform { position -> StackPane.setAlignment(this, position) }
     }
 
     class Style : Stylesheet() {

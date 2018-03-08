@@ -11,12 +11,14 @@ import io.kotlintest.matchers.shouldBe
  * Time: 17:59
  */
 class GiantBombProviderContractTest : ScopedWordSpec() {
-    val provider = GiantBombProvider(GiantBombClient(GiantBombConfig(appConfig)))
+    val config = GiantBombConfig(appConfig)
+    val provider = GiantBombProvider(config, GiantBombClient(config))
+    val account = GiantBombUserAccount(apiKey = System.getProperty("gameDex.giantBomb.apiKey"))
 
     init {
         "GiantBombProvider" should {
             "search & retrieve a single search result" {
-                provider.search(name, Platform.pc) shouldBe listOf(ProviderSearchResult(
+                provider.search(name, Platform.pc, account) shouldBe listOf(ProviderSearchResult(
                     apiUrl = apiUrl,
                     name = name,
                     releaseDate = releaseDate,
@@ -27,7 +29,7 @@ class GiantBombProviderContractTest : ScopedWordSpec() {
             }
 
             "download game details" {
-                provider.download(apiUrl, Platform.pc) shouldBe ProviderData(
+                provider.download(apiUrl, Platform.pc, account) shouldBe ProviderData(
                     header = ProviderHeader(
                         id = "GiantBomb",
                         apiUrl = apiUrl,

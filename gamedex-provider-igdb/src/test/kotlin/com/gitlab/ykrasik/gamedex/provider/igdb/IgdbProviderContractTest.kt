@@ -16,11 +16,12 @@ import io.kotlintest.matchers.shouldBe
 class IgdbProviderContractTest : ScopedWordSpec() {
     val config = IgdbConfig(appConfig)
     val provider = IgdbProvider(config, IgdbClient(config))
+    val account = IgdbUserAccount(apiKey = System.getProperty("gameDex.igdb.apiKey"))
 
     init {
         "IgdbProvider" should {
             "search & retrieve a single search result" {
-                val results = provider.search(name, Platform.pc)
+                val results = provider.search(name, Platform.pc, account)
                 results should haveSize(1)
 
                 val result = results.first()
@@ -35,7 +36,7 @@ class IgdbProviderContractTest : ScopedWordSpec() {
             }
 
             "download game details" {
-                val result = provider.download(apiUrl, Platform.pc)
+                val result = provider.download(apiUrl, Platform.pc, account)
                 result shouldBe ProviderData(
                     header = ProviderHeader(
                         id = "Igdb",

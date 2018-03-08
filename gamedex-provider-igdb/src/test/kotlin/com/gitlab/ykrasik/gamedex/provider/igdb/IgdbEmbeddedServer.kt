@@ -5,14 +5,18 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.pipeline.PipelineContext
+import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.*
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.experimental.delay
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.response.respond
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.*
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +34,7 @@ class IgdbMockServer(port: Int) : Closeable {
 
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
-    inner abstract class BaseRequest {
+    abstract inner class BaseRequest {
         infix fun willFailWith(status: Int) {
             wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status)))
         }
@@ -49,15 +53,14 @@ class IgdbMockServer(port: Int) : Closeable {
     }
 }
 
-class IgdbFakeServer(port: Int) : Closeable {
-    private fun detailsPath(id: String) = id
+class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
     private val imagePath = "images"
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
     val providerId = "Igdb"
     val endpointUrl = "http://localhost:$port"
-    fun detailsUrl(id: Int) = "$endpointUrl/${detailsPath(id.toString())}"
+    fun detailsUrl(id: Int) = "$endpointUrl/$id"
     val baseImageUrl = "$endpointUrl/$imagePath"
     val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
     val posterUrl = "$baseImageUrl/$posterPath"
@@ -69,14 +72,18 @@ class IgdbFakeServer(port: Int) : Closeable {
                 method(HttpMethod.Get) {
                     param("search") {
                         handle {
-                            val name = call.parameters["search"]!!
-                            call.respondText(randomSearchResults(name), ContentType.Application.Json)
+                            authorized {
+                                val name = call.parameters["search"]!!
+                                call.respondText(randomSearchResults(name), ContentType.Application.Json)
+                            }
                         }
                     }
                 }
             }
-            get("/" + detailsPath("{id}")) {
-                call.respondText(randomDetailResponse(), ContentType.Application.Json)
+            get("/{id}") {
+                authorized {
+                    call.respondText(randomDetailResponse(), ContentType.Application.Json)
+                }
             }
             get("$imagePath/$thumbnailPath/{imageName}") {
                 delay(rnd.nextInt(600).toLong(), TimeUnit.MILLISECONDS)
@@ -86,6 +93,14 @@ class IgdbFakeServer(port: Int) : Closeable {
                 delay(rnd.nextInt(1000).toLong(), TimeUnit.MILLISECONDS)
                 call.respond(TestImages.randomImageBytes())     // TODO: Use a different set of images
             }
+        }
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.authorized(body: suspend () -> Unit) {
+        if (call.request.headers["user-key"] == apiKey) {
+            body()
+        } else {
+            call.respond(HttpStatusCode.Unauthorized)
         }
     }
 

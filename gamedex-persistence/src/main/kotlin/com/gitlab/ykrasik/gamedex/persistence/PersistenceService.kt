@@ -41,7 +41,6 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     private val tables = arrayOf(Libraries, Games, Images)
 
     init {
-        log.debug("Connection url: ${config.dbUrl}")
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
 
         create()

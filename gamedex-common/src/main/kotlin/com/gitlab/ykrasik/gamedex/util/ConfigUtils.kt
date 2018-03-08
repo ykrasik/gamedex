@@ -22,11 +22,4 @@ var appConfig: Config = run {
     }
 }
 
-fun <K, V> Config.getObjectMap(path: String, keyParser: (String) -> K, valueParser: (Any) -> V): Map<K, V> {
-    return getObject(path).entries.associateBy(
-        keySelector = { keyParser(it.key) },
-        valueTransform = { valueParser(it.value.unwrapped()) }
-    )
-}
-
 fun stringConfig(str: String): ConfigValue = ConfigValueFactory.fromAnyRef(str)

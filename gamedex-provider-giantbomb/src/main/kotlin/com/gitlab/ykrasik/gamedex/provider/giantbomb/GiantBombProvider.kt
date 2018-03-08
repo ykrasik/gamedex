@@ -1,6 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.debug
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.now
@@ -13,18 +14,17 @@ import javax.inject.Singleton
  * Time: 10:53
  */
 @Singleton
-class GiantBombProvider @Inject constructor(private val client: GiantBombClient) : GameProvider {
+class GiantBombProvider @Inject constructor(private val config: GiantBombConfig, private val client: GiantBombClient) : GameProvider {
     private val log = logger()
-    private val gbLogoImage = "2853576-gblogo.png"
 
-    override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.debug("[$platform] Searching: '$name'...")
-        val response = client.search(name, platform)
+    override fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
+        log.debug { "[$platform] Searching: '$name'..." }
+        val response = client.search(name, platform, account as GiantBombUserAccount)
         assertOk(response.statusCode)
 
         val results = response.results.map { it.toProviderSearchResult() }
-        log.debug("[$platform] Searching: '$name': ${results.size} results.")
-        results.forEach { log.trace("[$platform] $it") }
+        log.debug { "[$platform] Searching: '$name': ${results.size} results." }
+        results.forEach { log.trace(it.toString()) }
         return results
     }
 
@@ -33,20 +33,20 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
         releaseDate = originalReleaseDate?.toString(),
         criticScore = null,
         userScore = null,
-        thumbnailUrl = image?.thumbUrl?.filterEmpty(),
+        thumbnailUrl = image?.thumbUrl?.filterEmptyImage(),
         apiUrl = apiDetailUrl
     )
 
-    override fun download(apiUrl: String, platform: Platform): ProviderData {
-        log.debug("[$platform] Downloading: $apiUrl...")
-        val response = client.fetch(apiUrl)
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData {
+        log.debug { "[$platform] Downloading: $apiUrl..." }
+        val response = client.fetch(apiUrl, account as GiantBombUserAccount)
         assertOk(response.statusCode)
 
         // When result is found - GiantBomb returns a Json object.
         // When result is not found, GiantBomb returns an empty Json array [].
         // So 'results' can contain at most a single value.
         val gameData = response.results.first().toProviderData(apiUrl)
-        log.debug("[$platform] Result: $gameData.")
+        log.debug { "[$platform] Result: $gameData." }
         return gameData
     }
 
@@ -66,14 +66,13 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
             genres = this.genres?.map { it.name } ?: emptyList()
         ),
         imageUrls = ImageUrls(
-            thumbnailUrl = this.image?.thumbUrl?.filterEmpty(),
-            posterUrl = this.image?.superUrl?.filterEmpty(),
-            screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmpty() }
+            thumbnailUrl = this.image?.thumbUrl?.filterEmptyImage(),
+            posterUrl = this.image?.superUrl?.filterEmptyImage(),
+            screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmptyImage() }
         )
     )
 
-    private fun String.filterEmpty(): String? =
-        if (endsWith(gbLogoImage)) null else this
+    private fun String.filterEmptyImage(): String? = if (endsWith(config.noImageFileName)) null else this
 
     private fun assertOk(status: GiantBombClient.Status) {
         if (status != GiantBombClient.Status.ok) {
@@ -84,5 +83,15 @@ class GiantBombProvider @Inject constructor(private val client: GiantBombClient)
     override val id = "GiantBomb"
     override val logo = getResourceAsByteArray("giantbomb.png")
     override val supportedPlatforms = Platform.values().toList()
+    override val defaultOrder = config.defaultOrder
+    override val accountFeature = object : ProviderUserAccountFeature {
+        private val apiKeyField = "Api Key"
+        override val accountUrl = config.accountUrl
+        override val fields = listOf(apiKeyField)
+        override fun createAccount(fields: Map<String, String>) = GiantBombUserAccount(
+            apiKey = fields[apiKeyField]!!
+        )
+    }
+
     override fun toString() = id
 }

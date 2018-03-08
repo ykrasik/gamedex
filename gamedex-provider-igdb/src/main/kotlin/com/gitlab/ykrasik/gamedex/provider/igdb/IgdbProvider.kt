@@ -1,9 +1,7 @@
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
-import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import javax.inject.Inject
@@ -18,20 +16,20 @@ import javax.inject.Singleton
 class IgdbProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
     private val log = logger()
 
-    override fun search(name: String, platform: Platform): List<ProviderSearchResult> {
-        log.debug("[$platform] Searching: '$name'...")
-        val searchResults = client.search(name, platform)
+    override fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
+        log.debug { "[$platform] Searching: '$name'..." }
+        val searchResults = client.search(name, platform, account as IgdbUserAccount)
         val results = searchResults.toProviderSearchResults(name, platform)
-        log.debug("[$platform] Searching: '$name': ${results.size} results.")
-        results.forEach { log.trace("[$platform] $it") }
+        log.debug { "[$platform] Searching: '$name': ${results.size} results." }
+        results.forEach { log.trace { it.toString() } }
         return results
     }
 
-    override fun download(apiUrl: String, platform: Platform): ProviderData {
-        log.debug("[$platform] Downloading: $apiUrl...")
-        val fetchResult = client.fetch(apiUrl)
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData {
+        log.debug { "[$platform] Downloading: $apiUrl..." }
+        val fetchResult = client.fetch(apiUrl, account as IgdbUserAccount)
         val gameData = fetchResult.toProviderData(apiUrl, platform)
-        log.debug("[$platform] Result: $gameData.")
+        log.debug { "[$platform] Result: $gameData." }
         return gameData
     }
 
@@ -53,7 +51,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         releaseDate = releaseDates?.findReleaseDate(platform),
         criticScore = toScore(aggregatedRating, aggregatedRatingCount),
         userScore = toScore(rating, ratingCount),
-        thumbnailUrl = cover?.cloudinaryId?.toImageUrl(thumbnailImageType)
+        thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
     )
 
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
@@ -90,12 +88,12 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         }
     }
 
-    private fun String.toThumbnailUrl() = toImageUrl(thumbnailImageType)
-    private fun String.toPosterUrl() = toImageUrl(posterImageType)
-    private fun String.toScreenshotUrl() = toImageUrl(screenshotImageType)
+    private fun String.toThumbnailUrl() = toImageUrl(config.thumbnailImageType)
+    private fun String.toPosterUrl() = toImageUrl(config.posterImageType)
+    private fun String.toScreenshotUrl() = toImageUrl(config.screenshotImageType)
     private fun String.toImageUrl(type: IgdbImageType) = "${config.baseImageUrl}/t_$type/$this.jpg"
 
-    private enum class IgdbImageType {
+    enum class IgdbImageType {
         micro, // 35 x 35
         micro_2x, // 70 x 70
         thumb, // 90 x 90
@@ -120,11 +118,15 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     override val id = "Igdb"
     override val logo = getResourceAsByteArray("igdb.png")
     override val supportedPlatforms = Platform.values().toList()
-    override fun toString() = id
-
-    private companion object {
-        val thumbnailImageType = IgdbImageType.thumb_2x
-        val posterImageType = IgdbImageType.screenshot_huge
-        val screenshotImageType = IgdbImageType.screenshot_huge
+    override val defaultOrder = config.defaultOrder
+    override val accountFeature = object : ProviderUserAccountFeature {
+        private val apiKeyField = "Api Key"
+        override val accountUrl = config.accountUrl
+        override val fields = listOf(apiKeyField)
+        override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
+            apiKey = fields[apiKeyField]!!
+        )
     }
+
+    override fun toString() = id
 }

@@ -6,10 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.util.EnumIdConverter
-import com.gitlab.ykrasik.gamedex.util.IdentifiableEnum
-import com.gitlab.ykrasik.gamedex.util.fromJson
-import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.*
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,25 +21,25 @@ import javax.inject.Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform): SearchResponse {
-        val response = getRequest(config.endpoint,
+    open fun search(name: String, platform: Platform, account: GiantBombUserAccount): SearchResponse {
+        val response = getRequest(config.endpoint, account,
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFieldsStr
         )
-        log.trace("[$platform] Search 'name': ${response.text}")
+        log.trace { "[$platform] Search '$name': ${response.text}" }
         return response.fromJson()
     }
 
-    open fun fetch(apiUrl: String): DetailsResponse {
-        val response = getRequest(apiUrl, "field_list" to fetchDetailsFieldsStr)
-        log.trace("Fetch '$apiUrl': ${response.text}")
+    open fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse {
+        val response = getRequest(apiUrl, account, "field_list" to fetchDetailsFieldsStr)
+        log.trace { "Fetch '$apiUrl': ${response.text}" }
         return response.fromJson()
     }
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
-    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = mapOf("api_key" to config.apiKey, "format" to "json", *parameters)
+    private fun getRequest(path: String, account: GiantBombUserAccount, vararg parameters: Pair<String, String>) = khttp.get(path,
+        params = mapOf("api_key" to account.apiKey, "format" to "json", *parameters)
     )
 
     private companion object {
@@ -85,7 +82,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val statusCode: Status,
 
         // When result is found - GiantBomb returns a Json object. When result is not found, GiantBomb returns an empty Json array []. Annoying.
-        @JsonFormat(with = arrayOf(JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY))
+        @JsonFormat(with = [(JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)])
         val results: List<DetailsResult>
     )
 

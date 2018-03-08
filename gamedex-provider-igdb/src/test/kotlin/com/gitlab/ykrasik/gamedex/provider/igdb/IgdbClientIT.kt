@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.GamedexException
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
@@ -27,7 +28,7 @@ class IgdbClientIT : ScopedWordSpec() {
             "search by name & platform".inScope(Scope()) {
                 server.anySearchRequest() willReturn listOf(searchResult)
 
-                client.search(name, platform) shouldBe listOf(searchResult)
+                client.search(name, platform, account) shouldBe listOf(searchResult)
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/"))
@@ -44,7 +45,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
-                    client.search(name, platform)
+                    client.search(name, platform, account)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
@@ -54,7 +55,7 @@ class IgdbClientIT : ScopedWordSpec() {
             "fetch by url".inScope(Scope()) {
                 server.aFetchRequest(id) willReturn detailsResult
 
-                client.fetch(detailUrl) shouldBe detailsResult
+                client.fetch(detailUrl, account) shouldBe detailsResult
 
                 server.verify(
                     getRequestedFor(urlPathEqualTo("/$id"))
@@ -68,7 +69,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 server.aFetchRequest(id) willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
-                    client.fetch(detailUrl)
+                    client.fetch(detailUrl, account)
                 }
                 e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
             }
@@ -119,12 +120,18 @@ class IgdbClientIT : ScopedWordSpec() {
 
         private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
 
+        val account = IgdbUserAccount(apiKey = apiKey)
+
         val client = IgdbClient(IgdbConfig(
             endpoint = baseUrl,
             baseImageUrl = baseImageUrl,
-            apiKey = apiKey,
+            accountUrl = "",
             maxSearchResults = maxSearchResults,
-            platforms = mapOf(platform to platformId),
+            thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
+            posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+            defaultOrder = ProviderOrderPriorities.default,
+            platforms = mapOf(platform.toString() to platformId),
             genres = emptyMap()
         ))
     }

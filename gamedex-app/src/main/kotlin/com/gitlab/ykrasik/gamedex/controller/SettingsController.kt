@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.controller
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.core.JsonGenerator.Feature.IGNORE_UNKNOWN
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.datatype.joda.JodaModule
@@ -13,9 +14,13 @@ import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
+import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
 import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTimeZone
 import tornadofx.Controller
 import tornadofx.FileChooserMode
@@ -36,13 +41,48 @@ class SettingsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val persistenceService: PersistenceService,
-    private val settings: GeneralSettings
+    private val generalSettings: GeneralSettings,
+    private val providerSettings: ProviderSettings
 ) : Controller() {
+    private val logger = logger()
 
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .registerModule(JodaModule())
         .configure(WRITE_DATES_AS_TIMESTAMPS, true)
+        .configure(IGNORE_UNKNOWN, true)
+
+    fun providerSettings(providerId: ProviderId) = providerSettings[providerId]
+    fun setProviderEnabled(providerId: ProviderId, enable: Boolean) {
+        providerSettings.modify(providerId) { copy(enable = enable) }
+    }
+
+    fun showSettingsMenu() {
+        // TODO: Backup all current settings before
+        val accept = SettingsFragment().show()
+        if (!accept) {
+            // TODO: Restore settings
+        }
+    }
+
+    suspend fun validateAndUseAccount(provider: GameProvider, account: Map<String, String>): Boolean = withContext(CommonPool) {
+        val newAccount = provider.accountFeature!!.createAccount(account)
+        val valid = validate(provider, newAccount)
+        if (valid) {
+            providerSettings.modify(provider.id) { copy(account = account) }
+        }
+        valid
+    }
+
+    private fun validate(provider: GameProvider, account: ProviderUserAccount): Boolean = try {
+        logger.info { "[${provider.id}] Validating: $account" }
+        provider.search("TestSearchToVerifyAccount", Platform.pc, account)
+        logger.info { "[${provider.id}] Valid!" }
+        true
+    } catch (e: Exception) {
+        logger.warn("[${provider.id}] Invalid!", e)
+        false
+    }
 
     fun exportDatabase() {
         val dir = browseDirectory() ?: return
@@ -64,21 +104,22 @@ class SettingsController @Inject constructor(
     }
 
     private fun browseDirectory(): File? {
-        val dir = chooseDirectory("Choose database export directory...", initialDirectory = settings.exportDbDirectory) ?: return null
-        settings.exportDbDirectory = dir
+        val dir = chooseDirectory("Choose database export directory...", initialDirectory = generalSettings.exportDbDirectory)
+            ?: return null
+        generalSettings.exportDbDirectory = dir
         return dir
     }
 
     private fun browseFile(mode: FileChooserMode): File? {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
-            initialDirectory = settings.exportDbDirectory
+            initialDirectory = generalSettings.exportDbDirectory
             initialFileName = "db.json"
         }
         return file.firstOrNull()
     }
 
     inner class ExportDatabaseTask(private val file: File) : Task<Unit>("Exporting Database...") {
-        suspend override fun doRun() {
+        override suspend fun doRun() {
             val libraries = libraryRepository.libraries.map { it.toPortable() }
             val games = gameRepository.games.sortedBy { it.name }.map { it.toPortable() }
 
@@ -95,7 +136,7 @@ class SettingsController @Inject constructor(
     inner class ImportDatabaseTask(private val file: File) : Task<Unit>("Importing Database...") {
         private var importedGames = 0
 
-        suspend override fun doRun() {
+        override suspend fun doRun() {
             val portableDb = objectMapper.readValue(file, PortableDb::class.java)
             persistenceService.dropDb()
             libraryRepository.invalidate()
@@ -275,11 +316,11 @@ class SettingsController @Inject constructor(
         excludedProviders = excludedProviders
     )
 
-    private fun GameDataOverride.toPortable() = when(this)  {
+    private fun GameDataOverride.toPortable() = when (this) {
         is GameDataOverride.Provider -> PortableGameDataOverride.Provider(provider)
         is GameDataOverride.Custom -> PortableGameDataOverride.Custom(data)
     }
-    
+
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
         JsonSubTypes.Type(value = PortableGameDataOverride.Provider::class, name = "provider"),

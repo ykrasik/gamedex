@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.util.now
+import java.text.DecimalFormat
 
 /**
  * User: ykrasik
@@ -37,7 +38,6 @@ fun randomGame(): Game {
         ),
         library = randomLibrary(),
         gameData = providerData.randomElement().gameData,
-        providerHeaders = randomProviderHeaders(),
         imageUrls = randomImageUrls(),
         folderMetadata = randomFolderMetadata()
     )
@@ -66,11 +66,7 @@ fun randomGameData() = GameData(
 fun GameData.withCriticScore(score: Double?) = copy(criticScore = score?.let { randomScore().copy(score = it, numReviews = 99) })
 fun GameData.withUserScore(score: Double?) = copy(userScore = score?.let { randomScore().copy(score = it, numReviews = 99) })
 
-fun randomScore() = Score(score = rnd.nextDouble() * 100, numReviews = rnd.nextInt(30) + 1)
-
-fun randomProviderHeaders(): List<ProviderHeader> = List(rnd.nextInt(testProviderIds.size)) {
-    randomProviderHeader()
-}
+fun randomScore() = Score(score = DecimalFormat("###.##").format(rnd.nextDouble() * 100).toDouble(), numReviews = rnd.nextInt(30) + 1)
 
 fun randomProviderHeader(id: ProviderId = testProviderIds.randomElement(),
                          apiUrl: String = randomUrl()) = ProviderHeader(

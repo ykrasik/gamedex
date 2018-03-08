@@ -16,7 +16,7 @@ import tornadofx.*
 class FileSizeRuleFragment(rule: Property<Filter.FileSize>) : Fragment() {
     private var textField: TextField by singleAssign()
 
-    private val sizeTextProperty = rule.mapBidirectional({ it!!.target.humanReadable }, { Filter.FileSize(FileSize(it!!)) })
+    private val sizeTextProperty = rule.mapBidirectional({ target.humanReadable }, { Filter.FileSize(FileSize(this)) })
 
     private val viewModel = FileSizeViewModel(sizeTextProperty).apply {
         textProperty.onChange { this@apply.commit() }

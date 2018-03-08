@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.repository
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.GameFactory
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.replaceFirst
@@ -11,6 +10,7 @@ import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.observable
 import tornadofx.onChange
@@ -27,14 +27,18 @@ import javax.inject.Singleton
 class GameRepository @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    settings: ProviderSettings
+    providerRepository: GameProviderRepository
 ) {
     private val log = logger()
 
     val games: ObservableList<Game> = fetchAllGames()
 
     init {
-        settings.changedProperty.onChange { rebuildGames() }
+        providerRepository.enabledProviders.onChange {
+            launch(JavaFx) {
+                rebuildGames()
+            }
+        }
     }
 
     private fun fetchAllGames(): ObservableList<Game> {
@@ -134,11 +138,9 @@ class GameRepository @Inject constructor(
         games.setAll(fetchAllGames())
     }
 
-    suspend fun softInvalidate() = withContext(JavaFx) {
-        rebuildGames()
-    }
+    suspend fun softInvalidate() = rebuildGames()
 
-    private fun rebuildGames() {
+    private suspend fun rebuildGames() = withContext(JavaFx) {
         this.games.setAll(this.games.map { it.rawGame.toGame() }.observable())
     }
 

@@ -166,6 +166,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
         val platform = randomEnum<Platform>()
         val name = randomName()
         val apiDetailUrl = randomUrl()
+        val account = GiantBombUserAccount(apiKey = randomString())
 
         fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
@@ -190,22 +191,23 @@ class GiantBombProviderTest : ScopedWordSpec() {
             givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.ok, results), name)
 
         fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
-            `when`(client.search(name, platform)).thenReturn(response)
+            `when`(client.search(name, platform, account)).thenReturn(response)
         }
 
         fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
             givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.ok, listOf(result)), apiUrl)
 
         fun givenClientFetchReturns(response: GiantBombClient.DetailsResponse, apiUrl: String = apiDetailUrl) {
-            `when`(client.fetch(apiUrl)).thenReturn(response)
+            `when`(client.fetch(apiUrl, account)).thenReturn(response)
         }
 
-        fun search(name: String = this.name) = provider.search(name, platform)
+        fun search(name: String = this.name) = provider.search(name, platform, account)
 
-        fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform)
+        fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform, account)
 
+        private val config = GiantBombConfig("", "", "", ProviderOrderPriorities.default, emptyMap())
         private val client = mock<GiantBombClient>()
-        val provider = GiantBombProvider(client)
+        val provider = GiantBombProvider(config, client)
 
         fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
             override fun test(value: List<ProviderSearchResult>): Result {

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.trace
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,32 +19,32 @@ import javax.inject.Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform): List<SearchResult> {
-        val response = getRequest("${config.endpoint}/",
+    open fun search(name: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> {
+        val response = getRequest("${config.endpoint}/", account,
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
             "limit" to config.maxSearchResults.toString(),
             "fields" to searchFieldsStr
         )
-        log.trace("[$platform] Search 'name': ${response.text}")
+        log.trace { "[$platform] Search '$name': ${response.text}" }
         return response.listFromJson()
     }
 
-    open fun fetch(url: String): DetailsResult {
-        val response = getRequest(url,
+    open fun fetch(url: String, account: IgdbUserAccount): DetailsResult {
+        val response = getRequest(url, account,
             "fields" to fetchDetailsFieldsStr
         )
-        log.trace("Fetch '$url': ${response.text}")
+        log.trace { "Fetch '$url': ${response.text}" }
 
         // IGDB returns a list, even though we're fetching by id :/
         return response.listFromJson<DetailsResult> { parseError(it) }.first()
     }
 
-    private fun getRequest(path: String, vararg parameters: Pair<String, String>) = khttp.get(path,
+    private fun getRequest(path: String, account: IgdbUserAccount, vararg parameters: Pair<String, String>) = khttp.get(path,
         params = parameters.toMap(),
         headers = mapOf(
             "Accept" to "application/json",
-            "user-key" to config.apiKey
+            "user-key" to account.apiKey
         )
     )
 
