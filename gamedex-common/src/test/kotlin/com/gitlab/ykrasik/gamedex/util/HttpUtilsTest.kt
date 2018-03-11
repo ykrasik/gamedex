@@ -10,7 +10,7 @@ import io.kotlintest.specs.StringSpec
 class HttpUtilsTest : StringSpec() {
     init {
         "Stream download" {
-            repeat(5) {
+            repeat(2) {
                 var chunks = 0
                 val bytes = download("http://www.giantbomb.com/api/image/scale_avatar/2739447-assassins-creed-unity-china-chronicles-1.jpg", stream = true) { downloaded, total ->
                     chunks += 1

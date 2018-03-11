@@ -114,7 +114,7 @@ class GiantBombClientIT : ScopedWordSpec() {
             noImageFileName = "",
             accountUrl = "",
             defaultOrder = ProviderOrderPriorities.default,
-            platforms = mapOf(platform.toString() to platformId)
+            platforms = mapOf(platform.name to platformId)
         ))
     }
 

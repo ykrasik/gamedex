@@ -318,7 +318,7 @@ class IgdbProviderTest : ScopedWordSpec() {
             posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
             screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
             defaultOrder = ProviderOrderPriorities.default,
-            platforms = mapOf(platform.toString() to platformId),
+            platforms = mapOf(platform.name to platformId),
             genres = mapOf(genreId.toString() to genre)
         ), client)
 
