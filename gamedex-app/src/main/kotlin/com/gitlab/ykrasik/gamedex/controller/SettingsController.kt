@@ -16,7 +16,7 @@ import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
+import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -45,6 +45,8 @@ class SettingsController @Inject constructor(
 ) : Controller() {
     private val logger = logger()
 
+    private val settingsView: SettingsView by inject()
+
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .registerModule(JodaModule())
@@ -59,7 +61,7 @@ class SettingsController @Inject constructor(
     fun showSettingsMenu() {
         settings.saveSnapshot()
         try {
-            val accept = SettingsFragment().show()
+            val accept = settingsView.show()
             if (accept) {
                 settings.commitSnapshot()
             } else {

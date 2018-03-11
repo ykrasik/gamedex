@@ -146,6 +146,11 @@ subprojects {
         kotlinOptions.apiVersion = ktlin.majorV
         kotlinOptions.languageVersion = ktlin.majorV
     }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.apiVersion = ktlin.majorV
+        kotlinOptions.languageVersion = ktlin.majorV
+    }
     kotlin {
         experimental {
             coroutines 'enable'

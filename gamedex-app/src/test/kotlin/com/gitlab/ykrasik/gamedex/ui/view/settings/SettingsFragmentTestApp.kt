@@ -9,7 +9,7 @@ import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
  */
 object SettingsFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        println("Result: " + SettingsFragment().show())
+        println("Result: " + SettingsView().show())
     }
 
     @JvmStatic fun main(args: Array<String>) {}

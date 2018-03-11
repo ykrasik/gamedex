@@ -3,9 +3,11 @@ package com.gitlab.ykrasik.gamedex.ui.view.settings
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.ProviderUserAccountFeature
 import com.gitlab.ykrasik.gamedex.controller.SettingsController
+import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
+import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.paint.Color
@@ -39,10 +41,16 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
 
     override val root = vbox {
         hbox {
+            alignment = Pos.CENTER_LEFT
+            paddingRight = 10
+            paddingBottom = 10
+            label(provider.id) {
+                addClass(Style.providerLabel)
+            }
             spacer()
-            label(provider.id) { addClass(Style.providerLabel) }
-            spacer()
+            children += provider.logoImage.toImageView(height = 80, width = 160)
         }
+        separator()
         stackpane {
             form {
                 disableWhen { checking }
@@ -79,6 +87,11 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 provider.accountFeature?.let { accountFeature ->
                     fieldset("Account") {
                         accountFields(accountFeature)
+                        field("Create") {
+                            hyperlink(accountFeature.accountUrl) {
+                                setOnAction { accountFeature.accountUrl.browseToUrl() }
+                            }
+                        }
                     }
                 }
             }
@@ -110,6 +123,7 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
             jfxButton("Verify Account") {
                 addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, Style.verifyAccountButton)
                 disableWhen { stateProperty.isEqualTo(State.Empty) }
+                isDefaultButton = true
                 setOnAction {
                     launch(JavaFx) {
                         checking.value = true
@@ -128,6 +142,16 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 }
             }
         }
+    }
+
+    override fun onDock() {
+        state = when {
+            !accountRequired -> State.NotRequired
+            currentAccount.any { it.value.isEmpty() } -> State.Empty
+            settings.account != null -> State.Valid
+            else -> State.Unverified
+        }
+        lastVerifiedAccount = settings.account ?: emptyMap()
     }
 
     private enum class State {

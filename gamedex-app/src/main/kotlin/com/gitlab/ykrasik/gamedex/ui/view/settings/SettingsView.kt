@@ -8,8 +8,12 @@ import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.ui.toImageView
 import com.gitlab.ykrasik.gamedex.ui.verticalSeparator
+import com.jfoenix.controls.JFXToggleNode
+import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
+import javafx.scene.control.Toggle
 import javafx.scene.text.FontWeight
 import javafx.stage.Modality
 import tornadofx.*
@@ -19,8 +23,7 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-// TODO: This looks more like a Screen
-class SettingsFragment : Fragment("Settings") {
+class SettingsView : View("Settings") {
     private val generalSettingsView: GeneralSettingsView by inject()
     private val gameSettingsView: GameSettingsView by inject()
     private val providerOrderView: ProviderOrderSettingsView by inject()
@@ -29,7 +32,11 @@ class SettingsFragment : Fragment("Settings") {
 
     private var tabPane: TabPane by singleAssign()
 
+    private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
+
     private var accept = false
+    private val viewProperty = "view"
+    private val tabProperty = "tab"
 
     override val root = borderpane {
         top {
@@ -38,7 +45,10 @@ class SettingsFragment : Fragment("Settings") {
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { setOnAction { close() } }
+                cancelButton {
+                    isCancelButton = true
+                    setOnAction { close() }
+                }
             }
         }
         center {
@@ -49,33 +59,22 @@ class SettingsFragment : Fragment("Settings") {
                 paddingAll = 5.0
                 vbox(spacing = 5.0) {
                     togglegroup {
+                        selectedToggleProperty = selectedToggleProperty()
                         selectedToggleProperty().addListener { _, oldValue, newValue ->
                             // Disallow de-selection.
                             if (newValue == null) {
                                 selectToggle(oldValue)
                             } else {
-                                tabPane.selectionModel.select(newValue.userData as Tab)
+                                (newValue.properties[viewProperty] as UIComponent).onDock()
+                                tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
-                        jfxToggleNode(generalSettingsView.title, generalSettingsView.icon) {
-                            addClass(CommonStyle.fillAvailableWidth)
-                            userData = tabPane.tab(generalSettingsView)
-                            isSelected = true
-                        }
-                        separator()
-                        jfxToggleNode(gameSettingsView.title, gameSettingsView.icon) {
-                            addClass(CommonStyle.fillAvailableWidth)
-                            userData = tabPane.tab(gameSettingsView)
-                        }
-                        separator()
-                        label("Provider") { addClass(Style.navigationLabel) }
-                        jfxToggleNode(providerOrderView.title, providerOrderView.icon) {
-                            addClass(CommonStyle.fillAvailableWidth)
-                            userData = tabPane.tab(providerOrderView)
-                        }
+                        entry(generalSettingsView).apply { isSelected = true }
+                        entry(gameSettingsView)
+                        entry(providerOrderView)
                         providerRepository.allProviders.forEach { provider ->
-                            jfxToggleNode {
-                                addClass(CommonStyle.fillAvailableWidth)
+                            val view = ProviderUserSettingsFragment(provider)
+                            entry(view) {
                                 graphic = hbox {
                                     addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
                                     children += provider.logoImage.toImageView {
@@ -88,7 +87,6 @@ class SettingsFragment : Fragment("Settings") {
                                     }
                                     label(provider.id)
                                 }
-                                userData = tabPane.tab(ProviderUserSettingsFragment(provider))
                             }
                         }
                         separator()
@@ -99,8 +97,16 @@ class SettingsFragment : Fragment("Settings") {
         }
     }
 
+    private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
+        addClass(CommonStyle.fillAvailableWidth)
+        properties += viewProperty to component
+        properties += tabProperty to tabPane.tab(component)
+        op()
+    }
+
     fun show(): Boolean {
-        openWindow(block = true, modality = Modality.WINDOW_MODAL)
+        (selectedToggleProperty.value.properties[viewProperty] as UIComponent).onDock()
+        openWindow(block = true, modality = Modality.APPLICATION_MODAL)
         return accept
     }
 
