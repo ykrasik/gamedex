@@ -10,8 +10,8 @@ import javax.inject.Singleton
  * Time: 09:28
  */
 @Singleton
-class PreloaderSettings {
-    private val repo = SettingsRepo("preloader") {
+class PreloaderSettings : UserSettings() {
+    override val repo = SettingsRepo("preloader") {
         Data(
             diComponents = 24
         )

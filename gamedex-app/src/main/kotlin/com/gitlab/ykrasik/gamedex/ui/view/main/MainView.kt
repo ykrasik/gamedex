@@ -60,7 +60,7 @@ class MainView : View("GameDex") {
             }
             center {
                 tabPane = tabpane {
-                    addClass(CommonStyle.tabbedNavigation)
+                    addClass(CommonStyle.hiddenTabPaneHeader)
 
                     previousScreen = screenTab(gameScreen)
                     screenTab(reportsScreen)
@@ -98,7 +98,10 @@ class MainView : View("GameDex") {
 
         separator()
 
-        navigationButton("Settings", Theme.Icon.settings()) { settingsController.showSettingsMenu() }
+        navigationButton("Settings", Theme.Icon.settings()) { settingsController.showSettingsMenu() }.apply {
+            shortcut("ctrl+o")
+            tooltip("Settings (ctrl+o)")
+        }
 
         separator()
 

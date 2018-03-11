@@ -17,8 +17,8 @@ import javax.inject.Singleton
  * Time: 19:08
  */
 @Singleton
-class GameSettings {
-    private val repo = SettingsRepo("game") {
+class GameSettings : UserSettings() {
+    override val repo = SettingsRepo("game") {
         Data(
             displayType = DisplayType.wall,
             platform = Platform.pc,

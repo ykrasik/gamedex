@@ -3,6 +3,7 @@ package com.gitlab.ykrasik.gamedex.settings
 import com.gitlab.ykrasik.gamedex.GameProvider
 import com.gitlab.ykrasik.gamedex.ProviderId
 import com.gitlab.ykrasik.gamedex.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.ui.map
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.Modifier
 import tornadofx.getValue
@@ -16,8 +17,8 @@ import javax.inject.Singleton
  * Time: 12:48
  */
 @Singleton
-class ProviderSettings @Inject constructor(private val providers: MutableSet<GameProvider>) {
-    private val repo = SettingsRepo("provider") {
+class ProviderSettings @Inject constructor(private val providers: MutableSet<GameProvider>) : UserSettings() {
+    override val repo = SettingsRepo("provider") {
         val defaultSearchOrder = byPriority { search }
         val defaultNameOrder = byPriority { name }
         val defaultDescriptionOrder = byPriority { description }
@@ -96,6 +97,7 @@ class ProviderSettings @Inject constructor(private val providers: MutableSet<Gam
     private fun ProviderUserSettings.withOrder(modifier: ProviderOrderPriorities.() -> ProviderOrderPriorities) = copy(order = modifier(order))
 
     operator fun get(providerId: ProviderId) = providerSettings[providerId]!!
+    fun providerSettingsProperty(providerId: ProviderId) = providerSettingsProperty.map { it!![providerId]!! }
     operator fun set(providerId: ProviderId, settings: ProviderUserSettings) {
         providerSettings += providerId to settings
     }

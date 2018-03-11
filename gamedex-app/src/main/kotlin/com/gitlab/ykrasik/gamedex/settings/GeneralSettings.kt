@@ -12,8 +12,8 @@ import javax.inject.Singleton
  * Time: 19:10
  */
 @Singleton
-class GeneralSettings {
-    private val repo = SettingsRepo("general") {
+class GeneralSettings : UserSettings() {
+    override val repo = SettingsRepo("general") {
         Data(
             prevDirectory = null,
             exportDbDirectory = null,

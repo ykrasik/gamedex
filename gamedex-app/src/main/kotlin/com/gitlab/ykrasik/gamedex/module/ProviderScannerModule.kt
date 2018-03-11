@@ -3,7 +3,6 @@ package com.gitlab.ykrasik.gamedex.module
 import com.gitlab.ykrasik.gamedex.util.ClassPathScanner
 import com.google.inject.AbstractModule
 
-
 /**
  * User: ykrasik
  * Date: 30/05/2017

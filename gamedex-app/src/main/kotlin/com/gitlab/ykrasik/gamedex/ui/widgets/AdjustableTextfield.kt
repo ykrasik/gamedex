@@ -1,10 +1,10 @@
 package com.gitlab.ykrasik.gamedex.ui.widgets
 
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.mapBidirectionalString
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.jfoenix.controls.JFXButton
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
 import javafx.event.EventTarget
 import tornadofx.*
@@ -24,11 +24,7 @@ inline fun <reified T : Number> EventTarget.adjustableTextField(property: Proper
             else -> throw IllegalArgumentException("Unsupported type: ${T::class}")
         }
     }
-    val textStringProperty = SimpleStringProperty(stringify(property.value.toDouble()))
-    textStringProperty.onChange {
-        // TODO: For some really strange reason, doing textStringProperty.map { ... } doesn't always fire change events.
-        property.value = parse(it!!)
-    }
+    val textStringProperty = property.mapBidirectionalString({ stringify(this.toDouble()) }, { parse(this) })
 
     val viewModel = AdjustableTextfieldViewModel(textStringProperty)
     viewModel.textProperty.onChange { viewModel.commit() }

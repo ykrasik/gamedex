@@ -13,8 +13,8 @@ import javax.inject.Singleton
  * Time: 19:05
  */
 @Singleton
-class GameWallSettings {
-    private val repo = SettingsRepo("wall") {
+class GameWallSettings : UserSettings() {
+    override val repo = SettingsRepo("wall") {
         Data(
             cell = CellSettings(
                 imageDisplayType = ImageDisplayType.stretch,

@@ -20,7 +20,9 @@ import kotlin.reflect.KClass
 class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
     private val file = "conf/$name.json".toFile()
 
-    private val initialData: T = run {
+    private var enableWrite = true
+
+    private val dataProperty = run {
         val data = if (file.exists()) {
             try {
                 log.trace { "[$file] Reading settings file..." }
@@ -35,14 +37,18 @@ class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
             log.trace { "[$file] Settings file doesn't exist. Creating default..." }
             null
         }
-        data ?: default().apply { update(this) }
-    }
-
-    private val dataProperty = initialData.toProperty().apply {
-        onChange { update(it!!) }
+        val property = (data ?: default().apply { update(this) }).toProperty()
+        property.onChange {
+            // TODO: If all settings update access is done through SettingsController, there's no need for this listener - controller flushes itself.
+            if (enableWrite) {
+                update(it!!)
+            }
+        }
+        property
     }
     private var data: T by dataProperty
 
+    // TODO: Consider making all these properties ThreadAware by default.
     fun <R> property(extractor: Extractor<T, R>, modifier: Modifier<T, R>): ObjectProperty<R> =
         dataProperty.mapBidirectional(extractor) { data.modifier(this) }
 
@@ -65,6 +71,32 @@ class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
 
     fun onChange(f: () -> Unit) = dataProperty.onChange { f() }
     fun perform(f: () -> Unit) = dataProperty.perform { f() }
+
+    private var snapshot: T? = null
+
+    fun saveSnapshot() {
+        snapshot = data
+    }
+
+    fun restoreSnapshot() {
+        data = snapshot!!
+    }
+
+    fun clearSnapshot() {
+        snapshot = null
+    }
+
+    fun disableWrite() {
+        enableWrite = false
+    }
+
+    fun enableWrite() {
+        enableWrite = true
+    }
+
+    fun flush() {
+        update(data)
+    }
 
     companion object {
         private val dispatcher = Executors.newSingleThreadScheduledExecutor {

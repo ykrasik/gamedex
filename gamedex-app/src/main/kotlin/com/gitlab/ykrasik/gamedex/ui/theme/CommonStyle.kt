@@ -14,7 +14,7 @@ import tornadofx.*
  */
 class CommonStyle : Stylesheet() {
     companion object {
-        val tabbedNavigation by cssclass()
+        val hiddenTabPaneHeader by cssclass()
 
         val fillAvailableWidth by cssclass()
         val centered by cssclass()
@@ -47,7 +47,7 @@ class CommonStyle : Stylesheet() {
     }
 
     init {
-        tabbedNavigation {
+        hiddenTabPaneHeader {
             tabMaxHeight = 0.px
 
             tabHeaderArea {

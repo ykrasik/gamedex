@@ -13,8 +13,8 @@ import javax.inject.Singleton
  * Time: 11:33
  */
 @Singleton
-class ReportSettings {
-    private val repo = SettingsRepo("report") {
+class ReportSettings : UserSettings() {
+    override val repo = SettingsRepo("report") {
         Data(
             reports = listOf(
                 ReportConfig("Name Diff", Filter.NameDiff(), excludedGames = emptyList()),

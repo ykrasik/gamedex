@@ -33,19 +33,17 @@ fun <T> ObservableValue<T>.printChanges(id: String) {
 
 fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
 
-fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> {
+fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> = map(f) { SimpleObjectProperty(it) }
+fun <T> ObservableValue<T>.mapString(f: (T?) -> String): StringProperty = map(f) { SimpleStringProperty(it) }
+fun <T> ObservableValue<T>.mapBoolean(f: (T?) -> Boolean): BooleanProperty = map(f) { SimpleBooleanProperty(it) }
+fun <T> ObservableValue<T>.mapInt(f: (T?) -> Int): IntegerProperty = map(f) { SimpleIntegerProperty(it) }
+fun <T> ObservableValue<T>.mapDouble(f: (T?) -> Double): DoubleProperty = map(f) { SimpleDoubleProperty(it) }
+
+private fun <T, R, P : Property<in R>> ObservableValue<T>.map(f: (T?) -> R, factory: (R) -> P): P {
     fun doMap() = f(this.value)
 
-    val property = SimpleObjectProperty(doMap())
-    this.onChange { property.set(doMap()) }
-    return property
-}
-
-fun <T> ObservableValue<T>.mapBoolean(f: (T?) -> Boolean): BooleanProperty {
-    fun doMap() = f(this.value)
-
-    val property = SimpleBooleanProperty(doMap())
-    this.onChange { property.set(doMap()) }
+    val property = factory(doMap())
+    this.onChange { property.value = doMap() }
     return property
 }
 

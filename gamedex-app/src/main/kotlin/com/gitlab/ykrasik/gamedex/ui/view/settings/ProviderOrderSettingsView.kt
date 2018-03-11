@@ -5,6 +5,7 @@ import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
 import com.gitlab.ykrasik.gamedex.ui.perform
+import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import com.gitlab.ykrasik.gamedex.ui.toImageView
 import javafx.beans.property.ObjectProperty
 import javafx.geometry.Pos
@@ -19,13 +20,13 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:17
  */
-class ProviderOrderSettingsView : View("Provider Order Settings") {
+class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
     private val providerRepository: GameProviderRepository by di()
     private val settings: ProviderSettings by di()
 
     override val root = form {
         // FIXME: Forms take a long time to load!!!
-        fieldset("Provider Order") {
+        fieldset("Order Priorities") {
             listOf(
                 "Search" to settings.searchOrderProperty,
                 "Name" to settings.nameOrderProperty,

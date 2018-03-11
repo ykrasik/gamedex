@@ -13,13 +13,13 @@ import com.gitlab.ykrasik.gamedex.repository.AddGameRequest
 import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
-import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
-import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
+import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsFragment
 import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTimeZone
 import tornadofx.Controller
@@ -41,8 +41,7 @@ class SettingsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val persistenceService: PersistenceService,
-    private val generalSettings: GeneralSettings,
-    private val providerSettings: ProviderSettings
+    private val settings: AllSettings
 ) : Controller() {
     private val logger = logger()
 
@@ -52,16 +51,23 @@ class SettingsController @Inject constructor(
         .configure(WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(IGNORE_UNKNOWN, true)
 
-    fun providerSettings(providerId: ProviderId) = providerSettings[providerId]
+    fun providerSettings(providerId: ProviderId) = settings.provider[providerId]
     fun setProviderEnabled(providerId: ProviderId, enable: Boolean) {
-        providerSettings.modify(providerId) { copy(enable = enable) }
+        settings.provider.modify(providerId) { copy(enable = enable) }
     }
 
     fun showSettingsMenu() {
-        // TODO: Backup all current settings before
-        val accept = SettingsFragment().show()
-        if (!accept) {
-            // TODO: Restore settings
+        settings.saveSnapshot()
+        try {
+            val accept = SettingsFragment().show()
+            if (accept) {
+                settings.commitSnapshot()
+            } else {
+                settings.restoreSnapshot()
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating settings!", e)
+            settings.restoreSnapshot()
         }
     }
 
@@ -69,7 +75,9 @@ class SettingsController @Inject constructor(
         val newAccount = provider.accountFeature!!.createAccount(account)
         val valid = validate(provider, newAccount)
         if (valid) {
-            providerSettings.modify(provider.id) { copy(account = account) }
+            withContext(JavaFx) {
+                settings.provider.modify(provider.id) { copy(account = account) }
+            }
         }
         valid
     }
@@ -104,15 +112,15 @@ class SettingsController @Inject constructor(
     }
 
     private fun browseDirectory(): File? {
-        val dir = chooseDirectory("Choose database export directory...", initialDirectory = generalSettings.exportDbDirectory)
+        val dir = chooseDirectory("Choose database export directory...", initialDirectory = settings.general.exportDbDirectory)
             ?: return null
-        generalSettings.exportDbDirectory = dir
+        settings.general.exportDbDirectory = dir
         return dir
     }
 
     private fun browseFile(mode: FileChooserMode): File? {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = mode) {
-            initialDirectory = generalSettings.exportDbDirectory
+            initialDirectory = settings.general.exportDbDirectory
             initialFileName = "db.json"
         }
         return file.firstOrNull()
