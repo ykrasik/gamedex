@@ -14,7 +14,29 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameWallSettings {
-    private val repo = SettingsRepo("wall") { Data() }
+    private val repo = SettingsRepo("wall") {
+        Data(
+            cell = CellSettings(
+                imageDisplayType = ImageDisplayType.stretch,
+                fixedSize = true,
+                showBorder = true,
+                width = 166.0,
+                height = 166.0,
+                horizontalSpacing = 3.0,
+                verticalSpacing = 3.0
+            ),
+            metaTag = OverlaySettings(
+                show = true,
+                position = Pos.BOTTOM_CENTER,
+                fillWidth = true
+            ),
+            version = OverlaySettings(
+                show = true,
+                position = Pos.TOP_RIGHT,
+                fillWidth = true
+            )
+        )
+    }
 
     val cell = CellSettingsAccessor()
     val metaTagOverlay = OverlaySettingsAccessor(Data::metaTag, Data::withMetaTag)
@@ -57,25 +79,25 @@ class GameWallSettings {
     enum class ImageDisplayType { fit, stretch }
 
     data class CellSettings(
-        val imageDisplayType: ImageDisplayType = ImageDisplayType.stretch,
-        val fixedSize: Boolean = true,
-        val showBorder: Boolean = true,
-        val width: Double = 166.0,
-        val height: Double = 166.0,
-        val horizontalSpacing: Double = 3.0,
-        val verticalSpacing: Double = 3.0
+        val imageDisplayType: ImageDisplayType,
+        val fixedSize: Boolean,
+        val showBorder: Boolean,
+        val width: Double,
+        val height: Double,
+        val horizontalSpacing: Double,
+        val verticalSpacing: Double
     )
 
     data class OverlaySettings(
-        val show: Boolean = true,
-        val position: Pos = Pos.BOTTOM_CENTER,
-        val fillWidth: Boolean = true
+        val show: Boolean,
+        val position: Pos,
+        val fillWidth: Boolean
     )
 
     data class Data(
-        val cell: CellSettings = CellSettings(),
-        val metaTag: OverlaySettings = OverlaySettings(),
-        val version: OverlaySettings = OverlaySettings(position = Pos.TOP_RIGHT)
+        val cell: CellSettings,
+        val metaTag: OverlaySettings,
+        val version: OverlaySettings
     ) {
         fun withCell(f: CellSettings.() -> CellSettings) = copy(cell = f(cell))
         fun withMetaTag(f: OverlaySettings.() -> OverlaySettings) = copy(metaTag = f(metaTag))

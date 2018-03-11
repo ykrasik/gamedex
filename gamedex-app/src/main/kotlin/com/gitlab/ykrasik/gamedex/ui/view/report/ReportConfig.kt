@@ -8,7 +8,7 @@ import com.gitlab.ykrasik.gamedex.core.Filter
  * Time: 09:23
  */
 data class ReportConfig(
-    val name: String = "",
-    val filter: Filter = Filter.`true`,
-    val excludedGames: List<Int> = emptyList()
+    val name: String,
+    val filter: Filter,
+    val excludedGames: List<Int>
 )

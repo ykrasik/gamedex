@@ -23,14 +23,16 @@ class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
     private val initialData: T = run {
         val data = if (file.exists()) {
             try {
-                log.trace("[$file] Reading settings file...")
-                file.readJson(klass)
+                log.trace { "[$file] Reading settings file..." }
+                file.readJson(klass).apply {
+                    log.trace { "[$file]: $this" }
+                }
             } catch (e: Exception) {
-                log.error("[$file] Error reading settings!", e)
+                log.error("[$file] Error reading settings! Resetting to default...", e)
                 null
             }
         } else {
-            log.trace("[$file] Settings file doesn't exist.")
+            log.trace { "[$file] Settings file doesn't exist. Creating default..." }
             null
         }
         data ?: default().apply { update(this) }

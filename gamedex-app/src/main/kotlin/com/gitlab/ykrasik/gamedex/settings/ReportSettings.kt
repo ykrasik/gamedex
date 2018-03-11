@@ -14,41 +14,42 @@ import javax.inject.Singleton
  */
 @Singleton
 class ReportSettings {
-    private val repo = SettingsRepo("report") { Data() }
+    private val repo = SettingsRepo("report") {
+        Data(
+            reports = listOf(
+                ReportConfig("Name Diff", Filter.NameDiff(), excludedGames = emptyList()),
+                ReportConfig("Duplications", Filter.Duplications(), excludedGames = emptyList()),
+                ReportConfig("Very Low Score",
+                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not and {
+                        Filter.UserScore(60.0).not and Filter.noUserScore.not
+                    }, excludedGames = emptyList()
+                ),
+                ReportConfig("Low Score",
+                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not or {
+                        Filter.UserScore(60.0).not and Filter.noUserScore.not
+                    }, excludedGames = emptyList()
+                ),
+                ReportConfig("Missing Score",
+                    Filter.noCriticScore or Filter.noUserScore and not {
+                        Filter.noCriticScore and Filter.noUserScore
+                    }, excludedGames = emptyList()
+                ),
+                ReportConfig("No Score",
+                    Filter.noCriticScore and Filter.noUserScore,
+                    excludedGames = emptyList()
+                ),
+                ReportConfig("Missing Providers", not {
+                    Filter.Provider("GiantBomb") and
+                        Filter.Provider("Igdb")
+                }, excludedGames = emptyList())
+            ).associateBy { it.name }
+        )
+    }
 
     val reportsProperty = repo.property(Data::reports) { copy(reports = it) }
     var reports by reportsProperty
 
     data class Data(
-        val reports: Map<String, ReportConfig> = defaultReports
-    ) {
-        companion object {
-            private val defaultReports get() = listOf(
-                ReportConfig("Name Diff", Filter.NameDiff()),
-                ReportConfig("Duplications", Filter.Duplications()),
-                ReportConfig("Very Low Score",
-                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not and {
-                        Filter.UserScore(60.0).not and Filter.noUserScore.not
-                    }
-                ),
-                ReportConfig("Low Score",
-                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not or {
-                        Filter.UserScore(60.0).not and Filter.noUserScore.not
-                    }
-                ),
-                ReportConfig("Missing Score",
-                    Filter.noCriticScore or Filter.noUserScore and not {
-                        Filter.noCriticScore and Filter.noUserScore
-                    }
-                ),
-                ReportConfig("No Score",
-                    Filter.noCriticScore and Filter.noUserScore
-                ),
-                ReportConfig("Missing Providers", not {
-                    Filter.Provider("GiantBomb") and
-                        Filter.Provider("Igdb")
-                })
-            ).associateBy { it.name }
-        }
-    }
+        val reports: Map<String, ReportConfig>
+    )
 }

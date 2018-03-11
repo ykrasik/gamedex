@@ -11,12 +11,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class PreloaderSettings {
-    private val repo = SettingsRepo("preloader") { Data() }
+    private val repo = SettingsRepo("preloader") {
+        Data(
+            diComponents = 24
+        )
+    }
 
     val diComponentsProperty = repo.intProperty(Data::diComponents) { copy(diComponents = it) }
     var diComponents by diComponentsProperty
 
     data class Data(
-        val diComponents: Int = 24
+        val diComponents: Int
     )
 }

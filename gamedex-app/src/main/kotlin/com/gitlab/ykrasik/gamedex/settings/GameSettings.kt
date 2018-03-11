@@ -18,7 +18,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameSettings {
-    private val repo = SettingsRepo("game") { Data() }
+    private val repo = SettingsRepo("game") {
+        Data(
+            displayType = DisplayType.wall,
+            platform = Platform.pc,
+            platformSettings = emptyMap(),
+            sort = Sort(),
+            chooseResults = ChooseResults.chooseIfNonExact,
+            stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
+        )
+    }
 
     val displayTypeProperty = repo.property(Data::displayType) { copy(displayType = it) }
     var displayType by displayTypeProperty

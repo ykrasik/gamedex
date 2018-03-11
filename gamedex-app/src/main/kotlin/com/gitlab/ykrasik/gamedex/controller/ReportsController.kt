@@ -39,7 +39,7 @@ class ReportsController @Inject constructor(
     private val fileSystemOps: FileSystemOps
 ) : Controller() {
     
-    fun addReport() = editReport(ReportConfig())
+    fun addReport() = editReport(ReportConfig(name = "", filter = Filter.`true`, excludedGames = emptyList()))
 
     fun editReport(config: ReportConfig): ReportConfig? =
         updateConfig(config) { ReportConfigFragment(config).show() ?: return null }

@@ -13,7 +13,14 @@ import javax.inject.Singleton
  */
 @Singleton
 class GeneralSettings {
-    private val repo = SettingsRepo("general") { Data() }
+    private val repo = SettingsRepo("general") {
+        Data(
+            prevDirectory = null,
+            exportDbDirectory = null,
+            logFilterLevel = Level.INFO.levelStr,
+            logTail = true
+        )
+    }
 
     val prevDirectoryProperty = repo.property(Data::prevDirectory) { copy(prevDirectory = it) }
     var prevDirectory by prevDirectoryProperty
@@ -28,9 +35,9 @@ class GeneralSettings {
     var logTail by logTailProperty
 
     data class Data(
-        val prevDirectory: File? = null,
-        val exportDbDirectory: File? = null,
-        val logFilterLevel: String = Level.INFO.levelStr,
-        val logTail: Boolean = true
+        val prevDirectory: File?,
+        val exportDbDirectory: File?,
+        val logFilterLevel: String,
+        val logTail: Boolean
     )
 }
