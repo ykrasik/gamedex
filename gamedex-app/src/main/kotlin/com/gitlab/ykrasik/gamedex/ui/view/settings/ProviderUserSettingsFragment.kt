@@ -48,7 +48,10 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 addClass(Style.providerLabel)
             }
             spacer()
-            children += provider.logoImage.toImageView(height = 80, width = 160)
+            children += provider.logoImage.toImageView {
+                fitHeight = 60.0
+                isPreserveRatio = true
+            }
         }
         separator()
         stackpane {
