@@ -1,5 +1,6 @@
 package com.gitlab.ykrasik.gamedex.persistence
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.test.randomFile
@@ -17,7 +18,7 @@ import org.h2.jdbc.JdbcSQLException
 class LibraryPersistenceTest : AbstractPersistenceTest() {
     init {
         "Insert" should {
-            "insert and retrieve a single library".test {
+            "insert and retrieve a single library" test {
                 val path = randomFile()
                 val data = libraryData()
 
@@ -26,17 +27,17 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 library.path shouldBe path
                 library.data shouldBe data
 
-                persistenceService.fetchAllLibraries() shouldBe listOf(library)
+                fetchLibraries() shouldBe listOf(library)
             }
 
-            "insert and retrieve multiple libraries".test {
-                val source1 = insertLibrary()
-                val source2 = insertLibrary()
+            "insert and retrieve multiple libraries" test {
+                val library1 = insertLibrary()
+                val library2 = insertLibrary()
 
-                persistenceService.fetchAllLibraries() shouldBe listOf(source1, source2)
+                fetchLibraries() shouldBe listOf(library1, library2)
             }
 
-            "throw an exception when trying to insert a library at the same path twice".test {
+            "throw an exception when trying to insert a library at the same path twice" test {
                 val path = randomPath()
                 givenLibrary(path = path)
 
@@ -47,42 +48,42 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
         }
 
         "Update" should {
-            "update a library's path & data".test {
+            "update a library's path & data" test {
                 val library = givenLibrary(platform = Platform.pc)
-                val updatedSource = library.copy(
+                val updatedLibrary = library.copy(
                     path = (library.path.toString() + "a").toFile(),
                     data = library.data.copy(platform = Platform.android, name = library.name + "b"))
 
-                persistenceService.updateLibrary(updatedSource)
+                persistenceService.updateLibrary(updatedLibrary)
 
-                persistenceService.fetchAllLibraries() shouldBe listOf(updatedSource)
+                fetchLibraries() shouldBe listOf(updatedLibrary)
             }
 
-            "throw an exception when trying to update a library's path to one that already exists".test {
-                val source1 = givenLibrary()
-                val source2 = givenLibrary()
+            "throw an exception when trying to update a library's path to one that already exists" test {
+                val library1 = givenLibrary()
+                val library2 = givenLibrary()
 
-                val updatedSource = source2.copy(path = source1.path)
+                val updatedLibrary = library2.copy(path = library1.path)
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateLibrary(updatedSource)
+                    persistenceService.updateLibrary(updatedLibrary)
                 }
             }
         }
 
         "Delete" should {
-            "delete existing libraries".test {
+            "delete existing libraries" test {
                 val library1 = givenLibrary()
                 val library2 = givenLibrary()
 
                 persistenceService.deleteLibrary(library1.id)
-                persistenceService.fetchAllLibraries() shouldBe listOf(library2)
+                fetchLibraries() shouldBe listOf(library2)
 
                 persistenceService.deleteLibrary(library2.id)
-                persistenceService.fetchAllLibraries() shouldBe emptyList<Library>()
+                fetchLibraries() shouldBe emptyList<Library>()
             }
 
-            "throw an exception when trying to delete a library that doesn't exist".test {
+            "throw an exception when trying to delete a library that doesn't exist" test {
                 val library = givenLibrary()
 
                 shouldThrow<IllegalArgumentException> {
@@ -90,7 +91,34 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 }
             }
         }
+
+        "BatchDelete" should {
+            "batch delete libraries by id" test {
+                val library1 = givenLibrary()
+                val library2 = givenLibrary()
+                val library3 = givenLibrary()
+                val library4 = givenLibrary()
+
+                persistenceService.deleteLibraries(emptyList()) shouldBe 0
+                fetchLibraries() shouldBe listOf(library1, library2, library3, library4)
+
+                persistenceService.deleteLibraries(listOf(999)) shouldBe 0
+                fetchLibraries() shouldBe listOf(library1, library2, library3, library4)
+
+                persistenceService.deleteLibraries(listOf(library1.id, library3.id, 999)) shouldBe 2
+                fetchLibraries() shouldBe listOf(library2, library4)
+
+                persistenceService.deleteLibraries(listOf(library2.id)) shouldBe 1
+                fetchLibraries() shouldBe listOf(library4)
+
+                persistenceService.deleteLibraries(listOf(library4.id)) shouldBe 1
+                fetchLibraries() shouldBe emptyList<Game>()
+
+                persistenceService.deleteLibraries(listOf(library4.id)) shouldBe 0
+                fetchLibraries() shouldBe emptyList<Game>()
+            }
+        }
     }
 
-    private fun String.test(test: LibraryScope.() -> Unit) = inScope({ LibraryScope() }, test)
+    private infix fun String.test(test: LibraryScope.() -> Unit) = inScope(::LibraryScope, test)
 }

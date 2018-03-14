@@ -28,9 +28,6 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.Controller
-import tornadofx.label
-import tornadofx.listview
-import tornadofx.observable
 import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -160,44 +157,6 @@ class GameController @Inject constructor(
     }
 
     fun scanNewGames() = gameTasks.ScanNewGamesTask().apply { start() }
-
-    fun cleanup() = launch(JavaFx) {
-        val staleData = gameTasks.DetectStaleDataTask().apply { start() }.result.await()
-        if (confirmCleanup(staleData)) {
-            // TODO: Create backup before deleting
-            gameTasks.CleanupStaleDataTask(staleData).apply { start() }
-        }
-    }
-
-    private fun confirmCleanup(staleData: GameTasks.StaleData): Boolean {
-        val (libraries, games) = staleData
-        if (libraries.isEmpty() && games.isEmpty()) return false
-
-        val sb = StringBuilder("Delete ")
-        var needAnd = false
-        if (libraries.isNotEmpty()) {
-            sb.append(libraries.size)
-            sb.append(" stale libraries")
-            needAnd = true
-        }
-        if (games.isNotEmpty()) {
-            if (needAnd) sb.append(" and ")
-            sb.append(games.size)
-            sb.append(" stale games")
-        }
-        sb.append("?")
-
-        return areYouSureDialog(sb.toString()) {
-            if (libraries.isNotEmpty()) {
-                label("Stale Libraries:")
-                listview(libraries.map { it.path }.observable()) { fitAtMost(10) }
-            }
-            if (games.isNotEmpty()) {
-                label("Stale Games:")
-                listview(games.map { it.path }.observable()) { fitAtMost(10) }
-            }
-        }
-    }
 
     fun rediscoverAllGamesWithoutAllProviders() {
         val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }

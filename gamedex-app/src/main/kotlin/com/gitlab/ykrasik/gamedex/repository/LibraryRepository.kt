@@ -4,16 +4,13 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.ui.Task
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.observable
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,11 +23,11 @@ import javax.inject.Singleton
 class LibraryRepository @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    val libraries: ObservableList<Library> = fetchAllLibraries()
+    val libraries: ObservableList<Library> = fetchLibraries()
 
-    private fun fetchAllLibraries(): ObservableList<Library> {
+    private fun fetchLibraries(): ObservableList<Library> {
         log.info("Fetching libraries...")
-        val libraries = persistenceService.fetchAllLibraries()
+        val libraries = persistenceService.fetchLibraries()
         log.info("Fetched ${libraries.size} libraries.")
         return libraries.observable()
     }
@@ -74,27 +71,19 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
         log.info("Deleting '${library.name}': Done.")
     }
 
-    suspend fun deleteAll(libraries: List<Library>, progress: Task.Progress) = withContext(CommonPool) {
-        val deleted = AtomicInteger(0)
+    suspend fun deleteAll(libraries: List<Library>) = withContext(CommonPool) {
+        if (libraries.isEmpty()) return@withContext
 
-        progress.message = "Deleting ${libraries.size} libraries..."
-        libraries.map { library ->
-            async(CommonPool) {
-                persistenceService.deleteLibrary(library.id)
-                progress.progress(deleted.incrementAndGet(), libraries.size)
-            }
-        }.forEach { it.await() }
-        progress.message = "Deleted ${libraries.size} libraries."
+        persistenceService.deleteLibraries(libraries.map { it.id })
 
         withContext(JavaFx) {
-            progress.message = "Updating UI..."
             this.libraries.setAll(this.libraries.filterNot { library -> libraries.any { it.id == library.id } }.observable())
         }
     }
 
     suspend fun invalidate() = withContext(JavaFx) {
         // Re-fetch all libraries from persistence
-        libraries.setAll(fetchAllLibraries())
+        libraries.setAll(fetchLibraries())
     }
 
     operator fun get(id: Int): Library = libraries.find { it.id == id } ?: throw IllegalStateException("No library found for id: $id!")

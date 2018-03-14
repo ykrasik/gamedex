@@ -47,7 +47,12 @@ data class FileSize(val bytes: Long) : Comparable<FileSize> {
         String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
     }
 
+    operator fun plus(other: FileSize): FileSize = FileSize(bytes + other.bytes)
+    operator fun minus(other: FileSize): FileSize = FileSize(bytes - other.bytes)
+
     override fun compareTo(other: FileSize) = bytes.compareTo(other.bytes)
+
+    override fun toString() = humanReadable
 
     companion object {
         private val regex = "([\\d.]+)[\\s]?([KMGTPE]?B)".toRegex(RegexOption.IGNORE_CASE)

@@ -130,6 +130,11 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
                 val image2 = givenImage(game = game, url = url2)
                 val image3 = givenImage(game = game2, url = url3)
 
+                persistenceService.deleteImages(emptyList()) shouldBe 0
+                fetchImage(url1) shouldBe image1
+                fetchImage(url2) shouldBe image2
+                fetchImage(url3) shouldBe image3
+
                 persistenceService.deleteImages(listOf(url1, url3, randomUrl())) shouldBe 2
                 fetchImage(url1) shouldBe null
                 fetchImage(url2) shouldBe image2
@@ -141,12 +146,34 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
                 persistenceService.deleteImages(listOf(url1)) shouldBe 0
             }
 
-            "not do anything on an empty list" test {
-                val url = randomUrl()
-                val image = givenImage(game = game, url = url)
+            @Suppress("UNUSED_VARIABLE")
+            "automatically delete a game's images when the game is deleted" test {
+                val url1 = randomUrl()
+                val url2 = randomUrl()
+                val url3 = randomUrl()
+                val game2 = givenGame()
 
-                persistenceService.deleteImages(emptyList()) shouldBe 0
-                fetchImage(url) shouldBe image
+                val image1 = givenImage(game = game, url = url1)
+                val image2 = givenImage(game = game, url = url2)
+                val image3 = givenImage(game = game2, url = url3)
+
+                persistenceService.deleteGames(listOf(game.id))
+
+                fetchImage(url1) shouldBe null
+                fetchImage(url2) shouldBe null
+                fetchImage(url3) shouldBe image3
+            }
+
+            "automatically delete a game's images when the library the game belongs to is deleted" test {
+                val library2 = givenLibrary()
+                val game2 = givenGame(library = library2)
+                val url = randomUrl()
+
+                givenImage(game = game2, url = url)
+
+                persistenceService.deleteLibraries(listOf(library2.id))
+
+                fetchImage(url) shouldBe null
             }
         }
     }

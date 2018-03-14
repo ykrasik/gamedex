@@ -30,6 +30,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
                           platform: Platform = randomEnum(),
                           name: String = randomName()): Library =
             persistenceService.insertLibrary(path.toFile(), libraryData(platform, name))
+
+        fun fetchLibraries() = persistenceService.fetchLibraries()
     }
 
     open class GameScope : LibraryScope() {
@@ -105,6 +107,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
                        providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
                        userData: UserData? = randomUserData()): RawGame =
             persistenceService.insertGame(metadata, providerData, userData)
+
+        fun fetchGames() = persistenceService.fetchGames()
     }
 
     open class ImageScope : GameScope() {

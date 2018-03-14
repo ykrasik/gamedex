@@ -72,6 +72,11 @@ class SettingsView : View("Settings") {
                         entry(generalSettingsView).apply { isSelected = true }
                         entry(gameSettingsView)
                         entry(providerOrderView)
+                        separator {
+                            paddingTop = 10.0
+                            paddingBottom = 10.0
+                        }
+                        label("Providers") { addClass(Style.navigationLabel) }
                         providerRepository.allProviders.forEach { provider ->
                             val view = ProviderUserSettingsFragment(provider)
                             entry(view) {
@@ -126,7 +131,7 @@ class SettingsView : View("Settings") {
 
         init {
             navigationLabel {
-                fontSize = 18.px
+                fontSize = 14.px
                 fontWeight = FontWeight.BOLD
             }
         }

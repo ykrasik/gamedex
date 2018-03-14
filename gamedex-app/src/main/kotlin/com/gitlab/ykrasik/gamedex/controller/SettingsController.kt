@@ -14,18 +14,20 @@ import com.gitlab.ykrasik.gamedex.repository.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.repository.GameRepository
 import com.gitlab.ykrasik.gamedex.repository.LibraryRepository
 import com.gitlab.ykrasik.gamedex.settings.AllSettings
+import com.gitlab.ykrasik.gamedex.task.DatabaseTasks
 import com.gitlab.ykrasik.gamedex.ui.Task
+import com.gitlab.ykrasik.gamedex.ui.fitAtMost
 import com.gitlab.ykrasik.gamedex.ui.view.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.util.*
+import javafx.beans.binding.BooleanBinding
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTimeZone
-import tornadofx.Controller
-import tornadofx.FileChooserMode
-import tornadofx.chooseDirectory
-import tornadofx.chooseFile
+import tornadofx.*
 import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -41,7 +43,8 @@ class SettingsController @Inject constructor(
     private val gameRepository: GameRepository,
     private val libraryRepository: LibraryRepository,
     private val persistenceService: PersistenceService,
-    private val settings: AllSettings
+    private val settings: AllSettings,
+    private val databaseTasks: DatabaseTasks
 ) : Controller() {
     private val logger = logger()
 
@@ -52,6 +55,8 @@ class SettingsController @Inject constructor(
         .registerModule(JodaModule())
         .configure(WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(IGNORE_UNKNOWN, true)
+
+    val canRunLongTask: BooleanBinding get() = MainView.canShowPersistentNotificationProperty
 
     fun providerSettings(providerId: ProviderId) = settings.provider[providerId]
     fun setProviderEnabled(providerId: ProviderId, enable: Boolean) {
@@ -162,6 +167,35 @@ class SettingsController @Inject constructor(
         }
 
         override fun doneMessage() = "Done: Imported $importedGames games."
+    }
+
+    fun cleanupDb() = launch(JavaFx) {
+        val staleData = databaseTasks.DetectStaleDataTask().apply { start() }.result.await()
+        if (confirmCleanup(staleData)) {
+            // TODO: Create backup before deleting
+            databaseTasks.CleanupStaleDataTask(staleData).apply { start() }
+        }
+    }
+
+    private fun confirmCleanup(staleData: DatabaseTasks.StaleData): Boolean {
+        if (staleData.isEmpty) return false
+
+        val (libraries, games, images) = staleData
+
+        return areYouSureDialog("Delete the following stale data?") {
+            if (libraries.isNotEmpty()) {
+                label("Stale Libraries: ${libraries.size}")
+                listview(libraries.map { it.path }.observable()) { fitAtMost(5) }
+            }
+            if (games.isNotEmpty()) {
+                label("Stale Games: ${games.size}")
+                listview(games.map { it.path }.observable()) { fitAtMost(5) }
+            }
+            if(images.isNotEmpty()) {
+                label("Stale Images: ${images.size} (${staleData.staleImagesSize})")
+                listview(images.map { it.first }.observable()) { fitAtMost(5) }
+            }
+        }
     }
 
     private data class PortableDb(

@@ -31,7 +31,7 @@ class GameRepository @Inject constructor(
 ) {
     private val log = logger()
 
-    val games: ObservableList<Game> = fetchAllGames()
+    val games: ObservableList<Game> = fetchGames()
 
     init {
         providerRepository.enabledProviders.onChange {
@@ -41,9 +41,9 @@ class GameRepository @Inject constructor(
         }
     }
 
-    private fun fetchAllGames(): ObservableList<Game> {
+    private fun fetchGames(): ObservableList<Game> {
         log.info("Fetching games...")
-        val games = persistenceService.fetchAllGames().map { it.toGame() }
+        val games = persistenceService.fetchGames().map { it.toGame() }
         log.info("Fetched ${games.size} games.")
         return games.observable()
     }
@@ -100,7 +100,7 @@ class GameRepository @Inject constructor(
 
         withContext(JavaFx) {
             progress.message = "Updating UI..."
-            this.games.removeIf { game -> newRawGames.any { it.id == game.id} }
+            this.games.removeIf { game -> newRawGames.any { it.id == game.id } }
             this.games += games
         }
         games
@@ -115,27 +115,19 @@ class GameRepository @Inject constructor(
         log.info("Deleting '${game.name}': Done.")
     }
 
-    suspend fun deleteAll(games: List<Game>, progress: Task.Progress) = withContext(CommonPool) {
-        val deleted = AtomicInteger(0)
+    suspend fun deleteAll(games: List<Game>) = withContext(CommonPool) {
+        if (games.isEmpty()) return@withContext
 
-        progress.message = "Deleting ${games.size} games..."
-        games.map { game ->
-            async(CommonPool) {
-                persistenceService.deleteGame(game.id)
-                progress.progress(deleted.incrementAndGet(), games.size)
-            }
-        }.forEach { it.await() }
-        progress.message = "Deleted ${games.size} games."
+        persistenceService.deleteGames(games.map { it.id })
 
         withContext(JavaFx) {
-            progress.message = "Updating UI..."
             this.games.setAll(this.games.filterNot { game -> games.any { it.id == game.id } }.observable())
         }
     }
 
     suspend fun hardInvalidate() = withContext(JavaFx) {
         // Re-fetch all games from persistence
-        games.setAll(fetchAllGames())
+        games.setAll(fetchGames())
     }
 
     suspend fun softInvalidate() = rebuildGames()

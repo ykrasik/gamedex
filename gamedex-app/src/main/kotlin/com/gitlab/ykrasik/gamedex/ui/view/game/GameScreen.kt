@@ -6,7 +6,6 @@ import com.gitlab.ykrasik.gamedex.settings.GameSettings
 import com.gitlab.ykrasik.gamedex.ui.*
 import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.deleteButton
 import com.gitlab.ykrasik.gamedex.ui.theme.toLogo
 import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
@@ -52,8 +51,6 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         verticalSeparator()
         items += refreshMenu.root
         verticalSeparator()
-        cleanupButton()
-        verticalSeparator()
     }
 
     override val root = stackpane()
@@ -95,12 +92,6 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }
         )
-    }
-
-    private fun EventTarget.cleanupButton() = deleteButton("Cleanup") {
-        addClass(CommonStyle.toolbarButton)
-        enableWhen { gameController.canRunLongTask }
-        setOnAction { gameController.cleanup() }
     }
 
     private fun GameSettings.DisplayType.toNode() = when (this) {

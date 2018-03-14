@@ -49,7 +49,7 @@ object Theme {
         fun ascending(size: Double = defaultIconSize) = FontAwesome.Glyph.SORT_ASC.toGraphic { size(size) }
         fun descending(size: Double = defaultIconSize) = FontAwesome.Glyph.SORT_DESC.toGraphic { size(size) }
 
-        fun delete(size: Double = defaultIconSize) = FontAwesome.Glyph.TRASH.toGraphic { size(size); color(Color.INDIANRED) }
+        fun delete(size: Double = defaultIconSize, color: Color = Color.INDIANRED) = FontAwesome.Glyph.TRASH.toGraphic { size(size); color(color) }
         fun edit(size: Double = defaultIconSize) = FontAwesome.Glyph.PENCIL.toGraphic { size(size); color(Color.ORANGE) }
         fun view(size: Double = defaultIconSize) = FontAwesome.Glyph.EYE.toGraphic { size(size) }
         fun not(size: Double = defaultIconSize) = FontAwesome.Glyph.EXCLAMATION.toGraphic { size(size); color(Color.MEDIUMVIOLETRED) }
@@ -173,6 +173,7 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
     Platform.pc -> Theme.Icon.windows(size)
     Platform.android -> Theme.Icon.android(size)
     Platform.mac -> Theme.Icon.apple(size)
+    Platform.excluded -> Theme.Icon.cancel(size)
     else -> Theme.Icon.question(size)
 }.apply {
     minWidth = Region.USE_PREF_SIZE

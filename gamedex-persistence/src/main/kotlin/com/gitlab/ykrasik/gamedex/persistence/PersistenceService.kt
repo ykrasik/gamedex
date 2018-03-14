@@ -21,15 +21,17 @@ import javax.sql.rowset.serial.SerialBlob
 interface PersistenceService {
     fun dropDb()
 
-    fun fetchAllLibraries(): List<Library>
+    fun fetchLibraries(): List<Library>
     fun insertLibrary(path: File, data: LibraryData): Library
     fun updateLibrary(library: Library)
     fun deleteLibrary(id: Int)
+    fun deleteLibraries(libraryIds: List<Int>): Int
 
-    fun fetchAllGames(): List<RawGame>
+    fun fetchGames(): List<RawGame>
     fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?): RawGame
     fun updateGame(rawGame: RawGame): RawGame
     fun deleteGame(id: Int)
+    fun deleteGames(gameIds: List<Int>): Int
 
     fun fetchImage(url: String): ByteArray?
     fun insertImage(gameId: Int, url: String, data: ByteArray)
@@ -61,7 +63,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         create()
     }
 
-    override fun fetchAllLibraries(): List<Library> = transaction {
+    override fun fetchLibraries(): List<Library> = transaction {
         log.trace("Fetching all libraries...")
         val libraries = Libraries.selectAll().map {
             Library(
@@ -100,7 +102,11 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         log.trace("Done.")
     }
 
-    override fun fetchAllGames(): List<RawGame> = transaction {
+    override fun deleteLibraries(libraryIds: List<Int>): Int = transaction {
+        Libraries.deleteWhere { Libraries.id.inList(libraryIds) }
+    }
+
+    override fun fetchGames(): List<RawGame> = transaction {
         log.trace("Fetching all games...")
         val games = Games.selectAll().map {
             RawGame(
@@ -156,6 +162,10 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val rowsDeleted = Games.deleteWhere { Games.id.eq(id.toGameId()) }
         require(rowsDeleted == 1) { "Doesn't exist: Game($id)!" }
         log.trace("Done.")
+    }
+
+    override fun deleteGames(gameIds: List<Int>): Int = transaction {
+        Games.deleteWhere { Games.id.inList(gameIds) }
     }
 
     override fun fetchImage(url: String): ByteArray? = transaction {
