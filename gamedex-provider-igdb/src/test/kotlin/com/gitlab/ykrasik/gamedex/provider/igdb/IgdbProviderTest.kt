@@ -151,12 +151,12 @@ class IgdbProviderTest : ScopedWordSpec() {
                         releaseDate = releaseDate,
                         criticScore = Score(detailsResult.aggregatedRating!!, detailsResult.aggregatedRatingCount!!),
                         userScore = Score(detailsResult.rating!!, detailsResult.ratingCount!!),
-                        genres = listOf(genre)
-                    ),
-                    imageUrls = ImageUrls(
-                        thumbnailUrl = thumbnailUrl(detailsResult.cover!!.cloudinaryId!!),
-                        posterUrl = posterUrl(detailsResult.cover!!.cloudinaryId!!),
-                        screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.cloudinaryId!!) }
+                        genres = listOf(genre),
+                        imageUrls = ImageUrls(
+                            thumbnailUrl = thumbnailUrl(detailsResult.cover!!.cloudinaryId!!),
+                            posterUrl = posterUrl(detailsResult.cover!!.cloudinaryId!!),
+                            screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.cloudinaryId!!) }
+                        )
                     )
                 )
             }
@@ -212,34 +212,34 @@ class IgdbProviderTest : ScopedWordSpec() {
             "handle null cover cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(cover = image(cloudinaryId = null)))
 
-                download().imageUrls.thumbnailUrl shouldBe null
-                download().imageUrls.posterUrl shouldBe null
+                download().gameData.imageUrls.thumbnailUrl shouldBe null
+                download().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "handle null cover" test {
                 givenClientFetchReturns(detailsResult().copy(cover = null))
 
-                download().imageUrls.thumbnailUrl shouldBe null
-                download().imageUrls.posterUrl shouldBe null
+                download().gameData.imageUrls.thumbnailUrl shouldBe null
+                download().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "handle null screenshot cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null))))
 
-                download().imageUrls.screenshotUrls shouldBe emptyList<String>()
+                download().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
 
             "handle null & non-null screenshot cloudinaryId" test {
                 val image = image()
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null), image)))
 
-                download().imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
+                download().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
             }
 
             "handle null screenshots" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = null))
 
-                download().imageUrls.screenshotUrls shouldBe emptyList<String>()
+                download().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
         }
     }

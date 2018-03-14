@@ -24,14 +24,12 @@ class GameFactory @Inject constructor(
     fun create(rawGame: RawGame): Game {
         val library = libraryRepository[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
-        val imageUrls = rawGame.toImageUrls()
         val folderMetadata = NameHandler.analyze(rawGame.metadata.path.toFile().name)
 
         return Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
-            imageUrls = imageUrls,
             folderMetadata = folderMetadata
         )
     }
@@ -48,15 +46,16 @@ class GameFactory @Inject constructor(
         userScore = firstBy(settings.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1) }) {
             it.gameData.userScore.minOrNull()
         },
-        genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres)
+        genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap { processGenre(it) }.distinct().take(maxGenres),
+        imageUrls = toImageUrls()
     )
 
     private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(settings.thumbnailOrder, userData?.thumbnailOverride()) { it.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(settings.posterOrder, userData?.posterOverride()) { it.imageUrls.posterUrl }
-        val screenshotUrls = listBy(settings.screenshotOrder, userData?.screenshotsOverride()) { it.imageUrls.screenshotUrls }.take(maxScreenshots)
+        val thumbnailUrl = firstBy(settings.thumbnailOrder, userData?.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(settings.posterOrder, userData?.posterOverride()) { it.gameData.imageUrls.posterUrl }
+        val screenshotUrls = listBy(settings.screenshotOrder, userData?.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(maxScreenshots)
 
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,

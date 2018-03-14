@@ -98,12 +98,12 @@ class GiantBombProviderTest : ScopedWordSpec() {
                         releaseDate = detailsResult.originalReleaseDate?.toString(),
                         criticScore = null,
                         userScore = null,
-                        genres = listOf(detailsResult.genres!!.first().name)
-                    ),
-                    imageUrls = ImageUrls(
-                        thumbnailUrl = detailsResult.image!!.thumbUrl,
-                        posterUrl = detailsResult.image!!.superUrl,
-                        screenshotUrls = detailsResult.images.map { it.superUrl }
+                        genres = listOf(detailsResult.genres!!.first().name),
+                        imageUrls = ImageUrls(
+                            thumbnailUrl = detailsResult.image!!.thumbUrl,
+                            posterUrl = detailsResult.image!!.superUrl,
+                            screenshotUrls = detailsResult.images.map { it.superUrl }
+                        )
                     )
                 )
             }
@@ -129,27 +129,27 @@ class GiantBombProviderTest : ScopedWordSpec() {
             "handle null image" test {
                 givenClientFetchReturns(detailsResult().copy(image = null))
 
-                download().imageUrls.thumbnailUrl shouldBe null
-                download().imageUrls.posterUrl shouldBe null
+                download().gameData.imageUrls.thumbnailUrl shouldBe null
+                download().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "consider GiantBomb logo url as absent thumbnail" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage")))
 
-                download().imageUrls.thumbnailUrl shouldBe null
+                download().gameData.imageUrls.thumbnailUrl shouldBe null
             }
 
             "consider GiantBomb logo url as absent poster" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage")))
 
-                download().imageUrls.posterUrl shouldBe null
+                download().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "filter out GiantBomb logo url from screenshots" test {
                 val screenshot1 = randomImage()
                 givenClientFetchReturns(detailsResult().copy(images = listOf(randomImage().copy(superUrl = "${randomUrl()}/$noImage"), screenshot1)))
 
-                download().imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
+                download().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
             "throw GameDexException on invalid response status" test {

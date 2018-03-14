@@ -13,7 +13,6 @@ data class Game(
     val rawGame: RawGame,
     val library: Library,
     val gameData: GameData,
-    val imageUrls: ImageUrls,
     val folderMetadata: FolderMetadata  // TODO: Is this the best place to put this?
 ) {
     val id get() = rawGame.id
@@ -36,6 +35,7 @@ data class Game(
 
     val genres get() = gameData.genres
 
+    val imageUrls get() = gameData.imageUrls
     val thumbnailUrl get() = imageUrls.thumbnailUrl
     val posterUrl get() = imageUrls.posterUrl
     val screenshotUrls get() = imageUrls.screenshotUrls
@@ -53,7 +53,7 @@ data class RawGame(
     val id: Int,
     val metadata: Metadata,
     val providerData: List<ProviderData>,
-    val userData: UserData?    // TODO: Make this non-nullable
+    val userData: UserData?    // TODO: Make this non-nullable?
 ) {
     fun withMetadata(metadata: Metadata) = copy(metadata = metadata)
     fun withMetadata(f: (Metadata) -> Metadata) = withMetadata(f(metadata))
@@ -61,8 +61,7 @@ data class RawGame(
 
 data class ProviderData(
     val header: ProviderHeader,
-    val gameData: GameData,
-    val imageUrls: ImageUrls
+    val gameData: GameData
 )
 
 data class GameData(
@@ -72,7 +71,8 @@ data class GameData(
     val releaseDate: String?,
     val criticScore: Score?,
     val userScore: Score?,
-    val genres: List<String>
+    val genres: List<String>,
+    val imageUrls: ImageUrls
 )
 
 data class Score(
@@ -88,7 +88,6 @@ data class ProviderHeader(
     val updateDate: DateTime
 )
 
-// TODO: Why not put this as part of GameData?
 data class ImageUrls(
     val thumbnailUrl: String?,
     val posterUrl: String?,

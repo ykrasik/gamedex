@@ -63,12 +63,12 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
             releaseDate = this.originalReleaseDate?.toString(),
             criticScore = null,
             userScore = null,
-            genres = this.genres?.map { it.name } ?: emptyList()
-        ),
-        imageUrls = ImageUrls(
-            thumbnailUrl = this.image?.thumbUrl?.filterEmptyImage(),
-            posterUrl = this.image?.superUrl?.filterEmptyImage(),
-            screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmptyImage() }
+            genres = this.genres?.map { it.name } ?: emptyList(),
+            imageUrls = ImageUrls(
+                thumbnailUrl = this.image?.thumbUrl?.filterEmptyImage(),
+                posterUrl = this.image?.superUrl?.filterEmptyImage(),
+                screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmptyImage() }
+            )
         )
     )
 

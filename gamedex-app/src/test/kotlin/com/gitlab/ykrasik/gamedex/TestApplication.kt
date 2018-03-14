@@ -27,7 +27,8 @@ object TestApplication {
     val giantBombServer = GiantBombFakeServer(9001, apiKey = "valid")
     val igdbServer = IgdbFakeServer(9002, apiKey = "valid")
 
-    @JvmStatic fun main(args: Array<String>) {
+    @JvmStatic
+    fun main(args: Array<String>) {
         appConfig = appConfig
             .withValue("gameDex.persistence.dbUrl", stringConfig("jdbc:h2:./test"))
             .withValue("gameDex.provider.giantBomb.endpoint", stringConfig(giantBombServer.endpointUrl))
@@ -85,8 +86,7 @@ object TestApplication {
 
     private fun randomProviderData(id: ProviderId) = ProviderData(
         header = randomProviderHeader(id, apiUrl(id)),
-        gameData = randomGameData(),
-        imageUrls = imageUrls(id)
+        gameData = randomGameData(imageUrls(id))
     )
 
     private fun apiUrl(id: ProviderId) = when (id) {

@@ -67,12 +67,12 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
             releaseDate = this.releaseDates?.findReleaseDate(platform),
             criticScore = toScore(aggregatedRating, aggregatedRatingCount),
             userScore = toScore(rating, ratingCount),
-            genres = this.genres?.map { it.genreName } ?: emptyList()
-        ),
-        imageUrls = ImageUrls(
-            thumbnailUrl = this.cover?.cloudinaryId?.toThumbnailUrl(),
-            posterUrl = this.cover?.cloudinaryId?.toPosterUrl(),
-            screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
+            genres = this.genres?.map { it.genreName } ?: emptyList(),
+            imageUrls = ImageUrls(
+                thumbnailUrl = this.cover?.cloudinaryId?.toThumbnailUrl(),
+                posterUrl = this.cover?.cloudinaryId?.toPosterUrl(),
+                screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
+            )
         )
     )
 

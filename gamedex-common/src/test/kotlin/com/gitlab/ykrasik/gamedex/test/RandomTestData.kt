@@ -19,14 +19,14 @@ fun randomLibrary() = Library(
         name = randomName()
     )
 )
+
 fun Library.withPlatform(platform: Platform) = copy(data = data.copy(platform = platform))
 
 fun randomGame(): Game {
     val providerData = testProviderIds.map { id ->
         ProviderData(
             header = randomProviderHeader(id),
-            gameData = randomGameData(),
-            imageUrls = randomImageUrls()
+            gameData = randomGameData()
         )
     }
     return Game(
@@ -38,7 +38,6 @@ fun randomGame(): Game {
         ),
         library = randomLibrary(),
         gameData = providerData.randomElement().gameData,
-        imageUrls = randomImageUrls(),
         folderMetadata = randomFolderMetadata()
     )
 }
@@ -53,14 +52,15 @@ fun randomMetadata(libraryId: Int = 1) = Metadata(
     updateDate = now
 )
 
-fun randomGameData() = GameData(
+fun randomGameData(imageUrls: ImageUrls = randomImageUrls()) = GameData(
     siteUrl = randomUrl(),
     name = randomString(),
     description = randomSentence(maxWords = 10),
     releaseDate = randomLocalDateString(),
     criticScore = randomScore(),
     userScore = randomScore(),
-    genres = List(rnd.nextInt(5)) { "Genre ${rnd.nextInt(30)}" }
+    genres = List(rnd.nextInt(5)) { "Genre ${rnd.nextInt(30)}" },
+    imageUrls = imageUrls
 )
 
 fun GameData.withCriticScore(score: Double?) = copy(criticScore = score?.let { randomScore().copy(score = it, numReviews = 99) })

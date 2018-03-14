@@ -33,7 +33,7 @@ class GameWallSettings : UserSettings() {
             version = OverlaySettings(
                 show = true,
                 position = Pos.TOP_RIGHT,
-                fillWidth = true
+                fillWidth = false
             )
         )
     }

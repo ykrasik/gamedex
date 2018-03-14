@@ -93,14 +93,14 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 )
                 choiceTab(
                     GameDataType.thumbnail,
-                    providerDataExtractor = { it.imageUrls.thumbnailUrl },
+                    providerDataExtractor = { it.gameData.imageUrls.thumbnailUrl },
                     gameDataExtractor = Game::thumbnailUrl,
                     dataDisplay = { imageDisplay(it) },
                     customDataDisplay = { customImageChoice(it, GameDataType.thumbnail) }
                 )
                 choiceTab(
                     GameDataType.poster,
-                    providerDataExtractor = { it.imageUrls.posterUrl },
+                    providerDataExtractor = { it.gameData.imageUrls.posterUrl },
                     gameDataExtractor = Game::posterUrl,
                     dataDisplay = { imageDisplay(it) },
                     customDataDisplay = { customImageChoice(it, GameDataType.poster) }

@@ -42,12 +42,12 @@ class GiantBombProviderContractTest : ScopedWordSpec() {
                         releaseDate = releaseDate,
                         criticScore = null,
                         userScore = null,
-                        genres = genres
-                    ),
-                    imageUrls = ImageUrls(
-                        thumbnailUrl = thumbnailUrl,
-                        posterUrl = posterUrl,
-                        screenshotUrls = screenshotUrls
+                        genres = genres,
+                        imageUrls = ImageUrls(
+                            thumbnailUrl = thumbnailUrl,
+                            posterUrl = posterUrl,
+                            screenshotUrls = screenshotUrls
+                        )
                     )
                 )
             }

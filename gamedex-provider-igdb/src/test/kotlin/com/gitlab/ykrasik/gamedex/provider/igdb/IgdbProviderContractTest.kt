@@ -50,12 +50,12 @@ class IgdbProviderContractTest : ScopedWordSpec() {
                         releaseDate = releaseDate,
                         criticScore = result.gameData.criticScore.verifiedCriticScore,
                         userScore = result.gameData.userScore.verifiedUserScore,
-                        genres = genres
-                    ),
-                    imageUrls = ImageUrls(
-                        thumbnailUrl = thumbnailUrl,
-                        posterUrl = posterUrl,
-                        screenshotUrls = screenshotUrls
+                        genres = genres,
+                        imageUrls = ImageUrls(
+                            thumbnailUrl = thumbnailUrl,
+                            posterUrl = posterUrl,
+                            screenshotUrls = screenshotUrls
+                        )
                     )
                 )
             }

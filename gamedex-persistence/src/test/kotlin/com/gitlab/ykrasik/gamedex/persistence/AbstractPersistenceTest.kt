@@ -56,12 +56,12 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
                 releaseDate = randomLocalDateString(),
                 criticScore = randomScore(),
                 userScore = randomScore(),
-                genres = listOf(randomString(), randomString())
-            ),
-            imageUrls = ImageUrls(
-                thumbnailUrl = randomUrl(),
-                posterUrl = randomUrl(),
-                screenshotUrls = listOf(randomUrl(), randomUrl())
+                genres = listOf(randomString(), randomString()),
+                imageUrls = ImageUrls(
+                    thumbnailUrl = randomUrl(),
+                    posterUrl = randomUrl(),
+                    screenshotUrls = listOf(randomUrl(), randomUrl())
+                )
             )
         )
 

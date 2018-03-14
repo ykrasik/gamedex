@@ -17,7 +17,7 @@ class GeneralSettings : UserSettings() {
         Data(
             prevDirectory = null,
             exportDbDirectory = null,
-            logFilterLevel = Level.INFO.levelStr,
+            logFilterLevel = Level.INFO.levelStr.toLowerCase(),
             logTail = true
         )
     }

@@ -283,12 +283,12 @@ class SettingsController @Inject constructor(
                 releaseDate = releaseDate,
                 criticScore = toScore(criticScore, numCriticReviews),
                 userScore = toScore(userScore, numUserReviews),
-                genres = genres
-            ),
-            imageUrls = ImageUrls(
-                thumbnailUrl = thumbnailUrl,
-                posterUrl = posterUrl,
-                screenshotUrls = screenshotUrls
+                genres = genres,
+                imageUrls = ImageUrls(
+                    thumbnailUrl = thumbnailUrl,
+                    posterUrl = posterUrl,
+                    screenshotUrls = screenshotUrls
+                )
             )
         )
 
@@ -308,9 +308,9 @@ class SettingsController @Inject constructor(
         userScore = gameData.userScore?.score,
         numUserReviews = gameData.userScore?.numReviews,
         genres = gameData.genres,
-        thumbnailUrl = imageUrls.thumbnailUrl,
-        posterUrl = imageUrls.posterUrl,
-        screenshotUrls = imageUrls.screenshotUrls
+        thumbnailUrl = gameData.imageUrls.thumbnailUrl,
+        posterUrl = gameData.imageUrls.posterUrl,
+        screenshotUrls = gameData.imageUrls.screenshotUrls
     )
 
     private data class PortableUserData(
