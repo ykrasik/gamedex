@@ -11,36 +11,29 @@ import io.kotlintest.TestCaseContext
  * Time: 13:48
  */
 abstract class AbstractPersistenceTest : ScopedWordSpec() {
-    val persistenceService = PersistenceServiceImpl(PersistenceConfig(
-        dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        driver = "org.h2.Driver",
-        user = "sa",
-        password = ""
-    ))
-
     override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
         persistenceService.dropDb()
         test()
     }
 
-    inner open class LibraryScope {
-        fun libraryData(platform: Platform = randomEnum<Platform>(), name: String = randomName()) = LibraryData(
+    open class LibraryScope {
+        fun libraryData(platform: Platform = randomEnum(), name: String = randomName()) = LibraryData(
             platform = platform,
             name = name
         )
 
-        fun givenLibraryExists(path: String = randomPath(),
-                               platform: Platform = randomEnum<Platform>(),
-                               name: String = randomName()): Library = insertLibrary(path, platform, name)
+        fun givenLibrary(path: String = randomPath(),
+                         platform: Platform = randomEnum(),
+                         name: String = randomName()): Library = insertLibrary(path, platform, name)
 
         fun insertLibrary(path: String = randomPath(),
-                          platform: Platform = randomEnum<Platform>(),
+                          platform: Platform = randomEnum(),
                           name: String = randomName()): Library =
             persistenceService.insertLibrary(path.toFile(), libraryData(platform, name))
     }
 
-    inner open class GameScope : LibraryScope() {
-        val library = givenLibraryExists()
+    open class GameScope : LibraryScope() {
+        val library = givenLibrary()
 
         fun randomMetadata(library: Library = this.library, path: String = randomPath()) = Metadata(
             libraryId = library.id,
@@ -103,7 +96,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         private fun providerOverride() = GameDataOverride.Provider(randomString())
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
-        fun givenGameExists(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
+        fun givenGame(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
 
         fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
             insertGame(metadata = randomMetadata(library, path))
@@ -114,10 +107,10 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
             persistenceService.insertGame(metadata, providerData, userData)
     }
 
-    inner open class ImageScope : GameScope() {
-        val game = givenGameExists()
+    open class ImageScope : GameScope() {
+        val game = givenGame()
 
-        fun givenImageExists(game: RawGame = this.game, url: String = randomUrl()): List<Byte> = insertImage(game, url)
+        fun givenImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> = insertImage(game, url)
         fun insertImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> {
             val data = randomString().toByteArray()
             persistenceService.insertImage(game.id, url, data)
@@ -125,5 +118,14 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         }
 
         fun fetchImage(url: String) = persistenceService.fetchImage(url)?.toList()
+    }
+
+    companion object {
+        val persistenceService = PersistenceServiceImpl(PersistenceConfig(
+            dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
+            driver = "org.h2.Driver",
+            user = "sa",
+            password = ""
+        ))
     }
 }

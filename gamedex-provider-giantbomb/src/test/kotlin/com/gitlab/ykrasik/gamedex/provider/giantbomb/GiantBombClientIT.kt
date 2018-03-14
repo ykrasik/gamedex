@@ -24,8 +24,8 @@ class GiantBombClientIT : ScopedWordSpec() {
     val server = GiantBombMockServer(port)
 
     init {
-        "GiantBombClient.search" should {
-            "search by name & platform".inScope(Scope()) {
+        "search" should {
+            "search by name & platform" test {
                 server.anySearchRequest() willReturn searchResponse
 
                 client.search(name, platform, account) shouldBe searchResponse
@@ -39,7 +39,7 @@ class GiantBombClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status".inScope(Scope()) {
+            "throw GameDexException on invalid http response status" test {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
@@ -49,8 +49,8 @@ class GiantBombClientIT : ScopedWordSpec() {
             }
         }
 
-        "GiantBombClient.fetch" should {
-            "fetch by url".inScope(Scope()) {
+        "fetch" should {
+            "fetch by url" test {
                 server.aFetchRequest(detailPath) willReturn detailsResponse
 
                 client.fetch(detailUrl, account) shouldBe detailsResponse
@@ -62,7 +62,7 @@ class GiantBombClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status".inScope(Scope()) {
+            "throw GameDexException on invalid http response status" test {
                 server.aFetchRequest(detailPath) willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
@@ -131,4 +131,6 @@ class GiantBombClientIT : ScopedWordSpec() {
         server.reset()
         test()
     }
+
+    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

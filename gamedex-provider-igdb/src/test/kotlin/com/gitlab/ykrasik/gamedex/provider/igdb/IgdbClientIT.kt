@@ -24,8 +24,8 @@ class IgdbClientIT : ScopedWordSpec() {
     val server = IgdbMockServer(port)
 
     init {
-        "IgdbClient.search" should {
-            "search by name & platform".inScope(Scope()) {
+        "search" should {
+            "search by name & platform" test {
                 server.anySearchRequest() willReturn listOf(searchResult)
 
                 client.search(name, platform, account) shouldBe listOf(searchResult)
@@ -41,7 +41,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status".inScope(Scope()) {
+            "throw GameDexException on invalid http response status" test {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
@@ -51,8 +51,8 @@ class IgdbClientIT : ScopedWordSpec() {
             }
         }
 
-        "IgdbClient.fetch" should {
-            "fetch by url".inScope(Scope()) {
+        "fetch" should {
+            "fetch by url" test {
                 server.aFetchRequest(id) willReturn detailsResult
 
                 client.fetch(detailUrl, account) shouldBe detailsResult
@@ -65,7 +65,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status".inScope(Scope()) {
+            "throw GameDexException on invalid http response status" test {
                 server.aFetchRequest(id) willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<GamedexException> {
@@ -165,4 +165,6 @@ class IgdbClientIT : ScopedWordSpec() {
         server.reset()
         test()
     }
+
+    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

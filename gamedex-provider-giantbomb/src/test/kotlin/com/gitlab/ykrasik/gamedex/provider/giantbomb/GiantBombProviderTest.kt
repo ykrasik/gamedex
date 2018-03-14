@@ -13,8 +13,8 @@ import io.kotlintest.mock.mock
  */
 class GiantBombProviderTest : ScopedWordSpec() {
     init {
-        "GiantBombProvider.search" should {
-            "be able to return a single search result".inScope(Scope()) {
+        "search" should {
+            "be able to return a single search result" test {
                 val searchResult = searchResult(name = name)
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
@@ -29,13 +29,13 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 ))
             }
 
-            "be able to return empty search results".inScope(Scope()) {
+            "be able to return empty search results" test {
                 givenClientSearchReturns(emptyList())
 
                 search() shouldBe emptyList<ProviderSearchResult>()
             }
 
-            "be able to return multiple search results".inScope(Scope()) {
+            "be able to return multiple search results" test {
                 val searchResult1 = searchResult(name)
                 val searchResult2 = searchResult("$name ${randomString()}")
                 givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
@@ -46,7 +46,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null originalReleaseDate".inScope(Scope()) {
+            "handle null originalReleaseDate" test {
                 givenClientSearchReturns(listOf(searchResult().copy(originalReleaseDate = null)))
 
                 search() should haveASingleSearchResultThat {
@@ -54,7 +54,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null image".inScope(Scope()) {
+            "handle null image" test {
                 givenClientSearchReturns(listOf(searchResult().copy(image = null)))
 
                 search() should haveASingleSearchResultThat {
@@ -62,7 +62,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "consider GiantBomb logo url as absent image".inScope(Scope()) {
+            "consider GiantBomb logo url as absent image" test {
                 givenClientSearchReturns(listOf(searchResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage"))))
 
                 search() should haveASingleSearchResultThat {
@@ -70,7 +70,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "throw GameDexException on invalid response status".inScope(Scope()) {
+            "throw GameDexException on invalid response status" test {
                 givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.badFormat, emptyList()))
 
                 shouldThrow<GamedexException> {
@@ -79,8 +79,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
             }
         }
 
-        "GiantBombProvider.download" should {
-            "download details".inScope(Scope()) {
+        "download" should {
+            "download details" test {
                 val detailsResult = detailsResult()
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
@@ -108,51 +108,51 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 )
             }
 
-            "handle null deck".inScope(Scope()) {
+            "handle null deck" test {
                 givenClientFetchReturns(detailsResult().copy(deck = null))
 
                 download().gameData.description shouldBe null
             }
 
-            "handle null originalReleaseDate".inScope(Scope()) {
+            "handle null originalReleaseDate" test {
                 givenClientFetchReturns(detailsResult().copy(originalReleaseDate = null))
 
                 download().gameData.releaseDate shouldBe null
             }
 
-            "handle null genres".inScope(Scope()) {
+            "handle null genres" test {
                 givenClientFetchReturns(detailsResult().copy(genres = null))
 
                 download().gameData.genres shouldBe emptyList<String>()
             }
 
-            "handle null image".inScope(Scope()) {
+            "handle null image" test {
                 givenClientFetchReturns(detailsResult().copy(image = null))
 
                 download().imageUrls.thumbnailUrl shouldBe null
                 download().imageUrls.posterUrl shouldBe null
             }
 
-            "consider GiantBomb logo url as absent thumbnail".inScope(Scope()) {
+            "consider GiantBomb logo url as absent thumbnail" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage")))
 
                 download().imageUrls.thumbnailUrl shouldBe null
             }
 
-            "consider GiantBomb logo url as absent poster".inScope(Scope()) {
+            "consider GiantBomb logo url as absent poster" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage")))
 
                 download().imageUrls.posterUrl shouldBe null
             }
 
-            "filter out GiantBomb logo url from screenshots".inScope(Scope()) {
+            "filter out GiantBomb logo url from screenshots" test {
                 val screenshot1 = randomImage()
                 givenClientFetchReturns(detailsResult().copy(images = listOf(randomImage().copy(superUrl = "${randomUrl()}/$noImage"), screenshot1)))
 
                 download().imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
-            "throw GameDexException on invalid response status".inScope(Scope()) {
+            "throw GameDexException on invalid response status" test {
                 givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
 
                 shouldThrow<GamedexException> {
@@ -226,4 +226,6 @@ class GiantBombProviderTest : ScopedWordSpec() {
             }
         }
     }
+
+    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

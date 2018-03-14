@@ -31,8 +31,7 @@ abstract class ScopedWordSpec : WordSpec() {
         DateTimeUtils.setCurrentMillisFixed(1)
     }
 
-    fun <T> String.inScope(scope: T, test: T.() -> Unit): TestCase = this.invoke { test(scope) }
-    fun <T> String.inLazyScope(scope: () -> T, test: T.() -> Unit): TestCase = this.invoke { test(scope()) }
+    fun <T> String.inScope(scope: () -> T, test: T.() -> Unit): TestCase = this.invoke { test(scope()) }
 }
 
 fun Score?.assertScore(min: Number, max: Number, numReviews: Int): Score {

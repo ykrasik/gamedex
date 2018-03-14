@@ -33,6 +33,8 @@ interface PersistenceService {
 
     fun fetchImage(url: String): ByteArray?
     fun insertImage(gameId: Int, url: String, data: ByteArray)
+    fun fetchImagesExcept(except: List<String>): List<Pair<String, FileSize>>
+    fun deleteImages(images: List<String>): Int
 }
 
 @Singleton
@@ -168,6 +170,16 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Images.url] = url
             it[Images.bytes] = data.toBlob()
         }
+    }
+
+    override fun fetchImagesExcept(except: List<String>): List<Pair<String, FileSize>> = transaction {
+        Images.select { Images.url.notInList(except) }.map {
+            it[Images.url] to FileSize(it[Images.bytes].length())
+        }
+    }
+
+    override fun deleteImages(images: List<String>) = transaction {
+        Images.deleteWhere { Images.url.inList(images) }
     }
 
     private fun RawGame.updated(updateDate: DateTime) = withMetadata { it.updated(updateDate) }

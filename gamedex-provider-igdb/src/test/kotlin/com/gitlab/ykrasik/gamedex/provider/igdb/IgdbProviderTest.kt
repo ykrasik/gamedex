@@ -13,8 +13,8 @@ import io.kotlintest.mock.mock
  */
 class IgdbProviderTest : ScopedWordSpec() {
     init {
-        "IgdbProvider.search" should {
-            "be able to return a single search result".inScope(Scope()) {
+        "search" should {
+            "be able to return a single search result" test {
                 val searchResult = searchResult(name = name, releaseDate = releaseDate)
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
@@ -29,13 +29,13 @@ class IgdbProviderTest : ScopedWordSpec() {
                 ))
             }
 
-            "be able to return empty search results".inScope(Scope()) {
+            "be able to return empty search results" test {
                 givenClientSearchReturns(emptyList())
 
                 search() shouldBe emptyList<ProviderSearchResult>()
             }
 
-            "be able to return multiple search results".inScope(Scope()) {
+            "be able to return multiple search results" test {
                 val searchResult1 = searchResult(name)
                 val searchResult2 = searchResult("$name ${randomString()}")
                 givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
@@ -46,7 +46,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "filter search results that do not contain all words of the original search term".inScope(Scope()) {
+            "filter search results that do not contain all words of the original search term" test {
                 val name = "must contain all words"
 
                 val searchResult1 = searchResult("must contain all")
@@ -67,7 +67,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null aggregatedRating and ignore aggregatedRatingCount".inScope(Scope()) {
+            "handle null aggregatedRating and ignore aggregatedRatingCount" test {
                 givenClientSearchReturns(listOf(searchResult().copy(aggregatedRating = null, aggregatedRatingCount = 1)))
 
                 search() should haveASingleSearchResultThat {
@@ -75,7 +75,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null rating and ignore ratingCount".inScope(Scope()) {
+            "handle null rating and ignore ratingCount" test {
                 givenClientSearchReturns(listOf(searchResult().copy(rating = null, ratingCount = 1)))
 
                 search() should haveASingleSearchResultThat {
@@ -83,7 +83,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null releaseDates".inScope(Scope()) {
+            "handle null releaseDates" test {
                 givenClientSearchReturns(listOf(searchResult().copy(releaseDates = null)))
 
                 search() should haveASingleSearchResultThat {
@@ -91,7 +91,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "use null releaseDate when no releaseDate exists for given platform".inScope(Scope()) {
+            "use null releaseDate when no releaseDate exists for given platform" test {
                 givenClientSearchReturns(listOf(searchResult(releaseDatePlatformId = platformId + 1)))
 
                 search() should haveASingleSearchResultThat {
@@ -99,7 +99,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead".inScope(Scope()) {
+            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
                 givenClientSearchReturns(listOf(searchResult(releaseDate = "2000-Apr-07")))
 
                 search() should haveASingleSearchResultThat {
@@ -107,7 +107,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails".inScope(Scope()) {
+            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
                 givenClientSearchReturns(listOf(searchResult(releaseDate = "2017-Q4")))
 
                 search() should haveASingleSearchResultThat {
@@ -115,7 +115,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null cover cloudinaryId".inScope(Scope()) {
+            "handle null cover cloudinaryId" test {
                 givenClientSearchReturns(listOf(searchResult().copy(cover = image(cloudinaryId = null))))
 
                 search() should haveASingleSearchResultThat {
@@ -123,7 +123,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "handle null cover".inScope(Scope()) {
+            "handle null cover" test {
                 givenClientSearchReturns(listOf(searchResult().copy(cover = null)))
 
                 search() should haveASingleSearchResultThat {
@@ -132,8 +132,8 @@ class IgdbProviderTest : ScopedWordSpec() {
             }
         }
 
-        "IgdbProvider.download" should {
-            "download details".inScope(Scope()) {
+        "download" should {
+            "download details" test {
                 val detailsResult = detailsResult(releaseDate = releaseDate)
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
@@ -161,82 +161,82 @@ class IgdbProviderTest : ScopedWordSpec() {
                 )
             }
 
-            "handle null summary".inScope(Scope()) {
+            "handle null summary" test {
                 givenClientFetchReturns(detailsResult().copy(summary = null))
 
                 download().gameData.description shouldBe null
             }
 
-            "handle null releaseDates".inScope(Scope()) {
+            "handle null releaseDates" test {
                 givenClientFetchReturns(detailsResult().copy(releaseDates = null))
 
                 download().gameData.releaseDate shouldBe null
             }
 
-            "use null releaseDate when no releaseDate exists for given platform".inScope(Scope()) {
+            "use null releaseDate when no releaseDate exists for given platform" test {
                 givenClientFetchReturns(detailsResult(releaseDatePlatformId = platformId + 1))
 
                 download().gameData.releaseDate shouldBe null
             }
 
-            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead".inScope(Scope()) {
+            "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
                 givenClientFetchReturns(detailsResult(releaseDate = "2000-Apr-07"))
 
                 download().gameData.releaseDate shouldBe "2000-04-07"
             }
 
-            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails".inScope(Scope()) {
+            "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
                 givenClientFetchReturns(detailsResult(releaseDate = "2017-Q4"))
 
                 download().gameData.releaseDate shouldBe "2017-Q4"
             }
 
-            "handle null aggregatedRating and ignore aggregatedRatingCount".inScope(Scope()) {
+            "handle null aggregatedRating and ignore aggregatedRatingCount" test {
                 givenClientFetchReturns(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
                 download().gameData.criticScore shouldBe null
             }
 
-            "handle null rating and ignore ratingCount".inScope(Scope()) {
+            "handle null rating and ignore ratingCount" test {
                 givenClientFetchReturns(detailsResult().copy(rating = null, ratingCount = 1))
 
                 download().gameData.userScore shouldBe null
             }
 
-            "handle null genres".inScope(Scope()) {
+            "handle null genres" test {
                 givenClientFetchReturns(detailsResult().copy(genres = null))
 
                 download().gameData.genres shouldBe emptyList<String>()
             }
 
-            "handle null cover cloudinaryId".inScope(Scope()) {
+            "handle null cover cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(cover = image(cloudinaryId = null)))
 
                 download().imageUrls.thumbnailUrl shouldBe null
                 download().imageUrls.posterUrl shouldBe null
             }
 
-            "handle null cover".inScope(Scope()) {
+            "handle null cover" test {
                 givenClientFetchReturns(detailsResult().copy(cover = null))
 
                 download().imageUrls.thumbnailUrl shouldBe null
                 download().imageUrls.posterUrl shouldBe null
             }
 
-            "handle null screenshot cloudinaryId".inScope(Scope()) {
+            "handle null screenshot cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null))))
 
                 download().imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
 
-            "handle null & non-null screenshot cloudinaryId".inScope(Scope()) {
+            "handle null & non-null screenshot cloudinaryId" test {
                 val image = image()
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null), image)))
 
                 download().imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
             }
 
-            "handle null screenshots".inScope(Scope()) {
+            "handle null screenshots" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = null))
 
                 download().imageUrls.screenshotUrls shouldBe emptyList<String>()
@@ -338,4 +338,6 @@ class IgdbProviderTest : ScopedWordSpec() {
             }
         }
     }
+
+    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }
