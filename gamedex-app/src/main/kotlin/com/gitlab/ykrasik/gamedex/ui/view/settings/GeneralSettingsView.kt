@@ -39,7 +39,17 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
                 }
             }
             row {
-                region { prefHeight = 20.0 }
+                region { prefHeight = 40.0 }
+            }
+            row {
+                jfxButton("Clear User Data", Theme.Icon.delete(color = Color.RED)) {
+                    addClass(Style.settingsButton, Style.cleanupDbButton)
+                    useMaxWidth = true
+                    alignment = Pos.CENTER_LEFT
+                    tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
+                    enableWhen { settingsController.canRunLongTask }
+                    setOnAction { settingsController.clearUserData() }
+                }
             }
             row {
                 jfxButton("Cleanup", Theme.Icon.delete(color = Color.RED)) {

@@ -4,6 +4,9 @@ import com.gitlab.ykrasik.gamedex.util.kb
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.CurrentDateTime
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.statements.UpdateStatement
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 /**
  * User: ykrasik
@@ -33,4 +36,11 @@ internal object Images : IntIdTable() {
     val gameId = reference("game_id", Games, onDelete = ReferenceOption.CASCADE)
     val url = varchar("url", length = 255).uniqueIndex()
     val bytes = blob("bytes")
+}
+
+// This doesn't exist by default in exposed
+fun <T : Table> T.updateAll(body: T.(UpdateStatement) -> Unit): Int {
+    val query = UpdateStatement(this, null, null)
+    body(query)
+    return query.execute(TransactionManager.current())!!
 }

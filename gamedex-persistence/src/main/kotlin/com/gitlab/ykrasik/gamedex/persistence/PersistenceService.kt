@@ -32,6 +32,7 @@ interface PersistenceService {
     fun updateGame(rawGame: RawGame): RawGame
     fun deleteGame(id: Int)
     fun deleteGames(gameIds: List<Int>): Int
+    fun clearUserData(): Int
 
     fun fetchImage(url: String): ByteArray?
     fun insertImage(gameId: Int, url: String, data: ByteArray)
@@ -92,7 +93,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Libraries.path] = library.path.toString()
             it[Libraries.data] = library.data.toJsonStr()
         }
-        require(rowsUpdated == 1) { "Doesn't exist: Library(${library.id})!"}
+        require(rowsUpdated == 1) { "Doesn't exist: Library(${library.id})!" }
     }
 
     override fun deleteLibrary(id: Int) = transaction {
@@ -152,7 +153,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Games.providerData] = rawGame.providerData.toJsonStr()
             it[Games.userData] = rawGame.userData?.toJsonStr()
         }
-        require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!"}
+        require(rowsUpdated == 1) { "Doesn't exist: Game(${rawGame.id})!" }
 
         rawGame.updated(updateDate)
     }
@@ -166,6 +167,12 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
 
     override fun deleteGames(gameIds: List<Int>): Int = transaction {
         Games.deleteWhere { Games.id.inList(gameIds) }
+    }
+
+    override fun clearUserData() = transaction {
+        Games.updateAll {
+            it[Games.userData] = null
+        }
     }
 
     override fun fetchImage(url: String): ByteArray? = transaction {

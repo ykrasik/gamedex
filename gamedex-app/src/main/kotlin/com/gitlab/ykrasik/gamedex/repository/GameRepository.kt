@@ -35,8 +35,8 @@ class GameRepository @Inject constructor(
 
     init {
         providerRepository.enabledProviders.onChange {
-            launch(JavaFx) {
-                rebuildGames()
+            launch(CommonPool) {
+                softInvalidate()
             }
         }
     }
@@ -120,20 +120,39 @@ class GameRepository @Inject constructor(
 
         persistenceService.deleteGames(games.map { it.id })
 
-        withContext(JavaFx) {
-            this.games.setAll(this.games.filterNot { game -> games.any { it.id == game.id } }.observable())
+        replaceGames {
+            it.filterNot { game -> games.any { it.id == game.id } }
         }
     }
 
-    suspend fun hardInvalidate() = withContext(JavaFx) {
-        // Re-fetch all games from persistence
-        games.setAll(fetchGames())
+    suspend fun clearUserData() = withContext(CommonPool) {
+        persistenceService.clearUserData()
+        modifyGames {
+            it.rawGame.copy(userData = null).toGame()
+        }
     }
 
-    suspend fun softInvalidate() = rebuildGames()
+    suspend fun hardInvalidate() = replaceGames {
+        // Re-fetch all games from persistence
+        fetchGames()
+    }
 
-    private suspend fun rebuildGames() = withContext(JavaFx) {
-        this.games.setAll(this.games.map { it.rawGame.toGame() }.observable())
+    suspend fun softInvalidate() = modifyGames {
+        it.rawGame.toGame()
+    }
+
+    private suspend fun modifyGames(f: (Game) -> Game) = withContext(CommonPool) {
+        val newGames = games.map(f)
+        withContext(JavaFx) {
+            games.setAll(newGames)
+        }
+    }
+
+    private suspend fun replaceGames(f: (List<Game>) -> List<Game>) = withContext(CommonPool) {
+        val newGames = f(games)
+        withContext(JavaFx) {
+            games.setAll(newGames)
+        }
     }
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)

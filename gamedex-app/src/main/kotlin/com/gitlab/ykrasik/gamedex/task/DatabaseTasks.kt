@@ -102,4 +102,13 @@ class DatabaseTasks @Inject constructor(
         val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty()
         val staleImagesSize = images.fold(FileSize(0)) { acc, next -> acc + next.second }
     }
+
+    inner class ClearGameUserDataTask : Task<Unit>("Clearing game user data...") {
+        override suspend fun doRun() {
+            progress.message = "Clearing game user data..."
+            gameRepository.clearUserData()
+        }
+
+        override fun doneMessage() = "Cleared all game user data."
+    }
 }

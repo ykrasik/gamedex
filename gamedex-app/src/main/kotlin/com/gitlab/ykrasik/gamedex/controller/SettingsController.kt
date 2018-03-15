@@ -198,6 +198,16 @@ class SettingsController @Inject constructor(
         }
     }
 
+    fun clearUserData() = launch(JavaFx) {
+        if (areYouSureDialog("Clear game user data?") {
+                text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.")
+            }) {
+            databaseTasks.ClearGameUserDataTask().apply { start() }
+        }
+    }
+
+
+    // TODO: Move this to some other place, doesn't belong here
     private data class PortableDb(
         val libraries: List<PortableLibrary>,
         val games: List<PortableGame>

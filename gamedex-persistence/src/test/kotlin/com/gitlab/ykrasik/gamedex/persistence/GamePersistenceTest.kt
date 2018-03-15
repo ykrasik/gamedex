@@ -291,6 +291,20 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 fetchGames() shouldBe emptyList<Game>()
             }
         }
+
+        "ClearUserData" should {
+            "set userData of all games to null" test {
+                val game1 = givenGame(userData = randomUserData())
+                val game2 = givenGame(userData = randomUserData())
+
+                val library2 = givenLibrary()
+                val game3 = givenGame(library = library2, userData = randomUserData())
+                val game4 = givenGame(library = library2, userData = null)
+
+                persistenceService.clearUserData()
+                fetchGames() shouldBe listOf(game1.copy(userData = null), game2.copy(userData = null), game3.copy(userData = null), game4)
+            }
+        }
     }
 
     private infix fun String.test(test: GameScope.() -> Unit) = inScope(::GameScope, test)

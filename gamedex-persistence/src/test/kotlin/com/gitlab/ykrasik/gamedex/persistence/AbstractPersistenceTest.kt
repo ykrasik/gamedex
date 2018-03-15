@@ -98,10 +98,17 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         private fun providerOverride() = GameDataOverride.Provider(randomString())
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
-        fun givenGame(library: Library = this.library, path: String = randomPath()): RawGame = insertGame(library, path)
+        fun givenGame(library: Library = this.library,
+                      path: String = randomPath(),
+                      providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+                      userData: UserData? = randomUserData()): RawGame =
+            insertGame(library, path, providerData, userData)
 
-        fun insertGame(library: Library = this.library, path: String = randomPath()): RawGame =
-            insertGame(metadata = randomMetadata(library, path))
+        fun insertGame(library: Library = this.library,
+                       path: String = randomPath(),
+                       providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+                       userData: UserData? = randomUserData()): RawGame =
+            insertGame(randomMetadata(library, path), providerData, userData)
 
         fun insertGame(metadata: Metadata = randomMetadata(),
                        providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
