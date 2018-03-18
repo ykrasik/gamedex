@@ -1,0 +1,8 @@
+dependencies {
+    fullDependency ":gamedex-common"
+
+    compile controlsFx
+    compile jFoenix
+    compile tornadoFx.core
+    compile tornadoFx.controls
+}

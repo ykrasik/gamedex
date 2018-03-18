@@ -1,0 +1,5 @@
+dependencies {
+    fullDependency ":gamedex-common"
+    compile h2
+    compile exposed
+}
