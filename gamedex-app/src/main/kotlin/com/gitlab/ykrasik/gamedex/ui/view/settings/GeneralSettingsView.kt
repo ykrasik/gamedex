@@ -2,6 +2,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.settings
 
 import com.gitlab.ykrasik.gamedex.controller.SettingsController
 import com.gitlab.ykrasik.gamedex.ui.jfxButton
+import com.gitlab.ykrasik.gamedex.ui.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.ui.theme.Theme
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -22,7 +23,7 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
         group("Database") {
             row {
                 jfxButton("Export Database", Theme.Icon.upload()) {
-                    addClass(Style.settingsButton, Style.exportButton)
+                    addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     enableWhen { settingsController.canRunLongTask }
@@ -31,7 +32,7 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
             }
             row {
                 jfxButton("Import Database", Theme.Icon.download()) {
-                    addClass(Style.settingsButton, Style.importButton)
+                    addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     enableWhen { settingsController.canRunLongTask }
@@ -43,7 +44,7 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
             }
             row {
                 jfxButton("Clear User Data", Theme.Icon.delete(color = Color.RED)) {
-                    addClass(Style.settingsButton, Style.cleanupDbButton)
+                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
@@ -53,7 +54,7 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
             }
             row {
                 jfxButton("Cleanup", Theme.Icon.delete(color = Color.RED)) {
-                    addClass(Style.settingsButton, Style.cleanupDbButton)
+                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     enableWhen { settingsController.canRunLongTask }
@@ -75,7 +76,6 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
     class Style : Stylesheet() {
         companion object {
             val title by cssclass()
-            val settingsButton by cssclass()
             val importButton by cssclass()
             val exportButton by cssclass()
             val cleanupDbButton by cssclass()
@@ -89,12 +89,6 @@ class GeneralSettingsView : View("General Settings", Theme.Icon.settings()) {
             title {
                 fontSize = 14.px
                 fontWeight = FontWeight.BOLD
-            }
-
-            settingsButton {
-                borderColor = multi(box(Color.BLACK))
-                borderRadius = multi(box(3.px))
-                borderWidth = multi(box(0.5.px))
             }
 
             importButton {

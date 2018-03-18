@@ -149,5 +149,5 @@ data class UserData(
 )
 sealed class GameDataOverride {
     data class Provider(val provider: ProviderId) : GameDataOverride()
-    data class Custom(val data: Any) : GameDataOverride()
+    data class Custom(val value: Any) : GameDataOverride()
 }

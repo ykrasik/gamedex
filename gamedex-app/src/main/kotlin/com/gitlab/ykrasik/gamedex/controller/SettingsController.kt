@@ -372,7 +372,7 @@ class SettingsController @Inject constructor(
 
     private fun GameDataOverride.toPortable() = when (this) {
         is GameDataOverride.Provider -> PortableGameDataOverride.Provider(provider)
-        is GameDataOverride.Custom -> PortableGameDataOverride.Custom(data)
+        is GameDataOverride.Custom -> PortableGameDataOverride.Custom(value)
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

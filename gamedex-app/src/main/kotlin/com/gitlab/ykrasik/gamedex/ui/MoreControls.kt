@@ -34,11 +34,6 @@ import kotlin.reflect.KProperty1
  * Date: 16/05/2017
  * Time: 09:33
  */
-fun TabPane.nonClosableTab(text: String, op: Tab.() -> Unit = {}) = tab(text).apply {
-    isClosable = false
-    op()
-}
-
 // TODO: Should probably replace with popoverComboMenu
 inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: ComboBox<T>.() -> Unit = {}): ComboBox<T> {
     val enumValues = T::class.java.enumConstants.asList().observable<T>()
@@ -185,7 +180,7 @@ fun EventTarget.buttonWithPopover(text: String? = null,
                                   styleClass: CssRule? = CommonStyle.toolbarButton,
                                   arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                   closeOnClick: Boolean = true,
-                                  op: (VBox.() -> Unit)? = null) =
+                                  op: (VBox.(PopOver) -> Unit)? = null) =
     jfxButton(text = text, graphic = graphic) {
         if (styleClass != null) addClass(styleClass)
         val popover = popOver(arrowLocation, closeOnClick, op)
@@ -299,7 +294,7 @@ fun <T> VBox.toggleMenu(possibleItems: ObservableList<T>,
 
 fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
             closeOnClick: Boolean = true,
-            op: (VBox.() -> Unit)? = null): PopOver = PopOver().apply {
+            op: (VBox.(PopOver) -> Unit)? = null): PopOver = PopOver().apply {
     val popover = this
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
@@ -315,7 +310,7 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     }
     scrollpane.content = VBox().apply {
         addClass(CommonStyle.popoverMenu)
-        op?.invoke(this)
+        op?.invoke(this, popover)
     }
     contentNode = scrollpane
 }
@@ -345,7 +340,7 @@ inline fun View.skipFirstTime(op: () -> Unit) {
 
 fun Node.popoverContextMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                             closeOnClick: Boolean = true,
-                            op: (VBox.() -> Unit)? = null): PopOver {
+                            op: (VBox.(PopOver) -> Unit)? = null): PopOver {
     val popover = popOver(arrowLocation, closeOnClick, op).apply { isAutoFix = false; isAutoHide = true }
     addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
     setOnContextMenuRequested { e -> popover.show(this@popoverContextMenu, e.screenX, e.screenY) }
@@ -372,4 +367,12 @@ fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocati
         }
     }
     return popover
+}
+
+fun ToggleGroup.disallowDeselection() {
+    selectedToggleProperty().addListener { _, oldValue, newValue ->
+        if (newValue == null) {
+            selectToggle(oldValue)
+        }
+    }
 }

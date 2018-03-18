@@ -163,7 +163,7 @@ fun EventTarget.reportButton(text: String? = "Report", size: Double = defaultIco
     toolbarButton(text, Theme.Icon.chart(size), op)
 
 
-fun EventTarget.extraMenu(size: Double = defaultIconSize, op: (VBox.() -> Unit)? = null) = buttonWithPopover(
+fun EventTarget.extraMenu(size: Double = defaultIconSize, op: (VBox.(PopOver) -> Unit)? = null) = buttonWithPopover(
     graphic = Theme.Icon.extra(size),
     arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
     op = op

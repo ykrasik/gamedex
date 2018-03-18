@@ -41,6 +41,8 @@ class CommonStyle : Stylesheet() {
 
         val headerLabel by cssclass()
 
+        val thinBorder by cssclass()
+
         init {
             importStylesheet(CommonStyle::class)
         }
@@ -140,6 +142,12 @@ class CommonStyle : Stylesheet() {
         headerLabel {
             fontSize = 16.px
             fontWeight = FontWeight.BOLD
+        }
+
+        thinBorder {
+            borderColor = multi(box(Color.BLACK))
+            borderRadius = multi(box(3.px))
+            borderWidth = multi(box(0.5.px))
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

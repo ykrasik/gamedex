@@ -124,7 +124,7 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
         hbox {
             spacer()
             jfxButton("Verify Account") {
-                addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, Style.verifyAccountButton)
+                addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
                 disableWhen { stateProperty.isEqualTo(State.Empty) }
                 isDefaultButton = true
                 setOnAction {
@@ -200,7 +200,6 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
             val providerLabel by cssclass()
             val accountLabel by cssclass()
             val flashContainer by cssclass()
-            val verifyAccountButton by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -224,12 +223,6 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 backgroundRadius = multi(box(5.px))
                 borderRadius = multi(box(5.px))
                 opacity = 0.0
-            }
-
-            verifyAccountButton {
-                borderColor = multi(box(Color.BLACK))
-                borderRadius = multi(box(3.px))
-                borderWidth = multi(box(0.5.px))
             }
         }
     }

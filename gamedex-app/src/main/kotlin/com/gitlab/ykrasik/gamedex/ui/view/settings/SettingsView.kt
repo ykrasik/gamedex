@@ -41,7 +41,10 @@ class SettingsView : View("Settings") {
     override val root = borderpane {
         top {
             toolbar {
-                acceptButton { setOnAction { accept() } }
+                acceptButton {
+                    isDefaultButton = true
+                    setOnAction { accept() }
+                }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()

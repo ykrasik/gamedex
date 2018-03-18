@@ -28,7 +28,7 @@ class GameFactory @Inject constructor(
 
         return Game(
             library = library,
-            rawGame = rawGame,
+            rawGame = rawGame.copy(providerData = rawGame.providerData.sortedBy { it.header.id }),
             gameData = gameData,
             folderMetadata = folderMetadata
         )
@@ -70,7 +70,7 @@ class GameFactory @Inject constructor(
                                     converter: (Any) -> T = { it as T },
                                     extractor: (ProviderData) -> T?): T? =
         when (override) {
-            is GameDataOverride.Custom -> converter(override.data)
+            is GameDataOverride.Custom -> converter(override.value)
             else -> {
                 val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
                 sorted.findFirst(extractor)
@@ -80,7 +80,7 @@ class GameFactory @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     private fun <T> RawGame.listBy(defaultOrder: ProviderSettings.Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
-            is GameDataOverride.Custom -> override.data as List<T>
+            is GameDataOverride.Custom -> override.value as List<T>
             else -> {
                 val sorted = sortDataBy(defaultOrder, override as? GameDataOverride.Provider)
                 sorted.flatMap(extractor)
@@ -90,7 +90,7 @@ class GameFactory @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     private fun <T> RawGame.unsortedListBy(override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
-            is GameDataOverride.Custom -> override.data as List<T>
+            is GameDataOverride.Custom -> override.value as List<T>
             else -> providerData.flatMap(extractor)
         }
 

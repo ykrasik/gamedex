@@ -5,22 +5,18 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.repository.logoImage
 import com.gitlab.ykrasik.gamedex.ui.*
-import com.gitlab.ykrasik.gamedex.ui.theme.Theme
-import com.gitlab.ykrasik.gamedex.ui.theme.acceptButton
-import com.gitlab.ykrasik.gamedex.ui.theme.cancelButton
-import com.gitlab.ykrasik.gamedex.ui.theme.toolbarButton
-import javafx.beans.property.SimpleObjectProperty
+import com.gitlab.ykrasik.gamedex.ui.theme.*
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
-import javafx.beans.value.ObservableValue
+import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToggleGroup
-import javafx.scene.image.Image
-import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.layout.VBox
-import javafx.scene.paint.Color
+import javafx.scene.text.FontWeight
 import tornadofx.*
+import java.net.URL
 import java.time.LocalDate
 
 /**
@@ -30,9 +26,19 @@ import java.time.LocalDate
  */
 // TODO: Consider allowing to delete provider data.
 // TODO: Add a way to clear provider excludes.
-class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment("'${game.name}': Change Data") {
+class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment(game.name) {
     private val providerRepository: GameProviderRepository by di()
     private val imageLoader: ImageLoader by di()
+
+    private var tabPane: TabPane by singleAssign()
+
+    private val navigationToggle = ToggleGroup().apply {
+        disallowDeselection()
+        // TODO: Move selection stuff to the end.
+        selectedToggleProperty().onChange {
+            tabPane.selectionModel.select(it!!.userData as Tab)
+        }
+    }
 
     // TODO: Play around with representing this as a CustomProvider in the UserData
     private var overrides = HashMap(game.rawGame.userData?.overrides ?: emptyMap())
@@ -40,137 +46,226 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
     private var choice: Choice = Choice.Cancel
 
     override val root = borderpane {
+        prefWidth = screenBounds.width.let { it * 2 / 3 }
+        prefHeight = screenBounds.height.let { it * 3 / 4 }
         top {
             toolbar {
-                acceptButton { setOnAction { close(choice = Choice.Override(overrides)) } }
-                verticalSeparator()
-                toolbarButton(graphic = Theme.Icon.clear()) {
-                    tooltip("Reset to default")
-                    setOnAction { close(choice = Choice.Clear) }
+                acceptButton {
+                    isDefaultButton = true
+                    setOnAction { close(choice = Choice.Override(overrides)) }
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { setOnAction { close(choice = Choice.Cancel) } }
+                toolbarButton(graphic = Theme.Icon.clear()) {
+                    tooltip("Reset all to default")
+                    setOnAction { close(choice = Choice.Clear) }
+                }
+                verticalSeparator()
+                cancelButton {
+                    isCancelButton = true
+                    setOnAction { close(choice = Choice.Cancel) }
+                }
             }
         }
         center {
-            tabpane {
-                choiceTab(
-                    GameDataType.name_,
-                    providerDataExtractor = { it.gameData.name },
-                    gameDataExtractor = Game::name,
-                    dataDisplay = { textDisplay(it) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.name_) }
-                )
-                choiceTab(
-                    GameDataType.description,
-                    providerDataExtractor = { it.gameData.description },
-                    gameDataExtractor = Game::description,
-                    dataDisplay = { textDisplay(it) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.description) }
-                )
-                choiceTab(
-                    GameDataType.releaseDate,
-                    providerDataExtractor = { it.gameData.releaseDate },
-                    gameDataExtractor = Game::releaseDate,
-                    dataDisplay = { textDisplay(it) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.releaseDate, LocalDate::parse, { it }) }
-                )
-                choiceTab(
-                    GameDataType.criticScore,
-                    providerDataExtractor = { it.gameData.criticScore },
-                    gameDataExtractor = Game::criticScore,
-                    dataDisplay = { scoreDisplay(it) },
-                    customDataDisplay = { customTextChoice(it, GameDataType.criticScore, String::toDouble) }
-                )
-                choiceTab(
-                    GameDataType.userScore,
-                    providerDataExtractor = { it.gameData.userScore },
-                    gameDataExtractor = Game::userScore,
-                    dataDisplay = { scoreDisplay(it)},
-                    customDataDisplay = { customTextChoice(it, GameDataType.userScore, String::toDouble) }
-                )
-                choiceTab(
-                    GameDataType.thumbnail,
-                    providerDataExtractor = { it.gameData.imageUrls.thumbnailUrl },
-                    gameDataExtractor = Game::thumbnailUrl,
-                    dataDisplay = { imageDisplay(it) },
-                    customDataDisplay = { customImageChoice(it, GameDataType.thumbnail) }
-                )
-                choiceTab(
-                    GameDataType.poster,
-                    providerDataExtractor = { it.gameData.imageUrls.posterUrl },
-                    gameDataExtractor = Game::posterUrl,
-                    dataDisplay = { imageDisplay(it) },
-                    customDataDisplay = { customImageChoice(it, GameDataType.poster) }
-                )
+            tabPane = tabpane {
+                addClass(CommonStyle.hiddenTabPaneHeader)
+                paddingRight = 10.0
+            }
+        }
+        left {
+            hbox(spacing = 5.0) {
+                paddingAll = 5.0
+                mainContent()
+                verticalSeparator(padding = 0.0)
             }
         }
     }
 
-    private fun <T> TabPane.choiceTab(type: GameDataType,
-                                      providerDataExtractor: (ProviderData) -> T?,
-                                      gameDataExtractor: (Game) -> T?,
-                                      dataDisplay: VBox.(T) -> Unit,
-                                      customDataDisplay: VBox.(ToggleGroup) -> Unit) = nonClosableTab(type.displayName) {
-        if (type == initialTab) {
-            selectionModel.select(this)
-        }
+    private fun EventTarget.mainContent() = vbox(spacing = 5.0) {
+        label("Attributes") { addClass(Style.navigationLabel) }
+        separator()
 
-        hbox {
-            paddingAll = 20.0
-            isFillHeight = true
-            var needSeparator = false
-            val toggleGroup = togglegroup {
-                game.rawGame.providerData.forEach { providerData ->
-                    providerDataExtractor(providerData)?.let { data ->
-                        if (needSeparator) {
-                            verticalSeparator(padding = 20.0)
+        entry(
+            GameDataType.name_,
+            providerDataExtractor = { it.gameData.name },
+            gameDataExtractor = Game::name,
+            dataDisplay = ::displayText,
+            deserializer = ::asText
+        )
+        entry(
+            GameDataType.description,
+            providerDataExtractor = { it.gameData.description },
+            gameDataExtractor = Game::description,
+            dataDisplay = displayWrappedText(maxWidth = screenBounds.width / 2),
+            deserializer = ::asText
+        )
+        entry(
+            GameDataType.releaseDate,
+            providerDataExtractor = { it.gameData.releaseDate },
+            gameDataExtractor = Game::releaseDate,
+            dataDisplay = ::displayText,
+            deserializer = ::deserializeDate
+        )
+        entry(
+            GameDataType.criticScore,
+            providerDataExtractor = { it.gameData.criticScore },
+            gameDataExtractor = Game::criticScore,
+            dataDisplay = ::displayScore,
+            deserializer = ::deserializeScore,
+            serializer = ::serializeScore
+        )
+        entry(
+            GameDataType.userScore,
+            providerDataExtractor = { it.gameData.userScore },
+            gameDataExtractor = Game::userScore,
+            dataDisplay = ::displayScore,
+            deserializer = ::deserializeScore,
+            serializer = ::serializeScore
+        )
+        entry(
+            GameDataType.thumbnail,
+            providerDataExtractor = { it.gameData.imageUrls.thumbnailUrl },
+            gameDataExtractor = Game::thumbnailUrl,
+            dataDisplay = ::imageDisplay,
+            deserializer = ::deserializeUrl
+        )
+        entry(
+            GameDataType.poster,
+            providerDataExtractor = { it.gameData.imageUrls.posterUrl },
+            gameDataExtractor = Game::posterUrl,
+            dataDisplay = ::imageDisplay,
+            deserializer = ::deserializeUrl
+        )
+    }
+
+    private fun <T : Any> VBox.entry(type: GameDataType,
+                                     providerDataExtractor: (ProviderData) -> T?,
+                                     gameDataExtractor: (Game) -> T?,
+                                     dataDisplay: (EventTarget, T) -> Any,
+                                     deserializer: (String) -> T,
+                                     serializer: (T) -> Any = Any::toString) {
+        jfxToggleNode(type.displayName, group = navigationToggle) {
+            useMaxWidth = true
+            tabPane.tab(type.displayName) {
+                this@jfxToggleNode.userData = this
+                if (type == initialTab) {
+                    this@jfxToggleNode.isSelected = true
+                }
+
+                val toggleGroup = ToggleGroup().apply { disallowDeselection() }
+                scrollpane(fitToWidth = false) {
+                    vbox(spacing = 10.0) {
+                        // Existing provider data
+                        game.rawGame.providerData.forEach { providerData ->
+                            providerDataExtractor(providerData)?.let { data ->
+                                jfxToggleNode(group = toggleGroup) {
+                                    useMaxWidth = true
+                                    if (gameDataExtractor(game) == data) {
+                                        isSelected = true
+                                    }
+                                    userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.id))
+                                    graphic = hbox(spacing = 10.0) {
+                                        alignment = Pos.CENTER_LEFT
+                                        paddingAll = 10.0
+                                        children += providerRepository.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 100.0)
+                                        dataDisplay(this@hbox, data)
+                                    }
+                                }
+                            }
                         }
-                        needSeparator = true
-                        jfxToggleNode {
-                            addClass(Style.choice, Style.choiceButton)
-                            if (gameDataExtractor(game) == data) {
-                                addClass(Style.currentlySelected)
-                                isSelected = true
+
+                        // Custom
+                        hbox {
+                            val customRawDataProperty = SimpleStringProperty()
+                            val viewModel = CustomTextViewModel(customRawDataProperty)
+                            val customDataProperty = customRawDataProperty.map { it?.let(deserializer) }
+
+                            jfxToggleNode(group = toggleGroup) {
+                                useMaxWidth = true
+                                disableWhen { customDataProperty.isNull }
+
+                                val currentOverride = game.userData?.overrides?.get(type)
+                                if (currentOverride is GameDataOverride.Custom) {
+                                    isSelected = true
+                                    customDataProperty.value = deserializer(currentOverride.value.toString())
+                                }
+
+                                customDataProperty.onChange { customValue ->
+                                    userData = SingleChoice.Override(GameDataOverride.Custom(serializer(customValue!!)))
+                                    // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
+                                    // the change listener on the toggle group
+                                    isSelected = false
+                                    isSelected = true
+                                }
+
+                                graphic = hbox(spacing = 10.0) {
+                                    alignment = Pos.CENTER_LEFT
+                                    paddingAll = 10.0
+
+                                    customDataProperty.perform { customValue ->
+                                        replaceChildren {
+                                            text("Custom") { addClass(Style.textData) }
+                                            if (customValue != null) {
+                                                dataDisplay(this, customValue)
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.id))
-                            graphic = vbox {
-                                alignment = Pos.CENTER
-                                children += providerRepository.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 120.0)
-                                spacer()
-                                dataDisplay(data)
+                            spacer()
+                            buttonWithPopover(graphic = Theme.Icon.edit(), closeOnClick = false, styleClass = null) { popOver ->
+                                hbox(spacing = 5.0) {
+                                    alignment = Pos.CENTER_LEFT
+                                    textfield(viewModel.textProperty) {
+                                        minWidth = 300.0
+                                        promptText = "Custom ${type.displayName}"
+
+                                        validator {
+                                            if (it.isNullOrBlank()) error("Cannot be empty!")
+                                            else {
+                                                try {
+                                                    deserializer(it!!)
+                                                    null
+                                                } catch (e: Exception) {
+                                                    error("Invalid ${type.displayName}")
+                                                }
+                                            }
+                                        }
+                                    }
+                                    acceptButton {
+                                        isDefaultButton = true
+                                        enableWhen { viewModel.valid }
+                                        setOnAction {
+                                            popOver.hide()
+                                            viewModel.commit()
+                                        }
+                                    }
+                                }
+                            }.apply { useMaxHeight = true }
+                            viewModel.validate(decorateErrors = false)
+                        }
+
+                        // Reset button
+                        jfxToggleNode(group = toggleGroup) {
+                            useMaxWidth = true
+                            graphic = hbox(spacing = 10.0) {
+                                alignment = Pos.CENTER_LEFT
+                                paddingAll = 10.0
+                                children += Theme.Icon.timesCircle(40.0)
+                                text("Reset to default") { addClass(Style.textData) }
                             }
+                            userData = SingleChoice.Clear
                         }
                     }
                 }
-                if (needSeparator) {
-                    verticalSeparator(padding = 20.0)
-                }
-                vbox(spacing = 10) {
-                    addClass(Style.choice)
-                    alignment = Pos.CENTER
-                    customDataDisplay(this@hbox.getToggleGroup()!!)
-                }
 
-                verticalSeparator(padding = 20.0)
-
-                jfxToggleNode(Theme.Icon.timesCircle(80.0)) {
-                    addClass(Style.choice, Style.choiceButton)
-                    userData = SingleChoice.Clear
-                }
-            }
-
-            with(toggleGroup) {
-                val initialSelection = selectedToggle
-                val initialUserData = initialSelection?.userData
-                selectedToggleProperty().addListener { _, oldValue, newValue ->
-                    if (oldValue != null && newValue == null) {
-                        selectToggle(oldValue)
-                    }
-                    if (newValue != null) {
-                        if (newValue != initialSelection || newValue.userData != initialUserData) {
+                with(toggleGroup) {
+                    val initialSelection = selectedToggle
+                    val initialUserData = initialSelection?.userData
+                    selectedToggleProperty().onChange { newValue ->
+                        if (newValue!! != initialSelection || newValue.userData != initialUserData) {
                             val choice = newValue.userData as SingleChoice
                             when (choice) {
                                 is SingleChoice.Override -> overrides[type] = choice.override
@@ -183,135 +278,37 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 }
             }
         }
+        separator()
     }
 
-    // TODO: This is similar to customImageChoice, can probably save some code.
-    private fun VBox.customTextChoice(toggleGroup: ToggleGroup,
-                                      type: GameDataType,
-                                      validator: (String) -> Any = { it },
-                                      converter: (String) -> Any = validator) {
-        val customText = CustomTextViewModel()
-        val customDataProperty = SimpleStringProperty("")
-        hbox(spacing = 10) {
-            textfield(customText.textProperty) {
-                promptText = "Custom ${type.displayName}"
-                prefWidth = 240.0
-                validator {
-                    if (it.isNullOrBlank()) error()
-                    else {
-                        val valid = try {
-                            validator(it!!)
-                            true
-                        } catch (e: Exception) {
-                            false
-                        }
-                        if (!valid) error("Invalid ${type.displayName}") else null
-                    }
-                }
-            }
-            jfxButton(graphic = Theme.Icon.accept(17.0)) {
-                enableWhen { customText.valid }
-                setOnAction {
-                    customDataProperty.value = customText.text
-                }
-            }
-        }
-        jfxToggleNode(group = toggleGroup) {
-            addClass(Style.choice, Style.choiceButton)
+    private fun deserializeScore(raw: String) = Score(raw.toDouble(), numReviews = 1)
+    private fun serializeScore(score: Score) = score.score
+    private fun asText(raw: String) = raw
+    private fun deserializeUrl(raw: String) = run { URL(raw); raw }
+    private fun deserializeDate(raw: String) = run { LocalDate.parse(raw); raw }
 
-            val currentOverride = game.userData?.overrides?.get(type)
-            if (currentOverride is GameDataOverride.Custom) {
-                isSelected = true
-                text = currentOverride.data.toString()
-                customDataProperty.value = text
-            }
+    private fun displayScore(target: EventTarget, score: Score) =
+        displayText(target, "${score.score} Based on ${score.numReviews} reviews.")
 
-            customDataProperty.onChange {
-                userData = SingleChoice.Override(GameDataOverride.Custom(converter(it!!)))
-                // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
-                // the change listener on the toggle group
-                isSelected = false
-                isSelected = true
-            }
-
-            disableWhen { customDataProperty.isEmpty.or(customDataProperty.isNull) }
-
-            graphic = vbox {
-                alignment = Pos.CENTER
-                spacer()
-                textDisplay(customDataProperty)
-            }
-        }
-        customText.validate(decorateErrors = false)
+    private fun displayWrappedText(maxWidth: Double) = { target: EventTarget, text: String ->
+        displayText0(target, text, maxWidth)
     }
 
-    private fun VBox.customImageChoice(toggleGroup: ToggleGroup, type: GameDataType) {
-        val imageProperty = SimpleObjectProperty<Image>()
-        val imageUrlProperty = SimpleStringProperty("")
-        val currentOverride = game.userData?.overrides?.get(type)
-        hbox(spacing = 10) {
-            val customUrl = textfield {
-                promptText = "Custom ${type.displayName} URL"
-                prefWidth = 240.0
-                if (currentOverride is GameDataOverride.Custom) {
-                    val url = currentOverride.data as String
-                    text = url
-                    imageProperty.cleanBind(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
-                }
-            }
-            jfxButton(graphic = Theme.Icon.download(17.0)) {
-                disableWhen { customUrl.textProperty().isEmpty }
-                setOnAction {
-                    imageUrlProperty.value = customUrl.text
-                    imageProperty.cleanBind(imageLoader.downloadImage(customUrl.text))
-                }
-            }
-        }
-        jfxToggleNode(group = toggleGroup) {
-            addClass(Style.choice, Style.choiceButton)
-
-            if (currentOverride is GameDataOverride.Custom) {
-                isSelected = true
-            }
-
-            imageUrlProperty.onChange {
-                userData = SingleChoice.Override(GameDataOverride.Custom(it!!))
-                // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
-                // the change listener on the toggle group
-                isSelected = false
-                isSelected = true
-            }
-            disableWhen { imageProperty.isNull }
-
-            graphic = vbox {
-                alignment = Pos.CENTER
-                spacer()
-                imageDisplay(imageProperty)
-            }
-        }
+    private fun displayText(target: EventTarget, text: String) = displayText0(target, text, maxWidth = null)
+    private fun displayText0(target: EventTarget, text: String, maxWidth: Double? = null) = target.text(text) {
+        addClass(Style.textData)
+        maxWidth?.let { wrappingWidth = it }
     }
 
-    private fun VBox.scoreDisplay(score: Score) = textDisplay("${score.score} Based on ${score.numReviews} reviews.")
-    private fun VBox.textDisplay(text: String) = textDisplay(text.toProperty())
-    private fun VBox.textDisplay(text: StringProperty) {
-        paddingAll = 20.0
-        label(text) {
-            addClass(Style.textData)
-            isWrapText = true
-        }
-    }
-
-    private fun VBox.imageDisplay(url: String) = imageDisplay(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
-    private fun VBox.imageDisplay(image: ObservableValue<Image>) = imageview {
-        paddingAll = 20.0
+    private fun imageDisplay(target: EventTarget, url: String) = target.imageview {
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
         isPreserveRatio = true
-        imageProperty().bind(image)
+        imageProperty().bind(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
     }
 
     fun show(): Choice {
-        openWindow(block = true, owner = null/*, stageStyle = StageStyle.UNDECORATED*/)
+        openWindow(block = true)
         return choice
     }
 
@@ -331,8 +328,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         object Clear : SingleChoice()
     }
 
-    private class CustomTextViewModel : ViewModel() {
-        val textProperty = bind { SimpleStringProperty() }
+    private class CustomTextViewModel(p: StringProperty) : ViewModel() {
+        val textProperty = bind { p }
         var text by textProperty
 
         override fun toString() = "CustomTextViewModel(text = $text)"
@@ -340,10 +337,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
     class Style : Stylesheet() {
         companion object {
-            val choice by cssclass()
-            val choiceButton by cssclass()
-            val currentlySelected by cssclass()
             val textData by cssclass()
+            val navigationLabel by cssclass()
 
             init {
                 importStylesheet(Style::class)
@@ -351,30 +346,13 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         }
 
         init {
-            choice {
-                maxHeight = 450.px
-                prefWidth = 280.px
-                maxWidth = 280.px
-            }
-
-            choiceButton {
-                prefHeight = 430.px
-
-                borderColor = multi(box(Color.LIGHTBLUE))
-                borderRadius = multi(box(6.px))
-                backgroundRadius = multi(box(6.px))
-
-                and(hover) {
-                    borderColor = multi(box(Color.CORNFLOWERBLUE))
-                }
-            }
-
-            currentlySelected {
-                borderStyle = multi(BorderStrokeStyle.DOTTED)
-            }
-
             textData {
-                fontSize = 24.px
+                fontSize = 18.px
+            }
+
+            navigationLabel {
+                fontSize = 14.px
+                fontWeight = FontWeight.BOLD
             }
         }
     }
