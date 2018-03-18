@@ -81,12 +81,14 @@ buildscript {
 
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
         gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.17.0']
+        gradleLicense = [group: 'gradle.plugin.nl.javadude.gradle.plugins', name: 'license-gradle-plugin', version: '0.14.0']
     }
 
     repositories {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
@@ -94,6 +96,7 @@ buildscript {
 //        classpath ktlin.dokka
         classpath gradleJavaFx
         classpath gradleVersions
+        classpath gradleLicense
     }
 }
 
@@ -122,6 +125,7 @@ subprojects {
     apply plugin: 'kotlin'
 //    apply plugin: 'org.jetbrains.dokka'
     apply gradleFile('test.gradle')
+    apply gradleFile('license.gradle')
 
     dependencies {
         compile ktlin.std

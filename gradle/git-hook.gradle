@@ -1,0 +1,13 @@
+task installGitHooks(type: Copy) {
+    from rootProject.file('gradle/pre-commit')
+    into rootProject.file('.git/hooks') 
+}
+
+task gitExecutableHooks() {
+    doLast {
+        Runtime.getRuntime().exec("chmod -R +x .git/hooks/")
+    }
+}
+
+build.dependsOn gitExecutableHooks
+gitExecutableHooks.dependsOn installGitHooks

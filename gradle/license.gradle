@@ -1,0 +1,54 @@
+apply plugin: 'com.github.hierynomus.license'
+
+license {
+    header = rootProject.file('gradle/LICENSE_HEADER')
+    headerDefinitions {
+        javaDocBox {
+            firstLine = "/****************************************************************************"
+            endLine = " ****************************************************************************/\n"
+            beforeEachLine = " * "
+            afterEachLine = " *"
+            padLines = true
+            firstLineDetectionPattern = "(\\s|\\t)*/\\*.*\$"
+            lastLineDetectionPattern = ".*\\*/(\\s|\\t)*\$"
+            allowBlankLines = false
+//            skipLinePattern = "//"
+//            isMultiline = false
+        }
+    }
+
+    strictCheck = true
+//    ignoreFailures = true
+
+    exclude '**/*.ttf'
+    exclude '**/*.eot'
+    exclude '**/*.svg'
+    exclude '**/*.otf'
+    exclude '**/*.woff'
+    exclude '**/*.woff2'
+    exclude '**/*.css'
+    exclude '**/*.md'
+    exclude '**/*.txt'
+    exclude '**/*.xml'
+    exclude '**/*.gif'
+    exclude '**/*.png'
+    exclude '**/*.jpg'
+    exclude '**/*.conf'
+
+    exclude '**/FixedRatingSkin.kt'
+    exclude '**/Notification.kt'
+
+    mapping {
+        kt = 'javaDocBox'
+    }
+}
+
+licenseFormatMain.doFirst {
+    project.logger.lifecycle('Applying license to sources...')
+}
+
+licenseFormatTest.doFirst {
+    project.logger.lifecycle('Applying license to test sources...')
+}
+
+task applyLicense(dependsOn: [licenseFormatMain, licenseFormatTest])
