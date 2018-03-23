@@ -171,14 +171,19 @@ fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGro
 
 fun Node.jfxToggleNode(text: String? = null,
                        graphic: Node? = null,
+                       value: Any? = null,
                        group: ToggleGroup? = getToggleGroup(),
                        labelStyleClasses: List<CssRule> = emptyList(),
                        op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
-    val label = Label(text ?: "", graphic).apply {
-        addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
+    val actualText = if (value != null && text == null) value.toString() else text ?: ""
+    val label = Label(actualText, graphic).apply {
+        addClass(CommonStyle.jfxToggleNodeLabel)
+        useMaxWidth = true
         labelStyleClasses.forEach { addClass(it) }
     }
-    return jfxToggleNode(label, group, op)
+    return jfxToggleNode(label, group, op).apply {
+        properties["tornadofx.toggleGroupValue"] = value ?: text
+    }
 }
 
 fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: JFXButton.() -> Unit = {}) =
@@ -208,7 +213,7 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
                                      arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
                                      styleClass: CssRule? = null,
                                      itemStyleClass: CssRule? = null,
-                                     text: ((T) -> String)? = null,
+                                     text: ((T) -> String)? = Any?::toString,
                                      graphic: ((T) -> Node)? = null,
                                      menuOp: (VBox.(T) -> Unit)? = null) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
@@ -289,7 +294,7 @@ fun <T> VBox.toggleMenu(possibleItems: ObservableList<T>,
         // TODO: Review all places where this is used for listener leaks.
         replaceChildren {
             items.forEach { item ->
-                jfxToggleNode(text?.invoke(item), graphic?.invoke(item), group, itemStyleClasses) {
+                jfxToggleNode(text?.invoke(item), graphic?.invoke(item), null, group, itemStyleClasses) {
                     addClass(CommonStyle.fillAvailableWidth)
                     isSelected = selectedItems.value.contains(item)
 

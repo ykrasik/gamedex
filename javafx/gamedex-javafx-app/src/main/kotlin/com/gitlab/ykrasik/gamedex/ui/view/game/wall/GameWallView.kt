@@ -17,10 +17,11 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.controller.GameController
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
+import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.scene.input.MouseButton
@@ -47,10 +48,10 @@ class GameWallView : View("Games Wall") {
     override val root = GridView(gameController.sortedFilteredGames).apply {
         setId(Style.gameWall)
 
-        cellHeightProperty().bind(settings.cell.heightProperty)
-        cellWidthProperty().bind(settings.cell.widthProperty)
-        horizontalCellSpacingProperty().bind(settings.cell.horizontalSpacingProperty)
-        verticalCellSpacingProperty().bind(settings.cell.verticalSpacingProperty)
+        cellHeightProperty().bind(settings.cell.heightSubject.toBindingCached())
+        cellWidthProperty().bind(settings.cell.widthSubject.toBindingCached())
+        horizontalCellSpacingProperty().bind(settings.cell.horizontalSpacingSubject.toBindingCached())
+        verticalCellSpacingProperty().bind(settings.cell.verticalSpacingSubject.toBindingCached())
 
         val popOver = popOver().apply {
             addEventHandler(MouseEvent.MOUSE_PRESSED) { hide() }
@@ -115,7 +116,7 @@ class GameWallView : View("Games Wall") {
             fragment.root.maxHeightProperty().bind(this.heightProperty())
             graphic = fragment.root
 
-            settings.cell.imageDisplayTypeProperty.onChange { requestLayout() }
+            settings.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
         }
 
         override fun updateItem(game: Game?, empty: Boolean) {
@@ -138,7 +139,6 @@ class GameWallView : View("Games Wall") {
             imageView.isPreserveRatio = when (settings.cell.imageDisplayType) {
                 GameWallSettings.ImageDisplayType.fit -> true
                 GameWallSettings.ImageDisplayType.stretch -> isPreserveImageRatio()
-                else -> throw IllegalArgumentException("Invalid imageDisplayType: ${settings.cell.imageDisplayType}")
             }
 
             super.resize(width, height)

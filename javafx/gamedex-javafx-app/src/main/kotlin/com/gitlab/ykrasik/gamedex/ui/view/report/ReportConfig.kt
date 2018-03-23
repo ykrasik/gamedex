@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
-import com.gitlab.ykrasik.gamedex.core.Filter
+import com.gitlab.ykrasik.gamedex.core.game.Filter
 
 /**
  * User: ykrasik

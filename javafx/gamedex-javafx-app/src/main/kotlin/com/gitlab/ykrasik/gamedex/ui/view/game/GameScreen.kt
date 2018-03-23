@@ -16,21 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.toLogo
-import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameFilterMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameRefreshMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameSearchMenu
 import com.gitlab.ykrasik.gamedex.ui.view.game.wall.GameWallView
 import javafx.event.EventTarget
-import javafx.scene.control.TableColumn
 import javafx.scene.control.ToolBar
 import tornadofx.*
 
@@ -42,7 +39,7 @@ import tornadofx.*
 class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
-    private val settings: GameSettings by di()
+    private val gameSettings: GameSettings by di()
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -72,38 +69,41 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     override val root = stackpane()
 
     init {
-        settings.displayTypeProperty.perform {
+        gameSettings.displayTypeSubject.subscribe {
             root.replaceChildren(it!!.toNode())
         }
     }
 
     private fun EventTarget.platformButton() {
+        // TODO: Prefer doing this through rx operators.
         val platformsWithLibraries = libraryController.realLibraries.mapping { it.platform }.distincting()
+        val selectedItemProperty = gameSettings.platformSubject.toPropertyCached()
         popoverComboMenu(
             possibleItems = platformsWithLibraries,
-            selectedItemProperty = settings.platformProperty,
+            selectedItemProperty = selectedItemProperty,
             styleClass = CommonStyle.toolbarButton,
-            text = { it.key },
+            text = Platform::displayName,
             graphic = { it.toLogo(26.0) }
         ).apply {
-            textProperty().cleanBind(gameController.sortedFilteredGames.sizeProperty().stringBinding { "Games: $it" })
+            textProperty().cleanBind(gameController.sortedFilteredGames.sizeProperty.stringBinding { "Games: $it" })
             mouseTransparentWhen { platformsWithLibraries.mapProperty { it.size <= 1 } }
         }
     }
 
     private fun EventTarget.sortButton() {
-        val possibleItems = settings.sortProperty.mapToList { sort ->
-            GameSettings.SortBy.values().toList().map { sortBy ->
+        val sortProperty = gameSettings.sortSubject.toPropertyCached()
+        val possibleItems = gameSettings.sortSubject.map { sort ->
+            GameSettings.SortBy.values().map { sortBy ->
                 GameSettings.Sort(
                     sortBy = sortBy,
-                    order = if (sortBy == sort.sortBy) sort.order.toggle() else TableColumn.SortType.DESCENDING
+                    order = if (sortBy == sort.sortBy) sort.order.toggle() else GameSettings.SortType.desc
                 )
             }
-        }
+        }.toObservableList()
 
         popoverComboMenu(
             possibleItems = possibleItems,
-            selectedItemProperty = settings.sortProperty,
+            selectedItemProperty = sortProperty,
             styleClass = CommonStyle.toolbarButton,
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }
@@ -115,13 +115,8 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         GameSettings.DisplayType.list -> gameListView.root
     }
 
-    private fun TableColumn.SortType.toGraphic() = when (this) {
-        TableColumn.SortType.ASCENDING -> Theme.Icon.ascending()
-        TableColumn.SortType.DESCENDING -> Theme.Icon.descending()
-    }
-
-    private fun TableColumn.SortType.toggle() = when (this) {
-        TableColumn.SortType.ASCENDING -> TableColumn.SortType.DESCENDING
-        TableColumn.SortType.DESCENDING -> TableColumn.SortType.ASCENDING
+    private fun GameSettings.SortType.toGraphic() = when (this) {
+        GameSettings.SortType.asc -> Theme.Icon.ascending()
+        GameSettings.SortType.desc -> Theme.Icon.descending()
     }
 }

@@ -11,13 +11,18 @@ buildscript {
         ktlin = [:].with {
             v = '1.2.30'
             majorV = '1.2'
-            couroutinesVersion = '0.22.3'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
 //            dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.15']
-            coroutinesCore = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: couroutinesVersion]
-            coroutinesJavaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: couroutinesVersion]
+            delegate
+        }
+
+        coroutines = [:].with {
+            v = '0.22.3'
+            core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
+            rx2 = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-rx2', version: v]
+            javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
             delegate
         }
 
@@ -51,6 +56,12 @@ buildscript {
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
         exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.1']
+
+        rx = [:].with {
+            rxKotlin = [group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: '2.2.0']
+            rxKotlinFx = [group: 'com.github.thomasnield', name: 'rxkotlinfx', version: '2.2.2']
+            delegate
+        }
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.2']
@@ -130,8 +141,7 @@ subprojects {
     dependencies {
         compile ktlin.std
         compile ktlin.reflect
-        compile ktlin.coroutinesCore
-        compile ktlin.coroutinesJavaFx
+        compile coroutines.core
 
         compile slf4j.api
 
@@ -166,9 +176,9 @@ subprojects {
     }
 }
 
-project("providers") {
+project("provider") {
     subprojects.each {
-        it.fullDependency ":gamedex-common"
+        it.fullDependency ":gamedex-api"
     }
 }
 

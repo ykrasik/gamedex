@@ -47,13 +47,13 @@ import java.io.ByteArrayInputStream
  * Date: 02/01/2017
  * Time: 20:45
  */
+val screenBounds = Screen.getPrimary().bounds
+
 fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApplicationThread()) {
     f()
 } else {
     runLater(f)
 }
-
-val screenBounds = Screen.getPrimary().bounds
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
@@ -192,9 +192,11 @@ fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
 }
 
-fun EventTarget.labeled(text: String, f: Pane.() -> Unit) = hbox(spacing = 5.0) {
+fun EventTarget.labeled(text: String, styleClasses: List<CssRule> = emptyList(), f: Pane.() -> Unit) = hbox(spacing = 5.0) {
     alignment = Pos.CENTER_LEFT
-    val label = label(text)
+    val label = label(text) {
+        styleClasses.forEach { addClass(it) }
+    }
     val fakePane = Pane()
     f(fakePane)
     label.labelFor = fakePane.children.first()

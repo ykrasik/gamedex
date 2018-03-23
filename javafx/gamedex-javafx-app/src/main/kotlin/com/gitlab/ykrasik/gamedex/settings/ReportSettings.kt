@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.settings
 
-import com.gitlab.ykrasik.gamedex.core.Filter
-import com.gitlab.ykrasik.gamedex.core.Filter.Companion.not
+import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.not
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfig
-import tornadofx.getValue
-import tornadofx.setValue
 import javax.inject.Singleton
 
 /**
@@ -28,6 +28,7 @@ import javax.inject.Singleton
  * Date: 18/06/2017
  * Time: 11:33
  */
+// TODO: Put reports in persistence & make a ReportRepository
 @Singleton
 class ReportSettings : UserSettings() {
     override val repo = SettingsRepo("report") {
@@ -62,8 +63,8 @@ class ReportSettings : UserSettings() {
         )
     }
 
-    val reportsProperty = repo.property(Data::reports) { copy(reports = it) }
-    var reports by reportsProperty
+    val reportsSubject = repo.subject(Data::reports) { copy(reports = it) }
+    var reports by reportsSubject
 
     data class Data(
         val reports: Map<String, ReportConfig>

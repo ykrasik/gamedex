@@ -17,29 +17,21 @@
 package com.gitlab.ykrasik.gamedex.ui.view.main
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.controller.SettingsController
-import com.gitlab.ykrasik.gamedex.javafx.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.backButton
-import com.gitlab.ykrasik.gamedex.javafx.verticalSeparator
-import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryScreen
+import com.gitlab.ykrasik.gamedex.javafx.notification.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsScreen
-import com.gitlab.ykrasik.gamedex.ui.view.library.LibraryScreen
 import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportsScreen
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
-import org.controlsfx.control.NotificationPane
 import tornadofx.*
 
 /**
@@ -56,6 +48,8 @@ class MainView : View("GameDex") {
 
     private val gameDetailsScreen: GameDetailsScreen by inject()
 
+    private val notifier: Notifier by di()
+
     private var tabPane: TabPane by singleAssign()
     private var toolbar: ToolBar by singleAssign()
 
@@ -63,8 +57,8 @@ class MainView : View("GameDex") {
 
     private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
 
-    override val root = persistentNotification.apply {
-        content = borderpane {
+    override val root = notifier.init {
+        borderpane {
             top {
                 toolbar = toolbar {
                     items.onChange {
@@ -190,31 +184,5 @@ class MainView : View("GameDex") {
                 prefWidth = 100.px
             }
         }
-    }
-
-    companion object {
-        private val persistentNotification = NotificationPane().apply {
-            isCloseButtonVisible = false
-            isShowFromTop = false
-        }
-
-        val canShowPersistentNotificationProperty = persistentNotification.showingProperty().not()
-
-        fun showPersistentNotification(graphic: Node) {
-            persistentNotification.graphic = graphic
-            persistentNotification.show()
-        }
-
-        fun hidePersistentNotification() {
-            persistentNotification.hide()
-        }
-
-        fun showFlashInfoNotification(text: String) = Notification()
-            .text(text)
-            .information()
-            .automaticallyHideAfter(3.seconds)
-            .hideCloseButton()
-            .position(Pos.BOTTOM_RIGHT)
-            .show()
     }
 }

@@ -18,17 +18,16 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.controller.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.ChooseSearchResultsToggleMenu
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
@@ -64,18 +63,20 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 ChooseSearchResultsToggleMenu().install(this)
             }
-            setOnAction { reloadGame { gameController.searchGame(game).result } }
+            setOnAction { reloadGame { gameController.searchGame(game) } }
         }
         verticalSeparator()
         refreshButton {
             enableWhen { gameController.canRunLongTask }
-            setOnAction { reloadGame { gameController.refreshGame(game).result } }
+            setOnAction { reloadGame { gameController.refreshGame(game) } }
         }
         verticalSeparator()
         deleteButton("Delete") {
             setOnAction {
-                if (gameController.delete(game)) {
-                    goBackScreen()
+                launch(JavaFx) {
+                    if (gameController.delete(game)) {
+                        goBackScreen()
+                    }
                 }
             }
         }
@@ -157,10 +158,9 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
     private fun tag() = reloadGame { gameController.tag(game) }
 
-    private fun reloadGame(f: () -> Deferred<Game>) {
-        val newGame = f()
+    private fun reloadGame(f: suspend () -> Game) {
         launch(JavaFx) {
-            game = newGame.await()
+            game = f()
         }
     }
 

@@ -1,14 +1,15 @@
 rootProject.name = 'gamedex'
 
-include "gamedex-common"
+include "gamedex-api"
 
-include "gamedex-persistence"
+include "core:gamedex-core-api"
+include "core:gamedex-core-persistence"
+include "core:gamedex-core"
 
-include "providers:gamedex-provider-giantbomb"
-include "providers:gamedex-provider-igdb"
+include "provider:gamedex-provider-giantbomb"
+include "provider:gamedex-provider-igdb"
 
 include "javafx:gamedex-javafx-common"
-include "javafx:gamedex-javafx-library"
 include "javafx:gamedex-javafx-app"
 
 setDefaultBuildFile(rootProject)

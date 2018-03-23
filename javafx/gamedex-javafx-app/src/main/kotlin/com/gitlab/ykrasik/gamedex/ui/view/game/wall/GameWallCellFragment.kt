@@ -16,10 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
-import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.perform
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -75,7 +73,7 @@ class GameWallCellFragment : Fragment() {
 
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
-            settings.cell.isFixedSizeProperty.perform { isFixedSize ->
+            settings.cell.isFixedSizeSubject.subscribe { isFixedSize ->
                 if (isFixedSize) {
                     maxWidthProperty().cleanBind(root.widthProperty())
                     maxHeightProperty().cleanBind(root.heightProperty())
@@ -90,7 +88,7 @@ class GameWallCellFragment : Fragment() {
             _versionOverlay = overlayLabel(settings.versionOverlay)
 
             this@GameWallCellFragment.border = rectangle {
-                visibleWhen { settings.cell.isShowBorderProperty }
+                visibleWhen { settings.cell.isShowBorderSubject.toBindingCached() }
 
                 x = 1.0
                 y = 1.0
@@ -115,9 +113,9 @@ class GameWallCellFragment : Fragment() {
     private fun EventTarget.overlayLabel(settings: GameWallSettings.OverlaySettingsAccessor) = label {
         addClass(Style.overlayText)
 
-        visibleWhen { settings.isShowProperty.and(textProperty().isNotNull.and(textProperty().isNotEmpty)) }
-        maxWidthProperty().bind(settings.fillWidthProperty.map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
-        settings.positionProperty.perform { position -> StackPane.setAlignment(this, position) }
+        visibleWhen { settings.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty) }
+        maxWidthProperty().bind(settings.fillWidthSubject.toPropertyCached().map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
+        settings.positionSubject.subscribe { position -> StackPane.setAlignment(this, position) }
     }
 
     class Style : Stylesheet() {

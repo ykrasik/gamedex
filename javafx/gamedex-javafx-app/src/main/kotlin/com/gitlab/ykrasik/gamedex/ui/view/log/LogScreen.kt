@@ -17,10 +17,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view.log
 
 import ch.qos.logback.classic.Level
-import com.gitlab.ykrasik.gamedex.settings.GeneralSettings
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
+import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
 import javafx.scene.control.ListCell
@@ -37,14 +36,20 @@ import tornadofx.*
 class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
     private val settings: GeneralSettings by di()
 
-    private val logItems = SortedFilteredList(Log.entries)
-    private var displayLevel = settings.logFilterLevelProperty.map(Level::toLevel)
+    private val logItems = Log.entries.sortedFiltered()
+    private val logFilterLevelProperty = settings.logFilterLevelSubject.toPropertyCached()
+    private var displayLevel = logFilterLevelProperty.map(Level::toLevel)
 
     override fun ToolBar.constructToolbar() {
-        combobox(settings.logFilterLevelProperty, listOf(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR).map { it.levelStr.toLowerCase() })
-        togglebutton("Tail") {
-            selectedProperty().bindBidirectional(settings.logTailProperty)
-        }
+        header("Level").labelFor =
+            popoverComboMenu(
+                possibleItems = listOf(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR).map { it.levelStr.toLowerCase().capitalize() },
+                selectedItemProperty = logFilterLevelProperty
+            ).apply {
+                minWidth = 60.0
+            }
+        header("Tail").labelFor =
+            jfxToggleButton(settings.logTailSubject.toPropertyCached())
     }
 
     override val root = listview(logItems) {
@@ -96,7 +101,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
 
     init {
         logItems.predicate = { entry -> entry.level.isGreaterOrEqual(displayLevel.value) }
-        settings.logFilterLevelProperty.onChange { logItems.refilter() }
+        logFilterLevelProperty.onChange { logItems.refilter() }
     }
 
     class Style : Stylesheet() {

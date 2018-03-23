@@ -16,12 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import javafx.beans.InvalidationListener
-import javafx.beans.property.*
+import com.gitlab.ykrasik.gamdex.core.api.util.*
+import io.reactivex.Observable
+import javafx.beans.property.BooleanProperty
+import javafx.beans.property.Property
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
-import javafx.collections.ObservableSet
 import javafx.collections.transformation.TransformationList
 import tornadofx.SortedFilteredList
 import tornadofx.observable
@@ -33,6 +36,30 @@ import tornadofx.onChange
  * Time: 10:58
  */
 
+fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
+    val list = mutableListOf<T>().observable()
+    this.subscribe {
+        list.setAll(it)
+    }
+    return list
+}
+
+fun <T> ListObservable<T>.toObservableList(): ObservableList<T> {
+    val list = FXCollections.observableArrayList(this)
+    // TODO: How to dispose of this subscription? Is it needed?
+    changesObservable.subscribe { event ->
+        when (event) {
+            is ListItemAddedEvent -> list += event.item
+            is ListItemsAddedEvent -> list += event.items
+            is ListItemRemovedEvent -> list.removeAt(event.index)
+            is ListItemsRemovedEvent -> list.removeAll(event.items)
+            is ListItemSetEvent -> list[event.index] = event.item
+            is ListItemsSetEvent -> list.setAll(event.items)
+        }
+    }
+    return list
+}
+
 // TODO: I think this can all be done using objectBinding.
 /*******************************************************************************************************
  *                                            List                                                     *
@@ -41,13 +68,6 @@ fun <T> emptyObservableList() = FXCollections.emptyObservableList<T>()
 
 fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
     ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
-
-fun <T> ObservableList<T>.unmodifiable(): ObservableList<T> = FXCollections.unmodifiableObservableList(this)
-fun <T> ObservableList<T>.sizeProperty(): ReadOnlyIntegerProperty {
-    val p = SimpleIntegerProperty(this.size)
-    this.onChange { p.set(this.size) }
-    return p
-}
 
 fun <T, R> ObservableList<T>.mapping(f: (T) -> R): ObservableList<R> = MappedList(this, f)
 
@@ -82,32 +102,6 @@ fun <T> ObservableList<T>.containing(value: Property<T>): BooleanProperty {
     val property = SimpleBooleanProperty(doesContain())
     this.onChange { property.value = doesContain() }
     value.onChange { property.value = doesContain() }
-    return property
-}
-
-fun <T> ObservableList<T>.adding(other: ObservableList<T>): ObservableList<T> {
-    fun doAdd() = this + other
-
-    val list = doAdd().observable()
-    this.onChange { list.setAll(doAdd()) }
-    other.onChange { list.setAll(doAdd()) }
-    return list
-}
-
-fun <T> ObservableList<T>.filtering(property: Property<(T) -> Boolean>): ObservableList<T> {
-    fun doFilter() = this.filter(property.value)
-
-    val list = doFilter().observable()
-    this.onChange { list.setAll(doFilter()) }
-    property.onChange { list.setAll(doFilter()) }
-    return list
-}
-
-fun <T> ObservableList<T>.existing(f: (T) -> Boolean): BooleanProperty {
-    fun doesExist() = this.any(f)
-
-    val property = SimpleBooleanProperty(doesExist())
-    this.onChange { property.value = doesExist() }
     return property
 }
 
@@ -157,11 +151,11 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
         while (c.next()) {
             if (c.wasPermutated()) {
                 val perm = IntArray(c.to - c.from)
-                for (i in c.from..c.to - 1)
+                for (i in c.from until c.to)
                     perm[i - c.from] = c.getPermutation(i)
                 nextPermutation(c.from, c.to, perm)
             } else if (c.wasUpdated()) {
-                for (i in c.from..c.to - 1) {
+                for (i in c.from until c.to) {
                     remapIndex(i)
                     nextUpdate(i)
                 }
@@ -174,7 +168,7 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
                     nextRemove(c.from, duped)
                 }
                 if (c.wasAdded()) {
-                    for (i in c.from..c.to - 1) {
+                    for (i in c.from until c.to) {
                         mapped.addAll(c.from, c.addedSubList.map(mapper))
                         remapIndex(i)
                     }
@@ -199,49 +193,4 @@ class MappedList<E, F>(source: ObservableList<out F>, private val mapper: (F) ->
     override fun get(index: Int): E = mapped[index]
 
     override val size: Int get() = mapped.size
-}
-
-/*******************************************************************************************************
- *                                             Set                                                     *
- *******************************************************************************************************/
-
-// Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableSet<T>.performing(f: (ObservableSet<T>) -> Unit) {
-    fun doPerform() = f(this)
-    doPerform()
-    this.addListener(InvalidationListener {
-        doPerform()
-    })
-}
-
-fun <T> ObservableSet<T>.containing(value: Property<T>): BooleanProperty {
-    fun doesContain() = this.contains(value.value)
-
-    val property = SimpleBooleanProperty(doesContain())
-    this.addListener(InvalidationListener {
-        property.value = doesContain()
-    })
-    value.onChange {
-        property.value = doesContain()
-    }
-    return property
-}
-
-fun <T> ObservableSet<T>.equaling(other: ObservableSet<T>): BooleanProperty {
-    fun doesEqual() = this == other
-
-    val property = SimpleBooleanProperty(doesEqual())
-    this.addListener(InvalidationListener {
-        property.value = doesEqual()
-    })
-    other.addListener(InvalidationListener {
-        property.value = doesEqual()
-    })
-    return property
-}
-
-fun <T> ObservableSet<T>.invalidate() {
-    if (isNotEmpty()) {
-        this += this.first()
-    }
 }

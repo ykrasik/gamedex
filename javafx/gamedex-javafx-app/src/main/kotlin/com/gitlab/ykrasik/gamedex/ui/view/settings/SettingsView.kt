@@ -16,14 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.repository.logoImage
-import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.cancelButton
-import com.gitlab.ykrasik.gamedex.javafx.toImageView
-import com.gitlab.ykrasik.gamedex.javafx.verticalSeparator
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.scene.Node
@@ -40,7 +35,7 @@ import tornadofx.*
  * Time: 22:22
  */
 class SettingsView : View("Settings") {
-    private val generalSettingsView: GeneralSettingsView by inject()
+    private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameSettingsView: GameSettingsView by inject()
     private val providerOrderView: ProviderOrderSettingsView by inject()
 
@@ -59,14 +54,20 @@ class SettingsView : View("Settings") {
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    setOnAction { accept() }
+                    setOnAction {
+                        accept = true
+                        close()
+                    }
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction { close() }
+                    setOnAction {
+                        accept = false
+                        close()
+                    }
                 }
             }
         }
@@ -132,11 +133,6 @@ class SettingsView : View("Settings") {
         (selectedToggleProperty.value.properties[viewProperty] as UIComponent).onDock()
         openWindow(block = true, modality = Modality.APPLICATION_MODAL)
         return accept
-    }
-
-    private fun accept() {
-        accept = true
-        close()
     }
 
     class Style : Stylesheet() {

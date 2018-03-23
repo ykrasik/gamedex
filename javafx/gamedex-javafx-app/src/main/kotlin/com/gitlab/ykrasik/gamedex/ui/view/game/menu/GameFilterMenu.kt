@@ -16,18 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.core.Filter
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.core.FilterSet
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
-import com.gitlab.ykrasik.gamedex.javafx.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.mouseTransparentWhen
-import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamdex.core.api.util.value_
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.ui.view.game.filter.FilterFragment
 import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
@@ -41,9 +37,9 @@ class GameFilterMenu : View() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
     private val providerRepository: GameProviderRepository by di()
-    private val settings: GameSettings by di()
+    private val gameSettings: GameSettings by di()
 
-    private val filterSet = FilterSet.Builder(settings, libraryController, gameController, providerRepository)
+    private val filterSet = FilterSet.Builder(gameSettings, libraryController, gameController, providerRepository)
         .without(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
         .build()
 
@@ -71,6 +67,7 @@ class GameFilterMenu : View() {
         }
     }
 
+    // TODO: Move this out of the menu into the toolbar.
     private fun Fieldset.searchText() {
         field("Search") {
             val search = CustomTextField().apply {
@@ -92,14 +89,12 @@ class GameFilterMenu : View() {
 
     private fun Fieldset.filter() = field {
         vbox {
-            val filterProperty = settings.filterForCurrentPlatformProperty
-            filterProperty.perform {
-                replaceChildren {
-                    children += FilterFragment(filterProperty, filterSet).root
-                }
+            val filterProperty = gameSettings.currentPlatformFilterSubject
+            val fragment = FilterFragment(filterProperty, filterSet)
+            fragment.newFilterObservable.subscribe {
+                filterProperty.value_ = it
             }
-
-            filterProperty.onChange { settings.setFilter(it!!) }
+            children += fragment.root
         }
     }
 }

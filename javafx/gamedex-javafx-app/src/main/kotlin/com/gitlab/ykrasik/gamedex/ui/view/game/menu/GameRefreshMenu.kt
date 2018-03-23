@@ -16,13 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.refreshButton
-import com.gitlab.ykrasik.gamedex.javafx.toggle
-import javafx.scene.input.MouseEvent
+import com.gitlab.ykrasik.gamdex.core.api.util.mapBidirectional
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import javafx.beans.property.Property
+import javafx.geometry.Pos
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
+import org.joda.time.PeriodType
+import org.joda.time.format.PeriodFormatterBuilder
 import tornadofx.*
 
 /**
@@ -32,30 +36,75 @@ import tornadofx.*
  */
 class GameRefreshMenu : View() {
     private val gameController: GameController by di()
+    private val settings: GameSettings by di()
 
-    private val staleDurationMenu: GameStaleDurationMenu by inject()
+    private val formatter = PeriodFormatterBuilder()
+        .appendYears().appendSuffix("y").appendSeparator(" ")
+        .appendMonths().appendSuffix("mo").appendSeparator(" ")
+        .appendDays().appendSuffix("d").appendSeparator(" ")
+        .appendHours().appendSuffix("h").appendSeparator(" ")
+        .appendMinutes().appendSuffix("m").appendSeparator(" ")
+        .appendSeconds().appendSuffix("s").toFormatter()
 
-    override val root = refreshButton {
+    private val stalePeriodTextProperty = settings.stalePeriodSubject.mapBidirectional({
+        val sb = StringBuffer()
+        formatter.printTo(sb, normalizedStandard(PeriodType.yearMonthDayTime()))
+        sb.toString()
+    }, { formatter.parsePeriod(this) }).toPropertyCached()
+
+
+    override val root = buttonWithPopover("Refresh", graphic = Theme.Icon.refresh(), arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->
+        val viewModel = PeriodViewModel(stalePeriodTextProperty).apply {
+            textProperty.onChange { commit() }
+            validate(decorateErrors = true)
+        }
+        labeled("Stale Duration", listOf(CommonStyle.headerLabel)) {
+            textfield(viewModel.textProperty) {
+                isFocusTraversable = false
+                validator {
+                    try {
+                        formatter.parsePeriod(it)
+                        null
+                    } catch (e: Exception) {
+                        error("Invalid duration! Format: {x}y {x}mo {x}d {x}h {x}m {x}s")
+                    }
+                }
+            }
+        }.apply {
+            paddingAll = 5.0
+        }
+        separator()
+
+        val invalid = viewModel.valid.not()
+        refreshButton("All Stale Games") {
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            disableWhen(invalid)
+            tooltip("Refresh all games that were last refreshed before the stale duration")
+            setOnAction {
+                popover.hide()
+                launch(JavaFx) {
+                    gameController.refreshAllGames()
+                }
+            }
+        }
+        refreshButton("Filtered Stale Games") {
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            disableWhen(invalid)
+            tooltip("Refresh filtered games that were last refreshed before the stale duration")
+            setOnAction {
+                popover.hide()
+                launch(JavaFx) {
+                    gameController.refreshFilteredGames()
+                }
+            }
+        }
+    }.apply {
         enableWhen { gameController.canRunLongTask }
+    }
 
-        val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-            children += staleDurationMenu.root
-        }
-        val downPopover = popOver {
-            addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
-            disableWhen { staleDurationMenu.isFocused.or(staleDurationMenu.isValid.not()) }
-            refreshButton("All Stale Games") {
-                addClass(CommonStyle.fillAvailableWidth)
-                tooltip("Refresh all games that were last refreshed before the stale duration")
-                setOnAction { gameController.refreshAllGames() }
-            }
-            separator()
-            refreshButton("Filtered Stale Games") {
-                addClass(CommonStyle.fillAvailableWidth)
-                tooltip("Refresh filtered games that were last refreshed before the stale duration")
-                setOnAction { setOnAction { gameController.refreshFilteredGames() } }
-            }
-        }
-        setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }
+    private class PeriodViewModel(p: Property<String>) : ViewModel() {
+        val textProperty = bind { p }
     }
 }

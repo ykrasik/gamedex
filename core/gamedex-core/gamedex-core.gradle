@@ -1,0 +1,7 @@
+dependencies {
+    fullDependency ":core:gamedex-core-api"
+    compile project(":core:gamedex-core-persistence")
+
+    compile reflections
+    compile diff
+}

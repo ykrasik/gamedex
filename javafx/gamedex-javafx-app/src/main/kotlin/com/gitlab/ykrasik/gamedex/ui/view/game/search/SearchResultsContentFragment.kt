@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
-import com.gitlab.ykrasik.gamedex.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
-import com.gitlab.ykrasik.gamedex.core.SearchChooser
+import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.imageViewColumn
 import com.gitlab.ykrasik.gamedex.javafx.minWidthFitContent
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle

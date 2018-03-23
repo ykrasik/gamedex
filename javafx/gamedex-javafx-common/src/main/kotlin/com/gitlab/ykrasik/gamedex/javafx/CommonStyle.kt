@@ -32,6 +32,7 @@ class CommonStyle : Stylesheet() {
     companion object {
         val hiddenTabPaneHeader by cssclass()
 
+        // TODO: Delete this.
         val fillAvailableWidth by cssclass()
         val centered by cssclass()
 

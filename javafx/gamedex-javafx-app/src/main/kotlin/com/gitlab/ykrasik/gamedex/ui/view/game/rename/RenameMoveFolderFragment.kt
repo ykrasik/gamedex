@@ -18,15 +18,8 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.popoverComboMenu
-import com.gitlab.ykrasik.gamedex.javafx.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.cancelButton
-import com.gitlab.ykrasik.gamedex.javafx.header
-import com.gitlab.ykrasik.gamedex.javafx.pathButton
-import com.gitlab.ykrasik.gamedex.javafx.verticalSeparator
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javafx.beans.property.Property
 import javafx.geometry.HPos
@@ -89,7 +82,7 @@ class RenameMoveFolderFragment(private val game: Game, initialSuggestion: String
                         gridpane {
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
                             popoverComboMenu(
-                                possibleItems = libraryController.allLibraries as List<Library>,
+                                possibleItems = libraryController.allLibraries,
                                 selectedItemProperty = libraryProperty,
                                 text = { it.path.path }
                             ).apply {

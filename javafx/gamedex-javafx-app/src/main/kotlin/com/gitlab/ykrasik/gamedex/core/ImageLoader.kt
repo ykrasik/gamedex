@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.javafx.Theme.Images
 import com.gitlab.ykrasik.gamedex.javafx.toImage
+import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.download
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.Inject

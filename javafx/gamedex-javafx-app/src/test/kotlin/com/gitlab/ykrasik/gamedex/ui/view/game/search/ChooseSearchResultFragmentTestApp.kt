@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
 import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.core.SearchChooser
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.test.*
 
 /**

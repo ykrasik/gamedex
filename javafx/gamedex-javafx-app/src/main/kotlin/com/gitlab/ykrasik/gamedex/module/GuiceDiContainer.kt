@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.module
 
-import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
+import com.gitlab.ykrasik.gamedex.core.module.CoreModule
+import com.gitlab.ykrasik.gamedex.core.module.ProviderScannerModule
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.google.inject.Stage
@@ -34,8 +35,6 @@ class GuiceDiContainer(modules: List<Module> = GuiceDiContainer.defaultModules) 
     override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
 
     companion object {
-        val defaultModules = listOf(
-            AppModule, ConfigModule, PersistenceModule, ProviderScannerModule
-        )
+        val defaultModules = listOf(ProviderScannerModule, CoreModule, JavaFxModule)
     }
 }

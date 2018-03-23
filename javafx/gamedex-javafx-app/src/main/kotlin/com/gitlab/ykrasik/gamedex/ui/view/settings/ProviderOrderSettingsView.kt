@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.ProviderId
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.repository.logoImage
-import com.gitlab.ykrasik.gamedex.settings.ProviderSettings
-import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
+import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
-import javafx.beans.property.ObjectProperty
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import io.reactivex.subjects.BehaviorSubject
 import javafx.geometry.Pos
 import javafx.scene.Cursor
 import javafx.scene.effect.DropShadow
@@ -44,27 +44,27 @@ class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
         // FIXME: Forms take a long time to load!!!
         fieldset("Order Priorities") {
             listOf(
-                "Search" to settings.searchOrderProperty,
-                "Name" to settings.nameOrderProperty,
-                "Description" to settings.descriptionOrderProperty,
-                "Release Date" to settings.releaseDateOrderProperty,
-                "Critic Score" to settings.criticScoreOrderProperty,
-                "User Score" to settings.userScoreOrderProperty,
-                "Thumbnail" to settings.thumbnailOrderProperty,
-                "Poster" to settings.posterOrderProperty,
-                "Screenshots" to settings.screenshotOrderProperty
-            ).forEach { (name, orderProperty) ->
+                "Search" to settings.searchOrderSubject,
+                "Name" to settings.nameOrderSubject,
+                "Description" to settings.descriptionOrderSubject,
+                "Release Date" to settings.releaseDateOrderSubject,
+                "Critic Score" to settings.criticScoreOrderSubject,
+                "User Score" to settings.userScoreOrderSubject,
+                "Thumbnail" to settings.thumbnailOrderSubject,
+                "Poster" to settings.posterOrderSubject,
+                "Screenshots" to settings.screenshotOrderSubject
+            ).forEach { (name, orderSubject) ->
                 field(name) {
-                    providerOrder(orderProperty)
+                    providerOrder(orderSubject)
                 }
             }
         }
     }
 
-    private fun Pane.providerOrder(orderProperty: ObjectProperty<ProviderSettings.Order>) {
+    private fun Pane.providerOrder(orderSubject: BehaviorSubject<ProviderSettings.Order>) {
         hbox(spacing = 20.0) {
             alignment = Pos.CENTER
-            orderProperty.perform { order ->
+            orderSubject.subscribe { order ->
                 var dragging: ProviderId? = null
                 replaceChildren {
                     order.ordered().map { providerId ->
@@ -97,10 +97,7 @@ class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
                                     this@label != label && this@label.boundsInParent.intersects(label.boundsInParent)
                                 }
                                 if (intersect != null) {
-                                    orderProperty.value = order.switch(
-                                        dragging!!,
-                                        intersect.userData as ProviderId
-                                    )
+                                    orderSubject.value_ = order.switch(dragging!!, intersect.userData as ProviderId)
                                 }
                             }
                             setOnMouseEntered {

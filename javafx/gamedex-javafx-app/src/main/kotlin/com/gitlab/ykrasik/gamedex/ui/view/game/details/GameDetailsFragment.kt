@@ -16,18 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
+import com.github.thomasnield.rxkotlinfx.toBinding
+import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.core.FileSystemOps
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.repository.logoImage
-import com.gitlab.ykrasik.gamedex.javafx.fixedRating
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.pathButton
-import com.gitlab.ykrasik.gamedex.javafx.toDisplayString
-import com.gitlab.ykrasik.gamedex.javafx.toLogo
-import com.gitlab.ykrasik.gamedex.javafx.toImageView
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.event.EventTarget
 import javafx.geometry.HPos
@@ -48,7 +43,7 @@ class GameDetailsFragment(
     private val evenIfEmpty: Boolean = false
 ) : Fragment() {
     private val providerRepository: GameProviderRepository by di()
-    private val fileSystemOps: FileSystemOps by di()
+    private val fileSystemService: FileSystemService by di()
 
     override val root = gridpane {
         hgap = 5.0
@@ -71,7 +66,7 @@ class GameDetailsFragment(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        label(fileSystemOps.size(game.path).map { it?.humanReadable ?: "" }) { minWidth = 60.0 }
+        label(fileSystemService.size(game.path).map { it.humanReadable }.toBinding()) { minWidth = 60.0 }
     }
 
     private fun GridPane.path() = row {

@@ -1,0 +1,5 @@
+dependencies {
+    fullDependency ":gamedex-api"
+    compile h2
+    compile exposed
+}

@@ -16,22 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.core.newDirectoryDetector
-import com.gitlab.ykrasik.gamedex.module.ConfigModule
-import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.persistence.module.PersistenceModule
+import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
+import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
+import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.appConfig
-import com.gitlab.ykrasik.gamedex.util.stringConfig
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.mock
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
+import java.io.File
 import java.util.concurrent.Executors
 
 /**
@@ -45,15 +40,11 @@ object TestApplication {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        appConfig = appConfig
-            .withValue("gameDex.persistence.dbUrl", stringConfig("jdbc:h2:./test"))
-            .withValue("gameDex.provider.giantBomb.endpoint", stringConfig(giantBombServer.endpointUrl))
-            .withValue("gameDex.provider.igdb.endpoint", stringConfig(igdbServer.endpointUrl))
-            .withValue("gameDex.provider.igdb.baseImageUrl", stringConfig(igdbServer.baseImageUrl))
-
-        newDirectoryDetector = mock {
-            on { detectNewDirectories(any(), any()) } doAnswer { List(rnd.nextInt(4)) { randomFile() } }
-        }
+        System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:./test")
+        System.setProperty("gameDex.provider.giantBomb.endpoint", giantBombServer.endpointUrl)
+        System.setProperty("gameDex.provider.igdb.endpoint", igdbServer.endpointUrl)
+        System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
+        System.setProperty("gameDex.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
 
         // Pre-Load test images
         TestImages
@@ -70,8 +61,9 @@ object TestApplication {
     private fun generateDb() {
         val numGames = 500
 
-        val guice = GuiceDiContainer(listOf(PersistenceModule, ConfigModule))
-        val persistenceService = guice.getInstance(PersistenceService::class)
+//        val guice = GuiceDiContainer()
+//        val persistenceService = guice.getInstance(PersistenceService::class)
+        val persistenceService = PersistenceServiceImpl(PersistenceConfig("jdbc:h2:./test", "org.h2.Driver", "sa", ""))
         persistenceService.dropDb()
 
         val libraries = (1..5).zip(listOf(Platform.pc, Platform.android, Platform.mac, Platform.excluded, Platform.pc)).map { (i, platform) ->
@@ -131,4 +123,9 @@ object TestApplication {
 
     // 9/10 chance.
     private fun String.sometimesNull() = if (rnd.nextInt(10) < 9) this else null
+}
+
+class StubNewDirectoryDetector : NewDirectoryDetector {
+    override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) =
+        List(rnd.nextInt(4)) { randomFile() }
 }

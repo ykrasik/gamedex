@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.toPropertyCached
 import javafx.scene.layout.VBox
 import tornadofx.*
 
@@ -33,17 +33,11 @@ class ChooseSearchResultsToggleMenu : Fragment() {
     override val root = vbox(spacing = 5.0) {
         togglegroup {
             GameSettings.ChooseResults.values().forEach { chooseResults ->
-                jfxToggleNode(chooseResults.key) {
-                    addClass(CommonStyle.fillAvailableWidth)
-                    isSelected = settings.chooseResults == chooseResults
-                    selectedProperty().onChange {
-                        if (it) settings.chooseResults = chooseResults
-                    }
-                    settings.chooseResultsProperty.onChange {
-                        isSelected = chooseResults == it
-                    }
+                jfxToggleNode(text = chooseResults.description, value = chooseResults) {
+                    useMaxWidth = true
                 }
             }
+            bind(settings.chooseResultsSubject.toPropertyCached())
         }
     }
 

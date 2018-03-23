@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.controller.ReportsController
+import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
-import com.gitlab.ykrasik.gamedex.ui.view.GamedexScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
@@ -42,16 +42,16 @@ import tornadofx.*
  */
 class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private val reportSettings: ReportSettings by di()
-    private val reportsController: ReportsController by di()
+    private val reportController: ReportController by di()
 
     private var content: VBox by singleAssign()
     private var searchTextfield: TextField by singleAssign()
 
     private val selection = ToggleGroup()
-    private val screens = FXCollections.observableArrayList<ReportFragment>()
+    private val screens = FXCollections.observableArrayList<ReportView>()
 
     private val currentToggle get() = selection.selectedToggleProperty()
-    private val currentScreen = currentToggle.map { it?.userData as? ReportFragment }
+    private val currentScreen = currentToggle.map { it?.userData as? ReportView }
     private val currentReport = currentScreen.map { it?.report }
     private val currentReportConfig = currentScreen.map { it?.reportConfig }
     private val currentlySelectedGame = currentScreen.flatMap {
@@ -73,14 +73,14 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     }
 
     init {
-        reportSettings.reportsProperty.perform { reports ->
+        reportSettings.reportsSubject.subscribe { reports ->
             isChangingSettings = true
 
             // TODO: Check for listener leaks.
             cleanupClosedScreen(currentToggle.value)
             selection.toggles.clear()
 
-            screens.setAll(reports.map { ReportFragment(it.value) })
+            screens.setAll(reports.map { ReportView(it.value) })
 
             isChangingSettings = false
         }
@@ -115,13 +115,13 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         }
         items += searchTextfield
         verticalSeparator()
-        addButton { setOnAction { upsertReport { reportsController.addReport() } } }
+        addButton { setOnAction { upsertReport { reportController.addReport() } } }
         verticalSeparator()
         excludeButton {
             val text = currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" }
             textProperty().bind(text)
             enableWhen { currentlySelectedGame.isNotNull }
-            setOnAction { upsertReport { reportsController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) } }
+            setOnAction { upsertReport { reportController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) } }
         }
         verticalSeparator()
         spacer()
@@ -136,7 +136,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
                             popoverContextMenu(PopOver.ArrowLocation.TOP_RIGHT) {
                                 editButton {
                                     addClass(Style.reportContextMenu)
-                                    setOnAction { upsertReport { reportsController.editReport(screen.reportConfig) } }
+                                    setOnAction { upsertReport { reportController.editReport(screen.reportConfig) } }
                                 }
                                 deleteButton("Delete") {
                                     addClass(Style.reportContextMenu)
@@ -155,12 +155,12 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     private fun upsertReport(f: () -> ReportConfig?) {
         val newConfig = f() ?: return
         // Select the newly upserted config.
-        val newToggle = selection.toggles.find { (it.userData as ReportFragment).reportConfig == newConfig }
+        val newToggle = selection.toggles.find { (it.userData as ReportView).reportConfig == newConfig }
         selection.selectToggle(newToggle)
     }
 
-    private fun deleteReport(view: ReportFragment) {
-        if (reportsController.deleteReport(view.reportConfig)) {
+    private fun deleteReport(view: ReportView) {
+        if (reportController.deleteReport(view.reportConfig)) {
             selection.selectToggle(selection.toggles.firstOrNull())
         }
     }
@@ -187,7 +187,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
         }
     }
 
-    private fun Toggle.withScreen(f: (ReportFragment) -> Unit) = f(userData as ReportFragment)
+    private fun Toggle.withScreen(f: (ReportView) -> Unit) = f(userData as ReportView)
 
     class Style : Stylesheet() {
         companion object {

@@ -16,17 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.github.thomasnield.rxkotlinfx.toBinding
+import com.gitlab.ykrasik.gamdex.core.api.util.changes
+import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import javafx.beans.binding.Bindings
-import javafx.beans.binding.ListExpression
-import javafx.beans.binding.NumberBinding
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
+import javafx.beans.binding.Binding
 import javafx.beans.property.*
 import javafx.beans.value.ChangeListener
-import javafx.beans.value.ObservableNumberValue
 import javafx.beans.value.ObservableValue
-import javafx.beans.value.WeakChangeListener
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import tornadofx.cleanBind
 import tornadofx.onChange
 import java.util.function.Predicate
@@ -36,8 +39,39 @@ import java.util.function.Predicate
  * Date: 16/05/2017
  * Time: 10:24
  */
-fun <T> ObservableValue<T>.onWeakChange(op: (T?) -> Unit): ChangeListener<T> =
-    ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(WeakChangeListener(this)) }
+fun <T> ObservableValue<T>.subscribeFx(f: suspend (T) -> Unit) {
+    onChange {
+        launch(JavaFx) {
+            f(it!!)
+        }
+    }
+}
+
+// FIXME: Looks like these caches don't solve listener leaks. Instead of leaking on the source observable,
+// FIXME: they leak from the transformed property / binding
+private val propertyCache = mutableMapOf<BehaviorSubject<*>, ObjectProperty<*>>()
+private val bindingCache = mutableMapOf<Observable<*>, Binding<*>>()
+
+@Suppress("UNCHECKED_CAST")
+fun <T> BehaviorSubject<T>.toPropertyCached(): ObjectProperty<T> = propertyCache.getOrPut(this) {
+    val p = SimpleObjectProperty(value_)
+
+    var shouldCall = true
+    this.changes().subscribe {
+        shouldCall = false
+        p.value = it
+        shouldCall = true
+    }
+    p.onChange {
+        if (shouldCall) {
+            this.value_ = it!!
+        }
+    }
+    p
+} as ObjectProperty<T>
+
+@Suppress("UNCHECKED_CAST")
+fun <T> Observable<T>.toBindingCached(): Binding<T> = bindingCache.getOrPut(this) { this.toBinding() } as Binding<T>
 
 fun <T> ObservableValue<T>.changeListener(op: (T?) -> Unit): ChangeListener<T> =
     ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(this) }
@@ -47,7 +81,7 @@ fun <T> ObservableValue<T>.printChanges(id: String) {
     addListener { _, o, v -> println("$id changed: $o -> $v") }
 }
 
-fun ObservableNumberValue.min(other: ObservableNumberValue): NumberBinding = Bindings.min(this, other)
+fun Property<Boolean>.toBoolean() = BooleanProperty.booleanProperty(this)
 
 fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> = map(f) { SimpleObjectProperty(it) }
 fun <T> ObservableValue<T>.mapString(f: (T?) -> String): StringProperty = map(f) { SimpleStringProperty(it) }
@@ -100,18 +134,6 @@ private fun <T, R, P : Property<in R>> Property<T>.mapBidirectional(extractor: E
     return mapped
 }
 
-fun <T, R> Property<T>.bindBidirectional(property: Property<R>, f: (T?) -> R, reverseF: (R?) -> T) {
-    this.value = reverseF(property.value)
-    this.onChange {
-        property.value = f(it)
-    }
-
-    property.value = f(this.value)
-    property.onChange {
-        this.value = reverseF(it)
-    }
-}
-
 fun <T, R> ObservableValue<T>.flatMap(f: (T?) -> ObservableValue<R>): ObjectProperty<R> {
     fun doFlatMap() = f(this.value)
     val property = SimpleObjectProperty<R>()
@@ -128,12 +150,6 @@ fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
     this.onChange { doPerform() }
 }
 
-fun <T> ObservableValue<T>.weakPerform(f: (T) -> Unit): ChangeListener<T> {
-    fun doPerform() = f(value)
-    doPerform()
-    return this.onWeakChange { doPerform() }
-}
-
 fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
     map { t -> Predicate { r: R -> f(t, r) } }
 
@@ -145,61 +161,6 @@ infix fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate
     val property = SimpleObjectProperty(compose())
     this.onChange { property.set(compose()) }
     other.onChange { property.set(compose()) }
-    return property
-}
-
-fun <T> ObservableValue<T?>.nonNull(): Property<T> {
-    val property = SimpleObjectProperty(this.value!!)
-    this.onChange { newValue ->
-        if (newValue != null) {
-            property.value = newValue
-        }
-    }
-    return property
-}
-
-fun <T> ObservableValue<List<T>>.notEmpty(): BooleanProperty {
-    fun isNotEmpty() = this.value.isNotEmpty()
-
-    val property = SimpleBooleanProperty(isNotEmpty())
-    this.onChange {
-        property.value = isNotEmpty()
-    }
-    return property
-}
-
-fun <K, V> ObservableValue<Map<K, V>>.getting(keyProperty: Property<K>): Property<V?> {
-    fun doGet() = this.value[keyProperty.value]
-
-    val property = SimpleObjectProperty(doGet())
-    this.onChange {
-        property.value = doGet()
-    }
-    keyProperty.onChange {
-        property.value = doGet()
-    }
-    return property
-}
-
-fun <K, V> ObservableValue<Map<K, V>>.gettingOrElse(keyProperty: Property<K>, defaultValue: V): Property<V> {
-    fun doGetOrElse() = this.value.getOrElse(keyProperty.value) { defaultValue }
-
-    val property = SimpleObjectProperty(doGetOrElse())
-    this.onChange {
-        property.value = doGetOrElse()
-    }
-    keyProperty.onChange {
-        property.value = doGetOrElse()
-    }
-    return property
-}
-
-fun <T, R> ListExpression<T>.mapping(f: (T) -> R): ListProperty<R> = SimpleListProperty(this.value.mapping(f))
-fun <T, R> ObservableValue<List<T>>.mapping(f: (T) -> R): Property<List<R>> {
-    fun doMap() = this.value.map(f)
-
-    val property = SimpleObjectProperty(doMap())
-    this.onChange { property.set(doMap()) }
     return property
 }
 

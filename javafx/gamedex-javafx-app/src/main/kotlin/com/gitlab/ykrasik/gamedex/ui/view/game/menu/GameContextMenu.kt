@@ -18,17 +18,14 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.javafx.dropDownMenu
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.replaceContent
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -47,28 +44,64 @@ class GameContextMenu : View() {
         val size = 20.0
         item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        item("Edit", Theme.Icon.edit(size)) { setOnAction { controller.editDetails(game) } }
+        item("Edit", Theme.Icon.edit(size)) {
+            setOnAction {
+                launch(JavaFx) {
+                    controller.editDetails(game)
+                }
+            }
+        }
         item("Change Thumbnail", Theme.Icon.thumbnail(size)) {
-            setOnAction { controller.editDetails(game, initialTab = GameDataType.thumbnail) }
+            setOnAction {
+                launch(JavaFx) {
+                    controller.editDetails(game, initialTab = GameDataType.thumbnail)
+                }
+            }
         }
         separator()
-        item("Tag", Theme.Icon.tag(size)) { setOnAction { controller.tag(game) } }
+        item("Tag", Theme.Icon.tag(size)) {
+            setOnAction {
+                launch(JavaFx) {
+                    controller.tag(game)
+                }
+            }
+        }
         separator()
         item("Refresh", Theme.Icon.refresh(size)) {
             enableWhen { controller.canRunLongTask }
-            setOnAction { controller.refreshGame(game) }
+            setOnAction {
+                launch(JavaFx) {
+                    controller.refreshGame(game)
+                }
+            }
         }
         item("Search", Theme.Icon.search(size)) {
             enableWhen { controller.canRunLongTask }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 ChooseSearchResultsToggleMenu().install(this)
             }
-            setOnAction { controller.searchGame(game) }
+            setOnAction {
+                launch(JavaFx) {
+                    controller.searchGame(game)
+                }
+            }
         }
         separator()
-        item("Rename/Move Folder", Theme.Icon.folder(size)) { setOnAction { controller.renameFolder(game) }}
+        item("Rename/Move Folder", Theme.Icon.folder(size)) {
+            setOnAction {
+                launch(JavaFx) {
+                    controller.renameFolder(game)
+                }
+            }
+        }
         separator()
-        item("Delete", Theme.Icon.delete(size)) { setOnAction { controller.delete(game) } }
+        item("Delete", Theme.Icon.delete(size)) {
+            setOnAction {
+                launch(JavaFx) {
+                    controller.delete(game)
+                }
+            }
+        }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {

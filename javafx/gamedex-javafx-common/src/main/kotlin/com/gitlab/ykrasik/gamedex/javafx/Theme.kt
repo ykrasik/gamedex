@@ -106,7 +106,6 @@ object Theme {
         val information = Image(javaClass.getResourceAsStream("information.png"))
         val warning = Image(javaClass.getResourceAsStream("warning.png"))
         val error = Image(javaClass.getResourceAsStream("error.png"))
-        val tick = Image(javaClass.getResourceAsStream("Green-Tick-PNG-Pic.png"))
     }
 }
 
@@ -196,7 +195,7 @@ fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMen
     selectedItemProperty = selected,
     styleClass = CommonStyle.platformItem,
     itemStyleClass = CommonStyle.fillAvailableWidth,
-    text = Platform::key,
+    text = Platform::displayName,
     graphic = { it.toLogo() }
 )
 

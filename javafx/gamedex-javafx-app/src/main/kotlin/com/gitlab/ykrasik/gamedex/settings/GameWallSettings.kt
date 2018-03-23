@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.settings
 
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.NestedModifier
 import javafx.geometry.Pos
-import tornadofx.getValue
-import tornadofx.setValue
 import javax.inject.Singleton
 
 /**
@@ -59,37 +59,37 @@ class GameWallSettings : UserSettings() {
     val versionOverlay = OverlaySettingsAccessor(Data::version, Data::withVersion)
 
     inner class CellSettingsAccessor {
-        val imageDisplayTypeProperty = repo.property({ cell.imageDisplayType }) { withCell { copy(imageDisplayType = it) } }
-        var imageDisplayType by imageDisplayTypeProperty
+        val imageDisplayTypeSubject = repo.subject({ cell.imageDisplayType }) { withCell { copy(imageDisplayType = it) } }
+        var imageDisplayType by imageDisplayTypeSubject
 
-        val isFixedSizeProperty = repo.booleanProperty({ cell.fixedSize }) { withCell { copy(fixedSize = it) } }
-        var isFixedSize by isFixedSizeProperty
+        val isFixedSizeSubject = repo.subject({ cell.fixedSize }) { withCell { copy(fixedSize = it) } }
+        var isFixedSize by isFixedSizeSubject
 
-        val isShowBorderProperty = repo.booleanProperty({ cell.showBorder }) { withCell { copy(showBorder = it) } }
-        var isShowBorder by isShowBorderProperty
+        val isShowBorderSubject = repo.subject({ cell.showBorder }) { withCell { copy(showBorder = it) } }
+        var isShowBorder by isShowBorderSubject
 
-        val widthProperty = repo.doubleProperty({ cell.width }) { withCell { copy(width = it) } }
-        var width by widthProperty
+        val widthSubject = repo.subject({ cell.width }) { withCell { copy(width = it) } }
+        var width by widthSubject
 
-        val heightProperty = repo.doubleProperty({ cell.height }) { withCell { copy(height = it) } }
-        var height by heightProperty
+        val heightSubject = repo.subject({ cell.height }) { withCell { copy(height = it) } }
+        var height by heightSubject
 
-        val horizontalSpacingProperty = repo.doubleProperty({ cell.horizontalSpacing }) { withCell { copy(horizontalSpacing = it) } }
-        var horizontalSpacing by horizontalSpacingProperty
+        val horizontalSpacingSubject = repo.subject({ cell.horizontalSpacing }) { withCell { copy(horizontalSpacing = it) } }
+        var horizontalSpacing by horizontalSpacingSubject
 
-        val verticalSpacingProperty = repo.doubleProperty({ cell.verticalSpacing }) { withCell { copy(verticalSpacing = it) } }
-        var verticalSpacing by verticalSpacingProperty
+        val verticalSpacingSubject = repo.subject({ cell.verticalSpacing }) { withCell { copy(verticalSpacing = it) } }
+        var verticalSpacing by verticalSpacingSubject
     }
 
     inner class OverlaySettingsAccessor(extractor: Extractor<Data, OverlaySettings>, modifier: NestedModifier<Data, OverlaySettings>) {
-        val isShowProperty = repo.booleanProperty({ extractor().show }, { modifier { copy(show = it) } })
-        var isShow by isShowProperty
+        val isShowSubject = repo.subject({ extractor().show }, { modifier { copy(show = it) } })
+        var isShow by isShowSubject
 
-        val positionProperty = repo.property({ extractor().position }, { modifier { copy(position = it) } })
-        var position by positionProperty
+        val positionSubject = repo.subject({ extractor().position }, { modifier { copy(position = it) } })
+        var position by positionSubject
 
-        val fillWidthProperty = repo.booleanProperty({ extractor().fillWidth }, { modifier { copy(fillWidth = it) } })
-        var fillWidth by fillWidthProperty
+        val fillWidthSubject = repo.subject({ extractor().fillWidth }, { modifier { copy(fillWidth = it) } })
+        var fillWidth by fillWidthSubject
     }
 
     enum class ImageDisplayType { fit, stretch }

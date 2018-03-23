@@ -16,12 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
 import javafx.scene.input.MouseEvent
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -43,19 +45,31 @@ class GameSearchMenu : View() {
             searchButton("New Games") {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search all libraries for new games")
-                setOnAction { gameController.scanNewGames() }
+                setOnAction {
+                    launch(JavaFx) {
+                        gameController.scanNewGames()
+                    }
+                }
             }
             separator()
             searchButton("All Games Without All Providers") {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search all games that don't already have all available providers")
-                setOnAction { gameController.rediscoverAllGamesWithoutAllProviders() }
+                setOnAction {
+                    launch(JavaFx) {
+                        gameController.rediscoverAllGamesWithoutAllProviders()
+                    }
+                }
             }
             separator()
             searchButton("Filtered Games Without All Providers") {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search currently filtered games that don't already have all available providers")
-                setOnAction { gameController.rediscoverFilteredGamesWithoutAllProviders() }
+                setOnAction {
+                    launch(JavaFx) {
+                        gameController.rediscoverFilteredGamesWithoutAllProviders()
+                    }
+                }
             }
         }
         setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }

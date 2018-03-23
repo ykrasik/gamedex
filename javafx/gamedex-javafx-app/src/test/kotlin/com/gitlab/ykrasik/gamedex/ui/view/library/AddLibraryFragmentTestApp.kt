@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.library
 
 import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryFragment
 
 /**
  * User: ykrasik
@@ -25,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
  */
 object AddLibraryFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        println("Result: " + LibraryFragment(emptyList(), library = null).show())
+        println("Result: " + LibraryFragment(library = null).show())
     }
 
     @JvmStatic fun main(args: Array<String>) {  }

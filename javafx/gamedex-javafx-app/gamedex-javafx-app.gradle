@@ -3,21 +3,18 @@ mainClassName = "com.gitlab.ykrasik.gamedex.Main"
 apply plugin: 'javafx-gradle-plugin'
 
 dependencies {
-    compile project(":gamedex-persistence")
+    compile project(":core:gamedex-core")
     fullDependency ":javafx:gamedex-javafx-common"
-    compile project(":javafx:gamedex-javafx-library")
 
-    project(":providers").subprojects {
+    project(":provider").subprojects {
         compile it
-        testCompile project(path: ":providers:${it.name}", configuration: 'testArtifacts')
+        testCompile project(path: ":provider:${it.name}", configuration: 'testArtifacts')
     }
 
     compile slf4j.julBridge
     compile logback
 
 //    compile bootstrapFx
-
-    compile diff
 }
 
 jfx {

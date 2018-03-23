@@ -16,10 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.preloader
 
+import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
+import com.gitlab.ykrasik.gamedex.javafx.task.Task
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.settings.PreloaderSettings
-import com.gitlab.ykrasik.gamedex.ui.Task
-import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import com.gitlab.ykrasik.gamedex.util.Log
 import com.gitlab.ykrasik.gamedex.util.LogEntry
@@ -27,7 +28,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import javafx.collections.ListChangeListener
-import javafx.stage.Screen
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -53,39 +53,25 @@ class PreloaderView : View("GameDex") {
         Log.entries.addListener(messageListener)
     }
 
-    override val root = borderpane {
+    override val root = vbox(spacing = 5) {
         paddingAll = 5.0
-        center {
-            imageview {
-                image = logo
+        imageview {
+            image = logo
 
-                clipRectangle {
-                    arcWidth = 10.0
-                    arcHeight = 10.0
-                    heightProperty().bind(logo.heightProperty())
-                    widthProperty().bind(logo.widthProperty())
-                }
+            clipRectangle {
+                arcWidth = 10.0
+                arcHeight = 10.0
+                heightProperty().bind(logo.heightProperty())
+                widthProperty().bind(logo.widthProperty())
             }
         }
-        bottom {
-            gridpane {
-                paddingTop = 5.0
-                vgap = 5.0
-                row {
-                    val progressBar = progressbar(0.0) { prefWidth = logo.width }
-                    progressBar.bind(progress.progressProperty)
-                }
-                row {
-                    label(progress.messageProperty)
-                }
-            }
-        }
+        progressbar(progress.progressProperty) { prefWidth = logo.width }
+        label(progress.messageProperty)
     }
 
     override fun onDock() {
-        val bounds = Screen.getPrimary().bounds
-        primaryStage.x = bounds.minX + bounds.width / 2 - logo.width / 2
-        primaryStage.y = bounds.minY + bounds.height / 3 - logo.height / 2
+        primaryStage.x = screenBounds.minX + screenBounds.width / 2 - logo.width / 2
+        primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
 
         launch(CommonPool) {
             load()

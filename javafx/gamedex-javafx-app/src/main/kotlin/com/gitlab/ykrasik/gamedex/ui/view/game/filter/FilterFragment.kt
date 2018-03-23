@@ -16,17 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.filter
 
+import com.gitlab.ykrasik.gamdex.core.api.util.behaviorSubject
+import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.core.Filter
-import com.gitlab.ykrasik.gamedex.core.Filter.Companion.name
 import com.gitlab.ykrasik.gamedex.core.FilterSet
+import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.toJava
 import com.gitlab.ykrasik.gamedex.util.toJoda
+import io.reactivex.Observable
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
@@ -43,59 +46,69 @@ import tornadofx.*
  * Date: 27/01/2018
  * Time: 13:07
  */
-class FilterFragment(
-    private val filter: Property<Filter>,
-    private val filterSet: FilterSet
-) : Fragment() {
+// TODO: Create a 'GlobalStorage' class that will contain all games, libraries, genres, tags etc?
+class FilterFragment(private val filterObservable: Observable<Filter>, private val filterSet: FilterSet) : Fragment() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
     private val providerRepository: GameProviderRepository by di()
 
+    // This is slightly hacky.
+    private lateinit var rootFilter: Filter
     private var indent = 0
 
     val isValid = SimpleBooleanProperty(true)
 
-    override val root = vbox {
-        render(filter.value, Filter.`true`)
-    }
+    private val newFilterSubject = behaviorSubject<Filter>()
+    val newFilterObservable: Observable<Filter> = newFilterSubject
 
-    private fun EventTarget.render(rule: Filter, parentRule: Filter) {
-        when (rule) {
-            is Filter.BinaryOperator -> renderOperator(rule, parentRule) {
-                render(rule.left, rule)
-                render(rule.right, rule)
-            }
-            is Filter.UnaryOperator -> render(rule.delegate, rule)
-            is Filter.Rule -> renderBasicRule(rule, parentRule, filterSet.rules) {
-                val ruleProperty = when (rule) {
-                    is Filter.Platform -> renderPlatformRule(rule)
-                    is Filter.Library -> renderLibraryRule(rule)
-                    is Filter.Genre -> renderGenreRule(rule)
-                    is Filter.Tag -> renderTagRule(rule)
-                    is Filter.ReleaseDate -> renderReleaseDateRule(rule)
-                    is Filter.Provider -> renderProviderRule(rule)
-                    is Filter.CriticScore -> renderScoreRule(rule, Filter::CriticScore)
-                    is Filter.UserScore -> renderScoreRule(rule, Filter::UserScore)
-                    is Filter.AvgScore -> renderScoreRule(rule, Filter::AvgScore)
-                    is Filter.FileSize -> renderFileSizeRule(rule)
-                    else -> rule.toProperty()
-                }
-                ruleProperty.onChange { replaceRule(rule, it!!) }
+    override val root = vbox {
+        filterObservable.subscribe { filter ->
+            rootFilter = filter
+            replaceChildren {
+                render(filter, Filter.`true`)
             }
         }
     }
 
-    private fun EventTarget.renderOperator(operator: Filter.Operator, parentRule: Filter, op: VBox.() -> Unit) = vbox(spacing = 2.0) {
+    private fun EventTarget.render(filter: Filter, parentFilter: Filter) {
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (filter) {
+            is Filter.BinaryOperator -> renderOperator(filter, parentFilter) {
+                render(filter.left, filter)
+                render(filter.right, filter)
+            }
+            is Filter.UnaryOperator -> render(filter.delegate, filter)
+            is Filter.Rule -> renderBasicRule(filter, parentFilter, filterSet.rules) {
+                // TODO: Use observables here instead of properties?
+                val ruleProperty = when (filter) {
+                    is Filter.Platform -> renderPlatformFilter(filter)
+                    is Filter.Library -> renderLibraryFilter(filter)
+                    is Filter.Genre -> renderGenreFilter(filter)
+                    is Filter.Tag -> renderTagFilter(filter)
+                    is Filter.ReleaseDate -> renderReleaseDateFilter(filter)
+                    is Filter.Provider -> renderProviderFilter(filter)
+                    is Filter.CriticScore -> renderScoreFilter(filter, Filter::CriticScore)
+                    is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
+                    is Filter.AvgScore -> renderScoreFilter(filter, Filter::AvgScore)
+                    is Filter.FileSize -> renderFileSizeFilter(filter)
+                    else -> filter.toProperty()
+                }
+                ruleProperty.onChange { replaceFilter(filter, it!!) }
+            }
+        }
+    }
+
+    private fun EventTarget.renderOperator(operator: Filter.Operator, parentFilter: Filter, op: VBox.() -> Unit) = vbox(spacing = 2.0) {
         addClass(Style.borderedContent)
-        renderBasicRule(operator, parentRule, filterSet.operators)
+        renderBasicRule(operator, parentFilter, filterSet.operators)
 
         indent += 1
         op(this)
         indent -= 1
     }
 
-    private fun EventTarget.renderBasicRule(rule: Filter,
-                                            parentRule: Filter,
+    private fun EventTarget.renderBasicRule(filter: Filter,
+                                            parentFilter: Filter,
                                             possible: List<String>,
                                             op: (HBox.() -> Unit)? = null) = hbox(spacing = 5.0) {
         addClass(CommonStyle.fillAvailableWidth)
@@ -103,13 +116,12 @@ class FilterFragment(
 
         region { minWidth = indent * 10.0 }
 
-        val ruleNameProperty = SimpleStringProperty(rule.name)
+        val ruleNameProperty = SimpleStringProperty(filter.name)
 
         popoverComboMenu(
             possibleItems = possible,
             selectedItemProperty = ruleNameProperty,
             styleClass = Style.ruleButton,
-            text = { it },
             menuOp = {
                 when (it) {
                     Filter.Platform::class.name, Filter.AvgScore::class.name, Filter.Provider::class.name -> separator()
@@ -117,26 +129,33 @@ class FilterFragment(
             }
         )
 
+        // TODO: Put this logic in a presenter
         ruleNameProperty.onChange { name ->
-            val newRule = filterSet.new(name!!)
-            replaceRule(rule, newRule)
+            val newRule = filterSet.new(name!!).let { newRule ->
+                if (filter is Filter.BinaryOperator && newRule is Filter.BinaryOperator) {
+                    newRule.new(filter.left, filter.right)
+                } else {
+                    newRule
+                }
+            }
+            replaceFilter(filter, newRule)
         }
 
         op?.invoke(this)
 
         spacer()
 
-        renderAdditionalButtons(rule, parentRule)
+        renderAdditionalButtons(filter, parentFilter)
     }
 
-    private fun HBox.renderAdditionalButtons(currentRule: Filter, parentRule: Filter) {
-        val negated = parentRule is Filter.Not
-        val target = if (negated) parentRule else currentRule
-        fun replaceRule(f: (Filter) -> Filter) = replaceRule(target, f(target))
+    private fun HBox.renderAdditionalButtons(currentFilter: Filter, parentFilter: Filter) {
+        val negated = parentFilter is Filter.Not
+        val target = if (negated) parentFilter else currentFilter
+        fun modifyFilter(f: (Filter) -> Filter) = replaceFilter(target, f(target))
         buttonWithPopover(graphic = Theme.Icon.plus(), styleClass = null) {
             fun operatorButton(name: String, f: (Filter) -> Filter) = jfxButton(name) {
                 addClass(CommonStyle.fillAvailableWidth)
-                setOnAction { replaceRule(f) }
+                setOnAction { modifyFilter(f) }
             }
 
             operatorButton("And") { Filter.And(it) }
@@ -147,86 +166,88 @@ class FilterFragment(
             isSelected = negated
             selectedProperty().onChange { selected ->
                 when {
-                    selected && !negated -> replaceRule { Filter.Not(it) }
-                    !selected && negated -> replaceRule(target, (target as Filter.Not).delegate)
+                    selected && !negated -> modifyFilter { Filter.Not(it) }
+                    !selected && negated -> replaceFilter(target, (target as Filter.Not).delegate)
                 }
             }
         }
         jfxButton(graphic = Theme.Icon.delete()) {
             setOnAction {
-                modifyFilter { it.delete(target) ?: Filter.`true` }
+                replaceFilter(target, with = null)
             }
         }
     }
 
-    private fun replaceRule(target: Filter, with: Filter) =
-        modifyFilter { it.replace(target, with) }
-
-    private fun modifyFilter(f: (Filter) -> Filter) {
-        filter.value = f(filter.value)
+    // TODO: Put this logic in a presenter
+    private fun replaceFilter(target: Filter, with: Filter?) {
+        newFilterSubject.value_ = if (with == null) {
+            rootFilter.delete(target) ?: Filter.`true`
+        } else {
+            rootFilter.replace(target, with)
+        }
     }
 
-    private fun HBox.renderPlatformRule(rule: Filter.Platform) = rule.toProperty().apply {
+    private fun HBox.renderPlatformFilter(rule: Filter.Platform) = rule.toProperty().apply {
         val platform = mapBidirectional(Filter.Platform::platform, Filter::Platform)
         platformComboBox(platform)
     }
 
-    private fun HBox.renderProviderRule(rule: Filter.Provider) = rule.toProperty().apply {
+    private fun HBox.renderProviderFilter(rule: Filter.Provider) = rule.toProperty().apply {
         val provider = mapBidirectional(Filter.Provider::providerId, Filter::Provider)
         combobox(provider, providerRepository.allProviders.map { it.id })
     }
 
-    private fun HBox.renderLibraryRule(rule: Filter.Library) = rule.toProperty().apply {
+    private fun HBox.renderLibraryFilter(rule: Filter.Library) = rule.toProperty().apply {
         val library = mapBidirectional(
             { libraryController.getBy(platform, libraryName) }, { Filter.Library(platform, name) }
         )
         popoverComboMenu(
             possibleItems = libraryController.platformLibraries as List<Library>,
             selectedItemProperty = library,
-            text = { it.name }
+            text = { it.name },
+            graphic = { it.platform.toLogo() }
         )
     }
 
-    private fun HBox.renderGenreRule(rule: Filter.Genre) = rule.toProperty().apply {
+    private fun HBox.renderGenreFilter(rule: Filter.Genre) = rule.toProperty().apply {
         val genre = mapBidirectional(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
             possibleItems = gameController.genres as List<String>,
-            selectedItemProperty = genre,
-            text = { it }
+            selectedItemProperty = genre
         )
     }
 
-    private fun HBox.renderTagRule(rule: Filter.Tag) = rule.toProperty().apply {
+    private fun HBox.renderTagFilter(rule: Filter.Tag) = rule.toProperty().apply {
         val tag = mapBidirectional(Filter.Tag::tag, Filter::Tag)
         combobox(tag, gameController.tags)
     }
 
-    private fun HBox.renderReleaseDateRule(rule: Filter.ReleaseDate) = rule.toProperty().apply {
+    private fun HBox.renderReleaseDateFilter(rule: Filter.ReleaseDate) = rule.toProperty().apply {
         val releaseDate = mapBidirectional({ releaseDate.toJava() }, { Filter.ReleaseDate(toJoda()) })
         datepicker {
             valueProperty().bindBidirectional(releaseDate)
         }
     }
 
-    private fun HBox.renderScoreRule(rule: Filter.ScoreRule, factory: (Double?) -> Filter.ScoreRule) = rule.toProperty().apply {
+    private fun HBox.renderScoreFilter(rule: Filter.ScoreRule, factory: (Double) -> Filter.ScoreRule) = rule.toProperty().apply {
         hbox(spacing = 5.0) {
             alignment = Pos.CENTER_LEFT
 
             val target = mapBidirectional(Filter.ScoreRule::target, factory)
             jfxButton {
-                text = if (rule.target == null) "is null" else ">="
+                text = if (rule.target == Filter.ScoreRule.NoScore) "is null" else ">="
                 setOnAction {
-                    target.value = if (rule.target == null) 60.0 else null
+                    target.value = if (rule.target == Filter.ScoreRule.NoScore) 60.0 else Filter.ScoreRule.NoScore
                 }
             }
-            if (rule.target != null) {
+            if (rule.target != Filter.ScoreRule.NoScore) {
                 @Suppress("UNCHECKED_CAST")
                 adjustableTextField(target as Property<Double>, rule.name, min = 0.0, max = 100.0, withButtons = false)
             }
         }
     }
 
-    private fun HBox.renderFileSizeRule(rule: Filter.FileSize) = rule.toProperty().apply {
+    private fun HBox.renderFileSizeFilter(filter: Filter.FileSize) = filter.toProperty().apply {
         val fragment = FileSizeRuleFragment(this)
         children += fragment.root
         isValid.bind(fragment.isValid)  // TODO: Handle more then 1 possibly invalid rules.

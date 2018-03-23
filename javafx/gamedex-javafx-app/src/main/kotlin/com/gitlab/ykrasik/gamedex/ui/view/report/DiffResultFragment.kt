@@ -17,18 +17,20 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.core.Filter
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
+import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import javafx.scene.text.TextFlow
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
 /**
@@ -49,7 +51,9 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
                 setOnAction {
-                    gameController.renameFolder(game, diff.expectedName)
+                    launch(JavaFx) {
+                        gameController.renameFolder(game, diff.expectedName)
+                    }
                 }
             }
             // TODO: Add a 'search only this provider' option

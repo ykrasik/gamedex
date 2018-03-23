@@ -16,12 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.controller.GameController
-import com.gitlab.ykrasik.gamedex.controller.LibraryController
-import com.gitlab.ykrasik.gamedex.core.Filter.Companion.filterClass
-import com.gitlab.ykrasik.gamedex.core.Filter.Companion.name
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.settings.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.filterClass
+import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.toDate
 import kotlin.reflect.KClass
@@ -31,6 +32,7 @@ import kotlin.reflect.KClass
  * Date: 25/01/2018
  * Time: 10:04
  */
+// TODO: Wrap this class in a factory.
 class FilterSet private constructor(
     private val _rules: Map<KClass<out Filter.Rule>, () -> Filter.Rule>,
     private val _operators: Map<KClass<out Filter.BinaryOperator>, () -> Filter.BinaryOperator>
@@ -52,9 +54,11 @@ class FilterSet private constructor(
             Filter.Or::class to { Filter.Or() }
         )
 
+        // TODO: Only show any of these when there's values to show for filter, always show for report.
         private val rules = mutableMapOf(
             Filter.Platform::class to { Filter.Platform(settings.platform) },
             Filter.Library::class to {
+                // TODO: Use platformLibraries for filter, realLibraries for report.
                 Filter.Library(settings.platform, libraryController.realLibraries.firstOrNull()?.name ?: "")
             },
             Filter.Genre::class to { Filter.Genre(gameController.genres.firstOrNull() ?: "") },

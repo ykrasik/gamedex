@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
-import com.gitlab.ykrasik.gamedex.core.SearchChooser
+import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.*
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color

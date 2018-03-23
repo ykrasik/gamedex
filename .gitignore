@@ -109,5 +109,10 @@ conf/
 *.trace.db.old
 *.hprof
 logs/
+data/
 db/
+cache/thumbnails
+cache/posters
+cache/files
 *.iss
+db*.json

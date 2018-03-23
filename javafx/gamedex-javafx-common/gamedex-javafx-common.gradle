@@ -1,8 +1,12 @@
 dependencies {
-    fullDependency ":gamedex-common"
+    fullDependency ":gamedex-api"
+    compile project(":core:gamedex-core")
 
     compile controlsFx
     compile jFoenix
     compile tornadoFx.core
     compile tornadoFx.controls
+
+    compile coroutines.javaFx
+    compile rx.rxKotlinFx
 }

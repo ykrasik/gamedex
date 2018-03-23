@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
-import com.gitlab.ykrasik.gamedex.ProviderId
-import com.gitlab.ykrasik.gamedex.repository.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.repository.logoImage
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import tornadofx.Fragment
 import tornadofx.stackpane

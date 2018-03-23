@@ -16,6 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.settings
 
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,11 +32,10 @@ class AllSettings @Inject constructor(
     val game: GameSettings,
     val gameWall: GameWallSettings,
     val general: GeneralSettings,
-    val preloader: PreloaderSettings,
     val provider: ProviderSettings,
     val report: ReportSettings
 ) {
-    private val all = listOf(game, gameWall, general, preloader, provider, report)
+    private val all = listOf(game, gameWall, general, provider, report)
 
     fun saveSnapshot() = all.forEach {
         it.disableWrite()

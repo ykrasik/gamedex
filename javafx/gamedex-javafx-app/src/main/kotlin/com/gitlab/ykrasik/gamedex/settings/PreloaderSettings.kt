@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.settings
 
-import tornadofx.getValue
-import tornadofx.setValue
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import javax.inject.Singleton
 
 /**
@@ -33,8 +33,8 @@ class PreloaderSettings : UserSettings() {
         )
     }
 
-    val diComponentsProperty = repo.intProperty(Data::diComponents) { copy(diComponents = it) }
-    var diComponents by diComponentsProperty
+    val diComponentsSubject = repo.subject(Data::diComponents) { copy(diComponents = it) }
+    var diComponents by diComponentsSubject
 
     data class Data(
         val diComponents: Int
