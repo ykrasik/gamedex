@@ -23,15 +23,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.gitlab.ykrasik.gamdex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
-import com.gitlab.ykrasik.gamdex.core.api.general.GeneralService
-import com.gitlab.ykrasik.gamdex.core.api.general.StaleData
-import com.gitlab.ykrasik.gamdex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamdex.core.api.task.Progress
-import com.gitlab.ykrasik.gamdex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
@@ -48,11 +47,12 @@ import javax.inject.Singleton
  * Time: 18:11
  */
 @Singleton
-class GeneralServiceImpl @Inject constructor(
-    private val libraryService: LibraryService,
-    private val gameService: GameService,
-    private val persistenceService: PersistenceService
-) : GeneralService {
+class GeneralSettingsPresenterImpl @Inject constructor(
+    private val libraryRepository: LibraryRepository,
+    private val gameRepository: GameRepository,
+    private val persistenceService: PersistenceService,
+    private val taskRunner: TaskRunner
+) : GeneralSettingsPresenter {
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .registerModule(JodaModule())
@@ -60,112 +60,110 @@ class GeneralServiceImpl @Inject constructor(
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
 
     // TODO: This isn't actually cancellable. Split long running tasks into cancellable and non-cancellable.
-    override fun importDatabase(file: File) = Task("Importing Database...") { progress ->
-        progress.message("Reading $file...")
+    override suspend fun importDatabase(file: File) = taskRunner.runTask {
+        title = "Importing database..."
+
+        message = "Reading $file..."
         val portableDb = objectMapper.readValue(file, PortableDb::class.java)
 
         persistenceService.dropDb()
-        gameService.invalidate().run()
-        libraryService.invalidate().run()
+        gameRepository.invalidate()
+        libraryRepository.invalidate()
 
-        progress.message("Importing ${portableDb.libraries.size} Libraries...")
-        val libraries = libraryService.addAll(portableDb.libraries.map { it.toLibraryRequest() }, progress).run()
+        message = "Importing ${portableDb.libraries.size} Libraries..."
+        val libraries = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() }, this)
             .associateBy { lib -> portableDb.findLib(lib.path, lib.platform).id }
 
-        progress.message("Importing ${portableDb.games.size} Games...")
-        gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }, progress).run()
+        message = "Importing ${portableDb.games.size} Games..."
+        gameRepository.addAll(portableDb.games.map { it.toGameRequest(libraries) }, this)
 
-        progress.doneMessage = "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games."
+        doneMessage = { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
     }
 
-    override fun exportDatabase(file: File) = Task("Exporting Database...") { progress ->
-        progress.totalWork = libraryService.libraries.size
-        progress.message("Exporting ${progress.totalWork} Libraries...")
-        val libraries = libraryService.libraries.map {
-            progress.inc { it.toPortable() }
-        }
+    override suspend fun exportDatabase(file: File) = taskRunner.runTask {
+        title = "Exporting database..."
 
-        progress.totalWork = gameService.games.size
-        progress.message("Exporting ${progress.totalWork} Games...")
-        val games = gameService.games.sortedBy { it.name }.map {
-            progress.inc { it.toPortable() }
-        }
+        message = "Exporting ${libraryRepository.libraries.size} Libraries..."
+        val libraries = libraryRepository.libraries.mapWithProgress { it.toPortable() }
 
-        progress.message("Writing $file...")
-        progress.totalWork = 1
+        message = "Exporting ${gameRepository.games.size} Games..."
+        val games = gameRepository.games.sortedBy { it.name }.mapWithProgress { it.toPortable() }
+
+        message = "Writing $file..."
+        totalWork = 1
         val portableDb = PortableDb(libraries, games)
         file.create()
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
-        progress.inc()
+        incProgress()
 
-        progress.doneMessage = "Exported ${libraryService.libraries.size} Libraries & ${gameService.games.size} Games."
+        doneMessage = { "Exported ${libraryRepository.libraries.size} Libraries & ${gameRepository.games.size} Games." }
     }
 
-    override fun detectStaleData() = Task("Detecting stale data...") { progress ->
-        val libraries = detectStaleData("libraries", progress) {
-            progress.totalWork = libraryService.libraries.size
-            libraryService.libraries.filter { library ->
-                progress.inc { !library.path.isDirectory }
-            }
+    override suspend fun detectStaleData() = taskRunner.runTask {
+        fun <T> detectStaleData(name: String, f: () -> List<T>): List<T> {
+            message = "Detecting stale $name..."
+            val staleData = f()
+            message = "Detected ${staleData.size} stale $name."
+            return staleData
         }
 
-        val games = detectStaleData("games", progress) {
-            progress.totalWork = gameService.games.size
-            gameService.games.filter { game ->
-                progress.inc { !game.path.isDirectory }
-            }
+        title = "Detecting stale data..."
+
+        val libraries = detectStaleData("libraries") {
+            libraryRepository.libraries.filterWithProgress { !it.path.isDirectory }
         }
 
-        val images = detectStaleData("images", progress) {
-            progress.totalWork = gameService.games.size
-            val usedImages = gameService.games.flatMap { game ->
-                progress.inc {
-                    game.imageUrls.screenshotUrls + listOf(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl).mapNotNull { it }
-                }
+        val games = detectStaleData("games") {
+            gameRepository.games.filterWithProgress { !it.path.isDirectory }
+        }
+
+        val images = detectStaleData("images") {
+            val usedImages = gameRepository.games.flatMapWithProgress { game ->
+                game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
             }
             persistenceService.fetchImagesExcept(usedImages)    // FIXME: Go through an image repository!
         }
 
         StaleData(libraries, games, images).apply {
-            progress.doneMessage = if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}"
+            doneMessage = { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
         }
     }
 
-    private suspend fun <T> detectStaleData(name: String, progress: Progress, f: suspend () -> List<T>): List<T> {
-        progress.message("Detecting stale $name...")
-        val staleData = f()
-        progress.message("Detected ${staleData.size} stale $name.")
-        return staleData
-    }
-
-    override fun deleteStaleData(staleData: StaleData) = Task("Deleting stale data...") { progress ->
-        progress.totalWork = 3
+    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask {
+        title = "Deleting stale data..."
+        totalWork = 3
 
         if (staleData.images.isNotEmpty()) {
-            progress.message("Deleting stale images...")
+            message = "Deleting stale images..."
             persistenceService.deleteImages(staleData.images.map { it.first })   // FIXME: Go through an image repository!
         }
-        progress.inc()
+        incProgress()
 
         if (staleData.games.isNotEmpty()) {
-            progress.message("Deleting stale games...")
-            gameService.deleteAll(staleData.games).run()
+            message = "Deleting stale games..."
+            gameRepository.deleteAll(staleData.games)
         }
-        progress.inc()
+        incProgress()
 
         if (staleData.libraries.isNotEmpty()) {
-            progress.message("Deleting stale libraries...")
-            libraryService.deleteAll(staleData.libraries).run()
+            message = "Deleting stale libraries..."
+            libraryRepository.deleteAll(staleData.libraries)
         }
-        progress.inc()
+        incProgress()
 
-        progress.doneMessage = "Deleted Stale Data:\n${staleData.toFormattedString()}"
+        doneMessage = { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
     }
 
     private fun StaleData.toFormattedString() =
         listOf(games to "Games", libraries to "Libraries", images to "Images")
             .filter { it.first.isNotEmpty() }.joinToString("\n") { "${it.first.size} ${it.second}" }
 
+    override suspend fun deleteAllUserData() = taskRunner.runTask {
+        title = "Deleting all game user data..."
+        message = "Deleting all game user data..."
+        gameRepository.deleteAllUserData()
+        doneMessage = { "All game user data deleted." }
+    }
 }
 
 private data class PortableDb(

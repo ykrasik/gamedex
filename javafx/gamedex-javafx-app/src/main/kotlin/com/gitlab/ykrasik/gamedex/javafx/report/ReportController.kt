@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.report
 
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.ThreadAwareDoubleProperty
@@ -49,7 +49,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ReportController @Inject constructor(
-    private val gameService: GameService,
+    private val gameRepository: GameRepository,
     private val settings: ReportSettings,
     private val fileSystemService: FileSystemService
 ) : Controller() {
@@ -99,7 +99,7 @@ class ReportController @Inject constructor(
         fun start() {
             if (subscription != null) return
 
-            subscription = gameService.games.itemsObservable.subscribe { games ->
+            subscription = gameRepository.games.itemsObservable.subscribe { games ->
                 isCalculating = true
                 launch(CommonPool) {
                     val result = calculate(games)

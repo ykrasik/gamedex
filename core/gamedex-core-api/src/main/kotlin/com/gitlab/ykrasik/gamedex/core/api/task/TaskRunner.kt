@@ -14,17 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.image
-
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+package com.gitlab.ykrasik.gamedex.core.api.task
 
 /**
  * User: ykrasik
  * Date: 05/04/2018
- * Time: 09:27
+ * Time: 10:55
  */
-interface ImageService {
-    suspend fun fetchImage(url: String?, gameId: Int, persistIfAbsent: Boolean): ReceiveChannel<ByteArray>
-
-    suspend fun downloadImage(url: String?): ReceiveChannel<ByteArray>
+interface TaskRunner {
+    suspend fun <T> runTask(run: suspend Task.() -> T): T
 }

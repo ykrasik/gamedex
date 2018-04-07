@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.github.thomasnield.rxkotlinfx.toBinding
-import com.gitlab.ykrasik.gamdex.core.api.util.changes
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
+import com.gitlab.ykrasik.gamedex.core.api.util.changes
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject

@@ -14,22 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.general
+package com.gitlab.ykrasik.gamedex.core.api.file
 
-import com.gitlab.ykrasik.gamdex.core.api.util.BroadcastReceiveChannel
-import kotlinx.coroutines.experimental.channels.SendChannel
+import com.gitlab.ykrasik.gamedex.FolderMetadata
+import com.gitlab.ykrasik.gamedex.util.FileSize
+import io.reactivex.Observable
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 02/04/2018
- * Time: 09:27
+ * Date: 01/04/2018
+ * Time: 14:04
  */
-interface GeneralSettingsView {
-    val canRunTask: SendChannel<Boolean>
+interface FileSystemService {
+    fun size(file: File): Observable<FileSize>  // TODO: Make this a channel
+    fun sizeSync(file: File): FileSize
 
-    val exportDatabaseEvents: BroadcastReceiveChannel<Unit>
-    val importDatabaseEvents: BroadcastReceiveChannel<Unit>
+    // TODO: Make this a channel
+    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
 
-    val clearUserDataEvents: BroadcastReceiveChannel<Unit>
-    val cleanupDbEvents: BroadcastReceiveChannel<Unit>
+    // TODO: Find better names.
+    fun analyzeFolderName(rawName: String): FolderMetadata
+    fun fromFileName(name: String): String
+    fun toFileName(name: String): String
 }

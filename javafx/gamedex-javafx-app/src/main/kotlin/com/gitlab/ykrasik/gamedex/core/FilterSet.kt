@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.filterClass
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.FileSize

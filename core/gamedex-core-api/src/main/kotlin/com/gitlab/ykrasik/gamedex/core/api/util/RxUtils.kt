@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.util
+package com.gitlab.ykrasik.gamedex.core.api.util
 
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import io.reactivex.Observable

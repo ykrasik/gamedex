@@ -14,40 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.library
+package com.gitlab.ykrasik.gamedex.core.api.general
 
-import com.gitlab.ykrasik.gamdex.core.api.task.Progress
-import com.gitlab.ykrasik.gamdex.core.api.task.Task
-import com.gitlab.ykrasik.gamdex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import java.io.File
+import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.SendChannel
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:09
+ * Date: 02/04/2018
+ * Time: 09:27
  */
-// TODO: Services should only suspend, Controllers / Presenters should create tasks.
-interface LibraryService {
-    val libraries: ListObservable<Library>
+interface GeneralSettingsView {
+    val canRunTask: SendChannel<Boolean>
 
-    operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library
+    val exportDatabaseEvents: BroadcastReceiveChannel<Unit>
+    val importDatabaseEvents: BroadcastReceiveChannel<Unit>
 
-    fun add(request: AddLibraryRequest): Task<Library>
-    fun addAll(requests: List<AddLibraryRequest>, progress: Progress): Task<List<Library>>
-
-    fun replace(source: Library, target: Library): Task<Unit>
-
-    fun delete(library: Library): Task<Unit>
-    fun deleteAll(libraries: List<Library>): Task<Unit>
-
-    fun invalidate(): Task<Unit>    // TODO: Instead, can use a setAll command
+    val clearUserDataEvents: BroadcastReceiveChannel<Unit>
+    val cleanupDbEvents: BroadcastReceiveChannel<Unit>
 }
-
-data class AddLibraryRequest(
-    val path: File,
-    val data: LibraryData
-)

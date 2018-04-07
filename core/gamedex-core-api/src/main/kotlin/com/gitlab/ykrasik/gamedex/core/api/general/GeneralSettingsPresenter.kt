@@ -14,9 +14,8 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.general
+package com.gitlab.ykrasik.gamedex.core.api.general
 
-import com.gitlab.ykrasik.gamdex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.util.FileSize
@@ -28,12 +27,14 @@ import java.io.File
  * Time: 18:17
  */
 // TODO: This is almost a presenter, lacks some integration with ui dialogs.
-interface GeneralService {
-    fun importDatabase(file: File): Task<Unit>
-    fun exportDatabase(file: File): Task<Unit>
+interface GeneralSettingsPresenter {
+    suspend fun importDatabase(file: File)
+    suspend fun exportDatabase(file: File)
 
-    fun detectStaleData(): Task<StaleData>
-    fun deleteStaleData(staleData: StaleData): Task<Unit>
+    suspend fun detectStaleData(): StaleData
+    suspend fun deleteStaleData(staleData: StaleData)
+
+    suspend fun deleteAllUserData()
 }
 
 data class StaleData(

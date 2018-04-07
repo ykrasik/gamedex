@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.toImageView

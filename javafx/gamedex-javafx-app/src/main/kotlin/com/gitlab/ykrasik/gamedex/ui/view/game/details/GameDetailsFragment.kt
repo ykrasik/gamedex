@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
 import com.github.thomasnield.rxkotlinfx.toBinding
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.util.browseToUrl

@@ -93,13 +93,13 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     override fun insertLibrary(path: File, data: LibraryData) = transaction {
-        log.trace("Inserting library: path=$path, data=$data...")
+        log.trace { "Inserting library: path=$path, data=$data..." }
         val id = Libraries.insertAndGetId {
             it[Libraries.path] = path.toString()
             it[Libraries.data] = data.toJsonStr()
         }.value
         val library = Library(id, path, data)
-        log.trace("Result: $library.")
+        log.trace { "Result: $library." }
         library
     }
 
@@ -134,7 +134,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     override fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?) = transaction {
-        log.trace("Inserting game: metadata=$metadata, providerData=$providerData...")
+        log.trace { "Inserting game: metadata=$metadata, providerData=$providerData..." }
 
         val id = Games.insertAndGetId {
             it[libraryId] = metadata.libraryId.toLibraryId()
@@ -145,7 +145,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         }.value
 
         val game = RawGame(id = id, metadata = metadata, providerData = providerData, userData = userData)
-        log.trace("Result: $game.")
+        log.trace { "Result: $game." }
         game
     }
 

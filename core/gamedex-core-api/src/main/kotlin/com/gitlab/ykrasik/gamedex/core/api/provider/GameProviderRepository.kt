@@ -14,56 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.core.api.provider
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
-import com.gitlab.ykrasik.gamdex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamdex.core.api.util.SubjectListObservable
-import com.gitlab.ykrasik.gamdex.core.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
-import com.gitlab.ykrasik.gamedex.util.info
-import com.gitlab.ykrasik.gamedex.util.logger
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 07/04/2017
- * Time: 21:30
+ * Date: 07/04/2018
+ * Time: 21:25
  */
-@Singleton
-class GameProviderRepository @Inject constructor(providers: MutableSet<GameProvider>, settings: ProviderSettings) {
-    private val log = logger()
+interface GameProviderRepository {
+    val allProviders: List<GameProvider>
+    val enabledProviders: ListObservable<EnabledGameProvider>
 
-    val allProviders: List<GameProvider> = providers.sortedBy { it.id }
-
-    private val _enabledProviders = SubjectListObservable<EnabledGameProvider>()
-    val enabledProviders: ListObservable<EnabledGameProvider> = _enabledProviders
-
-    init {
-        settings.providerSettingsSubject.combineLatest(settings.searchOrderSubject) { providerSettings, searchOrder ->
-            providerSettings.mapNotNull { (providerId, settings) ->
-                if (!settings.enable) return@mapNotNull null
-
-                val provider = allProviders.find { it.id == providerId }!!
-                val account = provider.accountFeature?.createAccount(settings.account!!)
-                EnabledGameProvider(provider, account)
-            }.sortedWith(searchOrder.toComparator())
-        }.subscribe { enabledProviders ->
-            _enabledProviders.set(enabledProviders)
-        }
-
-        log.info { "Detected providers: $allProviders" }
-        log.info { "Enabled providers: ${_enabledProviders.sortedBy { it.id }}" }
-    }
-
-    fun enabledProvider(id: ProviderId) = enabledProviders.find { it.id == id }!!
-    fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
-    fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
+    fun enabledProvider(id: ProviderId): EnabledGameProvider
+    fun provider(id: ProviderId): GameProvider
+    fun isEnabled(id: ProviderId): Boolean
 }
 
 class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {

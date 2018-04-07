@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
-import com.gitlab.ykrasik.gamdex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
@@ -35,7 +35,7 @@ import tornadofx.*
  * Time: 10:56
  */
 class LibraryFragment(private val library: Library?) : Fragment(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
-    private val libraryService: LibraryService by di()
+    private val libraryRepository: LibraryRepository by di()
     private val settings: GeneralSettings by di()
 
     private val model = LibraryViewModel()
@@ -73,7 +73,7 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
                 when {
                     path.isNullOrBlank() -> error("Path is required!")
                     !path!!.toFile().isDirectory -> error("Path doesn't exist!")
-                    libraryService.libraries.any { it != library && it.path == path.toFile() } -> error("Path already in use!")
+                    libraryRepository.libraries.any { it != library && it.path == path.toFile() } -> error("Path already in use!")
                     else -> null
                 }
             }
@@ -87,7 +87,7 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
             validator { name ->
                 when {
                     name.isNullOrBlank() -> error("Name is required!")
-                    libraryService.libraries.any { it != library && it.name == name && it.platform == model.platform } ->
+                    libraryRepository.libraries.any { it != library && it.name == name && it.platform == model.platform } ->
                         error("Name already in use for this platform!")
                     else -> null
                 }

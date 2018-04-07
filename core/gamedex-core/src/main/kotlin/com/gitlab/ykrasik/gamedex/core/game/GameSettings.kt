@@ -19,9 +19,9 @@ package com.gitlab.ykrasik.gamedex.core.game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
 import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
-import com.gitlab.ykrasik.gamdex.core.api.util.combineLatest
-import com.gitlab.ykrasik.gamdex.core.api.util.mapBidirectional
-import com.gitlab.ykrasik.gamdex.core.api.util.toBehaviorSubjectOnChange
+import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional
+import com.gitlab.ykrasik.gamedex.core.api.util.toBehaviorSubjectOnChange
 import org.joda.time.Period
 import org.joda.time.PeriodType
 import javax.inject.Singleton

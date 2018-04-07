@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game
 
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamdex.core.api.game.GamePresenter
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
@@ -50,7 +50,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameController @Inject constructor(
-    private val gameService: GameService,
+    private val gameRepository: GameRepository,
     private val gamePresenter: GamePresenter,
     private val gameSettings: GameSettings,
     private val fileSystemService: FileSystemService,
@@ -95,7 +95,7 @@ class GameController @Inject constructor(
         }
     }.toBindingCached()
 
-    val games: ObservableList<Game> = gameService.games.toObservableList()
+    val games: ObservableList<Game> = gameRepository.games.toObservableList()
     val platformGames = games.sortedFiltered().apply {
         filteredItems.predicateProperty().bind(gameSettings.platformSubject.toBindingCached().toPredicate { platform, game: Game ->
             game.platform == platform
@@ -109,7 +109,7 @@ class GameController @Inject constructor(
     val genres = games.flatMapping(Game::genres).distincting().sorted()
     val tags = games.flatMapping(Game::tags).distincting()
 
-    val canRunLongTask = notifier.canShowPersistentNotificationProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
+    val canRunLongTask = notifier.canRunTaskProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
 
     fun clearFilters() {
         gameSettings.currentPlatformFilter = Filter.`true`
@@ -127,7 +127,7 @@ class GameController @Inject constructor(
 
         val newRawGame = game.rawGame.withDataOverrides(overrides)
         return if (newRawGame.userData != game.rawGame.userData) {
-            gameService.replace(game, newRawGame)
+            gameRepository.replace(game, newRawGame)
         } else {
             game
         }
@@ -151,7 +151,7 @@ class GameController @Inject constructor(
 
         val newRawGame = game.rawGame.withTags(tags)
         return if (newRawGame.userData != game.rawGame.userData) {
-            gameService.replace(game, newRawGame)
+            gameRepository.replace(game, newRawGame)
         } else {
             game
         }
@@ -200,7 +200,7 @@ class GameController @Inject constructor(
                 Files.move(game.path.toPath(), fullPath.toPath())
             }
 
-            gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) })
+            gameRepository.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) })
         }
     }
 
@@ -221,10 +221,10 @@ class GameController @Inject constructor(
                 game.path.deleteWithChildren()
             }
 
-            gameService.delete(game).run()
+            gameRepository.delete(game)
             true
         }
     }
 
-    fun byId(id: Int): Game = gameService[id]
+    fun byId(id: Int): Game = gameRepository[id]
 }

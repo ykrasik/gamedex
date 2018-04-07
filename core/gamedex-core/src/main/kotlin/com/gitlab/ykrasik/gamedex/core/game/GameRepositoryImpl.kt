@@ -16,21 +16,21 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamdex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamdex.core.api.task.Progress
-import com.gitlab.ykrasik.gamdex.core.api.util.ListChangeType
-import com.gitlab.ykrasik.gamdex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamdex.core.api.util.SubjectListObservable
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.RawGame
+import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.core.api.util.ListChangeType
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,19 +40,19 @@ import javax.inject.Singleton
  * Time: 19:18
  */
 @Singleton
-class GameRepository @Inject constructor(
+class GameRepositoryImpl @Inject constructor(
     private val persistenceService: PersistenceService,
     private val gameFactory: GameFactory,
-    libraryService: LibraryService,
-    gameProviderRepository: GameProviderRepository  // TODO: Go through the service.
-) {
+    libraryRepository: LibraryRepository,
+    gameProviderRepository: GameProviderRepository
+) : GameRepository {
     private val log = logger()
 
     private val _games = SubjectListObservable(fetchGames())
-    val games: ListObservable<Game> = _games
+    override val games: ListObservable<Game> = _games
 
     init {
-        libraryService.libraries.changesObservable.subscribe {
+        libraryRepository.libraries.changesObservable.subscribe {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (it.type) {
                 ListChangeType.Remove -> launch(CommonPool) { invalidate() }
@@ -71,15 +71,15 @@ class GameRepository @Inject constructor(
         return games
     }
 
-    fun add(request: AddGameRequest): Game {
+    override fun add(request: AddGameRequest): Game {
         val rawGame = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
         val game = rawGame.toGame()
         _games.add(game)
         return game
     }
 
-    suspend fun addAll(requests: List<AddGameRequest>, progress: Progress): List<Game> = withContext(CommonPool) {
-        progress.totalWork = requests.size
+    override suspend fun addAll(requests: List<AddGameRequest>, task: Task): List<Game> {
+        task.totalWork = requests.size
 
         // Write games to db in chunks of concurrent requests - wait until all games are written and then move on to the next chunk.
         // This is in order to allow the ui thread to run roughly once after every chunk.
@@ -87,7 +87,7 @@ class GameRepository @Inject constructor(
         val games = requests.chunked(50).flatMap { requests ->
             requests.map { request ->
                 async(CommonPool) {
-                    progress.inc {
+                    task.incProgress {
                         persistenceService.insertGame(request.metadata, request.providerData, request.userData).toGame()
                     }
                 }
@@ -95,36 +95,36 @@ class GameRepository @Inject constructor(
         }
 
         _games.addAll(games)
-        games
+        return games
     }
 
-    fun replace(source: Game, target: RawGame): Game {
+    override fun replace(source: Game, target: RawGame): Game {
         val newGame = target.toGame()
         source.verifySuccess { persistenceService.updateGame(target.withMetadata { it.updatedNow() }) }
         _games.replace(source, newGame)
         return newGame
     }
 
-    fun delete(game: Game) {
+    override fun delete(game: Game) {
         log.info("Deleting '${game.name}'...")
         game.verifySuccess { persistenceService.deleteGame(game.id) }
         _games.remove(game)
         log.info("Deleting '${game.name}': Done.")
     }
 
-    fun deleteAll(games: List<Game>) {
+    override fun deleteAll(games: List<Game>) {
         if (games.isEmpty()) return
 
         require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
         _games.removeAll(games)
     }
 
-    fun clearUserData() {
+    override fun deleteAllUserData() {
         persistenceService.clearUserData()
         _games.set(_games.map { it.rawGame.copy(userData = null).toGame() })
     }
 
-    fun invalidate() {
+    override fun invalidate() {
         // Re-fetch all games from persistence
         _games.set(fetchGames())
     }
@@ -133,7 +133,7 @@ class GameRepository @Inject constructor(
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 
-    operator fun get(id: Int): Game = _games.find { it.id == id }
+    override fun get(id: Int): Game = _games.find { it.id == id }
         ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
 
     private fun Game.verifySuccess(f: () -> Boolean) = require(f()) { "Game doesn't exist: $this" }

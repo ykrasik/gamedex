@@ -14,21 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.file
+package com.gitlab.ykrasik.gamedex.core.api.game
 
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import io.reactivex.Observable
-import java.io.File
+import com.gitlab.ykrasik.gamedex.Game
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 05/04/2018
+ * Time: 10:36
  */
-interface FileSystemService {
-    fun size(file: File): Observable<FileSize>  // TODO: Make this a channel
-    fun sizeSync(file: File): FileSize
+// TODO: Instead of exposing a "do" api, have the views expose an event stream and react to it.
+interface GamePresenter {
+    suspend fun discoverNewGames()
+    suspend fun rediscoverGame(game: Game): Game
+    suspend fun rediscoverAllGamesWithMissingProviders()
+    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
+    // TODO: Add a rescanFilteredGames thing
+    suspend fun rediscoverGames(games: List<Game>)
 
-    // TODO: Make this a channel
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
+    suspend fun redownloadAllGames()
+    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
+    // TODO: Add a redownloadFilteredGames thing
+    suspend fun redownloadGames(games: List<Game>)
+    suspend fun redownloadGame(game: Game): Game
 }

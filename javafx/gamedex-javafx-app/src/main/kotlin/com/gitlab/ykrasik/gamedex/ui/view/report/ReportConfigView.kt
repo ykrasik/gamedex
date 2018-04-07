@@ -17,14 +17,14 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.core.FilterSet
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
+import com.gitlab.ykrasik.gamedex.core.api.util.modifyValue
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamdex.core.api.util.behaviorSubject
-import com.gitlab.ykrasik.gamdex.core.api.util.modifyValue
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import com.gitlab.ykrasik.gamedex.ui.view.game.filter.FilterFragment

@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.module
 
-import com.gitlab.ykrasik.gamdex.core.api.general.GeneralSettingsView
-import com.gitlab.ykrasik.gamdex.core.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
+import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController

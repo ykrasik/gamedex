@@ -14,11 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.game
+package com.gitlab.ykrasik.gamedex.core.api.game
 
-import com.gitlab.ykrasik.gamdex.core.api.task.Progress
-import com.gitlab.ykrasik.gamdex.core.api.task.Task
-import com.gitlab.ykrasik.gamdex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.*
 
 /**
@@ -26,22 +25,22 @@ import com.gitlab.ykrasik.gamedex.*
  * Date: 01/04/2018
  * Time: 14:11
  */
-// TODO: This interface is redundant, just use the repo.
-interface GameService {
+interface GameRepository {
     val games: ListObservable<Game>
 
     operator fun get(id: Int): Game
 
-    fun add(request: AddGameRequest): Task<Game>
-    fun addAll(requests: List<AddGameRequest>, progress: Progress): Task<List<Game>>
+    fun add(request: AddGameRequest): Game
+    suspend fun addAll(requests: List<AddGameRequest>, task: Task): List<Game>
 
-    suspend fun replace(source: Game, target: RawGame): Game
+    fun replace(source: Game, target: RawGame): Game
 
-    fun delete(game: Game): Task<Unit>
-    fun deleteAll(games: List<Game>): Task<Unit>
+    fun delete(game: Game)
+    fun deleteAll(games: List<Game>)
 
-    fun deleteAllUserData(): Task<Unit>
-    fun invalidate(): Task<Unit>        // TODO: Instead, can use a setAll command
+    fun deleteAllUserData()
+
+    fun invalidate()
 }
 
 data class AddGameRequest(

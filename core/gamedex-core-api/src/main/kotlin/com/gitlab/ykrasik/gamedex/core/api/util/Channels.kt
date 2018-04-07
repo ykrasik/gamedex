@@ -14,13 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.util
+package com.gitlab.ykrasik.gamedex.core.api.util
 
-import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.ConflatedChannel
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
-import kotlinx.coroutines.experimental.launch
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
@@ -41,10 +40,18 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
     fun close() = channel.close()
 }
 
-fun <T> conflatedChannel(initial: T? = null) = Channel<T>(Channel.CONFLATED).apply {
+fun <T> conflatedChannel(initial: T? = null) = ConflatedChannel<T>().apply {
     if (initial != null) {
-        launch(Unconfined) {
-            send(initial)
-        }
+        offer(initial)
     }
 }
+
+// TODO: Be VERY careful with this, it will only return a value for the first time it's read! Add a global cache? How to clean it?
+operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
+operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
+    offer(value)
+}
+//operator fun <T> ReceiveChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
+//operator fun <T> SendChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
+//    offer(value)
+//}

@@ -14,27 +14,38 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.game
+package com.gitlab.ykrasik.gamedex.core.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 10:36
+ * Date: 01/04/2018
+ * Time: 14:09
  */
-// TODO: Instead of exposing a "do" api, have the views expose an event stream and react to it.
-interface GamePresenter {
-    suspend fun discoverNewGames()
-    suspend fun rediscoverGame(game: Game): Game
-    suspend fun rediscoverAllGamesWithMissingProviders()
-    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
-    // TODO: Add a rescanFilteredGames thing
-    suspend fun rediscoverGames(games: List<Game>)
+interface LibraryRepository {
+    val libraries: ListObservable<Library>
 
-    suspend fun redownloadAllGames()
-    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
-    // TODO: Add a redownloadFilteredGames thing
-    suspend fun redownloadGames(games: List<Game>)
-    suspend fun redownloadGame(game: Game): Game
+    operator fun get(id: Int): Library
+    operator fun get(platform: Platform, name: String): Library
+
+    fun add(request: AddLibraryRequest): Library
+    suspend fun addAll(requests: List<AddLibraryRequest>, task: Task): List<Library>
+
+    fun replace(source: Library, target: Library)
+
+    fun delete(library: Library)
+    fun deleteAll(libraries: List<Library>)
+
+    fun invalidate()
 }
+
+data class AddLibraryRequest(
+    val path: File,
+    val data: LibraryData
+)

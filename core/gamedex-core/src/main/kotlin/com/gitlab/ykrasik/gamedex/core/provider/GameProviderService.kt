@@ -16,13 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamdex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamdex.core.api.provider.ProviderTaskData
-import com.gitlab.ykrasik.gamdex.core.api.provider.SearchResults
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
-import com.gitlab.ykrasik.gamedex.core.file.NameHandler
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -39,9 +37,11 @@ import javax.inject.Singleton
  * Date: 13/10/2016
  * Time: 13:29
  */
+// TODO: Make this a presenter.
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
+    private val fileSystemService: FileSystemService,
     private val settings: GameSettings,
     private val chooser: SearchChooser
 ) : GameProviderService {
@@ -57,22 +57,22 @@ class GameProviderServiceImpl @Inject constructor(
         private val taskData: ProviderTaskData,
         private val excludedProviders: List<ProviderId>
     ) {
-        private var searchedName = NameHandler.fromFileName(NameHandler.analyze(taskData.name).gameName)
+        private var searchedName = fileSystemService.fromFileName(fileSystemService.analyzeFolderName(taskData.name).gameName)
         private var canAutoContinue = chooseResults != GameSettings.ChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
-        private val progress get() = taskData.progress
+        private val task get() = taskData.task
         private val platform get() = taskData.platform
         private val chooseResults get() = settings.chooseResults
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): SearchResults {
-            progress.platform(platform)
+            task.platform = platform
             val results = providerRepository.enabledProviders.filter { shouldSearch(it) }.mapNotNull { search(it) }
             val name = userExactMatch ?: searchedName
-            val providerData = download(taskData.copy(name = name, progress = progress.subProgress), results)
+            val providerData = download(taskData.copy(name = name, task = task.subTask), results)
             return SearchResults(providerData, newlyExcludedProviders)
         }
 
@@ -80,10 +80,10 @@ class GameProviderServiceImpl @Inject constructor(
             provider.supports(platform) && !excludedProviders.contains(provider.id)
 
         private suspend fun search(provider: EnabledGameProvider): ProviderHeader? {
-            progress.provider(provider.id)
-            progress.message("Searching '$searchedName'...")
+            task.provider = provider.id
+            task.message = "Searching '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            progress.message("Searching '$searchedName': ${results.size} results.")
+            task.message = "Searching '$searchedName': ${results.size} results."
 
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
@@ -149,11 +149,11 @@ class GameProviderServiceImpl @Inject constructor(
         val (progress, name, platform, _) = taskData
 
         progress.totalWork = headers.size
-        progress.platform(platform)
-        progress.message("Downloading '$name'...")
+        progress.platform = platform
+        progress.message = "Downloading '$name'..."
         return headers.map { header ->
             async(CommonPool) {
-                progress.inc {
+                progress.incProgress {
                     providerRepository.enabledProvider(header.id).download(header.apiUrl, platform)
                 }
             }

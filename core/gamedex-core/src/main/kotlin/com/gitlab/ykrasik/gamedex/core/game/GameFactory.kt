@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.file.NameHandler
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
 import com.gitlab.ykrasik.gamedex.util.toFile
@@ -32,14 +32,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameFactory @Inject constructor(
-    private val libraryService: LibraryService,
+    private val libraryRepository: LibraryRepository,
+    private val fileSystemService: FileSystemService,
     private val config: GameConfig,
     private val settings: ProviderSettings
 ) {
     fun create(rawGame: RawGame): Game {
-        val library = libraryService[rawGame.metadata.libraryId]
+        val library = libraryRepository[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
-        val folderMetadata = NameHandler.analyze(rawGame.metadata.path.toFile().name)
+        val folderMetadata = fileSystemService.analyzeFolderName(rawGame.metadata.path.toFile().name)
 
         return Game(
             library = library,

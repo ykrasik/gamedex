@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamdex.core.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamdex.core.api.util.conflatedChannel
-import com.gitlab.ykrasik.gamdex.core.api.general.GeneralSettingsView
+import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.core.api.util.conflatedChannel
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton

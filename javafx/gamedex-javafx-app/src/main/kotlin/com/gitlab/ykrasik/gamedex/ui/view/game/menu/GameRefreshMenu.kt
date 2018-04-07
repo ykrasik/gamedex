@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamdex.core.api.util.mapBidirectional
+import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController

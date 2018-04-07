@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode

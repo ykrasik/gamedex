@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -40,13 +40,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class LibraryController @Inject constructor(
-    private val libraryService: LibraryService,
-    private val gameService: GameService,
+    private val libraryRepository: LibraryRepository,
+    private val gameRepository: GameRepository,
     private val notifier: Notifier,
     settings: GameSettings
 ) : Controller() {
 
-    val allLibraries = libraryService.libraries.toObservableList()
+    val allLibraries = libraryRepository.libraries.toObservableList()
     val realLibraries = allLibraries.filtered { it.platform != Platform.excluded }
     val platformLibraries = realLibraries.sortedFiltered().apply {
         predicateProperty.bind(settings.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
@@ -56,14 +56,14 @@ class LibraryController @Inject constructor(
 
     suspend fun onAddLibraryRequested(): Boolean = withContext(JavaFx) {
         addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary>(library = null) { choice ->
-            libraryService.add(choice.request).run()
+            libraryRepository.add(choice.request)
             notifier.showInfoNotification("Added library: '${choice.request.data.name}'.")
         }
     }
 
     suspend fun edit(library: Library): Boolean = withContext(JavaFx) {
         addOrEditLibrary<LibraryFragment.Choice.EditLibrary>(library) { choice ->
-            libraryService.replace(library, choice.library).run()
+            libraryRepository.replace(library, choice.library)
             notifier.showInfoNotification("Updated library: '${choice.library.name}'.")
         }
     }
@@ -80,13 +80,13 @@ class LibraryController @Inject constructor(
     suspend fun delete(library: Library): Boolean = withContext(JavaFx) {
         if (!confirmDelete(library)) return@withContext false
 
-        libraryService.delete(library).run()
+        libraryRepository.delete(library)
         notifier.showInfoNotification("Deleted library: '${library.name}'.")
         true
     }
 
     private fun confirmDelete(library: Library): Boolean {
-        val gamesToBeDeleted = gameService.games.mapNotNull { if (it.library.id == library.id) it.name else null }
+        val gamesToBeDeleted = gameRepository.games.mapNotNull { if (it.library.id == library.id) it.name else null }
         return areYouSureDialog("Delete library '${library.name}'?") {
             if (gamesToBeDeleted.isNotEmpty()) {
                 label("The following ${gamesToBeDeleted.size} games will also be deleted:")
@@ -95,5 +95,5 @@ class LibraryController @Inject constructor(
         }
     }
 
-    fun getBy(platform: Platform, name: String) = libraryService[platform, name]
+    fun getBy(platform: Platform, name: String) = libraryRepository[platform, name]
 }

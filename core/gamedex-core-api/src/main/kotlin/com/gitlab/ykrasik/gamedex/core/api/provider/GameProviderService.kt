@@ -14,12 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamdex.core.api.provider
+package com.gitlab.ykrasik.gamedex.core.api.provider
 
-import com.gitlab.ykrasik.gamdex.core.api.task.Progress
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import java.io.File
 
@@ -28,6 +28,7 @@ import java.io.File
  * Date: 04/04/2018
  * Time: 21:58
  */
+// TODO: Make this a presenter!!!
 interface GameProviderService {
     suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults?
 
@@ -35,7 +36,7 @@ interface GameProviderService {
 }
 
 data class ProviderTaskData(
-    val progress: Progress,
+    val task: Task,
     val name: String,
     val platform: Platform,
     val path: File

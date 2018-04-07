@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamdex.core.api.util.behaviorSubject
-import com.gitlab.ykrasik.gamdex.core.api.util.uiThreadScheduler
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadScheduler
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import io.reactivex.Observable
 import kotlinx.coroutines.experimental.CommonPool
@@ -34,13 +34,16 @@ import javax.inject.Singleton
  * Time: 20:09
  */
 @Singleton
-class FileSystemServiceImpl @Inject constructor(private val newDirectoryDetector: NewDirectoryDetector): FileSystemService {
+class FileSystemServiceImpl @Inject constructor(
+    private val newDirectoryDetector: NewDirectoryDetector,
+    private val fileNameHandler: FileNameHandler
+) : FileSystemService {
     private val sizeCache = mutableMapOf<File, FileSize>()     // TODO: If first calculation returned 0 (due to file not being available), it will be cached like this.
 
     override fun size(file: File): Observable<FileSize> {
         val subject = behaviorSubject<FileSize>()
         val size = sizeCache[file]
-        when(size) {
+        when (size) {
             null -> {
                 launch(CommonPool) {
                     val sizeTaken = file.sizeTaken()
@@ -55,8 +58,13 @@ class FileSystemServiceImpl @Inject constructor(private val newDirectoryDetector
 
     override fun sizeSync(file: File): FileSize = sizeCache.getOrPut(file) { file.sizeTaken() }
 
+    private fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
+
     // TODO: Have a reference to libraryRepo & gameRepo and calc the excludedDirectories from it.
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) = newDirectoryDetector.detectNewDirectories(dir, excludedDirectories)
 
-    private fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
+    override fun analyzeFolderName(rawName: String) = fileNameHandler.analyze(rawName)
+
+    override fun fromFileName(name: String) = fileNameHandler.fromFileName(name)
+    override fun toFileName(name: String) = fileNameHandler.toFileName(name)
 }

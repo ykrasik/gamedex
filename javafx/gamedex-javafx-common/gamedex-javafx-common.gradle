@@ -1,6 +1,6 @@
 dependencies {
     fullDependency ":gamedex-api"
-    compile project(":core:gamedex-core")
+    compile project(":core:gamedex-core")   // FIXME: Depend on gamedex-core-api only!
 
     compile controlsFx
     compile jFoenix

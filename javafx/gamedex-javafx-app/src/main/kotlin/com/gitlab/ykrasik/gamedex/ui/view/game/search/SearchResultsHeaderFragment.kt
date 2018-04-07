@@ -16,15 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.pathButton
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
-import com.gitlab.ykrasik.gamedex.javafx.toLogo
-import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.HPos
 import javafx.geometry.Pos

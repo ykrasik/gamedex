@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import io.reactivex.subjects.BehaviorSubject
 import kotlin.reflect.KProperty
 

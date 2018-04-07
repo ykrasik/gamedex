@@ -17,13 +17,15 @@
 package com.gitlab.ykrasik.gamedex.core.file
 
 import com.gitlab.ykrasik.gamedex.FolderMetadata
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 11/06/2017
  * Time: 13:54
  */
-object NameHandler {
+@Singleton
+class FileNameHandler {
     private val orderRegex = "^\\[\\d*\\]".toRegex()
     private val versionRegex = "\\[(?i:Alpha|Beta|Update|[A-Za-z])? ?v? ?[\\d\\.]*[A-Za-z]?[\\d\\.]*\\]".toRegex()
     private val metaTagRegex = "\\[.*?\\]".toRegex()

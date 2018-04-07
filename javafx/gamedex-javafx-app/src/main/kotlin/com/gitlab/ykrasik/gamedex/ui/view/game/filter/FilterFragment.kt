@@ -16,13 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.filter
 
-import com.gitlab.ykrasik.gamdex.core.api.util.behaviorSubject
-import com.gitlab.ykrasik.gamdex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.core.FilterSet
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController

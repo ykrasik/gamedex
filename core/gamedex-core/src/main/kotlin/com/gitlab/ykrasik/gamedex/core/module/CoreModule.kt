@@ -16,18 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamdex.core.api.game.GamePresenter
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
-import com.gitlab.ykrasik.gamdex.core.api.general.GeneralService
-import com.gitlab.ykrasik.gamdex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamdex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
-import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
-import com.gitlab.ykrasik.gamedex.core.general.GeneralServiceImpl
-import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
+import com.gitlab.ykrasik.gamedex.core.game.GameRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
+import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.google.inject.AbstractModule
@@ -44,13 +46,15 @@ import javax.inject.Singleton
 object CoreModule : AbstractModule() {
     override fun configure() {
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
-        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
-        bind(GameService::class.java).to(GameServiceImpl::class.java)
-        bind(GeneralService::class.java).to(GeneralServiceImpl::class.java)
+        bind(LibraryRepository::class.java).to(LibraryRepositoryImpl::class.java)
+        bind(GameRepository::class.java).to(GameRepositoryImpl::class.java)
+        bind(GameProviderRepository::class.java).to(GameProviderRepositoryImpl::class.java)
 //        bind(ImageService::class.java).to(ImageServiceImpl::class.java)
+
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
+        bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
     }
 
     @Provides

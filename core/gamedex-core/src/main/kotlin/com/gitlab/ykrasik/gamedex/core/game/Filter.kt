@@ -19,12 +19,11 @@ package com.gitlab.ykrasik.gamedex.core.game
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamdex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.FolderMetadata
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
-import com.gitlab.ykrasik.gamedex.core.file.NameHandler
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import com.gitlab.ykrasik.gamedex.util.toDate
@@ -301,7 +300,7 @@ sealed class Filter {
         override fun evaluate(game: Game, context: Context): Boolean {
             // TODO: If the majority of providers agree with the name, it is not a diff.
             val diffs = game.rawGame.providerData.mapNotNull { providerData ->
-                diff(game, providerData)
+                diff(game, providerData, context)
             }
             if (diffs.isNotEmpty()) {
                 context.addAdditionalInfo(game, this, diffs)
@@ -309,9 +308,9 @@ sealed class Filter {
             return diffs.isNotEmpty()
         }
 
-        private fun diff(game: Game, providerData: ProviderData): GameNameFolderDiff? {
+        private fun diff(game: Game, providerData: ProviderData, context: Context): GameNameFolderDiff? {
             val actualName = game.folderMetadata.rawName
-            val expectedName = expectedFrom(game.folderMetadata, providerData)
+            val expectedName = expectedFrom(game.folderMetadata, providerData, context)
             if (actualName == expectedName) return null
 
             val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
@@ -324,10 +323,10 @@ sealed class Filter {
         }
 
         // TODO: This logic looks like it should sit on FolderMetadata.
-        private fun expectedFrom(actual: FolderMetadata, providerData: ProviderData): String {
+        private fun expectedFrom(actual: FolderMetadata, providerData: ProviderData, context: Context): String {
             val expected = StringBuilder()
             actual.order?.let { order -> expected.append("[$order] ") }
-            expected.append(NameHandler.toFileName(providerData.gameData.name))
+            expected.append(context.fileSystemService.toFileName(providerData.gameData.name))
             actual.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
             actual.version?.let { version -> expected.append(" [$version]") }
             return expected.toString()

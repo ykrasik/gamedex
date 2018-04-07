@@ -16,8 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamdex.core.api.game.GameService
-import com.gitlab.ykrasik.gamdex.core.api.general.GeneralService
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
@@ -50,10 +49,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class SettingsController @Inject constructor(
-    private val generalService: GeneralService,
-    private val gameService: GameService,
+    private val generalSettingsPresenter: GeneralSettingsPresenter,
     private val settings: AllSettings,
-    private val notifier: Notifier
+    notifier: Notifier
 ) : Controller() {
     private val logger = logger()
 
@@ -62,7 +60,7 @@ class SettingsController @Inject constructor(
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
 
     init {
-        notifier.canShowPersistentNotificationProperty.subscribeFx {
+        notifier.canRunTaskProperty.subscribeFx {
             generalSettingsView.canRunTask.send(it)
         }
         generalSettingsView.exportDatabaseEvents.subscribe {
@@ -130,7 +128,7 @@ class SettingsController @Inject constructor(
             "db_${timestamp.toString("HH_mm_ss")}.json"
         ).toFile()
 
-        notifier.runTask(generalService.exportDatabase(timestamptedPath))
+        generalSettingsPresenter.exportDatabase(timestamptedPath)
         browse(timestamptedPath.parentFile)
     }
 
@@ -141,7 +139,7 @@ class SettingsController @Inject constructor(
         }.firstOrNull() ?: return@withContext
 
         if (areYouSureDialog("This will overwrite the existing database.")) {
-            notifier.runTask(generalService.importDatabase(file))
+            generalSettingsPresenter.importDatabase(file)
         }
     }
 
@@ -152,12 +150,12 @@ class SettingsController @Inject constructor(
             }
         }
         if (confirm) {
-            notifier.runTask(gameService.deleteAllUserData())
+            generalSettingsPresenter.deleteAllUserData()
         }
     }
 
     private suspend fun cleanupDb() = withContext(JavaFx) {
-        val staleData = notifier.runTask(generalService.detectStaleData())
+        val staleData = generalSettingsPresenter.detectStaleData()
         if (staleData.isEmpty) return@withContext
 
         val confirm = areYouSureDialog("Delete the following stale data?") {
@@ -177,7 +175,7 @@ class SettingsController @Inject constructor(
 
         if (confirm) {
             // TODO: Create backup before deleting
-            notifier.runTask(generalService.deleteStaleData(staleData))
+            generalSettingsPresenter.deleteStaleData(staleData)
         }
     }
 }
