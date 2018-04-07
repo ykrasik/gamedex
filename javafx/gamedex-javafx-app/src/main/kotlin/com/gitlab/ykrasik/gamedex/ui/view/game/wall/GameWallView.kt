@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
@@ -119,14 +119,14 @@ class GameWallView : View("Games Wall") {
             settings.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
         }
 
-        override fun updateItem(game: Game?, empty: Boolean) {
-            super.updateItem(game, empty)
+        override fun updateItem(item: Game?, empty: Boolean) {
+            super.updateItem(item, empty)
 
-            if (game != null) {
-                metaTagOverlay.text = game.folderMetadata.metaTag
-                versionOverlay.text = game.folderMetadata.version
-                imageView.imageProperty().cleanBind(imageLoader.fetchImage(game.id, game.thumbnailUrl, persistIfAbsent = true))
-                tooltip(game.name)
+            if (item != null) {
+                metaTagOverlay.text = item.folderMetadata.metaTag
+                versionOverlay.text = item.folderMetadata.version
+                imageView.imageProperty().cleanBind(imageLoader.fetchImage(item.id, item.thumbnailUrl, persistIfAbsent = true))
+                tooltip(item.name)
             } else {
                 metaTagOverlay.text = null
                 versionOverlay.text = null

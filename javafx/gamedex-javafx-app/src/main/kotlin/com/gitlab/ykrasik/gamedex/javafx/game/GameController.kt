@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment

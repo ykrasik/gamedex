@@ -16,13 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.task
 
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.api.util.getValue
 import com.gitlab.ykrasik.gamedex.core.api.util.setValue
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.experimental.coroutineContext
 
 /**
  * User: ykrasik
@@ -30,22 +32,31 @@ import java.util.concurrent.atomic.AtomicInteger
  * Time: 19:35
  */
 // TODO: Split into QuickTask, LongTask & LongCancellableTask
-interface ReadOnlyTask {
+interface ReadOnlyTask<out T> {
+    val type: TaskType
+    val title: String
+
     val processed: Int
     val totalWork: Int?
 
-    val titleChannel: ReceiveChannel<String>
+    val message1Channel: ReceiveChannel<String>
+    val message2Channel: ReceiveChannel<String>
     val progressChannel: ReceiveChannel<Double>
-    val messageChannel: ReceiveChannel<String>
-    val platformChannel: ReceiveChannel<Platform>
-    val providerChannel: ReceiveChannel<ProviderId>
 
-    fun doneMessage(success: Boolean): String?
+    val doneMessage: Deferred<String?>
 
-    val subTask: ReadOnlyTask
+    val subTasks: ReceiveChannel<ReadOnlyTask<*>> // TODO: ListObservable?
+
+    suspend fun run(): T  // TODO: Return a deferred?
 }
 
-class Task : ReadOnlyTask {
+class Task<out T>(override val title: String,
+                  override val type: TaskType = TaskType.Long,
+                  private val errorHandler: (Exception) -> Unit = ::defaultErrorHandler,
+                  private val doRun: suspend Task<T>.() -> T) : ReadOnlyTask<T> {
+    private var started = false
+    private lateinit var context: CoroutineContext
+
     private val _processed = AtomicInteger(0)
     override val processed: Int get() = _processed.get()
 
@@ -53,78 +64,151 @@ class Task : ReadOnlyTask {
         set(value) {
             field = value
             _processed.set(0)
+            progress = 0.0
         }
 
-    private val _titleChannel = conflatedChannel<String>()
-    var title by _titleChannel
-    override val titleChannel: ReceiveChannel<String> = _titleChannel
+    private val _message1Channel = conflatedChannel<String>()
+    var message1 by _message1Channel
+    override val message1Channel: ReceiveChannel<String> = _message1Channel
+
+    private val _message2Channel = conflatedChannel<String>()
+    var message2 by _message2Channel
+    override val message2Channel: ReceiveChannel<String> = _message2Channel
 
     private val _progressChannel = conflatedChannel<Double>()
     var progress by _progressChannel
     override val progressChannel: ReceiveChannel<Double> = _progressChannel
 
-    private val _messageChannel = conflatedChannel<String>()
-    var message by _messageChannel
-    override val messageChannel: ReceiveChannel<String> = _messageChannel
-
-    private val _platformChannel = conflatedChannel<Platform>()
-    var platform by _platformChannel
-    override val platformChannel: ReceiveChannel<Platform> = _platformChannel
-
-    private val _providerChannel = conflatedChannel<ProviderId>()
-    var provider by _providerChannel
-    override val providerChannel: ReceiveChannel<ProviderId> = _providerChannel
+    private var doneMessageSupplier: ((Boolean) -> String)? = null
+    override val doneMessage = CompletableDeferred<String?>()
 
     // TODO: Differentiate between error termination & cancel?
-    var doneMessage: ((success: Boolean) -> String)? = null
-    fun doneMessageOrCancelled(message: String) {
-        doneMessage = { success -> if (success) message else "Cancelled" }
+    fun doneMessageOrCancelled(message: String) = doneMessage { success -> if (success) message else "Cancelled" }
+
+    fun doneMessage(msg: (success: Boolean) -> String) {
+        doneMessageSupplier = msg
     }
 
-    override fun doneMessage(success: Boolean) = doneMessage?.invoke(success)
-
-    private val lazySubTask = lazy { Task() }
-    override val subTask by lazySubTask
+    override val subTasks = Channel<Task<*>>()
 
     fun progress(done: Int, total: Int) {
         progress = done.toDouble() / total.toDouble()
     }
 
-    fun incProgress() = progress(_processed.incrementAndGet(), totalWork!!)
-    inline fun <T> incProgress(f: () -> T): T = f().apply { incProgress() }
+    fun <T> T.incProgress(): T = this.apply { progress(_processed.incrementAndGet(), totalWork!!) }
 
-    inline fun <T, R> List<T>.mapWithProgress(f: (T) -> R): List<R> {
-        totalWork = size
-        return map { incProgress { f(it) } }
+//    // FIXME: Expose this as a builder-style api
+//    suspend fun <R> step(message: String, doRun: suspend Task<*>.() -> R): R {
+//        this.message1 = message
+//        return runSubTask {
+//            doRun()
+//        }.incProgress()
+//    }
+
+//    fun <T> List<T>.reportProgress() = reportProgress(this@Task)
+
+    override suspend fun run(): T = run(CommonPool)
+
+    suspend fun <R> runSubTask(type: TaskType = TaskType.Long,
+                               errorHandler: (Exception) -> Unit = this.errorHandler,
+                               doRun: suspend Task<*>.() -> R) =
+        runSubTask(Task("", type, errorHandler, doRun))
+
+    suspend fun <R> runSubTask(subTask: Task<R>): R {
+        subTasks.send(subTask)
+        return subTask.run(context)
     }
 
-    inline fun <T, R> List<T>.flatMapWithProgress(f: (T) -> List<R>): List<R> {
-        totalWork = size
-        return flatMap { incProgress { f(it) } }
+    private suspend fun run(context: CoroutineContext): T {
+        require(!started) { "Task was already run: $this" }
+
+        var success = false
+        return try {
+            started = true
+            async(context) {
+                doRun()
+            }.apply {
+                this@Task.context = coroutineContext
+            }.await().apply {
+                success = true
+            }
+        } catch (e: Exception) {
+            if (e !is CancellationException) {
+                errorHandler(e)
+            }
+            throw e
+        } finally {
+            doneMessage.complete(doneMessageSupplier?.invoke(success))
+            close()
+        }
     }
 
-    inline fun <T> List<T>.filterWithProgress(f: (T) -> Boolean): List<T> {
-        totalWork = size
-        return filter { incProgress { f(it) } }
-    }
-
-    inline fun <T> List<T>.forEachWithProgress(f: (T) -> Unit) {
-        totalWork = size
-        return forEach { incProgress { f(it) } }
-    }
-
-    fun close() {
-        _messageChannel.close()
+    private fun close() {
+        _message1Channel.close()
+        _message2Channel.close()
         _progressChannel.close()
-        _platformChannel.close()
-        _providerChannel.close()
-        if (lazySubTask.isInitialized()) {
-            subTask.close()
+        subTasks.close()
+    }
+
+    inline fun <T, R> List<T>.mapWithProgress(task: Task<*> = this@Task, f: (T) -> R): List<R> = task.run {
+        totalWork = size
+        map { f(it).incProgress() }
+    }
+
+    inline fun <T, R : Any> List<T>.mapNotNullWithProgress(task: Task<*> = this@Task, f: (T) -> R?): List<R> = task.run {
+        totalWork = size
+        mapNotNull { f(it).incProgress() }
+    }
+
+    inline fun <T, R> List<T>.flatMapWithProgress(task: Task<*> = this@Task, f: (T) -> List<R>): List<R> = task.run {
+        totalWork = size
+        flatMap { f(it).incProgress() }
+    }
+
+    inline fun <T> List<T>.filterWithProgress(task: Task<*> = this@Task, f: (T) -> Boolean): List<T> = task.run {
+        totalWork = size
+        filter { f(it).incProgress() }
+    }
+
+    inline fun <T> List<T>.forEachWithProgress(task: Task<*> = this@Task, f: (T) -> Unit) = task.run {
+        totalWork = size
+        forEach { f(it).incProgress() }
+    }
+
+    companion object {
+        fun defaultErrorHandler(e: Exception) {
+            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
         }
     }
 }
 
-// FIXME: Finish this.
-class RunnableTask<out T>(val task: Task, private val run: suspend Task.() -> T) {
-//    suspend fun
-}
+enum class TaskType { Quick, Long, NonCancellable }
+
+//class ProgressList<out T>(val wrapped: List<T>, val task: Task<*>) : List<T> by wrapped {
+//    inline fun <R> map(f: (T) -> R): List<R> = task.run {
+//        totalWork = size
+//        wrapped.map { f(it).incProgress() }
+//    }
+//
+//    inline fun <R : Any> mapNotNull(f: (T) -> R?): List<R> = task.run {
+//        totalWork = size
+//        wrapped.mapNotNull { f(it).incProgress() }
+//    }
+//
+//    inline fun <R> flatMap(f: (T) -> List<R>): List<R> = task.run {
+//        totalWork = size
+//        wrapped.flatMap { f(it).incProgress() }
+//    }
+//
+//    inline fun filter(f: (T) -> Boolean): List<T> = task.run {
+//        totalWork = size
+//        wrapped.filter { f(it).incProgress() }
+//    }
+//
+//    fun forEach(f: (T) -> Unit) = task.run {
+//        totalWork = size
+//        wrapped.forEach { f(it).incProgress() }
+//    }
+//}
+//
+//fun <T> List<T>.reportProgress(task: Task<*>) = ProgressList(this, task)

@@ -59,7 +59,7 @@ fun Int.withVariance(variance: Int): Int =
 fun randomPath(): String = randomSentence(maxWords = 7, delimiter = "/")
 fun randomFile() = randomPath().toFile()
 fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${randomPath()}}"
-fun randomName() = randomSentence(maxWords = 5, avgWordLength = 8, variance = 2)
+fun randomName() = randomSentence(maxWords = 4, avgWordLength = 6, variance = 2)
 
 fun randomDateTime(): DateTime = now.plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()

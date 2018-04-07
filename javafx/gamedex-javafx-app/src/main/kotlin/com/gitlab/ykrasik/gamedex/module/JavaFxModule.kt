@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
 import com.gitlab.ykrasik.gamedex.ui.view.settings.JavaFxGeneralSettingsView
 import com.google.inject.AbstractModule

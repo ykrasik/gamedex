@@ -16,11 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import java.io.File
 
 /**
@@ -35,7 +34,7 @@ interface LibraryRepository {
     operator fun get(platform: Platform, name: String): Library
 
     fun add(request: AddLibraryRequest): Library
-    suspend fun addAll(requests: List<AddLibraryRequest>, task: Task): List<Library>
+    suspend fun addAll(requests: List<AddLibraryRequest>, afterEach: (Library) -> Unit): List<Library>
 
     fun replace(source: Library, target: Library)
 

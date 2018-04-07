@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.core.api.util.ListChangeType
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
@@ -74,27 +73,24 @@ class GameRepositoryImpl @Inject constructor(
     override fun add(request: AddGameRequest): Game {
         val rawGame = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
         val game = rawGame.toGame()
-        _games.add(game)
+        _games += game
         return game
     }
 
-    override suspend fun addAll(requests: List<AddGameRequest>, task: Task): List<Game> {
-        task.totalWork = requests.size
-
+    override suspend fun addAll(requests: List<AddGameRequest>, afterEach: (Game) -> Unit): List<Game> {
         // Write games to db in chunks of concurrent requests - wait until all games are written and then move on to the next chunk.
         // This is in order to allow the ui thread to run roughly once after every chunk.
         // Otherwise, it gets swamped during large operations (import large db) and UI appears to hang.
         val games = requests.chunked(50).flatMap { requests ->
             requests.map { request ->
                 async(CommonPool) {
-                    task.incProgress {
-                        persistenceService.insertGame(request.metadata, request.providerData, request.userData).toGame()
-                    }
+                    // TODO: Batch insert?
+                    persistenceService.insertGame(request.metadata, request.providerData, request.userData).toGame().also(afterEach)
                 }
             }.map { it.await() }
         }
 
-        _games.addAll(games)
+        _games += games
         return games
     }
 
@@ -108,7 +104,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun delete(game: Game) {
         log.info("Deleting '${game.name}'...")
         game.verifySuccess { persistenceService.deleteGame(game.id) }
-        _games.remove(game)
+        _games -= game
         log.info("Deleting '${game.name}': Done.")
     }
 
@@ -116,7 +112,7 @@ class GameRepositoryImpl @Inject constructor(
         if (games.isEmpty()) return
 
         require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
-        _games.removeAll(games)
+        _games -= games
     }
 
     override fun deleteAllUserData() {

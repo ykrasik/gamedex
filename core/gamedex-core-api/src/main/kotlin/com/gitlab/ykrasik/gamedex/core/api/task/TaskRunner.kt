@@ -22,5 +22,11 @@ package com.gitlab.ykrasik.gamedex.core.api.task
  * Time: 10:55
  */
 interface TaskRunner {
-    suspend fun <T> runTask(run: suspend Task.() -> T): T
+    suspend fun <T> runTask(task: ReadOnlyTask<T>): T
+
+    suspend fun <T> runTask(title: String,
+                            type: TaskType = TaskType.Long,
+                            errorHandler: (Exception) -> Unit = Task.Companion::defaultErrorHandler,
+                            run: suspend Task<*>.() -> T) =
+        runTask(Task(title, type, errorHandler, run))
 }

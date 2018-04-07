@@ -69,10 +69,14 @@ class GameProviderServiceImpl @Inject constructor(
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): SearchResults {
-            task.platform = platform
-            val results = providerRepository.enabledProviders.filter { shouldSearch(it) }.mapNotNull { search(it) }
+            val providersToSearch = providerRepository.enabledProviders.filter { shouldSearch(it) }
+            val results = task.run {
+                providersToSearch.mapNotNullWithProgress {
+                    search(it)
+                }
+            }
             val name = userExactMatch ?: searchedName
-            val providerData = download(taskData.copy(name = name, task = task.subTask), results)
+            val providerData = download(taskData.copy(name = name), results)
             return SearchResults(providerData, newlyExcludedProviders)
         }
 
@@ -80,10 +84,9 @@ class GameProviderServiceImpl @Inject constructor(
             provider.supports(platform) && !excludedProviders.contains(provider.id)
 
         private suspend fun search(provider: EnabledGameProvider): ProviderHeader? {
-            task.provider = provider.id
-            task.message = "Searching '$searchedName'..."
+            task.message1 = "[${provider.id}] Searching: '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            task.message = "Searching '$searchedName': ${results.size} results."
+            task.message2 = "${results.size} results."
 
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
@@ -145,17 +148,12 @@ class GameProviderServiceImpl @Inject constructor(
         private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, updateDate = now)
     }
 
-    override suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> {
-        val (progress, name, platform, _) = taskData
-
-        progress.totalWork = headers.size
-        progress.platform = platform
-        progress.message = "Downloading '$name'..."
-        return headers.map { header ->
+    override suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> = taskData.task.run {
+        totalWork = headers.size
+        message1 = "Downloading '${taskData.name}'..."
+        headers.map { header ->
             async(CommonPool) {
-                progress.incProgress {
-                    providerRepository.enabledProvider(header.id).download(header.apiUrl, platform)
-                }
+                providerRepository.enabledProvider(header.id).download(header.apiUrl, taskData.platform).incProgress()
             }
         }.map { it.await() }
     }

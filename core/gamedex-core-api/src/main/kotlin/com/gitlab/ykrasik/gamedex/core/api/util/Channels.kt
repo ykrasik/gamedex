@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.api.util
 
 import kotlinx.coroutines.experimental.channels.BroadcastChannel
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ConflatedChannel
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlin.reflect.KProperty
@@ -36,14 +37,19 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
     override fun subscribe() = channel.openSubscription()
 
     suspend fun send(element: T) = channel.send(element)
+    fun offer(element: T) = channel.offer(element)
 
     fun close() = channel.close()
 }
 
-fun <T> conflatedChannel(initial: T? = null) = ConflatedChannel<T>().apply {
-    if (initial != null) {
-        offer(initial)
-    }
+fun <T> conflatedChannel(): ConflatedChannel<T> = ConflatedChannel()
+fun <T> conflatedChannel(initial: T): ConflatedChannel<T> = conflatedChannel<T>().apply {
+    offer(initial)
+}
+
+fun <T> conflatedBroadcastEventChannel(): BroadcastEventChannel<T> = BroadcastEventChannel(Channel.CONFLATED)
+fun <T> conflatedBroadcastEventChannel(initial: T) = conflatedBroadcastEventChannel<T>().apply {
+    offer(initial)
 }
 
 // TODO: Be VERY careful with this, it will only return a value for the first time it's read! Add a global cache? How to clean it?

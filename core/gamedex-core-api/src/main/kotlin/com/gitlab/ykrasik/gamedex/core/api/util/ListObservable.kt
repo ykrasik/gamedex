@@ -23,6 +23,7 @@ import io.reactivex.Observable
  * Date: 31/03/2018
  * Time: 10:37
  */
+// TODO: Redo this using channels?
 interface ListObservable<T> : List<T> {
     val itemsObservable: Observable<List<T>>
     val changesObservable: Observable<ListChangeEvent<T>>
@@ -38,16 +39,19 @@ class SubjectListObservable<T>(initial: List<T> = emptyList()) : ListObservable<
     private val changesSubject = publishSubject<ListChangeEvent<T>>()
     override val changesObservable: Observable<ListChangeEvent<T>> = changesSubject.observeOn(uiThreadScheduler)
 
+    operator fun plusAssign(t: T) = add(t)
     fun add(t: T) {
         _list += t
         changesSubject.publish(ListItemAddedEvent(t, index = null))
     }
 
+    operator fun plusAssign(items: List<T>) = addAll(items)
     fun addAll(items: List<T>) {
         _list += items
         changesSubject.publish(ListItemsAddedEvent(items))
     }
 
+    operator fun minusAssign(t: T) = remove(t)
     fun remove(t: T) {
         val index = _list.indexOf(t)
         require(index != -1) { "Item to be deleted is missing from the list: $t" }
@@ -55,6 +59,7 @@ class SubjectListObservable<T>(initial: List<T> = emptyList()) : ListObservable<
         changesSubject.publish(ListItemRemovedEvent(t, index))
     }
 
+    operator fun minusAssign(items: List<T>) = removeAll(items)
     fun removeAll(items: List<T>) {
         require(_list.containsAll(items)) { "Items to be deleted are missing from the list: ${items.filterNot(_list::contains)}" }
         _list -= items

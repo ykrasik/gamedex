@@ -16,9 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.game
 
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 
 /**
  * User: ykrasik
@@ -31,7 +30,7 @@ interface GameRepository {
     operator fun get(id: Int): Game
 
     fun add(request: AddGameRequest): Game
-    suspend fun addAll(requests: List<AddGameRequest>, task: Task): List<Game>
+    suspend fun addAll(requests: List<AddGameRequest>, afterEach: (Game) -> Unit): List<Game>  // TODO: Try achieving this through channel streams.
 
     fun replace(source: Game, target: RawGame): Game
 

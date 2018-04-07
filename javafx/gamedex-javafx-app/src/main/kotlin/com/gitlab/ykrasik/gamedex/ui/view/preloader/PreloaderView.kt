@@ -16,9 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.preloader
 
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.task.Task
+import com.gitlab.ykrasik.gamedex.javafx.toObservableValue
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.settings.PreloaderSettings
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
@@ -41,10 +42,10 @@ import tornadofx.*
  */
 class PreloaderView : View("GameDex") {
     private var logo = resources.image("gamedex.jpg")
-    private val progress = Task.Progress(log = null)
+    private val task = Task()
 
     private val messageListener = ListChangeListener<LogEntry> {
-        progress.message = it.list.last().message
+        task.message = it.list.last().message
     }
 
     init {
@@ -65,8 +66,8 @@ class PreloaderView : View("GameDex") {
                 widthProperty().bind(logo.widthProperty())
             }
         }
-        progressbar(progress.progressProperty) { prefWidth = logo.width }
-        label(progress.messageProperty)
+        progressbar(task.progressChannel.toObservableValue<Number>(0.0)) { useMaxWidth = true }
+        label(task.messageChannel.toObservableValue(""))
     }
 
     override fun onDock() {
@@ -82,7 +83,7 @@ class PreloaderView : View("GameDex") {
     }
 
     private fun load() {
-        progress.message = "Loading..."
+        task.message = "Loading..."
 
         // TODO: Meh, not super clean, but I'm not super bothered
         val settings = PreloaderSettings()
@@ -92,7 +93,7 @@ class PreloaderView : View("GameDex") {
             GuiceDiContainer.defaultModules + LifecycleModule(provisionListener)
         )
 
-        progress.message = "Done loading."
+        task.message = "Done loading."
         Log.entries.removeListener(messageListener)
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
@@ -112,7 +113,7 @@ class PreloaderView : View("GameDex") {
 
         override fun <T : Any> onProvision(provision: ProvisionListener.ProvisionInvocation<T>) {
             _componentCount++
-            progress.progress(_componentCount, totalComponents)
+            task.progress(_componentCount, totalComponents)
         }
     }
 }

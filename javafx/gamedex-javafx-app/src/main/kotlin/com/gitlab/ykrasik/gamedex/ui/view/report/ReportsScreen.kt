@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import javafx.beans.property.SimpleObjectProperty
@@ -28,7 +28,6 @@ import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.textfield.CustomTextField
@@ -60,7 +59,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
 
     private var isChangingSettings = false
 
-    override val root: StackPane = stackpane {
+    override val root = stackpane {
         this@ReportsScreen.content = vbox()
         maskerPane {
             visibleWhen { currentReport.flatMap { it?.isCalculatingProperty ?: false.toProperty() } }

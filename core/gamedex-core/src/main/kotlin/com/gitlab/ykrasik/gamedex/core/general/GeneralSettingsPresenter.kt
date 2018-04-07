@@ -31,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
@@ -59,55 +60,54 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
 
-    // TODO: This isn't actually cancellable. Split long running tasks into cancellable and non-cancellable.
-    override suspend fun importDatabase(file: File) = taskRunner.runTask {
-        title = "Importing database..."
+    override suspend fun importDatabase(file: File) = taskRunner.runTask("Import Database", TaskType.NonCancellable) {
+        message1 = "Reading $file..."
+        val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
 
-        message = "Reading $file..."
-        val portableDb = objectMapper.readValue(file, PortableDb::class.java)
-
+        message1 = "Deleting existing database..."
         persistenceService.dropDb()
         gameRepository.invalidate()
         libraryRepository.invalidate()
 
-        message = "Importing ${portableDb.libraries.size} Libraries..."
-        val libraries = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() }, this)
-            .associateBy { lib -> portableDb.findLib(lib.path, lib.platform).id }
+        message1 = "Importing Libraries:"
+        message2 = portableDb.libraries.size.toString()
+        totalWork = portableDb.libraries.size
+        val libraries: Map<Int, Library> = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() }) { incProgress() }
+            .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
 
-        message = "Importing ${portableDb.games.size} Games..."
-        gameRepository.addAll(portableDb.games.map { it.toGameRequest(libraries) }, this)
+        message1 = "Importing Games:"
+        message2 = portableDb.games.size.toString()
+        totalWork = portableDb.games.size
+        gameRepository.addAll(portableDb.games.map { it.toGameRequest(libraries) }) { incProgress() }
 
-        doneMessage = { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
+        doneMessage { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
     }
 
-    override suspend fun exportDatabase(file: File) = taskRunner.runTask {
-        title = "Exporting database..."
-
-        message = "Exporting ${libraryRepository.libraries.size} Libraries..."
+    override suspend fun exportDatabase(file: File) = taskRunner.runTask("Export Database", TaskType.NonCancellable) {
+        message1 = "Exporting Libraries:"
+        message2 = libraryRepository.libraries.size.toString()
         val libraries = libraryRepository.libraries.mapWithProgress { it.toPortable() }
 
-        message = "Exporting ${gameRepository.games.size} Games..."
+        message1 = "Exporting Games:"
+        message2 = gameRepository.games.size.toString()
         val games = gameRepository.games.sortedBy { it.name }.mapWithProgress { it.toPortable() }
 
-        message = "Writing $file..."
-        totalWork = 1
-        val portableDb = PortableDb(libraries, games)
+        message1 = "Writing $file..."
+        message2 = ""
         file.create()
+        val portableDb = PortableDb(libraries, games)
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
-        incProgress()
 
-        doneMessage = { "Exported ${libraryRepository.libraries.size} Libraries & ${gameRepository.games.size} Games." }
+        doneMessage { "Exported ${libraryRepository.libraries.size} Libraries & ${gameRepository.games.size} Games." }
     }
 
-    override suspend fun detectStaleData() = taskRunner.runTask {
+    override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data") {
         fun <T> detectStaleData(name: String, f: () -> List<T>): List<T> {
-            message = "Detecting stale $name..."
+            message1 = "Detecting stale $name..."
             val staleData = f()
-            message = "Detected ${staleData.size} stale $name."
+            message2 = "${staleData.size} stale $name."
             return staleData
         }
-
-        title = "Detecting stale data..."
 
         val libraries = detectStaleData("libraries") {
             libraryRepository.libraries.filterWithProgress { !it.path.isDirectory }
@@ -125,44 +125,51 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         }
 
         StaleData(libraries, games, images).apply {
-            doneMessage = { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
+            doneMessage { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
         }
     }
 
-    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask {
-        title = "Deleting stale data..."
+    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask("Delete Stale Data") {
         totalWork = 3
 
-        if (staleData.images.isNotEmpty()) {
-            message = "Deleting stale images..."
-            persistenceService.deleteImages(staleData.images.map { it.first })   // FIXME: Go through an image repository!
+        staleData.images.let { images ->
+            if (images.isNotEmpty()) {
+                message1 = "Deleting stale images:"
+                message2 = images.size.toString()
+                persistenceService.deleteImages(images.map { it.first })   // FIXME: Go through an image repository!
+            }
         }
         incProgress()
 
-        if (staleData.games.isNotEmpty()) {
-            message = "Deleting stale games..."
-            gameRepository.deleteAll(staleData.games)
+        staleData.games.let { games ->
+            if (games.isNotEmpty()) {
+                message1 = "Deleting stale games:"
+                message2 = games.size.toString()
+                gameRepository.deleteAll(games)
+            }
         }
         incProgress()
 
-        if (staleData.libraries.isNotEmpty()) {
-            message = "Deleting stale libraries..."
-            libraryRepository.deleteAll(staleData.libraries)
+        staleData.libraries.let { libraries ->
+            if (staleData.libraries.isNotEmpty()) {
+                message1 = "Deleting stale libraries:"
+                message2 = libraries.size.toString()
+                libraryRepository.deleteAll(libraries)
+            }
         }
         incProgress()
 
-        doneMessage = { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
+        doneMessage { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
     }
 
     private fun StaleData.toFormattedString() =
         listOf(games to "Games", libraries to "Libraries", images to "Images")
             .filter { it.first.isNotEmpty() }.joinToString("\n") { "${it.first.size} ${it.second}" }
 
-    override suspend fun deleteAllUserData() = taskRunner.runTask {
-        title = "Deleting all game user data..."
-        message = "Deleting all game user data..."
+    override suspend fun deleteAllUserData() = taskRunner.runTask("Delete Game User Data") {
+        message1 = "Deleting all game user data..."
         gameRepository.deleteAllUserData()
-        doneMessage = { "All game user data deleted." }
+        doneMessage { "All game user data deleted." }
     }
 }
 

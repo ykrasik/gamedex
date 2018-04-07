@@ -49,7 +49,7 @@ object CoreModule : AbstractModule() {
         bind(LibraryRepository::class.java).to(LibraryRepositoryImpl::class.java)
         bind(GameRepository::class.java).to(GameRepositoryImpl::class.java)
         bind(GameProviderRepository::class.java).to(GameProviderRepositoryImpl::class.java)
-//        bind(ImageService::class.java).to(ImageServiceImpl::class.java)
+//        bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 

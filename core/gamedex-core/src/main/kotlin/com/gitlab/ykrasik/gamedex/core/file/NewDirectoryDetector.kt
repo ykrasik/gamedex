@@ -50,12 +50,12 @@ class SimpleNewDirectoryDetector: NewDirectoryDetector {
 
         fun detectNewDirectories(dir: File) {
             if (!dir.isDirectory) {
-                log.warn("Directory doesn't exist: [$dir]")
+                log.error("Directory doesn't exist: [$dir]")
                 throw DirectoryDoesNotExistException(dir)
             }
             if (dir.isExcluded) return
 
-            // TODO: this blocks until all children are resolved, make this cancellable.
+            // TODO: this blocks until all children are resolved, make this a cancellable stream.
             val children = dir.listFiles().filter { !it.isHidden }
             if (shouldScanRecursively(children)) {
                 children.forEach { detectNewDirectories(it) }

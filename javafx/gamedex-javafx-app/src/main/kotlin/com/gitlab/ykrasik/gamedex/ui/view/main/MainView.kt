@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.ui.view.main
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryScreen
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notifier
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
+import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen

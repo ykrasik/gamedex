@@ -16,13 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.core.library
 
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -52,22 +51,20 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
 
     override fun add(request: AddLibraryRequest): Library {
         val library = persistenceService.insertLibrary(request.path, request.data)
-        _libraries.add(library)
+        _libraries += library
         return library
     }
 
-    override suspend fun addAll(requests: List<AddLibraryRequest>, task: Task): List<Library> {
-        task.totalWork = requests.size
-
+    override suspend fun addAll(requests: List<AddLibraryRequest>, afterEach: (Library) -> Unit): List<Library> {
         val libraries = requests.map { request ->
             async(CommonPool) {
-                task.incProgress {
-                    persistenceService.insertLibrary(request.path, request.data)
-                }
+                persistenceService.insertLibrary(request.path, request.data).also(afterEach)
             }
-        }.map { it.await() }
+        }.map {
+            it.await()
+        }
 
-        _libraries.addAll(libraries)
+        _libraries += libraries
         return libraries
     }
 
@@ -78,14 +75,14 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
 
     override fun delete(library: Library) {
         library.verifySuccess { persistenceService.deleteLibrary(library.id) }
-        _libraries.remove(library)
+        _libraries -= library
     }
 
     override fun deleteAll(libraries: List<Library>) {
         if (libraries.isEmpty()) return
 
         require(persistenceService.deleteLibraries(libraries.map { it.id }) == libraries.size) { "Not all libraries to be deleted existed: $libraries" }
-        _libraries.removeAll(libraries)
+        _libraries -= libraries
     }
 
     override fun invalidate() {

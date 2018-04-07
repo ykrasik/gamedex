@@ -19,29 +19,46 @@ package com.gitlab.ykrasik.gamedex.javafx
 import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
+import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
+import tornadofx.observable
 
 /**
  * User: ykrasik
  * Date: 02/04/2018
  * Time: 17:13
  */
-fun <T> ReceiveChannel<T>.toObservableValue(initial: T): ObservableValue<T> {
+fun <T> ReceiveChannel<T>.toObservableValue(defaultInitial: T): ObservableValue<T> {
     // FIXME: Find a better way of doing this.
-    val p = SimpleObjectProperty<T>(initial)
+    val p = SimpleObjectProperty<T>(poll() ?: defaultInitial)
     launch(JavaFx) {
-        for (value in this@toObservableValue) {
-            p.value = value
+        consumeEach {
+            p.value = it
         }
     }
     return p
 }
 
-fun <T> BroadcastReceiveChannel<T>.subscribe(f: suspend (T) -> Unit) {
+fun <T> BroadcastReceiveChannel<T>.subscribe(f: suspend (T) -> Unit): SubscriptionReceiveChannel<T> {
+    val subscription = subscribe()
     launch(JavaFx) {
-        subscribe().consumeEach { f(it) }
+        subscription.consumeEach {
+            f(it)
+        }
     }
+    return subscription
+}
+
+fun <T> ReceiveChannel<T>.toObservableList(): ObservableList<T> {
+    val list = mutableListOf<T>().observable()
+    launch(JavaFx) {
+        consumeEach {
+            list += it
+        }
+    }
+    return list
 }

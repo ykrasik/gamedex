@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
 import com.gitlab.ykrasik.gamedex.javafx.subscribe
 import com.gitlab.ykrasik.gamedex.javafx.subscribeFx
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
