@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.ui.view.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.tag.TagFragment
@@ -54,7 +54,7 @@ class GameController @Inject constructor(
     private val gamePresenter: GamePresenter,
     private val gameSettings: GameSettings,
     private val fileSystemService: FileSystemService,
-    notifier: Notifier
+    taskRunner: JavaFxTaskRunner
 ) : Controller() {
     private val mainView: MainView by inject()
 
@@ -109,7 +109,7 @@ class GameController @Inject constructor(
     val genres = games.flatMapping(Game::genres).distincting().sorted()
     val tags = games.flatMapping(Game::tags).distincting()
 
-    val canRunLongTask = notifier.canRunTaskProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
+    val canRunLongTask = taskRunner.canRunTaskProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
 
     fun clearFilters() {
         gameSettings.currentPlatformFilter = Filter.`true`

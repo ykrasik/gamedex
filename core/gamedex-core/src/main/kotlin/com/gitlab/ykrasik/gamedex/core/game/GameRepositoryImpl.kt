@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.core.api.util.ListChangeType
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
@@ -77,10 +78,12 @@ class GameRepositoryImpl @Inject constructor(
         return game
     }
 
+    // TODO: Get a reference to the task and update it?
     override suspend fun addAll(requests: List<AddGameRequest>, afterEach: (Game) -> Unit): List<Game> {
         // Write games to db in chunks of concurrent requests - wait until all games are written and then move on to the next chunk.
         // This is in order to allow the ui thread to run roughly once after every chunk.
         // Otherwise, it gets swamped during large operations (import large db) and UI appears to hang.
+        @Suppress("NAME_SHADOWING")
         val games = requests.chunked(50).flatMap { requests ->
             requests.map { request ->
                 async(CommonPool) {
@@ -108,10 +111,16 @@ class GameRepositoryImpl @Inject constructor(
         log.info("Deleting '${game.name}': Done.")
     }
 
-    override fun deleteAll(games: List<Game>) {
+    override fun deleteAll(games: List<Game>, task: Task<*>) {
         if (games.isEmpty()) return
 
-        require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
+        task.totalWork = games.size
+        @Suppress("NAME_SHADOWING")
+        games.chunked(200).forEach { games ->
+            require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
+            task.incProgress(games.size)
+        }
+
         _games -= games
     }
 

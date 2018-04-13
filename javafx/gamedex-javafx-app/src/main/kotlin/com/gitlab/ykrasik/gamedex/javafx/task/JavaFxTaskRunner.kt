@@ -41,10 +41,9 @@ import javax.inject.Singleton
  * Date: 19/03/2018
  * Time: 22:28
  */
-// TODO: This feels more like a view.
-// TODO: Need a better name.
+// TODO: Separate into TaskView & Presenter.
 @Singleton
-class Notifier : TaskRunner {
+class JavaFxTaskRunner : TaskRunner {
     private val notificationPane = NotificationPane().apply { isCloseButtonVisible = false }
 
     private val currentJobProperty = SimpleObjectProperty<Job?>(null)
@@ -98,6 +97,7 @@ class Notifier : TaskRunner {
         }
     }
 
+    // FIXME: fix this, the notificationPane is redundant.
     fun <T : Parent> init(f: () -> T): NotificationPane {
         notificationPane.content = StackPane().apply {
             children += f()

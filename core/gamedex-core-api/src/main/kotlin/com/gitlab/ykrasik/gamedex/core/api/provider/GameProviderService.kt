@@ -36,7 +36,7 @@ interface GameProviderService {
 }
 
 data class ProviderTaskData(
-    val task: Task,
+    val task: Task<*>,  // TODO: Remove this from here, make the service stream this info back through a channel.
     val name: String,
     val platform: Platform,
     val path: File

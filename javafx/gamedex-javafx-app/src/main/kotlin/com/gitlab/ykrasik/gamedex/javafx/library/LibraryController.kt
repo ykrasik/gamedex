@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 class LibraryController @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
-    private val notifier: Notifier,
+    private val taskRunner: JavaFxTaskRunner,
     settings: GameSettings
 ) : Controller() {
 
@@ -57,14 +57,14 @@ class LibraryController @Inject constructor(
     suspend fun onAddLibraryRequested(): Boolean = withContext(JavaFx) {
         addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary>(library = null) { choice ->
             libraryRepository.add(choice.request)
-            notifier.showInfoNotification("Added library: '${choice.request.data.name}'.")
+            taskRunner.showInfoNotification("Added library: '${choice.request.data.name}'.")
         }
     }
 
     suspend fun edit(library: Library): Boolean = withContext(JavaFx) {
         addOrEditLibrary<LibraryFragment.Choice.EditLibrary>(library) { choice ->
             libraryRepository.replace(library, choice.library)
-            notifier.showInfoNotification("Updated library: '${choice.library.name}'.")
+            taskRunner.showInfoNotification("Updated library: '${choice.library.name}'.")
         }
     }
 
@@ -81,7 +81,7 @@ class LibraryController @Inject constructor(
         if (!confirmDelete(library)) return@withContext false
 
         libraryRepository.delete(library)
-        notifier.showInfoNotification("Deleted library: '${library.name}'.")
+        taskRunner.showInfoNotification("Deleted library: '${library.name}'.")
         true
     }
 

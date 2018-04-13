@@ -18,19 +18,12 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import com.gitlab.ykrasik.gamedex.util.urlDecoded
-import com.google.inject.ProvidedBy
-import com.typesafe.config.Config
-import io.github.config4k.extract
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 24/03/2018
  * Time: 11:52
  */
-@ProvidedBy(GameConfigProvider::class)
 data class GameConfig(
     val maxGenres: Int,
     val maxScreenshots: Int,
@@ -50,10 +43,4 @@ data class GameConfig(
     }
 
     fun mapGenre(genre: String): List<String> = genreMapping[genre]?.let { if (it.contains(noGenre)) emptyList() else it } ?: listOf(genre)
-}
-
-@Singleton
-class GameConfigProvider @Inject constructor(config: Config) : Provider<GameConfig> {
-    private val config = config.extract<GameConfig>("gameDex.game")
-    override fun get() = config
 }

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.api.game
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 
 /**
@@ -35,7 +36,7 @@ interface GameRepository {
     fun replace(source: Game, target: RawGame): Game
 
     fun delete(game: Game)
-    fun deleteAll(games: List<Game>)
+    fun deleteAll(games: List<Game>, task: Task<*>)
 
     fun deleteAllUserData()
 

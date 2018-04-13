@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
-import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.ui.view.game.GameScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsScreen
 import com.gitlab.ykrasik.gamedex.ui.view.log.LogScreen
@@ -48,7 +48,7 @@ class MainView : View("GameDex") {
 
     private val gameDetailsScreen: GameDetailsScreen by inject()
 
-    private val notifier: Notifier by di()
+    private val taskRunner: JavaFxTaskRunner by di()
 
     private var tabPane: TabPane by singleAssign()
     private var toolbar: ToolBar by singleAssign()
@@ -57,7 +57,7 @@ class MainView : View("GameDex") {
 
     private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
 
-    override val root = notifier.init {
+    override val root = taskRunner.init {
         borderpane {
             top {
                 toolbar = toolbar {

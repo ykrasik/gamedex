@@ -95,7 +95,7 @@ class Task<out T>(override val title: String,
         progress = done.toDouble() / total.toDouble()
     }
 
-    fun <T> T.incProgress(): T = this.apply { progress(_processed.incrementAndGet(), totalWork!!) }
+    fun incProgress(amount: Int = 1) = progress(_processed.addAndGet(amount), totalWork!!)
 
 //    // FIXME: Expose this as a builder-style api
 //    suspend fun <R> step(message: String, doRun: suspend Task<*>.() -> R): R {
@@ -152,27 +152,27 @@ class Task<out T>(override val title: String,
 
     inline fun <T, R> List<T>.mapWithProgress(task: Task<*> = this@Task, f: (T) -> R): List<R> = task.run {
         totalWork = size
-        map { f(it).incProgress() }
+        map { f(it).apply { incProgress() } }
     }
 
     inline fun <T, R : Any> List<T>.mapNotNullWithProgress(task: Task<*> = this@Task, f: (T) -> R?): List<R> = task.run {
         totalWork = size
-        mapNotNull { f(it).incProgress() }
+        mapNotNull { f(it).apply { incProgress() } }
     }
 
     inline fun <T, R> List<T>.flatMapWithProgress(task: Task<*> = this@Task, f: (T) -> List<R>): List<R> = task.run {
         totalWork = size
-        flatMap { f(it).incProgress() }
+        flatMap { f(it).apply { incProgress() } }
     }
 
     inline fun <T> List<T>.filterWithProgress(task: Task<*> = this@Task, f: (T) -> Boolean): List<T> = task.run {
         totalWork = size
-        filter { f(it).incProgress() }
+        filter { f(it).apply { incProgress() } }
     }
 
     inline fun <T> List<T>.forEachWithProgress(task: Task<*> = this@Task, f: (T) -> Unit) = task.run {
         totalWork = size
-        forEach { f(it).incProgress() }
+        forEach { f(it).apply { incProgress() } }
     }
 
     companion object {

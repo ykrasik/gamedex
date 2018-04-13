@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.task.Notifier
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.subscribe
 import com.gitlab.ykrasik.gamedex.javafx.subscribeFx
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -51,7 +51,7 @@ import javax.inject.Singleton
 class SettingsController @Inject constructor(
     private val generalSettingsPresenter: GeneralSettingsPresenter,
     private val settings: AllSettings,
-    notifier: Notifier
+    taskRunner: JavaFxTaskRunner
 ) : Controller() {
     private val logger = logger()
 
@@ -60,7 +60,7 @@ class SettingsController @Inject constructor(
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
 
     init {
-        notifier.canRunTaskProperty.subscribeFx {
+        taskRunner.canRunTaskProperty.subscribeFx {
             generalSettingsView.canRunTask.send(it)
         }
         generalSettingsView.exportDatabaseEvents.subscribe {

@@ -153,7 +153,8 @@ class GameProviderServiceImpl @Inject constructor(
         message1 = "Downloading '${taskData.name}'..."
         headers.map { header ->
             async(CommonPool) {
-                providerRepository.enabledProvider(header.id).download(header.apiUrl, taskData.platform).incProgress()
+                providerRepository.enabledProvider(header.id).download(header.apiUrl, taskData.platform)
+                    .apply { incProgress() }
             }
         }.map { it.await() }
     }
