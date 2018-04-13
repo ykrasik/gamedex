@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -43,7 +43,7 @@ import java.time.LocalDate
 // TODO: Add a way to clear provider excludes.
 class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment(game.name) {
     private val providerRepository: GameProviderRepository by di()
-    private val imageLoader: ImageLoader by di()
+    private val imageRepository: JavaFxImageRepository by di()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -319,7 +319,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
         isPreserveRatio = true
-        imageProperty().bind(imageLoader.fetchImage(game.id, url, persistIfAbsent = false))
+        imageProperty().bind(imageRepository.fetchImage(url, game.id, persistIfAbsent = false))
     }
 
     fun show(): Choice {

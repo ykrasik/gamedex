@@ -20,14 +20,18 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
+import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
+import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
+import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
@@ -36,6 +40,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import io.github.config4k.extract
 import javax.inject.Singleton
 
 /**
@@ -49,7 +54,7 @@ object CoreModule : AbstractModule() {
         bind(LibraryRepository::class.java).to(LibraryRepositoryImpl::class.java)
         bind(GameRepository::class.java).to(GameRepositoryImpl::class.java)
         bind(GameProviderRepository::class.java).to(GameProviderRepositoryImpl::class.java)
-//        bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
+        bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
@@ -74,4 +79,12 @@ object CoreModule : AbstractModule() {
     @Singleton
     fun newDirectoryDetector(config: Config) =
         Class.forName(config.getString("gameDex.newDirectoryDetector.class")).newInstance() as NewDirectoryDetector
+
+    @Provides
+    @Singleton
+    fun gameConfig(config: Config): GameConfig = config.extract("gameDex.game")
+
+    @Provides
+    @Singleton
+    fun imageConfig(config: Config): ImageConfig = config.extract("gameDex.image")
 }

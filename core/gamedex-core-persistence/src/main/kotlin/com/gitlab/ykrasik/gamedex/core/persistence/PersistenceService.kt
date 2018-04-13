@@ -17,7 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.fromJson
+import com.gitlab.ykrasik.gamedex.util.listFromJson
+import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.ImplementedBy
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
@@ -54,13 +57,12 @@ interface PersistenceService {
 
     fun fetchImage(url: String): ByteArray?
     fun insertImage(gameId: Int, url: String, data: ByteArray)
-    fun fetchImagesExcept(except: List<String>): List<Pair<String, FileSize>>
-    fun deleteImages(images: List<String>): Int
+    fun fetchImageSizesExcept(exceptUrls: List<String>): List<Pair<String, Long>>
+    fun deleteImages(imageUrls: List<String>): Int
 }
 
 @Singleton
 class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : PersistenceService {
-    private val log = logger()    // TODO: Remove logging.
     private val tables = arrayOf(Libraries, Games, Images)
 
     init {
@@ -93,14 +95,12 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     override fun insertLibrary(path: File, data: LibraryData) = transaction {
-        log.trace { "Inserting library: path=$path, data=$data..." }
         val id = Libraries.insertAndGetId {
             it[Libraries.path] = path.toString()
             it[Libraries.data] = data.toJsonStr()
         }.value
-        val library = Library(id, path, data)
-        log.trace { "Result: $library." }
-        library
+
+        Library(id, path, data)
     }
 
     override fun updateLibrary(library: Library) = transaction {
@@ -134,8 +134,6 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     override fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?) = transaction {
-        log.trace { "Inserting game: metadata=$metadata, providerData=$providerData..." }
-
         val id = Games.insertAndGetId {
             it[libraryId] = metadata.libraryId.toLibraryId()
             it[path] = metadata.path
@@ -144,9 +142,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[Games.userData] = userData?.toJsonStr()
         }.value
 
-        val game = RawGame(id = id, metadata = metadata, providerData = providerData, userData = userData)
-        log.trace { "Result: $game." }
-        game
+        RawGame(id = id, metadata = metadata, providerData = providerData, userData = userData)
     }
 
     override fun updateGame(rawGame: RawGame) = transaction {
@@ -187,14 +183,14 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         }
     }
 
-    override fun fetchImagesExcept(except: List<String>): List<Pair<String, FileSize>> = transaction {
-        Images.select { Images.url.notInList(except) }.map {
-            it[Images.url] to FileSize(it[Images.bytes].length())
+    override fun fetchImageSizesExcept(exceptUrls: List<String>): List<Pair<String, Long>> = transaction {
+        Images.select { Images.url.notInList(exceptUrls) }.map {
+            it[Images.url] to it[Images.bytes].length()
         }
     }
 
-    override fun deleteImages(images: List<String>) = transaction {
-        Images.deleteWhere { Images.url.inList(images) }
+    override fun deleteImages(imageUrls: List<String>) = transaction {
+        Images.deleteWhere { Images.url.inList(imageUrls) }
     }
 
     private fun Int.toLibraryId() = EntityID(this, Libraries)

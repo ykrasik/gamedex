@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.ChooseSearchResultsToggleMenu
 import javafx.beans.property.ObjectProperty
@@ -40,7 +40,7 @@ import tornadofx.*
  */
 class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private val gameController: GameController by di()
-    private val imageLoader: ImageLoader by di()
+    private val imageRepository: JavaFxImageRepository by di()
 
     private val browser = YouTubeWebBrowser()
 
@@ -94,7 +94,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             val poster = ImageView()
             val gamePosterProperty = gameProperty.flatMap { game ->
                 // TODO: Make persistIfAbsent a configuration value.
-                imageLoader.fetchImage(game?.id ?: -1, game?.posterUrl, persistIfAbsent = false)
+                imageRepository.fetchImage(game?.posterUrl, game?.id ?: -1, persistIfAbsent = false)
             }
             poster.imageProperty().bind(gamePosterProperty)
 
@@ -135,7 +135,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             }
 
             separator { paddingTop = 10.0 }
-            
+
             // Bottom
             children += browser.root.apply { vgrow = Priority.ALWAYS }
             gameProperty.perform { game ->

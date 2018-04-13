@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.ui.view.game.list
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
+import com.gitlab.ykrasik.gamedex.javafx.imageview
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.toDisplayString
@@ -37,7 +38,7 @@ import tornadofx.*
  */
 class GameListView : View("Game List") {
     private val gameController: GameController by di()
-    private val imageLoader: ImageLoader by di()
+    private val imageRepository: JavaFxImageRepository by di()
 
     private val gameContextMenu: GameContextMenu by di()
 
@@ -67,7 +68,7 @@ class GameListView : View("Game List") {
                                 row {
                                     stackpane {
                                         addClass(Style.gameItemValue, Style.thumbnailHeader, Style.thumbnailValue)
-                                        imageview(imageLoader.fetchImage(game.id, game.imageUrls.thumbnailUrl, persistIfAbsent = true)) {
+                                        imageview(imageRepository.fetchImage(game.imageUrls.thumbnailUrl, game.id, persistIfAbsent = true)) {
                                             fitHeight = 75.0
                                             fitWidth = 75.0
                                             isPreserveRatio = true
@@ -103,7 +104,7 @@ class GameListView : View("Game List") {
                         if (game != null) {
                             replaceChildren {
                                 row {
-                                    imageview(imageLoader.fetchImage(game.id, game.imageUrls.posterUrl, persistIfAbsent = true)) {
+                                    imageview(imageRepository.fetchImage(game.imageUrls.posterUrl, game.id, persistIfAbsent = false)) {
                                         gridpaneConstraints { hAlignment = HPos.CENTER }
                                         isPreserveRatio = true
                                         fitHeight = 650.0

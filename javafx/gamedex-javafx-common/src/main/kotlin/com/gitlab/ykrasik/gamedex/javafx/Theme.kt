@@ -98,10 +98,6 @@ object Theme {
     }
 
     object Images {
-        // TODO: Only used by ImageLoader, consider moving these resources there.
-        val notAvailable = Image(javaClass.getResourceAsStream("no-image-available.png"))
-        val loading = Image(javaClass.getResourceAsStream("spinner.gif"))
-
         val confirm = Image(javaClass.getResourceAsStream("confirm.png"))
         val information = Image(javaClass.getResourceAsStream("information.png"))
         val warning = Image(javaClass.getResourceAsStream("warning.png"))

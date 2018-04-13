@@ -396,3 +396,7 @@ fun ToggleGroup.disallowDeselection() {
         }
     }
 }
+
+@Suppress("UNCHECKED_CAST")
+fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Unit = {}) =
+    imageview(image as ObservableValue<Image?>, op)

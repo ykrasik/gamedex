@@ -110,9 +110,9 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
             }
         }
 
-        "FetchExcept" should {
+        "fetchImageSizesExcept" should {
             "return all images & their sizes, except the given urls" test {
-                fun expected(vararg results: Pair<String, List<Byte>>) = results.map { it.first to FileSize(it.second.toByteArray().size.toLong()) }
+                fun expected(vararg results: Pair<String, List<Byte>>) = results.map { it.first to it.second.toByteArray().size.toLong() }
 
                 val url1 = randomUrl()
                 val url2 = randomUrl()
@@ -123,15 +123,15 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
                 val image2 = givenImage(game = game, url = url2)
                 val image3 = givenImage(game = game2, url = url3)
 
-                persistenceService.fetchImagesExcept(emptyList()) shouldBe expected(url1 to image1, url2 to image2, url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(randomUrl())) shouldBe expected(url1 to image1, url2 to image2, url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(url1)) shouldBe expected(url2 to image2, url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(url1, randomUrl())) shouldBe expected(url2 to image2, url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(url1, url2)) shouldBe expected(url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(url2, url1)) shouldBe expected(url3 to image3)
-                persistenceService.fetchImagesExcept(listOf(url1, url3)) shouldBe expected(url2 to image2)
-                persistenceService.fetchImagesExcept(listOf(url3, url1)) shouldBe expected(url2 to image2)
-                persistenceService.fetchImagesExcept(listOf(url1, url2, url3)) shouldBe emptyList<String>()
+                persistenceService.fetchImageSizesExcept(emptyList()) shouldBe expected(url1 to image1, url2 to image2, url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(randomUrl())) shouldBe expected(url1 to image1, url2 to image2, url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(url1)) shouldBe expected(url2 to image2, url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(url1, randomUrl())) shouldBe expected(url2 to image2, url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(url1, url2)) shouldBe expected(url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(url2, url1)) shouldBe expected(url3 to image3)
+                persistenceService.fetchImageSizesExcept(listOf(url1, url3)) shouldBe expected(url2 to image2)
+                persistenceService.fetchImageSizesExcept(listOf(url3, url1)) shouldBe expected(url2 to image2)
+                persistenceService.fetchImageSizesExcept(listOf(url1, url2, url3)) shouldBe emptyList<String>()
             }
         }
         

@@ -59,7 +59,7 @@ object TestApplication {
     }
 
     private fun generateDb() {
-        val numGames = 500
+        val numGames = 5000
 
 //        val guice = GuiceDiContainer()
 //        val persistenceService = guice.getInstance(PersistenceService::class)
@@ -122,7 +122,7 @@ object TestApplication {
     )
 
     // 9/10 chance.
-    private fun String.sometimesNull() = if (rnd.nextInt(10) < 9) this else null
+    private fun String.sometimesNull() = if (rnd.nextInt(11) < 10) this else null
 }
 
 class StubNewDirectoryDetector : NewDirectoryDetector {

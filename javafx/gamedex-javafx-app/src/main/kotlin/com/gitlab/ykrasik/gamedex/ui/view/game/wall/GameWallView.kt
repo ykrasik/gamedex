@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
@@ -40,7 +40,7 @@ import tornadofx.*
  */
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
-    private val imageLoader: ImageLoader by di()
+    private val imageRepository: JavaFxImageRepository by di()
     private val settings: GameWallSettings by di()
 
     private val gameContextMenu: GameContextMenu by inject()
@@ -125,7 +125,7 @@ class GameWallView : View("Games Wall") {
             if (item != null) {
                 metaTagOverlay.text = item.folderMetadata.metaTag
                 versionOverlay.text = item.folderMetadata.version
-                imageView.imageProperty().cleanBind(imageLoader.fetchImage(item.id, item.thumbnailUrl, persistIfAbsent = true))
+                imageView.imageProperty().cleanBind(imageRepository.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
                 tooltip(item.name)
             } else {
                 metaTagOverlay.text = null
@@ -169,7 +169,6 @@ class GameWallView : View("Games Wall") {
     class Style : Stylesheet() {
         companion object {
             val gameWall by cssid()
-            val gameThumbnail by cssclass()
             val quickDetails by cssclass()
 
             init {
@@ -187,9 +186,6 @@ class GameWallView : View("Games Wall") {
                 label {
                     textFill = Color.BLACK
                 }
-            }
-
-            gameThumbnail {
             }
         }
     }

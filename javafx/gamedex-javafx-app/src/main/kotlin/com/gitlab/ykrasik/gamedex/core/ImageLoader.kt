@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.javafx.Theme.Images
 import com.gitlab.ykrasik.gamedex.javafx.toImage
 import com.gitlab.ykrasik.gamedex.util.download
+import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.Inject
 import com.google.inject.Singleton
@@ -41,7 +41,8 @@ import kotlinx.coroutines.experimental.withContext
 open class ImageLoader @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    private val notAvailable = SimpleObjectProperty(Images.notAvailable)
+    private val notAvailable = SimpleObjectProperty(getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/javafx/image/no-image-available.png").toImage())
+    private val loading = getResourceAsByteArray("/com/gitlab/ykrasik/gamedex/javafx/image/spinner.gif").toImage()
 
     private val downloadCache = Cache<String, ByteArray>(300)
     private val downloadImageCache = Cache<String, ReadOnlyObjectProperty<Image>>(300)
@@ -51,7 +52,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     // We disregard the value of persistIfAbsent when checking the cache, which is a simplifying assumption -
     // the same urls will always have the same persistIfAbsent value - a situation where this method is called
     // twice - once with persistIfAbsent=false, and again with the same url but persistIfAbsent=true simply doesn't exist.
-    open fun fetchImage(gameId: Int, url: String?, persistIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
+    open fun fetchImage(url: String?, gameId: Int, persistIfAbsent: Boolean): ReadOnlyObjectProperty<Image> {
         if (url == null) return notAvailable
         return fetchImageCache.getOrPut(url) {
             loadImage {
@@ -71,7 +72,7 @@ open class ImageLoader @Inject constructor(private val persistenceService: Persi
     }
 
     private fun loadImage(f: suspend () -> ByteArray): ObjectProperty<Image> {
-        val imageProperty = SimpleObjectProperty(Images.loading)
+        val imageProperty = SimpleObjectProperty(loading)
         launch(CommonPool) {
             val image = f().toImage()
             withContext(JavaFx) {

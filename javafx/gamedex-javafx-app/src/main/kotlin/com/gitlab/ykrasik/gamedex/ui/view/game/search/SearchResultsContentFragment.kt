@@ -16,13 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.search
 
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.imageViewColumn
 import com.gitlab.ykrasik.gamedex.javafx.minWidthFitContent
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
@@ -34,14 +34,14 @@ import tornadofx.*
  * Time: 21:29
  */
 class SearchResultsContentFragment(results: ObservableList<ProviderSearchResult>, close: (SearchChooser.Choice) -> Unit) : Fragment() {
-    private val imageLoader: ImageLoader by di()
+    private val imageRepository: JavaFxImageRepository by di()
 
     val minTableWidth = SimpleDoubleProperty()
 
     override val root = tableview(results) {
         val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Thumbnail", fitWidth = 200.0, fitHeight = 200.0, isPreserveRatio = true) { result ->
-            imageLoader.downloadImage(result.thumbnailUrl)
+            imageRepository.downloadImage(result.thumbnailUrl)
         }
         readonlyColumn("Name", ProviderSearchResult::name)
         readonlyColumn("Release Date", ProviderSearchResult::releaseDate) { addClass(CommonStyle.centered) }

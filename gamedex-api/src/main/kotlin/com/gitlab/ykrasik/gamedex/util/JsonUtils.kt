@@ -41,7 +41,10 @@ fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 
 inline fun <reified T : Any> String.fromJson(): T = fromJson(T::class)
 fun <T : Any> String.fromJson(klass: KClass<T>): T = objectMapper.readValue(this, klass.java)
-inline fun <reified T : Any> ByteArray.fromJson(): T = objectMapper.readValue(this, T::class.java)
+
+inline fun <reified T : Any> ByteArray.fromJson(): T = fromJson(T::class)
+fun <T : Any> ByteArray.fromJson(klass: KClass<T>): T = objectMapper.readValue(this, klass.java)
+
 inline fun <reified T : Any> File.readJson(): T = readJson(T::class)
 fun <T : Any> File.readJson(klass: KClass<T>): T = objectMapper.readValue(this, klass.java)
 
@@ -52,8 +55,10 @@ inline fun <reified T : Any> String.listFromJson(): List<T> {
     return objectMapper.readValue(this, type)
 }
 
-inline fun <reified T : Any> ByteArray.listFromJson(): List<T> {
-    val type = objectMapper.typeFactory.constructCollectionType(List::class.java, T::class.java)
+inline fun <reified T : Any> ByteArray.listFromJson(): List<T> = listFromJson(T::class)
+
+fun <T : Any> ByteArray.listFromJson(klass: KClass<T>): List<T> {
+    val type = objectMapper.typeFactory.constructCollectionType(List::class.java, klass.java)
     return objectMapper.readValue(this, type)
 }
 

@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
-import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -112,7 +112,7 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                     }
                 }
             }
-            children += Theme.Images.loading.toImageView().apply {
+            maskerPane {
                 visibleWhen { checking }
             }
         }

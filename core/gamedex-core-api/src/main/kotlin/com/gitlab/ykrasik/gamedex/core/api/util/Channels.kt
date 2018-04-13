@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.util
 
-import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ConflatedChannel
-import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.launch
 import kotlin.reflect.KProperty
 
 /**
@@ -41,6 +40,28 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
 
     fun close() = channel.close()
 }
+
+fun <T> ReceiveChannel<T>.clone(capacity: Int = Channel.UNLIMITED): Pair<ReceiveChannel<T>, ReceiveChannel<T>> {
+    val channel1 = Channel<T>(capacity)
+    val channel2 = Channel<T>(capacity)
+    launch(CommonPool) {
+        consumeEach {
+            channel1.send(it)
+            channel2.send(it)
+        }
+    }
+    return channel1 to channel2
+}
+
+inline fun <E, R> SendChannel<E>.produceOnly(block: SendChannel<E>.() -> R): R =
+    try {
+        block()
+    } finally {
+        close()
+    }
+
+// capacity = 2 to accomodate the closeToken being sent.
+fun <T> singleValueChannel(value: T): ReceiveChannel<T> = Channel<T>(capacity = 2).apply { offer(value); close() }
 
 fun <T> conflatedChannel(): ConflatedChannel<T> = ConflatedChannel()
 fun <T> conflatedChannel(initial: T): ConflatedChannel<T> = conflatedChannel<T>().apply {

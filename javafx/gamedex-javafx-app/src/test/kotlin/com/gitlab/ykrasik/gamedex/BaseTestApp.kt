@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex
 
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
+import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.module.JavaFxModule
 import com.gitlab.ykrasik.gamedex.test.TestImages
@@ -25,7 +25,6 @@ import com.google.inject.Binding
 import com.google.inject.Key
 import com.google.inject.spi.Elements
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.anyOrNull
 import com.nhaarman.mockito_kotlin.mock
 import javafx.application.Application
 import javafx.beans.property.SimpleObjectProperty
@@ -46,20 +45,19 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
         System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
 
         // Mock imageLoader.
-        val appModuleWithoutImageLoader = Elements.getModule(Elements.getElements(JavaFxModule).filter {
-            it is Binding<*> && it.key != Key.get(ImageLoader::class.java)
+        val appModuleWithoutImageRepo = Elements.getModule(Elements.getElements(JavaFxModule).filter {
+            it is Binding<*> && it.key != Key.get(ImageRepository::class.java)
         })
-        val mockImageLoaderModule = object : AbstractModule() {
+        val mockImageRepoModule = object : AbstractModule() {
             override fun configure() {
-                val imageLoader = mock<ImageLoader> {
-                    on { downloadImage(anyOrNull()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
-                    on { fetchImage(any(), anyOrNull(), any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
-                }
-                bind(ImageLoader::class.java).toInstance(imageLoader)
+                bind(ImageRepository::class.java).toInstance(mock {
+                    on { downloadImage(any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
+                    on { fetchImage(any(), any(), any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
+                })
             }
         }
         FX.dicontainer = GuiceDiContainer(
-            GuiceDiContainer.defaultModules - JavaFxModule + appModuleWithoutImageLoader + mockImageLoaderModule
+            GuiceDiContainer.defaultModules - JavaFxModule + appModuleWithoutImageRepo + mockImageRepoModule
         )
 
         BaseTestApp.view = view

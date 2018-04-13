@@ -18,12 +18,12 @@ package com.gitlab.ykrasik.gamedex.module
 
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.ui.view.settings.JavaFxGeneralSettingsView
 import com.google.inject.AbstractModule
 
@@ -39,8 +39,7 @@ object JavaFxModule : AbstractModule() {
 
         // Instruct Guice to eagerly create these classes
         // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)
-        bind(ImageLoader::class.java)
-
+        bind(JavaFxImageRepository::class.java)
         bind(GameController::class.java)
         bind(LibraryController::class.java)
 

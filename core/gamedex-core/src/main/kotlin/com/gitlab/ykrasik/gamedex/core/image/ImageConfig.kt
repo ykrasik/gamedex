@@ -14,36 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
-
-import com.google.common.io.Resources
-import java.awt.Desktop
-import java.net.URI
+package com.gitlab.ykrasik.gamedex.core.image
 
 /**
  * User: ykrasik
- * Date: 10/02/2017
- * Time: 09:02
+ * Date: 11/04/2018
+ * Time: 10:40
  */
-typealias Extractor<T, R> = T.() -> R
-typealias Modifier<T, R> = T.(R) -> T
-typealias NestedModifier<T, R> = T.(R.() -> R) -> T
-
-fun Any.getResourceAsByteArray(path: String): ByteArray = Resources.toByteArray(Resources.getResource(javaClass, path))
-
-val Int.kb: Int get() = this * 1024
-
-fun String.browseToUrl() = Desktop.getDesktop().browse(URI(this))
-
-inline fun <T> millisTaken(block: () -> T) : Pair<T, Long> {
-    val start = System.currentTimeMillis()
-    val result = block()
-    val taken = System.currentTimeMillis() - start
-    return result to taken
-}
-inline fun <T> nanosTaken(block: () -> T) : Pair<T, Long> {
-    val start = System.nanoTime()
-    val result = block()
-    val taken = System.nanoTime() - start
-    return result to taken
-}
+data class ImageConfig(
+    val fetchCacheSize: Int,
+    val downloadCacheSize: Int
+)

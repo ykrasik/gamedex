@@ -32,9 +32,14 @@ import tornadofx.observable
  * Date: 02/04/2018
  * Time: 17:13
  */
-fun <T> ReceiveChannel<T>.toObservableValue(defaultInitial: T): ObservableValue<T> {
-    // FIXME: Find a better way of doing this.
-    val p = SimpleObjectProperty<T>(poll() ?: defaultInitial)
+fun <T> ReceiveChannel<T>.toObservableValue(defaultInitial: T): ObservableValue<T> =
+    toObservableValue { poll() ?: defaultInitial }
+
+fun <T> ReceiveChannel<T>.toObservableValue(): ObservableValue<T> =
+    toObservableValue { poll()!! }
+
+private inline fun <T> ReceiveChannel<T>.toObservableValue(defaultProvider: () -> T): ObservableValue<T> {
+    val p = SimpleObjectProperty<T>(defaultProvider())
     launch(JavaFx) {
         consumeEach {
             p.value = it

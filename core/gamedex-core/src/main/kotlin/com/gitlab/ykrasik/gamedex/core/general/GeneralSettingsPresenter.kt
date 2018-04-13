@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
@@ -51,6 +52,7 @@ import javax.inject.Singleton
 class GeneralSettingsPresenterImpl @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
+    private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService,
     private val taskRunner: TaskRunner
 ) : GeneralSettingsPresenter {
@@ -65,7 +67,7 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
 
         message1 = "Deleting existing database..."
-        persistenceService.dropDb()
+        persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
         gameRepository.invalidate()
         libraryRepository.invalidate()
 
@@ -101,27 +103,17 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         doneMessage { "Exported ${libraryRepository.libraries.size} Libraries & ${gameRepository.games.size} Games." }
     }
 
-    override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data") {
-        fun <T> detectStaleData(name: String, f: () -> List<T>): List<T> {
-            message1 = "Detecting stale $name..."
-            val staleData = f()
-            message2 = "${staleData.size} stale $name."
-            return staleData
-        }
+    override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data", TaskType.NonCancellable) {
+        message1 = "Detecting stale data..."
 
-        val libraries = detectStaleData("libraries") {
-            libraryRepository.libraries.filterWithProgress { !it.path.isDirectory }
-        }
+        val libraries = libraryRepository.libraries.filterWithProgress { !it.path.isDirectory }
+        val games = gameRepository.games.filterWithProgress { !it.path.isDirectory }
 
-        val games = detectStaleData("games") {
-            gameRepository.games.filterWithProgress { !it.path.isDirectory }
-        }
-
-        val images = detectStaleData("images") {
+        val images = run {
             val usedImages = gameRepository.games.flatMapWithProgress { game ->
                 game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
             }
-            persistenceService.fetchImagesExcept(usedImages)    // FIXME: Go through an image repository!
+            imageRepository.fetchImagesExcept(usedImages)
         }
 
         StaleData(libraries, games, images).apply {
@@ -129,14 +121,14 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask("Delete Stale Data") {
+    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask("Delete Stale Data", TaskType.NonCancellable) {
         totalWork = 3
 
         staleData.images.let { images ->
             if (images.isNotEmpty()) {
                 message1 = "Deleting stale images:"
                 message2 = images.size.toString()
-                persistenceService.deleteImages(images.map { it.first })   // FIXME: Go through an image repository!
+                imageRepository.deleteImages(images.map { it.first })
             }
         }
         incProgress()
@@ -145,7 +137,7 @@ class GeneralSettingsPresenterImpl @Inject constructor(
             if (games.isNotEmpty()) {
                 message1 = "Deleting stale games:"
                 message2 = games.size.toString()
-                gameRepository.deleteAll(games)
+                gameRepository.deleteAll(games, this)
             }
         }
         incProgress()
