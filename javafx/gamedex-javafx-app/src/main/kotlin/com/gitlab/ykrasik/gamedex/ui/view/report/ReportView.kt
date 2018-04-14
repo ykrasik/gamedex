@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
-import com.github.thomasnield.rxkotlinfx.toBinding
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
@@ -119,7 +118,7 @@ class ReportView(val reportConfig: ReportConfig) : View(reportConfig.name, Theme
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }
-        customGraphicColumn("Size", { game -> fileSystemService.size(game.path).toBinding() }) { size ->
+        customGraphicColumn("Size", { game -> fileSystemService.size(game.path).toObservableValue() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 

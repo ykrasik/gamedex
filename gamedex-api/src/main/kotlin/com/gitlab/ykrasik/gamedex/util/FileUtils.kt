@@ -49,7 +49,6 @@ fun File.assertExists() = existsOrNull() ?: throw IOException("File doesn't exis
 
 fun browse(path: File) = Desktop.getDesktop().open(path)
 
-// TODO: Why is this needed? Can just use a Long with extensions and factory.
 @JsonIgnoreProperties("humanReadable")
 data class FileSize(val bytes: Long) : Comparable<FileSize> {
     val humanReadable by lazy {

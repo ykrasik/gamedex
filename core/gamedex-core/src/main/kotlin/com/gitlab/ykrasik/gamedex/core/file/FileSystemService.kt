@@ -17,13 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.file
 
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadScheduler
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import io.reactivex.Observable
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,25 +35,15 @@ class FileSystemServiceImpl @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val fileNameHandler: FileNameHandler
 ) : FileSystemService {
-    private val sizeCache = mutableMapOf<File, FileSize>()     // TODO: If first calculation returned 0 (due to file not being available), it will be cached like this.
+    // TODO: If first calculation returned 0 (due to file not being available), it will be cached and not be re-calculated.
+    private val sizeCache = mutableMapOf<File, Deferred<FileSize>>()
 
-    override fun size(file: File): Observable<FileSize> {
-        val subject = behaviorSubject<FileSize>()
-        val size = sizeCache[file]
-        when (size) {
-            null -> {
-                launch(CommonPool) {
-                    val sizeTaken = file.sizeTaken()
-                    sizeCache[file] = sizeTaken
-                    subject.value_ = sizeTaken
-                }
+    override fun size(file: File): Deferred<FileSize> =
+        sizeCache.getOrPut(file) {
+            async(CommonPool) {
+                file.sizeTaken()
             }
-            else -> subject.value_ = size
         }
-        return subject.observeOn(uiThreadScheduler)
-    }
-
-    override fun sizeSync(file: File): FileSize = sizeCache.getOrPut(file) { file.sizeTaken() }
 
     private fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
 

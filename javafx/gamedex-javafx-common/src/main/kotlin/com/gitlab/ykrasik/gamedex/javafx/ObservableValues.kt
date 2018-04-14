@@ -53,6 +53,7 @@ private val propertyCache = mutableMapOf<BehaviorSubject<*>, ObjectProperty<*>>(
 private val bindingCache = mutableMapOf<Observable<*>, Binding<*>>()
 
 @Suppress("UNCHECKED_CAST")
+// FIXME: This shouldn't exist. Re-structure userConfig so we don't have listener leaks.
 fun <T> BehaviorSubject<T>.toPropertyCached(): ObjectProperty<T> = propertyCache.getOrPut(this) {
     val p = SimpleObjectProperty(value_)
 
@@ -71,6 +72,7 @@ fun <T> BehaviorSubject<T>.toPropertyCached(): ObjectProperty<T> = propertyCache
 } as ObjectProperty<T>
 
 @Suppress("UNCHECKED_CAST")
+// FIXME: This shouldn't exist. Re-structure userConfig so we don't have listener leaks.
 fun <T> Observable<T>.toBindingCached(): Binding<T> = bindingCache.getOrPut(this) { this.toBinding() } as Binding<T>
 
 fun <T> ObservableValue<T>.changeListener(op: (T?) -> Unit): ChangeListener<T> =

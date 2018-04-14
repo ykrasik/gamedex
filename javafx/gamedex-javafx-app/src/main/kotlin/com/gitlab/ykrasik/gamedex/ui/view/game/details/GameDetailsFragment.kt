@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.details
 
-import com.github.thomasnield.rxkotlinfx.toBinding
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
@@ -30,6 +29,8 @@ import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
 /**
@@ -66,7 +67,12 @@ class GameDetailsFragment(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        label(fileSystemService.size(game.path).map { it.humanReadable }.toBinding()) { minWidth = 60.0 }
+        label {
+            minWidth = 60.0
+            launch(JavaFx) {
+                text = fileSystemService.size(game.path).await().humanReadable
+            }
+        }
     }
 
     private fun GridPane.path() = row {

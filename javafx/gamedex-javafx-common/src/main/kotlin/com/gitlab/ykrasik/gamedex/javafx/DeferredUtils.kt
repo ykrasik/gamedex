@@ -14,28 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.file
+package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.FolderMetadata
-import com.gitlab.ykrasik.gamedex.util.FileSize
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.runBlocking
-import java.io.File
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 14/04/2018
+ * Time: 17:35
  */
-interface FileSystemService {
-    fun size(file: File): Deferred<FileSize>
-    fun sizeSync(file: File): FileSize = runBlocking { size(file).await() }
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
-
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderMetadata
-    fun fromFileName(name: String): String
-    fun toFileName(name: String): String
+fun <T> Deferred<T>.toObservableValue(): ObservableValue<T> {
+    val p = SimpleObjectProperty<T>()
+    launch(JavaFx) {
+        p.value = await()
+    }
+    return p
 }
