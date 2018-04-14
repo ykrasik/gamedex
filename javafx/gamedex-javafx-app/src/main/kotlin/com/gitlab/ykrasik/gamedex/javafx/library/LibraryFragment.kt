@@ -16,12 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
@@ -36,7 +37,8 @@ import tornadofx.*
  */
 class LibraryFragment(private val library: Library?) : Fragment(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
     private val libraryRepository: LibraryRepository by di()
-    private val settings: GeneralSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     private val model = LibraryViewModel()
     private var accept = false
@@ -112,8 +114,8 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
     }
 
     private fun browse() {
-        val directory = chooseDirectory("Browse Library Path...", initialDirectory = settings.prevDirectory.existsOrNull()) ?: return
-        settings.prevDirectory = directory
+        val directory = chooseDirectory("Browse Library Path...", initialDirectory = generalUserConfig.prevDirectory.existsOrNull()) ?: return
+        generalUserConfig.prevDirectory = directory
         model.path = directory.path
         model.name = directory.name
     }

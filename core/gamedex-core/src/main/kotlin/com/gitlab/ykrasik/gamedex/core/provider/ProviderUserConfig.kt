@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
@@ -32,8 +32,8 @@ import javax.inject.Singleton
  * Time: 12:48
  */
 @Singleton
-class ProviderSettings @Inject constructor(private val providers: MutableSet<GameProvider>) : UserSettings() {
-    override val repo = SettingsRepo("provider") {
+class ProviderUserConfig @Inject constructor(private val providers: MutableSet<GameProvider>) : UserConfig() {
+    override val scope = UserConfigScope("provider") {
         val defaultSearchOrder = byPriority { search }
         val defaultNameOrder = byPriority { name }
         val defaultDescriptionOrder = byPriority { description }
@@ -67,7 +67,7 @@ class ProviderSettings @Inject constructor(private val providers: MutableSet<Gam
     private fun byPriority(extractor: Extractor<ProviderOrderPriorities, Int>) =
         providers.sortedBy { extractor(it.defaultOrder) }.mapIndexed { i, provider -> provider.id to i }.toMap()
 
-    val providerSettingsSubject = repo.subject(Data::providers) { copy(providers = it) }
+    val providerSettingsSubject = scope.subject(Data::providers) { copy(providers = it) }
     var providerSettings by providerSettingsSubject
 
     val searchOrderSubject = orderSubject(ProviderOrderPriorities::search) { copy(search = it) }
@@ -99,7 +99,7 @@ class ProviderSettings @Inject constructor(private val providers: MutableSet<Gam
 
     private fun orderSubject(extractor: Extractor<ProviderOrderPriorities, Int>,
                              modifier: Modifier<ProviderOrderPriorities, Int>) =
-        repo.subject({ order(extractor) }) { fromOrder(it, modifier) }
+        scope.subject({ order(extractor) }) { fromOrder(it, modifier) }
 
     private inline fun Data.order(extractor: Extractor<ProviderOrderPriorities, Int>): Order = Order(
         providers.mapValues { (_, settings) -> extractor(settings.order) }

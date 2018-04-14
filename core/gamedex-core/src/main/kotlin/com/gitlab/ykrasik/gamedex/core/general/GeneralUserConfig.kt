@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import java.io.File
 import javax.inject.Singleton
 
@@ -27,8 +27,8 @@ import javax.inject.Singleton
  * Time: 19:10
  */
 @Singleton
-class GeneralSettings : UserSettings() {
-    override val repo = SettingsRepo("general") {
+class GeneralUserConfig : UserConfig() {
+    override val scope = UserConfigScope("general") {
         Data(
             prevDirectory = File("."),
             exportDbDirectory = File("."),
@@ -37,16 +37,16 @@ class GeneralSettings : UserSettings() {
         )
     }
 
-    val prevDirectorySubject = repo.subject(Data::prevDirectory) { copy(prevDirectory = it) }
+    val prevDirectorySubject = scope.subject(Data::prevDirectory) { copy(prevDirectory = it) }
     var prevDirectory by prevDirectorySubject
 
-    val exportDbDirectorySubject = repo.subject(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
+    val exportDbDirectorySubject = scope.subject(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
     var exportDbDirectory by exportDbDirectorySubject
 
-    val logFilterLevelSubject = repo.subject(Data::logFilterLevel) { copy(logFilterLevel = it) }
+    val logFilterLevelSubject = scope.subject(Data::logFilterLevel) { copy(logFilterLevel = it) }
     var logFilterLevel by logFilterLevelSubject
 
-    val logTailSubject = repo.subject(Data::logTail) { copy(logTail = it) }
+    val logTailSubject = scope.subject(Data::logTail) { copy(logTail = it) }
     var logTail by logTailSubject
 
     data class Data(

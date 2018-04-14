@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.ui.view.settings
 
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
@@ -38,21 +39,22 @@ import tornadofx.*
  */
 class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
     private val providerRepository: GameProviderRepository by di()
-    private val settings: ProviderSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
 
     override val root = form {
         // FIXME: Forms take a long time to load!!!
         fieldset("Order Priorities") {
             listOf(
-                "Search" to settings.searchOrderSubject,
-                "Name" to settings.nameOrderSubject,
-                "Description" to settings.descriptionOrderSubject,
-                "Release Date" to settings.releaseDateOrderSubject,
-                "Critic Score" to settings.criticScoreOrderSubject,
-                "User Score" to settings.userScoreOrderSubject,
-                "Thumbnail" to settings.thumbnailOrderSubject,
-                "Poster" to settings.posterOrderSubject,
-                "Screenshots" to settings.screenshotOrderSubject
+                "Search" to providerUserConfig.searchOrderSubject,
+                "Name" to providerUserConfig.nameOrderSubject,
+                "Description" to providerUserConfig.descriptionOrderSubject,
+                "Release Date" to providerUserConfig.releaseDateOrderSubject,
+                "Critic Score" to providerUserConfig.criticScoreOrderSubject,
+                "User Score" to providerUserConfig.userScoreOrderSubject,
+                "Thumbnail" to providerUserConfig.thumbnailOrderSubject,
+                "Poster" to providerUserConfig.posterOrderSubject,
+                "Screenshots" to providerUserConfig.screenshotOrderSubject
             ).forEach { (name, orderSubject) ->
                 field(name) {
                     providerOrder(orderSubject)
@@ -61,7 +63,7 @@ class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
         }
     }
 
-    private fun Pane.providerOrder(orderSubject: BehaviorSubject<ProviderSettings.Order>) {
+    private fun Pane.providerOrder(orderSubject: BehaviorSubject<ProviderUserConfig.Order>) {
         hbox(spacing = 20.0) {
             alignment = Pos.CENTER
             orderSubject.subscribe { order ->

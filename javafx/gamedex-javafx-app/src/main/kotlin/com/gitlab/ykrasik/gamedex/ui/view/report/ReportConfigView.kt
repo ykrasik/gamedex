@@ -22,9 +22,10 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
 import com.gitlab.ykrasik.gamedex.core.api.util.modifyValue
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
+import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
@@ -44,11 +45,12 @@ import tornadofx.*
  * Time: 16:56
  */
 class ReportConfigView : View("Report Config") {
-    private val settings: ReportSettings by di()
-    private val gameSettings: GameSettings by di()
     private val libraryController: LibraryController by di()
     private val gameController: GameController by di()
     private val providerRepository: GameProviderRepository by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+    private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
 
     private val initialReportConfigSubject = behaviorSubject<ReportConfig>()
     private val currentReportConfigSubject = behaviorSubject<ReportConfig>().apply {
@@ -58,13 +60,13 @@ class ReportConfigView : View("Report Config") {
     }
 
     // TODO: Move this logic to presenter.
-    private val disallowedNames = initialReportConfigSubject.map { settings.reports.keys - it.name }.toObservableList()
+    private val disallowedNames = initialReportConfigSubject.map { reportUserConfig.reports.keys - it.name }.toObservableList()
     private val excludedGames = currentReportConfigSubject.map { it.excludedGames.map { gameController.byId(it) } }.toObservableList()
 
     private val reportNameProperty = SimpleStringProperty()
     private val viewModel = ReportNameViewModel(reportNameProperty)
 
-    private val filterSet = FilterSet.Builder(gameSettings, libraryController, gameController, providerRepository).build()
+    private val filterSet = FilterSet.Builder(gameUserConfig, libraryController, gameController, providerRepository).build()
     private val filterFragment = FilterFragment(currentReportConfigSubject.map { it.filter }, filterSet)
 
     private val isValid = viewModel.valid.and(filterFragment.isValid)

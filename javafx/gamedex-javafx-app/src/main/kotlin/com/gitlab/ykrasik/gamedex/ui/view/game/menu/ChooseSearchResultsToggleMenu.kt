@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
 import com.gitlab.ykrasik.gamedex.javafx.toPropertyCached
 import javafx.scene.layout.VBox
@@ -28,16 +29,17 @@ import tornadofx.*
  * Time: 21:15
  */
 class ChooseSearchResultsToggleMenu : Fragment() {
-    private val settings: GameSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     override val root = vbox(spacing = 5.0) {
         togglegroup {
-            GameSettings.ChooseResults.values().forEach { chooseResults ->
+            GameUserConfig.ChooseResults.values().forEach { chooseResults ->
                 jfxToggleNode(text = chooseResults.description, value = chooseResults) {
                     useMaxWidth = true
                 }
             }
-            bind(settings.chooseResultsSubject.toPropertyCached())
+            bind(gameUserConfig.chooseResultsSubject.toPropertyCached())
         }
     }
 

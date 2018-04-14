@@ -16,10 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.settings
 
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
-import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallUserConfig
 import javafx.geometry.Pos
 import tornadofx.*
 
@@ -29,11 +30,12 @@ import tornadofx.*
  * Time: 15:21
  */
 class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
-    private val gameSettings: GameSettings by di()
-    private val gameWallSettings: GameWallSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+    private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
-    private val displayTypeProperty = gameSettings.displayTypeSubject.toPropertyCached()
-    private val isWallDisplay = displayTypeProperty.isEqualTo(GameSettings.DisplayType.wall)
+    private val displayTypeProperty = gameUserConfig.displayTypeSubject.toPropertyCached()
+    private val isWallDisplay = displayTypeProperty.isEqualTo(GameUserConfig.DisplayType.wall)
 
     override val root = form {
         fieldset("Game Display Type") {
@@ -42,8 +44,8 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
 
         fieldset("Overlay") {
             visibleWhen { isWallDisplay }
-            overlaySettings("MetaTag", gameWallSettings.metaTagOverlay)
-            overlaySettings("Version", gameWallSettings.versionOverlay)
+            overlaySettings("MetaTag", gameWallUserConfig.metaTagOverlay)
+            overlaySettings("Version", gameWallUserConfig.versionOverlay)
         }
         fieldset("Cell") {
             setId(Style.gameWallSettings)
@@ -53,14 +55,14 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
     }
 
     // TODO: Configure overlay color.
-    private fun Fieldset.overlaySettings(name: String, settings: GameWallSettings.OverlaySettingsAccessor) =
+    private fun Fieldset.overlaySettings(name: String, overlay: GameWallUserConfig.OverlaySettingsAccessor) =
         field("Display $name Overlay") {
             hbox(spacing = 5.0) {
                 alignment = Pos.CENTER_LEFT
-                val isShowProperty = settings.isShowSubject.toPropertyCached()
+                val isShowProperty = overlay.isShowSubject.toPropertyCached()
                 jfxToggleButton(isShowProperty)
-                labeled("Position") { enumComboBox(settings.positionSubject.toPropertyCached()) }.apply { showWhen { isShowProperty } }
-                jfxToggleButton(settings.fillWidthSubject.toPropertyCached()) {
+                labeled("Position") { enumComboBox(overlay.positionSubject.toPropertyCached()) }.apply { showWhen { isShowProperty } }
+                jfxToggleButton(overlay.fillWidthSubject.toPropertyCached()) {
                     showWhen { isShowProperty }
                     text = "Fill Width"
                 }
@@ -71,17 +73,17 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
         field("Fixed Size") {
             hbox(spacing = 5.0) {
                 alignment = Pos.CENTER_LEFT
-                jfxToggleButton(gameWallSettings.cell.isFixedSizeSubject.toPropertyCached())
-                labeled("Thumbnail") { enumComboBox(gameWallSettings.cell.imageDisplayTypeSubject.toPropertyCached()) }.apply {
-                    showWhen { gameWallSettings.cell.isFixedSizeSubject.toPropertyCached() }
+                jfxToggleButton(gameWallUserConfig.cell.isFixedSizeSubject.toPropertyCached())
+                labeled("Thumbnail") { enumComboBox(gameWallUserConfig.cell.imageDisplayTypeSubject.toPropertyCached()) }.apply {
+                    showWhen { gameWallUserConfig.cell.isFixedSizeSubject.toPropertyCached() }
                 }
             }
         }
-        field("Border") { jfxToggleButton(gameWallSettings.cell.isShowBorderSubject.toPropertyCached()) }
-        field("Width") { adjustableTextField(gameWallSettings.cell.widthSubject.toPropertyCached(), "cell width", min = 20.0, max = 500.0) }
-        field("Height") { adjustableTextField(gameWallSettings.cell.heightSubject.toPropertyCached(), "cell height", min = 20.0, max = 500.0) }
-        field("Horizontal Spacing") { adjustableTextField(gameWallSettings.cell.horizontalSpacingSubject.toPropertyCached(), "horizontal spacing", min = 0.0, max = 100.0) }
-        field("Vertical Spacing") { adjustableTextField(gameWallSettings.cell.verticalSpacingSubject.toPropertyCached(), "vertical spacing", min = 0.0, max = 100.0) }
+        field("Border") { jfxToggleButton(gameWallUserConfig.cell.isShowBorderSubject.toPropertyCached()) }
+        field("Width") { adjustableTextField(gameWallUserConfig.cell.widthSubject.toPropertyCached(), "cell width", min = 20.0, max = 500.0) }
+        field("Height") { adjustableTextField(gameWallUserConfig.cell.heightSubject.toPropertyCached(), "cell height", min = 20.0, max = 500.0) }
+        field("Horizontal Spacing") { adjustableTextField(gameWallUserConfig.cell.horizontalSpacingSubject.toPropertyCached(), "horizontal spacing", min = 0.0, max = 100.0) }
+        field("Vertical Spacing") { adjustableTextField(gameWallUserConfig.cell.verticalSpacingSubject.toPropertyCached(), "vertical spacing", min = 0.0, max = 100.0) }
     }
 
     class Style : Stylesheet() {

@@ -14,37 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.userconfig
 
-import javax.inject.Inject
-import javax.inject.Singleton
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.core.api.util.value_
+import io.reactivex.subjects.BehaviorSubject
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
  * Date: 11/03/2018
- * Time: 15:12
+ * Time: 15:03
  */
-// TODO: Maybe this is the SettingsRepository? Hide all access to single settings through this class.
-@Singleton
-class AllSettings @Inject constructor(private val settings: MutableSet<UserSettings>) {
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : UserSettings> get(klass: KClass<T>): T = settings.find { it::class == klass }!! as T
+abstract class UserConfig {
+    protected abstract val scope: UserConfigScope<*>
 
-    fun saveSnapshot() = settings.forEach {
-        it.disableWrite()
-        it.saveSnapshot()
-    }
+    fun saveSnapshot() = scope.saveSnapshot()
+    fun restoreSnapshot() = scope.restoreSnapshot()
+    fun clearSnapshot() = scope.clearSnapshot()
 
-    fun restoreSnapshot() = settings.forEach {
-        it.restoreSnapshot()
-        it.enableWrite()
-        it.clearSnapshot()
-    }
+    fun disableWrite() = scope.disableWrite()
+    fun enableWrite() = scope.enableWrite()
 
-    fun commitSnapshot() = settings.forEach {
-        it.enableWrite()
-        it.flush()
-        it.clearSnapshot()
+    fun flush() = scope.flush()
+
+    // Convenience shortcuts for subclasses
+    operator fun <T> BehaviorSubject<T>.getValue(thisRef: Any, property: KProperty<*>) = value_
+    operator fun <T> BehaviorSubject<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        value_ = value
     }
 }

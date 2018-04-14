@@ -21,8 +21,9 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
@@ -48,14 +49,17 @@ import javax.inject.Singleton
  * Date: 09/10/2016
  * Time: 14:39
  */
+// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class GameController @Inject constructor(
     private val gameRepository: GameRepository,
     private val gamePresenter: GamePresenter,
-    private val gameSettings: GameSettings,
+    private val userConfigRepository: UserConfigRepository,
     private val fileSystemService: FileSystemService,
     taskRunner: JavaFxTaskRunner
 ) : Controller() {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+
     private val mainView: MainView by inject()
 
     private val logger = logger()
@@ -64,7 +68,7 @@ class GameController @Inject constructor(
 
     private val compositeFilterPredicate = run {
         val context = Filter.Context(emptyList(), fileSystemService)
-        val filterPredicate = gameSettings.currentPlatformFilterSubject.toBindingCached().toPredicate { filter, game: Game ->
+        val filterPredicate = gameUserConfig.currentPlatformFilterSubject.toBindingCached().toPredicate { filter, game: Game ->
             filter!!.evaluate(game, context)
         }
 
@@ -77,18 +81,18 @@ class GameController @Inject constructor(
     private val criticScoreComparator = compareBy(Game::criticScore)
     private val userScoreComparator = compareBy(Game::userScore)
 
-    private val sortComparator = gameSettings.sortSubject.map { sort ->
+    private val sortComparator = gameUserConfig.sortSubject.map { sort ->
         val comparator = when (sort.sortBy) {
-            GameSettings.SortBy.name_ -> nameComparator
-            GameSettings.SortBy.criticScore -> criticScoreComparator.then(nameComparator)
-            GameSettings.SortBy.userScore -> userScoreComparator.then(nameComparator)
-            GameSettings.SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            GameSettings.SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            GameSettings.SortBy.size -> compareBy<Game> { fileSystemService.sizeSync(it.path) }.then(nameComparator)        // FIXME: Hangs UI thread!!!
-            GameSettings.SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-            GameSettings.SortBy.updateDate -> compareBy(Game::updateDate)
+            GameUserConfig.SortBy.name_ -> nameComparator
+            GameUserConfig.SortBy.criticScore -> criticScoreComparator.then(nameComparator)
+            GameUserConfig.SortBy.userScore -> userScoreComparator.then(nameComparator)
+            GameUserConfig.SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            GameUserConfig.SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            GameUserConfig.SortBy.size -> compareBy<Game> { fileSystemService.sizeSync(it.path) }.then(nameComparator)        // FIXME: Hangs UI thread!!!
+            GameUserConfig.SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+            GameUserConfig.SortBy.updateDate -> compareBy(Game::updateDate)
         }
-        if (sort.order == GameSettings.SortType.asc) {
+        if (sort.order == GameUserConfig.SortType.asc) {
             comparator
         } else {
             comparator.reversed()
@@ -97,7 +101,7 @@ class GameController @Inject constructor(
 
     val games: ObservableList<Game> = gameRepository.games.toObservableList()
     val platformGames = games.sortedFiltered().apply {
-        filteredItems.predicateProperty().bind(gameSettings.platformSubject.toBindingCached().toPredicate { platform, game: Game ->
+        filteredItems.predicateProperty().bind(gameUserConfig.platformSubject.toBindingCached().toPredicate { platform, game: Game ->
             game.platform == platform
         })
     }
@@ -112,7 +116,7 @@ class GameController @Inject constructor(
     val canRunLongTask = taskRunner.canRunTaskProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
 
     fun clearFilters() {
-        gameSettings.currentPlatformFilter = Filter.`true`
+        gameUserConfig.currentPlatformFilter = Filter.`true`
         searchQueryProperty.value = ""
     }
 

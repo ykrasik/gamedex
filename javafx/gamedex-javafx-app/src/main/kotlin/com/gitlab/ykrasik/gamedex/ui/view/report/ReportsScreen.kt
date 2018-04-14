@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
+import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
@@ -41,8 +42,9 @@ import tornadofx.*
  * Time: 16:25
  */
 class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
-    private val reportSettings: ReportSettings by di()
     private val reportController: ReportController by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
 
     private var content: VBox by singleAssign()
     private var searchTextfield: TextField by singleAssign()
@@ -73,7 +75,7 @@ class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
     }
 
     init {
-        reportSettings.reportsSubject.subscribe { reports ->
+        reportUserConfig.reportsSubject.subscribe { reports ->
             isChangingSettings = true
 
             // TODO: Check for listener leaks.

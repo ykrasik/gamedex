@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.userconfig
 
 import com.gitlab.ykrasik.gamedex.core.api.util.*
 import com.gitlab.ykrasik.gamedex.util.*
@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
  * Date: 11/10/2016
  * Time: 10:34
  */
-class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
+class UserConfigScope<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
     private val file = "conf/$name.json".toFile()
 
     private var enableWrite = true
@@ -60,6 +60,7 @@ class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
     fun <R> subject(extractor: Extractor<T, R>, modifier: Modifier<T, R>): BehaviorSubject<R> =
         dataSubject.mapBidirectional(extractor, { data.modifier(this) }, uiThreadScheduler)
 
+    // TODO: Do this through an actor?
     private fun update(data: T) = launch(dispatcher) {
         file.create()
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
@@ -98,6 +99,6 @@ class SettingsRepo<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
 
         private val log = logger()
 
-        inline operator fun <reified T : Any> invoke(name: String, noinline default: () -> T): SettingsRepo<T> = SettingsRepo(name, T::class, default)
+        inline operator fun <reified T : Any> invoke(name: String, noinline default: () -> T): UserConfigScope<T> = UserConfigScope(name, T::class, default)
     }
 }

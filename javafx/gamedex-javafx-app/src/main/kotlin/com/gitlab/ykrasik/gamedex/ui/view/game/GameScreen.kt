@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.ui.view.game.list.GameListView
@@ -39,7 +40,8 @@ import tornadofx.*
 class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
-    private val gameSettings: GameSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val gameWallView: GameWallView by inject()
     private val gameListView: GameListView by inject()
@@ -69,7 +71,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     override val root = stackpane()
 
     init {
-        gameSettings.displayTypeSubject.subscribe {
+        gameUserConfig.displayTypeSubject.subscribe {
             root.replaceChildren(it!!.toNode())
         }
     }
@@ -77,7 +79,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private fun EventTarget.platformButton() {
         // TODO: Prefer doing this through rx operators.
         val platformsWithLibraries = libraryController.realLibraries.mapping { it.platform }.distincting()
-        val selectedItemProperty = gameSettings.platformSubject.toPropertyCached()
+        val selectedItemProperty = gameUserConfig.platformSubject.toPropertyCached()
         popoverComboMenu(
             possibleItems = platformsWithLibraries,
             selectedItemProperty = selectedItemProperty,
@@ -91,12 +93,12 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     }
 
     private fun EventTarget.sortButton() {
-        val sortProperty = gameSettings.sortSubject.toPropertyCached()
-        val possibleItems = gameSettings.sortSubject.map { sort ->
-            GameSettings.SortBy.values().map { sortBy ->
-                GameSettings.Sort(
+        val sortProperty = gameUserConfig.sortSubject.toPropertyCached()
+        val possibleItems = gameUserConfig.sortSubject.map { sort ->
+            GameUserConfig.SortBy.values().map { sortBy ->
+                GameUserConfig.Sort(
                     sortBy = sortBy,
-                    order = if (sortBy == sort.sortBy) sort.order.toggle() else GameSettings.SortType.desc
+                    order = if (sortBy == sort.sortBy) sort.order.toggle() else GameUserConfig.SortType.desc
                 )
             }
         }.toObservableList()
@@ -110,13 +112,13 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         )
     }
 
-    private fun GameSettings.DisplayType.toNode() = when (this) {
-        GameSettings.DisplayType.wall -> gameWallView.root
-        GameSettings.DisplayType.list -> gameListView.root
+    private fun GameUserConfig.DisplayType.toNode() = when (this) {
+        GameUserConfig.DisplayType.wall -> gameWallView.root
+        GameUserConfig.DisplayType.list -> gameListView.root
     }
 
-    private fun GameSettings.SortType.toGraphic() = when (this) {
-        GameSettings.SortType.asc -> Theme.Icon.ascending()
-        GameSettings.SortType.desc -> Theme.Icon.descending()
+    private fun GameUserConfig.SortType.toGraphic() = when (this) {
+        GameUserConfig.SortType.asc -> Theme.Icon.ascending()
+        GameUserConfig.SortType.desc -> Theme.Icon.descending()
     }
 }

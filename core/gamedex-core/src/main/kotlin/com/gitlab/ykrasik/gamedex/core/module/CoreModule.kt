@@ -29,18 +29,18 @@ import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameRepositoryImpl
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
-import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
-import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
-import com.gitlab.ykrasik.gamedex.core.settings.AllSettings
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
+import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
@@ -68,13 +68,13 @@ object CoreModule : AbstractModule() {
         bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
 
-        with(Multibinder.newSetBinder(binder(), UserSettings::class.java)) {
-            addBinding().to(GameSettings::class.java)
-            addBinding().to(GeneralSettings::class.java)
-            addBinding().to(ProviderSettings::class.java)
-            addBinding().to(ReportSettings::class.java)
+        with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
+            addBinding().to(GameUserConfig::class.java)
+            addBinding().to(GeneralUserConfig::class.java)
+            addBinding().to(ProviderUserConfig::class.java)
+            addBinding().to(ReportUserConfig::class.java)
         }
-        bind(AllSettings::class.java)
+        bind(UserConfigRepository::class.java)
     }
 
     @Provides

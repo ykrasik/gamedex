@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.menu
 
 import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import javafx.beans.property.Property
@@ -36,7 +37,8 @@ import tornadofx.*
  */
 class GameRefreshMenu : View() {
     private val gameController: GameController by di()
-    private val settings: GameSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val formatter = PeriodFormatterBuilder()
         .appendYears().appendSuffix("y").appendSeparator(" ")
@@ -46,7 +48,7 @@ class GameRefreshMenu : View() {
         .appendMinutes().appendSuffix("m").appendSeparator(" ")
         .appendSeconds().appendSuffix("s").toFormatter()
 
-    private val stalePeriodTextProperty = settings.stalePeriodSubject.mapBidirectional({
+    private val stalePeriodTextProperty = gameUserConfig.stalePeriodSubject.mapBidirectional({
         val sb = StringBuffer()
         formatter.printTo(sb, normalizedStandard(PeriodType.yearMonthDayTime()))
         sb.toString()

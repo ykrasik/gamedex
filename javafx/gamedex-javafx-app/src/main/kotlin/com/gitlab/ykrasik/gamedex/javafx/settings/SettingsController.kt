@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
-import com.gitlab.ykrasik.gamedex.core.settings.AllSettings
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.subscribe
@@ -49,10 +49,11 @@ import javax.inject.Singleton
  * Date: 09/05/2017
  * Time: 17:09
  */
+// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class SettingsController @Inject constructor(
     private val generalSettingsPresenter: GeneralSettingsPresenter,
-    private val settings: AllSettings,
+    private val userConfigRepository: UserConfigRepository,
     taskRunner: JavaFxTaskRunner
 ) : Controller() {
     private val logger = logger()
@@ -60,8 +61,8 @@ class SettingsController @Inject constructor(
     private val settingsView: SettingsView by inject()
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
 
-    private val providerSettings = settings[ProviderSettings::class]
-    private val generalSettings = settings[GeneralSettings::class]
+    private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     init {
         taskRunner.canRunTaskProperty.subscribeFx {
@@ -81,23 +82,23 @@ class SettingsController @Inject constructor(
         }
     }
 
-    fun providerSettings(providerId: ProviderId) = providerSettings[providerId]
+    fun providerSettings(providerId: ProviderId) = providerUserConfig[providerId]
     fun setProviderEnabled(providerId: ProviderId, enable: Boolean) {
-        providerSettings.modify(providerId) { copy(enable = enable) }
+        providerUserConfig.modify(providerId) { copy(enable = enable) }
     }
 
     fun showSettingsMenu() {
-        settings.saveSnapshot()
+        userConfigRepository.saveSnapshot()
         try {
             val accept = settingsView.show()
             if (accept) {
-                settings.commitSnapshot()
+                userConfigRepository.commitSnapshot()
             } else {
-                settings.restoreSnapshot()
+                userConfigRepository.revertSnapshot()
             }
         } catch (e: Exception) {
             logger.error("Error updating settings!", e)
-            settings.restoreSnapshot()
+            userConfigRepository.revertSnapshot()
         }
     }
 
@@ -106,7 +107,7 @@ class SettingsController @Inject constructor(
         val valid = validate(provider, newAccount)
         if (valid) {
             withContext(JavaFx) {
-                providerSettings.modify(provider.id) { copy(account = account) }
+                providerUserConfig.modify(provider.id) { copy(account = account) }
             }
         }
         valid
@@ -123,8 +124,8 @@ class SettingsController @Inject constructor(
     }
 
     private suspend fun exportDatabase() = withContext(JavaFx) {
-        val dir = chooseDirectory("Choose database export directory...", initialDirectory = generalSettings.exportDbDirectory) ?: return@withContext
-        generalSettings.exportDbDirectory = dir
+        val dir = chooseDirectory("Choose database export directory...", initialDirectory = generalUserConfig.exportDbDirectory) ?: return@withContext
+        generalUserConfig.exportDbDirectory = dir
         val timestamp = now.withZone(DateTimeZone.getDefault())
         val timestamptedPath = Paths.get(
             dir.toString(),
@@ -138,7 +139,7 @@ class SettingsController @Inject constructor(
 
     private suspend fun importDatabase() = withContext(JavaFx) {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = FileChooserMode.Single) {
-            initialDirectory = generalSettings.exportDbDirectory
+            initialDirectory = generalUserConfig.exportDbDirectory
             initialFileName = "db.json"
         }.firstOrNull() ?: return@withContext
 

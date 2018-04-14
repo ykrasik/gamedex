@@ -20,7 +20,8 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
@@ -38,18 +39,20 @@ import javax.inject.Singleton
  * Date: 23/04/2017
  * Time: 11:05
  */
+// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class LibraryController @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
     private val taskRunner: JavaFxTaskRunner,
-    settings: GameSettings
+    private val userConfigRepository: UserConfigRepository
 ) : Controller() {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     val allLibraries = libraryRepository.libraries.toObservableList()
     val realLibraries = allLibraries.filtered { it.platform != Platform.excluded }
     val platformLibraries = realLibraries.sortedFiltered().apply {
-        predicateProperty.bind(settings.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
+        predicateProperty.bind(gameUserConfig.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
             library.platform == platform
         })
     }

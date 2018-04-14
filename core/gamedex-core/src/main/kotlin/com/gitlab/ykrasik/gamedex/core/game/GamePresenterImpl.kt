@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
 import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.now
 import java.io.File
@@ -45,10 +46,11 @@ class GamePresenterImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService,
     private val gameRepository: GameRepository,
-    private val gameSettings: GameSettings,
+    private val userConfigRepository: UserConfigRepository,
     private val libraryRepository: LibraryRepository,
     private val fileSystemService: FileSystemService
 ) : GamePresenter {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     override suspend fun discoverNewGames() = runTask("Discover New Games") {
         val masterTask = this
@@ -179,7 +181,7 @@ class GamePresenterImpl @Inject constructor(
             // Operate on a copy of the games to avoid concurrent modifications.
             games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
                 val providersToDownload = game.providerHeaders.filter { header ->
-                    header.updateDate.plus(gameSettings.stalePeriod).isBeforeNow
+                    header.updateDate.plus(gameUserConfig.stalePeriod).isBeforeNow
                 }
                 if (providersToDownload.isNotEmpty()) {
                     downloadGame(game, providersToDownload)

@@ -51,14 +51,14 @@ object DefaultPreloaderPresenter : PreloaderPresenter {
             }
         }
 
-        val settings = PreloaderSettings()
+        val userConfig = PreloaderUserConfig()
 
         var componentCount = 0
         val lifecycleModule = LifecycleModule(object : ProvisionListener {
             override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                 componentCount++
                 try {
-                    progress(componentCount, settings.diComponents)
+                    progress(componentCount, userConfig.diComponents)
                 } catch (_: ClosedSendChannelException) {
                     // This happens when we don't pre-load all required classes during this stage
                     // Some classes get lazily loaded, which will trigger this exception.
@@ -75,7 +75,7 @@ object DefaultPreloaderPresenter : PreloaderPresenter {
         message1 = "Done loading."
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-        settings.diComponents = componentCount
+        userConfig.diComponents = componentCount
 
         injector
     }

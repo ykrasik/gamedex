@@ -14,32 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.preloader
 
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import io.reactivex.subjects.BehaviorSubject
-import kotlin.reflect.KProperty
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 
 /**
  * User: ykrasik
- * Date: 11/03/2018
- * Time: 15:03
+ * Date: 09/03/2018
+ * Time: 09:28
  */
-abstract class UserSettings {
-    protected abstract val repo: SettingsRepo<*>
-
-    fun saveSnapshot() = repo.saveSnapshot()
-    fun restoreSnapshot() = repo.restoreSnapshot()
-    fun clearSnapshot() = repo.clearSnapshot()
-
-    fun disableWrite() = repo.disableWrite()
-    fun enableWrite() = repo.enableWrite()
-
-    fun flush() = repo.flush()
-
-    // Convenience shortcuts for subclasses
-    operator fun <T> BehaviorSubject<T>.getValue(thisRef: Any, property: KProperty<*>) = value_
-    operator fun <T> BehaviorSubject<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        value_ = value
+class PreloaderUserConfig : UserConfig() {
+    override val scope = UserConfigScope("preloader") {
+        Data(
+            diComponents = 24
+        )
     }
+
+    val diComponentsSubject = scope.subject(Data::diComponents) { copy(diComponents = it) }
+    var diComponents by diComponentsSubject
+
+    data class Data(
+        val diComponents: Int
+    )
 }

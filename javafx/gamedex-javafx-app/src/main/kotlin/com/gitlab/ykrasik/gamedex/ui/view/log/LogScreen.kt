@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.ui.view.log
 
 import ch.qos.logback.classic.Level
-import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.LogEntry
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.scene.control.ListCell
@@ -34,10 +35,11 @@ import tornadofx.*
  * Time: 11:14
  */
 class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
-    private val settings: GeneralSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     private val logItems = GamedexLog.entries.toObservableList().sortedFiltered()
-    private val logFilterLevelProperty = settings.logFilterLevelSubject.toPropertyCached()
+    private val logFilterLevelProperty = generalUserConfig.logFilterLevelSubject.toPropertyCached()
     private var displayLevel = logFilterLevelProperty.map(Level::toLevel)
 
     override fun ToolBar.constructToolbar() {
@@ -49,7 +51,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
                 minWidth = 60.0
             }
         header("Tail").labelFor =
-            jfxToggleButton(settings.logTailSubject.toPropertyCached())
+            jfxToggleButton(generalUserConfig.logTailSubject.toPropertyCached())
     }
 
     override val root = listview(logItems) {
@@ -93,7 +95,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
         }
 
         logItems.onChange {
-            if (settings.logTail) {
+            if (generalUserConfig.logTail) {
                 scrollTo(items.size)
             }
         }

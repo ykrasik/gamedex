@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.filterClass
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.FileSize
@@ -32,7 +32,7 @@ import kotlin.reflect.KClass
  * Date: 25/01/2018
  * Time: 10:04
  */
-// TODO: Wrap this class in a factory.
+// TODO: Wrap this class in a factory. And Rename to FilterRepository.
 class FilterSet private constructor(
     private val _rules: Map<KClass<out Filter.Rule>, () -> Filter.Rule>,
     private val _operators: Map<KClass<out Filter.BinaryOperator>, () -> Filter.BinaryOperator>
@@ -44,7 +44,7 @@ class FilterSet private constructor(
     fun new(name: String): Filter = new(name.filterClass)
 
     class Builder(
-        private val settings: GameSettings,
+        private val gameUserConfig: GameUserConfig,
         private val libraryController: LibraryController,
         private val gameController: GameController,
         private val providerRepository: GameProviderRepository
@@ -56,10 +56,10 @@ class FilterSet private constructor(
 
         // TODO: Only show any of these when there's values to show for filter, always show for report.
         private val rules = mutableMapOf(
-            Filter.Platform::class to { Filter.Platform(settings.platform) },
+            Filter.Platform::class to { Filter.Platform(gameUserConfig.platform) },
             Filter.Library::class to {
                 // TODO: Use platformLibraries for filter, realLibraries for report.
-                Filter.Library(settings.platform, libraryController.realLibraries.firstOrNull()?.name ?: "")
+                Filter.Library(gameUserConfig.platform, libraryController.realLibraries.firstOrNull()?.name ?: "")
             },
             Filter.Genre::class to { Filter.Genre(gameController.genres.firstOrNull() ?: "") },
             Filter.Tag::class to { Filter.Tag(gameController.tags.firstOrNull() ?: "") },

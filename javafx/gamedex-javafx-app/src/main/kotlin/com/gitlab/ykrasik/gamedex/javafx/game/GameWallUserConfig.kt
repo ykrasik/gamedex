@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.NestedModifier
 import javafx.geometry.Pos
@@ -29,8 +29,8 @@ import javax.inject.Singleton
  * Time: 19:05
  */
 @Singleton
-class GameWallSettings : UserSettings() {
-    override val repo = SettingsRepo("wall") {
+class GameWallUserConfig : UserConfig() {
+    override val scope = UserConfigScope("wall") {
         Data(
             cell = CellSettings(
                 imageDisplayType = ImageDisplayType.stretch,
@@ -59,36 +59,36 @@ class GameWallSettings : UserSettings() {
     val versionOverlay = OverlaySettingsAccessor(Data::version, Data::withVersion)
 
     inner class CellSettingsAccessor {
-        val imageDisplayTypeSubject = repo.subject({ cell.imageDisplayType }) { withCell { copy(imageDisplayType = it) } }
+        val imageDisplayTypeSubject = scope.subject({ cell.imageDisplayType }) { withCell { copy(imageDisplayType = it) } }
         var imageDisplayType by imageDisplayTypeSubject
 
-        val isFixedSizeSubject = repo.subject({ cell.fixedSize }) { withCell { copy(fixedSize = it) } }
+        val isFixedSizeSubject = scope.subject({ cell.fixedSize }) { withCell { copy(fixedSize = it) } }
         var isFixedSize by isFixedSizeSubject
 
-        val isShowBorderSubject = repo.subject({ cell.showBorder }) { withCell { copy(showBorder = it) } }
+        val isShowBorderSubject = scope.subject({ cell.showBorder }) { withCell { copy(showBorder = it) } }
         var isShowBorder by isShowBorderSubject
 
-        val widthSubject = repo.subject({ cell.width }) { withCell { copy(width = it) } }
+        val widthSubject = scope.subject({ cell.width }) { withCell { copy(width = it) } }
         var width by widthSubject
 
-        val heightSubject = repo.subject({ cell.height }) { withCell { copy(height = it) } }
+        val heightSubject = scope.subject({ cell.height }) { withCell { copy(height = it) } }
         var height by heightSubject
 
-        val horizontalSpacingSubject = repo.subject({ cell.horizontalSpacing }) { withCell { copy(horizontalSpacing = it) } }
+        val horizontalSpacingSubject = scope.subject({ cell.horizontalSpacing }) { withCell { copy(horizontalSpacing = it) } }
         var horizontalSpacing by horizontalSpacingSubject
 
-        val verticalSpacingSubject = repo.subject({ cell.verticalSpacing }) { withCell { copy(verticalSpacing = it) } }
+        val verticalSpacingSubject = scope.subject({ cell.verticalSpacing }) { withCell { copy(verticalSpacing = it) } }
         var verticalSpacing by verticalSpacingSubject
     }
 
     inner class OverlaySettingsAccessor(extractor: Extractor<Data, OverlaySettings>, modifier: NestedModifier<Data, OverlaySettings>) {
-        val isShowSubject = repo.subject({ extractor().show }, { modifier { copy(show = it) } })
+        val isShowSubject = scope.subject({ extractor().show }, { modifier { copy(show = it) } })
         var isShow by isShowSubject
 
-        val positionSubject = repo.subject({ extractor().position }, { modifier { copy(position = it) } })
+        val positionSubject = scope.subject({ extractor().position }, { modifier { copy(position = it) } })
         var position by positionSubject
 
-        val fillWidthSubject = repo.subject({ extractor().fillWidth }, { modifier { copy(fillWidth = it) } })
+        val fillWidthSubject = scope.subject({ extractor().fillWidth }, { modifier { copy(fillWidth = it) } })
         var fillWidth by fillWidthSubject
     }
 

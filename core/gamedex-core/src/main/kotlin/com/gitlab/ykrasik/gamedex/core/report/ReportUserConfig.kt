@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.not
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import javax.inject.Singleton
 
 /**
@@ -29,8 +29,8 @@ import javax.inject.Singleton
  */
 // TODO: Put reports in persistence & make a ReportRepository
 @Singleton
-class ReportSettings : UserSettings() {
-    override val repo = SettingsRepo("report") {
+class ReportUserConfig : UserConfig() {
+    override val scope = UserConfigScope("report") {
         Data(
             reports = listOf(
                 ReportConfig("Name Diff", Filter.NameDiff(), excludedGames = emptyList()),
@@ -62,7 +62,7 @@ class ReportSettings : UserSettings() {
         )
     }
 
-    val reportsSubject = repo.subject(Data::reports) { copy(reports = it) }
+    val reportsSubject = scope.subject(Data::reports) { copy(reports = it) }
     var reports by reportsSubject
 
     data class Data(

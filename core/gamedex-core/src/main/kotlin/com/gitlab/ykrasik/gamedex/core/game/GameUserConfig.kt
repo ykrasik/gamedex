@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional
 import com.gitlab.ykrasik.gamedex.core.api.util.toBehaviorSubjectOnChange
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import org.joda.time.Period
 import org.joda.time.PeriodType
 import javax.inject.Singleton
@@ -32,8 +32,8 @@ import javax.inject.Singleton
  * Time: 19:08
  */
 @Singleton
-class GameSettings : UserSettings() {
-    override val repo = SettingsRepo("game") {
+class GameUserConfig : UserConfig() {
+    override val scope = UserConfigScope("game") {
         Data(
             displayType = DisplayType.wall,
             platform = Platform.pc,
@@ -44,13 +44,13 @@ class GameSettings : UserSettings() {
         )
     }
 
-    val displayTypeSubject = repo.subject(Data::displayType) { copy(displayType = it) }
+    val displayTypeSubject = scope.subject(Data::displayType) { copy(displayType = it) }
     var displayType by displayTypeSubject
 
-    val platformSubject = repo.subject(Data::platform) { copy(platform = it) }
+    val platformSubject = scope.subject(Data::platform) { copy(platform = it) }
     var platform by platformSubject
 
-    val platformSettingsSubject = repo.subject(Data::platformSettings) { copy(platformSettings = it) }
+    val platformSettingsSubject = scope.subject(Data::platformSettings) { copy(platformSettings = it) }
     var platformSettings by platformSettingsSubject
 
     // TODO: Write unit tests for this.
@@ -64,13 +64,13 @@ class GameSettings : UserSettings() {
     val currentPlatformFilterSubject = currentPlatformSettingsSubject.mapBidirectional({ filter }, { GamePlatformSettings(this) })
     var currentPlatformFilter by currentPlatformFilterSubject
 
-    val sortSubject = repo.subject(Data::sort) { copy(sort = it) }
+    val sortSubject = scope.subject(Data::sort) { copy(sort = it) }
     var sort by sortSubject
 
-    val chooseResultsSubject = repo.subject(Data::chooseResults) { copy(chooseResults = it) }
+    val chooseResultsSubject = scope.subject(Data::chooseResults) { copy(chooseResults = it) }
     var chooseResults by chooseResultsSubject
 
-    val stalePeriodSubject = repo.subject(Data::stalePeriod) { copy(stalePeriod = it) }
+    val stalePeriodSubject = scope.subject(Data::stalePeriod) { copy(stalePeriod = it) }
     var stalePeriod by stalePeriodSubject
 
     enum class DisplayType { wall, list }

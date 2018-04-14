@@ -20,7 +20,8 @@ import com.gitlab.ykrasik.gamedex.core.FilterSet
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
@@ -37,9 +38,10 @@ class GameFilterMenu : View() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
     private val providerRepository: GameProviderRepository by di()
-    private val gameSettings: GameSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    private val filterSet = FilterSet.Builder(gameSettings, libraryController, gameController, providerRepository)
+    private val filterSet = FilterSet.Builder(gameUserConfig, libraryController, gameController, providerRepository)
         .without(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
         .build()
 
@@ -89,7 +91,7 @@ class GameFilterMenu : View() {
 
     private fun Fieldset.filter() = field {
         vbox {
-            val filterProperty = gameSettings.currentPlatformFilterSubject
+            val filterProperty = gameUserConfig.currentPlatformFilterSubject
             val fragment = FilterFragment(filterProperty, filterSet)
             fragment.newFilterObservable.subscribe {
                 filterProperty.value_ = it

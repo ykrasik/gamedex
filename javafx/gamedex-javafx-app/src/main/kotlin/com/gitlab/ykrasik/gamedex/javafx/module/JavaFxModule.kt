@@ -19,9 +19,9 @@ package com.gitlab.ykrasik.gamedex.javafx.module
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallUserConfig
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
@@ -48,8 +48,8 @@ object JavaFxModule : AbstractModule() {
 
         bind(GeneralSettingsView::class.java).to(JavaFxGeneralSettingsView::class.java)
 
-        with(Multibinder.newSetBinder(binder(), UserSettings::class.java)) {
-            addBinding().to(GameWallSettings::class.java)
+        with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
+            addBinding().to(GameWallUserConfig::class.java)
         }
     }
 }

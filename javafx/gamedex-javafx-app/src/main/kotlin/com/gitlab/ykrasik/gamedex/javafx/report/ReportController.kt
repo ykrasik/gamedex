@@ -21,7 +21,8 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
+import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.ThreadAwareDoubleProperty
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfigView
@@ -47,12 +48,14 @@ import javax.inject.Singleton
  * Date: 10/06/2017
  * Time: 16:53
  */
+// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class ReportController @Inject constructor(
     private val gameRepository: GameRepository,
-    private val settings: ReportSettings,
+    private val userConfigRepository: UserConfigRepository,
     private val fileSystemService: FileSystemService
 ) : Controller() {
+    private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
 
     private val reportConfigView: ReportConfigView by inject()
 
@@ -69,16 +72,16 @@ class ReportController @Inject constructor(
     private inline fun updateConfig(oldConfig: ReportConfig, newConfigFactory: () -> ReportConfig): ReportConfig {
         val newConfig = newConfigFactory()
         if (newConfig.name != oldConfig.name) {
-            settings.reports -= oldConfig.name
+            reportUserConfig.reports -= oldConfig.name
         }
-        settings.reports += newConfig.name to newConfig
+        reportUserConfig.reports += newConfig.name to newConfig
         return newConfig
     }
 
     fun deleteReport(config: ReportConfig): Boolean {
         val confirm = areYouSureDialog("Delete report '${config.name}'?") { label("Rules: ${config.filter}") }
         if (confirm) {
-            settings.reports -= config.name
+            reportUserConfig.reports -= config.name
         }
         return confirm
     }
@@ -99,6 +102,7 @@ class ReportController @Inject constructor(
         fun start() {
             if (subscription != null) return
 
+            // TODO: This feels like a task?
             subscription = gameRepository.games.itemsObservable.subscribe { games ->
                 isCalculating = true
                 launch(CommonPool) {

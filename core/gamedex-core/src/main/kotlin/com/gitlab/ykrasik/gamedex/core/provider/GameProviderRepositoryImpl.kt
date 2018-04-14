@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.info
@@ -34,8 +35,9 @@ import javax.inject.Singleton
  * Time: 21:30
  */
 @Singleton
-class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameProvider>, settings: ProviderSettings) : GameProviderRepository {
+class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameProvider>, userConfigRepository: UserConfigRepository) : GameProviderRepository {
     private val log = logger()
+    private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
 
     override val allProviders: List<GameProvider> = providers.sortedBy { it.id }
 
@@ -43,7 +45,7 @@ class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameP
     override val enabledProviders: ListObservable<EnabledGameProvider> = _enabledProviders
 
     init {
-        settings.providerSettingsSubject.combineLatest(settings.searchOrderSubject) { providerSettings, searchOrder ->
+        providerUserConfig.providerSettingsSubject.combineLatest(providerUserConfig.searchOrderSubject) { providerSettings, searchOrder ->
             providerSettings.mapNotNull { (providerId, settings) ->
                 if (!settings.enable) return@mapNotNull null
 

@@ -21,7 +21,8 @@ import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.provider.*
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -42,9 +43,10 @@ import javax.inject.Singleton
 class GameProviderServiceImpl @Inject constructor(
     private val providerRepository: GameProviderRepository,
     private val fileSystemService: FileSystemService,
-    private val settings: GameSettings,
+    private val userConfigRepository: UserConfigRepository,
     private val chooser: SearchChooser
 ) : GameProviderService {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     override suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults? =
         try {
@@ -58,14 +60,14 @@ class GameProviderServiceImpl @Inject constructor(
         private val excludedProviders: List<ProviderId>
     ) {
         private var searchedName = fileSystemService.fromFileName(fileSystemService.analyzeFolderName(taskData.name).gameName)
-        private var canAutoContinue = chooseResults != GameSettings.ChooseResults.alwaysChoose
+        private var canAutoContinue = chooseResults != GameUserConfig.ChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
         private val task get() = taskData.task
         private val platform get() = taskData.platform
-        private val chooseResults get() = settings.chooseResults
+        private val chooseResults get() = gameUserConfig.chooseResults
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): SearchResults {
@@ -91,7 +93,7 @@ class GameProviderServiceImpl @Inject constructor(
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
             val choice = when {
-                chooseResults == GameSettings.ChooseResults.alwaysChoose -> chooseResult(provider, results)
+                chooseResults == GameUserConfig.ChooseResults.alwaysChoose -> chooseResult(provider, results)
                 userExactMatch != null -> {
                     val providerExactMatch = findExactMatch(userExactMatch!!)
                     if (providerExactMatch != null) {
@@ -131,8 +133,8 @@ class GameProviderServiceImpl @Inject constructor(
             // We only get here when we have no exact matches.
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (chooseResults) {
-                GameSettings.ChooseResults.skipIfNonExact -> return SearchChooser.Choice.Cancel
-                GameSettings.ChooseResults.proceedWithoutIfNonExact -> return SearchChooser.Choice.ProceedWithout
+                GameUserConfig.ChooseResults.skipIfNonExact -> return SearchChooser.Choice.Cancel
+                GameUserConfig.ChooseResults.proceedWithoutIfNonExact -> return SearchChooser.Choice.ProceedWithout
             }
 
             val (filteredResults, results) = allSearchResults.partition { result ->

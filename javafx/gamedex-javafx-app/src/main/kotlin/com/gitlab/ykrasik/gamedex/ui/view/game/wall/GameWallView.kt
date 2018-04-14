@@ -17,11 +17,12 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallUserConfig
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
-import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.scene.input.MouseButton
@@ -41,17 +42,18 @@ import tornadofx.*
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
     private val imageRepository: JavaFxImageRepository by di()
-    private val settings: GameWallSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
     private val gameContextMenu: GameContextMenu by inject()
 
     override val root = GridView(gameController.sortedFilteredGames).apply {
         setId(Style.gameWall)
 
-        cellHeightProperty().bind(settings.cell.heightSubject.toBindingCached())
-        cellWidthProperty().bind(settings.cell.widthSubject.toBindingCached())
-        horizontalCellSpacingProperty().bind(settings.cell.horizontalSpacingSubject.toBindingCached())
-        verticalCellSpacingProperty().bind(settings.cell.verticalSpacingSubject.toBindingCached())
+        cellHeightProperty().bind(gameWallUserConfig.cell.heightSubject.toBindingCached())
+        cellWidthProperty().bind(gameWallUserConfig.cell.widthSubject.toBindingCached())
+        horizontalCellSpacingProperty().bind(gameWallUserConfig.cell.horizontalSpacingSubject.toBindingCached())
+        verticalCellSpacingProperty().bind(gameWallUserConfig.cell.verticalSpacingSubject.toBindingCached())
 
         val popOver = popOver().apply {
             addEventHandler(MouseEvent.MOUSE_PRESSED) { hide() }
@@ -116,7 +118,7 @@ class GameWallView : View("Games Wall") {
             fragment.root.maxHeightProperty().bind(this.heightProperty())
             graphic = fragment.root
 
-            settings.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
+            gameWallUserConfig.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
         }
 
         override fun updateItem(item: Game?, empty: Boolean) {
@@ -136,9 +138,9 @@ class GameWallView : View("Games Wall") {
         }
 
         override fun resize(width: Double, height: Double) {
-            imageView.isPreserveRatio = when (settings.cell.imageDisplayType) {
-                GameWallSettings.ImageDisplayType.fit -> true
-                GameWallSettings.ImageDisplayType.stretch -> isPreserveImageRatio()
+            imageView.isPreserveRatio = when (gameWallUserConfig.cell.imageDisplayType) {
+                GameWallUserConfig.ImageDisplayType.fit -> true
+                GameWallUserConfig.ImageDisplayType.stretch -> isPreserveImageRatio()
             }
 
             super.resize(width, height)

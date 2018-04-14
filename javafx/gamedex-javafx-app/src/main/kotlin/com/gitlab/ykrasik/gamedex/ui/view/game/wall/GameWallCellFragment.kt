@@ -16,8 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallUserConfig
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -36,7 +37,8 @@ import tornadofx.*
  * Time: 10:07
  */
 class GameWallCellFragment : Fragment() {
-    private val settings: GameWallSettings by di()
+    private val userConfigRepository: UserConfigRepository by di()
+    private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
     private var content: StackPane by singleAssign()
     private var _imageView: ImageView by singleAssign()
@@ -73,7 +75,7 @@ class GameWallCellFragment : Fragment() {
 
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
-            settings.cell.isFixedSizeSubject.subscribe { isFixedSize ->
+            gameWallUserConfig.cell.isFixedSizeSubject.subscribe { isFixedSize ->
                 if (isFixedSize) {
                     maxWidthProperty().cleanBind(root.widthProperty())
                     maxHeightProperty().cleanBind(root.heightProperty())
@@ -84,11 +86,11 @@ class GameWallCellFragment : Fragment() {
                 content.requestLayout()
             }
 
-            _metaTagOverlay = overlayLabel(settings.metaTagOverlay)
-            _versionOverlay = overlayLabel(settings.versionOverlay)
+            _metaTagOverlay = overlayLabel(gameWallUserConfig.metaTagOverlay)
+            _versionOverlay = overlayLabel(gameWallUserConfig.versionOverlay)
 
             this@GameWallCellFragment.border = rectangle {
-                visibleWhen { settings.cell.isShowBorderSubject.toBindingCached() }
+                visibleWhen { gameWallUserConfig.cell.isShowBorderSubject.toBindingCached() }
 
                 x = 1.0
                 y = 1.0
@@ -110,12 +112,12 @@ class GameWallCellFragment : Fragment() {
     }
 
     // TODO: Allow configuring the overlay color / opacity.
-    private fun EventTarget.overlayLabel(settings: GameWallSettings.OverlaySettingsAccessor) = label {
+    private fun EventTarget.overlayLabel(overlay: GameWallUserConfig.OverlaySettingsAccessor) = label {
         addClass(Style.overlayText)
 
-        visibleWhen { settings.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty) }
-        maxWidthProperty().bind(settings.fillWidthSubject.toPropertyCached().map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
-        settings.positionSubject.subscribe { position -> StackPane.setAlignment(this, position) }
+        visibleWhen { overlay.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty) }
+        maxWidthProperty().bind(overlay.fillWidthSubject.toPropertyCached().map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
+        overlay.positionSubject.subscribe { position -> StackPane.setAlignment(this, position) }
     }
 
     class Style : Stylesheet() {
