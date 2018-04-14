@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.settings
+package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
 import com.gitlab.ykrasik.gamedex.core.settings.UserSettings

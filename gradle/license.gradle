@@ -44,3 +44,4 @@ license {
 }
 
 task applyLicense(dependsOn: [licenseFormatMain, licenseFormatTest])
+build.dependsOn applyLicense

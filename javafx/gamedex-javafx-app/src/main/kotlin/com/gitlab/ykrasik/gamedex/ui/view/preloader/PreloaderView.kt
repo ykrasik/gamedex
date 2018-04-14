@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.core.preloader.DefaultPreloaderPresenter
 import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.toObservableValue
-import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.module.JavaFxModule
+import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
+import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty

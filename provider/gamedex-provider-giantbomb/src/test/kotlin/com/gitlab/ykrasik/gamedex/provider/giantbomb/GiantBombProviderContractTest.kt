@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
-import com.gitlab.ykrasik.gamedex.util.appConfig
+import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.shouldBe
 
 /**
@@ -28,7 +28,7 @@ import io.kotlintest.matchers.shouldBe
  * Time: 17:59
  */
 class GiantBombProviderContractTest : ScopedWordSpec() {
-    val config = GiantBombConfig(appConfig)
+    val config = GiantBombConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.conf"))
     val provider = GiantBombProvider(config, GiantBombClient(config))
     val account = GiantBombUserAccount(apiKey = System.getProperty("gameDex.giantBomb.apiKey"))
 

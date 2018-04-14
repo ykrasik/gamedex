@@ -29,15 +29,22 @@ import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.game.GameSettings
+import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
+import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
+import com.gitlab.ykrasik.gamedex.core.settings.AllSettings
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import com.google.inject.multibindings.Multibinder
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
@@ -60,6 +67,14 @@ object CoreModule : AbstractModule() {
 
         bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
+
+        with(Multibinder.newSetBinder(binder(), UserSettings::class.java)) {
+            addBinding().to(GameSettings::class.java)
+            addBinding().to(GeneralSettings::class.java)
+            addBinding().to(ProviderSettings::class.java)
+            addBinding().to(ReportSettings::class.java)
+        }
+        bind(AllSettings::class.java)
     }
 
     @Provides

@@ -17,13 +17,14 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.github.thomasnield.rxkotlinfx.toBinding
-import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu

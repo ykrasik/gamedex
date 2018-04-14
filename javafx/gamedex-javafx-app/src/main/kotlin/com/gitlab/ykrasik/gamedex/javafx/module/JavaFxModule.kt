@@ -14,18 +14,21 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.module
+package com.gitlab.ykrasik.gamedex.javafx.module
 
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.ui.view.settings.JavaFxGeneralSettingsView
 import com.google.inject.AbstractModule
+import com.google.inject.multibindings.Multibinder
 
 /**
  * User: ykrasik
@@ -44,5 +47,9 @@ object JavaFxModule : AbstractModule() {
         bind(LibraryController::class.java)
 
         bind(GeneralSettingsView::class.java).to(JavaFxGeneralSettingsView::class.java)
+
+        with(Multibinder.newSetBinder(binder(), UserSettings::class.java)) {
+            addBinding().to(GameWallSettings::class.java)
+        }
     }
 }

@@ -17,10 +17,11 @@
 package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
-import com.gitlab.ykrasik.gamedex.settings.ReportSettings
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.geometry.Pos

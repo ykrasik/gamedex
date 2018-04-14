@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.report
 
 import com.gitlab.ykrasik.gamedex.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 
 /**
  * User: ykrasik

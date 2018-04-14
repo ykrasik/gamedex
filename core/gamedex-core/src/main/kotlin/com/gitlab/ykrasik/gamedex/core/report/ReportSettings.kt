@@ -14,13 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.settings
+package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.not
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
 import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
-import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfig
 import javax.inject.Singleton
 
 /**

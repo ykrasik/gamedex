@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.assertScore
-import com.gitlab.ykrasik.gamedex.util.appConfig
+import com.typesafe.config.ConfigFactory
 import io.kotlintest.matchers.haveSize
 import io.kotlintest.matchers.should
 import io.kotlintest.matchers.shouldBe
@@ -31,7 +31,7 @@ import io.kotlintest.matchers.shouldBe
  * Time: 10:03
  */
 class IgdbProviderContractTest : ScopedWordSpec() {
-    val config = IgdbConfig(appConfig)
+    val config = IgdbConfig(ConfigFactory.load("com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf"))
     val provider = IgdbProvider(config, IgdbClient(config))
     val account = IgdbUserAccount(apiKey = System.getProperty("gameDex.igdb.apiKey"))
 

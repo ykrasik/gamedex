@@ -14,41 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.settings
+package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.game.GameSettings
-import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
  * Date: 11/03/2018
  * Time: 15:12
  */
+// TODO: Maybe this is the SettingsRepository? Hide all access to single settings through this class.
 @Singleton
-class AllSettings @Inject constructor(
-    val game: GameSettings,
-    val gameWall: GameWallSettings,
-    val general: GeneralSettings,
-    val provider: ProviderSettings,
-    val report: ReportSettings
-) {
-    private val all = listOf(game, gameWall, general, provider, report)
+class AllSettings @Inject constructor(private val settings: MutableSet<UserSettings>) {
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T : UserSettings> get(klass: KClass<T>): T = settings.find { it::class == klass }!! as T
 
-    fun saveSnapshot() = all.forEach {
+    fun saveSnapshot() = settings.forEach {
         it.disableWrite()
         it.saveSnapshot()
     }
 
-    fun restoreSnapshot() = all.forEach {
+    fun restoreSnapshot() = settings.forEach {
         it.restoreSnapshot()
         it.enableWrite()
         it.clearSnapshot()
     }
 
-    fun commitSnapshot() = all.forEach {
+    fun commitSnapshot() = settings.forEach {
         it.enableWrite()
         it.flush()
         it.clearSnapshot()

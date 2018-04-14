@@ -16,17 +16,19 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.provider.ProviderSettings
+import com.gitlab.ykrasik.gamedex.core.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.subscribe
 import com.gitlab.ykrasik.gamedex.javafx.subscribeFx
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
-import com.gitlab.ykrasik.gamedex.settings.AllSettings
 import com.gitlab.ykrasik.gamedex.ui.view.settings.JavaFxGeneralSettingsView
 import com.gitlab.ykrasik.gamedex.ui.view.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.util.browse
@@ -56,8 +58,10 @@ class SettingsController @Inject constructor(
     private val logger = logger()
 
     private val settingsView: SettingsView by inject()
-
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
+
+    private val providerSettings = settings[ProviderSettings::class]
+    private val generalSettings = settings[GeneralSettings::class]
 
     init {
         taskRunner.canRunTaskProperty.subscribeFx {
@@ -77,9 +81,9 @@ class SettingsController @Inject constructor(
         }
     }
 
-    fun providerSettings(providerId: ProviderId) = settings.provider[providerId]
+    fun providerSettings(providerId: ProviderId) = providerSettings[providerId]
     fun setProviderEnabled(providerId: ProviderId, enable: Boolean) {
-        settings.provider.modify(providerId) { copy(enable = enable) }
+        providerSettings.modify(providerId) { copy(enable = enable) }
     }
 
     fun showSettingsMenu() {
@@ -102,7 +106,7 @@ class SettingsController @Inject constructor(
         val valid = validate(provider, newAccount)
         if (valid) {
             withContext(JavaFx) {
-                settings.provider.modify(provider.id) { copy(account = account) }
+                providerSettings.modify(provider.id) { copy(account = account) }
             }
         }
         valid
@@ -119,8 +123,8 @@ class SettingsController @Inject constructor(
     }
 
     private suspend fun exportDatabase() = withContext(JavaFx) {
-        val dir = chooseDirectory("Choose database export directory...", initialDirectory = settings.general.exportDbDirectory) ?: return@withContext
-        settings.general.exportDbDirectory = dir
+        val dir = chooseDirectory("Choose database export directory...", initialDirectory = generalSettings.exportDbDirectory) ?: return@withContext
+        generalSettings.exportDbDirectory = dir
         val timestamp = now.withZone(DateTimeZone.getDefault())
         val timestamptedPath = Paths.get(
             dir.toString(),
@@ -134,7 +138,7 @@ class SettingsController @Inject constructor(
 
     private suspend fun importDatabase() = withContext(JavaFx) {
         val file = chooseFile("Choose database file...", filters = emptyArray(), mode = FileChooserMode.Single) {
-            initialDirectory = settings.general.exportDbDirectory
+            initialDirectory = generalSettings.exportDbDirectory
             initialFileName = "db.json"
         }.firstOrNull() ?: return@withContext
 

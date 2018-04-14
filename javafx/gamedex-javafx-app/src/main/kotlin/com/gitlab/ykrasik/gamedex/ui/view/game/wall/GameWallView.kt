@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
-import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
 import com.gitlab.ykrasik.gamedex.ui.view.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.ui.view.game.menu.GameContextMenu
 import javafx.scene.input.MouseButton

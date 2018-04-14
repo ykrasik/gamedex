@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.ui.view.game.wall
 
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos

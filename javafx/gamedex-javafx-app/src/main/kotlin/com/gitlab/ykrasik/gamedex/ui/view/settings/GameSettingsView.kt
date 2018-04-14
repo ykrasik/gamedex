@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.ui.view.settings
 import com.gitlab.ykrasik.gamedex.core.game.GameSettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
-import com.gitlab.ykrasik.gamedex.settings.GameWallSettings
+import com.gitlab.ykrasik.gamedex.javafx.game.GameWallSettings
 import javafx.geometry.Pos
 import tornadofx.*
 

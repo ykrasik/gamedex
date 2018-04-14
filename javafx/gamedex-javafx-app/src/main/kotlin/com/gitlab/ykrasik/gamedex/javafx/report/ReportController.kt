@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.report
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.core.report.ReportSettings
 import com.gitlab.ykrasik.gamedex.javafx.ThreadAwareDoubleProperty
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.settings.ReportSettings
-import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.ui.view.report.ReportConfigView
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import io.reactivex.disposables.Disposable

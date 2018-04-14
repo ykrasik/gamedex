@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex
 
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.module.JavaFxModule
+import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
+import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import com.gitlab.ykrasik.gamedex.test.TestImages
 import com.google.inject.AbstractModule
 import com.google.inject.Binding
