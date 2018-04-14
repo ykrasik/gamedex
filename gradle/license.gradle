@@ -43,12 +43,4 @@ license {
     }
 }
 
-licenseFormatMain.doFirst {
-    project.logger.lifecycle('Applying license to sources...')
-}
-
-licenseFormatTest.doFirst {
-    project.logger.lifecycle('Applying license to test sources...')
-}
-
 task applyLicense(dependsOn: [licenseFormatMain, licenseFormatTest])

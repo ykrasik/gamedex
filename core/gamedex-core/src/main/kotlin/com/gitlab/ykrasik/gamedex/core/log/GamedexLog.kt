@@ -14,46 +14,47 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.core.log
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.UnsynchronizedAppenderBase
-import com.gitlab.ykrasik.gamedex.javafx.runLaterIfNecessary
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
 import org.joda.time.DateTime
-import org.slf4j.LoggerFactory
-import tornadofx.observable
+import org.slf4j.LoggerFactory.getLogger
 
 /**
  * User: ykrasik
- * Date: 22/04/2017
- * Time: 10:37
+ * Date: 13/04/2018
+ * Time: 20:47
  */
-object Log {
+object GamedexLog {
     private val maxLogEntries = 10000
-    val entries = mutableListOf<LogEntry>().observable()
+    private val _entries = SubjectListObservable<LogEntry>()
+    val entries: ListObservable<LogEntry> = _entries
 
-    operator fun plusAssign(entry: LogEntry) = runLaterIfNecessary {
-        entries += entry
+    operator fun plusAssign(entry: LogEntry) {
+        _entries += entry
 
         if (entries.size > maxLogEntries) {
-            entries.remove(0, entries.size - maxLogEntries)
+            _entries -= _entries.subList(0, entries.size - maxLogEntries)
         }
     }
 }
 
 data class LogEntry(val level: Level, val timestamp: DateTime, val loggerName: String, val message: String)
 
-class UiLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
+class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
     override fun append(e: ILoggingEvent) {
-        Log += LogEntry(level = e.level, timestamp = DateTime(e.timeStamp), loggerName = e.loggerName, message = e.message)
+        GamedexLog += LogEntry(level = e.level, timestamp = DateTime(e.timeStamp), loggerName = e.loggerName, message = e.message)
     }
 
     companion object {
         fun init() {
-            with(LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger) {
-                addAppender(UiLogAppender().apply { start() })
+            with(getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger) {
+                addAppender(GamedexLogAppender().apply { start() })
                 level = Level.TRACE
             }
         }

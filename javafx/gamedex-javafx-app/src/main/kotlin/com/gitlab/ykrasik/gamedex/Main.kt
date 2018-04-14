@@ -19,10 +19,8 @@ package com.gitlab.ykrasik.gamedex
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadScheduler
 import com.gitlab.ykrasik.gamedex.ui.view.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.util.UiLogAppender
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import org.slf4j.bridge.SLF4JBridgeHandler
 import tornadofx.App
 import tornadofx.launch
 
@@ -37,12 +35,6 @@ class Main : App(PreloaderView::class) {
         fun main(args: Array<String>) {
             uiThreadScheduler = JavaFxScheduler.platform()
             uiThreadDispatcher = JavaFx
-
-            // TODO: Do this inside the app.
-            SLF4JBridgeHandler.removeHandlersForRootLogger()
-            SLF4JBridgeHandler.install()
-            UiLogAppender.init()
-
             launch<Main>(args)
         }
     }

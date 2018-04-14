@@ -2,6 +2,9 @@ dependencies {
     fullDependency ":core:gamedex-core-api"
     compile project(":core:gamedex-core-persistence")
 
+    compile slf4j.julBridge
+    compile logback
+
     compile reflections
     compile diff
 }

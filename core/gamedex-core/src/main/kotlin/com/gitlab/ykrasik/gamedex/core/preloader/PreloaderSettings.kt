@@ -14,30 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.module
+package com.gitlab.ykrasik.gamedex.core.preloader
 
-import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.module.ProviderScannerModule
-import com.google.inject.Guice
-import com.google.inject.Injector
-import com.google.inject.Module
-import com.google.inject.Stage
-import tornadofx.DIContainer
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
+import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/04/2017
- * Time: 11:58
+ * Date: 09/03/2018
+ * Time: 09:28
  */
-class GuiceDiContainer(private val injector: Injector) : DIContainer {
-    override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
-
-    companion object {
-        val defaultModules = listOf(ProviderScannerModule, CoreModule, JavaFxModule)
-
-        operator fun invoke(modules: List<Module> = defaultModules): GuiceDiContainer = GuiceDiContainer(
-            Guice.createInjector(Stage.PRODUCTION, modules)
+@Singleton
+class PreloaderSettings : UserSettings() {
+    override val repo = SettingsRepo("preloader") {
+        Data(
+            diComponents = 24
         )
     }
+
+    val diComponentsSubject = repo.subject(Data::diComponents) { copy(diComponents = it) }
+    var diComponents by diComponentsSubject
+
+    data class Data(
+        val diComponents: Int
+    )
 }

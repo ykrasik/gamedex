@@ -14,29 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.settings
+package com.gitlab.ykrasik.gamedex.core.api.preloader
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepo
-import com.gitlab.ykrasik.gamedex.core.settings.UserSettings
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.google.inject.Injector
+import com.google.inject.Module
 
 /**
  * User: ykrasik
- * Date: 09/03/2018
- * Time: 09:28
+ * Date: 13/04/2018
+ * Time: 08:42
  */
-@Singleton
-class PreloaderSettings : UserSettings() {
-    override val repo = SettingsRepo("preloader") {
-        Data(
-            diComponents = 24
-        )
-    }
-
-    val diComponentsSubject = repo.subject(Data::diComponents) { copy(diComponents = it) }
-    var diComponents by diComponentsSubject
-
-    data class Data(
-        val diComponents: Int
-    )
+interface PreloaderPresenter {
+    fun load(vararg extraModules: Module): Task<Injector>
 }

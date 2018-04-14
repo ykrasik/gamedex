@@ -16,19 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.ui.view.preloader
 
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.core.preloader.DefaultPreloaderPresenter
 import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.toObservableValue
 import com.gitlab.ykrasik.gamedex.module.GuiceDiContainer
-import com.gitlab.ykrasik.gamedex.settings.PreloaderSettings
+import com.gitlab.ykrasik.gamedex.module.JavaFxModule
 import com.gitlab.ykrasik.gamedex.ui.view.main.MainView
-import com.gitlab.ykrasik.gamedex.util.Log
-import com.gitlab.ykrasik.gamedex.util.LogEntry
-import com.google.inject.AbstractModule
-import com.google.inject.matcher.Matchers
-import com.google.inject.spi.ProvisionListener
-import javafx.collections.ListChangeListener
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleStringProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -42,17 +38,8 @@ import tornadofx.*
  */
 class PreloaderView : View("GameDex") {
     private var logo = resources.image("gamedex.jpg")
-    private val task = Task()
-
-    private val messageListener = ListChangeListener<LogEntry> {
-        task.message = it.list.last().message
-    }
-
-    init {
-        // TODO: Could consider doing this through a task.
-        // While loading, flush all log messages to the notification.
-        Log.entries.addListener(messageListener)
-    }
+    private val progressProperty = SimpleDoubleProperty()
+    private val messageProperty = SimpleStringProperty()
 
     override val root = vbox(spacing = 5) {
         paddingAll = 5.0
@@ -66,8 +53,8 @@ class PreloaderView : View("GameDex") {
                 widthProperty().bind(logo.widthProperty())
             }
         }
-        progressbar(task.progressChannel.toObservableValue<Number>(0.0)) { useMaxWidth = true }
-        label(task.messageChannel.toObservableValue(""))
+        progressbar(progressProperty) { useMaxWidth = true }
+        label(messageProperty)
     }
 
     override fun onDock() {
@@ -75,45 +62,14 @@ class PreloaderView : View("GameDex") {
         primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
 
         launch(CommonPool) {
-            load()
+            val task = DefaultPreloaderPresenter.load(JavaFxModule)
+            progressProperty.bind(task.progressChannel.toObservableValue(0.0))
+            messageProperty.bind(task.message1Channel.toObservableValue(""))
+            val injector = task.run()
+            FX.dicontainer = GuiceDiContainer(injector)
             withContext(JavaFx) {
                 replaceWith(MainView::class)
             }
-        }
-    }
-
-    private fun load() {
-        task.message = "Loading..."
-
-        // TODO: Meh, not super clean, but I'm not super bothered
-        val settings = PreloaderSettings()
-        val provisionListener = GamedexProvisionListener(settings.diComponents)
-
-        FX.dicontainer = GuiceDiContainer(
-            GuiceDiContainer.defaultModules + LifecycleModule(provisionListener)
-        )
-
-        task.message = "Done loading."
-        Log.entries.removeListener(messageListener)
-
-        // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-        settings.diComponents = provisionListener.componentCount
-    }
-
-
-    private class LifecycleModule(private val listener: GamedexProvisionListener) : AbstractModule() {
-        override fun configure() {
-            bindListener(Matchers.any(), listener)
-        }
-    }
-
-    private inner class GamedexProvisionListener(private val totalComponents: Int) : ProvisionListener {
-        private var _componentCount = 0
-        val componentCount: Int get() = _componentCount
-
-        override fun <T : Any> onProvision(provision: ProvisionListener.ProvisionInvocation<T>) {
-            _componentCount++
-            task.progress(_componentCount, totalComponents)
         }
     }
 }

@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.ui.view.log
 
 import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettings
+import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
+import com.gitlab.ykrasik.gamedex.core.log.LogEntry
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
-import com.gitlab.ykrasik.gamedex.util.Log
-import com.gitlab.ykrasik.gamedex.util.LogEntry
 import javafx.scene.control.ListCell
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
@@ -36,7 +36,7 @@ import tornadofx.*
 class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
     private val settings: GeneralSettings by di()
 
-    private val logItems = Log.entries.sortedFiltered()
+    private val logItems = GamedexLog.entries.toObservableList().sortedFiltered()
     private val logFilterLevelProperty = settings.logFilterLevelSubject.toPropertyCached()
     private var displayLevel = logFilterLevelProperty.map(Level::toLevel)
 
