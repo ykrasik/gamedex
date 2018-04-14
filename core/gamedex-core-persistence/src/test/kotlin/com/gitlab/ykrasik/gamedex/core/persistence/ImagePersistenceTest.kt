@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.test.randomUrl
-import com.gitlab.ykrasik.gamedex.util.FileSize
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
 import org.h2.jdbc.JdbcSQLException
@@ -134,7 +133,7 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
                 persistenceService.fetchImageSizesExcept(listOf(url1, url2, url3)) shouldBe emptyList<String>()
             }
         }
-        
+
         "BatchDelete" should {
             "batch delete images by url" test {
                 val url1 = randomUrl()

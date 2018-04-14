@@ -176,6 +176,111 @@ subprojects {
     }
 }
 
+project("gamedex-api") {
+    dependencies {
+        compile typesafeConfig
+        compile config4k
+
+        compile guava
+
+        compile jodaTime
+
+        compile(khttp) {
+            exclude module: 'spek-api'
+            exclude module: 'spek-junit-platform-engine'
+        }
+
+        compile jackson.core
+        compile jackson.kotlin
+        compile jackson.joda
+
+        testCompile wiremock
+        testCompile ktor.core
+        testCompile ktor.netty
+        testCompile reflections
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task testSourcesJar(type: Jar, dependsOn: classes) {
+        appendix 'testkit'
+        classifier 'sources'
+        from sourceSets.test.allSource
+        exclude '**/*.jpg'
+    }
+
+    publishing {
+        publications {
+            main(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+            }
+            test(MavenPublication) {
+                artifactId 'gamedex-api-testkit'
+                artifact testJar
+                artifact testSourcesJar
+
+                pom.withXml {
+                    def dependencies = asNode().appendNode('dependencies')
+                    configurations.testArtifacts.getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', it.moduleGroup)
+                        dependency.appendNode('artifactId', it.moduleName)
+                        dependency.appendNode('version', it.moduleVersion)
+                    }
+                }
+            }
+        }
+    }
+}
+
+project("core:gamedex-core-api") {
+    dependencies {
+        fullDependency ":gamedex-api"
+        compile rx.rxKotlin
+        compile coroutines.rx2
+    }
+}
+
+project("core:gamedex-core-persistence") {
+    dependencies {
+        fullDependency ":gamedex-api"
+        compile h2
+        compile exposed
+    }
+}
+
+project("core:gamedex-core") {
+    dependencies {
+        fullDependency ":core:gamedex-core-api"
+        compile project(":core:gamedex-core-persistence")
+
+        compile slf4j.julBridge
+        compile logback
+
+        compile reflections
+        compile diff
+    }
+}
+
+project("app:javafx:gamedex-javafx-common") {
+    dependencies {
+        fullDependency ":gamedex-api"
+        compile project(":core:gamedex-core")   // FIXME: Depend on gamedex-core-api only!
+
+        compile controlsFx
+        compile jFoenix
+        compile tornadoFx.core
+        compile tornadoFx.controls
+
+        compile coroutines.javaFx
+        compile rx.rxKotlinFx
+    }
+}
+
 project("provider") {
     subprojects.each {
         it.fullDependency ":gamedex-api"

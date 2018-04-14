@@ -1,6 +1,0 @@
-dependencies {
-    fullDependency ":gamedex-api"
-
-    compile rx.rxKotlin
-    compile coroutines.rx2
-}

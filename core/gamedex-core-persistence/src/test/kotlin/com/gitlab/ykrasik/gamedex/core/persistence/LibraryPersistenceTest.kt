@@ -55,11 +55,13 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
 
             "throw an exception when trying to insert a library at the same path twice" test {
                 val path = randomPath()
-                givenLibrary(path = path)
+                val library = givenLibrary(path = path)
 
                 shouldThrow<JdbcSQLException> {
                     insertLibrary(path = path)
                 }
+
+                fetchLibraries() shouldBe listOf(library)
             }
         }
 
@@ -70,9 +72,17 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                     path = (library.path.toString() + "a").toFile(),
                     data = library.data.copy(platform = Platform.android, name = library.name + "b"))
 
-                persistenceService.updateLibrary(updatedLibrary)
+                persistenceService.updateLibrary(updatedLibrary) shouldBe true
 
                 fetchLibraries() shouldBe listOf(updatedLibrary)
+            }
+
+            "not update a library that doesn't exist" test {
+                val library = givenLibrary()
+
+                persistenceService.updateLibrary(library.copy(id = library.id + 1)) shouldBe false
+
+                fetchLibraries() shouldBe listOf(library)
             }
 
             "throw an exception when trying to update a library's path to one that already exists" test {
@@ -84,6 +94,8 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 shouldThrow<JdbcSQLException> {
                     persistenceService.updateLibrary(updatedLibrary)
                 }
+
+                fetchLibraries() shouldBe listOf(library1, library2)
             }
         }
 
@@ -99,12 +111,12 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 fetchLibraries() shouldBe emptyList<Library>()
             }
 
-            "throw an exception when trying to delete a library that doesn't exist" test {
+            "not delete a library that doesn't exist" test {
                 val library = givenLibrary()
 
-                shouldThrow<IllegalArgumentException> {
-                    persistenceService.deleteLibrary(library.id + 1)
-                }
+                persistenceService.deleteLibrary(library.id + 1) shouldBe false
+
+                fetchLibraries() shouldBe listOf(library)
             }
         }
 

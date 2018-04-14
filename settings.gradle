@@ -9,8 +9,8 @@ include "core:gamedex-core"
 include "provider:gamedex-provider-giantbomb"
 include "provider:gamedex-provider-igdb"
 
-include "javafx:gamedex-javafx-common"
-include "javafx:gamedex-javafx-app"
+include "app:javafx:gamedex-javafx-common"
+include "app:javafx:gamedex-javafx-app"
 
 setDefaultBuildFile(rootProject)
 

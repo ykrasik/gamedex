@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
@@ -38,7 +37,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val userData = randomUserData()
 
                 val game = insertGame(metadata, providerData, userData)
-                game.metadata shouldBe metadata.copy(updateDate = nowMock)
+                game.metadata shouldBe metadata
                 game.providerData shouldBe providerData
                 game.userData shouldBe userData
 
@@ -131,7 +130,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "update game user data with provider overrides" test {
                 val game = givenGame()
 
-                val updatedGame = persistenceService.updateGame(game.copy(userData = UserData(overrides = randomProviderOverrides())))
+                val updatedGame = game.copy(userData = UserData(overrides = randomProviderOverrides()))
+                persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
             }
@@ -139,7 +139,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "update game user data with custom overrides" test {
                 val game = givenGame()
 
-                val updatedGame = persistenceService.updateGame(game.copy(userData = UserData(overrides = randomCustomOverrides())))
+                val updatedGame = game.copy(userData = UserData(overrides = randomCustomOverrides()))
+                persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
             }
@@ -147,7 +148,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "update game user data to empty" test {
                 val game = givenGame()
 
-                val updatedGame = persistenceService.updateGame(game.copy(userData = UserData()))
+                val updatedGame = game.copy(userData = UserData())
+                persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
             }
@@ -155,7 +157,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "update game user data to null" test {
                 val game = givenGame()
 
-                val updatedGame = persistenceService.updateGame(game.copy(userData = null))
+                val updatedGame = game.copy(userData = null)
+                persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
             }
@@ -164,17 +167,18 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val library2 = givenLibrary()
                 val game = givenGame()
 
-                val updatedGame = persistenceService.updateGame(game.withMetadata(randomMetadata(library = library2)))
+                val updatedGame = game.withMetadata(randomMetadata(library = library2))
+                persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
             }
 
-            "throw an exception when trying to update a game of a non-existing id" test {
+            "not update a game that doesn't exist" test {
                 val game = givenGame()
 
-                shouldThrow<IllegalArgumentException> {
-                    persistenceService.updateGame(game.copy(id = game.id + 1))
-                }
+                persistenceService.updateGame(game.copy(id = game.id + 1)) shouldBe false
+
+                fetchGames() shouldBe listOf(game)
             }
 
             "throw an exception when trying to update a game's path to one that already exists in the same library" test {
@@ -194,7 +198,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val library2 = givenLibrary()
                 val game2 = givenGame(library = library2, path = path)
 
-                val updatedGame1 = persistenceService.updateGame(game1.withMetadata { it.copy(path = path) })
+                val updatedGame1 = game1.withMetadata { it.copy(path = path) }
+                persistenceService.updateGame(updatedGame1) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame1, game2)
             }
@@ -227,19 +232,19 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game1 = givenGame()
                 val game2 = givenGame()
 
-                persistenceService.deleteGame(game1.id)
+                persistenceService.deleteGame(game1.id) shouldBe true
                 fetchGames() shouldBe listOf(game2)
 
-                persistenceService.deleteGame(game2.id)
+                persistenceService.deleteGame(game2.id) shouldBe true
                 fetchGames() shouldBe emptyList<Game>()
             }
 
-            "throw an exception when trying to delete a non-existing game" test {
+            "not delete a game that doesn't exist" test {
                 val game = givenGame()
 
-                shouldThrow<IllegalArgumentException> {
-                    persistenceService.deleteGame(game.id + 1)
-                }
+                persistenceService.deleteGame(game.id + 1) shouldBe false
+
+                fetchGames() shouldBe listOf(game)
             }
 
             @Suppress("UNUSED_VARIABLE")

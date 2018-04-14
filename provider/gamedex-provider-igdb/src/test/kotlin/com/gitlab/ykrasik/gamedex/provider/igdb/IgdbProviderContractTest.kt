@@ -91,6 +91,11 @@ class IgdbProviderContractTest : ScopedWordSpec() {
         "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action. \n \nIn No Man's Sky, every star is the light of a distant sun, each orbited by planets filled with life, and you can go to any of them you choose. Fly smoothly from deep space to planetary surfaces, with no loading screens, and no limits. In this infinite procedurally generated universe, you'll discover places and creatures that no other players have seen before - and perhaps never will again."
     val genres = listOf("Shooter", "Role-Playing Game (RPG)", "Simulation", "Adventure", "Indie")
     val screenshotUrls = listOf(
+        "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/mdhzsdazyj8vyht9wnnj.jpg",
+        "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/bynzojxiouy00pqw1utm.jpg",
+        "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/s6p3zqbfof7kncyp7ocf.jpg",
+        "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/wihfvjowvwt4lx0qw5eo.jpg",
+        "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/hlv3vnzamh1l3pdc2omn.jpg",
         "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/slbfwlrvqjrgvrvfghrk.jpg",
         "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/xufkotfn5udk2aijb6f0.jpg",
         "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/kmyailnbyy0afbyqdfxn.jpg",
