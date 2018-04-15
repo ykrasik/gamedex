@@ -45,7 +45,7 @@ object DefaultPreloaderPresenter : PreloaderPresenter {
         message1 = "Loading..."
 
         // While loading, display all log messages in the task
-        val subscription = GamedexLog.entries.itemsObservable.subscribe {
+        val subscription = GamedexLog.entries.itemsChannel.subscribe {
             if (it.isNotEmpty()) {
                 message1 = it.last().message
             }
@@ -71,7 +71,7 @@ object DefaultPreloaderPresenter : PreloaderPresenter {
             ProviderScannerModule, CoreModule, lifecycleModule, *extraModules
         )
 
-        subscription.dispose()
+        subscription.cancel()
         message1 = "Done loading."
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.

@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.subscribe
 import com.gitlab.ykrasik.gamedex.javafx.subscribeFx
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -66,16 +65,16 @@ class SettingsController @Inject constructor(
         taskRunner.canRunTaskProperty.subscribeFx {
             generalSettingsView.canRunTask.send(it)
         }
-        generalSettingsView.exportDatabaseEvents.subscribe {
+        generalSettingsView.exportDatabaseEvents.subscribe(JavaFx) {
             exportDatabase()
         }
-        generalSettingsView.importDatabaseEvents.subscribe {
+        generalSettingsView.importDatabaseEvents.subscribe(JavaFx) {
             importDatabase()
         }
-        generalSettingsView.clearUserDataEvents.subscribe {
+        generalSettingsView.clearUserDataEvents.subscribe(JavaFx) {
             clearUserData()
         }
-        generalSettingsView.cleanupDbEvents.subscribe {
+        generalSettingsView.cleanupDbEvents.subscribe(JavaFx) {
             cleanupDb()
         }
     }

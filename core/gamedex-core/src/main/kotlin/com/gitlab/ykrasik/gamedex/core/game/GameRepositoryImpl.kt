@@ -24,8 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.task.Task
 import com.gitlab.ykrasik.gamedex.core.api.util.ListChangeType
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -48,19 +47,18 @@ class GameRepositoryImpl @Inject constructor(
 ) : GameRepository {
     private val log = logger()
 
-    private val _games = SubjectListObservable(fetchGames())
-    override val games: ListObservable<Game> = _games
+    override val games = ListObservableImpl(fetchGames())
 
     init {
-        libraryRepository.libraries.changesObservable.subscribe {
+        libraryRepository.libraries.changesChannel.subscribe(CommonPool) {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (it.type) {
                 ListChangeType.Remove -> launch(CommonPool) { invalidate() }
                 ListChangeType.Set -> launch(CommonPool) { rebuildGames() }
             }
         }
-        gameProviderRepository.enabledProviders.changesObservable.subscribe {
-            launch(CommonPool) { rebuildGames() }
+        gameProviderRepository.enabledProviders.changesChannel.subscribe(CommonPool) {
+            rebuildGames()
         }
     }
 
@@ -74,7 +72,7 @@ class GameRepositoryImpl @Inject constructor(
     override fun add(request: AddGameRequest): Game {
         val rawGame = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
         val game = rawGame.toGame()
-        _games += game
+        games += game
         return game
     }
 
@@ -93,21 +91,21 @@ class GameRepositoryImpl @Inject constructor(
             }.map { it.await() }
         }
 
-        _games += games
+        this.games += games
         return games
     }
 
     override fun replace(source: Game, target: RawGame): Game {
         val newGame = target.toGame()
         source.verifySuccess { persistenceService.updateGame(target.withMetadata { it.updatedNow() }) }
-        _games.replace(source, newGame)
+        games.replace(source, newGame)
         return newGame
     }
 
     override fun delete(game: Game) {
         log.info("Deleting '${game.name}'...")
         game.verifySuccess { persistenceService.deleteGame(game.id) }
-        _games -= game
+        games -= game
         log.info("Deleting '${game.name}': Done.")
     }
 
@@ -121,24 +119,24 @@ class GameRepositoryImpl @Inject constructor(
             task.incProgress(games.size)
         }
 
-        _games -= games
+        this.games -= games
     }
 
     override fun deleteAllUserData() {
         persistenceService.clearUserData()
-        _games.set(_games.map { it.rawGame.copy(userData = null).toGame() })
+        games.set(games.map { it.rawGame.copy(userData = null).toGame() })
     }
 
     override fun invalidate() {
         // Re-fetch all games from persistence
-        _games.set(fetchGames())
+        games.set(fetchGames())
     }
 
-    private fun rebuildGames() = _games.set(_games.map { it.rawGame.toGame() })
+    private fun rebuildGames() = games.set(games.map { it.rawGame.toGame() })
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 
-    override fun get(id: Int): Game = _games.find { it.id == id }
+    override fun get(id: Int): Game = games.find { it.id == id }
         ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
 
     private fun Game.verifySuccess(f: () -> Boolean) = require(f()) { "Game doesn't exist: $this" }

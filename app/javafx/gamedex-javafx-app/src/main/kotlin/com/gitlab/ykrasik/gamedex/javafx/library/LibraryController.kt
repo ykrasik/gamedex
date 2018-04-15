@@ -27,6 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.Controller
 import tornadofx.label
 import tornadofx.listview
@@ -61,7 +62,7 @@ class LibraryController @Inject constructor(
     }
 
     init {
-        libraryView.events.subscribe {
+        libraryView.events.subscribe(JavaFx) {
             when (it) {
                 LibraryEvent.AddLibrary -> addLibrary()
                 is LibraryEvent.EditLibrary -> edit(it.library)

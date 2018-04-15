@@ -16,12 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import tornadofx.observable
 
@@ -44,16 +42,6 @@ private inline fun <T> ReceiveChannel<T>.toObservableValue(defaultProvider: () -
         }
     }
     return p
-}
-
-fun <T> BroadcastReceiveChannel<T>.subscribe(f: suspend (T) -> Unit): SubscriptionReceiveChannel<T> {
-    val subscription = subscribe()
-    javaFx {
-        subscription.consumeEach {
-            f(it)
-        }
-    }
-    return subscription
 }
 
 fun <T> ReceiveChannel<T>.toObservableList(): ObservableList<T> {

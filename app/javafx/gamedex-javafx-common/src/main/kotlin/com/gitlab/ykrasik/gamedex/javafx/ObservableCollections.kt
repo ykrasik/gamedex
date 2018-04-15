@@ -26,6 +26,7 @@ import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.transformation.TransformationList
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.SortedFilteredList
 import tornadofx.observable
 import tornadofx.onChange
@@ -47,7 +48,7 @@ fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
 fun <T> ListObservable<T>.toObservableList(): ObservableList<T> {
     val list = FXCollections.observableArrayList(this)
     // TODO: How to dispose of this subscription? Is it needed?
-    changesObservable.subscribe { event ->
+    changesChannel.subscribe(JavaFx) { event ->
         when (event) {
             is ListItemAddedEvent -> list += event.item
             is ListItemsAddedEvent -> list += event.items

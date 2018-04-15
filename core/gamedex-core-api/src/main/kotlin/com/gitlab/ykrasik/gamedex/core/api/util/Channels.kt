@@ -17,8 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.api.util
 
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.launch
+import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.reflect.KProperty
 
 /**
@@ -28,6 +30,16 @@ import kotlin.reflect.KProperty
  */
 interface BroadcastReceiveChannel<out T> {
     fun subscribe(): SubscriptionReceiveChannel<T>
+
+    fun subscribe(context: CoroutineContext = DefaultDispatcher, f: suspend (T) -> Unit): SubscriptionReceiveChannel<T> {
+        val subscription = subscribe()
+        launch(context) {
+            subscription.consumeEach {
+                f(it)
+            }
+        }
+        return subscription
+    }
 }
 
 class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> {
@@ -39,6 +51,11 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
     fun offer(element: T) = channel.offer(element)
 
     fun close() = channel.close()
+
+    companion object {
+        operator fun <T> invoke(initial: T): BroadcastEventChannel<T> =
+            BroadcastEventChannel<T>(Channel.CONFLATED).apply { offer(initial) }
+    }
 }
 
 fun <T> ReceiveChannel<T>.clone(capacity: Int = Channel.UNLIMITED): Pair<ReceiveChannel<T>, ReceiveChannel<T>> {

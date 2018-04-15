@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.scene.control.ToolBar
+import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
@@ -91,7 +92,7 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView 
     }
 
     init {
-        libraryRepository.libraries.changesObservable.subscribe {
+        libraryRepository.libraries.changesChannel.subscribe(JavaFx) {
             root.resizeColumnsToFitContent()
         }
     }

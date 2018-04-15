@@ -21,7 +21,7 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory.getLogger
 
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory.getLogger
  */
 object GamedexLog {
     private val maxLogEntries = 10000
-    private val _entries = SubjectListObservable<LogEntry>()
+    private val _entries = ListObservableImpl<LogEntry>()
     val entries: ListObservable<LogEntry> = _entries
 
     operator fun plusAssign(entry: LogEntry) {

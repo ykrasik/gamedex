@@ -20,8 +20,7 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -39,8 +38,7 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
     private val log = logger()
 
     // TODO: Add a RealLibraries and use it in GamePresenter.
-    private val _libraries = SubjectListObservable(fetchLibraries())
-    override val libraries: ListObservable<Library> = _libraries
+    override val libraries = ListObservableImpl(fetchLibraries())
 
     private fun fetchLibraries(): List<Library> {
         log.info("Fetching libraries...")
@@ -51,7 +49,7 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
 
     override fun add(request: AddLibraryRequest): Library {
         val library = persistenceService.insertLibrary(request.path, request.data)
-        _libraries += library
+        libraries += library
         return library
     }
 
@@ -64,36 +62,36 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
             it.await()
         }
 
-        _libraries += libraries
+        this.libraries += libraries
         return libraries
     }
 
     override fun replace(source: Library, target: Library) {
         source.verifySuccess { persistenceService.updateLibrary(target) }
-        _libraries.replace(source, target)
+        libraries.replace(source, target)
     }
 
     override fun delete(library: Library) {
         library.verifySuccess { persistenceService.deleteLibrary(library.id) }
-        _libraries -= library
+        libraries -= library
     }
 
     override fun deleteAll(libraries: List<Library>) {
         if (libraries.isEmpty()) return
 
         require(persistenceService.deleteLibraries(libraries.map { it.id }) == libraries.size) { "Not all libraries to be deleted existed: $libraries" }
-        _libraries -= libraries
+        this.libraries -= libraries
     }
 
     override fun invalidate() {
         // Re-fetch from persistence
-        _libraries.set(fetchLibraries())
+        libraries.set(fetchLibraries())
     }
 
-    override  fun get(id: Int): Library = _libraries.find { it.id == id }
+    override fun get(id: Int): Library = libraries.find { it.id == id }
         ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
 
-    override  fun get(platform: Platform, name: String) = _libraries.find { it.platform == platform && it.name == name }
+    override fun get(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
         ?: throw IllegalArgumentException("Library doesn't exist: platform=$platform, name=$name")
 
     private fun Library.verifySuccess(f: () -> Boolean) = require(f()) { "Library doesn't exist: $this" }

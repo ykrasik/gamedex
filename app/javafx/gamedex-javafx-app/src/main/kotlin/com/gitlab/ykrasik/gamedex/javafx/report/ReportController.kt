@@ -26,12 +26,12 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.ThreadAwareDoubleProperty
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.MultiMap
-import io.reactivex.disposables.Disposable
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ProgressIndicator
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
@@ -91,7 +91,7 @@ class ReportController @Inject constructor(
         val resultsProperty: Property<MultiMap<Game, Filter.AdditionalData>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
-        private var subscription: Disposable? = null
+        private var subscription: SubscriptionReceiveChannel<*>? = null
 
         val isCalculatingProperty = SimpleBooleanProperty(false)
         private var isCalculating by isCalculatingProperty
@@ -102,7 +102,7 @@ class ReportController @Inject constructor(
             if (subscription != null) return
 
             // TODO: This feels like a task?
-            subscription = gameRepository.games.itemsObservable.subscribe { games ->
+            subscription = gameRepository.games.itemsChannel.subscribe(JavaFx) { games ->
                 isCalculating = true
                 launch(CommonPool) {
                     val result = calculate(games)
@@ -125,7 +125,7 @@ class ReportController @Inject constructor(
         }
 
         fun stop() {
-            subscription?.dispose()
+            subscription?.cancel()
             subscription = null
         }
     }

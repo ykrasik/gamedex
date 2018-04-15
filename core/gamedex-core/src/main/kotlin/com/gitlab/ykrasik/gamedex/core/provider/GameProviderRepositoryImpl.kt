@@ -18,8 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.SubjectListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -41,8 +40,7 @@ class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameP
 
     override val allProviders: List<GameProvider> = providers.sortedBy { it.id }
 
-    private val _enabledProviders = SubjectListObservable<EnabledGameProvider>()
-    override val enabledProviders: ListObservable<EnabledGameProvider> = _enabledProviders
+    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
 
     init {
         providerUserConfig.providerSettingsSubject.combineLatest(providerUserConfig.searchOrderSubject) { providerSettings, searchOrder ->
@@ -54,11 +52,11 @@ class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameP
                 EnabledGameProvider(provider, account)
             }.sortedWith(searchOrder.toComparator())
         }.subscribe { enabledProviders ->
-            _enabledProviders.set(enabledProviders)
+            this@GameProviderRepositoryImpl.enabledProviders.set(enabledProviders)
         }
 
         log.info { "Detected providers: $allProviders" }
-        log.info { "Enabled providers: ${_enabledProviders.sortedBy { it.id }}" }
+        log.info { "Enabled providers: ${enabledProviders.sortedBy { it.id }}" }
     }
 
     override fun enabledProvider(id: ProviderId) = enabledProviders.find { it.id == id }!!
