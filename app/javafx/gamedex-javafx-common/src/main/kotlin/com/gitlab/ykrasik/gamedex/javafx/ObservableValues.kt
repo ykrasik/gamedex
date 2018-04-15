@@ -28,8 +28,6 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import tornadofx.cleanBind
 import tornadofx.onChange
 import java.util.function.Predicate
@@ -41,7 +39,7 @@ import java.util.function.Predicate
  */
 fun <T> ObservableValue<T>.subscribeFx(f: suspend (T) -> Unit) {
     onChange {
-        launch(JavaFx) {
+        javaFx {
             f(it!!)
         }
     }

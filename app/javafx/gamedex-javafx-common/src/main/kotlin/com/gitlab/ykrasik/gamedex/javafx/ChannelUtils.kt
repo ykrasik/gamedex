@@ -23,8 +23,6 @@ import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import tornadofx.observable
 
 /**
@@ -40,7 +38,7 @@ fun <T> ReceiveChannel<T>.toObservableValue(): ObservableValue<T> =
 
 private inline fun <T> ReceiveChannel<T>.toObservableValue(defaultProvider: () -> T): ObservableValue<T> {
     val p = SimpleObjectProperty<T>(defaultProvider())
-    launch(JavaFx) {
+    javaFx {
         consumeEach {
             p.value = it
         }
@@ -50,7 +48,7 @@ private inline fun <T> ReceiveChannel<T>.toObservableValue(defaultProvider: () -
 
 fun <T> BroadcastReceiveChannel<T>.subscribe(f: suspend (T) -> Unit): SubscriptionReceiveChannel<T> {
     val subscription = subscribe()
-    launch(JavaFx) {
+    javaFx {
         subscription.consumeEach {
             f(it)
         }
@@ -60,7 +58,7 @@ fun <T> BroadcastReceiveChannel<T>.subscribe(f: suspend (T) -> Unit): Subscripti
 
 fun <T> ReceiveChannel<T>.toObservableList(): ObservableList<T> {
     val list = mutableListOf<T>().observable()
-    launch(JavaFx) {
+    javaFx {
         consumeEach {
             list += it
         }

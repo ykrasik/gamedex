@@ -22,6 +22,7 @@ package com.gitlab.ykrasik.gamedex.core.api.task
  * Time: 10:55
  */
 interface TaskRunner {
+    // TODO: This looks like it maybe shouldn't suspend
     suspend fun <T> runTask(task: ReadOnlyTask<T>): T
 
     suspend fun <T> runTask(title: String,

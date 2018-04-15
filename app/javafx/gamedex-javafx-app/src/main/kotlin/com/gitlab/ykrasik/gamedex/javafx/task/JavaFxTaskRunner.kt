@@ -110,16 +110,6 @@ class JavaFxTaskRunner : TaskRunner {
         return notificationPane
     }
 
-    // FIXME: Showing notifications causes the FontAwesome glyphs to bug up for the notification Pane. Maybe use BootstrapFx instead?
-    // TODO: Hide all access to this through tasks.
-    fun showInfoNotification(text: String) = Notification()
-        .text(text)
-        .information()
-        .automaticallyHideAfter(3.seconds)
-        .hideCloseButton()
-        .position(Pos.BOTTOM_RIGHT)
-        .show()
-
     val canRunTaskProperty = notificationPane.showingProperty().not()
 
     override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
@@ -130,7 +120,7 @@ class JavaFxTaskRunner : TaskRunner {
             mainTaskProperties.bind(task)
             taskProperties += mainTaskProperties
             tasks += task
-            launch(JavaFx) {
+            javaFx {
                 task.subTasks.consumeEach { task ->
                     taskProperties += TaskProperties(task)
                     tasks += task
@@ -183,6 +173,15 @@ class JavaFxTaskRunner : TaskRunner {
 
 //        notificationPane.hide()
     }
+
+    // FIXME: Showing notifications causes the FontAwesome glyphs to bug up for the notification Pane. Maybe use BootstrapFx instead?
+    private fun showInfoNotification(text: String) = Notification()
+        .text(text)
+        .information()
+        .automaticallyHideAfter(3.seconds)
+        .hideCloseButton()
+        .position(Pos.BOTTOM_RIGHT)
+        .show()
 
     private inner class TaskProperties() {
         constructor(task: ReadOnlyTask<*>) : this() {

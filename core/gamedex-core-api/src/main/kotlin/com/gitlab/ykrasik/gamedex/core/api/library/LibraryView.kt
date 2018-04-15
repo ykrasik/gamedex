@@ -14,21 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.core.api.library
 
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 14/04/2018
- * Time: 17:35
+ * Date: 15/04/2018
+ * Time: 08:10
  */
-fun <T> Deferred<T>.toObservableValue(): ObservableValue<T> {
-    val p = SimpleObjectProperty<T>()
-    javaFx {
-        p.value = await()
-    }
-    return p
+interface LibraryView {
+    val events: BroadcastReceiveChannel<LibraryEvent>
+}
+
+sealed class LibraryEvent {
+    object AddLibrary : LibraryEvent()
+    data class EditLibrary(val library: Library) : LibraryEvent()
+    data class DeleteLibrary(val library: Library) : LibraryEvent()
 }

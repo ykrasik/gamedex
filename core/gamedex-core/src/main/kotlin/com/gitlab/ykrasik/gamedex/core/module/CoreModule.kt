@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
@@ -34,6 +35,7 @@ import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.library.LibraryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
@@ -65,6 +67,7 @@ object CoreModule : AbstractModule() {
 
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
+        bind(LibraryPresenter::class.java).to(LibraryPresenterImpl::class.java)
         bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
 

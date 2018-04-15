@@ -23,8 +23,6 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import javafx.beans.property.Property
 import javafx.geometry.Pos
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import org.joda.time.PeriodType
 import org.joda.time.format.PeriodFormatterBuilder
@@ -85,7 +83,7 @@ class GameRefreshMenu : View() {
             tooltip("Refresh all games that were last refreshed before the stale duration")
             setOnAction {
                 popover.hide()
-                launch(JavaFx) {
+                javaFx {
                     gameController.refreshAllGames()
                 }
             }
@@ -97,7 +95,7 @@ class GameRefreshMenu : View() {
             tooltip("Refresh filtered games that were last refreshed before the stale duration")
             setOnAction {
                 popover.hide()
-                launch(JavaFx) {
+                javaFx {
                     gameController.refreshFilteredGames()
                 }
             }

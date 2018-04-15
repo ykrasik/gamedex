@@ -23,10 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallUserConfig
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
-import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxGeneralSettingsView
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 
@@ -44,7 +43,7 @@ object JavaFxModule : AbstractModule() {
         // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)
         bind(JavaFxImageRepository::class.java)
         bind(GameController::class.java)
-        bind(LibraryController::class.java)
+//        bind(LibraryController::class.java)
 
         bind(GeneralSettingsView::class.java).to(JavaFxGeneralSettingsView::class.java)
 

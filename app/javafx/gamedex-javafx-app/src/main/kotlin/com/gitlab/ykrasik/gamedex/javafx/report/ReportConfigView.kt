@@ -28,8 +28,8 @@ import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.FilterFragment
+import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty

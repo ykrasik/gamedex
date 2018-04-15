@@ -20,16 +20,14 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.game.menu.ChooseSearchResultsToggleMenu
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
-import com.gitlab.ykrasik.gamedex.javafx.game.menu.ChooseSearchResultsToggleMenu
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -73,7 +71,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
         verticalSeparator()
         deleteButton("Delete") {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     if (gameController.delete(game)) {
                         goBackScreen()
                     }
@@ -159,7 +157,7 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
     private fun tag() = reloadGame { gameController.tag(game) }
 
     private fun reloadGame(f: suspend () -> Game) {
-        launch(JavaFx) {
+        javaFx {
             game = f()
         }
     }

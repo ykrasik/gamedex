@@ -24,8 +24,6 @@ import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -46,14 +44,14 @@ class GameContextMenu : View() {
         separator()
         item("Edit", Theme.Icon.edit(size)) {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.editDetails(game)
                 }
             }
         }
         item("Change Thumbnail", Theme.Icon.thumbnail(size)) {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.editDetails(game, initialTab = GameDataType.thumbnail)
                 }
             }
@@ -61,7 +59,7 @@ class GameContextMenu : View() {
         separator()
         item("Tag", Theme.Icon.tag(size)) {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.tag(game)
                 }
             }
@@ -70,7 +68,7 @@ class GameContextMenu : View() {
         item("Refresh", Theme.Icon.refresh(size)) {
             enableWhen { controller.canRunLongTask }
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.refreshGame(game)
                 }
             }
@@ -81,7 +79,7 @@ class GameContextMenu : View() {
                 ChooseSearchResultsToggleMenu().install(this)
             }
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.searchGame(game)
                 }
             }
@@ -89,7 +87,7 @@ class GameContextMenu : View() {
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.renameFolder(game)
                 }
             }
@@ -97,7 +95,7 @@ class GameContextMenu : View() {
         separator()
         item("Delete", Theme.Icon.delete(size)) {
             setOnAction {
-                launch(JavaFx) {
+                javaFx {
                     controller.delete(game)
                 }
             }

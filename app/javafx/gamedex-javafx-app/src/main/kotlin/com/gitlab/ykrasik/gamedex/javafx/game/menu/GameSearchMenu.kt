@@ -16,14 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.searchButton
-import com.gitlab.ykrasik.gamedex.javafx.toggle
 import javafx.scene.input.MouseEvent
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -46,7 +41,7 @@ class GameSearchMenu : View() {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search all libraries for new games")
                 setOnAction {
-                    launch(JavaFx) {
+                    javaFx {
                         gameController.scanNewGames()
                     }
                 }
@@ -56,7 +51,7 @@ class GameSearchMenu : View() {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search all games that don't already have all available providers")
                 setOnAction {
-                    launch(JavaFx) {
+                    javaFx {
                         gameController.rediscoverAllGamesWithoutAllProviders()
                     }
                 }
@@ -66,7 +61,7 @@ class GameSearchMenu : View() {
                 addClass(CommonStyle.fillAvailableWidth)
                 tooltip("Search currently filtered games that don't already have all available providers")
                 setOnAction {
-                    launch(JavaFx) {
+                    javaFx {
                         gameController.rediscoverFilteredGamesWithoutAllProviders()
                     }
                 }

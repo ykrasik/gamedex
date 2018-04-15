@@ -17,10 +17,13 @@
 package com.gitlab.ykrasik.gamedex.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryEvent
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryView
+import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.scene.control.ToolBar
-import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
@@ -31,8 +34,11 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
-    private val libraryController: LibraryController by di()
+class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView {
+    // TODO: Have this data as output of the present() method. Not the repo, but all the libraries.
+    private val libraryRepository: LibraryRepository by di()
+
+    override val events = BroadcastEventChannel<LibraryEvent>()
 
     override fun ToolBar.constructToolbar() {
         addButton { setOnAction { addLibrary() } }
@@ -50,7 +56,7 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
         }
     }
 
-    override val root = tableview(libraryController.allLibraries) {
+    override val root = tableview(libraryRepository.libraries.toObservableList()) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
@@ -84,29 +90,17 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
         allowDeselection(onClickAgain = false)
     }
 
-    private fun addLibrary() {
-        launch(JavaFx) {
-            if (libraryController.onAddLibraryRequested()) {
-                root.resizeColumnsToFitContent()
-            }
+    init {
+        libraryRepository.libraries.changesObservable.subscribe {
+            root.resizeColumnsToFitContent()
         }
     }
 
-    private fun editLibrary() {
-        launch(JavaFx) {
-            if (libraryController.edit(selectedLibrary)) {
-                root.resizeColumnsToFitContent()
-            }
-        }
-    }
+    private fun addLibrary() = launch { events.send(LibraryEvent.AddLibrary) }
 
-    private fun deleteLibrary() {
-        launch(JavaFx) {
-            if (libraryController.delete(selectedLibrary)) {
-                root.resizeColumnsToFitContent()
-            }
-        }
-    }
+    private fun editLibrary() = launch { events.send(LibraryEvent.EditLibrary(selectedLibrary)) }
 
-    private val selectedLibrary get() = root.selectedItem!!
+    private fun deleteLibrary() = launch { events.send(LibraryEvent.DeleteLibrary(selectedLibrary)) }
+
+    private val selectedLibrary: Library get() = root.selectedItem!!
 }

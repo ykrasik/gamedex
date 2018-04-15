@@ -14,21 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.core.api.library
 
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.Library
 
 /**
  * User: ykrasik
- * Date: 14/04/2018
- * Time: 17:35
+ * Date: 15/04/2018
+ * Time: 08:03
  */
-fun <T> Deferred<T>.toObservableValue(): ObservableValue<T> {
-    val p = SimpleObjectProperty<T>()
-    javaFx {
-        p.value = await()
-    }
-    return p
+interface LibraryPresenter {
+    suspend fun addLibrary(request: AddLibraryRequest): Library
+
+    suspend fun replaceLibrary(source: Library, target: Library)
+
+    suspend fun deleteLibrary(library: Library)
 }

@@ -25,8 +25,6 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
 /**
@@ -141,7 +139,7 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 disableWhen { stateProperty.isEqualTo(State.Empty) }
                 isDefaultButton = true
                 setOnAction {
-                    launch(JavaFx) {
+                    javaFx {
                         checking.value = true
                         try {
                             val valid = controller.validateAndUseAccount(provider, currentAccount)

@@ -19,14 +19,14 @@ package com.gitlab.ykrasik.gamedex.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryEvent
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
 import tornadofx.label
 import tornadofx.listview
@@ -42,12 +42,15 @@ import javax.inject.Singleton
 // TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class LibraryController @Inject constructor(
+    private val libraryPresenter: LibraryPresenter,
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
     private val taskRunner: JavaFxTaskRunner,
     private val userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+
+    private val libraryView: LibraryScreen by inject()
 
     val allLibraries = libraryRepository.libraries.toObservableList()
     val realLibraries = allLibraries.filtered { it.platform != Platform.excluded }
@@ -57,17 +60,25 @@ class LibraryController @Inject constructor(
         })
     }
 
-    suspend fun onAddLibraryRequested(): Boolean = withContext(JavaFx) {
-        addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary>(library = null) { choice ->
-            libraryRepository.add(choice.request)
-            taskRunner.showInfoNotification("Added library: '${choice.request.data.name}'.")
+    init {
+        libraryView.events.subscribe {
+            when (it) {
+                LibraryEvent.AddLibrary -> addLibrary()
+                is LibraryEvent.EditLibrary -> edit(it.library)
+                is LibraryEvent.DeleteLibrary -> delete(it.library)
+            }
         }
     }
 
-    suspend fun edit(library: Library): Boolean = withContext(JavaFx) {
+    private suspend fun addLibrary() {
+        addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary>(library = null) { choice ->
+            libraryPresenter.addLibrary(choice.request)
+        }
+    }
+
+    private suspend fun edit(library: Library) {
         addOrEditLibrary<LibraryFragment.Choice.EditLibrary>(library) { choice ->
-            libraryRepository.replace(library, choice.library)
-            taskRunner.showInfoNotification("Updated library: '${choice.library.name}'.")
+            libraryPresenter.replaceLibrary(library, choice.library)
         }
     }
 
@@ -80,12 +91,10 @@ class LibraryController @Inject constructor(
         return true
     }
 
-    suspend fun delete(library: Library): Boolean = withContext(JavaFx) {
-        if (!confirmDelete(library)) return@withContext false
-
-        libraryRepository.delete(library)
-        taskRunner.showInfoNotification("Deleted library: '${library.name}'.")
-        true
+    private suspend fun delete(library: Library) {
+        if (confirmDelete(library)) {
+            libraryPresenter.deleteLibrary(library)
+        }
     }
 
     private fun confirmDelete(library: Library): Boolean {

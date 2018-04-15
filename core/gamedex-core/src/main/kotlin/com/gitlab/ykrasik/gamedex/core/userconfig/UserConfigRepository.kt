@@ -26,22 +26,22 @@ import kotlin.reflect.KClass
  * Time: 15:12
  */
 @Singleton
-class UserConfigRepository @Inject constructor(private val settings: MutableSet<UserConfig>) {
+class UserConfigRepository @Inject constructor(private val userConfigs: MutableSet<UserConfig>) {
     @Suppress("UNCHECKED_CAST")
-    operator fun <T : UserConfig> get(klass: KClass<T>): T = settings.find { it::class == klass }!! as T
+    operator fun <T : UserConfig> get(klass: KClass<T>): T = userConfigs.find { it::class == klass }!! as T
 
-    fun saveSnapshot() = settings.forEach {
+    fun saveSnapshot() = userConfigs.forEach {
         it.disableWrite()
         it.saveSnapshot()
     }
 
-    fun revertSnapshot() = settings.forEach {
+    fun revertSnapshot() = userConfigs.forEach {
         it.restoreSnapshot()
         it.enableWrite()
         it.clearSnapshot()
     }
 
-    fun commitSnapshot() = settings.forEach {
+    fun commitSnapshot() = userConfigs.forEach {
         it.enableWrite()
         it.flush()
         it.clearSnapshot()
