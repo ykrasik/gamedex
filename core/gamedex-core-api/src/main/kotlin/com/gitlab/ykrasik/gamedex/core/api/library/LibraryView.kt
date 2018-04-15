@@ -16,8 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.SendChannel
 
 /**
  * User: ykrasik
@@ -25,11 +28,25 @@ import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastReceiveChannel
  * Time: 08:10
  */
 interface LibraryView {
-    val events: BroadcastReceiveChannel<LibraryEvent>
+    val outputEvents: ReceiveChannel<LibraryViewEvent>
+    val inputActions: SendChannel<LibraryViewAction>
 }
 
-sealed class LibraryEvent {
-    object AddLibrary : LibraryEvent()
-    data class EditLibrary(val library: Library) : LibraryEvent()
-    data class DeleteLibrary(val library: Library) : LibraryEvent()
+sealed class LibraryViewEvent {
+    object AddLibraryClicked : LibraryViewEvent()
+    data class AddLibraryViewClosed(val request: AddLibraryRequest?) : LibraryViewEvent()
+
+    data class EditLibraryClicked(val library: Library) : LibraryViewEvent()
+    data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : LibraryViewEvent()
+
+    data class DeleteLibraryClicked(val library: Library) : LibraryViewEvent()
+    data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : LibraryViewEvent()
+}
+
+sealed class LibraryViewAction {
+    data class Init(val allLibraries: ListObservable<Library>) : LibraryViewAction()
+
+    object ShowAddLibraryView : LibraryViewAction()
+    data class ShowEditLibraryView(val library: Library) : LibraryViewAction()
+    data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : LibraryViewAction()
 }

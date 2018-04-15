@@ -16,17 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
-import com.gitlab.ykrasik.gamedex.Library
-
 /**
  * User: ykrasik
  * Date: 15/04/2018
  * Time: 08:03
  */
+// FIXME: This class looks redundant
 interface LibraryPresenter {
-    suspend fun addLibrary(request: AddLibraryRequest): Library
-
-    suspend fun replaceLibrary(source: Library, target: Library)
-
-    suspend fun deleteLibrary(library: Library)
+    // TODO: Can this be achieved through PaaF?
+    fun bindView(libraryView: LibraryView)
 }

@@ -22,15 +22,14 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
-import com.gitlab.ykrasik.gamedex.javafx.MainView
+import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.SimpleBooleanProperty
