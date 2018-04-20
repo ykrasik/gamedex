@@ -7,9 +7,9 @@ buildscript {
         appVersion = '0.1.0'
         javaMaxHeap = '3g'
 
-        kotlin_version = '1.2.30'
+        kotlin_version = '1.2.40'
         ktlin = [:].with {
-            v = '1.2.30'
+            v = '1.2.40'
             majorV = '1.2'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
