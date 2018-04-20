@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.core.api.ViewModel
 import com.gitlab.ykrasik.gamedex.core.api.util.*
 import io.reactivex.Observable
 import javafx.beans.property.BooleanProperty
@@ -26,16 +27,19 @@ import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import javafx.collections.transformation.TransformationList
+import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.SortedFilteredList
 import tornadofx.observable
 import tornadofx.onChange
+import java.util.*
 
 /**
  * User: ykrasik
  * Date: 20/05/2017
  * Time: 10:58
  */
+private val observableListSubscriptions = IdentityHashMap<ObservableList<*>, SubscriptionReceiveChannel<ListChangeEvent<*>>>()
 
 fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
     val list = mutableListOf<T>().observable()
@@ -45,10 +49,28 @@ fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
     return list
 }
 
+// TODO: Is this deprecated? Should this only be allowed using a viewModel?
 fun <T> ListObservable<T>.toObservableList(): ObservableList<T> {
+    val (list, subscription) = subscribe()
+    require(observableListSubscriptions.put(list, subscription) == null) { "ObservableList already subscribed: $list" }
+    return list
+}
+
+fun ObservableList<*>.dispose() {
+    val subscription = requireNotNull(observableListSubscriptions.remove(this)) { "ObservableList is missing subscription: $this"}
+    subscription.close()
+}
+
+fun <VM : ViewModel<*, *>, T> VM.toObservableList(f: VM.() -> ListObservable<T>): ObservableList<T> {
+    val listObservable = f()
+    val (list, subscription) = listObservable.subscribe()
+    onClose { subscription.close() }
+    return list
+}
+
+private fun <T> ListObservable<T>.subscribe(): Pair<ObservableList<T>, SubscriptionReceiveChannel<ListChangeEvent<T>>> {
     val list = FXCollections.observableArrayList(this)
-    // TODO: How to dispose of this subscription? Is it needed?
-    changesChannel.subscribe(JavaFx) { event ->
+    val subscription = changesChannel.subscribe(JavaFx) { event ->
         when (event) {
             is ListItemAddedEvent -> list += event.item
             is ListItemsAddedEvent -> list += event.items
@@ -58,7 +80,7 @@ fun <T> ListObservable<T>.toObservableList(): ObservableList<T> {
             is ListItemsSetEvent -> list.setAll(event.items)
         }
     }
-    return list
+    return list to subscription
 }
 
 // TODO: I think this can all be done using objectBinding.

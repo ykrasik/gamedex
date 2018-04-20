@@ -22,8 +22,6 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.scene.control.ToolBar
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import tornadofx.*
@@ -35,13 +33,10 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView {
-    private val libraryPresenter: LibraryPresenter by di()
-    // TODO: Have this data as output of the present() method. Not the repo, but all the libraries.
-    private val libraryRepository: LibraryRepository by di()
+class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
+    private val presenter: LibraryPresenter by di()
 
-    override val outputEvents = Channel<LibraryViewEvent>(10)
-    override val inputActions = Channel<LibraryViewAction>(10)
+    private var viewModel: LibraryViewModel? = null
 
     override fun ToolBar.constructToolbar() {
         addButton { setOnAction { addLibrary() } }
@@ -59,7 +54,7 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView 
         }
     }
 
-    override val root = tableview(libraryRepository.libraries.toObservableList()) {
+    override val root = tableview<Library> {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
@@ -93,13 +88,15 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView 
         allowDeselection(onClickAgain = false)
     }
 
-    init {
-        libraryPresenter.bindView(this)
-        libraryRepository.libraries.changesChannel.subscribe(JavaFx) {
-            root.resizeColumnsToFitContent()
-        }
-        javaFx {
-            inputActions.consumeEach { action ->
+    // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
+    override fun onDock() = skipFirstTime {
+        require(viewModel == null) { "LibraryScreen: Already presenting!" }
+        viewModel = presenter.present().apply {
+            root.items = toObservableList { libraries }
+            libraries.changesChannel.subscribe(JavaFx) {
+                root.resizeColumnsToFitContent()
+            }
+            consumeActions { action ->
                 when (action) {
                     LibraryViewAction.ShowAddLibraryView -> {
                         val request = addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
@@ -124,8 +121,13 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView 
         }
     }
 
-    private suspend inline fun <reified T : LibraryFragment.Choice, U> addOrEditLibrary(library: Library?,
-                                                                                        noinline f: suspend (T) -> U): U? {
+    override fun onUndock() {
+        viewModel!!.close()
+        viewModel = null
+    }
+
+    private inline fun <reified T : LibraryFragment.Choice, U> addOrEditLibrary(library: Library?,
+                                                                                f: (T) -> U): U? {
         val choice = LibraryFragment(library).show()
         if (choice === LibraryFragment.Choice.Cancel) return null
         return f(choice as T)
@@ -137,5 +139,5 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView 
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 
-    private suspend fun sendEvent(event: LibraryViewEvent) = outputEvents.send(event)
+    private suspend fun sendEvent(event: LibraryViewEvent) = viewModel!!.events.send(event)
 }

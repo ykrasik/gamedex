@@ -14,38 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.library
+package com.gitlab.ykrasik.gamedex.core.api
 
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import java.io.File
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.SendChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.launch
+import java.io.Closeable
+import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:09
+ * Date: 15/04/2018
+ * Time: 11:44
  */
-// TODO: Hide from api module.
-interface LibraryRepository {
-    val libraries: ListObservable<Library>
+abstract class ViewModel<Event, Action> : Closeable {
+    private val onClose = mutableListOf<() -> Unit>()
 
-    operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library
+    val events: SendChannel<Event> = Channel()
+    val actions: ReceiveChannel<Action> = Channel()
 
-    fun add(request: AddLibraryRequest): Library
-    suspend fun addAll(requests: List<AddLibraryRequest>, afterEach: (Library) -> Unit): List<Library>
+    init {
+        onClose {
+            events.close()
+            actions.cancel()
+        }
+    }
 
-    fun replace(source: Library, target: Library)
+    fun onClose(f: () -> Unit) {
+        this.onClose += f
+    }
 
-    fun delete(library: Library)
-    fun deleteAll(libraries: List<Library>)
+    override fun close() = onClose.forEach { it() }
 
-    fun invalidate()
+    fun consumeActions(context: CoroutineContext = uiThreadDispatcher, f: suspend (action: Action) -> Unit) {
+        launch(context) {
+            actions.consumeEach { action ->
+                f(action)
+            }
+        }
+    }
 }
-
-data class AddLibraryRequest(
-    val path: File,
-    val data: LibraryData
-)

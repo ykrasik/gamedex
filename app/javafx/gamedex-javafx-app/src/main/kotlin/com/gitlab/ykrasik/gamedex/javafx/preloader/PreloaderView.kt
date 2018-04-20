@@ -17,12 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
 import com.gitlab.ykrasik.gamedex.core.preloader.DefaultPreloaderPresenter
-import com.gitlab.ykrasik.gamedex.javafx.MainView
-import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.toObservableValue
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import kotlinx.coroutines.experimental.CommonPool
@@ -61,15 +58,13 @@ class PreloaderView : View("GameDex") {
         primaryStage.x = screenBounds.minX + screenBounds.width / 2 - logo.width / 2
         primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
 
-        launch(CommonPool) {
+        javaFx {
             val task = DefaultPreloaderPresenter.load(JavaFxModule)
             progressProperty.bind(task.progressChannel.toObservableValue(0.0))
             messageProperty.bind(task.message1Channel.toObservableValue(""))
-            val injector = task.run()
+            val injector = withContext(CommonPool) { task.run() }
             FX.dicontainer = GuiceDiContainer(injector)
-            withContext(JavaFx) {
-                replaceWith(MainView::class)
-            }
+            replaceWith(MainView::class)
         }
     }
 }

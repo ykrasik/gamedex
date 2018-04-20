@@ -14,39 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.library
+package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.ViewModel
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.launch
+import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
- * Date: 15/04/2018
- * Time: 08:10
+ * Date: 20/04/2018
+ * Time: 09:28
  */
-interface LibraryView {
-    val outputEvents: ReceiveChannel<LibraryViewEvent>
-    val inputActions: SendChannel<LibraryViewAction>
-}
-
-sealed class LibraryViewEvent {
-    object AddLibraryClicked : LibraryViewEvent()
-    data class AddLibraryViewClosed(val request: AddLibraryRequest?) : LibraryViewEvent()
-
-    data class EditLibraryClicked(val library: Library) : LibraryViewEvent()
-    data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : LibraryViewEvent()
-
-    data class DeleteLibraryClicked(val library: Library) : LibraryViewEvent()
-    data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : LibraryViewEvent()
-}
-
-sealed class LibraryViewAction {
-    data class Init(val allLibraries: ListObservable<Library>) : LibraryViewAction()
-
-    object ShowAddLibraryView : LibraryViewAction()
-    data class ShowEditLibraryView(val library: Library) : LibraryViewAction()
-    data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : LibraryViewAction()
+@Suppress("UNCHECKED_CAST")
+inline fun <Event, Action, VM : ViewModel<Event, Action>> VM.consumeEvents(context: CoroutineContext = CommonPool,
+                                                                           crossinline f: suspend (event: Event, actions: SendChannel<Action>) -> Unit) = apply {
+    launch(context) {
+        (events as ReceiveChannel<Event>).consumeEach { event ->
+            f(event, actions as SendChannel<Action>)
+        }
+    }
 }

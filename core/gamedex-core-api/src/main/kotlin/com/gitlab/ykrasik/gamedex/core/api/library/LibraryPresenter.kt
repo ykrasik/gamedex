@@ -16,13 +16,37 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.core.api.ViewModel
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+
 /**
  * User: ykrasik
  * Date: 15/04/2018
- * Time: 08:03
+ * Time: 08:10
  */
-// FIXME: This class looks redundant
 interface LibraryPresenter {
-    // TODO: Can this be achieved through PaaF?
-    fun bindView(libraryView: LibraryView)
+    fun present(): LibraryViewModel
+}
+
+data class LibraryViewModel(
+    val libraries: ListObservable<Library>
+) : ViewModel<LibraryViewEvent, LibraryViewAction>()
+
+sealed class LibraryViewEvent {
+    object AddLibraryClicked : LibraryViewEvent()
+    data class AddLibraryViewClosed(val request: AddLibraryRequest?) : LibraryViewEvent()
+
+    data class EditLibraryClicked(val library: Library) : LibraryViewEvent()
+    data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : LibraryViewEvent()
+
+    data class DeleteLibraryClicked(val library: Library) : LibraryViewEvent()
+    data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : LibraryViewEvent()
+}
+
+sealed class LibraryViewAction {
+    object ShowAddLibraryView : LibraryViewAction()
+    data class ShowEditLibraryView(val library: Library) : LibraryViewAction()
+    data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : LibraryViewAction()
 }

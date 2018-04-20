@@ -22,9 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.*
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
+import com.gitlab.ykrasik.gamedex.core.consumeEvents
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,40 +37,28 @@ class LibraryPresenterImpl @Inject constructor(
     private val gameRepository: GameRepository,
     private val taskRunner: TaskRunner
 ) : LibraryPresenter {
-    private lateinit var libraryView: LibraryView
-
-    // FIXME: what happens on rebind? close existing subscriptions.
-    override fun bindView(libraryView: LibraryView) {
-        this.libraryView = libraryView
-
-        launch(CommonPool) {
-            // TODO: Consider better ways of doing this.
-            libraryView.inputActions.send(LibraryViewAction.Init(libraryRepository.libraries))
-
-            libraryView.outputEvents.consumeEach { event ->
-                when (event) {
-                    LibraryViewEvent.AddLibraryClicked ->
-                        sendAction(LibraryViewAction.ShowAddLibraryView)
-                    is LibraryViewEvent.AddLibraryViewClosed ->
-                        if (event.request != null) {
-                            addLibrary(event.request!!)
-                        }
-
-                    is LibraryViewEvent.EditLibraryClicked ->
-                        sendAction(LibraryViewAction.ShowEditLibraryView(event.library))
-                    is LibraryViewEvent.EditLibraryViewClosed ->
-                        if (event.updatedLibrary != null) {
-                            replaceLibrary(event.library, event.updatedLibrary!!)
-                        }
-
-                    is LibraryViewEvent.DeleteLibraryClicked ->
-                        sendAction(LibraryViewAction.ShowDeleteLibraryConfirmDialog(event.library, gamesToBeDeleted(event.library)))
-                    is LibraryViewEvent.DeleteLibraryConfirmDialogClosed ->
-                        if (event.confirm) {
-                            deleteLibrary(event.library)
-                        }
+    override fun present() = LibraryViewModel(libraryRepository.libraries).consumeEvents { event, actions ->
+        when (event) {
+            LibraryViewEvent.AddLibraryClicked ->
+                actions.send(LibraryViewAction.ShowAddLibraryView)
+            is LibraryViewEvent.AddLibraryViewClosed ->
+                if (event.request != null) {
+                    addLibrary(event.request!!)
                 }
-            }
+
+            is LibraryViewEvent.EditLibraryClicked ->
+                actions.send(LibraryViewAction.ShowEditLibraryView(event.library))
+            is LibraryViewEvent.EditLibraryViewClosed ->
+                if (event.updatedLibrary != null) {
+                    replaceLibrary(event.library, event.updatedLibrary!!)
+                }
+
+            is LibraryViewEvent.DeleteLibraryClicked ->
+                actions.send(LibraryViewAction.ShowDeleteLibraryConfirmDialog(event.library, gamesToBeDeleted(event.library)))
+            is LibraryViewEvent.DeleteLibraryConfirmDialogClosed ->
+                if (event.confirm) {
+                    deleteLibrary(event.library)
+                }
         }
     }
 
@@ -93,6 +79,4 @@ class LibraryPresenterImpl @Inject constructor(
         doneMessage { "Deleted Library: '${library.name}'." }
         libraryRepository.delete(library)
     }
-
-    private suspend fun sendAction(action: LibraryViewAction) = libraryView.inputActions.send(action)
 }
