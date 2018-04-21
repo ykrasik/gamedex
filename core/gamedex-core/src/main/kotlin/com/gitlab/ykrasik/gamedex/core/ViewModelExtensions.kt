@@ -30,8 +30,8 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Time: 09:28
  */
 @Suppress("UNCHECKED_CAST")
-inline fun <Event, Action, VM : ViewModel<Event, Action>> VM.consumeEvents(context: CoroutineContext = CommonPool,
-                                                                           crossinline f: suspend (event: Event, actions: SendChannel<Action>) -> Unit) = apply {
+fun <Event, Action, VM : ViewModel<Event, Action>> VM.consumeEvents(context: CoroutineContext = CommonPool,
+                                                                    f: suspend (event: Event, actions: SendChannel<Action>) -> Unit) = apply {
     launch(context) {
         (events as ReceiveChannel<Event>).consumeEach { event ->
             f(event, actions as SendChannel<Action>)

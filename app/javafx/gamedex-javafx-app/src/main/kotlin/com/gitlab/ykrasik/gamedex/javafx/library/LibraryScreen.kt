@@ -17,10 +17,14 @@
 package com.gitlab.ykrasik.gamedex.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.library.*
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewAction
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewEvent
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
+import com.gitlab.ykrasik.gamedex.core.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.scene.control.ToolBar
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -33,11 +37,9 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
-    private val presenter: LibraryPresenter by di()
-
-    private var viewModel: LibraryViewModel? = null
-
+class LibraryScreen : PresentableGamedexScreen<LibraryViewEvent, LibraryViewAction, LibraryViewModel>(
+    "Libraries", Theme.Icon.hdd(), presenters.libraryPresenter::present, skipFirst = true
+) {      // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
     override fun ToolBar.constructToolbar() {
         addButton { setOnAction { addLibrary() } }
         verticalSeparator()
@@ -88,42 +90,34 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
         allowDeselection(onClickAgain = false)
     }
 
-    // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
-    override fun onDock() = skipFirstTime {
-        require(viewModel == null) { "LibraryScreen: Already presenting!" }
-        viewModel = presenter.present().apply {
-            root.items = toObservableList { libraries }
-            libraries.changesChannel.subscribe(JavaFx) {
-                root.resizeColumnsToFitContent()
-            }
-            consumeActions { action ->
-                when (action) {
-                    LibraryViewAction.ShowAddLibraryView -> {
-                        val request = addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
-                        sendEvent(LibraryViewEvent.AddLibraryViewClosed(request))
-                    }
-                    is LibraryViewAction.ShowEditLibraryView -> {
-                        val updatedLibrary = addOrEditLibrary<LibraryFragment.Choice.EditLibrary, Library>(action.library) { it.library }
-                        sendEvent(LibraryViewEvent.EditLibraryViewClosed(action.library, updatedLibrary))
-                    }
-                    is LibraryViewAction.ShowDeleteLibraryConfirmDialog -> {
-                        val confirm = areYouSureDialog("Delete library '${action.library.name}'?") {
-                            val gamesToBeDeleted = action.gamesToBeDeleted
-                            if (gamesToBeDeleted.isNotEmpty()) {
-                                label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                                listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
-                            }
-                        }
-                        sendEvent(LibraryViewEvent.DeleteLibraryConfirmDialogClosed(action.library, confirm))
-                    }
-                }
-            }
+    override fun LibraryViewModel.onPresent() {
+        root.items = toObservableList { libraries }
+        libraries.changesChannel.subscribe(JavaFx) {
+            root.resizeColumnsToFitContent()
         }
     }
 
-    override fun onUndock() {
-        viewModel!!.close()
-        viewModel = null
+    override suspend fun onAction(action: LibraryViewAction) {
+        when (action) {
+            LibraryViewAction.ShowAddLibraryView -> {
+                val request = addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
+                sendEvent(LibraryViewEvent.AddLibraryViewClosed(request))
+            }
+            is LibraryViewAction.ShowEditLibraryView -> {
+                val updatedLibrary = addOrEditLibrary<LibraryFragment.Choice.EditLibrary, Library>(action.library) { it.library }
+                sendEvent(LibraryViewEvent.EditLibraryViewClosed(action.library, updatedLibrary))
+            }
+            is LibraryViewAction.ShowDeleteLibraryConfirmDialog -> {
+                val confirm = areYouSureDialog("Delete library '${action.library.name}'?") {
+                    val gamesToBeDeleted = action.gamesToBeDeleted
+                    if (gamesToBeDeleted.isNotEmpty()) {
+                        label("The following ${gamesToBeDeleted.size} games will also be deleted:")
+                        listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
+                    }
+                }
+                sendEvent(LibraryViewEvent.DeleteLibraryConfirmDialogClosed(action.library, confirm))
+            }
+        }
     }
 
     private inline fun <reified T : LibraryFragment.Choice, U> addOrEditLibrary(library: Library?,
@@ -138,6 +132,4 @@ class LibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()) {
     private fun deleteLibrary() = launch { sendEvent(LibraryViewEvent.DeleteLibraryClicked(selectedLibrary)) }
 
     private val selectedLibrary: Library get() = root.selectedItem!!
-
-    private suspend fun sendEvent(event: LibraryViewEvent) = viewModel!!.events.send(event)
 }

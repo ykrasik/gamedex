@@ -14,39 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.core.api
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 21/04/2018
+ * Time: 16:55
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+// This value is set after pre-loading is complete.
+var presenters: Presenters by InitOnceGlobal()
 
-    open val useDefaultNavigationButton: Boolean = true
-
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen<Event, Action, VM : ViewModel<Event, Action>>(
-    title: String,
-    icon: Glyph?,
-    presenter: () -> VM,
-    skipFirst: Boolean = false
-) : PresentableView<Event, Action, VM>(title, icon, presenter, skipFirst) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
+@Singleton
+class Presenters @Inject constructor(
+    val libraryPresenter: LibraryPresenter
+)

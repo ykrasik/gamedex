@@ -17,36 +17,50 @@
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
 import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
+import com.gitlab.ykrasik.gamedex.javafx.skipFirstTime
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.View
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 21/04/2018
+ * Time: 07:13
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen<Event, Action, VM : ViewModel<Event, Action>>(
+abstract class PresentableView<Event, Action, VM>(
     title: String,
     icon: Glyph?,
-    presenter: () -> VM,
-    skipFirst: Boolean = false
-) : PresentableView<Event, Action, VM>(title, icon, presenter, skipFirst) {
-    abstract fun ToolBar.constructToolbar()
+    private val presenter: () -> VM,
+    private val skipFirst: Boolean = false
+) : View(title, icon) where VM : ViewModel<Event, Action> {
+    private var viewModel: VM? = null
 
-    open val useDefaultNavigationButton: Boolean = true
+    protected suspend fun sendEvent(event: Event) = viewModel!!.events.send(event)
 
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
+    override fun onDock() {
+        if (skipFirst) {
+            skipFirstTime(this::present)
+        } else {
+            present()
+        }
+    }
+
+    private fun present() {
+        require(viewModel == null) { "$this: Already presenting!" }
+        viewModel = presenter().apply {
+            onPresent()
+            consumeActions { action ->
+                onAction(action)
+            }
+        }
+    }
+
+    override fun onUndock() {
+        viewModel!!.close()
+        viewModel = null
+    }
+
+    protected abstract fun VM.onPresent()
+
+    protected abstract suspend fun onAction(action: Action)
 }

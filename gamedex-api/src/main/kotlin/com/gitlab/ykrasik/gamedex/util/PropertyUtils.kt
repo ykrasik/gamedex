@@ -14,39 +14,44 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 21/04/2018
+ * Time: 16:45
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+class InitOnceGlobal<T> : ReadWriteProperty<Nothing?, T> {
+    private var value: Any? = EMPTY
 
-    open val useDefaultNavigationButton: Boolean = true
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(thisRef: Nothing?, property: KProperty<*>): T {
+        check(value != EMPTY) { "Value wasn't initialized yet!" }
+        return value as T
+    }
 
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    override fun setValue(thisRef: Nothing?, property: KProperty<*>, value: T) {
+        check(this.value == EMPTY) { "Value was already initialized: ${this.value}" }
+        this.value = value
+    }
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen<Event, Action, VM : ViewModel<Event, Action>>(
-    title: String,
-    icon: Glyph?,
-    presenter: () -> VM,
-    skipFirst: Boolean = false
-) : PresentableView<Event, Action, VM>(title, icon, presenter, skipFirst) {
-    abstract fun ToolBar.constructToolbar()
+class InitOnce<T> : ReadWriteProperty<Any, T> {
+    private var value: Any? = EMPTY
 
-    open val useDefaultNavigationButton: Boolean = true
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(thisRef: Any, property: KProperty<*>): T {
+        check(value != EMPTY) { "Value wasn't initialized yet!" }
+        return value as T
+    }
 
-    // Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        check(this.value == EMPTY) { "Value was already initialized: ${this.value}" }
+        this.value = value
+    }
 }
+
+private object EMPTY

@@ -21,10 +21,11 @@ import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsScreen
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryScreen
 import com.gitlab.ykrasik.gamedex.javafx.log.LogScreen
+import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -54,7 +55,9 @@ class MainView : View("GameDex") {
 
     private lateinit var previousScreen: Tab
 
+    // FIXME: Temp until all screens are presentable
     private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
+    private val presentableScreenToolbars = mutableMapOf<PresentableGamedexScreen<*, *, *>, ObservableList<Node>>()
 
     override val root = taskRunner.init {
         borderpane {
@@ -91,16 +94,36 @@ class MainView : View("GameDex") {
         graphic = screen.icon
     }
 
+    // FIXME: Temp until all screens are presentable
+    private fun TabPane.screenTab(screen: PresentableGamedexScreen<*, *, *>) = tab(screen) {
+        userData = screen
+        graphic = screen.icon
+    }
+
     private val mainNavigationButton = buttonWithPopover(graphic = Theme.Icon.bars()) {
         tabPane.tabs.forEach { tab ->
-            val screen = tab.userData as GamedexScreen
-            if (screen.useDefaultNavigationButton) {
-                navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
-            }
-            screen.closeRequestedProperty.onChange {
-                if (it) {
-                    screen.closeRequestedProperty.value = false
-                    selectPreviousScreen()
+            if (tab.userData is GamedexScreen) {
+                val screen = tab.userData as GamedexScreen
+                if (screen.useDefaultNavigationButton) {
+                    navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
+                }
+                screen.closeRequestedProperty.onChange {
+                    if (it) {
+                        screen.closeRequestedProperty.value = false
+                        selectPreviousScreen()
+                    }
+                }
+            } else {
+                // FIXME: Temp until all screens are presentable
+                val screen = tab.userData as PresentableGamedexScreen<*, *, *>
+                if (screen.useDefaultNavigationButton) {
+                    navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
+                }
+                screen.closeRequestedProperty.onChange {
+                    if (it) {
+                        screen.closeRequestedProperty.value = false
+                        selectPreviousScreen()
+                    }
                 }
             }
         }
@@ -125,19 +148,48 @@ class MainView : View("GameDex") {
 
     private fun cleanupClosedTab(tab: Tab) {
         previousScreen = tab
-        (tab.userData as GamedexScreen).onUndock()
+        // FIXME: Temp until all screens are presentable
+        if (tab.userData is GamedexScreen) {
+            (tab.userData as GamedexScreen).onUndock()
+        } else {
+            (tab.userData as PresentableGamedexScreen<*, *, *>).onUndock()
+        }
     }
 
     private fun prepareNewTab(tab: Tab) {
-        (tab.userData as GamedexScreen).onDock()
-        tab.populateToolbar()
+        // FIXME: Temp until all screens are presentable
+        if (tab.userData is GamedexScreen) {
+            val screen = tab.userData as GamedexScreen
+            screen.onDock()
+            tab.run { screen.populateToolbar() }
+        } else {
+            val screen = tab.userData as PresentableGamedexScreen<*, *, *>
+            screen.onDock()
+            tab.run { screen.populateToolbar() }
+        }
     }
-
-    private fun Tab.populateToolbar() = (userData as GamedexScreen).populateToolbar()
 
     private fun GamedexScreen.populateToolbar() {
         toolbar.replaceChildren {
             items += screenToolbars.getOrPut(this@populateToolbar) {
+                // TODO: Find a neater solution, like not using ToolBar.constructToolbar()
+                ToolBar().apply {
+                    if (useDefaultNavigationButton) {
+                        items += mainNavigationButton
+                    } else {
+                        backButton { setOnAction { selectPreviousScreen() } }
+                    }
+                    verticalSeparator()
+                    this.constructToolbar()
+                }.items
+            }
+        }
+    }
+
+    // FIXME: Temp until all screens are presentable
+    private fun PresentableGamedexScreen<*, *, *>.populateToolbar() {
+        toolbar.replaceChildren {
+            items += presentableScreenToolbars.getOrPut(this@populateToolbar) {
                 // TODO: Find a neater solution, like not using ToolBar.constructToolbar()
                 ToolBar().apply {
                     if (useDefaultNavigationButton) {
