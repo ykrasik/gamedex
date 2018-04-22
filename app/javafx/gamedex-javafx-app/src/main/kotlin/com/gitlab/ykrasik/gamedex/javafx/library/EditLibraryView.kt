@@ -35,10 +35,13 @@ import tornadofx.*
  * Date: 12/10/2016
  * Time: 10:56
  */
-class LibraryFragment(private val library: Library?) : Fragment(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
+class EditLibraryView : View() {
     private val libraryRepository: LibraryRepository by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
+
+    private val libraryProperty = SimpleObjectProperty<Library?>(null)
+    private val library by libraryProperty
 
     private val model = LibraryViewModel()
     private var accept = false
@@ -60,11 +63,11 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
         center {
             form {
                 minWidth = 600.0
-                fieldset(if (library == null) "Add New Library" else "Edit Library '${library.name}'") {
+                fieldset {
                     pathField()
                     nameField()
                     platformField()
-                }
+                }.apply { textProperty.bind(titleProperty) }
             }
         }
     }
@@ -79,7 +82,6 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
                     else -> null
                 }
             }
-            if (library != null) text = library.path.toString()
         }
         jfxButton("Browse", Theme.Icon.search(17.0)) { setOnAction { browse() } }
     }
@@ -94,18 +96,22 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
                     else -> null
                 }
             }
-            if (library != null) text = library.name
         }
     }
 
     private fun Fieldset.platformField() = field("Platform") {
-        isDisable = library != null
-        model.platformProperty.value = library?.platform ?: Platform.pc
-        model.platformProperty.onChange { model.validate() }
+        disableWhen { libraryProperty.isNotNull }
         platformComboBox(model.platformProperty)
     }
 
     init {
+        titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
+        libraryProperty.onChange {
+            model.path = it?.path?.toString() ?: ""
+            model.name = it?.name ?: ""
+            model.platform = it?.platform ?: Platform.pc
+        }
+        model.platformProperty.onChange { model.validate() }
         model.validate(decorateErrors = false)
     }
 
@@ -114,7 +120,8 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
     }
 
     private fun browse() {
-        val directory = chooseDirectory("Browse Library Path...", initialDirectory = generalUserConfig.prevDirectory.existsOrNull()) ?: return
+        val directory = chooseDirectory("Browse Library Path...", initialDirectory = generalUserConfig.prevDirectory.existsOrNull())
+            ?: return
         generalUserConfig.prevDirectory = directory
         model.path = directory.path
         model.name = directory.name
@@ -125,7 +132,8 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
         close()
     }
 
-    fun show(): Choice {
+    fun show(library: Library?): Choice {
+        libraryProperty.value = library
         openModal(block = true)
         return if (accept && model.commit()) {
             if (library == null) {
@@ -151,7 +159,7 @@ class LibraryFragment(private val library: Library?) : Fragment(if (library == n
         val nameProperty = bind { SimpleStringProperty() }
         var name by nameProperty
 
-        val platformProperty = bind { SimpleObjectProperty<Platform>() }
+        val platformProperty = bind { SimpleObjectProperty(Platform.pc) }
         var platform by platformProperty
 
         fun toRequest() = AddLibraryRequest(path = path.toFile(), data = LibraryData(platform = platform, name = name))

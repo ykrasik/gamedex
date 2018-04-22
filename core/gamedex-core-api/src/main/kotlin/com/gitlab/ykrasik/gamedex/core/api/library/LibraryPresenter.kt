@@ -32,21 +32,22 @@ interface LibraryPresenter {
 
 data class LibraryViewModel(
     val libraries: ListObservable<Library>
-) : ViewModel<LibraryViewEvent, LibraryViewAction>()
+) : ViewModel<LibraryViewModel.Event, LibraryViewModel.Action>() {
 
-sealed class LibraryViewEvent {
-    object AddLibraryClicked : LibraryViewEvent()
-    data class AddLibraryViewClosed(val request: AddLibraryRequest?) : LibraryViewEvent()
+    sealed class Event {
+        object AddLibraryClicked : Event()
+        data class AddLibraryViewClosed(val request: AddLibraryRequest?) : Event()
 
-    data class EditLibraryClicked(val library: Library) : LibraryViewEvent()
-    data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : LibraryViewEvent()
+        data class EditLibraryClicked(val library: Library) : Event()
+        data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : Event()
 
-    data class DeleteLibraryClicked(val library: Library) : LibraryViewEvent()
-    data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : LibraryViewEvent()
-}
+        data class DeleteLibraryClicked(val library: Library) : Event()
+        data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : Event()
+    }
 
-sealed class LibraryViewAction {
-    object ShowAddLibraryView : LibraryViewAction()
-    data class ShowEditLibraryView(val library: Library) : LibraryViewAction()
-    data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : LibraryViewAction()
+    sealed class Action {
+        object ShowAddLibraryView : Action()
+        data class ShowEditLibraryView(val library: Library) : Action()
+        data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : Action()
+    }
 }

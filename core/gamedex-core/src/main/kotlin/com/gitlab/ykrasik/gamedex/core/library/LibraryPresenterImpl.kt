@@ -19,7 +19,10 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.*
+import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
 import com.gitlab.ykrasik.gamedex.core.consumeEvents
@@ -39,29 +42,30 @@ class LibraryPresenterImpl @Inject constructor(
 ) : LibraryPresenter {
     override fun present() = LibraryViewModel(libraryRepository.libraries).consumeEvents { event, actions ->
         when (event) {
-            LibraryViewEvent.AddLibraryClicked ->
-                actions.send(LibraryViewAction.ShowAddLibraryView)
-            is LibraryViewEvent.AddLibraryViewClosed ->
+            LibraryViewModel.Event.AddLibraryClicked ->
+                actions.send(LibraryViewModel.Action.ShowAddLibraryView)
+            is LibraryViewModel.Event.AddLibraryViewClosed ->
                 if (event.request != null) {
                     addLibrary(event.request!!)
                 }
 
-            is LibraryViewEvent.EditLibraryClicked ->
-                actions.send(LibraryViewAction.ShowEditLibraryView(event.library))
-            is LibraryViewEvent.EditLibraryViewClosed ->
+            is LibraryViewModel.Event.EditLibraryClicked ->
+                actions.send(LibraryViewModel.Action.ShowEditLibraryView(event.library))
+            is LibraryViewModel.Event.EditLibraryViewClosed ->
                 if (event.updatedLibrary != null) {
                     replaceLibrary(event.library, event.updatedLibrary!!)
                 }
 
-            is LibraryViewEvent.DeleteLibraryClicked ->
-                actions.send(LibraryViewAction.ShowDeleteLibraryConfirmDialog(event.library, gamesToBeDeleted(event.library)))
-            is LibraryViewEvent.DeleteLibraryConfirmDialogClosed ->
+            is LibraryViewModel.Event.DeleteLibraryClicked ->
+                actions.send(LibraryViewModel.Action.ShowDeleteLibraryConfirmDialog(event.library, gamesToBeDeleted(event.library)))
+            is LibraryViewModel.Event.DeleteLibraryConfirmDialogClosed ->
                 if (event.confirm) {
                     deleteLibrary(event.library)
                 }
         }
     }
 
+    // TODO: Move these to a LibraryService.
     private suspend fun addLibrary(request: AddLibraryRequest): Library = taskRunner.runTask("Add Library", TaskType.Quick) {
         doneMessage { "Added Library: '${request.data.name}'." }
         libraryRepository.add(request)

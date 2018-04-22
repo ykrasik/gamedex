@@ -18,8 +18,6 @@ package com.gitlab.ykrasik.gamedex.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewAction
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewEvent
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
 import com.gitlab.ykrasik.gamedex.core.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -37,9 +35,12 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class LibraryScreen : PresentableGamedexScreen<LibraryViewEvent, LibraryViewAction, LibraryViewModel>(
+class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryViewModel.Action, LibraryViewModel>(
     "Libraries", Theme.Icon.hdd(), presenters.libraryPresenter::present, skipFirst = true
 ) {      // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
+
+    private val editLibraryView: EditLibraryView by inject()
+
     override fun ToolBar.constructToolbar() {
         addButton { setOnAction { addLibrary() } }
         verticalSeparator()
@@ -97,17 +98,17 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewEvent, LibraryViewActi
         }
     }
 
-    override suspend fun onAction(action: LibraryViewAction) {
+    override suspend fun onAction(action: LibraryViewModel.Action) {
         when (action) {
-            LibraryViewAction.ShowAddLibraryView -> {
-                val request = addOrEditLibrary<LibraryFragment.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
-                sendEvent(LibraryViewEvent.AddLibraryViewClosed(request))
+            LibraryViewModel.Action.ShowAddLibraryView -> {
+                val request = addOrEditLibrary<EditLibraryView.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
+                sendEvent(LibraryViewModel.Event.AddLibraryViewClosed(request))
             }
-            is LibraryViewAction.ShowEditLibraryView -> {
-                val updatedLibrary = addOrEditLibrary<LibraryFragment.Choice.EditLibrary, Library>(action.library) { it.library }
-                sendEvent(LibraryViewEvent.EditLibraryViewClosed(action.library, updatedLibrary))
+            is LibraryViewModel.Action.ShowEditLibraryView -> {
+                val updatedLibrary = addOrEditLibrary<EditLibraryView.Choice.EditLibrary, Library>(action.library) { it.library }
+                sendEvent(LibraryViewModel.Event.EditLibraryViewClosed(action.library, updatedLibrary))
             }
-            is LibraryViewAction.ShowDeleteLibraryConfirmDialog -> {
+            is LibraryViewModel.Action.ShowDeleteLibraryConfirmDialog -> {
                 val confirm = areYouSureDialog("Delete library '${action.library.name}'?") {
                     val gamesToBeDeleted = action.gamesToBeDeleted
                     if (gamesToBeDeleted.isNotEmpty()) {
@@ -115,21 +116,21 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewEvent, LibraryViewActi
                         listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
                     }
                 }
-                sendEvent(LibraryViewEvent.DeleteLibraryConfirmDialogClosed(action.library, confirm))
+                sendEvent(LibraryViewModel.Event.DeleteLibraryConfirmDialogClosed(action.library, confirm))
             }
         }
     }
 
-    private inline fun <reified T : LibraryFragment.Choice, U> addOrEditLibrary(library: Library?,
+    private inline fun <reified T : EditLibraryView.Choice, U> addOrEditLibrary(library: Library?,
                                                                                 f: (T) -> U): U? {
-        val choice = LibraryFragment(library).show()
-        if (choice === LibraryFragment.Choice.Cancel) return null
+        val choice = editLibraryView.show(library)
+        if (choice === EditLibraryView.Choice.Cancel) return null
         return f(choice as T)
     }
 
-    private fun addLibrary() = launch { sendEvent(LibraryViewEvent.AddLibraryClicked) }
-    private fun editLibrary() = launch { sendEvent(LibraryViewEvent.EditLibraryClicked(selectedLibrary)) }
-    private fun deleteLibrary() = launch { sendEvent(LibraryViewEvent.DeleteLibraryClicked(selectedLibrary)) }
+    private fun addLibrary() = launch { sendEvent(LibraryViewModel.Event.AddLibraryClicked) }
+    private fun editLibrary() = launch { sendEvent(LibraryViewModel.Event.EditLibraryClicked(selectedLibrary)) }
+    private fun deleteLibrary() = launch { sendEvent(LibraryViewModel.Event.DeleteLibraryClicked(selectedLibrary)) }
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
  */
 object AddLibraryFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        println("Result: " + LibraryFragment(library = null).show())
+        println("Result: " + EditLibraryView().show(library = null))
     }
 
     @JvmStatic fun main(args: Array<String>) {  }
