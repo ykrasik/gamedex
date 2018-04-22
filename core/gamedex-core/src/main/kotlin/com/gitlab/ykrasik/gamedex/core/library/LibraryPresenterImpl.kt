@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
@@ -45,15 +45,15 @@ class LibraryPresenterImpl @Inject constructor(
             LibraryViewModel.Event.AddLibraryClicked ->
                 actions.send(LibraryViewModel.Action.ShowAddLibraryView)
             is LibraryViewModel.Event.AddLibraryViewClosed ->
-                if (event.request != null) {
-                    addLibrary(event.request!!)
+                if (event.data != null) {
+                    addLibrary(event.data!!)
                 }
 
             is LibraryViewModel.Event.EditLibraryClicked ->
                 actions.send(LibraryViewModel.Action.ShowEditLibraryView(event.library))
             is LibraryViewModel.Event.EditLibraryViewClosed ->
-                if (event.updatedLibrary != null) {
-                    replaceLibrary(event.library, event.updatedLibrary!!)
+                event.updatedLibraryData?.let {
+                    replaceLibrary(event.library, it)
                 }
 
             is LibraryViewModel.Event.DeleteLibraryClicked ->
@@ -66,14 +66,14 @@ class LibraryPresenterImpl @Inject constructor(
     }
 
     // TODO: Move these to a LibraryService.
-    private suspend fun addLibrary(request: AddLibraryRequest): Library = taskRunner.runTask("Add Library", TaskType.Quick) {
-        doneMessage { "Added Library: '${request.data.name}'." }
-        libraryRepository.add(request)
+    private suspend fun addLibrary(data: LibraryData): Library = taskRunner.runTask("Add Library", TaskType.Quick) {
+        doneMessage { "Added Library: '${data.name}'." }
+        libraryRepository.add(data)
     }
 
-    private suspend fun replaceLibrary(source: Library, target: Library) = taskRunner.runTask("Edit Library", TaskType.Quick) {
-        doneMessage { "Updated Library: '${source.name}'." }
-        libraryRepository.replace(source, target)
+    private suspend fun replaceLibrary(library: Library, data: LibraryData) = taskRunner.runTask("Update Library", TaskType.Quick) {
+        doneMessage { "Updated Library: '${library.name}'." }
+        libraryRepository.update(library, data)
     }
 
     private fun gamesToBeDeleted(library: Library): List<Game> =

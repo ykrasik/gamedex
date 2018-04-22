@@ -33,10 +33,10 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
     }
 
     open class LibraryScope {
-        fun libraryData(platform: Platform = randomEnum(), name: String = randomName()) = LibraryData(
-            platform = platform,
-            name = name
-        )
+        fun libraryData(name: String = randomName(),
+                        path: String = randomPath(),
+                        platform: Platform = randomEnum()) =
+            LibraryData(name, path.toFile(), platform)
 
         fun givenLibrary(path: String = randomPath(),
                          platform: Platform = randomEnum(),
@@ -45,7 +45,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun insertLibrary(path: String = randomPath(),
                           platform: Platform = randomEnum(),
                           name: String = randomName()): Library =
-            persistenceService.insertLibrary(path.toFile(), libraryData(platform, name))
+            persistenceService.insertLibrary(libraryData(name, path, platform))
 
         fun fetchLibraries() = persistenceService.fetchLibraries()
     }

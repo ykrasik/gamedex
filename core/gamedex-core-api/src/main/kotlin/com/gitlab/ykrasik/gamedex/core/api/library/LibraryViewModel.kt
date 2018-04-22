@@ -16,30 +16,39 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.ViewModel
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:09
+ * Date: 15/04/2018
+ * Time: 08:10
  */
-// TODO: Hide from api module.
-interface LibraryRepository {
+data class LibraryViewModel(
     val libraries: ListObservable<Library>
+) : ViewModel<LibraryViewModel.Event, LibraryViewModel.Action>() {
 
-    operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library
+    sealed class Event {
+        object AddLibraryClicked : Event()
+        data class AddLibraryViewClosed(val data: LibraryData?) : Event()
 
-    fun add(data: LibraryData): Library
-    suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library>
+        data class EditLibraryClicked(val library: Library) : Event()
+        data class EditLibraryViewClosed(val library: Library, val updatedLibraryData: LibraryData?) : Event()
 
-    fun update(library: Library, data: LibraryData)
+        data class DeleteLibraryClicked(val library: Library) : Event()
+        data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : Event()
+    }
 
-    fun delete(library: Library)
-    fun deleteAll(libraries: List<Library>)
+    sealed class Action {
+        object ShowAddLibraryView : Action()
+        data class ShowEditLibraryView(val library: Library) : Action()
+        data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : Action()
+    }
+}
 
-    fun invalidate()
+interface LibraryPresenter {
+    fun present(): LibraryViewModel
 }

@@ -17,7 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
 import com.gitlab.ykrasik.gamedex.core.api.ViewModel
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.javafx.skipFirstTime
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.View
 
@@ -34,7 +37,7 @@ abstract class PresentableView<Event, Action, VM>(
 ) : View(title, icon) where VM : ViewModel<Event, Action> {
     private var viewModel: VM? = null
 
-    protected suspend fun sendEvent(event: Event) = viewModel!!.events.send(event)
+    protected fun sendEvent(event: Event) = viewModel!!.events.offer(event)
 
     // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
     override fun onDock() {
@@ -48,9 +51,11 @@ abstract class PresentableView<Event, Action, VM>(
     private fun present() {
         require(viewModel == null) { "$this: Already presenting!" }
         viewModel = presenter().apply {
-            onPresent()
-            consumeActions { action ->
-                onAction(action)
+            launch(uiThreadDispatcher) {
+                onPresent()
+                actions.consumeEach { action ->
+                    onAction(action)
+                }
             }
         }
     }
@@ -60,7 +65,7 @@ abstract class PresentableView<Event, Action, VM>(
         viewModel = null
     }
 
-    protected abstract fun VM.onPresent()
+    protected abstract suspend fun VM.onPresent()
 
     protected abstract suspend fun onAction(action: Action)
 }

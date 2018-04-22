@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
 import com.gitlab.ykrasik.gamedex.core.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -25,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.scene.control.ToolBar
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import tornadofx.*
 
 /**
@@ -91,7 +89,7 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryVi
         allowDeselection(onClickAgain = false)
     }
 
-    override fun LibraryViewModel.onPresent() {
+    override suspend fun LibraryViewModel.onPresent() {
         root.items = toObservableList { libraries }
         libraries.changesChannel.subscribe(JavaFx) {
             root.resizeColumnsToFitContent()
@@ -101,12 +99,12 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryVi
     override suspend fun onAction(action: LibraryViewModel.Action) {
         when (action) {
             LibraryViewModel.Action.ShowAddLibraryView -> {
-                val request = addOrEditLibrary<EditLibraryView.Choice.AddNewLibrary, AddLibraryRequest>(library = null) { it.request }
-                sendEvent(LibraryViewModel.Event.AddLibraryViewClosed(request))
+                val data = editLibraryView.show(library = null)
+                sendEvent(LibraryViewModel.Event.AddLibraryViewClosed(data))
             }
             is LibraryViewModel.Action.ShowEditLibraryView -> {
-                val updatedLibrary = addOrEditLibrary<EditLibraryView.Choice.EditLibrary, Library>(action.library) { it.library }
-                sendEvent(LibraryViewModel.Event.EditLibraryViewClosed(action.library, updatedLibrary))
+                val data = editLibraryView.show(action.library)
+                sendEvent(LibraryViewModel.Event.EditLibraryViewClosed(action.library, data))
             }
             is LibraryViewModel.Action.ShowDeleteLibraryConfirmDialog -> {
                 val confirm = areYouSureDialog("Delete library '${action.library.name}'?") {
@@ -121,16 +119,9 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryVi
         }
     }
 
-    private inline fun <reified T : EditLibraryView.Choice, U> addOrEditLibrary(library: Library?,
-                                                                                f: (T) -> U): U? {
-        val choice = editLibraryView.show(library)
-        if (choice === EditLibraryView.Choice.Cancel) return null
-        return f(choice as T)
-    }
-
-    private fun addLibrary() = launch { sendEvent(LibraryViewModel.Event.AddLibraryClicked) }
-    private fun editLibrary() = launch { sendEvent(LibraryViewModel.Event.EditLibraryClicked(selectedLibrary)) }
-    private fun deleteLibrary() = launch { sendEvent(LibraryViewModel.Event.DeleteLibraryClicked(selectedLibrary)) }
+    private fun addLibrary() = sendEvent(LibraryViewModel.Event.AddLibraryClicked)
+    private fun editLibrary() = sendEvent(LibraryViewModel.Event.EditLibraryClicked(selectedLibrary))
+    private fun deleteLibrary() = sendEvent(LibraryViewModel.Event.DeleteLibraryClicked(selectedLibrary))
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

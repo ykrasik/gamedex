@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.persistence
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.test.randomPath
-import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
 import org.h2.jdbc.JdbcSQLException
@@ -105,10 +105,10 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             }
 
             "throw an exception when trying to insert a game for a non-existing library" test {
-                val nonExistingLibrary = Library(2, "".toFile(), LibraryData(Platform.pc, ""))
+                val library = givenLibrary()
 
                 shouldThrow<JdbcSQLException> {
-                    insertGame(library = nonExistingLibrary)
+                    insertGame(library = library.copy(id = library.id + 1))
                 }
             }
         }
@@ -219,10 +219,9 @@ class GamePersistenceTest : AbstractPersistenceTest() {
 
             "throw an exception when trying to update a game to a non-existing library" test {
                 val game = givenGame()
-                val nonExistingLibrary = Library(2, "".toFile(), LibraryData(Platform.pc, ""))
 
                 shouldThrow<JdbcSQLException> {
-                    persistenceService.updateGame(game.withMetadata(randomMetadata(library = nonExistingLibrary)))
+                    persistenceService.updateGame(game.withMetadata(randomMetadata(library = library.copy(id = library.id + 1))))
                 }
             }
         }

@@ -30,10 +30,10 @@ val testProviderIds = listOf("Igdb", "GiantBomb")
 
 fun randomLibrary() = Library(
     id = rnd.nextInt(),
-    path = randomFile(),
     data = LibraryData(
-        platform = randomEnum(),
-        name = randomName()
+        name = randomName(),
+        path = randomFile(),
+        platform = randomEnum()
     )
 )
 

@@ -16,14 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.api
 
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
 import java.io.Closeable
-import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * User: ykrasik
@@ -33,7 +29,7 @@ import kotlin.coroutines.experimental.CoroutineContext
 abstract class ViewModel<Event, Action> : Closeable {
     private val onClose = mutableListOf<() -> Unit>()
 
-    val events: SendChannel<Event> = Channel()
+    val events: SendChannel<Event> = Channel(capacity = 32)
     val actions: ReceiveChannel<Action> = Channel()
 
     init {
@@ -48,12 +44,4 @@ abstract class ViewModel<Event, Action> : Closeable {
     }
 
     override fun close() = onClose.forEach { it() }
-
-    fun consumeActions(context: CoroutineContext = uiThreadDispatcher, f: suspend (action: Action) -> Unit) {
-        launch(context) {
-            actions.consumeEach { action ->
-                f(action)
-            }
-        }
-    }
 }

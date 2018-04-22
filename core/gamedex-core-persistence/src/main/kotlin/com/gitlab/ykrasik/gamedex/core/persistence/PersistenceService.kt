@@ -26,7 +26,6 @@ import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTimeZone
-import java.io.File
 import java.sql.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,7 +42,7 @@ interface PersistenceService {
     fun dropDb()
 
     fun fetchLibraries(): List<Library>
-    fun insertLibrary(path: File, data: LibraryData): Library
+    fun insertLibrary(data: LibraryData): Library
     fun updateLibrary(library: Library): Boolean
     fun deleteLibrary(id: Int): Boolean
     fun deleteLibraries(libraryIds: List<Int>): Int
@@ -88,25 +87,24 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         Libraries.selectAll().map {
             Library(
                 id = it[Libraries.id].value,
-                path = it[Libraries.path].toFile(),
-                data = it[Libraries.data].fromJson()
+                data = it[Libraries.data].fromJson<PersistedLibraryData>().toLibraryData(it[Libraries.path])
             )
         }
     }
 
-    override fun insertLibrary(path: File, data: LibraryData) = transaction {
+    override fun insertLibrary(data: LibraryData) = transaction {
         val id = Libraries.insertAndGetId {
-            it[Libraries.path] = path.toString()
-            it[Libraries.data] = data.toJsonStr()
+            it[Libraries.path] = data.path.toString()
+            it[Libraries.data] = data.toPersistedData().toJsonStr()
         }.value
 
-        Library(id, path, data)
+        Library(id, data)
     }
 
     override fun updateLibrary(library: Library) = transaction {
         Libraries.update(where = { Libraries.id.eq(library.id.toLibraryId()) }) {
             it[path] = library.path.toString()
-            it[data] = library.data.toJsonStr()
+            it[data] = library.data.toPersistedData().toJsonStr()
         } == 1
     }
 
@@ -198,4 +196,8 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
 
     private val Blob.bytes: ByteArray get() = getBytes(0, length().toInt())
     private fun ByteArray.toBlob(): Blob = SerialBlob(this)
+
+    private fun LibraryData.toPersistedData() = PersistedLibraryData(name, platform)
+    private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.toFile(), platform)
+    private data class PersistedLibraryData(val name: String, val platform: Platform)
 }

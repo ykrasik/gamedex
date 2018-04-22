@@ -29,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
@@ -74,7 +73,7 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         message1 = "Importing Libraries:"
         message2 = portableDb.libraries.size.toString()
         totalWork = portableDb.libraries.size
-        val libraries: Map<Int, Library> = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryRequest() }) { incProgress() }
+        val libraries: Map<Int, Library> = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryData() }) { incProgress() }
             .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
 
         message1 = "Importing Games:"
@@ -178,12 +177,10 @@ private data class PortableLibrary(
     val platform: String,
     val name: String
 ) {
-    fun toLibraryRequest() = AddLibraryRequest(
+    fun toLibraryData() = LibraryData(
+        name = name,
         path = path.toFile(),
-        data = LibraryData(
-            platform = Platform.valueOf(platform),
-            name = name
-        )
+        platform = Platform.valueOf(platform)
     )
 }
 

@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.test.randomFile
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
@@ -35,12 +34,10 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
     init {
         "Insert" should {
             "insert and retrieve a single library" test {
-                val path = randomFile()
                 val data = libraryData()
 
-                val library = persistenceService.insertLibrary(path, data)
+                val library = persistenceService.insertLibrary(data)
 
-                library.path shouldBe path
                 library.data shouldBe data
 
                 fetchLibraries() shouldBe listOf(library)
@@ -66,11 +63,15 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
         }
 
         "Update" should {
-            "update a library's path & data" test {
+            "update a library's data" test {
                 val library = givenLibrary(platform = Platform.pc)
                 val updatedLibrary = library.copy(
-                    path = (library.path.toString() + "a").toFile(),
-                    data = library.data.copy(platform = Platform.android, name = library.name + "b"))
+                    data = library.data.copy(
+                        name = library.name + "a",
+                        path = (library.path.toString() + "b").toFile(),
+                        platform = Platform.android
+                    )
+                )
 
                 persistenceService.updateLibrary(updatedLibrary) shouldBe true
 
@@ -89,7 +90,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 val library1 = givenLibrary()
                 val library2 = givenLibrary()
 
-                val updatedLibrary = library2.copy(path = library1.path)
+                val updatedLibrary = library2.copy(data = library2.data.copy(path = library1.path))
 
                 shouldThrow<JdbcSQLException> {
                     persistenceService.updateLibrary(updatedLibrary)

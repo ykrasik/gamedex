@@ -19,44 +19,46 @@ package com.gitlab.ykrasik.gamedex.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryViewModel
+import com.gitlab.ykrasik.gamedex.core.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.util.existsOrNull
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toFile
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
  * Date: 12/10/2016
  * Time: 10:56
  */
-class EditLibraryView : View() {
-    private val libraryRepository: LibraryRepository by di()
-    private val userConfigRepository: UserConfigRepository by di()
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
-
+class EditLibraryView : PresentableView<EditLibraryViewModel.Event, EditLibraryViewModel.Action, EditLibraryViewModel>(
+    "", null, presenters.editLibraryPresenter::present
+) {
     private val libraryProperty = SimpleObjectProperty<Library?>(null)
     private val library by libraryProperty
 
+    private val canChangePlatformProperty = SimpleBooleanProperty(false)
+    private val nameErrorProperty = SimpleStringProperty(null)
+    private val pathErrorProperty = SimpleStringProperty(null)
+
     private val model = LibraryViewModel()
-    private var accept = false
+    private var dataToReturn: LibraryData? = null
 
     override val root = borderpane {
         top {
             toolbar {
                 acceptButton {
                     enableWhen { model.valid }
-                    setOnAction { close(accept = true) }
+                    setOnAction { sendEvent(EditLibraryViewModel.Event.AcceptButtonClicked(model.toData())) }
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction { close(accept = false) }
+                    setOnAction { sendEvent(EditLibraryViewModel.Event.CancelButtonClicked) }
                 }
             }
         }
@@ -74,34 +76,29 @@ class EditLibraryView : View() {
 
     private fun Fieldset.pathField() = field("Path") {
         textfield(model.pathProperty) {
-            validator { path ->
-                when {
-                    path.isNullOrBlank() -> error("Path is required!")
-                    !path!!.toFile().isDirectory -> error("Path doesn't exist!")
-                    libraryRepository.libraries.any { it != library && it.path == path.toFile() } -> error("Path already in use!")
-                    else -> null
-                }
+            textProperty().onChange { sendEvent(EditLibraryViewModel.Event.LibraryPathChanged(model.toData(), library)) }
+            validator(ValidationTrigger.None) {
+                pathErrorProperty.value?.let { error(it) }
             }
         }
-        jfxButton("Browse", Theme.Icon.search(17.0)) { setOnAction { browse() } }
+        jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
+            setOnAction { sendEvent(EditLibraryViewModel.Event.BrowseClicked) }
+        }
     }
 
     private fun Fieldset.nameField() = field("Name") {
         textfield(model.nameProperty) {
-            validator { name ->
-                when {
-                    name.isNullOrBlank() -> error("Name is required!")
-                    libraryRepository.libraries.any { it != library && it.name == name && it.platform == model.platform } ->
-                        error("Name already in use for this platform!")
-                    else -> null
-                }
+            textProperty().onChange { sendEvent(EditLibraryViewModel.Event.LibraryNameChanged(model.toData(), library)) }
+            validator(ValidationTrigger.None) {
+                nameErrorProperty.value?.let { error(it) }
             }
         }
     }
 
     private fun Fieldset.platformField() = field("Platform") {
-        disableWhen { libraryProperty.isNotNull }
+        enableWhen { canChangePlatformProperty }
         platformComboBox(model.platformProperty)
+        model.platformProperty.onChange { sendEvent(EditLibraryViewModel.Event.LibraryPlatformChanged(model.toData(), library)) }
     }
 
     init {
@@ -110,59 +107,66 @@ class EditLibraryView : View() {
             model.path = it?.path?.toString() ?: ""
             model.name = it?.name ?: ""
             model.platform = it?.platform ?: Platform.pc
+            model.commit()
         }
-        model.platformProperty.onChange { model.validate() }
         model.validate(decorateErrors = false)
     }
 
-    override fun onDock() {
-        if (library == null) browse()
-    }
-
-    private fun browse() {
-        val directory = chooseDirectory("Browse Library Path...", initialDirectory = generalUserConfig.prevDirectory.existsOrNull())
-            ?: return
-        generalUserConfig.prevDirectory = directory
-        model.path = directory.path
-        model.name = directory.name
-    }
-
-    private fun close(accept: Boolean) {
-        this.accept = accept
-        close()
-    }
-
-    fun show(library: Library?): Choice {
-        libraryProperty.value = library
+    fun show(library: Library?): LibraryData? {
+        whenDocked {
+            // This must be done after the view is shown, to allow the viewModel to initialize.
+            libraryProperty.value = library
+        }
         openModal(block = true)
-        return if (accept && model.commit()) {
-            if (library == null) {
-                Choice.AddNewLibrary(model.toRequest())
-            } else {
-                Choice.EditLibrary(library.copy(path = model.path.toFile(), data = library.data.copy(name = model.name)))
+        return dataToReturn
+    }
+
+    override suspend fun EditLibraryViewModel.onPresent() {
+        sendEvent(EditLibraryViewModel.Event.Shown(library))
+    }
+
+    override suspend fun onAction(action: EditLibraryViewModel.Action) {
+        when (action) {
+            is EditLibraryViewModel.Action.SetCanChangePlatform -> canChangePlatformProperty.value = action.canChangePlatform
+            is EditLibraryViewModel.Action.Browse -> browse(action.initialDirectory)
+            is EditLibraryViewModel.Action.SetLibraryData -> {
+                model.name = action.data.name
+                model.path = action.data.path.toString()
+                model.platform = action.data.platform
+                model.validate()
             }
-        } else {
-            Choice.Cancel
+            is EditLibraryViewModel.Action.LibraryNameValidationResult -> {
+                nameErrorProperty.value = action.error
+                model.validate()
+            }
+            is EditLibraryViewModel.Action.LibraryPathValidationResult -> {
+                pathErrorProperty.value = action.error
+                model.validate()
+            }
+
+            is EditLibraryViewModel.Action.Close -> {
+                dataToReturn = action.data
+                close()
+            }
         }
     }
 
-    sealed class Choice {
-        data class AddNewLibrary(val request: AddLibraryRequest) : Choice()
-        data class EditLibrary(val library: Library) : Choice()
-        object Cancel : Choice()
+    private fun browse(initialDirectory: File?) {
+        val directory = chooseDirectory("Browse Library Path...", initialDirectory)
+        sendEvent(EditLibraryViewModel.Event.BrowseClosed(directory, model.toData(), library))
     }
 
     private class LibraryViewModel : ViewModel() {
-        val pathProperty = bind { SimpleStringProperty() }
+        val pathProperty = bind { SimpleStringProperty("") }
         var path by pathProperty
 
-        val nameProperty = bind { SimpleStringProperty() }
+        val nameProperty = bind { SimpleStringProperty("") }
         var name by nameProperty
 
         val platformProperty = bind { SimpleObjectProperty(Platform.pc) }
         var platform by platformProperty
 
-        fun toRequest() = AddLibraryRequest(path = path.toFile(), data = LibraryData(platform = platform, name = name))
+        fun toData() = LibraryData(name = name, path = path.toFile(), platform = platform)
 
         override fun toString() = "LibraryViewModel(name = $name, platform = $platform, path = $path)"
     }

@@ -78,6 +78,7 @@ object Theme {
         fun book(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.BURLYWOOD) }
         fun filter(size: Double = defaultIconSize) = FontAwesome.Glyph.FILTER.toGraphic { size(size) }
         fun folder(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER.toGraphic { size(size) }
+        fun folderOpen(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER_OPEN.toGraphic { size(size) }
 
         fun download(size: Double = defaultIconSize) = FontAwesome.Glyph.DOWNLOAD.toGraphic { size(size) }
         fun upload(size: Double = defaultIconSize) = FontAwesome.Glyph.UPLOAD.toGraphic { size(size) }

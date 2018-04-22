@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.library.AddLibraryRequest
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
@@ -47,16 +47,16 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
         return libraries
     }
 
-    override fun add(request: AddLibraryRequest): Library {
-        val library = persistenceService.insertLibrary(request.path, request.data)
+    override fun add(data: LibraryData): Library {
+        val library = persistenceService.insertLibrary(data)
         libraries += library
         return library
     }
 
-    override suspend fun addAll(requests: List<AddLibraryRequest>, afterEach: (Library) -> Unit): List<Library> {
-        val libraries = requests.map { request ->
+    override suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
+        val libraries = data.map { libraryData ->
             async(CommonPool) {
-                persistenceService.insertLibrary(request.path, request.data).also(afterEach)
+                persistenceService.insertLibrary(libraryData).also(afterEach)
             }
         }.map {
             it.await()
@@ -66,9 +66,10 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
         return libraries
     }
 
-    override fun replace(source: Library, target: Library) {
-        source.verifySuccess { persistenceService.updateLibrary(target) }
-        libraries.replace(source, target)
+    override fun update(library: Library, data: LibraryData) {
+        val updatedLibrary = library.copy(data = data)
+        library.verifySuccess { persistenceService.updateLibrary(updatedLibrary) }
+        libraries.replace(library, updatedLibrary)
     }
 
     override fun delete(library: Library) {

@@ -72,7 +72,7 @@ object TestApplication {
 
         val libraries = (1..5).zip(listOf(Platform.pc, Platform.android, Platform.mac, Platform.excluded, Platform.pc)).map { (i, platform) ->
             val name = "lib$i"
-            persistenceService.insertLibrary(path = randomFile(), data = LibraryData(platform, name))
+            persistenceService.insertLibrary(LibraryData(name, randomFile(), platform))
         }.filter { it.platform != Platform.excluded }
 
         val executor = Executors.newFixedThreadPool(10)

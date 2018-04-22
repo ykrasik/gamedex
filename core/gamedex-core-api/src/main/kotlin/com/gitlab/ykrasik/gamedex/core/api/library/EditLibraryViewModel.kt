@@ -16,38 +16,42 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 15/04/2018
- * Time: 08:10
+ * Date: 21/04/2018
+ * Time: 07:05
  */
-interface LibraryPresenter {
-    fun present(): LibraryViewModel
-}
-
-data class LibraryViewModel(
-    val libraries: ListObservable<Library>
-) : ViewModel<LibraryViewModel.Event, LibraryViewModel.Action>() {
-
+class EditLibraryViewModel : ViewModel<EditLibraryViewModel.Event, EditLibraryViewModel.Action>() {
     sealed class Event {
-        object AddLibraryClicked : Event()
-        data class AddLibraryViewClosed(val request: AddLibraryRequest?) : Event()
+        data class Shown(val library: Library?) : Event()
+        data class AcceptButtonClicked(val data: LibraryData) : Event()
+        object CancelButtonClicked : Event()
 
-        data class EditLibraryClicked(val library: Library) : Event()
-        data class EditLibraryViewClosed(val library: Library, val updatedLibrary: Library?) : Event()
+        object BrowseClicked : Event()
+        data class BrowseClosed(val selectedDirectory: File?, val data: LibraryData, val originalLibrary: Library?) : Event()
 
-        data class DeleteLibraryClicked(val library: Library) : Event()
-        data class DeleteLibraryConfirmDialogClosed(val library: Library, val confirm: Boolean) : Event()
+        data class LibraryNameChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
+        data class LibraryPathChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
+        data class LibraryPlatformChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
     }
 
     sealed class Action {
-        object ShowAddLibraryView : Action()
-        data class ShowEditLibraryView(val library: Library) : Action()
-        data class ShowDeleteLibraryConfirmDialog(val library: Library, val gamesToBeDeleted: List<Game>) : Action()
+        data class SetCanChangePlatform(val canChangePlatform: Boolean) : Action()
+        data class Browse(val initialDirectory: File?) : Action()
+
+        data class SetLibraryData(val data: LibraryData) : Action()
+        data class LibraryNameValidationResult(val error: String?) : Action()
+        data class LibraryPathValidationResult(val error: String?) : Action()
+
+        data class Close(val data: LibraryData?) : Action()
     }
+}
+
+interface EditLibraryPresenter {
+    fun present(): EditLibraryViewModel
 }

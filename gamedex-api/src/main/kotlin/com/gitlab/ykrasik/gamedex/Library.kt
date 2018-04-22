@@ -23,21 +23,19 @@ import java.io.File
  * Date: 25/05/2016
  * Time: 11:29
  */
-// TODO: Consider renaming this to GameSource or something, to allow for non-filesystem sources.
 data class Library(
     val id: Int,
-    val path: File,
     val data: LibraryData
 ) {
     val name get() = data.name
+    val path get() = data.path
     val platform get() = data.platform
-
-    override fun toString() = "[$platform] Library(id = $id, name = '$name', path = $path)"
 }
 
 data class LibraryData(
-    val platform: Platform,
-    val name: String
+    val name: String,
+    val path: File,
+    val platform: Platform
 )
 
 enum class Platform constructor(val displayName: String) {
