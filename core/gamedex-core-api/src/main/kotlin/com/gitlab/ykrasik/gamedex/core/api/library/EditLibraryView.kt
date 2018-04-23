@@ -18,7 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.api.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.View
 import java.io.File
 
 /**
@@ -26,32 +28,34 @@ import java.io.File
  * Date: 21/04/2018
  * Time: 07:05
  */
-class EditLibraryViewModel : ViewModel<EditLibraryViewModel.Event, EditLibraryViewModel.Action>() {
+interface EditLibraryView : View<EditLibraryView.Event> {
     sealed class Event {
         data class Shown(val library: Library?) : Event()
-        data class AcceptButtonClicked(val data: LibraryData) : Event()
+        object AcceptButtonClicked : Event()
         object CancelButtonClicked : Event()
 
         object BrowseClicked : Event()
-        data class BrowseClosed(val selectedDirectory: File?, val data: LibraryData, val originalLibrary: Library?) : Event()
+        data class BrowseClosed(val selectedDirectory: File?) : Event()
 
-        data class LibraryNameChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
-        data class LibraryPathChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
-        data class LibraryPlatformChanged(val data: LibraryData, val originalLibrary: Library?) : Event()
+        data class LibraryNameChanged(val name: String) : Event()
+        data class LibraryPathChanged(val path: String) : Event()
+        data class LibraryPlatformChanged(val platform: Platform) : Event()
     }
 
-    sealed class Action {
-        data class SetCanChangePlatform(val canChangePlatform: Boolean) : Action()
-        data class Browse(val initialDirectory: File?) : Action()
+    var canChangePlatform: Boolean
+    var canAccept: Boolean
 
-        data class SetLibraryData(val data: LibraryData) : Action()
-        data class LibraryNameValidationResult(val error: String?) : Action()
-        data class LibraryPathValidationResult(val error: String?) : Action()
+    var initialLibrary: Library?
+    var name: String
+    var path: String
+    var platform: Platform
 
-        data class Close(val data: LibraryData?) : Action()
-    }
+    var nameValidationError: String?
+    var pathValidationError: String?
+
+    fun browse(initialDirectory: File?)
+
+    fun close(data: LibraryData?)
 }
 
-interface EditLibraryPresenter {
-    fun present(): EditLibraryViewModel
-}
+interface EditLibraryPresenter : Presenter<EditLibraryView>

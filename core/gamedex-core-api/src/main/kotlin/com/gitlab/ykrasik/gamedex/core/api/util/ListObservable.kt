@@ -28,7 +28,7 @@ interface ListObservable<out T> : List<T> {
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
     private var _list: List<T> = initial
-    override val itemsChannel = BroadcastEventChannel(initial)
+    override val itemsChannel = BroadcastEventChannel.conflated(initial)
     override val changesChannel = BroadcastEventChannel<ListChangeEvent<T>>()
 
     operator fun plusAssign(t: T) = add(t)

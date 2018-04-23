@@ -16,11 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.javafx.skipFirstTime
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.channels.Channel
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.View
 
@@ -29,43 +25,14 @@ import tornadofx.View
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView<Event, Action, VM>(
-    title: String,
-    icon: Glyph?,
-    private val presenter: () -> VM,
-    private val skipFirst: Boolean = false
-) : View(title, icon) where VM : ViewModel<Event, Action> {
-    private var viewModel: VM? = null
+abstract class PresentableView<E>(title: String, icon: Glyph?, present: () -> Unit) :
+    View(title, icon), com.gitlab.ykrasik.gamedex.core.api.View<E> {
 
-    protected fun sendEvent(event: Event) = viewModel!!.events.offer(event)
+    override val events = Channel<E>(capacity = 32)
 
-    // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
-    override fun onDock() {
-        if (skipFirst) {
-            skipFirstTime(this::present)
-        } else {
-            present()
-        }
+    init {
+        present()
     }
 
-    private fun present() {
-        require(viewModel == null) { "$this: Already presenting!" }
-        viewModel = presenter().apply {
-            launch(uiThreadDispatcher) {
-                onPresent()
-                actions.consumeEach { action ->
-                    onAction(action)
-                }
-            }
-        }
-    }
-
-    override fun onUndock() {
-        viewModel!!.close()
-        viewModel = null
-    }
-
-    protected abstract suspend fun VM.onPresent()
-
-    protected abstract suspend fun onAction(action: Action)
+    protected fun sendEvent(event: E) = events.offer(event)
 }

@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
 import com.gitlab.ykrasik.gamedex.core.api.util.*
 import io.reactivex.Observable
 import javafx.beans.property.BooleanProperty
@@ -49,28 +48,21 @@ fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
     return list
 }
 
-// TODO: Is this deprecated? Should this only be allowed using a viewModel?
-fun <T> ListObservable<T>.toObservableList(): ObservableList<T> {
-    val (list, subscription) = subscribe()
+// TODO: Cache and re-use the result?
+fun <T> ListObservable<T>.toObservableList(list: ObservableList<T> = FXCollections.observableArrayList()): ObservableList<T> {
+    list.setAll(this)
+    val subscription = subscribe(list)
     require(observableListSubscriptions.put(list, subscription) == null) { "ObservableList already subscribed: $list" }
     return list
 }
 
 fun ObservableList<*>.dispose() {
-    val subscription = requireNotNull(observableListSubscriptions.remove(this)) { "ObservableList is missing subscription: $this"}
+    val subscription = requireNotNull(observableListSubscriptions.remove(this)) { "ObservableList is missing subscription: $this" }
     subscription.close()
 }
 
-fun <VM : ViewModel<*, *>, T> VM.toObservableList(f: VM.() -> ListObservable<T>): ObservableList<T> {
-    val listObservable = f()
-    val (list, subscription) = listObservable.subscribe()
-    onClose { subscription.close() }
-    return list
-}
-
-private fun <T> ListObservable<T>.subscribe(): Pair<ObservableList<T>, SubscriptionReceiveChannel<ListChangeEvent<T>>> {
-    val list = FXCollections.observableArrayList(this)
-    val subscription = changesChannel.subscribe(JavaFx) { event ->
+private fun <T> ListObservable<T>.subscribe(list: ObservableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
+    changesChannel.subscribe(JavaFx) { event ->
         when (event) {
             is ListItemAddedEvent -> list += event.item
             is ListItemsAddedEvent -> list += event.items
@@ -80,8 +72,6 @@ private fun <T> ListObservable<T>.subscribe(): Pair<ObservableList<T>, Subscript
             is ListItemsSetEvent -> list.setAll(event.items)
         }
     }
-    return list to subscription
-}
 
 // TODO: I think this can all be done using objectBinding.
 /*******************************************************************************************************

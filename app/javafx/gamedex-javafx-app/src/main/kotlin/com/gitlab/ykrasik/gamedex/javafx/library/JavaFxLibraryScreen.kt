@@ -16,14 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.core.api.presenters
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.scene.control.ToolBar
-import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 
 /**
@@ -33,11 +36,25 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryViewModel.Action, LibraryViewModel>(
-    "Libraries", Theme.Icon.hdd(), presenters.libraryPresenter::present, skipFirst = true
-) {      // This is first called when the mainView is loaded (even though this view isn't shown) - skip first time.
+class JavaFxLibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView {
+    private val editLibraryView: JavaFxEditLibraryView by inject()
 
-    private val editLibraryView: EditLibraryView by inject()
+    override val events = Channel<LibraryView.Event>(32)
+    override var libraries: ListObservable<Library> = ListObservableImpl()
+        set(value) {
+            field = value
+            value.toObservableList(observableLibraries)
+        }
+    private val observableLibraries = mutableListOf<Library>().observable()
+
+    init {
+        presenters.libraryPresenter.present(this)
+
+        observableLibraries.onChange {
+            root.resizeColumnsToFitContent()
+        }
+        sendEvent(LibraryView.Event.Init)
+    }
 
     override fun ToolBar.constructToolbar() {
         addButton { setOnAction { addLibrary() } }
@@ -55,7 +72,7 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryVi
         }
     }
 
-    override val root = tableview<Library> {
+    override val root = tableview(observableLibraries) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
@@ -89,39 +106,23 @@ class LibraryScreen : PresentableGamedexScreen<LibraryViewModel.Event, LibraryVi
         allowDeselection(onClickAgain = false)
     }
 
-    override suspend fun LibraryViewModel.onPresent() {
-        root.items = toObservableList { libraries }
-        libraries.changesChannel.subscribe(JavaFx) {
-            root.resizeColumnsToFitContent()
-        }
-    }
+    override fun showAddLibraryView() = editLibraryView.show(library = null)
 
-    override suspend fun onAction(action: LibraryViewModel.Action) {
-        when (action) {
-            LibraryViewModel.Action.ShowAddLibraryView -> {
-                val data = editLibraryView.show(library = null)
-                sendEvent(LibraryViewModel.Event.AddLibraryViewClosed(data))
-            }
-            is LibraryViewModel.Action.ShowEditLibraryView -> {
-                val data = editLibraryView.show(action.library)
-                sendEvent(LibraryViewModel.Event.EditLibraryViewClosed(action.library, data))
-            }
-            is LibraryViewModel.Action.ShowDeleteLibraryConfirmDialog -> {
-                val confirm = areYouSureDialog("Delete library '${action.library.name}'?") {
-                    val gamesToBeDeleted = action.gamesToBeDeleted
-                    if (gamesToBeDeleted.isNotEmpty()) {
-                        label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                        listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
-                    }
-                }
-                sendEvent(LibraryViewModel.Event.DeleteLibraryConfirmDialogClosed(action.library, confirm))
+    override fun showEditLibraryView(library: Library) = editLibraryView.show(library)
+
+    override fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>) =
+        areYouSureDialog("Delete library '${library.name}'?") {
+            if (gamesToBeDeleted.isNotEmpty()) {
+                label("The following ${gamesToBeDeleted.size} games will also be deleted:")
+                listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
             }
         }
-    }
 
-    private fun addLibrary() = sendEvent(LibraryViewModel.Event.AddLibraryClicked)
-    private fun editLibrary() = sendEvent(LibraryViewModel.Event.EditLibraryClicked(selectedLibrary))
-    private fun deleteLibrary() = sendEvent(LibraryViewModel.Event.DeleteLibraryClicked(selectedLibrary))
+    private fun addLibrary() = sendEvent(LibraryView.Event.AddLibraryClicked)
+    private fun editLibrary() = sendEvent(LibraryView.Event.EditLibraryClicked(selectedLibrary))
+    private fun deleteLibrary() = sendEvent(LibraryView.Event.DeleteLibraryClicked(selectedLibrary))
 
     private val selectedLibrary: Library get() = root.selectedItem!!
+
+    private fun sendEvent(event: LibraryView.Event) = events.offer(event)
 }

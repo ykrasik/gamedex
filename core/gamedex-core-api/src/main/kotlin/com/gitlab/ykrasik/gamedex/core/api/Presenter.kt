@@ -14,27 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.api
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
-import kotlinx.coroutines.experimental.CommonPool
+import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SendChannel
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
-import kotlin.coroutines.experimental.CoroutineContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 20/04/2018
- * Time: 09:28
+ * Date: 21/04/2018
+ * Time: 16:55
  */
-@Suppress("UNCHECKED_CAST")
-fun <Event, Action, VM : ViewModel<Event, Action>> VM.consumeEvents(context: CoroutineContext = CommonPool,
-                                                                    f: suspend (event: Event, actions: SendChannel<Action>) -> Unit) = apply {
-    launch(context) {
-        (events as ReceiveChannel<Event>).consumeEach { event ->
-            f(event, actions as SendChannel<Action>)
-        }
-    }
+interface Presenter<V : View<*>> {
+    fun present(view: V)
 }
+
+interface View<Event> {
+    val events: ReceiveChannel<Event>
+}
+
+// This value is set after pre-loading is complete.
+var presenters: Presenters by InitOnceGlobal()
+
+@Singleton
+class Presenters @Inject constructor(
+    val libraryPresenter: LibraryPresenter,
+    val editLibraryPresenter: EditLibraryPresenter
+)

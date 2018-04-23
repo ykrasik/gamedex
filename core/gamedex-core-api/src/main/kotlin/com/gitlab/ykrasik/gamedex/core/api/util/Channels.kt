@@ -53,8 +53,14 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
     fun close() = channel.close()
 
     companion object {
-        operator fun <T> invoke(initial: T): BroadcastEventChannel<T> =
+        fun <T> conflated(initial: T): BroadcastEventChannel<T> =
             BroadcastEventChannel<T>(Channel.CONFLATED).apply { offer(initial) }
+    }
+}
+
+fun <T> ReceiveChannel<T>.launchConsumeEach(context: CoroutineContext = CommonPool, f: suspend (T) -> Unit) = launch(context) {
+    consumeEach {
+        f(it)
     }
 }
 

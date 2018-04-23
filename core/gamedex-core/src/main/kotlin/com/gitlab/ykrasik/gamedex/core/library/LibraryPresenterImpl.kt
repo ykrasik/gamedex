@@ -16,16 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.core.library
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryViewModel
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
-import com.gitlab.ykrasik.gamedex.core.consumeEvents
+import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import com.gitlab.ykrasik.gamedex.util.InitOnce
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,28 +41,47 @@ class LibraryPresenterImpl @Inject constructor(
     private val gameRepository: GameRepository,
     private val taskRunner: TaskRunner
 ) : LibraryPresenter {
-    override fun present() = LibraryViewModel(libraryRepository.libraries).consumeEvents { event, actions ->
-        when (event) {
-            LibraryViewModel.Event.AddLibraryClicked ->
-                actions.send(LibraryViewModel.Action.ShowAddLibraryView)
-            is LibraryViewModel.Event.AddLibraryViewClosed ->
-                if (event.data != null) {
-                    addLibrary(event.data!!)
-                }
+    private var view: LibraryView by InitOnce()
+    
+    override fun present(view: LibraryView) {
+        this.view = view
+        view.events.launchConsumeEach(uiThreadDispatcher) { event ->
+            try {
+                when (event) {
+                    is LibraryView.Event.Init -> handleInit()
 
-            is LibraryViewModel.Event.EditLibraryClicked ->
-                actions.send(LibraryViewModel.Action.ShowEditLibraryView(event.library))
-            is LibraryViewModel.Event.EditLibraryViewClosed ->
-                event.updatedLibraryData?.let {
-                    replaceLibrary(event.library, it)
+                    LibraryView.Event.AddLibraryClicked -> handleAddLibraryClicked()
+                    is LibraryView.Event.EditLibraryClicked -> handleEditLibraryClicked(event.library)
+                    is LibraryView.Event.DeleteLibraryClicked -> handleDeleteLibraryClicked(event.library)
                 }
+            } catch (e: Exception) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
+            }
+        }
+    }
 
-            is LibraryViewModel.Event.DeleteLibraryClicked ->
-                actions.send(LibraryViewModel.Action.ShowDeleteLibraryConfirmDialog(event.library, gamesToBeDeleted(event.library)))
-            is LibraryViewModel.Event.DeleteLibraryConfirmDialogClosed ->
-                if (event.confirm) {
-                    deleteLibrary(event.library)
-                }
+    private fun handleInit() {
+        view.libraries = libraryRepository.libraries
+    }
+
+    private suspend fun handleAddLibraryClicked() {
+        val data = view.showAddLibraryView()
+        if (data != null) {
+            addLibrary(data)
+        }
+    }
+
+    private suspend fun handleEditLibraryClicked(library: Library) {
+        val data = view.showEditLibraryView(library)
+        if (data != null) {
+            replaceLibrary(library, data)
+        }
+    }
+
+    private suspend fun handleDeleteLibraryClicked(library: Library) {
+        val gamesToBeDeleted = gameRepository.games.filter { it.library.id == library.id }
+        if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
+            deleteLibrary(library)
         }
     }
 
@@ -75,9 +95,6 @@ class LibraryPresenterImpl @Inject constructor(
         doneMessage { "Updated Library: '${library.name}'." }
         libraryRepository.update(library, data)
     }
-
-    private fun gamesToBeDeleted(library: Library): List<Game> =
-        gameRepository.games.filter { it.library.id == library.id }
 
     private suspend fun deleteLibrary(library: Library) = taskRunner.runTask("Delete Library", TaskType.Quick) {
         doneMessage { "Deleted Library: '${library.name}'." }

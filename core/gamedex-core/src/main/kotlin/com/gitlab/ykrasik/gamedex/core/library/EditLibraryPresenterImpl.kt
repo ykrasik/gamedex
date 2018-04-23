@@ -20,13 +20,15 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryViewModel
+import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.consumeEvents
+import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.util.InitOnce
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
-import kotlinx.coroutines.experimental.channels.SendChannel
+import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,63 +45,108 @@ class EditLibraryPresenterImpl @Inject constructor(
 ) : EditLibraryPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    override fun present() = EditLibraryViewModel().consumeEvents { event, actions ->
-        when (event) {
-            is EditLibraryViewModel.Event.Shown -> {
-                actions.send(EditLibraryViewModel.Action.SetCanChangePlatform(event.library == null))
-                val data = if (event.library == null) LibraryData(name = "", path = File(""), platform = Platform.pc) else event.library!!.data
-                actions.send(EditLibraryViewModel.Action.SetLibraryData(data))
-                if (event.library == null) browse(actions)
-            }
+    private var view: EditLibraryView by InitOnce()
 
-            EditLibraryViewModel.Event.BrowseClicked -> browse(actions)
-            is EditLibraryViewModel.Event.BrowseClosed -> event.selectedDirectory?.let {
-                generalUserConfig.prevDirectory = it
-                val name = event.originalLibrary?.name ?: it.name
-                val data = event.data.copy(name = name, path = it)
-                actions.send(EditLibraryViewModel.Action.SetLibraryData(data))
-                validateData(event.data, event.originalLibrary, actions)
-            }
+    override fun present(view: EditLibraryView) {
+        this.view = view
+        view.events.launchConsumeEach(uiThreadDispatcher) { event ->
+            try {
+                when (event) {
+                    is EditLibraryView.Event.Shown -> handleShown(event.library)
+                    EditLibraryView.Event.AcceptButtonClicked -> handleAcceptClicked()
+                    EditLibraryView.Event.CancelButtonClicked -> handleCancelClicked()
 
-            is EditLibraryViewModel.Event.LibraryNameChanged -> validateName(event.data, event.originalLibrary, actions)
-            is EditLibraryViewModel.Event.LibraryPathChanged -> validatePath(event.data, event.originalLibrary, actions)
-            is EditLibraryViewModel.Event.LibraryPlatformChanged -> {
-                check(event.originalLibrary == null) { "Changing library platform for an existing library is not allowed: ${event.originalLibrary}"}
-                validateData(event.data, event.originalLibrary, actions)
+                    EditLibraryView.Event.BrowseClicked -> browse()
+                    is EditLibraryView.Event.BrowseClosed -> handleBrowseClosed(event.selectedDirectory)
+
+                    is EditLibraryView.Event.LibraryNameChanged -> handleNameChanged()
+                    is EditLibraryView.Event.LibraryPathChanged -> handlePathChanged()
+                    is EditLibraryView.Event.LibraryPlatformChanged -> handlePlatformChanged()
+                }
+            } catch (e: Exception) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
             }
-            
-            is EditLibraryViewModel.Event.AcceptButtonClicked -> actions.send(EditLibraryViewModel.Action.Close(event.data))
-            is EditLibraryViewModel.Event.CancelButtonClicked -> actions.send(EditLibraryViewModel.Action.Close(null))
         }
     }
 
-    private suspend fun validateData(data: LibraryData, originalLibrary: Library?, actions: SendChannel<EditLibraryViewModel.Action>) {
-        validateName(data, originalLibrary, actions)
-        validatePath(data, originalLibrary, actions)
+    private fun handleShown(library: Library?) {
+        view.initialLibrary = library
+        view.canChangePlatform = library == null
+        view.name = library?.name ?: ""
+        view.path = library?.path?.toString() ?: ""
+        view.platform = library?.platform ?: Platform.pc
+        view.nameValidationError = null
+        view.pathValidationError = null
+        if (library == null) {
+            browse()
+        }
     }
 
-    private suspend fun validateName(data: LibraryData, originalLibrary: Library?, actions: SendChannel<EditLibraryViewModel.Action>) {
-        val error = when {
-            data.name.isEmpty() -> "Name is required!"
-            libraryRepository.libraries.any { it != originalLibrary && it.name == data.name && it.platform == data.platform } ->
+    private fun handleAcceptClicked() {
+        check(view.canAccept) { "Cannot accept invalid state!" }
+        view.close(LibraryData(name = view.name, path = view.path.toFile(), platform = view.platform))
+    }
+
+    private fun handleCancelClicked() {
+        view.close(data = null)
+    }
+
+    private fun browse() {
+        val initialDirectory = generalUserConfig.prevDirectory.existsOrNull()
+        view.browse(initialDirectory)
+    }
+
+    private fun handleBrowseClosed(selectedDirectory: File?) {
+        if (selectedDirectory != null) {
+            generalUserConfig.prevDirectory = selectedDirectory
+            view.path = selectedDirectory.toString()
+            if (view.name.isEmpty()) {
+                view.name = selectedDirectory.name
+            }
+            validateData()
+        }
+    }
+
+    private fun handleNameChanged() {
+        validateName()
+        checkValid()
+    }
+
+    private fun handlePathChanged() {
+        validatePath()
+        checkValid()
+    }
+
+    private fun handlePlatformChanged() {
+        check(view.platform == view.initialLibrary?.platform || view.canChangePlatform) { "Changing library platform for an existing library is not allowed: ${view.initialLibrary}" }
+        validateData()
+    }
+
+    private fun validateData() {
+        validateName()
+        validatePath()
+        checkValid()
+    }
+
+    private fun validateName() {
+        view.nameValidationError = when {
+            view.name.isEmpty() -> "Name is required!"
+            libraryRepository.libraries.any { it != view.initialLibrary && it.name == view.name && it.platform == view.platform } ->
                 "Name already in use for this platform!"
             else -> null
         }
-        actions.send(EditLibraryViewModel.Action.LibraryNameValidationResult(error))
     }
 
-    private suspend fun validatePath(data: LibraryData, originalLibrary: Library?, actions: SendChannel<EditLibraryViewModel.Action>) {
-        val error = when {
-            data.path.toString().isEmpty() -> "Path is required!"
-            !data.path.isDirectory -> "Path doesn't exist!"
-            libraryRepository.libraries.any { it != originalLibrary && it.path == data.path } -> "Path already in use!"
+    private fun validatePath() {
+        view.pathValidationError = when {
+            view.path.isEmpty() -> "Path is required!"
+            !view.path.toFile().isDirectory -> "Path doesn't exist!"
+            libraryRepository.libraries.any { it != view.initialLibrary && it.path == view.path.toFile() } -> "Path already in use!"
             else -> null
         }
-        actions.send(EditLibraryViewModel.Action.LibraryPathValidationResult(error))
     }
 
-    private suspend fun browse(actions: SendChannel<EditLibraryViewModel.Action>) {
-        val initialDirectory = generalUserConfig.prevDirectory.existsOrNull()
-        actions.send(EditLibraryViewModel.Action.Browse(initialDirectory))
+    private fun checkValid() {
+        view.canAccept = view.nameValidationError == null && view.pathValidationError == null
     }
 }

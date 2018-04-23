@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.core.api.ViewModel
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.ToolBar
 import org.controlsfx.glyphfont.Glyph
@@ -37,12 +36,9 @@ abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
 }
 
 // FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen<Event, Action, VM : ViewModel<Event, Action>>(
-    title: String,
-    icon: Glyph?,
-    presenter: () -> VM,
-    skipFirst: Boolean = false
-) : PresentableView<Event, Action, VM>(title, icon, presenter, skipFirst) {
+abstract class PresentableGamedexScreen<E>(
+    title: String, icon: Glyph?, present: () -> Unit
+) : PresentableView<E>(title, icon, present) {
     abstract fun ToolBar.constructToolbar()
 
     open val useDefaultNavigationButton: Boolean = true
