@@ -14,34 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.general
+package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import com.gitlab.ykrasik.gamedex.core.api.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.View
+import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import com.gitlab.ykrasik.gamedex.util.InitOnce
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 18:17
+ * Date: 24/04/2018
+ * Time: 08:17
  */
-// TODO: This is almost a presenter, lacks some integration with ui dialogs.
-interface GeneralSettingsPresenter {
-    suspend fun importDatabase(file: File)
-    suspend fun exportDatabase(file: File)
+abstract class BasePresenter<E, V : View<E>> : Presenter<V> {
+    protected var view: V by InitOnce()
 
-    suspend fun detectStaleData(): StaleData
-    suspend fun deleteStaleData(staleData: StaleData)
+    override fun present(view: V) {
+        this.view = view
+        initView(view)
+        view.events.launchConsumeEach(uiThreadDispatcher) {
+            handleEvent(it)
+        }
+    }
 
-    suspend fun deleteAllUserData()
-}
-
-data class StaleData(
-    val libraries: List<Library>,
-    val games: List<Game>,
-    val images: List<Pair<String, FileSize>>
-) {
-    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty()
-    val staleImagesSize = images.fold(FileSize(0)) { acc, next -> acc + next.second }
+    protected abstract fun initView(view: V)
+    protected abstract suspend fun handleEvent(event: E)
 }

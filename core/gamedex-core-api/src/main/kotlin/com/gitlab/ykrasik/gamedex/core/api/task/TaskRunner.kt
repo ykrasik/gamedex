@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.task
 
+import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
+
 /**
  * User: ykrasik
  * Date: 05/04/2018
@@ -30,4 +32,6 @@ interface TaskRunner {
                             errorHandler: (Exception) -> Unit = Task.Companion::defaultErrorHandler,
                             run: suspend Task<*>.() -> T) =
         runTask(Task(title, type, errorHandler, run))
+
+    val currentlyRunningTaskChannel: BroadcastEventChannel<ReadOnlyTask<*>?>
 }

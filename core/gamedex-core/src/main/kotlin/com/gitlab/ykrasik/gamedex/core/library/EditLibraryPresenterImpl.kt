@@ -29,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.InitOnce
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,9 +54,7 @@ class EditLibraryPresenterImpl @Inject constructor(
                     is EditLibraryView.Event.Shown -> handleShown(event.library)
                     EditLibraryView.Event.AcceptButtonClicked -> handleAcceptClicked()
                     EditLibraryView.Event.CancelButtonClicked -> handleCancelClicked()
-
-                    EditLibraryView.Event.BrowseClicked -> browse()
-                    is EditLibraryView.Event.BrowseClosed -> handleBrowseClosed(event.selectedDirectory)
+                    EditLibraryView.Event.BrowseClicked -> selectDirectory()
 
                     is EditLibraryView.Event.LibraryNameChanged -> handleNameChanged()
                     is EditLibraryView.Event.LibraryPathChanged -> handlePathChanged()
@@ -78,7 +75,7 @@ class EditLibraryPresenterImpl @Inject constructor(
         view.nameValidationError = null
         view.pathValidationError = null
         if (library == null) {
-            browse()
+            selectDirectory()
         }
     }
 
@@ -91,20 +88,15 @@ class EditLibraryPresenterImpl @Inject constructor(
         view.close(data = null)
     }
 
-    private fun browse() {
+    private fun selectDirectory() {
         val initialDirectory = generalUserConfig.prevDirectory.existsOrNull()
-        view.browse(initialDirectory)
-    }
-
-    private fun handleBrowseClosed(selectedDirectory: File?) {
-        if (selectedDirectory != null) {
-            generalUserConfig.prevDirectory = selectedDirectory
-            view.path = selectedDirectory.toString()
-            if (view.name.isEmpty()) {
-                view.name = selectedDirectory.name
-            }
-            validateData()
+        val selectedDirectory = view.selectDirectory(initialDirectory) ?: return
+        generalUserConfig.prevDirectory = selectedDirectory
+        view.path = selectedDirectory.toString()
+        if (view.name.isEmpty()) {
+            view.name = selectedDirectory.name
         }
+        validateData()
     }
 
     private fun handleNameChanged() {

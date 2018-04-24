@@ -16,20 +16,24 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.core.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
+import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.core.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.toObservableValue
+import com.gitlab.ykrasik.gamedex.util.browse
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.GridPane
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
@@ -37,13 +41,14 @@ import tornadofx.*
  * Time: 14:57
  */
 class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()), GeneralSettingsView {
-    override val canRunTask = conflatedChannel<Boolean>()
-    private val canRunTaskObservable = canRunTask.toObservableValue(true)
+    override val events = Channel<GeneralSettingsView.Event>(32)
 
-    override val exportDatabaseEvents = BroadcastEventChannel<Unit>()
-    override val importDatabaseEvents = BroadcastEventChannel<Unit>()
-    override val clearUserDataEvents = BroadcastEventChannel<Unit>()
-    override val cleanupDbEvents = BroadcastEventChannel<Unit>()
+    private val canRunTaskProperty = SimpleBooleanProperty(false)
+    override var canRunTask by canRunTaskProperty
+
+    init {
+        presenters.generalSettingsPresenter.present(this)
+    }
 
     override val root = vbox {
         group("Database") {
@@ -52,8 +57,8 @@ class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskObservable }
-                    setOnAction { launch { exportDatabaseEvents.send(Unit) } }
+                    enableWhen { canRunTaskProperty }
+                    setOnAction { sendEvent(GeneralSettingsView.Event.ExportDatabaseClicked) }
                 }
             }
             row {
@@ -61,8 +66,8 @@ class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskObservable }
-                    setOnAction { launch { importDatabaseEvents.send(Unit) } }
+                    enableWhen { canRunTaskProperty }
+                    setOnAction { sendEvent(GeneralSettingsView.Event.ImportDatabaseClicked) }
                 }
             }
             row {
@@ -74,8 +79,8 @@ class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    enableWhen { canRunTaskObservable }
-                    setOnAction { launch { clearUserDataEvents.send(Unit) } }
+                    enableWhen { canRunTaskProperty }
+                    setOnAction { sendEvent(GeneralSettingsView.Event.ClearUserDataClicked) }
                 }
             }
             row {
@@ -83,8 +88,8 @@ class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskObservable }
-                    setOnAction { launch { cleanupDbEvents.send(Unit) } }
+                    enableWhen { canRunTaskProperty }
+                    setOnAction { sendEvent(GeneralSettingsView.Event.CleanupDbClicked) }
                 }
             }
         }
@@ -98,6 +103,42 @@ class JavaFxGeneralSettingsView : View("General Settings", Theme.Icon.settings()
             op()
         }
     }
+
+    override fun selectDatabaseExportDirectory(initialDirectory: File?) =
+        chooseDirectory("Select Database Export Folder...", initialDirectory)
+
+    override fun selectDatabaseImportFile(initialDirectory: File?) =
+        chooseFile("Select Database File...", filters = emptyArray()) {
+            this@chooseFile.initialDirectory = initialDirectory
+//            initialFileName = "db.json"
+        }.firstOrNull()
+
+    override fun browseDirectory(directory: File) = browse(directory)
+
+    override fun confirmImportDatabase() = areYouSureDialog("This will overwrite the existing database.")
+
+    override fun confirmClearUserData() = areYouSureDialog("Clear game user data?") {
+        text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.") {
+            wrappingWidth = 400.0
+        }
+    }
+
+    override fun confirmDeleteStaleData(staleData: StaleData) = areYouSureDialog("Delete the following stale data?") {
+        if (staleData.libraries.isNotEmpty()) {
+            label("Stale Libraries: ${staleData.libraries.size}")
+            listview(staleData.libraries.map { it.path }.observable()) { fitAtMost(5) }
+        }
+        if (staleData.games.isNotEmpty()) {
+            label("Stale Games: ${staleData.games.size}")
+            listview(staleData.games.map { it.path }.observable()) { fitAtMost(5) }
+        }
+        if (staleData.images.isNotEmpty()) {
+            label("Stale Images: ${staleData.images.size} (${staleData.staleImagesSize})")
+            listview(staleData.images.map { it.first }.observable()) { fitAtMost(5) }
+        }
+    }
+
+    private fun sendEvent(event: GeneralSettingsView.Event) = events.offer(event)
 
     class Style : Stylesheet() {
         companion object {

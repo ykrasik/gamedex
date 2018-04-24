@@ -42,14 +42,13 @@ class LibraryPresenterImpl @Inject constructor(
     private val taskRunner: TaskRunner
 ) : LibraryPresenter {
     private var view: LibraryView by InitOnce()
-    
+
     override fun present(view: LibraryView) {
         this.view = view
+        initView()
         view.events.launchConsumeEach(uiThreadDispatcher) { event ->
             try {
                 when (event) {
-                    is LibraryView.Event.Init -> handleInit()
-
                     LibraryView.Event.AddLibraryClicked -> handleAddLibraryClicked()
                     is LibraryView.Event.EditLibraryClicked -> handleEditLibraryClicked(event.library)
                     is LibraryView.Event.DeleteLibraryClicked -> handleDeleteLibraryClicked(event.library)
@@ -60,7 +59,7 @@ class LibraryPresenterImpl @Inject constructor(
         }
     }
 
-    private fun handleInit() {
+    private fun initView() {
         view.libraries = libraryRepository.libraries
     }
 

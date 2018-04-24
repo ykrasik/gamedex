@@ -70,10 +70,10 @@ object CoreModule : AbstractModule() {
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
-        bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
 
         bind(LibraryPresenter::class.java).to(LibraryPresenterImpl::class.java)
         bind(EditLibraryPresenter::class.java).to(EditLibraryPresenterImpl::class.java)
+        bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameUserConfig::class.java)

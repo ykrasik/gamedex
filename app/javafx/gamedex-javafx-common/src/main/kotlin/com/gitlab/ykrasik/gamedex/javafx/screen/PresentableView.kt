@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
+import com.gitlab.ykrasik.gamedex.core.api.Presenter
 import kotlinx.coroutines.experimental.channels.Channel
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.View
@@ -25,13 +26,13 @@ import tornadofx.View
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView<E>(title: String, icon: Glyph?, present: () -> Unit) :
+abstract class PresentableView<E>(title: String, icon: Glyph?, presenter: Presenter<com.gitlab.ykrasik.gamedex.core.api.View<E>>) :
     View(title, icon), com.gitlab.ykrasik.gamedex.core.api.View<E> {
 
     override val events = Channel<E>(capacity = 32)
 
     init {
-        present()
+        presenter.present(this)
     }
 
     protected fun sendEvent(event: E) = events.offer(event)

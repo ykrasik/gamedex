@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.api
 
+import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
@@ -42,5 +43,6 @@ var presenters: Presenters by InitOnceGlobal()
 @Singleton
 class Presenters @Inject constructor(
     val libraryPresenter: LibraryPresenter,
-    val editLibraryPresenter: EditLibraryPresenter
+    val editLibraryPresenter: EditLibraryPresenter,
+    val generalSettingsPresenter: GeneralSettingsPresenter
 )

@@ -33,9 +33,7 @@ interface EditLibraryView : View<EditLibraryView.Event> {
         data class Shown(val library: Library?) : Event()
         object AcceptButtonClicked : Event()
         object CancelButtonClicked : Event()
-
         object BrowseClicked : Event()
-        data class BrowseClosed(val selectedDirectory: File?) : Event()
 
         data class LibraryNameChanged(val name: String) : Event()
         data class LibraryPathChanged(val path: String) : Event()
@@ -53,7 +51,7 @@ interface EditLibraryView : View<EditLibraryView.Event> {
     var nameValidationError: String?
     var pathValidationError: String?
 
-    fun browse(initialDirectory: File?)
+    fun selectDirectory(initialDirectory: File?): File?
 
     fun close(data: LibraryData?)
 }

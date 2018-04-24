@@ -26,7 +26,6 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
@@ -37,24 +36,35 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.toDateTime
 import com.gitlab.ykrasik.gamedex.util.toFile
+import com.google.inject.ImplementedBy
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-
 
 /**
  * User: ykrasik
  * Date: 01/04/2018
  * Time: 18:11
  */
+@ImplementedBy(GeneralSettingsServiceImpl::class)
+interface GeneralSettingsService {
+    suspend fun importDatabase(file: File)
+    suspend fun exportDatabase(file: File)
+
+    suspend fun detectStaleData(): StaleData
+    suspend fun deleteStaleData(staleData: StaleData)
+
+    suspend fun deleteAllUserData()
+}
+
 @Singleton
-class GeneralSettingsPresenterImpl @Inject constructor(
+class GeneralSettingsServiceImpl @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
     private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService,
     private val taskRunner: TaskRunner
-) : GeneralSettingsPresenter {
+) : GeneralSettingsService {
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .registerModule(JodaModule())

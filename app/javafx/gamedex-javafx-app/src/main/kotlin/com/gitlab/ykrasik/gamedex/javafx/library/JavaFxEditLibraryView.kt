@@ -134,10 +134,7 @@ class JavaFxEditLibraryView : View("", null), EditLibraryView {
         close()
     }
 
-    override fun browse(initialDirectory: File?) {
-        val directory = chooseDirectory("Browse Library Path...", initialDirectory)
-        sendEvent(EditLibraryView.Event.BrowseClosed(directory))
-    }
+    override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 
     private fun sendEvent(event: EditLibraryView.Event) = events.offer(event)
 

@@ -30,8 +30,6 @@ import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
  */
 interface LibraryView : View<LibraryView.Event> {
     sealed class Event {
-        object Init : Event()
-
         object AddLibraryClicked : Event()
         data class EditLibraryClicked(val library: Library) : Event()
         data class DeleteLibraryClicked(val library: Library) : Event()

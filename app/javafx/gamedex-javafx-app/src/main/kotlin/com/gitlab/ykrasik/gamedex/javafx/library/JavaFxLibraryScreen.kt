@@ -53,7 +53,6 @@ class JavaFxLibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), Librar
         observableLibraries.onChange {
             root.resizeColumnsToFitContent()
         }
-        sendEvent(LibraryView.Event.Init)
     }
 
     override fun ToolBar.constructToolbar() {

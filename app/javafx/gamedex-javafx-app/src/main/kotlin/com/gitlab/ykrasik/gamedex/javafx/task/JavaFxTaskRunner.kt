@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.task
 import com.gitlab.ykrasik.gamedex.core.api.task.ReadOnlyTask
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
+import com.gitlab.ykrasik.gamedex.core.api.util.conflatedBroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import javafx.beans.property.SimpleDoubleProperty
@@ -55,6 +56,8 @@ class JavaFxTaskRunner : TaskRunner {
     private val mainTaskProperties = TaskProperties()
     private val tasks = mutableListOf<ReadOnlyTask<*>>().observable()
     private val taskProperties = mutableListOf<TaskProperties>()
+
+    override val currentlyRunningTaskChannel = conflatedBroadcastEventChannel<ReadOnlyTask<*>?>(null)
 
     private val taskView = VBox().apply {
         spacing = 5.0
@@ -130,6 +133,7 @@ class JavaFxTaskRunner : TaskRunner {
                 showPersistentNotification()
             }
 
+            currentlyRunningTaskChannel.send(task)
             // FIXME: Remove this! Should be handled entirely by the task. Should task return a Deferred?
             async(CommonPool) {
                 task.run()
@@ -143,6 +147,7 @@ class JavaFxTaskRunner : TaskRunner {
             throw e
         } finally {
             currentJob = null
+            currentlyRunningTaskChannel.send(null)
             if (task.type != TaskType.Quick) {
                 hidePersistentNotification()
             }
