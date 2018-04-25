@@ -14,9 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.task
+package com.gitlab.ykrasik.gamedex.app.api.task
 
-import com.gitlab.ykrasik.gamedex.core.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 
 /**
  * User: ykrasik

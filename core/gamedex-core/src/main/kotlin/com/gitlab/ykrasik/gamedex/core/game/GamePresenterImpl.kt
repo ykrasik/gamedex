@@ -25,9 +25,9 @@ import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.now

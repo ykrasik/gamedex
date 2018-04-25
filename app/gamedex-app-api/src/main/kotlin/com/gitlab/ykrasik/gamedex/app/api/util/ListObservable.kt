@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.util
+package com.gitlab.ykrasik.gamedex.app.api.util
 
 /**
  * User: ykrasik

@@ -14,11 +14,8 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.task
+package com.gitlab.ykrasik.gamedex.app.api.util
 
-import com.gitlab.ykrasik.gamedex.core.api.util.conflatedChannel
-import com.gitlab.ykrasik.gamedex.core.api.util.getValue
-import com.gitlab.ykrasik.gamedex.core.api.util.setValue
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -31,7 +28,6 @@ import kotlin.coroutines.experimental.coroutineContext
  * Date: 31/03/2018
  * Time: 19:35
  */
-// TODO: Split into QuickTask, LongTask & LongCancellableTask
 interface ReadOnlyTask<out T> {
     val type: TaskType
     val title: String

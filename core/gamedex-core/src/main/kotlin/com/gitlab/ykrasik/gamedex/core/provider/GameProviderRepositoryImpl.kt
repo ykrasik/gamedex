@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider

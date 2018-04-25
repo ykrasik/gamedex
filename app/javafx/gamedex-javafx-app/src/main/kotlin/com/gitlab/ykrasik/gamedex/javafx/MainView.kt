@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsScreen
-import com.gitlab.ykrasik.gamedex.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.javafx.log.LogScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen

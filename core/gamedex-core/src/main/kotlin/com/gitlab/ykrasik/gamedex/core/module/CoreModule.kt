@@ -16,13 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService

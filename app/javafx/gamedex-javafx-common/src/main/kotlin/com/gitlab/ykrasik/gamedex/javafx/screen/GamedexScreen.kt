@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.core.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.ToolBar
 import org.controlsfx.glyphfont.Glyph
@@ -38,7 +38,7 @@ abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
 
 // FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
 abstract class PresentableGamedexScreen<E>(
-    title: String, icon: Glyph?, presenter: Presenter<com.gitlab.ykrasik.gamedex.core.api.View<E>>
+    title: String, icon: Glyph?, presenter: Presenter<com.gitlab.ykrasik.gamedex.app.api.View<E>>
 ) : PresentableView<E>(title, icon, presenter) {
     abstract fun ToolBar.constructToolbar()
 

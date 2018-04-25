@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.api.game
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 
 /**
  * User: ykrasik

@@ -14,46 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.library
+package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.View
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 21/04/2018
- * Time: 07:05
+ * Time: 16:55
  */
-interface EditLibraryView : View<EditLibraryView.Event> {
-    sealed class Event {
-        data class Shown(val library: Library?) : Event()
-        object AcceptButtonClicked : Event()
-        object CancelButtonClicked : Event()
-        object BrowseClicked : Event()
-
-        data class LibraryNameChanged(val name: String) : Event()
-        data class LibraryPathChanged(val path: String) : Event()
-        data class LibraryPlatformChanged(val platform: Platform) : Event()
-    }
-
-    var canChangePlatform: Boolean
-    var canAccept: Boolean
-
-    var initialLibrary: Library?
-    var name: String
-    var path: String
-    var platform: Platform
-
-    var nameValidationError: String?
-    var pathValidationError: String?
-
-    fun selectDirectory(initialDirectory: File?): File?
-
-    fun close(data: LibraryData?)
+interface Presenter<V : View<*>> {
+    fun present(view: V)
 }
 
-interface EditLibraryPresenter : Presenter<EditLibraryView>
+interface View<Event> {
+    val events: ReceiveChannel<Event>
+}
+
+// This value is set after pre-loading is complete.
+var presenters: Presenters by InitOnceGlobal()
+
+@Singleton
+class Presenters @Inject constructor(
+    val libraryPresenter: LibraryPresenter,
+    val editLibraryPresenter: EditLibraryPresenter,
+    val generalSettingsPresenter: GeneralSettingsPresenter
+)

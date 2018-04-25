@@ -14,35 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api
+package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
-import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 
 /**
  * User: ykrasik
- * Date: 21/04/2018
- * Time: 16:55
+ * Date: 15/04/2018
+ * Time: 08:10
  */
-interface Presenter<V : View<*>> {
-    fun present(view: V)
+interface LibraryView : View<LibraryView.Event> {
+    sealed class Event {
+        object AddLibraryClicked : Event()
+        data class EditLibraryClicked(val library: Library) : Event()
+        data class DeleteLibraryClicked(val library: Library) : Event()
+    }
+
+    var libraries: ListObservable<Library>
+
+    fun showAddLibraryView(): LibraryData?
+    fun showEditLibraryView(library: Library): LibraryData?
+    fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>): Boolean
 }
 
-interface View<Event> {
-    val events: ReceiveChannel<Event>
-}
-
-// This value is set after pre-loading is complete.
-var presenters: Presenters by InitOnceGlobal()
-
-@Singleton
-class Presenters @Inject constructor(
-    val libraryPresenter: LibraryPresenter,
-    val editLibraryPresenter: EditLibraryPresenter,
-    val generalSettingsPresenter: GeneralSettingsPresenter
-)
+interface LibraryPresenter : Presenter<LibraryView>

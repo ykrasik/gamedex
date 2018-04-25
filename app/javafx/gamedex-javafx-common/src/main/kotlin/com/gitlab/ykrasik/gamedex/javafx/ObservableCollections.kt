@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import io.reactivex.Observable
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.Property

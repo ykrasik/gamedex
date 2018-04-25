@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.api.provider
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import java.io.File
 
@@ -28,7 +28,7 @@ import java.io.File
  * Date: 04/04/2018
  * Time: 21:58
  */
-// TODO: Make this a presenter!!!
+// TODO: Make it stream results back?
 interface GameProviderService {
     suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults?
 

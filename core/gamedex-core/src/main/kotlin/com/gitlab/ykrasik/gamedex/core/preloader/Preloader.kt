@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.preloader
 
-import com.gitlab.ykrasik.gamedex.core.api.Presenters
-import com.gitlab.ykrasik.gamedex.core.api.preloader.PreloaderPresenter
-import com.gitlab.ykrasik.gamedex.core.api.presenters
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.app.api.Presenters
+import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
@@ -35,15 +34,14 @@ import org.slf4j.bridge.SLF4JBridgeHandler
  * Date: 13/04/2018
  * Time: 09:06
  */
-// TODO: This cannot sit here, it has to be accessible through the api module. interface is redundant?
-object DefaultPreloaderPresenter : PreloaderPresenter {
+object Preloader {
     init {
         SLF4JBridgeHandler.removeHandlersForRootLogger()
         SLF4JBridgeHandler.install()
         GamedexLogAppender.init()
     }
 
-    override fun load(vararg extraModules: Module) = Task<Injector>("Loading...") {
+    fun load(vararg extraModules: Module) = Task<Injector>("Loading...") {
         message1 = "Loading..."
 
         // While loading, display all log messages in the task
@@ -64,6 +62,7 @@ object DefaultPreloaderPresenter : PreloaderPresenter {
                 } catch (_: ClosedSendChannelException) {
                     // This happens when we don't pre-load all required classes during this stage
                     // Some classes get lazily loaded, which will trigger this exception.
+                    println("Lazy loading: ${provision!!.binding.key}")  // TODO: Temp
                     // FIXME: Make sure everything is pre-loaded!
                 }
             }

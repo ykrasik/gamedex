@@ -3,8 +3,8 @@ mainClassName = "com.gitlab.ykrasik.gamedex.javafx.Main"
 apply plugin: 'javafx-gradle-plugin'
 
 dependencies {
-    compile project(":core:gamedex-core")       // FIXME: Depend only on gamedex-core-api
-    fullDependency ":app:javafx:gamedex-javafx-common"
+    compile project(":core:gamedex-core")
+    fullDependency ":app:javafx:gamedex-javafx-view"
 
     project(":provider").subprojects {
         compile it

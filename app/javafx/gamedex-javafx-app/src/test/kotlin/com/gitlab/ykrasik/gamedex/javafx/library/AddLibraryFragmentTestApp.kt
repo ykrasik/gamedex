@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
+import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 
 /**

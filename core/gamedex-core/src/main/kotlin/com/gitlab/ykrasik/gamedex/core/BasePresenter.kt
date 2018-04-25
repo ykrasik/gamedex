@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.core.api.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.View
-import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.util.launchConsumeEach
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.util.InitOnce
 
@@ -34,7 +34,11 @@ abstract class BasePresenter<E, V : View<E>> : Presenter<V> {
         this.view = view
         initView(view)
         view.events.launchConsumeEach(uiThreadDispatcher) {
-            handleEvent(it)
+            try {
+                handleEvent(it)
+            } catch (e: Exception) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
+            }
         }
     }
 

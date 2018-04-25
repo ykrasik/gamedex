@@ -18,15 +18,13 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryView
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
-import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.util.InitOnce
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,27 +38,16 @@ class LibraryPresenterImpl @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val gameRepository: GameRepository,
     private val taskRunner: TaskRunner
-) : LibraryPresenter {
-    private var view: LibraryView by InitOnce()
+) : BasePresenter<LibraryView.Event, LibraryView>(), LibraryPresenter {
 
-    override fun present(view: LibraryView) {
-        this.view = view
-        initView()
-        view.events.launchConsumeEach(uiThreadDispatcher) { event ->
-            try {
-                when (event) {
-                    LibraryView.Event.AddLibraryClicked -> handleAddLibraryClicked()
-                    is LibraryView.Event.EditLibraryClicked -> handleEditLibraryClicked(event.library)
-                    is LibraryView.Event.DeleteLibraryClicked -> handleDeleteLibraryClicked(event.library)
-                }
-            } catch (e: Exception) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
+    override fun initView(view: LibraryView) {
+        view.libraries = libraryRepository.libraries
     }
 
-    private fun initView() {
-        view.libraries = libraryRepository.libraries
+    override suspend fun handleEvent(event: LibraryView.Event) = when (event) {
+        LibraryView.Event.AddLibraryClicked -> handleAddLibraryClicked()
+        is LibraryView.Event.EditLibraryClicked -> handleEditLibraryClicked(event.library)
+        is LibraryView.Event.DeleteLibraryClicked -> handleDeleteLibraryClicked(event.library)
     }
 
     private suspend fun handleAddLibraryClicked() {

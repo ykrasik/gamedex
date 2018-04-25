@@ -14,11 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
-import com.gitlab.ykrasik.gamedex.core.api.general.StaleData
-import com.gitlab.ykrasik.gamedex.core.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog

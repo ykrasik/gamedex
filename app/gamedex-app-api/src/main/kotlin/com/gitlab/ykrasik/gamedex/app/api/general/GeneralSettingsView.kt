@@ -14,12 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.general
+package com.gitlab.ykrasik.gamedex.app.api.general
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.View
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import java.io.File
 

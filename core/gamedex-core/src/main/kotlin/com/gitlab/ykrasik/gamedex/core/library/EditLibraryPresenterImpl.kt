@@ -19,14 +19,12 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.util.launchConsumeEach
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.util.InitOnce
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -41,29 +39,21 @@ import javax.inject.Singleton
 class EditLibraryPresenterImpl @Inject constructor(
     private val libraryRepository: LibraryRepository,
     userConfigRepository: UserConfigRepository
-) : EditLibraryPresenter {
+) : BasePresenter<EditLibraryView.Event, EditLibraryView>(), EditLibraryPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    private var view: EditLibraryView by InitOnce()
+    override fun initView(view: EditLibraryView) {
+    }
 
-    override fun present(view: EditLibraryView) {
-        this.view = view
-        view.events.launchConsumeEach(uiThreadDispatcher) { event ->
-            try {
-                when (event) {
-                    is EditLibraryView.Event.Shown -> handleShown(event.library)
-                    EditLibraryView.Event.AcceptButtonClicked -> handleAcceptClicked()
-                    EditLibraryView.Event.CancelButtonClicked -> handleCancelClicked()
-                    EditLibraryView.Event.BrowseClicked -> selectDirectory()
+    override suspend fun handleEvent(event: EditLibraryView.Event) = when (event) {
+        is EditLibraryView.Event.Shown -> handleShown(event.library)
+        EditLibraryView.Event.AcceptButtonClicked -> handleAcceptClicked()
+        EditLibraryView.Event.CancelButtonClicked -> handleCancelClicked()
+        EditLibraryView.Event.BrowseClicked -> selectDirectory()
 
-                    is EditLibraryView.Event.LibraryNameChanged -> handleNameChanged()
-                    is EditLibraryView.Event.LibraryPathChanged -> handlePathChanged()
-                    is EditLibraryView.Event.LibraryPlatformChanged -> handlePlatformChanged()
-                }
-            } catch (e: Exception) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
+        is EditLibraryView.Event.LibraryNameChanged -> handleNameChanged()
+        is EditLibraryView.Event.LibraryPathChanged -> handlePathChanged()
+        is EditLibraryView.Event.LibraryPlatformChanged -> handlePlatformChanged()
     }
 
     private fun handleShown(library: Library?) {

@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -56,10 +56,10 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
     override suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
         val libraries = data.map { libraryData ->
             async(CommonPool) {
-                persistenceService.insertLibrary(libraryData).also(afterEach)
+                persistenceService.insertLibrary(libraryData)
             }
         }.map {
-            it.await()
+            it.await().also(afterEach)
         }
 
         this.libraries += libraries

@@ -16,15 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
-import com.gitlab.ykrasik.gamedex.core.preloader.DefaultPreloaderPresenter
+import com.gitlab.ykrasik.gamedex.core.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
 
@@ -59,7 +57,7 @@ class PreloaderView : View("GameDex") {
         primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
 
         javaFx {
-            val task = DefaultPreloaderPresenter.load(JavaFxModule)
+            val task = Preloader.load(JavaFxModule)
             progressProperty.bind(task.progressChannel.toObservableValue(0.0))
             messageProperty.bind(task.message1Channel.toObservableValue(""))
             val injector = withContext(CommonPool) { task.run() }

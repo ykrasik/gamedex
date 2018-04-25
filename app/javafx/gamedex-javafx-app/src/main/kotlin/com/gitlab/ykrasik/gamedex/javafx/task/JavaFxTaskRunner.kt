@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.task
 
-import com.gitlab.ykrasik.gamedex.core.api.task.ReadOnlyTask
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskType
-import com.gitlab.ykrasik.gamedex.core.api.util.conflatedBroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedBroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import javafx.beans.property.SimpleDoubleProperty

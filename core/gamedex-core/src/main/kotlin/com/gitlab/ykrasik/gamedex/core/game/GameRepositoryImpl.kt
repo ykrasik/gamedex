@@ -22,9 +22,9 @@ import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
-import com.gitlab.ykrasik.gamedex.core.api.util.ListChangeType
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool

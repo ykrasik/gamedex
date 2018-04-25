@@ -237,9 +237,17 @@ project("gamedex-api") {
     }
 }
 
+project("app:gamedex-app-api") {
+    dependencies {
+        fullDependency ":gamedex-api"
+    }
+}
+
+// FIXME: Remove when all views have presenters
 project("core:gamedex-core-api") {
     dependencies {
         fullDependency ":gamedex-api"
+        fullDependency ":app:gamedex-app-api"
         compile rx.rxKotlin
         compile coroutines.rx2
     }
@@ -255,6 +263,7 @@ project("core:gamedex-core-persistence") {
 
 project("core:gamedex-core") {
     dependencies {
+        fullDependency ":app:gamedex-app-api"
         fullDependency ":core:gamedex-core-api"
         compile project(":core:gamedex-core-persistence")
 
@@ -269,7 +278,7 @@ project("core:gamedex-core") {
 project("app:javafx:gamedex-javafx-common") {
     dependencies {
         fullDependency ":gamedex-api"
-        compile project(":core:gamedex-core")   // FIXME: Depend on gamedex-core-api only!
+        compile project(":core:gamedex-core")   // FIXME: Remove when all views have presenters
 
         compile controlsFx
         compile jFoenix
@@ -278,6 +287,13 @@ project("app:javafx:gamedex-javafx-common") {
 
         compile coroutines.javaFx
         compile rx.rxKotlinFx
+    }
+}
+
+project("app:javafx:gamedex-javafx-view") {
+    dependencies {
+        fullDependency ":app:javafx:gamedex-javafx-common"
+        compile project(":app:gamedex-app-api")
     }
 }
 

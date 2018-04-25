@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.preloader
 
-import com.gitlab.ykrasik.gamedex.core.api.task.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.google.inject.Injector
 import com.google.inject.Module
 

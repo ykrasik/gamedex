@@ -2,14 +2,16 @@ rootProject.name = 'gamedex'
 
 include "gamedex-api"
 
-include "core:gamedex-core-api"
+include "core:gamedex-core-api"     // TODO: Delete this
 include "core:gamedex-core-persistence"
 include "core:gamedex-core"
 
 include "provider:gamedex-provider-giantbomb"
 include "provider:gamedex-provider-igdb"
 
+include "app:gamedex-app-api"
 include "app:javafx:gamedex-javafx-common"
+include "app:javafx:gamedex-javafx-view"
 include "app:javafx:gamedex-javafx-app"
 
 setDefaultBuildFile(rootProject)

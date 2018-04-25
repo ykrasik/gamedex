@@ -14,14 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.library
+package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryView
-import com.gitlab.ykrasik.gamedex.core.api.presenters
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
+import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen

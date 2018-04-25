@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.general
 
 import com.gitlab.ykrasik.gamedex.core.BasePresenter
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.core.api.general.GeneralSettingsView
-import com.gitlab.ykrasik.gamedex.core.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone

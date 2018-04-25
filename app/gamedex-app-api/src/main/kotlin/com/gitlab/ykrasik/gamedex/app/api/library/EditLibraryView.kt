@@ -14,32 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.library
+package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.core.api.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.View
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 15/04/2018
- * Time: 08:10
+ * Date: 21/04/2018
+ * Time: 07:05
  */
-interface LibraryView : View<LibraryView.Event> {
+interface EditLibraryView : View<EditLibraryView.Event> {
     sealed class Event {
-        object AddLibraryClicked : Event()
-        data class EditLibraryClicked(val library: Library) : Event()
-        data class DeleteLibraryClicked(val library: Library) : Event()
+        data class Shown(val library: Library?) : Event()
+        object AcceptButtonClicked : Event()
+        object CancelButtonClicked : Event()
+        object BrowseClicked : Event()
+
+        data class LibraryNameChanged(val name: String) : Event()
+        data class LibraryPathChanged(val path: String) : Event()
+        data class LibraryPlatformChanged(val platform: Platform) : Event()
     }
 
-    var libraries: ListObservable<Library>
+    var canChangePlatform: Boolean
+    var canAccept: Boolean
 
-    fun showAddLibraryView(): LibraryData?
-    fun showEditLibraryView(library: Library): LibraryData?
-    fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>): Boolean
+    var initialLibrary: Library?
+    var name: String
+    var path: String
+    var platform: Platform
+
+    var nameValidationError: String?
+    var pathValidationError: String?
+
+    fun selectDirectory(initialDirectory: File?): File?
+
+    fun close(data: LibraryData?)
 }
 
-interface LibraryPresenter : Presenter<LibraryView>
+interface EditLibraryPresenter : Presenter<EditLibraryView>

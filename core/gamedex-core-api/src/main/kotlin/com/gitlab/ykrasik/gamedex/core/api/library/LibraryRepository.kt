@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.api.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 
 /**
  * User: ykrasik
