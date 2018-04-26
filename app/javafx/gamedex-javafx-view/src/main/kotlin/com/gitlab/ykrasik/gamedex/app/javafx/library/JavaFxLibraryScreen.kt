@@ -22,9 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.scene.control.ToolBar
-import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 
 /**
@@ -34,10 +33,9 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class JavaFxLibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), LibraryView {
+class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryView.Event>("Libraries", Theme.Icon.hdd()), LibraryView {
     private val editLibraryView: JavaFxEditLibraryView by inject()
 
-    override val events = Channel<LibraryView.Event>(32)
     private val observableLibraries = mutableListOf<Library>().observable()
     override var libraries by InitOnceListObservable(observableLibraries)
 
@@ -116,6 +114,4 @@ class JavaFxLibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), Librar
     private fun deleteLibrary() = sendEvent(LibraryView.Event.DeleteLibraryClicked(selectedLibrary))
 
     private val selectedLibrary: Library get() = root.selectedItem!!
-
-    private fun sendEvent(event: LibraryView.Event) = events.offer(event)
 }

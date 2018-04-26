@@ -22,10 +22,10 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 import java.io.File
 
@@ -34,9 +34,7 @@ import java.io.File
  * Date: 12/10/2016
  * Time: 10:56
  */
-class JavaFxEditLibraryView : View("", null), EditLibraryView {
-    override val events = Channel<EditLibraryView.Event>(32)
-
+class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibraryView {
     private val canChangePlatformProperty = SimpleBooleanProperty(false)
     override var canChangePlatform by canChangePlatformProperty
 
@@ -135,8 +133,6 @@ class JavaFxEditLibraryView : View("", null), EditLibraryView {
     }
 
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
-
-    private fun sendEvent(event: EditLibraryView.Event) = events.offer(event)
 
     private inner class LibraryViewModel : ViewModel() {
         val nameProperty = bind { SimpleStringProperty("") }

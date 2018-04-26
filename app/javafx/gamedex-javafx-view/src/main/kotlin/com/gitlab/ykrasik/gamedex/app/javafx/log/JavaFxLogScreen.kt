@@ -21,15 +21,13 @@ import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.beans.value.ObservableValue
 import javafx.scene.control.ListCell
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
 import javafx.scene.paint.Color
-import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 
 /**
@@ -37,9 +35,7 @@ import tornadofx.*
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : GamedexScreen("Log", Theme.Icon.book()), LogView {
-    override val events = Channel<LogView.Event>(32)
-
+class JavaFxLogScreen : PresentableGamedexScreen<LogView.Event>("Log", Theme.Icon.book()), LogView {
     private val observableEntries = mutableListOf<LogEntry>().observable().sortedFiltered()
     override var entries by InitOnceListObservable(observableEntries)
 
@@ -51,6 +47,7 @@ class JavaFxLogScreen : GamedexScreen("Log", Theme.Icon.book()), LogView {
 
     init {
         presenters.logPresenter.present(this)
+
         observableEntries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
         levelProperty.onChange { observableEntries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
@@ -67,7 +64,7 @@ class JavaFxLogScreen : GamedexScreen("Log", Theme.Icon.book()), LogView {
                 minWidth = 60.0
             }
         header("Tail").labelFor =
-            jfxToggleButton(logTailProperty)
+            jfxCheckBox(logTailProperty)
     }
 
     override val root = listview(observableEntries) {
@@ -118,12 +115,6 @@ class JavaFxLogScreen : GamedexScreen("Log", Theme.Icon.book()), LogView {
     }
 
     private fun String.toLevel() = Level.toLevel(this)
-
-    private fun sendEvent(event: LogView.Event) = events.offer(event)
-
-    private inline fun <T, P : ObservableValue<T>> P.eventOnChange(crossinline factory: (T) -> LogView.Event) = apply {
-        onChange { sendEvent(factory(it!!)) }
-    }
 
     class Style : Stylesheet() {
         companion object {

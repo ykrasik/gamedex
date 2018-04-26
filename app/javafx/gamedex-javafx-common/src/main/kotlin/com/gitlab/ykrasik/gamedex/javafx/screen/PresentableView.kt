@@ -16,24 +16,25 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.experimental.channels.Channel
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.View
+import tornadofx.onChange
 
 /**
  * User: ykrasik
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView<E>(title: String, icon: Glyph?, presenter: Presenter<com.gitlab.ykrasik.gamedex.app.api.View<E>>) :
+abstract class PresentableView<E>(title: String? = null, icon: Glyph? = null) :
     View(title, icon), com.gitlab.ykrasik.gamedex.app.api.View<E> {
 
     override val events = Channel<E>(capacity = 32)
 
-    init {
-        presenter.present(this)
-    }
-
     protected fun sendEvent(event: E) = events.offer(event)
+
+    protected fun <T, P : ObservableValue<T>> P.eventOnChange(factory: (T) -> E) = apply {
+        onChange { sendEvent(factory(it!!)) }
+    }
 }

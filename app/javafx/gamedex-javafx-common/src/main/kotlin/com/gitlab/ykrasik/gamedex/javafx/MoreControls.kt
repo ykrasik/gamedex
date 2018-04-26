@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 import com.gitlab.ykrasik.gamedex.javafx.control.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.javafx.control.ImageViewResizingPane
 import com.jfoenix.controls.JFXButton
+import com.jfoenix.controls.JFXCheckBox
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.Property
@@ -162,6 +163,13 @@ fun EventTarget.jfxToggleButton(p: Property<Boolean>, op: (JFXToggleButton.() ->
 }
 
 fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) = opcr(this, JFXToggleButton(), op)
+
+fun EventTarget.jfxCheckBox(p: Property<Boolean>, op: (JFXCheckBox.() -> Unit)? = null) = jfxCheckBox {
+    selectedProperty().bindBidirectional(p)
+    op?.invoke(this)
+}
+
+fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this, JFXCheckBox(), op)
 
 fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: JFXToggleNode.() -> Unit = {}) = opcr(this, JFXToggleNode().apply {
     addClass(CommonStyle.jfxHoverable)

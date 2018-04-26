@@ -94,8 +94,6 @@ class InitOnceListObservable<T>(private val observableList: ObservableList<T>) :
 /*******************************************************************************************************
  *                                            List                                                     *
  *******************************************************************************************************/
-fun <T> emptyObservableList() = FXCollections.emptyObservableList<T>()
-
 fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
     ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
 
