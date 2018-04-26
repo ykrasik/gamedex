@@ -14,17 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.preloader
+package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.google.inject.Injector
-import com.google.inject.Module
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import org.joda.time.DateTime
 
 /**
  * User: ykrasik
- * Date: 13/04/2018
- * Time: 08:42
+ * Date: 25/04/2018
+ * Time: 21:00
  */
-interface PreloaderPresenter {
-    fun load(vararg extraModules: Module): Task<Injector>
+interface LogView : View<LogView.Event> {
+    sealed class Event {
+        data class LevelChanged(val level: String) : Event()
+        data class LogTailChanged(val logTail: Boolean) : Event()
+    }
+
+    var entries: ListObservable<LogEntry>
+
+    var level: String
+    var logTail: Boolean
 }
+
+interface LogPresenter : Presenter<LogView>
+
+data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String)

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.module
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
@@ -39,6 +40,7 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.EditLibraryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.log.LogPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
@@ -74,6 +76,7 @@ object CoreModule : AbstractModule() {
         bind(LibraryPresenter::class.java).to(LibraryPresenterImpl::class.java)
         bind(EditLibraryPresenter::class.java).to(EditLibraryPresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
+        bind(LogPresenter::class.java).to(LogPresenterImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameUserConfig::class.java)

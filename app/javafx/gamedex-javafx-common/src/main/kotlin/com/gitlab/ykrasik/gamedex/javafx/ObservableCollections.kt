@@ -32,6 +32,8 @@ import tornadofx.SortedFilteredList
 import tornadofx.observable
 import tornadofx.onChange
 import java.util.*
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
@@ -72,6 +74,21 @@ private fun <T> ListObservable<T>.subscribe(list: ObservableList<T>): Subscripti
             is ListItemsSetEvent -> list.setAll(event.items)
         }
     }
+
+class InitOnceListObservable<T>(private val observableList: ObservableList<T>) : ReadWriteProperty<Any, ListObservable<T>> {
+    private var value: ListObservable<T>? = null
+
+    override fun getValue(thisRef: Any, property: KProperty<*>): ListObservable<T> {
+        check(value != null) { "Value wasn't initialized yet!" }
+        return value as ListObservable<T>
+    }
+
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: ListObservable<T>) {
+        check(this.value == null) { "Value was already initialized: ${this.value}" }
+        this.value = value
+        value.toObservableList(observableList)
+    }
+}
 
 // TODO: I think this can all be done using objectBinding.
 /*******************************************************************************************************

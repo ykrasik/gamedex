@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsScreen
-import com.gitlab.ykrasik.gamedex.javafx.log.LogScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
@@ -43,7 +43,7 @@ class MainView : View("GameDex") {
     private val gameScreen: GameScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: JavaFxLibraryScreen by inject()
-    private val logScreen: LogScreen by inject()
+    private val logScreen: JavaFxLogScreen by inject()
     private val settingsController: SettingsController by di() // TODO: Probably not the correct way to do this.
 
     private val gameDetailsScreen: GameDetailsScreen by inject()

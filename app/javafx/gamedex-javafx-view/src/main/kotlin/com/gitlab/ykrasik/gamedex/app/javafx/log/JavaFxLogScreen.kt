@@ -14,19 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.log
+package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
-import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
-import com.gitlab.ykrasik.gamedex.core.log.LogEntry
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleStringProperty
+import javafx.beans.value.ObservableValue
 import javafx.scene.control.ListCell
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
 import javafx.scene.paint.Color
+import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 
 /**
@@ -34,27 +37,40 @@ import tornadofx.*
  * Date: 28/04/2017
  * Time: 11:14
  */
-class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
-    private val userConfigRepository: UserConfigRepository by di()
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
+class JavaFxLogScreen : GamedexScreen("Log", Theme.Icon.book()), LogView {
+    override val events = Channel<LogView.Event>(32)
 
-    private val logItems = GamedexLog.entries.toObservableList().sortedFiltered()
-    private val logFilterLevelProperty = generalUserConfig.logFilterLevelSubject.toPropertyCached()
-    private var displayLevel = logFilterLevelProperty.map(Level::toLevel)
+    private val observableEntries = mutableListOf<LogEntry>().observable().sortedFiltered()
+    override var entries by InitOnceListObservable(observableEntries)
+
+    private val levelProperty = SimpleStringProperty().eventOnChange(LogView.Event::LevelChanged)
+    override var level by levelProperty
+
+    private val logTailProperty = SimpleBooleanProperty(false).eventOnChange(LogView.Event::LogTailChanged)
+    override var logTail by logTailProperty
+
+    init {
+        presenters.logPresenter.present(this)
+        observableEntries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
+        levelProperty.onChange { observableEntries.refilter() }
+//        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
+//            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
+//        })
+    }
 
     override fun ToolBar.constructToolbar() {
         header("Level").labelFor =
             popoverComboMenu(
                 possibleItems = listOf(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR).map { it.levelStr.toLowerCase().capitalize() },
-                selectedItemProperty = logFilterLevelProperty
+                selectedItemProperty = levelProperty
             ).apply {
                 minWidth = 60.0
             }
         header("Tail").labelFor =
-            jfxToggleButton(generalUserConfig.logTailSubject.toPropertyCached())
+            jfxToggleButton(logTailProperty)
     }
 
-    override val root = listview(logItems) {
+    override val root = listview(observableEntries) {
         addClass(Style.logView)
 
         setCellFactory {
@@ -83,7 +99,7 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
 
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] ${item.message}"
 
-                    when (item.level) {
+                    when (item.level.toLevel()) {
                         Level.TRACE -> toggleClass(Style.trace, true)
                         Level.DEBUG -> toggleClass(Style.debug, true)
                         Level.INFO -> toggleClass(Style.info, true)
@@ -94,16 +110,19 @@ class LogScreen : GamedexScreen("Log", Theme.Icon.book()) {
             }
         }
 
-        logItems.onChange {
-            if (generalUserConfig.logTail) {
+        observableEntries.onChange {
+            if (logTail) {
                 scrollTo(items.size)
             }
         }
     }
 
-    init {
-        logItems.predicate = { entry -> entry.level.isGreaterOrEqual(displayLevel.value) }
-        logFilterLevelProperty.onChange { logItems.refilter() }
+    private fun String.toLevel() = Level.toLevel(this)
+
+    private fun sendEvent(event: LogView.Event) = events.offer(event)
+
+    private inline fun <T, P : ObservableValue<T>> P.eventOnChange(crossinline factory: (T) -> LogView.Event) = apply {
+        onChange { sendEvent(factory(it!!)) }
     }
 
     class Style : Stylesheet() {

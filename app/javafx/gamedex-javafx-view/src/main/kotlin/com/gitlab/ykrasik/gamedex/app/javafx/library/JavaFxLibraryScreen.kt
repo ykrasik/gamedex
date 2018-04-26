@@ -20,8 +20,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
@@ -40,12 +38,8 @@ class JavaFxLibraryScreen : GamedexScreen("Libraries", Theme.Icon.hdd()), Librar
     private val editLibraryView: JavaFxEditLibraryView by inject()
 
     override val events = Channel<LibraryView.Event>(32)
-    override var libraries: ListObservable<Library> = ListObservableImpl()
-        set(value) {
-            field = value
-            value.toObservableList(observableLibraries)
-        }
     private val observableLibraries = mutableListOf<Library>().observable()
+    override var libraries by InitOnceListObservable(observableLibraries)
 
     init {
         presenters.libraryPresenter.present(this)

@@ -14,37 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api
+package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
-import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 21/04/2018
- * Time: 16:55
+ * Date: 26/04/2018
+ * Time: 10:28
  */
-interface Presenter<V : View<*>> {
-    fun present(view: V)
-}
-
-interface View<Event> {
-    val events: ReceiveChannel<Event>
-}
-
-// This value is set after pre-loading is complete.
-var presenters: Presenters by InitOnceGlobal()
-
 @Singleton
-class Presenters @Inject constructor(
-    val libraryPresenter: LibraryPresenter,
-    val editLibraryPresenter: EditLibraryPresenter,
-    val generalSettingsPresenter: GeneralSettingsPresenter,
-    val logPresenter: LogPresenter
-)
+class LogPresenterImpl @Inject constructor(userConfigRepository: UserConfigRepository) : BasePresenter<LogView.Event, LogView>(), LogPresenter {
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
+
+    override fun initView(view: LogView) {
+        view.entries = GamedexLog.entries
+        generalUserConfig.logFilterLevelSubject.subscribe {
+            view.level = it
+        }
+        generalUserConfig.logTailSubject.subscribe {
+            view.logTail = it
+        }
+    }
+
+    override suspend fun handleEvent(event: LogView.Event) = when (event) {
+        is LogView.Event.LevelChanged -> generalUserConfig.logFilterLevel = event.level
+        is LogView.Event.LogTailChanged -> generalUserConfig.logTail = event.logTail
+    }
+}
