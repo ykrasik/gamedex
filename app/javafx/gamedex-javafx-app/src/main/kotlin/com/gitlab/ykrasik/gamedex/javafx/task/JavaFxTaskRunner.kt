@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.task
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.app.api.util.conflatedBroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -154,9 +154,7 @@ class JavaFxTaskRunner : TaskRunner {
             taskProperties.forEach { it.close() }
             taskProperties.clear()
             tasks.clear()
-            task.doneMessage.await()?.let {
-                showInfoNotification(it)
-            }
+            showInfoNotification(task.doneMessage.await())
         }
     }
 

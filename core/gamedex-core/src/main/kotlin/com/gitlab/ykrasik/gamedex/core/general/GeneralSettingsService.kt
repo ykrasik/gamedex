@@ -24,13 +24,16 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
@@ -48,8 +51,8 @@ import javax.inject.Singleton
  */
 @ImplementedBy(GeneralSettingsServiceImpl::class)
 interface GeneralSettingsService {
-    suspend fun importDatabase(file: File)
-    suspend fun exportDatabase(file: File)
+    fun importDatabase(file: File): Task<Unit>
+    fun exportDatabase(file: File): Task<Unit>
 
     suspend fun detectStaleData(): StaleData
     suspend fun deleteStaleData(staleData: StaleData)
@@ -59,8 +62,10 @@ interface GeneralSettingsService {
 
 @Singleton
 class GeneralSettingsServiceImpl @Inject constructor(
-    private val libraryRepository: LibraryRepository,
-    private val gameRepository: GameRepository,
+    private val libraryService: LibraryService,
+    private val gameService: GameService,
+    private val libraryRepository: LibraryRepository,    // TODO: Remove.
+    private val gameRepository: GameRepository,    // TODO: Remove.
     private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService,
     private val taskRunner: TaskRunner
@@ -71,7 +76,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
 
-    override suspend fun importDatabase(file: File) = taskRunner.runTask("Import Database", TaskType.NonCancellable) {
+    override fun importDatabase(file: File) = Task<Unit>("Importing Database...", TaskType.NonCancellable) {
         message1 = "Reading $file..."
         val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
 
@@ -80,21 +85,15 @@ class GeneralSettingsServiceImpl @Inject constructor(
         gameRepository.invalidate()
         libraryRepository.invalidate()
 
-        message1 = "Importing Libraries:"
-        message2 = portableDb.libraries.size.toString()
-        totalWork = portableDb.libraries.size
-        val libraries: Map<Int, Library> = libraryRepository.addAll(portableDb.libraries.map { it.toLibraryData() }) { incProgress() }
+        val libraries: Map<Int, Library> = runMainTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
             .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
 
-        message1 = "Importing Games:"
-        message2 = portableDb.games.size.toString()
-        totalWork = portableDb.games.size
-        gameRepository.addAll(portableDb.games.map { it.toGameRequest(libraries) }) { incProgress() }
+        runMainTask(gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }))
 
         doneMessage { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
     }
 
-    override suspend fun exportDatabase(file: File) = taskRunner.runTask("Export Database", TaskType.NonCancellable) {
+    override fun exportDatabase(file: File) = Task<Unit>("Exporting Database...", TaskType.NonCancellable) {
         message1 = "Exporting Libraries:"
         message2 = libraryRepository.libraries.size.toString()
         val libraries = libraryRepository.libraries.mapWithProgress { it.toPortable() }

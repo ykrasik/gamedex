@@ -42,7 +42,7 @@ interface BroadcastReceiveChannel<out T> {
     }
 }
 
-class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> {
+class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> {
     private val channel = BroadcastChannel<T>(capacity)
 
     override fun subscribe() = channel.openSubscription()
@@ -61,6 +61,12 @@ class BroadcastEventChannel<T>(capacity: Int = 10) : BroadcastReceiveChannel<T> 
 fun <T> ReceiveChannel<T>.launchConsumeEach(context: CoroutineContext = CommonPool, f: suspend (T) -> Unit) = launch(context) {
     consumeEach {
         f(it)
+    }
+}
+
+fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContext = CommonPool) = launch(context) {
+    consumeEach {
+        channel.send(it)
     }
 }
 

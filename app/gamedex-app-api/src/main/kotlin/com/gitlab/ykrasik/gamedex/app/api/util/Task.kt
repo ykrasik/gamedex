@@ -39,16 +39,16 @@ interface ReadOnlyTask<out T> {
     val message2Channel: ReceiveChannel<String>
     val progressChannel: ReceiveChannel<Double>
 
-    val doneMessage: Deferred<String?>
+    val doneMessage: Deferred<String>
 
     val subTasks: ReceiveChannel<ReadOnlyTask<*>> // TODO: ListObservable?
 
     suspend fun run(): T  // TODO: Return a deferred?
 }
 
-class Task<out T>(override val title: String,
+class Task<out T>(override val title: String = "",
                   override val type: TaskType = TaskType.Long,
-                  private val errorHandler: (Exception) -> Unit = ::defaultErrorHandler,
+                  private val errorHandler: (Exception) -> Unit = ::defaultErrorHandler,    // TODO: Get rid of this.
                   private val doRun: suspend Task<T>.() -> T) : ReadOnlyTask<T> {
     private var started = false
     private lateinit var context: CoroutineContext
@@ -75,10 +75,10 @@ class Task<out T>(override val title: String,
     var progress by _progressChannel
     override val progressChannel: ReceiveChannel<Double> = _progressChannel
 
-    private var doneMessageSupplier: ((Boolean) -> String)? = null
-    override val doneMessage = CompletableDeferred<String?>()
-
     // TODO: Differentiate between error termination & cancel?
+    private var doneMessageSupplier: (Boolean) -> String = { success -> if (success) "Done" else "Cancelled" }
+    override val doneMessage = CompletableDeferred<String>()
+
     fun doneMessageOrCancelled(message: String) = doneMessage { success -> if (success) message else "Cancelled" }
 
     fun doneMessage(msg: (success: Boolean) -> String) {
@@ -93,16 +93,6 @@ class Task<out T>(override val title: String,
 
     fun incProgress(amount: Int = 1) = progress(_processed.addAndGet(amount), totalWork!!)
 
-//    // FIXME: Expose this as a builder-style api
-//    suspend fun <R> step(message: String, doRun: suspend Task<*>.() -> R): R {
-//        this.message1 = message
-//        return runSubTask {
-//            doRun()
-//        }.incProgress()
-//    }
-
-//    fun <T> List<T>.reportProgress() = reportProgress(this@Task)
-
     override suspend fun run(): T = run(CommonPool)
 
     suspend fun <R> runSubTask(type: TaskType = TaskType.Long,
@@ -113,6 +103,18 @@ class Task<out T>(override val title: String,
     suspend fun <R> runSubTask(subTask: Task<R>): R {
         subTasks.send(subTask)
         return subTask.run(context)
+    }
+
+    suspend fun <R> runMainTask(task: Task<R>): R {
+        progress = 0.0
+        message1 = ""
+        message2 = ""
+        task.progressChannel.bind(_progressChannel)
+        task.message1Channel.bind(_message1Channel)
+        task.message2Channel.bind(_message2Channel)
+        return task.run(context).apply {
+            message2 = task.doneMessage.await()
+        }
     }
 
     private suspend fun run(context: CoroutineContext): T {
@@ -134,7 +136,8 @@ class Task<out T>(override val title: String,
             }
             throw e
         } finally {
-            doneMessage.complete(doneMessageSupplier?.invoke(success))
+            doneMessage.complete(doneMessageSupplier.invoke(success))
+            progress = 1.0
             close()
         }
     }

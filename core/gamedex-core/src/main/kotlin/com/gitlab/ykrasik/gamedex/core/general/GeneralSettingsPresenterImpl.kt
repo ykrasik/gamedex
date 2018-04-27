@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone
@@ -63,14 +63,14 @@ class GeneralSettingsPresenterImpl @Inject constructor(
             "db_${timestamp.toString("HH_mm_ss")}.json"
         ).toFile()
 
-        generalSettingsService.exportDatabase(timestamptedPath)
+        taskRunner.runTask(generalSettingsService.exportDatabase(timestamptedPath))
         view.browseDirectory(timestamptedPath.parentFile)
     }
 
     private suspend fun handleImportDatabase() {
         val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return
         if (view.confirmImportDatabase()) {
-            generalSettingsService.importDatabase(file)
+            taskRunner.runTask(generalSettingsService.importDatabase(file))
         }
     }
 
