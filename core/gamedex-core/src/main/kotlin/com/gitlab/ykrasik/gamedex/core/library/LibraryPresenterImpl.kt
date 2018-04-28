@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.BasePresenter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +34,7 @@ import javax.inject.Singleton
 @Singleton
 class LibraryPresenterImpl @Inject constructor(
     private val libraryService: LibraryService,
-    private val gameRepository: GameRepository,
+    private val gameService: GameService,
     private val taskRunner: TaskRunner
 ) : BasePresenter<LibraryView.Event, LibraryView>(), LibraryPresenter {
 
@@ -58,12 +58,12 @@ class LibraryPresenterImpl @Inject constructor(
     private suspend fun handleEditLibraryClicked(library: Library) {
         val data = view.showEditLibraryView(library)
         if (data != null) {
-            taskRunner.runTask(libraryService.update(library, data))
+            taskRunner.runTask(libraryService.replace(library, data))
         }
     }
 
     private suspend fun handleDeleteLibraryClicked(library: Library) {
-        val gamesToBeDeleted = gameRepository.games.filter { it.library.id == library.id }
+        val gamesToBeDeleted = gameService.games.filter { it.library.id == library.id }
         if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
             taskRunner.runTask(libraryService.delete(library))
         }

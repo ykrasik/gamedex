@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
-import com.gitlab.ykrasik.gamedex.app.api.util.task
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.RawGame
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
@@ -33,8 +33,9 @@ import javax.inject.Singleton
  * Time: 19:51
  */
 @Singleton
-class GameServiceImpl @Inject constructor(
+internal class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
+    private val gameFactory: GameFactory,
     libraryService: LibraryService,
     gameProviderRepository: GameProviderRepository  // FIXME: Go through service!!!
 ) : GameService {
@@ -43,17 +44,74 @@ class GameServiceImpl @Inject constructor(
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (it.type) {
                 ListChangeType.Remove -> repo.invalidate()
-                ListChangeType.Set -> repo.rebuildGames()
+                ListChangeType.Set -> rebuildGames()
             }
         }
         gameProviderRepository.enabledProviders.changesChannel.subscribe(CommonPool) {
-            repo.rebuildGames()
+            rebuildGames()
         }
     }
 
-    override fun addAll(requests: List<AddGameRequest>) = task {
-        message1 = "Adding ${requests.size} games..."
-        totalWork = requests.size
-        repo.addAll(requests) { incProgress() }
+    override val games = repo.games.mapping { it.toGame() } as ListObservableImpl<Game> // ugly cast, whatever.
+
+    override fun add(request: AddGameRequest) = quickTask("Adding Game '${request.metadata.path}'...") {
+        message1 = "Adding Game '${request.metadata.path}'..."
+        doneMessage { "Added Game: '${request.metadata.path}'." }
+        repo.add(request).toGame()
     }
+
+    override fun addAll(requests: List<AddGameRequest>) = task("Adding ${requests.size} Games...") {
+        message1 = "Adding ${requests.size} Games..."
+        doneMessage { "Added $processed/$totalWork Games." }
+
+        totalWork = requests.size
+        this@GameServiceImpl.games.buffered {
+            requests.chunked(50).flatMap { requests ->
+                repo.addAll(requests) { incProgress() }.map { it.toGame() }
+            }
+        }
+    }
+
+    override fun replace(source: Game, target: RawGame) = quickTask("Updating Game '${source.name}'...") {
+        message1 = "Updating Game '${source.name}'..."
+        doneMessage { "Updated Game: '${source.name}'." }
+        repo.replace(source.rawGame, target)
+        target.toGame()
+    }
+
+    override fun delete(game: Game) = quickTask("Deleting Game '${game.name}'...") {
+        message1 = "Deleting Game '${game.name}'..."
+        doneMessage { "Deleted Game: '${game.name}'." }
+        repo.delete(game.rawGame)
+    }
+
+    override fun deleteAll(games: List<Game>) = quickTask("Deleting ${games.size} Games...") {
+        message1 = "Deleting ${games.size} Games..."
+        doneMessage { "Deleted $processed/$totalWork Games." }
+
+        totalWork = games.size
+        this@GameServiceImpl.games.buffered {
+            games.chunked(200).forEach { chunk ->
+                repo.deleteAll(chunk.map { it.rawGame })
+                incProgress(chunk.size)
+            }
+        }
+    }
+
+    override fun deleteAllUserData() = quickTask("Deleting all user data...") {
+        message1 = "Deleting all user data..."
+        doneMessage { "Deleted all user data." }
+        repo.deleteAllUserData()
+    }
+
+    override fun invalidate() = quickTask {
+        repo.invalidate()
+    }
+
+    private fun rebuildGames() = games.setAll(games.map { it.rawGame.toGame() })
+
+    override fun get(id: Int): Game = games.find { it.id == id }
+        ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
+
+    private fun RawGame.toGame(): Game = gameFactory.create(this)
 }

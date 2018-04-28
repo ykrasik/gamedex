@@ -30,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.app.api.util.nonCancellableTask
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
@@ -64,7 +63,6 @@ interface GeneralSettingsService {
 class GeneralSettingsServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val gameRepository: GameRepository,    // TODO: Remove.
     private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService,
     private val taskRunner: TaskRunner
@@ -81,7 +79,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
 
         message1 = "Deleting existing database..."
         persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
-        gameRepository.invalidate()
+        runMainTask(gameService.invalidate())
         runMainTask(libraryService.invalidate())
 
         val libraries: Map<Int, Library> = runMainTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
@@ -98,8 +96,8 @@ class GeneralSettingsServiceImpl @Inject constructor(
         val libraries = libraryService.libraries.mapWithProgress { it.toPortable() }
 
         message1 = "Exporting Games:"
-        message2 = gameRepository.games.size.toString()
-        val games = gameRepository.games.sortedBy { it.name }.mapWithProgress { it.toPortable() }
+        message2 = gameService.games.size.toString()
+        val games = gameService.games.sortedBy { it.name }.mapWithProgress { it.toPortable() }
 
         message1 = "Writing $file..."
         message2 = ""
@@ -107,17 +105,17 @@ class GeneralSettingsServiceImpl @Inject constructor(
         val portableDb = PortableDb(libraries, games)
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
 
-        doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameRepository.games.size} Games." }
+        doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameService.games.size} Games." }
     }
 
     override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data", TaskType.NonCancellable) {
         message1 = "Detecting stale data..."
 
         val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
-        val games = gameRepository.games.filterWithProgress { !it.path.isDirectory }
+        val games = gameService.games.filterWithProgress { !it.path.isDirectory }
 
         val images = run {
-            val usedImages = gameRepository.games.flatMapWithProgress { game ->
+            val usedImages = gameService.games.flatMapWithProgress { game ->
                 game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
             }
             imageRepository.fetchImagesExcept(usedImages)
@@ -142,9 +140,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
 
         staleData.games.let { games ->
             if (games.isNotEmpty()) {
-                message1 = "Deleting stale games:"
-                message2 = games.size.toString()
-                gameRepository.deleteAll(games, this)
+                runMainTask(gameService.deleteAll(games))
             }
         }
         incProgress()
@@ -165,8 +161,8 @@ class GeneralSettingsServiceImpl @Inject constructor(
 
     override suspend fun deleteAllUserData() = taskRunner.runTask("Delete Game User Data") {
         message1 = "Deleting all game user data..."
-        gameRepository.deleteAllUserData()
         doneMessage { "All game user data deleted." }
+        runMainTask(gameService.deleteAllUserData())
     }
 }
 

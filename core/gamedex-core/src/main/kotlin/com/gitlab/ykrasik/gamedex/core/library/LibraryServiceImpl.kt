@@ -58,12 +58,13 @@ internal class LibraryServiceImpl @Inject constructor(
 
     override fun addAll(data: List<LibraryData>) = task {
         message1 = "Adding ${data.size} Libraries..."
+        doneMessage { "Added $processed/$totalWork Libraries." }
         totalWork = data.size
         repo.addAll(data) { incProgress() }
     }
 
-    override fun update(library: Library, data: LibraryData) = quickTask {
-        message1 = "Updating Library ${library.name}..."
+    override fun replace(library: Library, data: LibraryData) = quickTask {
+        message1 = "Updating Library '${library.name}'..."
         doneMessage { "Updated Library: '${library.name}'." }
         repo.update(library, data)
     }

@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.game
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 
 /**
@@ -25,5 +26,25 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
  * Time: 19:50
  */
 interface GameService {
+    val games: ListObservable<Game>
+
+    operator fun get(id: Int): Game
+
+    fun add(request: AddGameRequest): Task<Game>
     fun addAll(requests: List<AddGameRequest>): Task<List<Game>>
+
+    fun replace(source: Game, target: RawGame): Task<Game>
+
+    fun delete(game: Game): Task<Unit>
+    fun deleteAll(games: List<Game>): Task<Unit>
+
+    fun deleteAllUserData(): Task<Unit>
+
+    fun invalidate(): Task<Unit>
 }
+
+data class AddGameRequest(
+    val metadata: Metadata,
+    val providerData: List<ProviderData>,
+    val userData: UserData?
+)

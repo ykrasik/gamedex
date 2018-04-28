@@ -27,6 +27,9 @@ import kotlin.coroutines.experimental.CoroutineContext
 interface ListObservable<out T> : List<T> {
     val itemsChannel: BroadcastReceiveChannel<List<T>>
     val changesChannel: BroadcastReceiveChannel<ListChangeEvent<T>>
+
+    // Record all changes that happened while executing f() and execute them as a single 'set' operation.
+    suspend fun <R> buffered(f: suspend () -> R): R
 }
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
@@ -34,10 +37,12 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     override val itemsChannel = BroadcastEventChannel.conflated(initial)
     override val changesChannel = BroadcastEventChannel<ListChangeEvent<T>>()
 
+    private var buffer = false
+
     operator fun plusAssign(t: T) = add(t)
     fun add(t: T) {
         _list += t
-        notifyChange(ListItemAddedEvent(t, index = null))
+        notifyChange(ListItemAddedEvent(t))
     }
 
     operator fun plusAssign(items: List<T>) = addAll(items)
@@ -50,32 +55,67 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     fun remove(t: T) {
         val index = _list.indexOf(t)
         require(index != -1) { "Item to be deleted is missing from the list: $t" }
-        _list -= t
-        notifyChange(ListItemRemovedEvent(t, index))
+        removeAt(index)
+    }
+
+    fun removeAt(index: Int) {
+        _list = _list.filterIndexed { i, _ -> i != index }
+        notifyChange(ListItemRemovedEvent(index))
     }
 
     operator fun minusAssign(items: List<T>) = removeAll(items)
     fun removeAll(items: List<T>) {
-        require(_list.containsAll(items)) { "Items to be deleted are missing from the list: ${items.filterNot(_list::contains)}" }
-        _list -= items
-        notifyChange(ListItemsRemovedEvent(items))
+        val indices = items.map { item ->
+            val index = _list.indexOf(item)
+            require(index != -1) { "Item to be deleted is missing from the list: $item" }
+            index
+        }
+        removeAllAt(indices)
+    }
+
+    fun removeAllAt(indices: List<Int>) {
+        val indicesSet = indices.toSet()
+        var i = 0
+        val (toKeep, toRemove) = _list.partition {
+            val toKeep = i !in indicesSet
+            i++
+            toKeep
+        }
+        _list = toKeep
+        notifyChange(ListItemsRemovedEvent(indices, toRemove))
     }
 
     fun replace(source: T, target: T) {
         val index = _list.indexOf(source)
         require(index != -1) { "Item to be replaced is missing from the list: $source" }
-        _list = _list.mapIndexed { i, item -> if (i == index) target else item }
-        notifyChange(ListItemSetEvent(target, index))
+        set(index, target)
     }
 
-    fun set(items: List<T>) {
+    operator fun set(index: Int, t: T) {
+        _list = _list.mapIndexed { i, item -> if (i == index) t else item }
+        notifyChange(ListItemSetEvent(t, index))
+    }
+
+    fun setAll(items: List<T>) {
         _list = items
         notifyChange(ListItemsSetEvent(items))
     }
 
     private fun notifyChange(event: ListChangeEvent<T>) {
-        itemsChannel.offer(_list)
-        changesChannel.offer(event) // TODO: Under some circumstances, this could lose events. However, there were internal errors from the compiler :(
+        if (!buffer) {
+            itemsChannel.offer(_list)
+            changesChannel.offer(event) // TODO: Under some circumstances, this could lose events. However, there were internal errors from the compiler :(
+        }
+    }
+
+    override suspend fun <R> buffered(f: suspend () -> R): R {
+        buffer = true
+        return try {
+            f()
+        } finally {
+            buffer = false
+            setAll(_list)
+        }
     }
 
     override val size get() = _list.size
@@ -93,17 +133,24 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
 
 enum class ListChangeType { Add, Remove, Set }
 sealed class ListChangeEvent<out T>(val type: ListChangeType)
-data class ListItemAddedEvent<out T>(val item: T, val index: Int?) : ListChangeEvent<T>(ListChangeType.Add)
+data class ListItemAddedEvent<out T>(val item: T) : ListChangeEvent<T>(ListChangeType.Add)
 data class ListItemsAddedEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Add)
-data class ListItemRemovedEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Remove)
-data class ListItemsRemovedEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Remove)
+data class ListItemRemovedEvent<out T>(val index: Int) : ListChangeEvent<T>(ListChangeType.Remove)
+data class ListItemsRemovedEvent<out T>(val indices: List<Int>, val items: List<T>) : ListChangeEvent<T>(ListChangeType.Remove)
 data class ListItemSetEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
 data class ListItemsSetEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
 
 inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> R): ListObservable<R> {
-    val list = ListObservableImpl<R>()
-    itemsChannel.subscribe(context) {
-        list.set(it.map(f))
+    val list = ListObservableImpl(this.map(f))
+    changesChannel.subscribe(context) { event ->
+        when (event) {
+            is ListItemAddedEvent -> list += f(event.item)
+            is ListItemsAddedEvent -> list += event.items.map(f)
+            is ListItemRemovedEvent -> list.removeAt(event.index)
+            is ListItemsRemovedEvent -> list.removeAllAt(event.indices)
+            is ListItemSetEvent -> list[event.index] = f(event.item)
+            is ListItemsSetEvent -> list.setAll(event.items.map(f))
+        }
     }
     return list
 }
@@ -111,7 +158,7 @@ inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultD
 inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> {
     val list = ListObservableImpl<T>()
     itemsChannel.subscribe(context) {
-        list.set(it.filter(f))
+        list.setAll(it.filter(f))
     }
     return list
 }

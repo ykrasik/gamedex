@@ -52,7 +52,7 @@ class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameP
                 EnabledGameProvider(provider, account)
             }.sortedWith(searchOrder.toComparator())
         }.subscribe { enabledProviders ->
-            this@GameProviderRepositoryImpl.enabledProviders.set(enabledProviders)
+            this@GameProviderRepositoryImpl.enabledProviders.setAll(enabledProviders)
         }
 
         log.info { "Detected providers: $allProviders" }

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
@@ -51,11 +51,11 @@ import javax.inject.Singleton
 // TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class GameController @Inject constructor(
-    private val gameRepository: GameRepository,
+    private val gameService: GameService,
     private val gamePresenter: GamePresenter,
-    private val userConfigRepository: UserConfigRepository,
     private val fileSystemService: FileSystemService,
-    taskRunner: JavaFxTaskRunner
+    private val taskRunner: JavaFxTaskRunner,
+    userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
@@ -98,7 +98,7 @@ class GameController @Inject constructor(
         }
     }.toBindingCached()
 
-    val games: ObservableList<Game> = gameRepository.games.toObservableList()
+    val games: ObservableList<Game> = gameService.games.toObservableList()
     val platformGames = games.sortedFiltered().apply {
         filteredItems.predicateProperty().bind(gameUserConfig.platformSubject.toBindingCached().toPredicate { platform, game: Game ->
             game.platform == platform
@@ -130,7 +130,7 @@ class GameController @Inject constructor(
 
         val newRawGame = game.rawGame.withDataOverrides(overrides)
         return if (newRawGame.userData != game.rawGame.userData) {
-            gameRepository.replace(game, newRawGame)
+            taskRunner.runTask(gameService.replace(game, newRawGame))
         } else {
             game
         }
@@ -154,7 +154,7 @@ class GameController @Inject constructor(
 
         val newRawGame = game.rawGame.withTags(tags)
         return if (newRawGame.userData != game.rawGame.userData) {
-            gameRepository.replace(game, newRawGame)
+            taskRunner.runTask(gameService.replace(game, newRawGame))
         } else {
             game
         }
@@ -204,7 +204,7 @@ class GameController @Inject constructor(
                 Files.move(game.path.toPath(), fullPath.toPath())
             }
 
-            gameRepository.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) })
+            taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) }))
         }
     }
 
@@ -225,10 +225,10 @@ class GameController @Inject constructor(
                 game.path.deleteWithChildren()
             }
 
-            gameRepository.delete(game)
+            taskRunner.runTask(gameService.delete(game))
             true
         }
     }
 
-    fun byId(id: Int): Game = gameRepository[id]
+    fun byId(id: Int): Game = gameService[id]
 }

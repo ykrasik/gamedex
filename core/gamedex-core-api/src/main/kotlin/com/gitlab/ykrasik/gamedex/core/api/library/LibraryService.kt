@@ -40,7 +40,7 @@ interface LibraryService {
     fun add(data: LibraryData): Task<Library>
     fun addAll(data: List<LibraryData>): Task<List<Library>>
 
-    fun update(library: Library, data: LibraryData): Task<Unit>
+    fun replace(library: Library, data: LibraryData): Task<Unit>
 
     fun delete(library: Library): Task<Unit>
     fun deleteAll(libraries: List<Library>): Task<Unit>

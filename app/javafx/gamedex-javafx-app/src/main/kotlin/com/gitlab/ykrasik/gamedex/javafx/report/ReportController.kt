@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
@@ -50,9 +50,9 @@ import javax.inject.Singleton
 // TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
 class ReportController @Inject constructor(
-    private val gameRepository: GameRepository,
-    private val userConfigRepository: UserConfigRepository,
-    private val fileSystemService: FileSystemService
+    private val gameService: GameService,
+    private val fileSystemService: FileSystemService,
+    userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
 
@@ -102,7 +102,7 @@ class ReportController @Inject constructor(
             if (subscription != null) return
 
             // TODO: This feels like a task?
-            subscription = gameRepository.games.itemsChannel.subscribe(JavaFx) { games ->
+            subscription = gameService.games.itemsChannel.subscribe(JavaFx) { games ->
                 isCalculating = true
                 launch(CommonPool) {
                     val result = calculate(games)

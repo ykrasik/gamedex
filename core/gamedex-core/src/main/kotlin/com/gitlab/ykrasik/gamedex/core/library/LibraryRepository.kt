@@ -53,10 +53,10 @@ internal class LibraryRepository @Inject constructor(private val persistenceServ
     suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
         val libraries = data.map { libraryData ->
             async(CommonPool) {
-                persistenceService.insertLibrary(libraryData)
+                persistenceService.insertLibrary(libraryData).also(afterEach)
             }
         }.map {
-            it.await().also(afterEach)
+            it.await()
         }
 
         this.libraries += libraries
@@ -83,7 +83,7 @@ internal class LibraryRepository @Inject constructor(private val persistenceServ
 
     fun invalidate() {
         // Re-fetch from persistence
-        libraries.set(fetchLibraries())
+        libraries.setAll(fetchLibraries())
     }
 
     private fun Library.verifySuccess(f: () -> Boolean) = require(f()) { "Library doesn't exist: $this" }

@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
@@ -43,10 +43,10 @@ import javax.inject.Singleton
 @Singleton
 class GamePresenterImpl @Inject constructor(
     private val libraryService: LibraryService,
+    private val gameService: GameService,
     private val taskRunner: TaskRunner,
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService,
-    private val gameRepository: GameRepository,
     private val fileSystemService: FileSystemService,
     userConfigRepository: UserConfigRepository
 ) : GamePresenter {
@@ -71,7 +71,7 @@ class GamePresenterImpl @Inject constructor(
             newDirectories.forEachWithProgress(masterTask) { (library, directory) ->
                 val addGameRequest = processDirectory(directory, library)
                 if (addGameRequest != null) {
-                    gameRepository.add(addGameRequest)
+                    runMainTask(gameService.add(addGameRequest))
                     added += 1
                 }
             }
@@ -80,7 +80,7 @@ class GamePresenterImpl @Inject constructor(
 
     // TODO: Put this logic in GameService
     private fun Task<*>.detectNewDirectories(): List<Pair<Library, File>> {
-        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameRepository.games.map(Game::path).toSet()
+        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path).toSet()
 
         return libraryService.realLibraries.flatMapWithProgress { library ->
             fileSystemService.detectNewDirectories(library.path, excludedDirectories - library.path)
@@ -112,7 +112,7 @@ class GamePresenterImpl @Inject constructor(
     }
 
     override suspend fun rediscoverAllGamesWithMissingProviders() {
-        val gamesWithMissingProviders = gameRepository.games.filter { it.hasMissingProviders }
+        val gamesWithMissingProviders = gameService.games.filter { it.hasMissingProviders }
         rediscoverGames(gamesWithMissingProviders)
     }
 
@@ -139,7 +139,7 @@ class GamePresenterImpl @Inject constructor(
             provider.supports(platform) && !excludedProviders.contains(provider.id) && rawGame.providerData.none { it.header.id == provider.id }
         }
 
-    private suspend fun rediscoverGame(task: Task<*>, game: Game, excludedProviders: List<ProviderId>): Game? {
+    private suspend fun Task<*>.rediscoverGame(task: Task<*>, game: Game, excludedProviders: List<ProviderId>): Game? {
         val taskData = ProviderTaskData(task, game.name, game.platform, game.path)
         val results = providerService.search(taskData, excludedProviders) ?: return null
         if (results.isEmpty()) return null
@@ -165,7 +165,7 @@ class GamePresenterImpl @Inject constructor(
         return this.merge(userData)
     }
 
-    override suspend fun redownloadAllGames() = redownloadGames(gameRepository.games)
+    override suspend fun redownloadAllGames() = redownloadGames(gameService.games)
 
     override suspend fun redownloadGame(game: Game) = runTask("Re-Download '${game.name}'", TaskType.Quick) {
         doneMessageOrCancelled("Done: Re-Downloaded '${game.name}'.")
@@ -199,9 +199,9 @@ class GamePresenterImpl @Inject constructor(
         return updateGame(game, newProviderData, game.userData)
     }
 
-    private fun updateGame(game: Game, newProviderData: List<ProviderData>, newUserData: UserData?): Game {
+    private suspend fun Task<*>.updateGame(game: Game, newProviderData: List<ProviderData>, newUserData: UserData?): Game {
         val newRawGame = game.rawGame.copy(providerData = newProviderData, userData = newUserData)
-        return gameRepository.replace(game, newRawGame)
+        return runMainTask(gameService.replace(game, newRawGame))
     }
 
     private suspend fun <T> runTask(title: String, type: TaskType = TaskType.Long, run: suspend Task<*>.() -> T): T {

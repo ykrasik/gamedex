@@ -16,12 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -35,90 +32,63 @@ import javax.inject.Singleton
  * Time: 19:18
  */
 @Singleton
-class GameRepositoryImpl @Inject constructor(
-    private val persistenceService: PersistenceService,
-    private val gameFactory: GameFactory
-) : GameRepository {
+internal class GameRepository @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    override val games = ListObservableImpl(fetchGames())
+    val games = ListObservableImpl(fetchGames())
 
-    private fun fetchGames(): List<Game> {
+    private fun fetchGames(): List<RawGame> {
         log.info("Fetching games...")
-        val games = persistenceService.fetchGames().map { it.toGame() }
+        val games = persistenceService.fetchGames()
         log.info("Fetched ${games.size} games.")
         return games
     }
 
-    override fun add(request: AddGameRequest): Game {
-        val rawGame = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
-        val game = rawGame.toGame()
+    fun add(request: AddGameRequest): RawGame {
+        val game = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
         games += game
         return game
     }
 
-    // TODO: Get a reference to the task and update it?
-    override suspend fun addAll(requests: List<AddGameRequest>, afterEach: (Game) -> Unit): List<Game> {
+    suspend fun addAll(requests: List<AddGameRequest>, afterEach: (RawGame) -> Unit): List<RawGame> {
         // Write games to db in chunks of concurrent requests - wait until all games are written and then move on to the next chunk.
         // This is in order to allow the ui thread to run roughly once after every chunk.
         // Otherwise, it gets swamped during large operations (import large db) and UI appears to hang.
-        @Suppress("NAME_SHADOWING")
-        val games = requests.chunked(50).flatMap { requests ->
-            requests.map { request ->
-                async(CommonPool) {
-                    // TODO: Batch insert?
-                    persistenceService.insertGame(request.metadata, request.providerData, request.userData).toGame().also(afterEach)
-                }
-            }.map { it.await() }
-        }
+        val games = requests.map { request ->
+            async(CommonPool) {
+                // TODO: Batch insert?
+                persistenceService.insertGame(request.metadata, request.providerData, request.userData).also(afterEach)
+            }
+        }.map { it.await() }
 
         this.games += games
         return games
     }
 
-    override fun replace(source: Game, target: RawGame): Game {
-        val newGame = target.toGame()
+    fun replace(source: RawGame, target: RawGame) {
         source.verifySuccess { persistenceService.updateGame(target.withMetadata { it.updatedNow() }) }
-        games.replace(source, newGame)
-        return newGame
+        games.replace(source, target)
     }
 
-    override fun delete(game: Game) {
-        log.info("Deleting '${game.name}'...")
+    fun delete(game: RawGame) {
         game.verifySuccess { persistenceService.deleteGame(game.id) }
         games -= game
-        log.info("Deleting '${game.name}': Done.")
     }
 
-    override fun deleteAll(games: List<Game>, task: Task<*>) {
-        if (games.isEmpty()) return
-
-        task.totalWork = games.size
-        @Suppress("NAME_SHADOWING")
-        games.chunked(200).forEach { games ->
-            require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
-            task.incProgress(games.size)
-        }
-
+    fun deleteAll(games: List<RawGame>) {
+        require(persistenceService.deleteGames(games.map { it.id }) == games.size) { "Not all games to be deleted existed: $games" }
         this.games -= games
     }
 
-    override fun deleteAllUserData() {
+    fun deleteAllUserData() {
         persistenceService.clearUserData()
-        games.set(games.map { it.rawGame.copy(userData = null).toGame() })
+        games.setAll(games.map { it.copy(userData = null) })
     }
 
-    override fun invalidate() {
+    fun invalidate() {
         // Re-fetch all games from persistence
-        games.set(fetchGames())
+        games.setAll(fetchGames())
     }
 
-    override fun rebuildGames() = games.set(games.map { it.rawGame.toGame() })
-
-    private fun RawGame.toGame(): Game = gameFactory.create(this)
-
-    override fun get(id: Int): Game = games.find { it.id == id }
-        ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
-
-    private fun Game.verifySuccess(f: () -> Boolean) = require(f()) { "Game doesn't exist: $this" }
+    private fun RawGame.verifySuccess(f: () -> Boolean) = require(f()) { "Game doesn't exist: $this" }
 }

@@ -47,7 +47,7 @@ class GameFactory @Inject constructor(
 
         return Game(
             library = library,
-            rawGame = rawGame.copy(providerData = rawGame.providerData.sortedBy { it.header.id }),
+            rawGame = rawGame,
             gameData = gameData,
             folderMetadata = folderMetadata
         )

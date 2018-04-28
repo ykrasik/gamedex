@@ -47,6 +47,8 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
     private var tabPane: TabPane by singleAssign()
 
+    private val rawGame = game.rawGame.copy(providerData = game.rawGame.providerData.sortedBy { it.header.id })
+
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()
         // TODO: Move selection stuff to the end.
@@ -56,7 +58,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
     }
 
     // TODO: Play around with representing this as a CustomProvider in the UserData
-    private var overrides = HashMap(game.rawGame.userData?.overrides ?: emptyMap())
+    private var overrides = HashMap(rawGame.userData?.overrides ?: emptyMap())
 
     private var choice: Choice = Choice.Cancel
 
@@ -173,7 +175,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 scrollpane(fitToWidth = false) {
                     vbox(spacing = 10.0) {
                         // Existing provider data
-                        game.rawGame.providerData.forEach { providerData ->
+                        rawGame.providerData.forEach { providerData ->
                             providerDataExtractor(providerData)?.let { data ->
                                 jfxToggleNode(group = toggleGroup) {
                                     useMaxWidth = true
