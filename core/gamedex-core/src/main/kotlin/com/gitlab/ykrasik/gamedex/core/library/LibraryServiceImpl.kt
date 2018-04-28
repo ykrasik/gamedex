@@ -18,9 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.util.filtering
+import com.gitlab.ykrasik.gamedex.app.api.util.quickTask
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,10 +35,67 @@ import javax.inject.Singleton
  * Time: 19:34
  */
 @Singleton
-class LibraryServiceImpl @Inject constructor(private val libraryRepository: LibraryRepository) : LibraryService {
-    override fun addAll(data: List<LibraryData>) = Task<List<Library>> {
-        message1 = "Adding ${data.size} libraries..."
-        totalWork = data.size
-        libraryRepository.addAll(data) { incProgress() }
+internal class LibraryServiceImpl @Inject constructor(
+    private val repo: LibraryRepository,
+    userConfigRepository: UserConfigRepository
+) : LibraryService {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+
+    override val libraries = repo.libraries
+    override val realLibraries = libraries.filtering { it.platform != Platform.excluded }
+
+    override fun get(id: Int) = libraries.find { it.id == id }
+        ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
+
+    override fun get(platform: Platform, name: String) = doGet(platform, name)
+        ?: throw IllegalArgumentException("Library doesn't exist: platform=$platform, name=$name")
+
+    override fun add(data: LibraryData) = quickTask {
+        message1 = "Adding Library '${data.name}'..."
+        doneMessage { "Added Library: '${data.name}'." }
+        repo.add(data)
     }
+
+    override fun addAll(data: List<LibraryData>) = task {
+        message1 = "Adding ${data.size} Libraries..."
+        totalWork = data.size
+        repo.addAll(data) { incProgress() }
+    }
+
+    override fun update(library: Library, data: LibraryData) = quickTask {
+        message1 = "Updating Library ${library.name}..."
+        doneMessage { "Updated Library: '${library.name}'." }
+        repo.update(library, data)
+    }
+
+    override fun delete(library: Library) = quickTask("Deleting Library '${library.name}'...") {
+        message1 = "Deleting Library '${library.name}'..."
+        doneMessage { "Deleted Library: '${library.name}'." }
+        repo.delete(library)
+    }
+
+    override fun deleteAll(libraries: List<Library>) = quickTask("Deleting ${libraries.size} Libraries...") {
+        message1 = "Deleting ${libraries.size} Libraries..."
+        doneMessage { "Deleted ${libraries.size} Libraries." }
+        repo.deleteAll(libraries)
+    }
+
+    override fun invalidate() = task {
+        repo.invalidate()
+    }
+
+    override fun isAvailableNewName(platform: Platform, newName: String): Boolean =
+        doGet(platform, newName) == null
+
+    override fun isAvailableUpdatedName(library: Library, updatedName: String): Boolean =
+        doGet(library.platform, updatedName) ?: library == library
+
+    override fun isAvailableNewPath(newPath: File): Boolean =
+        doGet(newPath) == null
+
+    override fun isAvailableUpdatedPath(library: Library, updatedPath: File): Boolean =
+        doGet(updatedPath) ?: library == library
+
+    private fun doGet(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
+    private fun doGet(path: File) = libraries.find { it.path == path }
 }

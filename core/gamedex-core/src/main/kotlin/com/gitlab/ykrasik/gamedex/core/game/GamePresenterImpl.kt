@@ -17,17 +17,17 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.now
@@ -42,13 +42,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class GamePresenterImpl @Inject constructor(
+    private val libraryService: LibraryService,
     private val taskRunner: TaskRunner,
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService,
     private val gameRepository: GameRepository,
-    private val userConfigRepository: UserConfigRepository,
-    private val libraryRepository: LibraryRepository,
-    private val fileSystemService: FileSystemService
+    private val fileSystemService: FileSystemService,
+    userConfigRepository: UserConfigRepository
 ) : GamePresenter {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
@@ -78,11 +78,11 @@ class GamePresenterImpl @Inject constructor(
         }
     }
 
+    // TODO: Put this logic in GameService
     private fun Task<*>.detectNewDirectories(): List<Pair<Library, File>> {
-        val libraries = libraryRepository.libraries.filter { it.platform != Platform.excluded } // TODO: Use RealLibraries from LibraryRepository.
-        val excludedDirectories = libraries.map(Library::path).toSet() + gameRepository.games.map(Game::path).toSet()
+        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameRepository.games.map(Game::path).toSet()
 
-        return libraries.flatMapWithProgress { library ->
+        return libraryService.realLibraries.flatMapWithProgress { library ->
             fileSystemService.detectNewDirectories(library.path, excludedDirectories - library.path)
                 .map { library to it }
         }

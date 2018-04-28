@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.api.game
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 
 /**
  * User: ykrasik
@@ -41,6 +41,7 @@ interface GameRepository {
     fun deleteAllUserData()
 
     fun invalidate()
+    fun rebuildGames()  // TODO: Exposed temporarily until everyone references GameService instead of this repo
 }
 
 data class AddGameRequest(

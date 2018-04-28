@@ -18,9 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -34,11 +32,10 @@ import javax.inject.Singleton
  * Time: 19:57
  */
 @Singleton
-class LibraryRepositoryImpl @Inject constructor(private val persistenceService: PersistenceService) : LibraryRepository {
+internal class LibraryRepository @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
-    // TODO: Add a RealLibraries and use it in GamePresenter.
-    override val libraries = ListObservableImpl(fetchLibraries())
+    val libraries = ListObservableImpl(fetchLibraries())
 
     private fun fetchLibraries(): List<Library> {
         log.info("Fetching libraries...")
@@ -47,13 +44,13 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
         return libraries
     }
 
-    override fun add(data: LibraryData): Library {
+    fun add(data: LibraryData): Library {
         val library = persistenceService.insertLibrary(data)
         libraries += library
         return library
     }
 
-    override suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
+    suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
         val libraries = data.map { libraryData ->
             async(CommonPool) {
                 persistenceService.insertLibrary(libraryData)
@@ -66,34 +63,28 @@ class LibraryRepositoryImpl @Inject constructor(private val persistenceService: 
         return libraries
     }
 
-    override fun update(library: Library, data: LibraryData) {
+    fun update(library: Library, data: LibraryData) {
         val updatedLibrary = library.copy(data = data)
         library.verifySuccess { persistenceService.updateLibrary(updatedLibrary) }
         libraries.replace(library, updatedLibrary)
     }
 
-    override fun delete(library: Library) {
+    fun delete(library: Library) {
         library.verifySuccess { persistenceService.deleteLibrary(library.id) }
         libraries -= library
     }
 
-    override fun deleteAll(libraries: List<Library>) {
+    fun deleteAll(libraries: List<Library>) {
         if (libraries.isEmpty()) return
 
         require(persistenceService.deleteLibraries(libraries.map { it.id }) == libraries.size) { "Not all libraries to be deleted existed: $libraries" }
         this.libraries -= libraries
     }
 
-    override fun invalidate() {
+    fun invalidate() {
         // Re-fetch from persistence
         libraries.set(fetchLibraries())
     }
-
-    override fun get(id: Int): Library = libraries.find { it.id == id }
-        ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
-
-    override fun get(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
-        ?: throw IllegalArgumentException("Library doesn't exist: platform=$platform, name=$name")
 
     private fun Library.verifySuccess(f: () -> Boolean) = require(f()) { "Library doesn't exist: $this" }
 }

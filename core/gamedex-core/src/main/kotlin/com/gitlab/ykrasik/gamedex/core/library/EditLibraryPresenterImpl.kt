@@ -19,10 +19,10 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
@@ -37,7 +37,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class EditLibraryPresenterImpl @Inject constructor(
-    private val libraryRepository: LibraryRepository,
+    private val libraryService: LibraryService,
     userConfigRepository: UserConfigRepository
 ) : BasePresenter<EditLibraryView.Event, EditLibraryView>(), EditLibraryPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
@@ -86,49 +86,54 @@ class EditLibraryPresenterImpl @Inject constructor(
         if (view.name.isEmpty()) {
             view.name = selectedDirectory.name
         }
-        validateData()
+        validate()
     }
 
     private fun handleNameChanged() {
         validateName()
-        checkValid()
+        setCanAccept()
     }
 
     private fun handlePathChanged() {
         validatePath()
-        checkValid()
+        setCanAccept()
     }
 
     private fun handlePlatformChanged() {
         check(view.platform == view.initialLibrary?.platform || view.canChangePlatform) { "Changing library platform for an existing library is not allowed: ${view.initialLibrary}" }
-        validateData()
+        validate()
     }
 
-    private fun validateData() {
+    private fun validate() {
         validateName()
         validatePath()
-        checkValid()
+        setCanAccept()
     }
 
     private fun validateName() {
         view.nameValidationError = when {
             view.name.isEmpty() -> "Name is required!"
-            libraryRepository.libraries.any { it != view.initialLibrary && it.name == view.name && it.platform == view.platform } ->
-                "Name already in use for this platform!"
+            !isAvailableNewName && !isAvailableUpdatedName -> "Name already in use for this platform!"
             else -> null
         }
     }
+
+    private val isAvailableNewName get() = view.initialLibrary == null && libraryService.isAvailableNewName(view.platform, view.name)
+    private val isAvailableUpdatedName get() = view.initialLibrary != null && libraryService.isAvailableUpdatedName(view.initialLibrary!!, view.name)
 
     private fun validatePath() {
         view.pathValidationError = when {
             view.path.isEmpty() -> "Path is required!"
             !view.path.toFile().isDirectory -> "Path doesn't exist!"
-            libraryRepository.libraries.any { it != view.initialLibrary && it.path == view.path.toFile() } -> "Path already in use!"
+            !isAvailableNewPath && !isAvailableUpdatedPath -> "Path already in use!"
             else -> null
         }
     }
 
-    private fun checkValid() {
+    private val isAvailableNewPath get() = view.initialLibrary == null && libraryService.isAvailableNewPath(view.path.toFile())
+    private val isAvailableUpdatedPath get() = view.initialLibrary != null && libraryService.isAvailableUpdatedPath(view.initialLibrary!!, view.path.toFile())
+
+    private fun setCanAccept() {
         view.canAccept = view.nameValidationError == null && view.pathValidationError == null
     }
 }

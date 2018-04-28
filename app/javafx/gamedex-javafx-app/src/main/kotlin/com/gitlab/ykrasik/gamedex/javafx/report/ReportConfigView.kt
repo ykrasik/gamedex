@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.FilterSet
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
 import com.gitlab.ykrasik.gamedex.core.api.util.modifyValue
@@ -29,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.FilterFragment
-import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -45,7 +45,7 @@ import tornadofx.*
  * Time: 16:56
  */
 class ReportConfigView : View("Report Config") {
-    private val libraryController: LibraryController by di()
+    private val libraryService: LibraryService by di()
     private val gameController: GameController by di()
     private val providerRepository: GameProviderRepository by di()
     private val userConfigRepository: UserConfigRepository by di()
@@ -66,7 +66,7 @@ class ReportConfigView : View("Report Config") {
     private val reportNameProperty = SimpleStringProperty()
     private val viewModel = ReportNameViewModel(reportNameProperty)
 
-    private val filterSet = FilterSet.Builder(gameUserConfig, libraryController, gameController, providerRepository).build()
+    private val filterSet = FilterSet.Builder(gameUserConfig, libraryService, gameController, providerRepository).build()
     private val filterFragment = FilterFragment(currentReportConfigSubject.map { it.filter }, filterSet)
 
     private val isValid = viewModel.valid.and(filterFragment.isValid)

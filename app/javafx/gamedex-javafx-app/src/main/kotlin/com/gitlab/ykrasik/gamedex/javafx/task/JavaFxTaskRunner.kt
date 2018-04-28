@@ -30,9 +30,12 @@ import javafx.scene.Parent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.withContext
 import org.controlsfx.control.NotificationPane
 import tornadofx.*
 import javax.inject.Singleton
@@ -140,11 +143,6 @@ class JavaFxTaskRunner : TaskRunner {
             }.apply {
                 currentJob = this
             }.await()
-        } catch (e: Exception) {
-            if (e !is CancellationException) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-            throw e
         } finally {
             currentJob = null
             currentlyRunningTaskChannel.send(null)

@@ -18,12 +18,15 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 
 import com.gitlab.ykrasik.gamedex.app.api.Presenters
 import com.gitlab.ykrasik.gamedex.app.api.presenters
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.module.ProviderScannerModule
-import com.google.inject.*
+import com.google.inject.AbstractModule
+import com.google.inject.Guice
+import com.google.inject.Module
+import com.google.inject.Stage
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
@@ -41,7 +44,7 @@ object Preloader {
         GamedexLogAppender.init()
     }
 
-    fun load(vararg extraModules: Module) = Task<Injector>("Loading...") {
+    fun load(vararg extraModules: Module) = task("Loading...") {
         message1 = "Loading..."
 
         // While loading, display all log messages in the task

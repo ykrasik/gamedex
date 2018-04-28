@@ -16,11 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import kotlinx.coroutines.experimental.CommonPool
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,10 +33,27 @@ import javax.inject.Singleton
  * Time: 19:51
  */
 @Singleton
-class GameServiceImpl @Inject constructor(private val gameRepository: GameRepository) : GameService {
-    override fun addAll(requests: List<AddGameRequest>) = Task<List<Game>> {
+class GameServiceImpl @Inject constructor(
+    private val repo: GameRepository,
+    libraryService: LibraryService,
+    gameProviderRepository: GameProviderRepository  // FIXME: Go through service!!!
+) : GameService {
+    init {
+        libraryService.libraries.changesChannel.subscribe(CommonPool) {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
+            when (it.type) {
+                ListChangeType.Remove -> repo.invalidate()
+                ListChangeType.Set -> repo.rebuildGames()
+            }
+        }
+        gameProviderRepository.enabledProviders.changesChannel.subscribe(CommonPool) {
+            repo.rebuildGames()
+        }
+    }
+
+    override fun addAll(requests: List<AddGameRequest>) = task {
         message1 = "Adding ${requests.size} games..."
         totalWork = requests.size
-        gameRepository.addAll(requests) { incProgress() }
+        repo.addAll(requests) { incProgress() }
     }
 }

@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
@@ -140,7 +139,6 @@ class MainView : View("GameDex") {
 
         navigationButton("Quit", Theme.Icon.quit()) { System.exit(0) }
     }.apply {
-        alignment = Pos.CENTER_LEFT
         textProperty().bind(tabPane.selectionModel.selectedItemProperty().map { it!!.text })
     }
 

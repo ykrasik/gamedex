@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
@@ -38,7 +37,6 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.EditLibraryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryPresenterImpl
-import com.gitlab.ykrasik.gamedex.core.library.LibraryRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.log.LogPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepositoryImpl
@@ -68,7 +66,6 @@ object CoreModule : AbstractModule() {
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
-        bind(LibraryRepository::class.java).to(LibraryRepositoryImpl::class.java)
         bind(GameRepository::class.java).to(GameRepositoryImpl::class.java)
         bind(GameProviderRepository::class.java).to(GameProviderRepositoryImpl::class.java)
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)

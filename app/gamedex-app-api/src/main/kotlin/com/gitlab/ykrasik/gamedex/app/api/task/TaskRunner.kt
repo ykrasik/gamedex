@@ -27,14 +27,10 @@ import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
  * Time: 10:55
  */
 interface TaskRunner {
-    // TODO: This looks like it maybe shouldn't suspend
     suspend fun <T> runTask(task: ReadOnlyTask<T>): T
 
-    suspend fun <T> runTask(title: String,
-                            type: TaskType = TaskType.Long,
-                            errorHandler: (Exception) -> Unit = Task.Companion::defaultErrorHandler,
-                            run: suspend Task<*>.() -> T) =
-        runTask(Task(title, type, errorHandler, run))
+    // TODO: redundant - delete.
+    suspend fun <T> runTask(title: String, type: TaskType = TaskType.Long, run: suspend Task<*>.() -> T) = runTask(Task(title, type, run))
 
     val currentlyRunningTaskChannel: BroadcastEventChannel<ReadOnlyTask<*>?>
 }

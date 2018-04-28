@@ -25,6 +25,7 @@ import kotlin.reflect.KClass
  * Date: 11/03/2018
  * Time: 15:12
  */
+// TODO: Is this a service?
 @Singleton
 class UserConfigRepository @Inject constructor(private val userConfigs: MutableSet<UserConfig>) {
     @Suppress("UNCHECKED_CAST")

@@ -18,18 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.RawGame
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,26 +37,11 @@ import javax.inject.Singleton
 @Singleton
 class GameRepositoryImpl @Inject constructor(
     private val persistenceService: PersistenceService,
-    private val gameFactory: GameFactory,
-    libraryRepository: LibraryRepository,
-    gameProviderRepository: GameProviderRepository
+    private val gameFactory: GameFactory
 ) : GameRepository {
     private val log = logger()
 
     override val games = ListObservableImpl(fetchGames())
-
-    init {
-        libraryRepository.libraries.changesChannel.subscribe(CommonPool) {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
-            when (it.type) {
-                ListChangeType.Remove -> launch(CommonPool) { invalidate() }
-                ListChangeType.Set -> launch(CommonPool) { rebuildGames() }
-            }
-        }
-        gameProviderRepository.enabledProviders.changesChannel.subscribe(CommonPool) {
-            rebuildGames()
-        }
-    }
 
     private fun fetchGames(): List<Game> {
         log.info("Fetching games...")
@@ -132,7 +113,7 @@ class GameRepositoryImpl @Inject constructor(
         games.set(fetchGames())
     }
 
-    private fun rebuildGames() = games.set(games.map { it.rawGame.toGame() })
+    override fun rebuildGames() = games.set(games.map { it.rawGame.toGame() })
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 

@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CompletableDeferred
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,8 +51,7 @@ interface ReadOnlyTask<out T> {
 
 class Task<out T>(override val title: String = "",
                   override val type: TaskType = TaskType.Long,
-                  private val errorHandler: (Exception) -> Unit = ::defaultErrorHandler,    // TODO: Get rid of this.
-                  private val doRun: suspend Task<T>.() -> T) : ReadOnlyTask<T> {
+                  private val doRun: suspend Task<*>.() -> T) : ReadOnlyTask<T> {
     private var started = false
     private lateinit var context: CoroutineContext
 
@@ -95,10 +97,8 @@ class Task<out T>(override val title: String = "",
 
     override suspend fun run(): T = run(CommonPool)
 
-    suspend fun <R> runSubTask(type: TaskType = TaskType.Long,
-                               errorHandler: (Exception) -> Unit = this.errorHandler,
-                               doRun: suspend Task<*>.() -> R) =
-        runSubTask(Task("", type, errorHandler, doRun))
+    suspend fun <R> runSubTask(type: TaskType = TaskType.Long, doRun: suspend Task<*>.() -> R) =
+        runSubTask(Task("", type, doRun))
 
     suspend fun <R> runSubTask(subTask: Task<R>): R {
         subTasks.send(subTask)
@@ -130,11 +130,6 @@ class Task<out T>(override val title: String = "",
             }.await().apply {
                 success = true
             }
-        } catch (e: Exception) {
-            if (e !is CancellationException) {
-                errorHandler(e)
-            }
-            throw e
         } finally {
             doneMessage.complete(doneMessageSupplier.invoke(success))
             progress = 1.0
@@ -173,41 +168,10 @@ class Task<out T>(override val title: String = "",
         totalWork = size
         forEach { f(it).apply { incProgress() } }
     }
-
-    companion object {
-        fun defaultErrorHandler(e: Exception) {
-            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-        }
-    }
 }
 
 enum class TaskType { Quick, Long, NonCancellable }
 
-//class ProgressList<out T>(val wrapped: List<T>, val task: Task<*>) : List<T> by wrapped {
-//    inline fun <R> map(f: (T) -> R): List<R> = task.run {
-//        totalWork = size
-//        wrapped.map { f(it).incProgress() }
-//    }
-//
-//    inline fun <R : Any> mapNotNull(f: (T) -> R?): List<R> = task.run {
-//        totalWork = size
-//        wrapped.mapNotNull { f(it).incProgress() }
-//    }
-//
-//    inline fun <R> flatMap(f: (T) -> List<R>): List<R> = task.run {
-//        totalWork = size
-//        wrapped.flatMap { f(it).incProgress() }
-//    }
-//
-//    inline fun filter(f: (T) -> Boolean): List<T> = task.run {
-//        totalWork = size
-//        wrapped.filter { f(it).incProgress() }
-//    }
-//
-//    fun forEach(f: (T) -> Unit) = task.run {
-//        totalWork = size
-//        wrapped.forEach { f(it).incProgress() }
-//    }
-//}
-//
-//fun <T> List<T>.reportProgress(task: Task<*>) = ProgressList(this, task)
+fun <T> task(title: String = "", doRun: suspend Task<*>.() -> T): Task<T> = Task(title, TaskType.Long, doRun)
+fun <T> quickTask(title: String = "", doRun: suspend Task<*>.() -> T): Task<T> = Task(title, TaskType.Quick, doRun)
+fun <T> nonCancellableTask(title: String = "", doRun: suspend Task<*>.() -> T): Task<T> = Task(title, TaskType.NonCancellable, doRun)

@@ -17,14 +17,12 @@
 package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,13 +33,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class LibraryPresenterImpl @Inject constructor(
-    private val libraryRepository: LibraryRepository,
+    private val libraryService: LibraryService,
     private val gameRepository: GameRepository,
     private val taskRunner: TaskRunner
 ) : BasePresenter<LibraryView.Event, LibraryView>(), LibraryPresenter {
 
     override fun initView(view: LibraryView) {
-        view.libraries = libraryRepository.libraries
+        view.libraries = libraryService.libraries
     }
 
     override suspend fun handleEvent(event: LibraryView.Event) = when (event) {
@@ -53,37 +51,21 @@ class LibraryPresenterImpl @Inject constructor(
     private suspend fun handleAddLibraryClicked() {
         val data = view.showAddLibraryView()
         if (data != null) {
-            addLibrary(data)
+            taskRunner.runTask(libraryService.add(data))
         }
     }
 
     private suspend fun handleEditLibraryClicked(library: Library) {
         val data = view.showEditLibraryView(library)
         if (data != null) {
-            replaceLibrary(library, data)
+            taskRunner.runTask(libraryService.update(library, data))
         }
     }
 
     private suspend fun handleDeleteLibraryClicked(library: Library) {
         val gamesToBeDeleted = gameRepository.games.filter { it.library.id == library.id }
         if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
-            deleteLibrary(library)
+            taskRunner.runTask(libraryService.delete(library))
         }
-    }
-
-    // TODO: Move these to a LibraryService.
-    private suspend fun addLibrary(data: LibraryData): Library = taskRunner.runTask("Add Library", TaskType.Quick) {
-        doneMessage { "Added Library: '${data.name}'." }
-        libraryRepository.add(data)
-    }
-
-    private suspend fun replaceLibrary(library: Library, data: LibraryData) = taskRunner.runTask("Update Library", TaskType.Quick) {
-        doneMessage { "Updated Library: '${library.name}'." }
-        libraryRepository.update(library, data)
-    }
-
-    private suspend fun deleteLibrary(library: Library) = taskRunner.runTask("Delete Library", TaskType.Quick) {
-        doneMessage { "Deleted Library: '${library.name}'." }
-        libraryRepository.delete(library)
     }
 }

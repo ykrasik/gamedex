@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
@@ -38,18 +38,18 @@ import javax.inject.Singleton
 @Deprecated("Should be handled by LibraryPresenter.")
 @Singleton
 class LibraryController @Inject constructor(
-    private val libraryRepository: LibraryRepository,
-    private val userConfigRepository: UserConfigRepository
+    private val libraryService: LibraryService,
+    userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    val allLibraries = libraryRepository.libraries.toObservableList()
-    val realLibraries = allLibraries.filtered { it.platform != Platform.excluded }
+    val allLibraries = libraryService.libraries.toObservableList()
+    val realLibraries = libraryService.realLibraries.toObservableList()
     val platformLibraries = realLibraries.sortedFiltered().apply {
         predicateProperty.bind(gameUserConfig.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
             library.platform == platform
         })
     }
 
-    fun getBy(platform: Platform, name: String) = libraryRepository[platform, name]
+    fun getBy(platform: Platform, name: String) = libraryService[platform, name]
 }

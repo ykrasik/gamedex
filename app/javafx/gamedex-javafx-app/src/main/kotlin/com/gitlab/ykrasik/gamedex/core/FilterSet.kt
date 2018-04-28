@@ -16,13 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.filterClass
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.toDate
 import kotlin.reflect.KClass
@@ -45,7 +45,7 @@ class FilterSet private constructor(
 
     class Builder(
         private val gameUserConfig: GameUserConfig,
-        private val libraryController: LibraryController,
+        private val libraryService: LibraryService,
         private val gameController: GameController,
         private val providerRepository: GameProviderRepository
     ) {
@@ -59,7 +59,7 @@ class FilterSet private constructor(
             Filter.Platform::class to { Filter.Platform(gameUserConfig.platform) },
             Filter.Library::class to {
                 // TODO: Use platformLibraries for filter, realLibraries for report.
-                Filter.Library(gameUserConfig.platform, libraryController.realLibraries.firstOrNull()?.name ?: "")
+                Filter.Library(gameUserConfig.platform, libraryService.realLibraries.firstOrNull()?.name ?: "")
             },
             Filter.Genre::class to { Filter.Genre(gameController.genres.firstOrNull() ?: "") },
             Filter.Tag::class to { Filter.Tag(gameController.tags.firstOrNull() ?: "") },

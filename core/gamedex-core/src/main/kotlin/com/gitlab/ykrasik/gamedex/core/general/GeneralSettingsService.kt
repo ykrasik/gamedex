@@ -28,11 +28,11 @@ import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
+import com.gitlab.ykrasik.gamedex.app.api.util.nonCancellableTask
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameRepository
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -64,7 +64,6 @@ interface GeneralSettingsService {
 class GeneralSettingsServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val libraryRepository: LibraryRepository,    // TODO: Remove.
     private val gameRepository: GameRepository,    // TODO: Remove.
     private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService,
@@ -76,14 +75,14 @@ class GeneralSettingsServiceImpl @Inject constructor(
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
 
-    override fun importDatabase(file: File) = Task<Unit>("Importing Database...", TaskType.NonCancellable) {
+    override fun importDatabase(file: File) = nonCancellableTask("Importing Database...") {
         message1 = "Reading $file..."
         val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
 
         message1 = "Deleting existing database..."
         persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
         gameRepository.invalidate()
-        libraryRepository.invalidate()
+        runMainTask(libraryService.invalidate())
 
         val libraries: Map<Int, Library> = runMainTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
             .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
@@ -93,10 +92,10 @@ class GeneralSettingsServiceImpl @Inject constructor(
         doneMessage { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
     }
 
-    override fun exportDatabase(file: File) = Task<Unit>("Exporting Database...", TaskType.NonCancellable) {
+    override fun exportDatabase(file: File) = nonCancellableTask("Exporting Database...") {
         message1 = "Exporting Libraries:"
-        message2 = libraryRepository.libraries.size.toString()
-        val libraries = libraryRepository.libraries.mapWithProgress { it.toPortable() }
+        message2 = libraryService.libraries.size.toString()
+        val libraries = libraryService.libraries.mapWithProgress { it.toPortable() }
 
         message1 = "Exporting Games:"
         message2 = gameRepository.games.size.toString()
@@ -108,13 +107,13 @@ class GeneralSettingsServiceImpl @Inject constructor(
         val portableDb = PortableDb(libraries, games)
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
 
-        doneMessage { "Exported ${libraryRepository.libraries.size} Libraries & ${gameRepository.games.size} Games." }
+        doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameRepository.games.size} Games." }
     }
 
     override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data", TaskType.NonCancellable) {
         message1 = "Detecting stale data..."
 
-        val libraries = libraryRepository.libraries.filterWithProgress { !it.path.isDirectory }
+        val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
         val games = gameRepository.games.filterWithProgress { !it.path.isDirectory }
 
         val images = run {
@@ -152,9 +151,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
 
         staleData.libraries.let { libraries ->
             if (staleData.libraries.isNotEmpty()) {
-                message1 = "Deleting stale libraries:"
-                message2 = libraries.size.toString()
-                libraryRepository.deleteAll(libraries)
+                runMainTask(libraryService.deleteAll(libraries))
             }
         }
         incProgress()

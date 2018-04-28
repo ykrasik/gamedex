@@ -97,7 +97,13 @@ class InitOnceListObservable<T>(private val observableList: ObservableList<T>) :
 fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) -> Unit): ListChangeListener<T> =
     ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
 
-fun <T, R> ObservableList<T>.mapping(f: (T) -> R): ObservableList<R> = MappedList(this, f)
+fun <T, R> ObservableList<T>.mapping(f: (T) -> R): ObservableList<R> {
+    fun doMap() = this.map(f)
+
+    val list = FXCollections.observableArrayList(doMap())
+    this.onChange { list.setAll(doMap()) }
+    return list
+}
 
 // TODO: This is the un-optimized version
 fun <T, R> ObservableList<T>.flatMapping(f: (T) -> List<R>): ObservableList<R> {

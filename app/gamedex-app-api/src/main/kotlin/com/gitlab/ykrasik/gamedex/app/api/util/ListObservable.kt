@@ -16,6 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
+import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlin.coroutines.experimental.CoroutineContext
+
 /**
  * User: ykrasik
  * Date: 31/03/2018
@@ -96,3 +99,19 @@ data class ListItemRemovedEvent<out T>(val item: T, val index: Int) : ListChange
 data class ListItemsRemovedEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Remove)
 data class ListItemSetEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
 data class ListItemsSetEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
+
+inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> R): ListObservable<R> {
+    val list = ListObservableImpl<R>()
+    itemsChannel.subscribe(context) {
+        list.set(it.map(f))
+    }
+    return list
+}
+
+inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> {
+    val list = ListObservableImpl<T>()
+    itemsChannel.subscribe(context) {
+        list.set(it.filter(f))
+    }
+    return list
+}
