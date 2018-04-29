@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.search
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
+import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.imageViewColumn
 import com.gitlab.ykrasik.gamedex.javafx.minWidthFitContent
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -34,14 +34,14 @@ import tornadofx.*
  * Time: 21:29
  */
 class SearchResultsContentFragment(results: ObservableList<ProviderSearchResult>, close: (SearchChooser.Choice) -> Unit) : Fragment() {
-    private val imageRepository: JavaFxImageRepository by di()
+    private val imageLoader: ImageLoader by di()
 
     val minTableWidth = SimpleDoubleProperty()
 
     override val root = tableview(results) {
         val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Thumbnail", fitWidth = 200.0, fitHeight = 200.0, isPreserveRatio = true) { result ->
-            imageRepository.downloadImage(result.thumbnailUrl)
+            imageLoader.downloadImage(result.thumbnailUrl)
         }
         readonlyColumn("Name", ProviderSearchResult::name)
         readonlyColumn("Release Date", ProviderSearchResult::releaseDate) { addClass(CommonStyle.centered) }

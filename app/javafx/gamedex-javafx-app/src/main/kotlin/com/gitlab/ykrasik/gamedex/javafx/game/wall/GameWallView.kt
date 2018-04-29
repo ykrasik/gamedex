@@ -19,11 +19,11 @@ package com.gitlab.ykrasik.gamedex.javafx.game.wall
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameContextMenu
+import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
@@ -40,7 +40,7 @@ import tornadofx.*
  */
 class GameWallView : View("Games Wall") {
     private val gameController: GameController by di()
-    private val imageRepository: JavaFxImageRepository by di()
+    private val imageLoader: ImageLoader by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
@@ -126,7 +126,7 @@ class GameWallView : View("Games Wall") {
             if (item != null) {
                 metaTagOverlay.text = item.folderMetadata.metaTag
                 versionOverlay.text = item.folderMetadata.version
-                imageView.imageProperty().cleanBind(imageRepository.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
+                imageView.imageProperty().cleanBind(imageLoader.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
                 tooltip(item.name)
             } else {
                 metaTagOverlay.text = null

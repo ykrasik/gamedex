@@ -33,17 +33,17 @@ abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
 
     open val useDefaultNavigationButton: Boolean = true
 
-    // Yuck
+    // FIXME: Yuck
     val closeRequestedProperty = SimpleBooleanProperty(false)
 }
 
 // FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen<out P : Presenter<*>>(presenterClass: KClass<P>, title: String, icon: Glyph?) :
+abstract class PresentableGamedexScreen<out P : Presenter<*>>(presenterClass: KClass<P>, title: String = "", icon: Glyph? = null) :
     PresentableView<P>(presenterClass, title, icon) {
     abstract fun ToolBar.constructToolbar()
 
     open val useDefaultNavigationButton: Boolean = true
 
-    // Yuck
+    // FIXME: Yuck
     val closeRequestedProperty = SimpleBooleanProperty(false)
 }

@@ -153,20 +153,28 @@ fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rating.() -
 fun EventTarget.imageViewResizingPane(imageView: ImageView, op: ImageViewResizingPane.() -> Unit = {}) =
     opcr(this, ImageViewResizingPane(imageView), op)
 
+fun EventTarget.imageViewResizingPane(image: ObservableValue<Image?>, op: ImageViewResizingPane.() -> Unit = {}) =
+    imageViewResizingPane(ImageView()) {
+        imageProperty.bind(image)
+        op()
+    }
+
 fun Node.clipRectangle(op: Rectangle.() -> Unit) {
     clip = Rectangle().apply(op)
 }
 
-fun EventTarget.jfxToggleButton(p: Property<Boolean>, op: (JFXToggleButton.() -> Unit)? = null) = jfxToggleButton {
+inline fun EventTarget.jfxToggleButton(p: Property<Boolean>, text: String? = null, crossinline op: JFXToggleButton.() -> Unit = {}) = jfxToggleButton {
     selectedProperty().bindBidirectional(p)
-    op?.invoke(this)
+    this.text = text
+    op(this)
 }
 
 fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) = opcr(this, JFXToggleButton(), op)
 
-fun EventTarget.jfxCheckBox(p: Property<Boolean>, op: (JFXCheckBox.() -> Unit)? = null) = jfxCheckBox {
+inline fun EventTarget.jfxCheckBox(p: Property<Boolean>, text: String? = null, crossinline op: JFXCheckBox.() -> Unit = {}) = jfxCheckBox {
     selectedProperty().bindBidirectional(p)
-    op?.invoke(this)
+    this.text = text
+    op(this)
 }
 
 fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this, JFXCheckBox(), op)

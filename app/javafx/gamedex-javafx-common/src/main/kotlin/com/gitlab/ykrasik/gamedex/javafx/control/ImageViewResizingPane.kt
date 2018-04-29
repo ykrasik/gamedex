@@ -33,6 +33,8 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
         children += imageView
     }
 
+    val imageProperty = imageView.imageProperty()
+
     override fun layoutChildren() {
         layoutInArea(imageView, 0.0, 0.0, imageView.fitWidth, imageView.fitHeight, 0.0, HPos.CENTER, VPos.CENTER)
     }

@@ -45,13 +45,13 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
     }
 
     override val root = vbox {
+        enableWhen { enabledProperty }
         group("Database") {
             row {
                 jfxButton("Export Database", Theme.Icon.upload()) {
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { enabledProperty }
                     presentOnAction(GeneralSettingsPresenter::onExportDatabase)
                 }
             }
@@ -60,7 +60,6 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { enabledProperty }
                     presentOnAction(GeneralSettingsPresenter::onImportDatabase)
                 }
             }
@@ -73,7 +72,6 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    enableWhen { enabledProperty }
                     presentOnAction(GeneralSettingsPresenter::onClearUserData)
                 }
             }
@@ -82,7 +80,6 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { enabledProperty }
                     presentOnAction(GeneralSettingsPresenter::onCleanupDb)
                 }
             }

@@ -16,24 +16,24 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.confirmGameDelete
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.game.common.CommonGamePresenterOps
 import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryService
 import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import com.gitlab.ykrasik.gamedex.util.logger
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import kotlinx.coroutines.experimental.CommonPool
@@ -41,6 +41,7 @@ import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
 import java.nio.file.Files
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,7 +58,8 @@ class GameController @Inject constructor(
     private val gameDownloadService: GameDownloadService,
     private val fileSystemService: FileSystemService,
     private val taskRunner: JavaFxTaskRunner,
-    userConfigRepository: UserConfigRepository
+    userConfigRepository: UserConfigRepository,
+    private val commonGamePresenterOps: CommonGamePresenterOps
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
@@ -122,56 +124,12 @@ class GameController @Inject constructor(
     }
 
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
-    suspend fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Game {
-        val choice = EditGameDataFragment(game, initialTab).show()
-        val overrides = when (choice) {
-            is EditGameDataFragment.Choice.Override -> choice.overrides
-            is EditGameDataFragment.Choice.Clear -> emptyMap()
-            is EditGameDataFragment.Choice.Cancel -> return game
-        }
+    suspend fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Game =
+        commonGamePresenterOps.editDetails(game) { EditGameDataFragment(game, initialTab).show() } ?: game
 
-        val newRawGame = game.rawGame.withDataOverrides(overrides)
-        return if (newRawGame.userData != game.rawGame.userData) {
-            taskRunner.runTask(gameService.replace(game, newRawGame))
-        } else {
-            game
-        }
-    }
+    suspend fun tag(game: Game): Game = commonGamePresenterOps.tag(game) { TagFragment(game).show() } ?: game
 
-    private fun RawGame.withDataOverrides(overrides: Map<GameDataType, GameDataOverride>): RawGame {
-        // If new overrides are empty and userData is null, or userData has empty overrides -> nothing to do
-        // If new overrides are not empty and userData is not null, but has the same overrides -> nothing to do
-        if (overrides == userData?.overrides ?: emptyMap<GameDataType, GameDataOverride>()) return this
-
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(overrides = overrides))
-    }
-
-    suspend fun tag(game: Game): Game {
-        val choice = TagFragment(game).show()
-        val tags = when (choice) {
-            is TagFragment.Choice.Select -> choice.tags
-            is TagFragment.Choice.Cancel -> return game
-        }
-
-        val newRawGame = game.rawGame.withTags(tags)
-        return if (newRawGame.userData != game.rawGame.userData) {
-            taskRunner.runTask(gameService.replace(game, newRawGame))
-        } else {
-            game
-        }
-    }
-
-    private fun RawGame.withTags(tags: List<String>): RawGame {
-        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
-        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-        if (tags == userData?.tags ?: emptyList<String>()) return this
-
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(tags = tags))
-    }
-
-    suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
+    suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game)) ?: game
 
     suspend fun refreshGame(game: Game) = taskRunner.runTask(gameDownloadService.redownloadGame(game))
 
@@ -199,27 +157,8 @@ class GameController @Inject constructor(
         }
     }
 
-    suspend fun delete(game: Game): Boolean = withContext(JavaFx) {
-        val fromFileSystem = SimpleBooleanProperty(false)
-        val confirm = areYouSureDialog("Delete game '${game.name}'?") {
-            jfxToggleButton {
-                text = "From File System"
-                selectedProperty().bindBidirectional(fromFileSystem)
-            }
-        }
-        if (!confirm) {
-            return@withContext false
-        }
-
-        withContext(CommonPool) {
-            if (fromFileSystem.value) {
-                game.path.deleteWithChildren()
-            }
-
-            taskRunner.runTask(gameService.delete(game))
-            true
-        }
-    }
+    suspend fun delete(game: Game): Boolean =
+        commonGamePresenterOps.delete(game) { confirmGameDelete(it) }
 
     fun byId(id: Int): Game = gameService[id]
 }

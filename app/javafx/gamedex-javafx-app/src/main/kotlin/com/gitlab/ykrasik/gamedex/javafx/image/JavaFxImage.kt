@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.image
 
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.toImage
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
@@ -37,39 +38,50 @@ import javax.inject.Singleton
  * Date: 11/04/2018
  * Time: 11:10
  */
+class JavaFxImage(override val raw: ByteArray, val image: Image) : com.gitlab.ykrasik.gamedex.app.api.image.Image
+
+object JavaFxImageFactory : ImageFactory {
+    override fun invoke(data: ByteArray) = JavaFxImage(data, data.toImage())
+}
+
 @Singleton
-class JavaFxImageRepository @Inject constructor(private val imageRepository: ImageRepository) {
+class ImageLoader @Inject constructor(private val imageRepository: ImageRepository) {
     private val loading = getResourceAsByteArray("spinner.gif").toImage()
-    private val noImage = getResourceAsByteArray("no-image-available.png").toImage().toProperty()
+    private val noImage = getResourceAsByteArray("no-image-available.png").toImage()
 
     // A short-term cache to work around request bursts while the game wall is being first loaded
     private val cache = Cache<String, ObservableValue<Image>>(100)
 
+    fun loadImage(image: Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>?): ObservableValue<Image> =
+        image?.toObservableImage() ?: noImage.toProperty()
+
+    // TODO: Delete this
     // Only meant to be accessed by the ui thread.
     fun fetchImage(url: String?, gameId: Int, persistIfAbsent: Boolean): ObservableValue<Image> =
         if (url == null) {
-            noImage
+            noImage.toProperty()
         } else {
             cache.getOrPut(url) {
                 imageRepository.fetchImage(url, gameId, persistIfAbsent).toObservableImage()
             }
         }
 
+    // TODO: Delete this
     // Only meant to be accessed by the ui thread.
     fun downloadImage(url: String?): ObservableValue<Image> =
         if (url == null) {
-            noImage
+            noImage.toProperty()
         } else {
             imageRepository.downloadImage(url).toObservableImage()
         }
 
-    private fun Deferred<ByteArray>.toObservableImage(): ObservableValue<Image> {
+    private fun Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>.toObservableImage(): ObservableValue<Image> {
         val p = SimpleObjectProperty<Image>(loading)
         if (this.isCompleted) {
-            p.value = this.getCompleted().toImage()
+            p.value = this.getCompleted().image
         } else {
             launch(CommonPool) {
-                val image = await().toImage()
+                val image = await().image
                 withContext(JavaFx) {
                     p.value = image
                 }
@@ -77,6 +89,8 @@ class JavaFxImageRepository @Inject constructor(private val imageRepository: Ima
         }
         return p
     }
+
+    private val com.gitlab.ykrasik.gamedex.app.api.image.Image.image: Image get() = (this as JavaFxImage).image
 
     // Only meant to be accessed by the ui thread.
     private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {

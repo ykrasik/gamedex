@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.image
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.FileSize
@@ -38,44 +40,39 @@ import javax.inject.Singleton
 @Singleton
 class ImageRepositoryImpl @Inject constructor(
     private val persistenceService: PersistenceService,
+    private val imageFactory: ImageFactory,
     config: ImageConfig
 ) : ImageRepository {
-    private val persistedImageCache = Cache<String, Deferred<ByteArray>>(config.fetchCacheSize)
-    private val downloadedImageCache = Cache<String, Deferred<ByteArray>>(config.downloadCacheSize)
+    private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
+    private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)
 
     // Only meant to be accessed by the ui thread.
     // We disregard the value of persistIfAbsent when we get a cache hit, because
     // if it's already in the cache then it was already called with the exact same 'persistIfAbsent'.
     // A situation where this method is called once with persistIfAbsent=false and again
     // with the same url but persistIfAbsent=true simply doesn't exist.
-    override fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<ByteArray> =
-        persistedImageCache.getOrPut(url) {
-            async(CommonPool) {
-                val persistedBytes = persistenceService.fetchImage(url)
-                if (persistedBytes != null) {
-                    persistedBytes
-                } else {
-                    val downloadedBytes = doDownload(url).await()
-                    if (persistIfAbsent) {
-                        // Save downloaded image as a fire-and-forget operation.
-                        launch(CommonPool) {
-                            persistenceService.insertImage(gameId, url, downloadedBytes)
-                        }
+    override fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image> = persistedImageCache.getOrPut(url) {
+        async(CommonPool) {
+            val persistedBytes = persistenceService.fetchImage(url)
+            if (persistedBytes != null) {
+                imageFactory(persistedBytes)
+            } else {
+                val downloadedImage = downloadImage(url).await()
+                if (persistIfAbsent) {
+                    // Save downloaded image as a fire-and-forget operation.
+                    launch(CommonPool) {
+                        persistenceService.insertImage(gameId, url, downloadedImage.raw)
                     }
-                    downloadedBytes
                 }
+                downloadedImage
             }
         }
+    }
 
     // Only meant to be accessed by the ui thread.
-    override fun downloadImage(url: String): Deferred<ByteArray> =
-        downloadedImageCache.getOrPut(url) {
-            doDownload(url)
-        }
-
-    private fun doDownload(url: String) = downloadedImageCache.getOrPut(url) {
+    override fun downloadImage(url: String): Deferred<Image> = downloadedImageCache.getOrPut(url) {
         async(CommonPool) {
-            download(url)
+            imageFactory(download(url))
         }
     }
 

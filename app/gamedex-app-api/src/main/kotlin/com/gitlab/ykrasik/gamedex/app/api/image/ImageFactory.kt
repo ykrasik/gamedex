@@ -14,26 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.image
-
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+package com.gitlab.ykrasik.gamedex.app.api.image
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 09:27
- *
- * [fetchImage] & [downloadImage] are meant to be called only by the ui thread.
+ * Date: 01/05/2018
+ * Time: 12:52
  */
-interface ImageRepository {
-    // TODO: gameId is only here in order to link the url to a game so the image is auto-deleted with the game. Can also do this manually.
-    fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image>
+interface ImageFactory {
+    operator fun invoke(data: ByteArray): Image
+}
 
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImagesExcept(exceptUrls: List<String>): List<Pair<String, FileSize>>
-
-    fun deleteImages(imageUrls: List<String>)
+interface Image {
+    val raw: ByteArray
 }

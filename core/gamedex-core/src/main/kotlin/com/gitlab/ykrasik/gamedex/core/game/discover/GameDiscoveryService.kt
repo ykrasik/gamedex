@@ -40,7 +40,7 @@ import javax.inject.Singleton
 interface GameDiscoveryService {
     fun discoverNewGames(): Task<Unit>
     fun rediscoverGamesWithMissingProviders(): Task<Unit>
-    fun rediscoverGame(game: Game): Task<Game>
+    fun rediscoverGame(game: Game): Task<Game?>
 }
 
 @Singleton
@@ -141,7 +141,7 @@ class GameDiscoveryServiceImpl @Inject constructor(
         gameProviderService.checkAtLeastOneProviderEnabled()
 
         doneMessageOrCancelled("Done: Re-Discovered '${game.name}'.")
-        rediscoverGame(game, excludedProviders = emptyList()) ?: game
+        rediscoverGame(game, excludedProviders = emptyList())
     }
 
     private suspend fun Task<*>.rediscoverGame(game: Game, excludedProviders: List<ProviderId>): Game? {

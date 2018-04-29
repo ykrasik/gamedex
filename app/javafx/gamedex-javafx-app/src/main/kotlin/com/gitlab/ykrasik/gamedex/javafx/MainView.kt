@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
-import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsScreen
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
@@ -47,7 +47,7 @@ class MainView : View("GameDex") {
     private val logScreen: JavaFxLogScreen by inject()
     private val settingsController: SettingsController by di() // TODO: Probably not the correct way to do this.
 
-    private val gameDetailsScreen: GameDetailsScreen by inject()
+    private val gameDetailsScreen: JavaFxGameDetailsScreen by inject()
 
     private val taskRunner: JavaFxTaskRunner by di()
 
@@ -193,6 +193,7 @@ class MainView : View("GameDex") {
             items += presentableScreenToolbars.getOrPut(this@populateToolbar) {
                 // TODO: Find a neater solution, like not using ToolBar.constructToolbar()
                 ToolBar().apply {
+                    enableWhen { enabledProperty }
                     if (useDefaultNavigationButton) {
                         items += mainNavigationButton
                     } else {
@@ -219,7 +220,7 @@ class MainView : View("GameDex") {
     }
 
     fun showGameDetails(game: Game) {
-        gameDetailsScreen.game = game
+        gameDetailsScreen.show(game)
         tabPane.selectionModel.selectLast()
     }
 }

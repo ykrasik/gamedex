@@ -62,10 +62,7 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
                 val isShowProperty = overlay.isShowSubject.toPropertyCached()
                 jfxToggleButton(isShowProperty)
                 labeled("Position") { enumComboBox(overlay.positionSubject.toPropertyCached()) }.apply { showWhen { isShowProperty } }
-                jfxToggleButton(overlay.fillWidthSubject.toPropertyCached()) {
-                    showWhen { isShowProperty }
-                    text = "Fill Width"
-                }
+                jfxToggleButton(overlay.fillWidthSubject.toPropertyCached(), "Fill Width") { showWhen { isShowProperty } }
             }
         }
 

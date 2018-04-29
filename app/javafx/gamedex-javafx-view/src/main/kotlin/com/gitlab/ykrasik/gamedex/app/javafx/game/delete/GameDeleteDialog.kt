@@ -14,26 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.image
+package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.details.DeleteGameChoice
+import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
+import javafx.beans.property.SimpleBooleanProperty
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 09:27
- *
- * [fetchImage] & [downloadImage] are meant to be called only by the ui thread.
+ * Date: 01/05/2018
+ * Time: 15:10
  */
-interface ImageRepository {
-    // TODO: gameId is only here in order to link the url to a game so the image is auto-deleted with the game. Can also do this manually.
-    fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image>
-
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImagesExcept(exceptUrls: List<String>): List<Pair<String, FileSize>>
-
-    fun deleteImages(imageUrls: List<String>)
+fun confirmGameDelete(game: Game): DeleteGameChoice {
+    val fromFileSystem = SimpleBooleanProperty(false)
+    val confirm = areYouSureDialog("Delete game '${game.name}'?") {
+        jfxCheckBox(fromFileSystem, "From File System")
+    }
+    return if (confirm) {
+        DeleteGameChoice.Confirm(fromFileSystem.value)
+    } else {
+        DeleteGameChoice.Cancel
+    }
 }

@@ -17,13 +17,13 @@
 package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxGameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameFilterMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxGameDiscoveryView
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
@@ -47,7 +47,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
 
     private val filterMenu: GameFilterMenu by inject()
     private val discoveryView: JavaFxGameDiscoveryView by inject()
-    private val refreshMenu: JavaFxGameDownloadView by inject()
+    private val downloadView: JavaFxGameDownloadView by inject()
 
     // FIXME: Change search -> sync, refresh maybe to download?
     override fun ToolBar.constructToolbar() {
@@ -63,7 +63,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         verticalSeparator()
         items += discoveryView.root
         verticalSeparator()
-        items += refreshMenu.root
+        items += downloadView.root
         verticalSeparator()
     }
 

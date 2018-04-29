@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
+import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
@@ -33,6 +34,7 @@ import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChoiceConfigPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadPresenterImpl
@@ -79,6 +81,7 @@ object CoreModule : AbstractModule() {
         bind(GameDiscoveryPresenter::class.java).to(GameDiscoveryPresenterImpl::class.java)
         bind(DiscoverGameChoiceConfigPresenter::class.java).to(DiscoverGameChoiceConfigPresenterImpl::class.java)
         bind(GameDownloadPresenter::class.java).to(GameDownloadPresenterImpl::class.java)
+        bind(GameDetailsPresenter::class.java).to(GameDetailsPresenterImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameUserConfig::class.java)

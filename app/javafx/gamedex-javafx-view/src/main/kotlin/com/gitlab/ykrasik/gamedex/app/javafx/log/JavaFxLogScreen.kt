@@ -33,7 +33,6 @@ import java.io.PrintWriter
 import java.io.StringWriter
 
 
-
 /**
  * User: ykrasik
  * Date: 28/04/2017
@@ -67,8 +66,7 @@ class JavaFxLogScreen : PresentableGamedexScreen<LogPresenter>(LogPresenter::cla
             ).apply {
                 minWidth = 60.0
             }
-        header("Tail").labelFor =
-            jfxCheckBox(logTailProperty)
+        jfxCheckBox(logTailProperty, "Tail")
     }
 
     override val root = listview(observableEntries) {

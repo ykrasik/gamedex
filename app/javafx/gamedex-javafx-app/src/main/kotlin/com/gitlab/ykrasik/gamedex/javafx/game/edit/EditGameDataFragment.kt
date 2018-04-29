@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.game.details.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
+import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -44,7 +45,7 @@ import java.util.*
 // TODO: Add a way to clear provider excludes.
 class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment(game.name) {
     private val gameProviderService: GameProviderService by di()
-    private val imageRepository: JavaFxImageRepository by di()
+    private val imageLoader: ImageLoader by di()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -61,7 +62,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
     // TODO: Play around with representing this as a CustomProvider in the UserData
     private var overrides = HashMap(rawGame.userData?.overrides ?: emptyMap())
 
-    private var choice: Choice = Choice.Cancel
+    private var choice: EditGameDetailsChoice = EditGameDetailsChoice.Cancel
 
     override val root = borderpane {
         prefWidth = screenBounds.width.let { it * 2 / 3 }
@@ -70,19 +71,19 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    setOnAction { close(choice = Choice.Override(overrides)) }
+                    setOnAction { close(choice = EditGameDetailsChoice.Override(overrides)) }
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 toolbarButton(graphic = Theme.Icon.clear()) {
                     tooltip("Reset all to default")
-                    setOnAction { close(choice = Choice.Clear) }
+                    setOnAction { close(choice = EditGameDetailsChoice.Clear) }
                 }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction { close(choice = Choice.Cancel) }
+                    setOnAction { close(choice = EditGameDetailsChoice.Cancel) }
                 }
             }
         }
@@ -322,23 +323,17 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
         isPreserveRatio = true
-        imageProperty().bind(imageRepository.fetchImage(url, game.id, persistIfAbsent = false))
+        imageProperty().bind(imageLoader.fetchImage(url, game.id, persistIfAbsent = false))
     }
 
-    fun show(): Choice {
+    fun show(): EditGameDetailsChoice {
         openWindow(block = true)
         return choice
     }
 
-    private fun close(choice: Choice) {
+    private fun close(choice: EditGameDetailsChoice) {
         this.choice = choice
         close()
-    }
-
-    sealed class Choice {
-        data class Override(val overrides: Map<GameDataType, GameDataOverride>) : Choice()
-        object Cancel : Choice()
-        object Clear : Choice()
     }
 
     private sealed class SingleChoice {

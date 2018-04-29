@@ -35,7 +35,7 @@ abstract class PresentableView<out P : Presenter<*>>(presenterClass: KClass<P>, 
     // There's runtime IllegalAccessErrors thrown if this is made protected :(
     val presenter: P = FX.dicontainer!!.getInstance(presenterClass)
 
-    protected val enabledProperty = SimpleBooleanProperty(false)
+    val enabledProperty = SimpleBooleanProperty(false)
     override var enabled by enabledProperty
 
     // There's runtime IllegalAccessErrors thrown if this is made protected :(

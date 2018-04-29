@@ -62,7 +62,6 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
 }
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
-fun ByteArray.toImageView(): ImageView = this.toImage().toImageView()
 fun Image.toImageView(height: Number, width: Number): ImageView = toImageView {
     fitHeight = height.toDouble()
     fitWidth = width.toDouble()

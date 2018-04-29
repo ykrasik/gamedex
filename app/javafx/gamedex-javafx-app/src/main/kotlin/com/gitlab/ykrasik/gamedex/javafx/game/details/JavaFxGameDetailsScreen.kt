@@ -18,16 +18,20 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.confirmGameDelete
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
-import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
-import javafx.beans.property.ObjectProperty
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
+import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
-import javafx.scene.image.ImageView
 import javafx.scene.layout.Priority
+import kotlinx.coroutines.experimental.Deferred
 import org.controlsfx.control.PopOver
 import tornadofx.*
 
@@ -36,48 +40,42 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class GameDetailsScreen : GamedexScreen("Details", icon = null) {
-    private val gameController: GameController by di()
-    private val imageRepository: JavaFxImageRepository by di()
+class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(GameDetailsPresenter::class), GameDetailsView {
+    private val imageLoader: ImageLoader by di()
 
     private val browser = YouTubeWebBrowser()
 
-    val gameProperty: ObjectProperty<Game> = SimpleObjectProperty()
-    var game by gameProperty
+    private val gameProperty = SimpleObjectProperty<Game>()
+    override var game by gameProperty
+
+    private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
+    override var poster by posterProperty
 
     override val useDefaultNavigationButton = false
 
+    init {
+        presenter.present(this)
+    }
+
     override fun ToolBar.constructToolbar() {
-        editButton { setOnAction { editDetails() } }
+        editButton { setOnAction { presenter.onEditGameDetails(GameDataType.name_) } }
         verticalSeparator()
-        tagButton { setOnAction { tag() } }
+        tagButton { presentOnAction(GameDetailsPresenter::onTag) }
         verticalSeparator()
 
         spacer()
 
         verticalSeparator()
         searchButton("Re-Discover") {
-            enableWhen { gameController.canRunLongTask }
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            setOnAction { reloadGame { gameController.searchGame(game) } }
+            presentOnAction(GameDetailsPresenter::onRediscoverGame)
         }
         verticalSeparator()
-        refreshButton {
-            enableWhen { gameController.canRunLongTask }
-            setOnAction { reloadGame { gameController.refreshGame(game) } }
-        }
+        downloadButton("Re-Download") { presentOnAction(GameDetailsPresenter::onRedownloadGame) }
         verticalSeparator()
-        deleteButton("Delete") {
-            setOnAction {
-                javaFx {
-                    if (gameController.delete(game)) {
-                        goBackScreen()
-                    }
-                }
-            }
-        }
+        deleteButton("Delete") { presentOnAction(GameDetailsPresenter::onDeleteGame) }
         verticalSeparator()
     }
 
@@ -89,19 +87,15 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
             setId(Style.leftGameDetailsView)
             addClass(CommonStyle.card)
 
-            val poster = ImageView()
-            val gamePosterProperty = gameProperty.flatMap { game ->
-                // TODO: Make persistIfAbsent a configuration value.
-                imageRepository.fetchImage(game?.posterUrl, game?.id ?: -1, persistIfAbsent = false)
-            }
-            poster.imageProperty().bind(gamePosterProperty)
-
             contextmenu {
-                item("Change", graphic = Theme.Icon.poster(20.0)).action { editDetails(GameDataType.poster) }
+                item("Change", graphic = Theme.Icon.poster(20.0)).action {
+                    presenter.onEditGameDetails(GameDataType.poster)
+                }
             }
 
-            imageViewResizingPane(poster) {
-                maxWidth = com.gitlab.ykrasik.gamedex.javafx.screenBounds.width * maxPosterWidthPercent
+            val posterImageProperty = posterProperty.flatMap { imageLoader.loadImage(it) }
+            imageViewResizingPane(posterImageProperty) {
+                maxWidth = screenBounds.width * maxPosterWidthPercent
 
                 // Clip the posterPane's corners to be round after the posterPane's size is calculated.
                 clipRectangle {
@@ -123,11 +117,9 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
             // Top
             stackpane {
-                gameProperty.perform { game ->
-                    if (game != null) {
-                        replaceChildren {
-                            children += GameDetailsFragment(game, evenIfEmpty = true).root
-                        }
+                gameProperty.onChange { game ->
+                    replaceChildren {
+                        children += GameDetailsFragment(game!!, evenIfEmpty = true).root
                     }
                 }
             }
@@ -136,33 +128,24 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
 
             // Bottom
             children += browser.root.apply { vgrow = Priority.ALWAYS }
-            gameProperty.perform { game ->
-                if (game != null) browser.searchYoutube(game)
-            }
         }
-    }
-
-    init {
-        titleProperty.bind(gameProperty.map { it?.name })
     }
 
     override fun onUndock() {
         browser.stop()
     }
 
-    private fun editDetails(type: GameDataType = GameDataType.name_) = reloadGame {
-        gameController.editDetails(game, initialTab = type)
-    }
+    fun show(game: Game) = presenter.onShow(game)
 
-    private fun tag() = reloadGame { gameController.tag(game) }
+    override fun displayWebPage(url: String) = browser.load(url)
 
-    private fun reloadGame(f: suspend () -> Game) {
-        javaFx {
-            game = f()
-        }
-    }
+    override fun showEditGameView(game: Game, initialTab: GameDataType) = EditGameDataFragment(game, initialTab).show()
 
-    private fun goBackScreen() {
+    override fun showTagView(game: Game) = TagFragment(game).show()
+
+    override fun showConfirmDeleteGame(game: Game) = confirmGameDelete(game)
+
+    override fun goBack() {
         closeRequestedProperty.value = true
     }
 

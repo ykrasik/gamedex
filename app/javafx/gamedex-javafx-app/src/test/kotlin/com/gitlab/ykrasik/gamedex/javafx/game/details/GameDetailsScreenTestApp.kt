@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.test.randomGame
  * Date: 01/04/2017
  * Time: 14:06
  */
-object GameDetailsScreenTestApp : BaseTestApp<GameDetailsScreen>(GameDetailsScreen::class) {
-    override fun init(view: GameDetailsScreen) {
+object GameDetailsScreenTestApp : BaseTestApp<JavaFxGameDetailsScreen>(JavaFxGameDetailsScreen::class) {
+    override fun init(view: JavaFxGameDetailsScreen) {
         view.game = randomGame()
     }
 

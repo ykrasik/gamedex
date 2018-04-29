@@ -17,8 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.app.api.game.details.TagGameChoice
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import javafx.collections.FXCollections
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
@@ -35,17 +36,17 @@ class TagFragment(game: Game) : Fragment("Tag") {
     private val tags = FXCollections.observableArrayList(gameController.tags)
     private val checkedTags = HashSet(game.tags).observable()
 
-    private var choice: Choice = Choice.Cancel
+    private var choice: TagGameChoice = TagGameChoice.Cancel
 
     override val root = borderpane {
         addClass(Style.tagWindow)
         top {
             toolbar {
-                acceptButton { setOnAction { close(choice = Choice.Select(checkedTags.toList())) } }
+                acceptButton { setOnAction { close(choice = TagGameChoice.Select(checkedTags.toList())) } }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { setOnAction { close(choice = Choice.Cancel) } }
+                cancelButton { setOnAction { close(choice = TagGameChoice.Cancel) } }
             }
         }
         center {
@@ -115,19 +116,14 @@ class TagFragment(game: Game) : Fragment("Tag") {
     private fun checkTag(tag: String) { checkedTags += tag }
     private fun uncheckTag(tag: String) { checkedTags -= tag }
 
-    fun show(): Choice {
+    fun show(): TagGameChoice {
         openWindow(block = true, owner = null)
         return choice
     }
 
-    private fun close(choice: Choice) {
+    private fun close(choice: TagGameChoice) {
         this.choice = choice
         close()
-    }
-
-    sealed class Choice {
-        data class Select(val tags: List<String>) : Choice()
-        object Cancel : Choice()
     }
 
     class Style : Stylesheet() {
