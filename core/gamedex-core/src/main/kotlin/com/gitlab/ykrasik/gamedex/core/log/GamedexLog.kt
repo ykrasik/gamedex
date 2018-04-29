@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.log
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
@@ -47,7 +48,13 @@ object GamedexLog {
 
 class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
     override fun append(e: ILoggingEvent) {
-        GamedexLog += LogEntry(level = e.level.toString().toLowerCase(), timestamp = DateTime(e.timeStamp), loggerName = e.loggerName, message = e.message)
+        GamedexLog += LogEntry(
+            level = e.level.toString().toLowerCase(),
+            timestamp = DateTime(e.timeStamp),
+            loggerName = e.loggerName,
+            message = e.message,
+            throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
+        )
     }
 
     companion object {

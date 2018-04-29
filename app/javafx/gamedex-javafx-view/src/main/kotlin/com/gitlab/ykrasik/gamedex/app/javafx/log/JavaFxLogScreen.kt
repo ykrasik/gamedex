@@ -29,6 +29,10 @@ import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
 import javafx.scene.paint.Color
 import tornadofx.*
+import java.io.PrintWriter
+import java.io.StringWriter
+
+
 
 /**
  * User: ykrasik
@@ -96,7 +100,14 @@ class JavaFxLogScreen : PresentableGamedexScreen<LogView.Event>("Log", Theme.Ico
                         return
                     }
 
-                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] ${item.message}"
+                    val message = if (item.throwable != null) {
+                        val sw = StringWriter()
+                        item.throwable!!.printStackTrace(PrintWriter(sw))
+                        sw.toString()
+                    } else {
+                        item.message
+                    }
+                    text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
 
                     when (item.level.toLevel()) {
                         Level.TRACE -> toggleClass(Style.trace, true)

@@ -40,4 +40,4 @@ interface LogView : View<LogView.Event> {
 
 interface LogPresenter : Presenter<LogView>
 
-data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String)
+data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)

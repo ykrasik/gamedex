@@ -56,6 +56,8 @@ class PreloaderView : View("GameDex") {
         primaryStage.x = screenBounds.minX + screenBounds.width / 2 - logo.width / 2
         primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
 
+        Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
+
         javaFx {
             val task = Preloader.load(JavaFxModule)
             progressProperty.bind(task.progressChannel.toObservableValue(0.0))

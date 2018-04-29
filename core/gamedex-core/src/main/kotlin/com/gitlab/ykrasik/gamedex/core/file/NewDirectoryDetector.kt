@@ -49,10 +49,7 @@ class SimpleNewDirectoryDetector: NewDirectoryDetector {
         val newDirectories = mutableListOf<File>()
 
         fun detectNewDirectories(dir: File) {
-            if (!dir.isDirectory) {
-                log.error("Directory doesn't exist: [$dir]")
-                throw DirectoryDoesNotExistException(dir)
-            }
+            if (!dir.isDirectory) throw DirectoryDoesNotExistException(dir)
             if (dir.isExcluded) return
 
             // TODO: this blocks until all children are resolved, make this a cancellable stream.
