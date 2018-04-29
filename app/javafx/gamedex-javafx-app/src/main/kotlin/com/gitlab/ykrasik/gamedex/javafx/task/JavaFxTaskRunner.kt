@@ -77,6 +77,7 @@ class JavaFxTaskRunner : TaskRunner {
                             addClass(CommonStyle.thinBorder)
                             useMaxWidth = true
                             hgrow = Priority.ALWAYS
+                            isCancelButton = true
                             setOnAction {
                                 currentJob!!.cancel()
                             }

@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.menu
+package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigView

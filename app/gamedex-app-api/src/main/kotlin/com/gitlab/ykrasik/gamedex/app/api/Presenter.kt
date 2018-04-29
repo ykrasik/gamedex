@@ -30,3 +30,7 @@ interface Presenter<V : View<*>> {
 interface View<Event> {
     val events: ReceiveChannel<Event>
 }
+
+interface ViewCanRunTask<Event> : View<Event> {
+    var canRunTask: Boolean
+}

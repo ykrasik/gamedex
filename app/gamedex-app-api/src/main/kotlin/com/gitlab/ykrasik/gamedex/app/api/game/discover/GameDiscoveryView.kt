@@ -14,19 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.game
+package com.gitlab.ykrasik.gamedex.app.api.game.discover
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 10:36
+ * Date: 29/04/2018
+ * Time: 13:31
  */
-interface GamePresenter {
-    suspend fun redownloadAllGames()
-    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
-    // TODO: Add a redownloadFilteredGames thing
-    suspend fun redownloadGames(games: List<Game>)
-    suspend fun redownloadGame(game: Game): Game
+// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
+interface GameDiscoveryView : ViewCanRunTask<GameDiscoveryView.Event> {
+    sealed class Event {
+        object SearchNewGamesClicked : Event()
+        object SearchGamesWithoutProvidersClicked : Event()
+    }
 }
+
+interface GameDiscoveryPresenter : Presenter<GameDiscoveryView>

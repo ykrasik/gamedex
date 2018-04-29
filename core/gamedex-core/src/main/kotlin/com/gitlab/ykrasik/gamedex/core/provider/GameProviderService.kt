@@ -49,6 +49,11 @@ class GameProviderServiceImpl @Inject constructor(
 ) : GameProviderService {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
+    override fun checkAtLeastOneProviderEnabled() =
+        check(providerRepository.enabledProviders.isNotEmpty()) {
+            "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
+        }
+
     override suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults? =
         try {
             SearchContext(taskData, excludedProviders).search()

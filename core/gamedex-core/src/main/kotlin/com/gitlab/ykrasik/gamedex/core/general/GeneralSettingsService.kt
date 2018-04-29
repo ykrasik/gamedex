@@ -25,10 +25,9 @@ import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.app.api.util.nonCancellableTask
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
@@ -53,10 +52,10 @@ interface GeneralSettingsService {
     fun importDatabase(file: File): Task<Unit>
     fun exportDatabase(file: File): Task<Unit>
 
-    suspend fun detectStaleData(): StaleData
-    suspend fun deleteStaleData(staleData: StaleData)
+    fun detectStaleData(): Task<StaleData>
+    fun deleteStaleData(staleData: StaleData): Task<Unit>
 
-    suspend fun deleteAllUserData()
+    fun deleteAllUserData(): Task<Unit>
 }
 
 @Singleton
@@ -64,8 +63,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
     private val imageRepository: ImageRepository,
-    private val persistenceService: PersistenceService,
-    private val taskRunner: TaskRunner
+    private val persistenceService: PersistenceService
 ) : GeneralSettingsService {
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
@@ -108,7 +106,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
         doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameService.games.size} Games." }
     }
 
-    override suspend fun detectStaleData() = taskRunner.runTask("Detect Stale Data", TaskType.NonCancellable) {
+    override fun detectStaleData() = nonCancellableTask("Detecting stale data...") {
         message1 = "Detecting stale data..."
 
         val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
@@ -126,7 +124,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteStaleData(staleData: StaleData) = taskRunner.runTask("Delete Stale Data", TaskType.NonCancellable) {
+    override fun deleteStaleData(staleData: StaleData) = nonCancellableTask("Deleting Stale Data...") {
         totalWork = 3
 
         staleData.images.let { images ->
@@ -159,7 +157,7 @@ class GeneralSettingsServiceImpl @Inject constructor(
         listOf(games to "Games", libraries to "Libraries", images to "Images")
             .filter { it.first.isNotEmpty() }.joinToString("\n") { "${it.first.size} ${it.second}" }
 
-    override suspend fun deleteAllUserData() = taskRunner.runTask("Delete Game User Data") {
+    override fun deleteAllUserData() = task("Deleting all game user data...") {
         message1 = "Deleting all game user data..."
         doneMessage { "All game user data deleted." }
         runMainTask(gameService.deleteAllUserData())

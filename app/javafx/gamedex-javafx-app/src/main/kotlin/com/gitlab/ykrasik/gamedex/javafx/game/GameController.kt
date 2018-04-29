@@ -18,12 +18,12 @@ package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryService
+import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadService
+import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -54,7 +54,7 @@ import javax.inject.Singleton
 class GameController @Inject constructor(
     private val gameService: GameService,
     private val gameDiscoveryService: GameDiscoveryService,
-    private val gamePresenter: GamePresenter,
+    private val gameDownloadService: GameDownloadService,
     private val fileSystemService: FileSystemService,
     private val taskRunner: JavaFxTaskRunner,
     userConfigRepository: UserConfigRepository
@@ -173,12 +173,7 @@ class GameController @Inject constructor(
 
     suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
 
-    suspend fun refreshAllGames() = gamePresenter.redownloadAllGames()
-
-    // TODO: This should appear in reports - refresh all games in report.
-    suspend fun refreshFilteredGames() = gamePresenter.redownloadGames(sortedFilteredGames)
-
-    suspend fun refreshGame(game: Game) = gamePresenter.redownloadGame(game)
+    suspend fun refreshGame(game: Game) = taskRunner.runTask(gameDownloadService.redownloadGame(game))
 
     suspend fun renameFolder(game: Game, initialSuggestion: String? = null) = withContext(JavaFx) {
         val (library, newPath) = RenameMoveFolderFragment(game, initialSuggestion

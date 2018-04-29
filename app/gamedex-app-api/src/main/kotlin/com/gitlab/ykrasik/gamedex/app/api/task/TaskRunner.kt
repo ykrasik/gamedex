@@ -18,8 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.api.task
 
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 
 /**
  * User: ykrasik
@@ -28,9 +26,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
  */
 interface TaskRunner {
     suspend fun <T> runTask(task: ReadOnlyTask<T>): T
-
-    // TODO: redundant - delete.
-    suspend fun <T> runTask(title: String, type: TaskType = TaskType.Long, run: suspend Task<*>.() -> T) = runTask(Task(title, type, run))
 
     val currentlyRunningTaskChannel: BroadcastEventChannel<ReadOnlyTask<*>?>
 }

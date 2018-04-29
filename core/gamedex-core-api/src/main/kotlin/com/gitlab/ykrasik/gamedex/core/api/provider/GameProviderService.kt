@@ -30,6 +30,9 @@ import java.io.File
  */
 // TODO: Make it stream results back?
 interface GameProviderService {
+    fun checkAtLeastOneProviderEnabled()
+
+    // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
     suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults?
 
     suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData>

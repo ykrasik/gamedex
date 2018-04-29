@@ -24,9 +24,8 @@ import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableViewCanRunTask
 import com.gitlab.ykrasik.gamedex.util.browse
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.GridPane
@@ -40,11 +39,8 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsView.Event>("General Settings", Theme.Icon.settings()), GeneralSettingsView {
+class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.Event>("General Settings", Theme.Icon.settings()), GeneralSettingsView {
     private val presenter: GeneralSettingsPresenter by di()
-
-    private val canRunTaskProperty = SimpleBooleanProperty(false)
-    override var canRunTask by canRunTaskProperty
 
     init {
         presenter.present(this)

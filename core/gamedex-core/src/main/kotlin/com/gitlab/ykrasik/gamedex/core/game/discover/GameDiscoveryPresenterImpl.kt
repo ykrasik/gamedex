@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.core.BasePresenterCanRunTask
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,17 +31,13 @@ import javax.inject.Singleton
 @Singleton
 class GameDiscoveryPresenterImpl @Inject constructor(
     private val gameDiscoveryService: GameDiscoveryService,
-    private val taskRunner: TaskRunner
-) : BasePresenter<GameDiscoveryView.Event, GameDiscoveryView>(), GameDiscoveryPresenter {
-    override fun initView(view: GameDiscoveryView) {
-        taskRunner.currentlyRunningTaskChannel.subscribe {
-            view.canRunTask = it == null
-        }
-    }
+    taskRunner: TaskRunner
+) : BasePresenterCanRunTask<GameDiscoveryView.Event, GameDiscoveryView>(taskRunner), GameDiscoveryPresenter {
+    override fun doInitView(view: GameDiscoveryView) {}
 
     override suspend fun handleEvent(event: GameDiscoveryView.Event) =
-        taskRunner.runTask(when(event) {
-        GameDiscoveryView.Event.SearchNewGamesClicked -> gameDiscoveryService.discoverNewGames()
-        GameDiscoveryView.Event.SearchGamesWithoutProvidersClicked -> gameDiscoveryService.rediscoverGamesWithMissingProviders()
-    })
+        when (event) {
+            GameDiscoveryView.Event.SearchNewGamesClicked -> gameDiscoveryService.discoverNewGames()
+            GameDiscoveryView.Event.SearchGamesWithoutProvidersClicked -> gameDiscoveryService.rediscoverGamesWithMissingProviders()
+        }.runTask()
 }

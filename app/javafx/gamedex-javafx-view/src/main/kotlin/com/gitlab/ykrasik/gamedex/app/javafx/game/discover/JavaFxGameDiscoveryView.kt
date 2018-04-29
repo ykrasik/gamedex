@@ -14,19 +14,21 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.menu
+package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryView
 import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableViewCanRunTask
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Pos
 import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver
-import tornadofx.*
+import tornadofx.enableWhen
+import tornadofx.separator
+import tornadofx.tooltip
+import tornadofx.useMaxWidth
 
 /**
  * User: ykrasik
@@ -34,11 +36,8 @@ import tornadofx.*
  * Time: 10:54
  */
 // FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryView.Event>(), GameDiscoveryView {
+class JavaFxGameDiscoveryView : PresentableViewCanRunTask<GameDiscoveryView.Event>(), GameDiscoveryView {
     private val presenter: GameDiscoveryPresenter by di()
-
-    private val canRunTaskProperty = SimpleBooleanProperty(false)
-    override var canRunTask by canRunTaskProperty
 
     init {
         presenter.present(this)
@@ -59,7 +58,7 @@ class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryView.Event>(), Game
                 setOnAction { sendEvent(GameDiscoveryView.Event.SearchNewGamesClicked) }
             }
             separator()
-            // TODO: Why di I put this here? What's the relation between refreshLibrary & this?
+            // TODO: Why did I put this here? What's the relation between refreshLibrary & this?
             searchButton("Games Without All Providers") {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT

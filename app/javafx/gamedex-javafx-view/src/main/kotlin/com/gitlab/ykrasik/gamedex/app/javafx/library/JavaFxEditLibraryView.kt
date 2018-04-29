@@ -65,9 +65,6 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
         titleProperty.bind(initialLibraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
         nameValidationErrorProperty.onChange { viewModel.validate() }
         pathValidationErrorProperty.onChange { viewModel.validate() }
-        viewModel.nameProperty.onChange { viewModel.commit() }
-        viewModel.pathProperty.onChange { viewModel.commit() }
-        viewModel.platformProperty.onChange { viewModel.commit() }
     }
 
     override val root = borderpane {
@@ -98,7 +95,6 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
 
     private fun Fieldset.pathField() = field("Path") {
         textfield(viewModel.pathProperty) {
-            textProperty().onChange { sendEvent(EditLibraryView.Event.LibraryPathChanged(it!!)) }
             validator(ValidationTrigger.None) {
                 pathValidationError?.let { error(it) }
             }
@@ -110,7 +106,6 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
 
     private fun Fieldset.nameField() = field("Name") {
         textfield(viewModel.nameProperty) {
-            textProperty().onChange { sendEvent(EditLibraryView.Event.LibraryNameChanged(it!!)) }
             validator(ValidationTrigger.None) {
                 nameValidationError?.let { error(it) }
             }
@@ -120,7 +115,6 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
     private fun Fieldset.platformField() = field("Platform") {
         enableWhen { canChangePlatformProperty }
         platformComboBox(viewModel.platformProperty)
-        viewModel.platformProperty.onChange { sendEvent(EditLibraryView.Event.LibraryPlatformChanged(it!!)) }
     }
 
     fun show(library: Library?): LibraryData? {
@@ -137,9 +131,9 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 
     private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = bind { SimpleStringProperty("") }
-        val pathProperty = bind { SimpleStringProperty("") }
-        val platformProperty = bind { SimpleObjectProperty(Platform.pc) }
+        val nameProperty = presentableProperty(EditLibraryView.Event::LibraryNameChanged) { SimpleStringProperty("") }
+        val pathProperty = presentableProperty(EditLibraryView.Event::LibraryPathChanged) { SimpleStringProperty("") }
+        val platformProperty = presentableProperty(EditLibraryView.Event::LibraryPlatformChanged) { SimpleObjectProperty(Platform.pc) }
 
         override fun toString() = "LibraryViewModel(name = $name, platform = $platform, path = $path)"
     }

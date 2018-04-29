@@ -106,68 +106,70 @@ object Theme {
     }
 }
 
-fun EventTarget.toolbarButton(text: String? = null, graphic: Node? = null, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.toolbarButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
     jfxButton(text, graphic) {
         addClass(CommonStyle.toolbarButton)
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.acceptButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.acceptButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(graphic = Theme.Icon.accept(size)) {
         addClass(CommonStyle.acceptButton)
+        isDefaultButton = true
         tooltip("Accept")
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.cancelButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.cancelButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(graphic = Theme.Icon.cancel(size)) {
         addClass(CommonStyle.cancelButton)
+        isCancelButton = true
         tooltip("Cancel")
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.backButton(text: String? = null, size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.backButton(text: String? = null, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.back(size)) {
         addClass(CommonStyle.acceptButton)
         isCancelButton = true
         tooltip("Back")
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.addButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.addButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(graphic = Theme.Icon.plus(size)) {
         addClass(CommonStyle.acceptButton)
         tooltip("Add")
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.deleteButton(text: String? = null, size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.deleteButton(text: String? = null, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.delete(size)) {
         addClass(CommonStyle.deleteButton)
         tooltip("Delete")
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.excludeButton(text: String = "Exclude", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.excludeButton(text: String = "Exclude", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.exclamationTriangle(size)) {
         addClass(CommonStyle.excludeButton)
         tooltip(text)
-        op?.invoke(this)
+        op()
     }
 
-fun EventTarget.editButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.editButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton("Edit", Theme.Icon.edit(size), op)
 
-fun EventTarget.tagButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.tagButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton("Tag", Theme.Icon.tag(size), op)
 
-fun EventTarget.searchButton(text: String, size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.searchButton(text: String, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.search(size), op)
 
-fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.refresh(size), op)
 
-fun EventTarget.reportButton(text: String? = "Report", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+inline fun EventTarget.reportButton(text: String? = "Report", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.chart(size), op)
 
 

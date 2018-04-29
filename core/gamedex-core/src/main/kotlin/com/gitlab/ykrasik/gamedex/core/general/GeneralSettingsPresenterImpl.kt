@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.general
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.core.BasePresenterCanRunTask
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone
@@ -36,15 +36,11 @@ import javax.inject.Singleton
 class GeneralSettingsPresenterImpl @Inject constructor(
     private val generalSettingsService: GeneralSettingsService,
     userConfigRepository: UserConfigRepository,
-    private val taskRunner: TaskRunner
-) : BasePresenter<GeneralSettingsView.Event, GeneralSettingsView>(), GeneralSettingsPresenter {
+    taskRunner: TaskRunner
+) : BasePresenterCanRunTask<GeneralSettingsView.Event, GeneralSettingsView>(taskRunner), GeneralSettingsPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    override fun initView(view: GeneralSettingsView) {
-        taskRunner.currentlyRunningTaskChannel.subscribe {
-            view.canRunTask = it == null
-        }
-    }
+    override fun doInitView(view: GeneralSettingsView) {}
 
     override suspend fun handleEvent(event: GeneralSettingsView.Event) = when (event) {
         is GeneralSettingsView.Event.ExportDatabaseClicked -> handleExportDatabase()
@@ -63,30 +59,30 @@ class GeneralSettingsPresenterImpl @Inject constructor(
             "db_${timestamp.toString("HH_mm_ss")}.json"
         ).toFile()
 
-        taskRunner.runTask(generalSettingsService.exportDatabase(timestamptedPath))
+        generalSettingsService.exportDatabase(timestamptedPath).runTask()
         view.browseDirectory(timestamptedPath.parentFile)
     }
 
     private suspend fun handleImportDatabase() {
         val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return
         if (view.confirmImportDatabase()) {
-            taskRunner.runTask(generalSettingsService.importDatabase(file))
+            generalSettingsService.importDatabase(file).runTask()
         }
     }
 
     private suspend fun handleClearUserData() {
         if (view.confirmClearUserData()) {
-            generalSettingsService.deleteAllUserData()
+            generalSettingsService.deleteAllUserData().runTask()
         }
     }
 
     private suspend fun handleCleanupDb() {
-        val staleData = generalSettingsService.detectStaleData()
+        val staleData = generalSettingsService.detectStaleData().runTask()
         if (staleData.isEmpty) return
 
         if (view.confirmDeleteStaleData(staleData)) {
             // TODO: Create backup before deleting
-            generalSettingsService.deleteStaleData(staleData)
+            generalSettingsService.deleteStaleData(staleData).runTask()
         }
     }
 }

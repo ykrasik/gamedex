@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
@@ -32,11 +32,11 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
-import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChoiceConfigPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryPresenterImpl
+import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
@@ -75,14 +75,13 @@ object CoreModule : AbstractModule() {
         bind(GameProviderRepository::class.java).to(GameProviderRepositoryImpl::class.java)
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
-        bind(GamePresenter::class.java).to(GamePresenterImpl::class.java)
-
         bind(LibraryPresenter::class.java).to(LibraryPresenterImpl::class.java)
         bind(EditLibraryPresenter::class.java).to(EditLibraryPresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
         bind(LogPresenter::class.java).to(LogPresenterImpl::class.java)
         bind(GameDiscoveryPresenter::class.java).to(GameDiscoveryPresenterImpl::class.java)
         bind(DiscoverGameChoiceConfigPresenter::class.java).to(DiscoverGameChoiceConfigPresenterImpl::class.java)
+        bind(GameDownloadPresenter::class.java).to(GameDownloadPresenterImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameUserConfig::class.java)

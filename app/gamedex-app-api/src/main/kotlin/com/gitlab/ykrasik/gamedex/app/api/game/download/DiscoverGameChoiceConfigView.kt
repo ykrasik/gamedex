@@ -14,24 +14,21 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.app.api.game.download
 
 import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
 
-/**
- * User: ykrasik
- * Date: 29/04/2018
- * Time: 13:31
- */
 // FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-interface GameDiscoveryView : View<GameDiscoveryView.Event> {
+interface GameDownloadView : ViewCanRunTask<GameDownloadView.Event> {
     sealed class Event {
-        object SearchNewGamesClicked : Event()
-        object SearchGamesWithoutProvidersClicked : Event()
+        data class StalePeriodTextChanged(val stalePeriod: String) : Event()
+
+        object RedownloadAllStaleGamesClicked : Event()
     }
 
-    var canRunTask: Boolean
+    var stalePeriodText: String
+    var stalePeriodValidationError: String?
 }
 
-interface GameDiscoveryPresenter : Presenter<GameDiscoveryView>
+interface GameDownloadPresenter : Presenter<GameDownloadView>
