@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
@@ -34,13 +34,15 @@ import tornadofx.*
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
 class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryView.Event>("Libraries", Theme.Icon.hdd()), LibraryView {
+    private val presenter: LibraryPresenter by di()
+
     private val editLibraryView: JavaFxEditLibraryView by inject()
 
     private val observableLibraries = mutableListOf<Library>().observable()
     override var libraries by InitOnceListObservable(observableLibraries)
 
     init {
-        presenters.libraryPresenter.present(this)
+        presenter.present(this)
 
         observableLibraries.onChange {
             root.resizeColumnsToFitContent()

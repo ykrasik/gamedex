@@ -14,19 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.game
+package com.gitlab.ykrasik.gamedex.app.api.game.discover
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 10:36
+ * Date: 29/04/2018
+ * Time: 14:18
  */
-interface GamePresenter {
-    suspend fun redownloadAllGames()
-    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
-    // TODO: Add a redownloadFilteredGames thing
-    suspend fun redownloadGames(games: List<Game>)
-    suspend fun redownloadGame(game: Game): Game
+interface DiscoverGameChoiceConfigView: View<DiscoverGameChoiceConfigView.Event> {
+    sealed class Event {
+        data class DiscoverGameChoiceChanged(val discoverGameChooseResults: DiscoverGameChooseResults) : Event()
+    }
+
+    var discoverGameChooseResults: DiscoverGameChooseResults
+}
+
+interface DiscoverGameChoiceConfigPresenter : Presenter<DiscoverGameChoiceConfigView>
+
+// FIXME: Make this an inner class of GameUserConfig after it's refactored.
+enum class DiscoverGameChooseResults(val description: String) {
+    chooseIfNonExact("If no exact match: Choose"),
+    alwaysChoose("Always choose"),
+    skipIfNonExact("If no exact match: Skip"),
+    proceedWithoutIfNonExact("If no exact match: Proceed Without")
 }

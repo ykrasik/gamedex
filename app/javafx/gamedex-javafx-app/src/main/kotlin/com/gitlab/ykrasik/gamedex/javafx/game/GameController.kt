@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryService
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -52,6 +53,7 @@ import javax.inject.Singleton
 @Singleton
 class GameController @Inject constructor(
     private val gameService: GameService,
+    private val gameDiscoveryService: GameDiscoveryService,
     private val gamePresenter: GamePresenter,
     private val fileSystemService: FileSystemService,
     private val taskRunner: JavaFxTaskRunner,
@@ -169,13 +171,7 @@ class GameController @Inject constructor(
         return copy(userData = userData.copy(tags = tags))
     }
 
-    suspend fun scanNewGames() = gamePresenter.discoverNewGames()
-
-    suspend fun rediscoverAllGamesWithoutAllProviders() = gamePresenter.rediscoverAllGamesWithMissingProviders()
-
-    suspend fun rediscoverFilteredGamesWithoutAllProviders() = gamePresenter.rediscoverGames(sortedFilteredGames)
-
-    suspend fun searchGame(game: Game) = gamePresenter.rediscoverGame(game)
+    suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
 
     suspend fun refreshAllGames() = gamePresenter.redownloadAllGames()
 

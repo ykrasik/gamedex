@@ -53,8 +53,8 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
     fun close() = channel.close()
 
     companion object {
-        fun <T> conflated(initial: T): BroadcastEventChannel<T> =
-            BroadcastEventChannel<T>(Channel.CONFLATED).apply { offer(initial) }
+        fun <T> conflated(): BroadcastEventChannel<T> = BroadcastEventChannel(Channel.CONFLATED)
+        fun <T> conflated(initial: T): BroadcastEventChannel<T> = conflated<T>().apply { offer(initial) }
     }
 }
 
@@ -94,11 +94,6 @@ fun <T> singleValueChannel(value: T): ReceiveChannel<T> = Channel<T>(capacity = 
 
 fun <T> conflatedChannel(): ConflatedChannel<T> = ConflatedChannel()
 fun <T> conflatedChannel(initial: T): ConflatedChannel<T> = conflatedChannel<T>().apply {
-    offer(initial)
-}
-
-fun <T> conflatedBroadcastEventChannel(): BroadcastEventChannel<T> = BroadcastEventChannel(Channel.CONFLATED)
-fun <T> conflatedBroadcastEventChannel(initial: T) = conflatedBroadcastEventChannel<T>().apply {
     offer(initial)
 }
 

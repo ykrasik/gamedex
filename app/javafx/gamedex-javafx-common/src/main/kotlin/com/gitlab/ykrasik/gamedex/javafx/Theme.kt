@@ -161,7 +161,7 @@ fun EventTarget.editButton(size: Double = defaultIconSize, op: (JFXButton.() -> 
 fun EventTarget.tagButton(size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
     toolbarButton("Tag", Theme.Icon.tag(size), op)
 
-fun EventTarget.searchButton(text: String? = "Search", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
+fun EventTarget.searchButton(text: String, size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =
     toolbarButton(text, Theme.Icon.search(size), op)
 
 fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultIconSize, op: (JFXButton.() -> Unit)? = null) =

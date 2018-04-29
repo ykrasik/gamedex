@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
@@ -33,6 +35,8 @@ import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GamePresenterImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChoiceConfigPresenterImpl
+import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralSettingsPresenterImpl
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
@@ -77,6 +81,8 @@ object CoreModule : AbstractModule() {
         bind(EditLibraryPresenter::class.java).to(EditLibraryPresenterImpl::class.java)
         bind(GeneralSettingsPresenter::class.java).to(GeneralSettingsPresenterImpl::class.java)
         bind(LogPresenter::class.java).to(LogPresenterImpl::class.java)
+        bind(GameDiscoveryPresenter::class.java).to(GameDiscoveryPresenterImpl::class.java)
+        bind(DiscoverGameChoiceConfigPresenter::class.java).to(DiscoverGameChoiceConfigPresenterImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameUserConfig::class.java)

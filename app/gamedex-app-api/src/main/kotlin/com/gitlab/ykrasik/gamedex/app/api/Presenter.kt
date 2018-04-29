@@ -16,14 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
-import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -37,14 +30,3 @@ interface Presenter<V : View<*>> {
 interface View<Event> {
     val events: ReceiveChannel<Event>
 }
-
-// This value is set after pre-loading is complete.
-var presenters: Presenters by InitOnceGlobal()
-
-@Singleton
-class Presenters @Inject constructor(
-    val libraryPresenter: LibraryPresenter,
-    val editLibraryPresenter: EditLibraryPresenter,
-    val generalSettingsPresenter: GeneralSettingsPresenter,
-    val logPresenter: LogPresenter
-)

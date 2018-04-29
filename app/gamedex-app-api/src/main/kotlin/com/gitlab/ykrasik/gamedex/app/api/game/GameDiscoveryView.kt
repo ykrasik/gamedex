@@ -14,36 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.menu
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.javafx.toPropertyCached
-import javafx.scene.layout.VBox
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.View
 
 /**
  * User: ykrasik
- * Date: 10/06/2017
- * Time: 21:15
+ * Date: 29/04/2018
+ * Time: 13:31
  */
-class ChooseSearchResultsToggleMenu : Fragment() {
-    private val userConfigRepository: UserConfigRepository by di()
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
-    override val root = vbox(spacing = 5.0) {
-        togglegroup {
-            GameUserConfig.ChooseResults.values().forEach { chooseResults ->
-                jfxToggleNode(text = chooseResults.description, value = chooseResults) {
-                    useMaxWidth = true
-                }
-            }
-            bind(gameUserConfig.chooseResultsSubject.toPropertyCached())
-        }
+// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
+interface GameDiscoveryView : View<GameDiscoveryView.Event> {
+    sealed class Event {
+        object SearchNewGamesClicked : Event()
+        object SearchGamesWithoutProvidersClicked : Event()
     }
 
-    fun install(vbox: VBox) {
-        vbox.children += root
-    }
+    var canRunTask: Boolean
 }
+
+interface GameDiscoveryPresenter : Presenter<GameDiscoveryView>

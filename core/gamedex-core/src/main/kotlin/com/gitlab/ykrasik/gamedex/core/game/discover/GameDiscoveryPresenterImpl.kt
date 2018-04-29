@@ -14,19 +14,34 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.game
+package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 10:36
+ * Date: 29/04/2018
+ * Time: 13:38
  */
-interface GamePresenter {
-    suspend fun redownloadAllGames()
-    // TODO: Remove this, gamePresenter should know which games are sorted/filtered.
-    // TODO: Add a redownloadFilteredGames thing
-    suspend fun redownloadGames(games: List<Game>)
-    suspend fun redownloadGame(game: Game): Game
+@Singleton
+class GameDiscoveryPresenterImpl @Inject constructor(
+    private val gameDiscoveryService: GameDiscoveryService,
+    private val taskRunner: TaskRunner
+) : BasePresenter<GameDiscoveryView.Event, GameDiscoveryView>(), GameDiscoveryPresenter {
+    override fun initView(view: GameDiscoveryView) {
+        taskRunner.currentlyRunningTaskChannel.subscribe {
+            view.canRunTask = it == null
+        }
+    }
+
+    override suspend fun handleEvent(event: GameDiscoveryView.Event) =
+        taskRunner.runTask(when(event) {
+        GameDiscoveryView.Event.SearchNewGamesClicked -> gameDiscoveryService.discoverNewGames()
+        GameDiscoveryView.Event.SearchGamesWithoutProvidersClicked -> gameDiscoveryService.rediscoverGamesWithMissingProviders()
+    })
 }

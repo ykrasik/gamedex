@@ -73,10 +73,10 @@ class GameContextMenu : View() {
                 }
             }
         }
-        item("Search", Theme.Icon.search(size)) {
+        item("Re-Discover", Theme.Icon.search(size)) {
             enableWhen { controller.canRunLongTask }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
-                ChooseSearchResultsToggleMenu().install(this)
+                discoverGameChooseResultsMenu()
             }
             setOnAction {
                 javaFx {

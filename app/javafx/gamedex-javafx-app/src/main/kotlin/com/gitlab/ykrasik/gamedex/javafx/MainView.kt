@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
@@ -205,7 +206,8 @@ class MainView : View("GameDex") {
     }
 
     private fun EventTarget.navigationButton(text: String, icon: Node, action: () -> Unit) = jfxButton(text, icon) {
-        addClass(CommonStyle.fillAvailableWidth, Style.navigationButton)
+        useMaxWidth = true
+        alignment = Pos.CENTER_LEFT
         setOnAction { action() }
     }
 
@@ -219,21 +221,5 @@ class MainView : View("GameDex") {
     fun showGameDetails(game: Game) {
         gameDetailsScreen.game = game
         tabPane.selectionModel.selectLast()
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            val navigationButton by cssclass()
-
-            init {
-                importStylesheet(Style::class)
-            }
-        }
-
-        init {
-            navigationButton {
-                prefWidth = 100.px
-            }
-        }
     }
 }

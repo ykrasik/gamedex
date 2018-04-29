@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional
 import com.gitlab.ykrasik.gamedex.core.api.util.toBehaviorSubjectOnChange
@@ -39,7 +40,7 @@ class GameUserConfig : UserConfig() {
             platform = Platform.pc,
             platformSettings = emptyMap(),
             sort = Sort(),
-            chooseResults = ChooseResults.chooseIfNonExact,
+            discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
             stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
         )
     }
@@ -67,8 +68,8 @@ class GameUserConfig : UserConfig() {
     val sortSubject = scope.subject(Data::sort) { copy(sort = it) }
     var sort by sortSubject
 
-    val chooseResultsSubject = scope.subject(Data::chooseResults) { copy(chooseResults = it) }
-    var chooseResults by chooseResultsSubject
+    val discoverGameChooseResultsSubject = scope.subject(Data::discoverGameChooseResults) { copy(discoverGameChooseResults = it) }
+    var discoverGameChooseResults by discoverGameChooseResultsSubject
 
     val stalePeriodSubject = scope.subject(Data::stalePeriod) { copy(stalePeriod = it) }
     var stalePeriod by stalePeriodSubject
@@ -102,19 +103,12 @@ class GameUserConfig : UserConfig() {
         }
     }
 
-    enum class ChooseResults(val description: String) {
-        chooseIfNonExact("If no exact match: Choose"),
-        alwaysChoose("Always choose"),
-        skipIfNonExact("If no exact match: Skip"),
-        proceedWithoutIfNonExact("If no exact match: Proceed Without")
-    }
-
     data class Data(
         val displayType: DisplayType,
         val platform: Platform,
         val platformSettings: Map<Platform, GamePlatformSettings>,
         val sort: Sort,
-        val chooseResults: ChooseResults,
+        val discoverGameChooseResults: DiscoverGameChooseResults,
         val stalePeriod: Period
     )
 }

@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.task
 
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
-import com.gitlab.ykrasik.gamedex.app.api.util.conflatedBroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import javafx.beans.property.SimpleDoubleProperty
@@ -60,7 +60,7 @@ class JavaFxTaskRunner : TaskRunner {
     private val tasks = mutableListOf<ReadOnlyTask<*>>().observable()
     private val taskProperties = mutableListOf<TaskProperties>()
 
-    override val currentlyRunningTaskChannel = conflatedBroadcastEventChannel<ReadOnlyTask<*>?>(null)
+    override val currentlyRunningTaskChannel = BroadcastEventChannel.conflated<ReadOnlyTask<*>?>(null)
 
     private val taskView = VBox().apply {
         spacing = 5.0

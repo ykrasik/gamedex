@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
@@ -35,6 +35,8 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibraryView {
+    private val presenter: EditLibraryPresenter by di()
+
     private val canChangePlatformProperty = SimpleBooleanProperty(false)
     override var canChangePlatform by canChangePlatformProperty
 
@@ -58,7 +60,7 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
     private var dataToReturn: LibraryData? = null
 
     init {
-        presenters.editLibraryPresenter.present(this)
+        presenter.present(this)
 
         titleProperty.bind(initialLibraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
         nameValidationErrorProperty.onChange { viewModel.validate() }

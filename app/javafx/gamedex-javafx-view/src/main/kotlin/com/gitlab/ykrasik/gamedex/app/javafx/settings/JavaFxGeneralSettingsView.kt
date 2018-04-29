@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -41,11 +41,13 @@ import java.io.File
  * Time: 14:57
  */
 class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsView.Event>("General Settings", Theme.Icon.settings()), GeneralSettingsView {
+    private val presenter: GeneralSettingsPresenter by di()
+
     private val canRunTaskProperty = SimpleBooleanProperty(false)
     override var canRunTask by canRunTaskProperty
 
     init {
-        presenters.generalSettingsPresenter.present(this)
+        presenter.present(this)
     }
 
     override val root = vbox {

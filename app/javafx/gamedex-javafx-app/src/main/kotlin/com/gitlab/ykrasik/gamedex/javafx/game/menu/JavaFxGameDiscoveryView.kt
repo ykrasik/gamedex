@@ -16,8 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDiscoveryView
+import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.searchButton
+import com.gitlab.ykrasik.gamedex.javafx.toggle
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.geometry.Pos
 import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver
 import tornadofx.*
@@ -27,46 +33,43 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 10:54
  */
-class GameSearchMenu : View() {
-    private val gameController: GameController by di()
+// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
+class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryView.Event>(), GameDiscoveryView {
+    private val presenter: GameDiscoveryPresenter by di()
 
-    override val root = searchButton {
-        enableWhen { gameController.canRunLongTask }
+    private val canRunTaskProperty = SimpleBooleanProperty(false)
+    override var canRunTask by canRunTaskProperty
+
+    init {
+        presenter.present(this)
+    }
+
+    override val root = searchButton("Discover") {
+        enableWhen { canRunTaskProperty }
+        // TODO: This is pretty ugly.
         val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-            ChooseSearchResultsToggleMenu().install(this)
+            discoverGameChooseResultsMenu()
         }
         val downPopover = popOver {
             addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
             searchButton("New Games") {
-                addClass(CommonStyle.fillAvailableWidth)
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
                 tooltip("Search all libraries for new games")
-                setOnAction {
-                    javaFx {
-                        gameController.scanNewGames()
-                    }
-                }
+                setOnAction { sendEvent(GameDiscoveryView.Event.SearchNewGamesClicked) }
             }
             separator()
-            searchButton("All Games Without All Providers") {
-                addClass(CommonStyle.fillAvailableWidth)
-                tooltip("Search all games that don't already have all available providers")
-                setOnAction {
-                    javaFx {
-                        gameController.rediscoverAllGamesWithoutAllProviders()
-                    }
-                }
-            }
-            separator()
-            searchButton("Filtered Games Without All Providers") {
-                addClass(CommonStyle.fillAvailableWidth)
-                tooltip("Search currently filtered games that don't already have all available providers")
-                setOnAction {
-                    javaFx {
-                        gameController.rediscoverFilteredGamesWithoutAllProviders()
-                    }
-                }
+            // TODO: Why di I put this here? What's the relation between refreshLibrary & this?
+            searchButton("Games Without All Providers") {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                tooltip("Re-Discover all games that don't yet have all available providers")
+                setOnAction { sendEvent(GameDiscoveryView.Event.SearchGamesWithoutProvidersClicked) }
             }
         }
-        setOnAction { downPopover.toggle(this); leftPopover.toggle(this) }
+        setOnAction {
+            leftPopover.toggle(this)
+            downPopover.toggle(this)
+        }
     }
 }

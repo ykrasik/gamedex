@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.game.menu.ChooseSearchResultsToggleMenu
+import com.gitlab.ykrasik.gamedex.javafx.game.menu.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.beans.property.ObjectProperty
@@ -56,10 +56,10 @@ class GameDetailsScreen : GamedexScreen("Details", icon = null) {
         spacer()
 
         verticalSeparator()
-        searchButton {
+        searchButton("Re-Discover") {
             enableWhen { gameController.canRunLongTask }
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-                ChooseSearchResultsToggleMenu().install(this)
+                discoverGameChooseResultsMenu()
             }
             setOnAction { reloadGame { gameController.searchGame(game) } }
         }

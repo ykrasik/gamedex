@@ -16,22 +16,19 @@
 
 package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
-import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GamePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.now
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,128 +39,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class GamePresenterImpl @Inject constructor(
-    private val libraryService: LibraryService,
     private val gameService: GameService,
     private val taskRunner: TaskRunner,
     private val providerRepository: GameProviderRepository,
     private val providerService: GameProviderService,
-    private val fileSystemService: FileSystemService,
     userConfigRepository: UserConfigRepository
 ) : GamePresenter {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
-    override suspend fun discoverNewGames() = runTask("Discover New Games") {
-        val masterTask = this
-        message1 = "Detecting new directories..."
-        val newDirectories = detectNewDirectories()
-        message2 = "${newDirectories.size} new games."
-
-        var added = 0
-        doneMessage { success ->
-            if (newDirectories.isEmpty()) {
-                "No new games detected."
-            } else {
-                "${if (success) "Done" else "Cancelled"}: Added $added / ${newDirectories.size} new games."
-            }
-        }
-
-        runSubTask {
-            newDirectories.forEachWithProgress(masterTask) { (library, directory) ->
-                val addGameRequest = processDirectory(directory, library)
-                if (addGameRequest != null) {
-                    runMainTask(gameService.add(addGameRequest))
-                    added += 1
-                }
-            }
-        }
-    }
-
-    // TODO: Put this logic in GameService
-    private fun Task<*>.detectNewDirectories(): List<Pair<Library, File>> {
-        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path).toSet()
-
-        return libraryService.realLibraries.flatMapWithProgress { library ->
-            fileSystemService.detectNewDirectories(library.path, excludedDirectories - library.path)
-                .map { library to it }
-        }
-    }
-
-    private suspend fun Task<*>.processDirectory(directory: File, library: Library): AddGameRequest? {
-        val taskData = ProviderTaskData(this, directory.name, library.platform, directory)
-        val results = providerService.search(taskData, excludedProviders = emptyList()) ?: return null
-        return AddGameRequest(
-            metadata = Metadata(
-                libraryId = library.id,
-                path = directory.relativeTo(library.path).path,
-                updateDate = now
-            ),
-            providerData = results.providerData,
-            userData = if (results.excludedProviders.isNotEmpty()) {
-                UserData(excludedProviders = results.excludedProviders)
-            } else {
-                null
-            }
-        )
-    }
-
-    override suspend fun rediscoverGame(game: Game) = runTask("Re-Discover '${game.name}'") {
-        doneMessageOrCancelled("Done: Re-Discovered '${game.name}'.")
-        rediscoverGame(this, game, excludedProviders = emptyList()) ?: game
-    }
-
-    override suspend fun rediscoverAllGamesWithMissingProviders() {
-        val gamesWithMissingProviders = gameService.games.filter { it.hasMissingProviders }
-        rediscoverGames(gamesWithMissingProviders)
-    }
-
-    override suspend fun rediscoverGames(games: List<Game>) = runTask("Re-Discover Games") {
-        val masterTask = this
-        message1 = "Re-Discovering ${games.size} Games..."
-        var processed = 0
-        doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Discovered $processed / $totalWork Games." }
-
-        runSubTask {
-            // Operate on a copy of the games to avoid concurrent modifications
-            games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
-                val excludedProviders = game.existingProviders + game.excludedProviders
-                if (rediscoverGame(this, game, excludedProviders) != null) {
-                    processed += 1
-                }
-            }
-        }
-    }
-
-    private val Game.hasMissingProviders: Boolean
-        get() = providerRepository.enabledProviders.any { provider ->
-            // Provider supports the game's platform, is not excluded and game doesn't have it yet.
-            provider.supports(platform) && !excludedProviders.contains(provider.id) && rawGame.providerData.none { it.header.id == provider.id }
-        }
-
-    private suspend fun Task<*>.rediscoverGame(task: Task<*>, game: Game, excludedProviders: List<ProviderId>): Game? {
-        val taskData = ProviderTaskData(task, game.name, game.platform, game.path)
-        val results = providerService.search(taskData, excludedProviders) ?: return null
-        if (results.isEmpty()) return null
-
-        val newProviderData = if (excludedProviders.isEmpty()) {
-            results.providerData
-        } else {
-            game.rawGame.providerData + results.providerData
-        }
-
-        val newUserData = if (results.excludedProviders.isEmpty()) {
-            game.userData
-        } else {
-            game.userData.merge(UserData(excludedProviders = results.excludedProviders))
-        }
-
-        return updateGame(game, newProviderData, newUserData)
-    }
-
-    private fun UserData?.merge(userData: UserData?): UserData? {
-        if (userData == null) return this
-        if (this == null) return userData
-        return this.merge(userData)
-    }
 
     override suspend fun redownloadAllGames() = redownloadGames(gameService.games)
 

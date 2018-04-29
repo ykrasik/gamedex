@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
+import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleBooleanProperty
@@ -36,6 +36,8 @@ import tornadofx.*
  * Time: 11:14
  */
 class JavaFxLogScreen : PresentableGamedexScreen<LogView.Event>("Log", Theme.Icon.book()), LogView {
+    private val presenter: LogPresenter by di()
+
     private val observableEntries = mutableListOf<LogEntry>().observable().sortedFiltered()
     override var entries by InitOnceListObservable(observableEntries)
 
@@ -46,7 +48,7 @@ class JavaFxLogScreen : PresentableGamedexScreen<LogView.Event>("Log", Theme.Ico
     override var logTail by logTailProperty
 
     init {
-        presenters.logPresenter.present(this)
+        presenter.present(this)
 
         observableEntries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
         levelProperty.onChange { observableEntries.refilter() }
