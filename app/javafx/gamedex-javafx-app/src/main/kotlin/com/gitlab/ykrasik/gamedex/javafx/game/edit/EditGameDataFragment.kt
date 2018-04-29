@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
@@ -42,7 +42,7 @@ import java.time.LocalDate
 // TODO: Consider allowing to delete provider data.
 // TODO: Add a way to clear provider excludes.
 class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment(game.name) {
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
     private val imageRepository: JavaFxImageRepository by di()
 
     private var tabPane: TabPane by singleAssign()
@@ -186,7 +186,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                                     graphic = hbox(spacing = 10.0) {
                                         alignment = Pos.CENTER_LEFT
                                         paddingAll = 10.0
-                                        children += providerRepository.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 100.0)
+                                        children += gameProviderService.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 100.0)
                                         dataDisplay(this@hbox, data)
                                     }
                                 }

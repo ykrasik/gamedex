@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.search
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
@@ -34,7 +34,7 @@ import tornadofx.*
  * Time: 21:31
  */
 class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChooser.Choice) -> Unit) : Fragment() {
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
 
     val showingFilteredProperty = SimpleBooleanProperty(false)
     var showingFiltered by showingFilteredProperty
@@ -52,7 +52,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
             alignment = Pos.TOP_RIGHT
             children += data.platform.toLogo(46.0)
         }
-        children += providerRepository.provider(data.providerId).logoImage.toImageView(height = 80.0, width = 160.0).apply {
+        children += gameProviderService.provider(data.providerId).logoImage.toImageView(height = 80.0, width = 160.0).apply {
             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
         }
 

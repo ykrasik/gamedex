@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
@@ -41,7 +41,7 @@ class GameDetailsFragment(
     private val withDescription: Boolean = true,
     private val evenIfEmpty: Boolean = false
 ) : Fragment() {
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
     private val fileSystemService: FileSystemService by di()
 
     override val root = gridpane {
@@ -137,7 +137,7 @@ class GameDetailsFragment(
                     vgap = 3.0
                     providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
                         row {
-                            children += providerRepository.provider(header.id).logoImage.toImageView(height = 30.0, width = 70.0)
+                            children += gameProviderService.provider(header.id).logoImage.toImageView(height = 30.0, width = 70.0)
                             hyperlink(gameData.siteUrl) { setOnAction { gameData.siteUrl.browseToUrl() } }
                         }
                     }

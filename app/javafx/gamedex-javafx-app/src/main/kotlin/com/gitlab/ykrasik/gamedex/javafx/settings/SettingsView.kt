@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode
@@ -40,7 +40,7 @@ class SettingsView : View("Settings") {
     private val gameSettingsView: GameSettingsView by inject()
     private val providerOrderView: ProviderOrderSettingsView by inject()
 
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -98,7 +98,7 @@ class SettingsView : View("Settings") {
                             paddingBottom = 10.0
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
-                        providerRepository.allProviders.forEach { provider ->
+                        gameProviderService.allProviders.forEach { provider ->
                             val view = ProviderUserSettingsFragment(provider)
                             entry(view) {
                                 graphic = hbox {

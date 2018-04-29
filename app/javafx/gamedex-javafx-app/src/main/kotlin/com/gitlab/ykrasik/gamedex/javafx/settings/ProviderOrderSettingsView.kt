@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -38,7 +38,7 @@ import tornadofx.*
  * Time: 15:17
  */
 class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
 
@@ -72,7 +72,7 @@ class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
                     order.ordered().map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
-                            graphic = providerRepository.allProviders.find { it.id == providerId }!!.logoImage.toImageView(height = 50.0, width = 100.0)
+                            graphic = gameProviderService.allProviders.find { it.id == providerId }!!.logoImage.toImageView(height = 50.0, width = 100.0)
                             userData = providerId
 
                             val dropShadow = DropShadow()

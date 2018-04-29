@@ -17,11 +17,14 @@
 package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.provider.*
+import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.api.provider.SearchResults
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -39,52 +42,56 @@ import javax.inject.Singleton
  * Date: 13/10/2016
  * Time: 13:29
  */
-// TODO: Make this a presenter.
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
-    private val providerRepository: GameProviderRepository,
+    private val repo: GameProviderRepository,
     private val fileSystemService: FileSystemService,
-    private val userConfigRepository: UserConfigRepository,
-    private val chooser: SearchChooser // TODO: Get rid of this.
+    userConfigRepository: UserConfigRepository,
+    private val chooser: SearchChooser // TODO: Get rid of this... return a class that can be displayed and support continuing from it.
 ) : GameProviderService {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
+    override val allProviders = repo.allProviders
+    override val enabledProviders = repo.enabledProviders
+    override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
+    override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
+
     override fun checkAtLeastOneProviderEnabled() =
-        check(providerRepository.enabledProviders.isNotEmpty()) {
+        check(repo.enabledProviders.isNotEmpty()) {
             "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
         }
 
-    override suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults? =
+    override fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>) = task {
         try {
-            SearchContext(taskData, excludedProviders).search()
+            SearchContext(this, name, platform, path, excludedProviders).search()
         } catch (e: CancelSearchException) {
             null
         }
+    }
 
     private inner class SearchContext(
-        private val taskData: ProviderTaskData,
+        private val task: Task<*>,
+        name: String,
+        private val platform: Platform,
+        private val path: File,
         private val excludedProviders: List<ProviderId>
     ) {
-        private var searchedName = fileSystemService.fromFileName(fileSystemService.analyzeFolderName(taskData.name).gameName)
+        private var searchedName = fileSystemService.fromFileName(fileSystemService.analyzeFolderName(name).gameName)
         private var canAutoContinue = chooseResults != DiscoverGameChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
-        private val task get() = taskData.task
-        private val platform get() = taskData.platform
         private val chooseResults get() = gameUserConfig.discoverGameChooseResults
 
         // TODO: Support a back button somehow, it's needed...
-        suspend fun search(): SearchResults {
-            val providersToSearch = providerRepository.enabledProviders.filter { shouldSearch(it) }
-            val results = task.run {
-                providersToSearch.mapNotNullWithProgress {
-                    search(it)
-                }
+        suspend fun search(): SearchResults = task.run {
+            val providersToSearch = enabledProviders.filter { shouldSearch(it) }
+            val results = providersToSearch.mapNotNullWithProgress {
+                search(it)
             }
             val name = userExactMatch ?: searchedName
-            val providerData = download(taskData.copy(name = name), results)
+            val providerData = runMainTask(download(name, platform, path, results))
             return SearchResults(providerData, newlyExcludedProviders)
         }
 
@@ -148,7 +155,7 @@ class GameProviderServiceImpl @Inject constructor(
             }
 
             val chooseSearchResultData = SearchChooser.Data(
-                searchedName, taskData.path, taskData.platform, provider.id, results = results, filteredResults = filteredResults
+                searchedName, path, platform, provider.id, results = results, filteredResults = filteredResults
             )
             return chooser.choose(chooseSearchResultData)
         }
@@ -156,12 +163,12 @@ class GameProviderServiceImpl @Inject constructor(
         private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, updateDate = now)
     }
 
-    override suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData> = taskData.task.run {
+    override fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>) = task("Downloading '$name' from ${headers.size} providers...") {
         totalWork = headers.size
-        message1 = "Downloading '${taskData.name}'..."
+        message1 = "Downloading '$name' from ${headers.size} providers..."
         headers.map { header ->
             async(CommonPool) {
-                providerRepository.enabledProvider(header.id).download(header.apiUrl, taskData.platform)
+                enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
                     .apply { incProgress() }
             }
         }.map { it.await() }

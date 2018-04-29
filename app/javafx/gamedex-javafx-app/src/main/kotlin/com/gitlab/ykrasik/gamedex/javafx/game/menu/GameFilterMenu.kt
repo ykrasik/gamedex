@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
 import com.gitlab.ykrasik.gamedex.core.FilterSet
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
@@ -37,11 +37,11 @@ import tornadofx.*
 class GameFilterMenu : View() {
     private val gameController: GameController by di()
     private val libraryService: LibraryService by di()
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    private val filterSet = FilterSet.Builder(gameUserConfig, libraryService, gameController, providerRepository)
+    private val filterSet = FilterSet.Builder(gameUserConfig, libraryService, gameController, gameProviderService)
         .without(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
         .build()
 

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.filterClass
 import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.name
@@ -47,7 +47,7 @@ class FilterSet private constructor(
         private val gameUserConfig: GameUserConfig,
         private val libraryService: LibraryService,
         private val gameController: GameController,
-        private val providerRepository: GameProviderRepository
+        private val gameProviderService: GameProviderService
     ) {
         private val operators = mapOf(
             Filter.And::class to { Filter.And() },
@@ -64,7 +64,7 @@ class FilterSet private constructor(
             Filter.Genre::class to { Filter.Genre(gameController.genres.firstOrNull() ?: "") },
             Filter.Tag::class to { Filter.Tag(gameController.tags.firstOrNull() ?: "") },
             Filter.ReleaseDate::class to { Filter.ReleaseDate("2014-01-01".toDate()) },
-            Filter.Provider::class to { Filter.Provider(providerRepository.allProviders.first().id) },
+            Filter.Provider::class to { Filter.Provider(gameProviderService.allProviders.first().id) },
             Filter.CriticScore::class to { Filter.CriticScore(60.0) },
             Filter.UserScore::class to { Filter.UserScore(60.0) },
             Filter.AvgScore::class to { Filter.AvgScore(60.0) },

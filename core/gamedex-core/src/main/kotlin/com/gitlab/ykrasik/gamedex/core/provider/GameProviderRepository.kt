@@ -16,13 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.info
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
@@ -34,13 +32,12 @@ import javax.inject.Singleton
  * Time: 21:30
  */
 @Singleton
-class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameProvider>, userConfigRepository: UserConfigRepository) : GameProviderRepository {
+class GameProviderRepository @Inject constructor(providers: MutableSet<GameProvider>, userConfigRepository: UserConfigRepository) {
     private val log = logger()
     private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
 
-    override val allProviders: List<GameProvider> = providers.sortedBy { it.id }
-
-    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
+    val allProviders: List<GameProvider> = providers.sortedBy { it.id }
+    val enabledProviders = ListObservableImpl<EnabledGameProvider>()
 
     init {
         providerUserConfig.providerSettingsSubject.combineLatest(providerUserConfig.searchOrderSubject) { providerSettings, searchOrder ->
@@ -52,14 +49,10 @@ class GameProviderRepositoryImpl @Inject constructor(providers: MutableSet<GameP
                 EnabledGameProvider(provider, account)
             }.sortedWith(searchOrder.toComparator())
         }.subscribe { enabledProviders ->
-            this@GameProviderRepositoryImpl.enabledProviders.setAll(enabledProviders)
+            this@GameProviderRepository.enabledProviders.setAll(enabledProviders)
         }
 
         log.info { "Detected providers: $allProviders" }
         log.info { "Enabled providers: ${enabledProviders.sortedBy { it.id }}" }
     }
-
-    override fun enabledProvider(id: ProviderId) = enabledProviders.find { it.id == id }!!
-    override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
-    override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
 }

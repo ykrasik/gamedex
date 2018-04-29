@@ -21,9 +21,7 @@ import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.google.inject.ImplementedBy
@@ -45,8 +43,7 @@ interface GameDownloadService {
 @Singleton
 class GameDownloadServiceImpl @Inject constructor(
     private val gameService: GameService,
-    private val providerRepository: GameProviderRepository,     // FIXME: Go through the service!
-    private val providerService: GameProviderService,
+    private val gameProviderService: GameProviderService,
     userConfigRepository: UserConfigRepository
 ) : GameDownloadService {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
@@ -54,13 +51,15 @@ class GameDownloadServiceImpl @Inject constructor(
     override fun redownloadAllGames() = redownloadGames(gameService.games)
 
     override fun redownloadGame(game: Game) = task("Re-Downloading '${game.name}'...") {
-        providerService.checkAtLeastOneProviderEnabled()
+        gameProviderService.checkAtLeastOneProviderEnabled()
+
         doneMessageOrCancelled("Done: Re-Downloaded '${game.name}'.")
         downloadGame(game, game.providerHeaders)
     }
 
     private fun redownloadGames(games: List<Game>) = task("Re-Downloading ${games.size} Games...") {
-        providerService.checkAtLeastOneProviderEnabled()
+        gameProviderService.checkAtLeastOneProviderEnabled()
+
         val masterTask = this
         message1 = "Re-Downloading ${games.size} Games..."
         doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Downloaded $processed / $totalWork Games." }
@@ -79,9 +78,8 @@ class GameDownloadServiceImpl @Inject constructor(
     }
 
     private suspend fun Task<*>.downloadGame(game: Game, requestedProviders: List<ProviderHeader>): Game {
-        val taskData = ProviderTaskData(this, game.name, game.platform, game.path)
-        val providersToDownload = requestedProviders.filter { providerRepository.isEnabled(it.id) }
-        val downloadedProviderData = providerService.download(taskData, providersToDownload)
+        val providersToDownload = requestedProviders.filter { gameProviderService.isEnabled(it.id) }
+        val downloadedProviderData = runMainTask(gameProviderService.download(game.name, game.platform, game.path, providersToDownload))
         // Replace existing data with new data, pass-through any data that wasn't replaced.
         val newProviderData = game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.id == d.header.id } } + downloadedProviderData
         val newRawGame = game.rawGame.copy(providerData = newProviderData)

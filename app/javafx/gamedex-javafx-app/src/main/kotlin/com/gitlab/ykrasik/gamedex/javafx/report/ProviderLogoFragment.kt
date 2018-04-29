@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.report
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -29,9 +29,9 @@ import tornadofx.stackpane
  * Time: 21:01
  */
 class ProviderLogoFragment(providerId: ProviderId) : Fragment() {
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
 
     override val root = stackpane {
-        children += providerRepository.provider(providerId).logoImage.toImageView(height = 80.0, width = 160.0)
+        children += gameProviderService.provider(providerId).logoImage.toImageView(height = 80.0, width = 160.0)
     }
 }

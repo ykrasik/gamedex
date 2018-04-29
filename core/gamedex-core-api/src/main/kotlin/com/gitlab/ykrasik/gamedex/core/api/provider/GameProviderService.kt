@@ -19,8 +19,12 @@ package com.gitlab.ykrasik.gamedex.core.api.provider
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
 import java.io.File
 
 /**
@@ -30,20 +34,26 @@ import java.io.File
  */
 // TODO: Make it stream results back?
 interface GameProviderService {
+    val allProviders: List<GameProvider>
+    val enabledProviders: ListObservable<EnabledGameProvider>
+
     fun checkAtLeastOneProviderEnabled()
 
-    // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
-    suspend fun search(taskData: ProviderTaskData, excludedProviders: List<ProviderId>): SearchResults?
+    fun provider(id: ProviderId): GameProvider
+    fun isEnabled(id: ProviderId): Boolean
 
-    suspend fun download(taskData: ProviderTaskData, headers: List<ProviderHeader>): List<ProviderData>
+    // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
+    fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>
+
+    fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>): Task<List<ProviderData>>
 }
 
-data class ProviderTaskData(
-    val task: Task<*>,  // TODO: Remove this from here, make the service stream this info back through a channel.
-    val name: String,
-    val platform: Platform,
-    val path: File
-)
+class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
+    fun search(name: String, platform: Platform): List<ProviderSearchResult> = provider.search(name, platform, account)
+    fun download(apiUrl: String, platform: Platform): ProviderData = provider.download(apiUrl, platform, account)
+
+    override fun toString() = provider.toString()
+}
 
 data class SearchResults(
     val providerData: List<ProviderData>,

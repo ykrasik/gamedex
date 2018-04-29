@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.filter
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.core.FilterSet
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.core.game.Filter
@@ -50,7 +50,7 @@ import tornadofx.*
 class FilterFragment(private val filterObservable: Observable<Filter>, private val filterSet: FilterSet) : Fragment() {
     private val gameController: GameController by di()
     private val libraryController: LibraryController by di()
-    private val providerRepository: GameProviderRepository by di()
+    private val gameProviderService: GameProviderService by di()
 
     // This is slightly hacky.
     private lateinit var rootFilter: Filter
@@ -194,7 +194,7 @@ class FilterFragment(private val filterObservable: Observable<Filter>, private v
 
     private fun HBox.renderProviderFilter(rule: Filter.Provider) = rule.toProperty().apply {
         val provider = mapBidirectional(Filter.Provider::providerId, Filter::Provider)
-        combobox(provider, providerRepository.allProviders.map { it.id })
+        combobox(provider, gameProviderService.allProviders.map { it.id })
     }
 
     private fun HBox.renderLibraryFilter(rule: Filter.Library) = rule.toProperty().apply {

@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import kotlinx.coroutines.experimental.CommonPool
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,7 +37,7 @@ internal class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     libraryService: LibraryService,
-    gameProviderRepository: GameProviderRepository  // FIXME: Go through service!!!
+    gameProviderService: GameProviderService
 ) : GameService {
     init {
         libraryService.libraries.changesChannel.subscribe(CommonPool) {
@@ -47,7 +47,7 @@ internal class GameServiceImpl @Inject constructor(
                 ListChangeType.Set -> rebuildGames()
             }
         }
-        gameProviderRepository.enabledProviders.changesChannel.subscribe(CommonPool) {
+        gameProviderService.enabledProviders.changesChannel.subscribe(CommonPool) {
             rebuildGames()
         }
     }

@@ -23,9 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.api.provider.ProviderTaskData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.now
 import com.google.inject.ImplementedBy
@@ -50,10 +48,11 @@ class GameDiscoveryServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
-    private val providerService: GameProviderService,
-    private val providerRepository: GameProviderRepository  // FIXME: Go through the service!!!
+    private val gameProviderService: GameProviderService
 ) : GameDiscoveryService {
     override fun discoverNewGames() = task("Discovering New Games...") {
+        gameProviderService.checkAtLeastOneProviderEnabled()
+
         val masterTask = this
         message1 = "Detecting new directories..."
         val newDirectories = detectNewDirectories()
@@ -81,7 +80,7 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     private fun Task<*>.detectNewDirectories(): List<Pair<Library, File>> {
-        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path).toSet()
+        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path)
 
         return libraryService.realLibraries.flatMapWithProgress { library ->
             fileSystemService.detectNewDirectories(library.path, excludedDirectories - library.path)
@@ -90,8 +89,8 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     private suspend fun Task<*>.processDirectory(directory: File, library: Library): AddGameRequest? {
-        val taskData = ProviderTaskData(this, directory.name, library.platform, directory)
-        val results = providerService.search(taskData, excludedProviders = emptyList()) ?: return null
+        val results = runMainTask(gameProviderService.search(directory.name, library.platform, directory, excludedProviders = emptyList()))
+            ?: return null
         return AddGameRequest(
             metadata = Metadata(
                 libraryId = library.id,
@@ -113,12 +112,14 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     private val Game.hasMissingProviders: Boolean
-        get() = providerRepository.enabledProviders.any { provider ->
+        get() = gameProviderService.enabledProviders.any { provider ->
             // Provider supports the game's platform, is not excluded and game doesn't have it yet.
             provider.supports(platform) && !excludedProviders.contains(provider.id) && rawGame.providerData.none { it.header.id == provider.id }
         }
 
     private fun rediscoverGames(games: List<Game>) = task("Re-Discovering ${games.size} Games...") {
+        gameProviderService.checkAtLeastOneProviderEnabled()
+
         val masterTask = this
         message1 = "Re-Discovering ${games.size} Games..."
         var processed = 0
@@ -129,7 +130,7 @@ class GameDiscoveryServiceImpl @Inject constructor(
             // Operate on a copy of the games to avoid concurrent modifications
             games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
                 val excludedProviders = game.existingProviders + game.excludedProviders
-                if (rediscoverGame(this, game, excludedProviders) != null) {
+                if (rediscoverGame(game, excludedProviders) != null) {
                     processed += 1
                 }
             }
@@ -137,14 +138,15 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     override fun rediscoverGame(game: Game) = task("Re-Discovering '${game.name}'...") {
+        gameProviderService.checkAtLeastOneProviderEnabled()
+
         doneMessageOrCancelled("Done: Re-Discovered '${game.name}'.")
-        rediscoverGame(this, game, excludedProviders = emptyList()) ?: game
+        rediscoverGame(game, excludedProviders = emptyList()) ?: game
     }
 
-    private suspend fun Task<*>.rediscoverGame(task: Task<*>, game: Game, excludedProviders: List<ProviderId>): Game? {
-        val taskData = ProviderTaskData(task, game.name, game.platform, game.path)
-        val results = providerService.search(taskData, excludedProviders) ?: return null
-        if (results.isEmpty()) return null
+    private suspend fun Task<*>.rediscoverGame(game: Game, excludedProviders: List<ProviderId>): Game? {
+        val results = runMainTask(gameProviderService.search(game.name, game.platform, game.path, excludedProviders))
+        if (results?.isEmpty() != false) return null
 
         val newProviderData = if (excludedProviders.isEmpty()) {
             results.providerData
