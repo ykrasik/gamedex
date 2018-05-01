@@ -16,8 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
@@ -35,11 +36,9 @@ import tornadofx.useMaxWidth
  * Date: 05/06/2017
  * Time: 10:54
  */
-// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryPresenter>(GameDiscoveryPresenter::class), GameDiscoveryView {
-    init {
-        presenter.present(this)
-    }
+class JavaFxGameDiscoveryView : PresentableView(), ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders {
+    private val discoverNewGamesPresenter = presenters.discoverNewGames.present(this)
+    private val discoverGamesWithoutProvidersPresenter = presenters.discoverGamesWithoutProviders.present(this)
 
     override val root = searchButton("Discover") {
         enableWhen { enabledProperty }
@@ -53,7 +52,7 @@ class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryPresenter>(GameDisc
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Search all libraries for new games")
-                presentOnAction(GameDiscoveryPresenter::onSearchNewGames)
+                presentOnAction { discoverNewGamesPresenter.discoverNewGames() }
             }
             separator()
             // TODO: Why did I put this here? What's the relation between refreshLibrary & this?
@@ -61,7 +60,7 @@ class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryPresenter>(GameDisc
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Re-Discover all games that don't yet have all available providers")
-                presentOnAction(GameDiscoveryPresenter::onSearchGamesWithoutProviders)
+                presentOnAction { discoverGamesWithoutProvidersPresenter.discoverGamesWithoutProviders() }
             }
         }
         setOnAction {

@@ -14,20 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.discover
+package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenter
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.ViewCanCleanupDb
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 13:31
+ * Date: 06/05/2018
+ * Time: 13:17
  */
-// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-interface GameDiscoveryView : View
+@Singleton
+class CleanupDbPresenterFactoryImpl @Inject constructor(
+    private val generalSettingsService: GeneralSettingsService,
+    private val taskRunner: TaskRunner
+) : CleanupDbPresenterFactory {
+    override fun present(view: ViewCanCleanupDb): CleanupDbPresenter = object : CleanupDbPresenter {
+        override fun cleanupDb() = launchOnUi {
+            val staleData = taskRunner.runTask(generalSettingsService.detectStaleData())
+            if (staleData.isEmpty) return@launchOnUi
 
-interface GameDiscoveryPresenter : Presenter<GameDiscoveryView> {
-    fun onSearchNewGames()
-    fun onSearchGamesWithoutProviders()
+            if (view.confirmDeleteStaleData(staleData)) {
+                // TODO: Create backup before deleting
+                taskRunner.runTask(generalSettingsService.deleteStaleData(staleData))
+            }
+        }
+    }
 }

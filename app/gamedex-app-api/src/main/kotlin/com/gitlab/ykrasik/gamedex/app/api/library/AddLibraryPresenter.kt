@@ -14,42 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.general
+package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 02/04/2018
- * Time: 09:27
+ * Date: 06/05/2018
+ * Time: 12:40
  */
-interface GeneralSettingsView : View {
-    fun selectDatabaseExportDirectory(initialDirectory: File?): File?
-    fun selectDatabaseImportFile(initialDirectory: File?): File?
-    fun browseDirectory(directory: File)
-
-    fun confirmImportDatabase(): Boolean
-    fun confirmClearUserData(): Boolean
-    fun confirmDeleteStaleData(staleData: StaleData): Boolean
+interface AddLibraryPresenter {
+    fun addLibrary()
 }
 
-interface GeneralSettingsPresenter : Presenter<GeneralSettingsView> {
-    fun onExportDatabase()
-    fun onImportDatabase()
-    fun onClearUserData()
-    fun onCleanupDb()
+interface ViewCanAddLibrary {
+    fun showAddLibraryView(): LibraryData?
 }
 
-data class StaleData(
-    val libraries: List<Library>,
-    val games: List<Game>,
-    val images: List<Pair<String, FileSize>>
-) {
-    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty()
-    val staleImagesSize = images.fold(FileSize(0)) { acc, next -> acc + next.second }
-}
+interface AddLibraryPresenterFactory : PresenterFactory<ViewCanAddLibrary, AddLibraryPresenter>

@@ -16,46 +16,54 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.Glyph
-import tornadofx.*
-import kotlin.reflect.KClass
+import tornadofx.View
+import tornadofx.ViewModel
+import tornadofx.onChange
 
 /**
  * User: ykrasik
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView<out P : Presenter<*>>(presenterClass: KClass<P>, title: String? = null, icon: Glyph? = null)
-    : View(title, icon), com.gitlab.ykrasik.gamedex.app.api.View {
-    // There's runtime IllegalAccessErrors thrown if this is made protected :(
-    val presenter: P = FX.dicontainer!!.getInstance(presenterClass)
+abstract class PresentableView(title: String? = null, icon: Glyph? = null) : View(title, icon) {
+    private val taskRunner: TaskRunner by di()
 
     val enabledProperty = SimpleBooleanProperty(false)
-    override var enabled by enabledProperty
 
-    // There's runtime IllegalAccessErrors thrown if this is made protected :(
-    fun <T, O : ObservableValue<T>> O.presentOnChange(call: (P, T) -> Unit) = apply {
-        onChange { call(presenter, it!!) }
+    init {
+        taskRunner.currentlyRunningTaskChannel.subscribe(JavaFx) {
+            enabledProperty.value = it == null
+        }
     }
 
-    // There's runtime IllegalAccessErrors thrown if this is made protected :(
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (P, T) -> Unit,
+    inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: suspend (T) -> Unit) = apply {
+        onChange { present { call(it!!) } }
+    }
+
+    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: suspend (T) -> Unit,
                                                                                         crossinline propertyFactory: () -> O): Property<T> =
         bind<O, T, O> { propertyFactory() }.apply {
             onChange {
-                call(presenter, it!!)
+                present { call(it!!) }
                 commit()
             }
         }
 
-    protected inline fun ButtonBase.presentOnAction(crossinline call: (P) -> Unit) {
-        setOnAction {
-            call(presenter)
+    fun ButtonBase.presentOnAction(f: suspend () -> Unit) {
+        setOnAction { present(f) }
+    }
+
+    fun present(f: suspend () -> Unit) {
+        launch(JavaFx) {
+            f()
         }
     }
 }

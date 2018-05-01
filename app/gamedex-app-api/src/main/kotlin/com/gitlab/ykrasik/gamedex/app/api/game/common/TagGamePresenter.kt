@@ -14,19 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.download
+package com.gitlab.ykrasik.gamedex.app.api.game.common
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
-// FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-interface GameDownloadView : View {
-    var stalePeriodText: String
-    var stalePeriodValidationError: String?
+/**
+ * User: ykrasik
+ * Date: 02/05/2018
+ * Time: 22:02
+ */
+interface TagGamePresenter {
+    suspend fun tagGame(game: Game): Game?
 }
 
-interface GameDownloadPresenter : Presenter<GameDownloadView> {
-    fun onStalePeriodTextChanged(stalePeriodText: String)
-
-    fun onRedownloadAllStaleGames()
+interface ViewCanTagGame {
+    fun showTagGameView(game: Game): TagGameChoice
 }
+
+sealed class TagGameChoice {
+    data class Select(val tags: List<String>) : TagGameChoice()
+    object Cancel : TagGameChoice()
+}
+
+interface TagGamePresenterFactory : PresenterFactory<ViewCanTagGame, TagGamePresenter>

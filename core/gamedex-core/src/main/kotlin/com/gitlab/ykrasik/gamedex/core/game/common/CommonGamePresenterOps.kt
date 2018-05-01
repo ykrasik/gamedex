@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.game.common
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.details.DeleteGameChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.details.EditGameDetailsChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.details.TagGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
@@ -33,7 +33,7 @@ import javax.inject.Singleton
  * Date: 29/04/2018
  * Time: 20:56
  */
-// TODO: Maybe this class should also return tasks? and have the presenters that call this class run them?
+// TODO: Delete this class.
 @Singleton
 class CommonGamePresenterOps @Inject constructor(
     private val taskRunner: TaskRunner,

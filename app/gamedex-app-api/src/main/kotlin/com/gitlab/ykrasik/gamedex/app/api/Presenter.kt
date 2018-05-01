@@ -16,15 +16,67 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
+import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverNewGamesPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.RediscoverGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDurationPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabasePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabasePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.library.*
+import com.gitlab.ykrasik.gamedex.app.api.log.LogEntriesPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevelPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.log.LogTailPresenterFactory
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
+import javax.inject.Inject
+import javax.inject.Singleton
+
 /**
  * User: ykrasik
  * Date: 21/04/2018
  * Time: 16:55
  */
-interface Presenter<V : View> {
-    fun present(view: V)
+interface PresenterFactory<in V, out P> {
+    fun present(view: V): P
 }
 
-interface View {
-    var enabled: Boolean
-}
+@Singleton
+data class Presenters @Inject constructor(
+    val libraries: LibrariesPresenterFactory,
+    val addLibrary: AddLibraryPresenterFactory,
+    val editLibrary: EditLibraryPresenterFactory,
+    val deleteLibrary: DeleteLibraryPresenterFactory,
+    val editLibraryView: EditLibraryViewPresenterFactory,
+
+    val editGame: EditGamePresenterFactory,
+    val deleteGame: DeleteGamePresenterFactory,
+    val tagGame: TagGamePresenterFactory,
+    val gameDetails: GameDetailsPresenterFactory,
+    val discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
+    val discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
+    val discoverNewGames: DiscoverNewGamesPresenterFactory,
+    val rediscoverGame: RediscoverGamePresenterFactory,
+    val redownloadGame: RedownloadGamePresenterFactory,
+
+    val gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
+    val redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,
+
+    val logEntries: LogEntriesPresenterFactory,
+    val logLevel: LogLevelPresenterFactory,
+    val logTail: LogTailPresenterFactory,
+
+    val exportDatabase: ExportDatabasePresenterFactory,
+    val importDatabase: ImportDatabasePresenterFactory,
+    val clearUserData: ClearUserDataPresenterFactory,
+    val cleanupDb: CleanupDbPresenterFactory
+)
+
+var presenters: Presenters by InitOnceGlobal()

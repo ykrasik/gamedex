@@ -58,7 +58,7 @@ class MainView : View("GameDex") {
 
     // FIXME: Temp until all screens are presentable
     private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
-    private val presentableScreenToolbars = mutableMapOf<PresentableGamedexScreen<*>, ObservableList<Node>>()
+    private val presentableScreenToolbars = mutableMapOf<PresentableGamedexScreen, ObservableList<Node>>()
 
     override val root = taskRunner.init {
         borderpane {
@@ -96,7 +96,7 @@ class MainView : View("GameDex") {
     }
 
     // FIXME: Temp until all screens are presentable
-    private fun TabPane.screenTab(screen: PresentableGamedexScreen<*>) = tab(screen) {
+    private fun TabPane.screenTab(screen: PresentableGamedexScreen) = tab(screen) {
         userData = screen
         graphic = screen.icon
     }
@@ -116,7 +116,7 @@ class MainView : View("GameDex") {
                 }
             } else {
                 // FIXME: Temp until all screens are presentable
-                val screen = tab.userData as PresentableGamedexScreen<*>
+                val screen = tab.userData as PresentableGamedexScreen
                 if (screen.useDefaultNavigationButton) {
                     navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
                 }
@@ -153,7 +153,7 @@ class MainView : View("GameDex") {
         if (tab.userData is GamedexScreen) {
             (tab.userData as GamedexScreen).onUndock()
         } else {
-            (tab.userData as PresentableGamedexScreen<*>).onUndock()
+            (tab.userData as PresentableGamedexScreen).onUndock()
         }
     }
 
@@ -164,7 +164,7 @@ class MainView : View("GameDex") {
             screen.onDock()
             tab.run { screen.populateToolbar() }
         } else {
-            val screen = tab.userData as PresentableGamedexScreen<*>
+            val screen = tab.userData as PresentableGamedexScreen
             screen.onDock()
             tab.run { screen.populateToolbar() }
         }
@@ -188,7 +188,7 @@ class MainView : View("GameDex") {
     }
 
     // FIXME: Temp until all screens are presentable
-    private fun PresentableGamedexScreen<*>.populateToolbar() {
+    private fun PresentableGamedexScreen.populateToolbar() {
         toolbar.replaceChildren {
             items += presentableScreenToolbars.getOrPut(this@populateToolbar) {
                 // TODO: Find a neater solution, like not using ToolBar.constructToolbar()

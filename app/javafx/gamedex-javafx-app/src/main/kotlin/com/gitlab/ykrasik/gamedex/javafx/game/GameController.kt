@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.confirmGameDelete
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
@@ -29,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
@@ -158,7 +158,7 @@ class GameController @Inject constructor(
     }
 
     suspend fun delete(game: Game): Boolean =
-        commonGamePresenterOps.delete(game) { confirmGameDelete(it) }
+        commonGamePresenterOps.delete(game) { DeleteGameView.showConfirmDeleteGame(it) }
 
     fun byId(id: Int): Game = gameService[id]
 }

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.details.EditGameDetailsChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader

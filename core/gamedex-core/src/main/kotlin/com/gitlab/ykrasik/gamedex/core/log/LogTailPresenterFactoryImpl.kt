@@ -16,42 +16,29 @@
 
 package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
-import com.gitlab.ykrasik.gamedex.app.api.log.LogView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.app.api.log.LogTailPresenter
+import com.gitlab.ykrasik.gamedex.app.api.log.LogTailPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 26/04/2018
- * Time: 10:28
- */
 @Singleton
-class LogPresenterImpl @Inject constructor(
-    userConfigRepository: UserConfigRepository,
-    taskRunner: TaskRunner
-) : BasePresenter<LogView>(taskRunner), LogPresenter {
+class LogTailPresenterFactoryImpl @Inject constructor(
+    userConfigRepository: UserConfigRepository
+) : LogTailPresenterFactory {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    override fun initView(view: LogView) {
-        view.entries = GamedexLog.entries
-        generalUserConfig.logFilterLevelSubject.subscribe {
-            view.level = it
+    override fun present(view: ViewWithLogTail): LogTailPresenter = object : LogTailPresenter {
+        init {
+            generalUserConfig.logTailSubject.subscribe {
+                view.logTail = it
+            }
         }
-        generalUserConfig.logTailSubject.subscribe {
-            view.logTail = it
+
+        override fun onLogTailChanged(logTail: Boolean) {
+            generalUserConfig.logTail = logTail
         }
-    }
-
-    override fun onLevelChanged(level: String) {
-        generalUserConfig.logFilterLevel = level
-    }
-
-    override fun onLogTailChanged(logTail: Boolean) {
-        generalUserConfig.logTail = logTail
     }
 }

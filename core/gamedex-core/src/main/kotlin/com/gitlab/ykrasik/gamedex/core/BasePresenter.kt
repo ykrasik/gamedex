@@ -16,39 +16,49 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.util.InitOnce
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 
 /**
  * User: ykrasik
  * Date: 24/04/2018
  * Time: 08:17
  */
-abstract class BasePresenter<V : View>(private val taskRunner: TaskRunner) : Presenter<V> {
-    protected var view: V by InitOnce()
-
-    override fun present(view: V) {
-        this.view = view
-
-        taskRunner.currentlyRunningTaskChannel.subscribe(uiThreadDispatcher) {
-            view.enabled = it == null
-        }
-
-        initView(view)
+fun launchOnUi(f: suspend () -> Unit) {
+    launch(uiThreadDispatcher) {
+        f()
     }
-
-    protected abstract fun initView(view: V)
-
-    protected fun handle(f: suspend () -> Unit) {
-        launch(uiThreadDispatcher) {
-            f()
-        }
-    }
-
-    protected suspend fun <T> Task<T>.runTask(): T = taskRunner.runTask(this)
 }
+
+suspend fun <T> runOnWorker(f: suspend () -> T): T = withContext(CommonPool) {
+    f()
+}
+
+suspend fun <T> runOnUi(f: suspend () -> T): T = withContext(uiThreadDispatcher) {
+    f()
+}
+
+fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {
+    list.clear()
+    list.addAll(this)
+    return reportChangesTo(list)
+}
+
+fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
+    changesChannel.subscribe(uiThreadDispatcher) { event ->
+        when (event) {
+            is ListItemAddedEvent -> list += event.item
+            is ListItemsAddedEvent -> list += event.items
+            is ListItemRemovedEvent -> list.removeAt(event.index)
+            is ListItemsRemovedEvent -> list.removeAll(event.items)
+            is ListItemSetEvent -> list[event.index] = event.item
+            is ListItemsSetEvent -> {
+                list.clear()
+                list.addAll(event.items)
+            }
+        }
+    }

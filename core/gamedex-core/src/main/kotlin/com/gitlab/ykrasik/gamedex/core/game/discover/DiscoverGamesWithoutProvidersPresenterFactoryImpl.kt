@@ -14,45 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.library
+package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 21/04/2018
- * Time: 07:05
+ * Date: 06/05/2018
+ * Time: 09:51
  */
-interface EditLibraryView : View {
-    var canChangePlatform: Boolean
-    var canAccept: Boolean
-
-    var initialLibrary: Library?
-    var name: String
-    var path: String
-    var platform: Platform
-
-    var nameValidationError: String?
-    var pathValidationError: String?
-
-    fun selectDirectory(initialDirectory: File?): File?
-
-    fun close(data: LibraryData?)
-}
-
-interface EditLibraryPresenter : Presenter<EditLibraryView> {
-    fun onShown(library: Library?)
-
-    fun onAccept()
-    fun onCancel()
-    fun onBrowse()
-
-    fun onNameChanged(name: String)
-    fun onPathChanged(path: String)
-    fun onPlatformChanged(platform: Platform)
+@Singleton
+class DiscoverGamesWithoutProvidersPresenterFactoryImpl @Inject constructor(
+    private val gameDiscoveryService: GameDiscoveryService,
+    private val taskRunner: TaskRunner
+) : DiscoverGamesWithoutProvidersPresenterFactory {
+    override fun present(view: ViewCanDiscoverGamesWithoutProviders): DiscoverGamesWithoutProvidersPresenter = object : DiscoverGamesWithoutProvidersPresenter {
+        override fun discoverGamesWithoutProviders() = launchOnUi {
+            taskRunner.runTask(gameDiscoveryService.rediscoverGamesWithMissingProviders())
+        }
+    }
 }

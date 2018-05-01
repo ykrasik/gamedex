@@ -16,9 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
-import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
-import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
+import com.gitlab.ykrasik.gamedex.app.api.general.*
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -39,10 +38,13 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(GeneralSettingsPresenter::class, "General Settings", Theme.Icon.settings()), GeneralSettingsView {
-    init {
-        presenter.present(this)
-    }
+class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon.settings()),
+    ViewCanExportDatabase, ViewCanImportDatabase, ViewCanClearUserData, ViewCanCleanupDb {
+
+    private val exportDatabasePresenter = presenters.exportDatabase.present(this)
+    private val importDatabasePresenter = presenters.importDatabase.present(this)
+    private val clearUserDataPresenter = presenters.clearUserData.present(this)
+    private val cleanupDbPresenter = presenters.cleanupDb.present(this)
 
     override val root = vbox {
         enableWhen { enabledProperty }
@@ -52,7 +54,7 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction(GeneralSettingsPresenter::onExportDatabase)
+                    presentOnAction { exportDatabasePresenter.exportDatabase() }
                 }
             }
             row {
@@ -60,7 +62,7 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction(GeneralSettingsPresenter::onImportDatabase)
+                    presentOnAction { importDatabasePresenter.importDatabase() }
                 }
             }
             row {
@@ -72,7 +74,7 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    presentOnAction(GeneralSettingsPresenter::onClearUserData)
+                    presentOnAction { clearUserDataPresenter.clearUserData() }
                 }
             }
             row {
@@ -80,7 +82,7 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction(GeneralSettingsPresenter::onCleanupDb)
+                    presentOnAction { cleanupDbPresenter.cleanupDb() }
                 }
             }
         }
@@ -101,7 +103,6 @@ class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(Gene
     override fun selectDatabaseImportFile(initialDirectory: File?) =
         chooseFile("Select Database File...", filters = emptyArray()) {
             this@chooseFile.initialDirectory = initialDirectory
-//            initialFileName = "db.json"
         }.firstOrNull()
 
     override fun browseDirectory(directory: File) = browse(directory)

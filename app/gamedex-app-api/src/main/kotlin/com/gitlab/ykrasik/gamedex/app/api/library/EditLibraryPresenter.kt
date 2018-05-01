@@ -16,28 +16,21 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 15/04/2018
- * Time: 08:10
+ * Date: 06/05/2018
+ * Time: 12:44
  */
-interface LibraryView : View {
-    var libraries: ListObservable<Library>   // TODO: Make this a val and bind to it.
+interface EditLibraryPresenter {
+    fun editLibrary(library: Library)
+}
 
-    fun showAddLibraryView(): LibraryData?
+interface ViewCanEditLibrary {
     fun showEditLibraryView(library: Library): LibraryData?
-    fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>): Boolean
 }
 
-interface LibraryPresenter : Presenter<LibraryView> {
-    fun onAddLibrary()
-    fun onEditLibrary(library: Library)
-    fun onDeleteLibrary(library: Library)
-}
+interface EditLibraryPresenterFactory : PresenterFactory<ViewCanEditLibrary, EditLibraryPresenter>

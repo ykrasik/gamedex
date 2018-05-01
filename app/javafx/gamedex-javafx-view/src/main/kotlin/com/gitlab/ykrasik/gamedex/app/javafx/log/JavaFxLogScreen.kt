@@ -18,8 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
-import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
-import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleBooleanProperty
@@ -38,21 +40,25 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableGamedexScreen<LogPresenter>(LogPresenter::class, "Log", Theme.Icon.book()), LogView {
-    private val observableEntries = mutableListOf<LogEntry>().observable().sortedFiltered()
-    override var entries by InitOnceListObservable(observableEntries)
+class JavaFxLogScreen : PresentableGamedexScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewWithLogLevel, ViewWithLogTail {
+    override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
-    private val levelProperty = SimpleStringProperty().presentOnChange(LogPresenter::onLevelChanged)
+    private val levelProperty = SimpleStringProperty()
     override var level by levelProperty
 
-    private val logTailProperty = SimpleBooleanProperty(false).presentOnChange(LogPresenter::onLogTailChanged)
+    private val logTailProperty = SimpleBooleanProperty(false)
     override var logTail by logTailProperty
 
-    init {
-        presenter.present(this)
+    private val logLevelPresenter = presenters.logLevel.present(this)
+    private val logTailPresenter = presenters.logTail.present(this)
 
-        observableEntries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
-        levelProperty.onChange { observableEntries.refilter() }
+    init {
+        presenters.logEntries.present(this)
+        levelProperty.presentOnChange { logLevelPresenter.onLevelChanged(it) }
+        logTailProperty.presentOnChange { logTailPresenter.onLogTailChanged(it) }
+
+        entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
+        levelProperty.onChange { entries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
 //        })
@@ -69,7 +75,7 @@ class JavaFxLogScreen : PresentableGamedexScreen<LogPresenter>(LogPresenter::cla
         jfxCheckBox(logTailProperty, "Tail")
     }
 
-    override val root = listview(observableEntries) {
+    override val root = listview(entries) {
         addClass(Style.logView)
 
         setCellFactory {
@@ -116,7 +122,7 @@ class JavaFxLogScreen : PresentableGamedexScreen<LogPresenter>(LogPresenter::cla
             }
         }
 
-        observableEntries.onChange {
+        entries.onChange {
             if (logTail) {
                 scrollTo(items.size)
             }

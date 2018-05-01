@@ -14,33 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.core.log
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.app.api.log.LogEntriesPresenter
+import com.gitlab.ykrasik.gamedex.app.api.log.LogEntriesPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
+import com.gitlab.ykrasik.gamedex.core.bindTo
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
- */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+@Singleton
+class LogEntriesPresenterFactoryImpl : LogEntriesPresenterFactory {
+    override fun present(view: ViewWithLogEntries): LogEntriesPresenter = object : LogEntriesPresenter {
+        init {
+            GamedexLog.entries.bindTo(view.entries)
+        }
+    }
 }

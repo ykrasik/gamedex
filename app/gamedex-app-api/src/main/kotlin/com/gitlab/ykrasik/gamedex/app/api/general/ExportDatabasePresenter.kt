@@ -14,28 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.log
+package com.gitlab.ykrasik.gamedex.app.api.general
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import org.joda.time.DateTime
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 25/04/2018
- * Time: 21:00
+ * Date: 06/05/2018
+ * Time: 12:26
  */
-interface LogView : View {
-    var entries: ListObservable<LogEntry>
-
-    var level: String
-    var logTail: Boolean
+interface ExportDatabasePresenter {
+    fun exportDatabase()
 }
 
-interface LogPresenter : Presenter<LogView> {
-    fun onLevelChanged(level: String)
-    fun onLogTailChanged(logTail: Boolean)
+interface ViewCanExportDatabase {
+    fun selectDatabaseExportDirectory(initialDirectory: File?): File?
+    fun browseDirectory(directory: File)
 }
 
-data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
+interface ExportDatabasePresenterFactory : PresenterFactory<ViewCanExportDatabase, ExportDatabasePresenter>

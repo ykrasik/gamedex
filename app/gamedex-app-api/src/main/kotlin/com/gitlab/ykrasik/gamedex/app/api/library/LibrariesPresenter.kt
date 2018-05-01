@@ -14,27 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
+package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.details.DeleteGameChoice
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
-import javafx.beans.property.SimpleBooleanProperty
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 01/05/2018
- * Time: 15:10
+ * Date: 06/05/2018
+ * Time: 12:37
  */
-fun confirmGameDelete(game: Game): DeleteGameChoice {
-    val fromFileSystem = SimpleBooleanProperty(false)
-    val confirm = areYouSureDialog("Delete game '${game.name}'?") {
-        jfxCheckBox(fromFileSystem, "From File System")
-    }
-    return if (confirm) {
-        DeleteGameChoice.Confirm(fromFileSystem.value)
-    } else {
-        DeleteGameChoice.Cancel
-    }
+interface LibrariesPresenter
+
+interface ViewWithLibraries {
+    val libraries: MutableList<Library>
 }
+
+interface LibrariesPresenterFactory : PresenterFactory<ViewWithLibraries, LibrariesPresenter>

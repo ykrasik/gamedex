@@ -14,33 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.core.library
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.app.api.library.LibrariesPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.LibrariesPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.bindTo
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
- */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+@Singleton
+class LibrariesPresenterFactoryImpl @Inject constructor(
+    private val libraryService: LibraryService
+) : LibrariesPresenterFactory {
+    override fun present(view: ViewWithLibraries): LibrariesPresenter = object : LibrariesPresenter {
+        init {
+            libraryService.libraries.bindTo(view.libraries)
+        }
+    }
 }

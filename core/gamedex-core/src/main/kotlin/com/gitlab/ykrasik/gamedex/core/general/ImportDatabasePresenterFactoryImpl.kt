@@ -14,37 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.discover
+package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigView
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabasePresenter
+import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabasePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.general.ViewCanImportDatabase
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 14:25
- *
- * Not a singleton - there's multiple instances of the view.
+ * Date: 06/05/2018
+ * Time: 13:23
  */
-class DiscoverGameChoiceConfigPresenterImpl @Inject constructor(
-    userConfigRepository: UserConfigRepository,
-    taskRunner: TaskRunner
-) : BasePresenter<DiscoverGameChoiceConfigView>(taskRunner), DiscoverGameChoiceConfigPresenter {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+@Singleton
+class ImportDatabasePresenterFactoryImpl @Inject constructor(
+    private val generalSettingsService: GeneralSettingsService,
+    private val taskRunner: TaskRunner,
+    userConfigRepository: UserConfigRepository
+) : ImportDatabasePresenterFactory {
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    override fun initView(view: DiscoverGameChoiceConfigView) {
-        gameUserConfig.discoverGameChooseResultsSubject.subscribe {
-            view.discoverGameChooseResults = it
+    override fun present(view: ViewCanImportDatabase): ImportDatabasePresenter = object : ImportDatabasePresenter {
+        override fun importDatabase() = launchOnUi {
+            val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return@launchOnUi
+            if (view.confirmImportDatabase()) {
+                taskRunner.runTask(generalSettingsService.importDatabase(file))
+            }
         }
-    }
-
-    override fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults) {
-        gameUserConfig.discoverGameChooseResults = discoverGameChooseResults
     }
 }

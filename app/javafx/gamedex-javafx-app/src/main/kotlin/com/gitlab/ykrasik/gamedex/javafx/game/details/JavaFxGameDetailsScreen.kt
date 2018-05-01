@@ -18,14 +18,21 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanEditGame
+import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
+import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.confirmGameDelete
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
-import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
+import com.gitlab.ykrasik.gamedex.javafx.game.common.EditGameViewShower
+import com.gitlab.ykrasik.gamedex.javafx.game.common.TagGameViewShower
 import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
@@ -40,7 +47,9 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(GameDetailsPresenter::class), GameDetailsView {
+class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
+    GameDetailsView, ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
+    ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val imageLoader: ImageLoader by di()
 
     private val browser = YouTubeWebBrowser()
@@ -53,14 +62,17 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(G
 
     override val useDefaultNavigationButton = false
 
-    init {
-        presenter.present(this)
-    }
+    private val gameDetailsPresenter = presenters.gameDetails.present(this)
+    private val editGamePresenter = presenters.editGame.present(this)
+    private val tagGamePresenter = presenters.tagGame.present(this)
+    private val rediscoverGamePresenter = presenters.rediscoverGame.present(this)
+    private val redownloadGamePresenter = presenters.redownloadGame.present(this)
+    private val deleteGamePresenter = presenters.deleteGame.present(this)
 
     override fun ToolBar.constructToolbar() {
-        editButton { setOnAction { presenter.onEditGameDetails(GameDataType.name_) } }
+        editButton { presentOnAction { editGame(GameDataType.name_) } }
         verticalSeparator()
-        tagButton { presentOnAction(GameDetailsPresenter::onTag) }
+        tagButton { presentOnAction { tagGame() } }
         verticalSeparator()
 
         spacer()
@@ -70,12 +82,12 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(G
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            presentOnAction(GameDetailsPresenter::onRediscoverGame)
+            presentOnAction { rediscoverGame() }
         }
         verticalSeparator()
-        downloadButton("Re-Download") { presentOnAction(GameDetailsPresenter::onRedownloadGame) }
+        downloadButton("Re-Download") { presentOnAction { redownloadGame() } }
         verticalSeparator()
-        deleteButton("Delete") { presentOnAction(GameDetailsPresenter::onDeleteGame) }
+        deleteButton("Delete") { presentOnAction { deleteGame() } }
         verticalSeparator()
     }
 
@@ -89,12 +101,13 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(G
 
             contextmenu {
                 item("Change", graphic = Theme.Icon.poster(20.0)).action {
-                    presenter.onEditGameDetails(GameDataType.poster)
+                    present {
+                        editGame(GameDataType.poster)
+                    }
                 }
             }
 
-            val posterImageProperty = posterProperty.flatMap { imageLoader.loadImage(it) }
-            imageViewResizingPane(posterImageProperty) {
+            imageViewResizingPane(posterProperty.flatMap { imageLoader.loadImage(it) }) {
                 maxWidth = screenBounds.width * maxPosterWidthPercent
 
                 // Clip the posterPane's corners to be round after the posterPane's size is calculated.
@@ -135,18 +148,31 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen<GameDetailsPresenter>(G
         browser.stop()
     }
 
-    fun show(game: Game) = presenter.onShow(game)
+    fun show(game: Game) = gameDetailsPresenter.onShow(game)
 
     override fun displayWebPage(url: String) = browser.load(url)
 
-    override fun showEditGameView(game: Game, initialTab: GameDataType) = EditGameDataFragment(game, initialTab).show()
+    override fun showEditGameView(game: Game, initialTab: GameDataType) = EditGameViewShower.showEditGameView(game, initialTab)
 
-    override fun showTagView(game: Game) = TagFragment(game).show()
+    override fun showTagGameView(game: Game) = TagGameViewShower.showTagGameView(game)
 
-    override fun showConfirmDeleteGame(game: Game) = confirmGameDelete(game)
+    override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 
-    override fun goBack() {
-        closeRequestedProperty.value = true
+    private suspend fun editGame(initialTab: GameDataType) = handleNewGame { editGamePresenter.editGame(game, initialTab) }
+    private suspend fun tagGame() = handleNewGame { tagGamePresenter.tagGame(game) }
+    private suspend fun rediscoverGame() = handleNewGame { rediscoverGamePresenter.rediscoverGame(game) }
+    private suspend fun redownloadGame() = handleNewGame { redownloadGamePresenter.redownloadGame(game) }
+    private suspend fun deleteGame() {
+        if (deleteGamePresenter.deleteGame(game)) {
+            closeRequestedProperty.value = true
+        }
+    }
+
+    private inline fun handleNewGame(f: () -> Game?) {
+        val newGame = f()
+        if (newGame != null) {
+            game = newGame
+        }
     }
 
     companion object {

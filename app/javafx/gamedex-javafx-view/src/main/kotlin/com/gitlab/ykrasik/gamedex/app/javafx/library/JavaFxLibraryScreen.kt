@@ -18,8 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
@@ -33,16 +36,19 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryPresenter>(LibraryPresenter::class, "Libraries", Theme.Icon.hdd()), LibraryView {
+class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd()),
+    ViewWithLibraries, ViewCanAddLibrary, ViewCanEditLibrary, ViewCanDeleteLibrary {
     private val editLibraryView: JavaFxEditLibraryView by inject()
 
-    private val observableLibraries = mutableListOf<Library>().observable()
-    override var libraries by InitOnceListObservable(observableLibraries)
+    override val libraries = mutableListOf<Library>().observable()
+
+    private val addLibraryPresenter = presenters.addLibrary.present(this)
+    private val editLibraryPresenter = presenters.editLibrary.present(this)
+    private val deleteLibraryPresenter = presenters.deleteLibrary.present(this)
 
     init {
-        presenter.present(this)
-
-        observableLibraries.onChange {
+        presenters.libraries.present(this)
+        libraries.onChange {
             root.resizeColumnsToFitContent()
         }
     }
@@ -63,7 +69,7 @@ class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryPresenter>(LibraryPr
         }
     }
 
-    override val root = tableview(observableLibraries) {
+    override val root = tableview(libraries) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
 
@@ -109,9 +115,9 @@ class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryPresenter>(LibraryPr
             }
         }
 
-    private fun addLibrary() = presenter.onAddLibrary()
-    private fun editLibrary() = presenter.onEditLibrary(selectedLibrary)
-    private fun deleteLibrary() = presenter.onDeleteLibrary(selectedLibrary)
+    private fun addLibrary() = present { addLibraryPresenter.addLibrary() }
+    private fun editLibrary() = present { editLibraryPresenter.editLibrary(selectedLibrary) }
+    private fun deleteLibrary() = present { deleteLibraryPresenter.deleteLibrary(selectedLibrary) }
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

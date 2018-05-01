@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.download
 
-import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDurationPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDurationPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewWithDownloadStaleDuration
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import org.joda.time.PeriodType
@@ -29,15 +28,13 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 16:30
+ * Date: 06/05/2018
+ * Time: 13:08
  */
 @Singleton
-class GameDownloadPresenterImpl @Inject constructor(
-    private val gameDownloadService: GameDownloadService,
-    userConfigRepository: UserConfigRepository,
-    taskRunner: TaskRunner
-) : BasePresenter<GameDownloadView>(taskRunner), GameDownloadPresenter {
+class GameDownloadStaleDurationPresenterFactoryImpl @Inject constructor(
+    userConfigRepository: UserConfigRepository
+) : GameDownloadStaleDurationPresenterFactory {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val formatter = PeriodFormatterBuilder()
@@ -48,24 +45,22 @@ class GameDownloadPresenterImpl @Inject constructor(
         .appendMinutes().appendSuffix("m").appendSeparator(" ")
         .appendSeconds().appendSuffix("s").toFormatter()
 
-    override fun initView(view: GameDownloadView) {
-        gameUserConfig.stalePeriodSubject.subscribe {
-            val sb = StringBuffer()
-            formatter.printTo(sb, it.normalizedStandard(PeriodType.yearMonthDayTime()))
-            view.stalePeriodText = sb.toString()
+    override fun present(view: ViewWithDownloadStaleDuration): GameDownloadStaleDurationPresenter = object : GameDownloadStaleDurationPresenter {
+        init {
+            gameUserConfig.stalePeriodSubject.subscribe {
+                val sb = StringBuffer()
+                formatter.printTo(sb, it.normalizedStandard(PeriodType.yearMonthDayTime()))
+                view.stalePeriodText = sb.toString()
+            }
         }
-    }
 
-    override fun onStalePeriodTextChanged(stalePeriodText: String) {
-        view.stalePeriodValidationError = try {
-            gameUserConfig.stalePeriod = formatter.parsePeriod(stalePeriodText)
-            null
-        } catch (e: Exception) {
-            "Invalid duration! Format: {x}y {x}mo {x}d {x}h {x}m {x}s"
+        override fun onStalePeriodTextChanged(stalePeriodText: String) {
+            view.stalePeriodValidationError = try {
+                gameUserConfig.stalePeriod = formatter.parsePeriod(stalePeriodText)
+                null
+            } catch (e: Exception) {
+                "Invalid duration! Format: {x}y {x}mo {x}d {x}h {x}m {x}s"
+            }
         }
-    }
-
-    override fun onRedownloadAllStaleGames() = handle {
-        gameDownloadService.redownloadAllGames().runTask()
     }
 }

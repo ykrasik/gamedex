@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.preloader
 
+import com.gitlab.ykrasik.gamedex.app.api.Presenters
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
@@ -72,6 +74,8 @@ object Preloader {
         val injector = Guice.createInjector(Stage.PRODUCTION,
             ProviderScannerModule, CoreModule, lifecycleModule, *extraModules
         )
+
+        presenters = injector.getInstance(Presenters::class.java)
 
         subscription.cancel()
         message1 = "Done loading."

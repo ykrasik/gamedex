@@ -14,33 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.app.api.game.common
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataOverride
+import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 02/05/2018
+ * Time: 10:01
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+interface EditGamePresenter {
+    suspend fun editGame(game: Game, initialTab: GameDataType): Game?
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+interface ViewCanEditGame {
+    fun showEditGameView(game: Game, initialTab: GameDataType): EditGameDetailsChoice
 }
+
+sealed class EditGameDetailsChoice {
+    data class Override(val overrides: Map<GameDataType, GameDataOverride>) : EditGameDetailsChoice()
+    object Cancel : EditGameDetailsChoice()
+    object Clear : EditGameDetailsChoice()
+}
+
+interface EditGamePresenterFactory : PresenterFactory<ViewCanEditGame, EditGamePresenter>

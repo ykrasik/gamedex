@@ -14,33 +14,31 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.core.log
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevelPresenter
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevelPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
+import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
- */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+@Singleton
+class LogLevelPresenterFactoryImpl @Inject constructor(
+    userConfigRepository: UserConfigRepository
+) : LogLevelPresenterFactory {
+    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    open val useDefaultNavigationButton: Boolean = true
+    override fun present(view: ViewWithLogLevel): LogLevelPresenter = object : LogLevelPresenter {
+        init {
+            generalUserConfig.logFilterLevelSubject.subscribe {
+                view.level = it
+            }
+        }
 
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+        override fun onLevelChanged(level: String) {
+            generalUserConfig.logFilterLevel = level
+        }
+    }
 }

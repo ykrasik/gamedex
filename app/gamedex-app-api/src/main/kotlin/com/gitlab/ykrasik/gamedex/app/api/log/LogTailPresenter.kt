@@ -14,28 +14,21 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.discover
+package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 14:18
+ * Date: 06/05/2018
+ * Time: 12:57
  */
-interface DiscoverGameChoiceConfigView : View {
-    var discoverGameChooseResults: DiscoverGameChooseResults
+interface LogTailPresenter {
+    fun onLogTailChanged(logTail: Boolean)
 }
 
-interface DiscoverGameChoiceConfigPresenter : Presenter<DiscoverGameChoiceConfigView> {
-    fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults)
+interface ViewWithLogTail {
+    var logTail: Boolean
 }
 
-// FIXME: Make this an inner class of GameUserConfig after it's refactored.
-enum class DiscoverGameChooseResults(val description: String) {
-    chooseIfNonExact("If no exact match: Choose"),
-    alwaysChoose("Always choose"),
-    skipIfNonExact("If no exact match: Skip"),
-    proceedWithoutIfNonExact("If no exact match: Proceed Without")
-}
+interface LogTailPresenterFactory : PresenterFactory<ViewWithLogTail, LogTailPresenter>

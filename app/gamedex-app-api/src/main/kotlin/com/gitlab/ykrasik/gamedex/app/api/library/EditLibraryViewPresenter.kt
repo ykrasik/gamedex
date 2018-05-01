@@ -14,33 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.app.api.library
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 21/04/2018
+ * Time: 07:05
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+interface EditLibraryViewPresenter {
+    fun onShown(library: Library?)
 
-    open val useDefaultNavigationButton: Boolean = true
+    fun onAccept()
+    fun onCancel()
+    fun onBrowse()
 
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    fun onNameChanged(name: String)
+    fun onPathChanged(path: String)
+    fun onPlatformChanged(platform: Platform)
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+interface EditLibraryView {
+    var canChangePlatform: Boolean
+    var canAccept: Boolean
 
-    open val useDefaultNavigationButton: Boolean = true
+    var initialLibrary: Library?
+    var name: String
+    var path: String
+    var platform: Platform
 
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    var nameValidationError: String?
+    var pathValidationError: String?
+
+    fun selectDirectory(initialDirectory: File?): File?
+
+    fun close(data: LibraryData?)
 }
+
+interface EditLibraryViewPresenterFactory : PresenterFactory<EditLibraryView, EditLibraryViewPresenter>

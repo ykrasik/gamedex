@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
@@ -34,7 +34,7 @@ import java.io.File
  * Date: 12/10/2016
  * Time: 10:56
  */
-class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryPresenter::class), EditLibraryView {
+class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private val canChangePlatformProperty = SimpleBooleanProperty(false)
     override var canChangePlatform by canChangePlatformProperty
 
@@ -57,9 +57,9 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryP
 
     private var dataToReturn: LibraryData? = null
 
-    init {
-        presenter.present(this)
+    private val presenter = presenters.editLibraryView.present(this)
 
+    init {
         titleProperty.bind(initialLibraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
         nameValidationErrorProperty.onChange { viewModel.validate() }
         pathValidationErrorProperty.onChange { viewModel.validate() }
@@ -70,12 +70,12 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryP
             toolbar {
                 acceptButton {
                     enableWhen { canAcceptProperty }
-                    presentOnAction(EditLibraryPresenter::onAccept)
+                    presentOnAction { presenter.onAccept() }
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    presentOnAction(EditLibraryPresenter::onCancel)
+                    presentOnAction { presenter.onCancel() }
                 }
             }
         }
@@ -98,7 +98,7 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryP
             }
         }
         jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
-            presentOnAction(EditLibraryPresenter::onBrowse)
+            presentOnAction { presenter.onBrowse() }
         }
     }
 
@@ -129,9 +129,9 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryP
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 
     private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = presentableProperty(EditLibraryPresenter::onNameChanged) { SimpleStringProperty("") }
-        val pathProperty = presentableProperty(EditLibraryPresenter::onPathChanged) { SimpleStringProperty("") }
-        val platformProperty = presentableProperty(EditLibraryPresenter::onPlatformChanged) { SimpleObjectProperty(Platform.pc) }
+        val nameProperty = presentableProperty({ presenter.onNameChanged(it) }, { SimpleStringProperty("") })
+        val pathProperty = presentableProperty({ presenter.onPathChanged(it) }, { SimpleStringProperty("") })
+        val platformProperty = presentableProperty({ presenter.onPlatformChanged(it) }, { SimpleObjectProperty(Platform.pc) })
 
         override fun toString() = "LibraryViewModel(name = $name, platform = $platform, path = $path)"
     }

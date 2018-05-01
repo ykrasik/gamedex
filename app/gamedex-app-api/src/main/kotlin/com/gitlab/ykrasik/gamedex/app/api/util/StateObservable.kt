@@ -14,33 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
-
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+package com.gitlab.ykrasik.gamedex.app.api.util
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 06/05/2018
+ * Time: 14:35
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+interface StateObservable<T> {
+    var value: T
 
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    val changesChannel: BroadcastReceiveChannel<T>
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+class StateObservableImpl<T>(initial: T) : StateObservable<T> {
+    override var value: T = initial
+        set(value) {
+            changesChannel.offer(value)
+        }
 
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    override val changesChannel = BroadcastEventChannel.conflated(initial)
 }

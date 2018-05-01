@@ -16,8 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 
-import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadView
+import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadAllStaleGames
+import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewWithDownloadStaleDuration
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleStringProperty
@@ -30,16 +31,17 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 10:57
  */
-class JavaFxGameDownloadView : PresentableView<GameDownloadPresenter>(GameDownloadPresenter::class), GameDownloadView {
+class JavaFxGameDownloadView : PresentableView(), ViewWithDownloadStaleDuration, ViewCanRedownloadAllStaleGames {
     private val viewModel = PeriodViewModel()
     override var stalePeriodText by viewModel.stalePeriodTextProperty
 
     private val stalePeriodValidationErrorProperty = SimpleStringProperty(null)
     override var stalePeriodValidationError by stalePeriodValidationErrorProperty
 
-    init {
-        presenter.present(this)
+    private val stalePeriodPresenter = presenters.gameDownloadStaleDuration.present(this)
+    private val redownloadAllStaleGames = presenters.redownloadAllStaleGames.present(this)
 
+    init {
         stalePeriodValidationErrorProperty.onChange { viewModel.validate() }
     }
 
@@ -63,7 +65,9 @@ class JavaFxGameDownloadView : PresentableView<GameDownloadPresenter>(GameDownlo
             tooltip("Re-Download all games that were last downloaded before the stale duration")
             setOnAction {
                 popover.hide()
-                presenter.onRedownloadAllStaleGames()
+                present {
+                    redownloadAllStaleGames.redownloadAllStaleGames()
+                }
             }
         }
     }.apply {
@@ -71,6 +75,6 @@ class JavaFxGameDownloadView : PresentableView<GameDownloadPresenter>(GameDownlo
     }
 
     private inner class PeriodViewModel : ViewModel() {
-        val stalePeriodTextProperty = presentableProperty(GameDownloadPresenter::onStalePeriodTextChanged) { SimpleStringProperty("") }
+        val stalePeriodTextProperty = presentableProperty({ stalePeriodPresenter.onStalePeriodTextChanged(it) }, { SimpleStringProperty("") })
     }
 }

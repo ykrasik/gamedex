@@ -14,33 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.app.api.game.details
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import kotlinx.coroutines.experimental.Deferred
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 29/04/2018
+ * Time: 20:09
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+interface GameDetailsPresenter {
+    fun onShow(game: Game)
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+interface GameDetailsView {
+    var game: Game
 
-    open val useDefaultNavigationButton: Boolean = true
+    var poster: Deferred<Image>?
 
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+    fun displayWebPage(url: String)
 }
+
+interface GameDetailsPresenterFactory : PresenterFactory<GameDetailsView, GameDetailsPresenter>

@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanChangeDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.disallowDeselection
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
@@ -31,12 +31,14 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 21:15
  */
-private class JavaFxDiscoverGameChoiceConfigView : PresentableView<DiscoverGameChoiceConfigPresenter>(DiscoverGameChoiceConfigPresenter::class), DiscoverGameChoiceConfigView {
-    private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null).presentOnChange(DiscoverGameChoiceConfigPresenter::onDiscoverGameChoiceChanged)
+private class JavaFxDiscoverGameChoiceConfigView : PresentableView(), ViewCanChangeDiscoverGameChooseResults {
+    private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null)
     override var discoverGameChooseResults by discoverGameChooseResultsProperty
 
+    private val presenter = presenters.discoverGameChooseResults.present(this)
+
     init {
-        presenter.present(this)
+        discoverGameChooseResultsProperty.presentOnChange { presenter.onDiscoverGameChoiceChanged(it) }
     }
 
     override val root = vbox(spacing = 5.0) {

@@ -14,33 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.core.library
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
- */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+@Singleton
+class EditLibraryPresenterFactoryImpl @Inject constructor(
+    private val libraryService: LibraryService,
+    private val taskRunner: TaskRunner
+) : EditLibraryPresenterFactory {
+    override fun present(view: ViewCanEditLibrary): EditLibraryPresenter = object : EditLibraryPresenter {
+        override fun editLibrary(library: Library) = launchOnUi {
+            val data = view.showEditLibraryView(library)
+            if (data != null) {
+                taskRunner.runTask(libraryService.replace(library, data))
+            }
+        }
+    }
 }

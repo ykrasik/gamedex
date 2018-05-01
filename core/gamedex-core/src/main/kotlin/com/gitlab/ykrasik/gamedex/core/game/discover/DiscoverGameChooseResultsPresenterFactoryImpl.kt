@@ -16,30 +16,35 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsConfigPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanChangeDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 29/04/2018
- * Time: 13:38
+ * Time: 14:25
  */
 @Singleton
-class GameDiscoveryPresenterImpl @Inject constructor(
-    private val gameDiscoveryService: GameDiscoveryService,
-    taskRunner: TaskRunner
-) : BasePresenter<GameDiscoveryView>(taskRunner), GameDiscoveryPresenter {
-    override fun initView(view: GameDiscoveryView) {}
+class DiscoverGameChooseResultsPresenterFactoryImpl @Inject constructor(
+    userConfigRepository: UserConfigRepository
+) : DiscoverGameChooseResultsPresenterFactory {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    override fun onSearchNewGames() = handle {
-        gameDiscoveryService.discoverNewGames().runTask()
-    }
+    override fun present(view: ViewCanChangeDiscoverGameChooseResults): DiscoverGameChooseResultsConfigPresenter = object : DiscoverGameChooseResultsConfigPresenter {
+        init {
+            gameUserConfig.discoverGameChooseResultsSubject.subscribe {
+                view.discoverGameChooseResults = it
+            }
+        }
 
-    override fun onSearchGamesWithoutProviders() = handle {
-        gameDiscoveryService.rediscoverGamesWithMissingProviders().runTask()
+        override fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults) {
+            gameUserConfig.discoverGameChooseResults = discoverGameChooseResults
+        }
     }
 }

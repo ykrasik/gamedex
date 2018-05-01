@@ -152,7 +152,7 @@ inline fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rati
 inline fun EventTarget.imageViewResizingPane(imageView: ImageView, op: ImageViewResizingPane.() -> Unit = {}) =
     opcr(this, ImageViewResizingPane(imageView), op)
 
-inline fun EventTarget.imageViewResizingPane(image: ObservableValue<Image?>, op: ImageViewResizingPane.() -> Unit = {}) =
+inline fun EventTarget.imageViewResizingPane(image: ObservableValue<Image>, op: ImageViewResizingPane.() -> Unit = {}) =
     imageViewResizingPane(ImageView()) {
         imageProperty.bind(image)
         op()

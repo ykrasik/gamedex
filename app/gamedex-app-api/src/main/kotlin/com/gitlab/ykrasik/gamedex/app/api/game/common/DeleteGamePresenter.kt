@@ -14,58 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.details
+package com.gitlab.ykrasik.gamedex.app.api.game.common
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataOverride
-import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 20:09
+ * Date: 02/05/2018
+ * Time: 10:42
  */
-interface GameDetailsView : View {
-    var game: Game
+interface DeleteGamePresenter {
+    suspend fun deleteGame(game: Game): Boolean
+}
 
-    var poster: Deferred<Image>?
-
-    fun displayWebPage(url: String)
-
-    fun showEditGameView(game: Game, initialTab: GameDataType): EditGameDetailsChoice
-    fun showTagView(game: Game): TagGameChoice
+interface ViewCanDeleteGame {
     fun showConfirmDeleteGame(game: Game): DeleteGameChoice
-
-    fun goBack()
-}
-
-interface GameDetailsPresenter : Presenter<GameDetailsView> {
-    fun onShow(game: Game)
-
-    fun onEditGameDetails(initialTab: GameDataType)
-    fun onTag()
-    fun onRediscoverGame()
-    fun onRedownloadGame()
-    fun onDeleteGame()
-}
-
-sealed class EditGameDetailsChoice {
-    data class Override(val overrides: Map<GameDataType, GameDataOverride>) : EditGameDetailsChoice()
-    object Cancel : EditGameDetailsChoice()
-    object Clear : EditGameDetailsChoice()
-}
-
-
-sealed class TagGameChoice {
-    data class Select(val tags: List<String>) : TagGameChoice()
-    object Cancel : TagGameChoice()
 }
 
 sealed class DeleteGameChoice {
     data class Confirm(val fromFileSystem: Boolean) : DeleteGameChoice()
     object Cancel : DeleteGameChoice()
 }
+
+interface DeleteGamePresenterFactory : PresenterFactory<ViewCanDeleteGame, DeleteGamePresenter>

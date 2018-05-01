@@ -17,49 +17,33 @@
 package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryPresenter
-import com.gitlab.ykrasik.gamedex.app.api.library.LibraryView
+import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryPresenter
+import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 15/04/2018
- * Time: 08:31
+ * Date: 06/05/2018
+ * Time: 13:30
  */
 @Singleton
-class LibraryPresenterImpl @Inject constructor(
+class DeleteLibraryPresenterFactoryImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    taskRunner: TaskRunner
-) : BasePresenter<LibraryView>(taskRunner), LibraryPresenter {
-
-    override fun initView(view: LibraryView) {
-        view.libraries = libraryService.libraries
-    }
-
-    override fun onAddLibrary() = handle {
-        val data = view.showAddLibraryView()
-        if (data != null) {
-            libraryService.add(data).runTask()
-        }
-    }
-
-    override fun onEditLibrary(library: Library) = handle {
-        val data = view.showEditLibraryView(library)
-        if (data != null) {
-            libraryService.replace(library, data).runTask()
-        }
-    }
-
-    override fun onDeleteLibrary(library: Library) = handle {
-        val gamesToBeDeleted = gameService.games.filter { it.library.id == library.id }
-        if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
-            libraryService.delete(library).runTask()
+    private val taskRunner: TaskRunner
+) : DeleteLibraryPresenterFactory {
+    override fun present(view: ViewCanDeleteLibrary): DeleteLibraryPresenter = object : DeleteLibraryPresenter {
+        override fun deleteLibrary(library: Library) = launchOnUi {
+            val gamesToBeDeleted = gameService.games.filter { it.library.id == library.id }
+            if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
+                taskRunner.runTask(libraryService.delete(library))
+            }
         }
     }
 }

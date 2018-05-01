@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.details.TagGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGameChoice
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import javafx.collections.FXCollections

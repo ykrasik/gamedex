@@ -14,33 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.app.api.game.discover
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 29/04/2018
+ * Time: 14:18
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+interface DiscoverGameChooseResultsConfigPresenter {
+    fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults)
 }
 
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
+interface ViewCanChangeDiscoverGameChooseResults {
+    var discoverGameChooseResults: DiscoverGameChooseResults
 }
+
+// FIXME: Make this an inner class of GameUserConfig after it's refactored.
+enum class DiscoverGameChooseResults(val description: String) {
+    chooseIfNonExact("If no exact match: Choose"),
+    alwaysChoose("Always choose"),
+    skipIfNonExact("If no exact match: Skip"),
+    proceedWithoutIfNonExact("If no exact match: Proceed Without")
+}
+
+interface DiscoverGameChooseResultsPresenterFactory : PresenterFactory<ViewCanChangeDiscoverGameChooseResults, DiscoverGameChooseResultsConfigPresenter>
