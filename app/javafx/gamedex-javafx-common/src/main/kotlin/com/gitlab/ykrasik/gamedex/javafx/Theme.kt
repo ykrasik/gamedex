@@ -176,7 +176,7 @@ inline fun EventTarget.reportButton(text: String? = "Report", size: Double = def
     toolbarButton(text, Theme.Icon.chart(size), op)
 
 
-fun EventTarget.extraMenu(size: Double = defaultIconSize, op: (VBox.(PopOver) -> Unit)? = null) = buttonWithPopover(
+inline fun EventTarget.extraMenu(size: Double = defaultIconSize, op: VBox.(PopOver) -> Unit = {}) = buttonWithPopover(
     graphic = Theme.Icon.extra(size),
     arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
     op = op
@@ -201,16 +201,16 @@ fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMen
     graphic = { it.toLogo() }
 )
 
-fun EventTarget.pathButton(path: File, op: (JFXButton.() -> Unit)? = null) = jfxButton(path.path) {
+inline fun EventTarget.pathButton(path: File, op: JFXButton.() -> Unit = {}) = jfxButton(path.path) {
     isFocusTraversable = false
     setOnAction { browse(path) }
-    op?.invoke(this)
+    op(this)
 }
 
-fun EventTarget.header(text: String, op: (Label.() -> Unit)? = null) = header(text.toProperty(), op)
-fun EventTarget.header(textProperty: ObservableValue<String>, op: (Label.() -> Unit)? = null) = label(textProperty) {
+inline fun EventTarget.header(text: String, crossinline op: Label.() -> Unit = {}) = header(text.toProperty(), op)
+inline fun EventTarget.header(textProperty: ObservableValue<String>, crossinline op: Label.() -> Unit = {}) = label(textProperty) {
     addClass(CommonStyle.headerLabel)
-    op?.invoke(this)
+    op(this)
 }
 
 fun Any?.toDisplayString() = this?.toString() ?: "NA"

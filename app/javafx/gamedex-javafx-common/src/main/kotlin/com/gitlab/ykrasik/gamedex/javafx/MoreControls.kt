@@ -24,7 +24,6 @@ import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
@@ -145,21 +144,21 @@ inline fun <reified S> TableView<S>.imageViewColumn(title: String,
     }
 
 
-fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rating.() -> Unit = {}) = opcr(this, Rating(max), op).apply {
+inline fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rating.() -> Unit = {}) = opcr(this, Rating(max), op).apply {
     isPartialRating = isPartial
     skin = FixedRatingSkin(this)
 }
 
-fun EventTarget.imageViewResizingPane(imageView: ImageView, op: ImageViewResizingPane.() -> Unit = {}) =
+inline fun EventTarget.imageViewResizingPane(imageView: ImageView, op: ImageViewResizingPane.() -> Unit = {}) =
     opcr(this, ImageViewResizingPane(imageView), op)
 
-fun EventTarget.imageViewResizingPane(image: ObservableValue<Image?>, op: ImageViewResizingPane.() -> Unit = {}) =
+inline fun EventTarget.imageViewResizingPane(image: ObservableValue<Image?>, op: ImageViewResizingPane.() -> Unit = {}) =
     imageViewResizingPane(ImageView()) {
         imageProperty.bind(image)
         op()
     }
 
-fun Node.clipRectangle(op: Rectangle.() -> Unit) {
+inline fun Node.clipRectangle(op: Rectangle.() -> Unit) {
     clip = Rectangle().apply(op)
 }
 
@@ -169,7 +168,7 @@ inline fun EventTarget.jfxToggleButton(p: Property<Boolean>, text: String? = nul
     op(this)
 }
 
-fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) = opcr(this, JFXToggleButton(), op)
+inline fun EventTarget.jfxToggleButton(op: JFXToggleButton.() -> Unit = {}) = opcr(this, JFXToggleButton(), op)
 
 inline fun EventTarget.jfxCheckBox(p: Property<Boolean>, text: String? = null, crossinline op: JFXCheckBox.() -> Unit = {}) = jfxCheckBox {
     selectedProperty().bindBidirectional(p)
@@ -177,20 +176,20 @@ inline fun EventTarget.jfxCheckBox(p: Property<Boolean>, text: String? = null, c
     op(this)
 }
 
-fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this, JFXCheckBox(), op)
+inline fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this, JFXCheckBox(), op)
 
-fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: JFXToggleNode.() -> Unit = {}) = opcr(this, JFXToggleNode().apply {
+inline fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getToggleGroup(), op: JFXToggleNode.() -> Unit = {}) = opcr(this, JFXToggleNode().apply {
     addClass(CommonStyle.jfxHoverable)
     this.graphic = graphic
     this.toggleGroup = group
 }, op)
 
-fun Node.jfxToggleNode(text: String? = null,
-                       graphic: Node? = null,
-                       value: Any? = null,
-                       group: ToggleGroup? = getToggleGroup(),
-                       labelStyleClasses: List<CssRule> = emptyList(),
-                       op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
+inline fun Node.jfxToggleNode(text: String? = null,
+                              graphic: Node? = null,
+                              value: Any? = null,
+                              group: ToggleGroup? = getToggleGroup(),
+                              labelStyleClasses: List<CssRule> = emptyList(),
+                              op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
     val actualText = if (value != null && text == null) value.toString() else text ?: ""
     val label = Label(actualText, graphic).apply {
         addClass(CommonStyle.jfxToggleNodeLabel)
@@ -202,7 +201,7 @@ fun Node.jfxToggleNode(text: String? = null,
     }
 }
 
-fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: JFXButton.() -> Unit = {}) =
+inline fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFXButton.ButtonType = JFXButton.ButtonType.FLAT, op: JFXButton.() -> Unit = {}) =
     opcr(this, JFXButton().apply {
         addClass(CommonStyle.jfxHoverable)
         this.text = text
@@ -211,12 +210,12 @@ fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, type: JFX
     }, op)
 
 // TODO: Change style classes to lists.
-fun EventTarget.buttonWithPopover(text: String? = null,
-                                  graphic: Node? = null,
-                                  styleClass: CssRule? = CommonStyle.toolbarButton,
-                                  arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                  closeOnClick: Boolean = true,
-                                  op: (VBox.(PopOver) -> Unit)? = null) =
+inline fun EventTarget.buttonWithPopover(text: String? = null,
+                                         graphic: Node? = null,
+                                         styleClass: CssRule? = CommonStyle.toolbarButton,
+                                         arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                         closeOnClick: Boolean = true,
+                                         op: VBox.(PopOver) -> Unit = {}) =
     jfxButton(text = text, graphic = graphic) {
         if (styleClass != null) addClass(styleClass)
         val popover = popOver(arrowLocation, closeOnClick, op)
@@ -224,14 +223,14 @@ fun EventTarget.buttonWithPopover(text: String? = null,
     }
 
 // TODO: Change style classes to lists.
-fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
-                                     selectedItemProperty: Property<T>,
-                                     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                     styleClass: CssRule? = null,
-                                     itemStyleClass: CssRule? = null,
-                                     text: ((T) -> String)? = Any?::toString,
-                                     graphic: ((T) -> Node)? = null,
-                                     menuOp: (VBox.(T) -> Unit)? = null) =
+inline fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
+                                            selectedItemProperty: Property<T>,
+                                            arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                            styleClass: CssRule? = null,
+                                            itemStyleClass: CssRule? = null,
+                                            noinline text: ((T) -> String)? = Any?::toString,
+                                            noinline graphic: ((T) -> Node)? = null,
+                                            menuOp: VBox.(T) -> Unit = {}) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
         possibleItems.forEach { item ->
             jfxButton(text?.invoke(item), graphic?.invoke(item)) {
@@ -239,7 +238,7 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
                 addClass(CommonStyle.fillAvailableWidth)
                 setOnAction { selectedItemProperty.value = item }
             }
-            menuOp?.invoke(this@buttonWithPopover, item)
+            menuOp(item)
         }
     }.apply {
         if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
@@ -247,14 +246,14 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
     }
 
 // TODO: Change style classes to lists.
-fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
-                                     selectedItemProperty: Property<T>,
-                                     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                     styleClass: CssRule? = null,
-                                     itemStyleClass: CssRule? = null,
-                                     text: ((T) -> String)? = null,
-                                     graphic: ((T) -> Node)? = null,
-                                     menuOp: (VBox.(T) -> Unit)? = null) =
+inline fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
+                                            selectedItemProperty: Property<T>,
+                                            arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                            styleClass: CssRule? = null,
+                                            itemStyleClass: CssRule? = null,
+                                            noinline text: ((T) -> String)? = null,
+                                            noinline graphic: ((T) -> Node)? = null,
+                                            crossinline menuOp: VBox.(T) -> Unit = {}) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
         possibleItems.performing { items ->
             replaceChildren {
@@ -264,7 +263,7 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                         addClass(CommonStyle.fillAvailableWidth)
                         setOnAction { selectedItemProperty.value = item }
                     }
-                    menuOp?.invoke(this@buttonWithPopover, item)
+                    menuOp(item)
                 }
             }
         }
@@ -273,64 +272,9 @@ fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
         if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
     }
 
-// TODO: This smells like it should be a class
-fun <T> Node.popoverToggleMenu(possibleItems: ObservableList<T>,
-                               selectedItems: Property<List<T>>,
-                               group: ToggleGroup? = getToggleGroup(),
-                               arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                               styleClasses: List<CssRule> = emptyList(),
-                               itemStyleClasses: List<CssRule> = emptyList(),
-                               text: ((T) -> String)? = null,
-                               graphic: ((T) -> Node)? = null,
-                               menuOp: (VBox.(T) -> Unit)? = null) =
-    buttonWithPopover(arrowLocation = arrowLocation, styleClass = null, closeOnClick = false) {
-        toggleMenu(possibleItems, selectedItems, group, itemStyleClasses, text, graphic, menuOp)
-    }.apply {
-        styleClasses.forEach { addClass(it) }
-        if (text != null) {
-            textProperty().bind(selectedItems.map { selectedItems ->
-                if (selectedItems!!.isEmpty() || selectedItems.toSet() == possibleItems.toSet()) "All"
-                else selectedItems.map(text).sorted().joinToString(", ")
-            })
-        }
-    }
-
-fun <T> VBox.toggleMenu(possibleItems: ObservableList<T>,
-                        selectedItems: Property<List<T>>,
-                        group: ToggleGroup? = getToggleGroup(),
-                        itemStyleClasses: List<CssRule> = emptyList(),
-                        text: ((T) -> String)? = null,
-                        graphic: ((T) -> Node)? = null,
-                        menuOp: (VBox.(T) -> Unit)? = null) {
-    val selectedItemsListeners = mutableListOf<ChangeListener<List<T>>>()
-    possibleItems.performing { items ->
-        selectedItemsListeners.forEach { selectedItems.removeListener(it) }
-        selectedItemsListeners.clear()
-
-        // TODO: Review all places where this is used for listener leaks.
-        replaceChildren {
-            items.forEach { item ->
-                jfxToggleNode(text?.invoke(item), graphic?.invoke(item), null, group, itemStyleClasses) {
-                    addClass(CommonStyle.fillAvailableWidth)
-                    isSelected = selectedItems.value.contains(item)
-
-                    selectedProperty().onChange {
-                        selectedItems.value = if (it) (selectedItems.value + item).distinct() else selectedItems.value - item
-                    }
-
-                    selectedItemsListeners += selectedItems.changeListener {
-                        isSelected = selectedItems.value.contains(item)
-                    }
-                }
-                menuOp?.invoke(this@toggleMenu, item)
-            }
-        }
-    }
-}
-
-fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-            closeOnClick: Boolean = true,
-            op: (VBox.(PopOver) -> Unit)? = null): PopOver = PopOver().apply {
+inline fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                   closeOnClick: Boolean = true,
+                   op: VBox.(PopOver) -> Unit = {}): PopOver = PopOver().apply {
     val popover = this
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
@@ -346,7 +290,7 @@ fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEF
     }
     scrollpane.content = VBox().apply {
         addClass(CommonStyle.popoverMenu)
-        op?.invoke(this, popover)
+        op(popover)
     }
     contentNode = scrollpane
 }
@@ -363,7 +307,7 @@ fun <T> ListView<T>.fitAtMost(numItems: Int) {
     maxHeightProperty().bind(size)
 }
 
-fun StackPane.maskerPane(op: MaskerPane.() -> Unit = {}) = opcr(this, MaskerPane(), op)
+inline fun StackPane.maskerPane(op: MaskerPane.() -> Unit = {}) = opcr(this, MaskerPane(), op)
 
 inline fun View.skipFirstTime(op: () -> Unit) {
     val skip = properties.getOrDefault("Gamedex.skipFirstTime", true) as Boolean
@@ -374,22 +318,22 @@ inline fun View.skipFirstTime(op: () -> Unit) {
     }
 }
 
-fun Node.popoverContextMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                            closeOnClick: Boolean = true,
-                            op: (VBox.(PopOver) -> Unit)? = null): PopOver {
+inline fun Node.popoverContextMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                   closeOnClick: Boolean = true,
+                                   op: VBox.(PopOver) -> Unit = {}): PopOver {
     val popover = popOver(arrowLocation, closeOnClick, op).apply { isAutoFix = false; isAutoHide = true }
     addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
     setOnContextMenuRequested { e -> popover.show(this@popoverContextMenu, e.screenX, e.screenY) }
     return popover
 }
 
-fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                      closeOnClick: Boolean = true,
-                      op: (VBox.() -> Unit)? = null): PopOver {
+inline fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                             closeOnClick: Boolean = true,
+                             op: VBox.() -> Unit = {}): PopOver {
     var popoverHack: PopOver? = null
     val popover = popOver(arrowLocation, closeOnClick) {
         addEventHandler(MouseEvent.MOUSE_EXITED) { popoverHack!!.hide() }
-        op?.invoke(this)
+        op(this)
     }
     popoverHack = popover
 

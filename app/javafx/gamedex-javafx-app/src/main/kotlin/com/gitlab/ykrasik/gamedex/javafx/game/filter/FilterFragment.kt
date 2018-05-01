@@ -219,7 +219,10 @@ class FilterFragment(private val filterObservable: Observable<Filter>, private v
 
     private fun HBox.renderTagFilter(rule: Filter.Tag) = rule.toProperty().apply {
         val tag = mapBidirectional(Filter.Tag::tag, Filter::Tag)
-        combobox(tag, gameController.tags)
+        popoverComboMenu(
+            possibleItems = gameController.tags as List<String>,
+            selectedItemProperty = tag
+        )
     }
 
     private fun HBox.renderReleaseDateFilter(rule: Filter.ReleaseDate) = rule.toProperty().apply {
