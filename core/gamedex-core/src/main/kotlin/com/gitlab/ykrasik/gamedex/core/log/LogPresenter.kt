@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.log
 
 import com.gitlab.ykrasik.gamedex.app.api.log.LogPresenter
 import com.gitlab.ykrasik.gamedex.app.api.log.LogView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -30,7 +31,10 @@ import javax.inject.Singleton
  * Time: 10:28
  */
 @Singleton
-class LogPresenterImpl @Inject constructor(userConfigRepository: UserConfigRepository) : BasePresenter<LogView.Event, LogView>(), LogPresenter {
+class LogPresenterImpl @Inject constructor(
+    userConfigRepository: UserConfigRepository,
+    taskRunner: TaskRunner
+) : BasePresenter<LogView>(taskRunner), LogPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     override fun initView(view: LogView) {
@@ -43,8 +47,11 @@ class LogPresenterImpl @Inject constructor(userConfigRepository: UserConfigRepos
         }
     }
 
-    override suspend fun handleEvent(event: LogView.Event) = when (event) {
-        is LogView.Event.LevelChanged -> generalUserConfig.logFilterLevel = event.level
-        is LogView.Event.LogTailChanged -> generalUserConfig.logTail = event.logTail
+    override fun onLevelChanged(level: String) {
+        generalUserConfig.logFilterLevel = level
+    }
+
+    override fun onLogTailChanged(logTail: Boolean) {
+        generalUserConfig.logTail = logTail
     }
 }

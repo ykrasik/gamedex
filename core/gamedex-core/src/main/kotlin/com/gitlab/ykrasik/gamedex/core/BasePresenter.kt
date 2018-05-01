@@ -18,46 +18,37 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.Presenter
 import com.gitlab.ykrasik.gamedex.app.api.View
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.launchConsumeEach
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.util.InitOnce
+import kotlinx.coroutines.experimental.launch
 
 /**
  * User: ykrasik
  * Date: 24/04/2018
  * Time: 08:17
  */
-abstract class BasePresenter<E, V : View<E>> : Presenter<V> {
+abstract class BasePresenter<V : View>(private val taskRunner: TaskRunner) : Presenter<V> {
     protected var view: V by InitOnce()
 
     override fun present(view: V) {
         this.view = view
-        initView(view)
-        view.events.launchConsumeEach(uiThreadDispatcher) {
-            try {
-                handleEvent(it)
-            } catch (e: Exception) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
+
+        taskRunner.currentlyRunningTaskChannel.subscribe(uiThreadDispatcher) {
+            view.enabled = it == null
         }
+
+        initView(view)
     }
 
     protected abstract fun initView(view: V)
-    protected abstract suspend fun handleEvent(event: E)
-}
 
-abstract class BasePresenterCanRunTask<E, V : ViewCanRunTask<E>>(private val taskRunner: TaskRunner) : BasePresenter<E, V>() {
-    final override fun initView(view: V) {
-        taskRunner.currentlyRunningTaskChannel.subscribe {
-            view.canRunTask = it == null
+    protected fun handle(f: suspend () -> Unit) {
+        launch(uiThreadDispatcher) {
+            f()
         }
-        doInitView(view)
     }
-
-    protected abstract fun doInitView(view: V)
 
     protected suspend fun <T> Task<T>.runTask(): T = taskRunner.runTask(this)
 }

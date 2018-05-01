@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game.download
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenterCanRunTask
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import org.joda.time.PeriodType
@@ -35,9 +35,9 @@ import javax.inject.Singleton
 @Singleton
 class GameDownloadPresenterImpl @Inject constructor(
     private val gameDownloadService: GameDownloadService,
-    taskRunner: TaskRunner,
-    userConfigRepository: UserConfigRepository
-) : BasePresenterCanRunTask<GameDownloadView.Event, GameDownloadView>(taskRunner), GameDownloadPresenter {
+    userConfigRepository: UserConfigRepository,
+    taskRunner: TaskRunner
+) : BasePresenter<GameDownloadView>(taskRunner), GameDownloadPresenter {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val formatter = PeriodFormatterBuilder()
@@ -48,7 +48,7 @@ class GameDownloadPresenterImpl @Inject constructor(
         .appendMinutes().appendSuffix("m").appendSeparator(" ")
         .appendSeconds().appendSuffix("s").toFormatter()
 
-    override fun doInitView(view: GameDownloadView) {
+    override fun initView(view: GameDownloadView) {
         gameUserConfig.stalePeriodSubject.subscribe {
             val sb = StringBuffer()
             formatter.printTo(sb, it.normalizedStandard(PeriodType.yearMonthDayTime()))
@@ -56,12 +56,7 @@ class GameDownloadPresenterImpl @Inject constructor(
         }
     }
 
-    override suspend fun handleEvent(event: GameDownloadView.Event) = when (event) {
-        is GameDownloadView.Event.StalePeriodTextChanged -> handleStalePeriodTextChanged(event.stalePeriod)
-        GameDownloadView.Event.RedownloadAllStaleGamesClicked -> handleRedownloadAllGames()
-    }
-
-    private fun handleStalePeriodTextChanged(stalePeriodText: String) {
+    override fun onStalePeriodTextChanged(stalePeriodText: String) {
         view.stalePeriodValidationError = try {
             gameUserConfig.stalePeriod = formatter.parsePeriod(stalePeriodText)
             null
@@ -70,7 +65,7 @@ class GameDownloadPresenterImpl @Inject constructor(
         }
     }
 
-    private suspend fun handleRedownloadAllGames() {
+    override fun onRedownloadAllStaleGames() = handle {
         gameDownloadService.redownloadAllGames().runTask()
     }
 }

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadView
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableViewCanRunTask
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import org.controlsfx.control.PopOver
@@ -30,9 +30,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 10:57
  */
-class JavaFxGameDownloadView : PresentableViewCanRunTask<GameDownloadView.Event>(), GameDownloadView {
-    private val presenter: GameDownloadPresenter by di()
-
+class JavaFxGameDownloadView : PresentableView<GameDownloadPresenter>(GameDownloadPresenter::class), GameDownloadView {
     private val viewModel = PeriodViewModel()
     override var stalePeriodText by viewModel.stalePeriodTextProperty
 
@@ -65,14 +63,14 @@ class JavaFxGameDownloadView : PresentableViewCanRunTask<GameDownloadView.Event>
             tooltip("Re-Download all games that were last downloaded before the stale duration")
             setOnAction {
                 popover.hide()
-                sendEvent(GameDownloadView.Event.RedownloadAllStaleGamesClicked)
+                presenter.onRedownloadAllStaleGames()
             }
         }
     }.apply {
-        enableWhen { canRunTaskProperty }
+        enableWhen { enabledProperty }
     }
 
     private inner class PeriodViewModel : ViewModel() {
-        val stalePeriodTextProperty = presentableProperty(GameDownloadView.Event::StalePeriodTextChanged) { SimpleStringProperty("") }
+        val stalePeriodTextProperty = presentableProperty(GameDownloadPresenter::onStalePeriodTextChanged) { SimpleStringProperty("") }
     }
 }

@@ -39,16 +39,14 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableGamedexScreen<LogView.Event>("Log", Theme.Icon.book()), LogView {
-    private val presenter: LogPresenter by di()
-
+class JavaFxLogScreen : PresentableGamedexScreen<LogPresenter>(LogPresenter::class, "Log", Theme.Icon.book()), LogView {
     private val observableEntries = mutableListOf<LogEntry>().observable().sortedFiltered()
     override var entries by InitOnceListObservable(observableEntries)
 
-    private val levelProperty = SimpleStringProperty().eventOnChange(LogView.Event::LevelChanged)
+    private val levelProperty = SimpleStringProperty().presentOnChange(LogPresenter::onLevelChanged)
     override var level by levelProperty
 
-    private val logTailProperty = SimpleBooleanProperty(false).eventOnChange(LogView.Event::LogTailChanged)
+    private val logTailProperty = SimpleBooleanProperty(false).presentOnChange(LogPresenter::onLogTailChanged)
     override var logTail by logTailProperty
 
     init {

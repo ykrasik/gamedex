@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
@@ -38,25 +39,15 @@ import javax.inject.Singleton
 @Singleton
 class EditLibraryPresenterImpl @Inject constructor(
     private val libraryService: LibraryService,
-    userConfigRepository: UserConfigRepository
-) : BasePresenter<EditLibraryView.Event, EditLibraryView>(), EditLibraryPresenter {
+    userConfigRepository: UserConfigRepository,
+    taskRunner: TaskRunner
+) : BasePresenter<EditLibraryView>(taskRunner), EditLibraryPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     override fun initView(view: EditLibraryView) {
     }
 
-    override suspend fun handleEvent(event: EditLibraryView.Event) = when (event) {
-        is EditLibraryView.Event.Shown -> handleShown(event.library)
-        EditLibraryView.Event.AcceptButtonClicked -> handleAcceptClicked()
-        EditLibraryView.Event.CancelButtonClicked -> handleCancelClicked()
-        EditLibraryView.Event.BrowseClicked -> selectDirectory()
-
-        is EditLibraryView.Event.LibraryNameChanged -> handleNameChanged()
-        is EditLibraryView.Event.LibraryPathChanged -> handlePathChanged()
-        is EditLibraryView.Event.LibraryPlatformChanged -> handlePlatformChanged()
-    }
-
-    private fun handleShown(library: Library?) {
+    override fun onShown(library: Library?) {
         view.initialLibrary = library
         view.canChangePlatform = library == null
         view.name = library?.name ?: ""
@@ -65,20 +56,20 @@ class EditLibraryPresenterImpl @Inject constructor(
         view.nameValidationError = null
         view.pathValidationError = null
         if (library == null) {
-            selectDirectory()
+            onBrowse()
         }
     }
 
-    private fun handleAcceptClicked() {
+    override fun onAccept() {
         check(view.canAccept) { "Cannot accept invalid state!" }
         view.close(LibraryData(name = view.name, path = view.path.toFile(), platform = view.platform))
     }
 
-    private fun handleCancelClicked() {
+    override fun onCancel() {
         view.close(data = null)
     }
 
-    private fun selectDirectory() {
+    override fun onBrowse() {
         val initialDirectory = generalUserConfig.prevDirectory.existsOrNull()
         val selectedDirectory = view.selectDirectory(initialDirectory) ?: return
         generalUserConfig.prevDirectory = selectedDirectory
@@ -89,17 +80,17 @@ class EditLibraryPresenterImpl @Inject constructor(
         validate()
     }
 
-    private fun handleNameChanged() {
+    override fun onNameChanged(name: String) {
         validateName()
         setCanAccept()
     }
 
-    private fun handlePathChanged() {
+    override fun onPathChanged(path: String) {
         validatePath()
         setCanAccept()
     }
 
-    private fun handlePlatformChanged() {
+    override fun onPlatformChanged(platform: Platform) {
         check(view.platform == view.initialLibrary?.platform || view.canChangePlatform) { "Changing library platform for an existing library is not allowed: ${view.initialLibrary}" }
         validate()
     }

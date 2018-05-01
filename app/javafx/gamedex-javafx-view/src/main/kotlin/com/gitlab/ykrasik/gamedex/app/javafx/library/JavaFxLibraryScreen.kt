@@ -33,9 +33,7 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryView.Event>("Libraries", Theme.Icon.hdd()), LibraryView {
-    private val presenter: LibraryPresenter by di()
-
+class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryPresenter>(LibraryPresenter::class, "Libraries", Theme.Icon.hdd()), LibraryView {
     private val editLibraryView: JavaFxEditLibraryView by inject()
 
     private val observableLibraries = mutableListOf<Library>().observable()
@@ -111,9 +109,9 @@ class JavaFxLibraryScreen : PresentableGamedexScreen<LibraryView.Event>("Librari
             }
         }
 
-    private fun addLibrary() = sendEvent(LibraryView.Event.AddLibraryClicked)
-    private fun editLibrary() = sendEvent(LibraryView.Event.EditLibraryClicked(selectedLibrary))
-    private fun deleteLibrary() = sendEvent(LibraryView.Event.DeleteLibraryClicked(selectedLibrary))
+    private fun addLibrary() = presenter.onAddLibrary()
+    private fun editLibrary() = presenter.onEditLibrary(selectedLibrary)
+    private fun deleteLibrary() = presenter.onDeleteLibrary(selectedLibrary)
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

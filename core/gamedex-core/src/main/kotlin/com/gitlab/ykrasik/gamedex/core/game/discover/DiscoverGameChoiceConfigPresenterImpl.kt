@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game.discover
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChoiceConfigView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -32,8 +33,9 @@ import javax.inject.Inject
  * Not a singleton - there's multiple instances of the view.
  */
 class DiscoverGameChoiceConfigPresenterImpl @Inject constructor(
-    userConfigRepository: UserConfigRepository
-) : BasePresenter<DiscoverGameChoiceConfigView.Event, DiscoverGameChoiceConfigView>(), DiscoverGameChoiceConfigPresenter {
+    userConfigRepository: UserConfigRepository,
+    taskRunner: TaskRunner
+) : BasePresenter<DiscoverGameChoiceConfigView>(taskRunner), DiscoverGameChoiceConfigPresenter {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     override fun initView(view: DiscoverGameChoiceConfigView) {
@@ -42,11 +44,7 @@ class DiscoverGameChoiceConfigPresenterImpl @Inject constructor(
         }
     }
 
-    override suspend fun handleEvent(event: DiscoverGameChoiceConfigView.Event) = when (event) {
-        is DiscoverGameChoiceConfigView.Event.DiscoverGameChoiceChanged -> handleDiscoverGameChoiceChanged(event.discoverGameChooseResults)
-    }
-
-    private fun handleDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults) {
+    override fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults) {
         gameUserConfig.discoverGameChooseResults = discoverGameChooseResults
     }
 }

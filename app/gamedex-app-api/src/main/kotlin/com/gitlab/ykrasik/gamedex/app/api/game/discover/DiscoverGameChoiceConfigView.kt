@@ -24,15 +24,13 @@ import com.gitlab.ykrasik.gamedex.app.api.View
  * Date: 29/04/2018
  * Time: 14:18
  */
-interface DiscoverGameChoiceConfigView: View<DiscoverGameChoiceConfigView.Event> {
-    sealed class Event {
-        data class DiscoverGameChoiceChanged(val discoverGameChooseResults: DiscoverGameChooseResults) : Event()
-    }
-
+interface DiscoverGameChoiceConfigView : View {
     var discoverGameChooseResults: DiscoverGameChooseResults
 }
 
-interface DiscoverGameChoiceConfigPresenter : Presenter<DiscoverGameChoiceConfigView>
+interface DiscoverGameChoiceConfigPresenter : Presenter<DiscoverGameChoiceConfigView> {
+    fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults)
+}
 
 // FIXME: Make this an inner class of GameUserConfig after it's refactored.
 enum class DiscoverGameChooseResults(val description: String) {

@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.Theme
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
 import javafx.scene.web.WebView
@@ -61,6 +61,7 @@ class YouTubeWebBrowser : Fragment() {
         }
     }
 
+    // TODO: Remove, this is presenter logic.
     fun searchYoutube(game: Game) {
         val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
         val url = "https://www.youtube.com/results?search_query=$search"

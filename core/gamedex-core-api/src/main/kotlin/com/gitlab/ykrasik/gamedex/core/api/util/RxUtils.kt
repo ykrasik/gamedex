@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.api.util
 
 import com.gitlab.ykrasik.gamedex.util.Extractor
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.experimental.CoroutineDispatcher
 import kotlin.reflect.KProperty
 
@@ -30,8 +30,9 @@ import kotlin.reflect.KProperty
  * Date: 24/03/2018
  * Time: 15:56
  */
-lateinit var uiThreadScheduler: Scheduler
-lateinit var uiThreadDispatcher: CoroutineDispatcher
+// TODO: Move to app-api module
+var uiThreadScheduler: Scheduler by InitOnceGlobal()
+var uiThreadDispatcher: CoroutineDispatcher by InitOnceGlobal()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                  BehaviorSubject                                                   //
@@ -112,10 +113,3 @@ fun <T> Observable<T>.toBehaviorSubjectOnChange(f: (T) -> Unit): BehaviorSubject
     }
     return subject
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                  PublishSubject                                                    //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-fun <T> publishSubject(): PublishSubject<T> = PublishSubject.create()
-
-fun <T> PublishSubject<T>.publish(t: T) = onNext(t)

@@ -31,10 +31,8 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 21:15
  */
-private class JavaFxDiscoverGameChoiceConfigView : PresentableView<DiscoverGameChoiceConfigView.Event>(), DiscoverGameChoiceConfigView {
-    private val presenter: DiscoverGameChoiceConfigPresenter by di()
-
-    private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null).eventOnChange(DiscoverGameChoiceConfigView.Event::DiscoverGameChoiceChanged)
+private class JavaFxDiscoverGameChoiceConfigView : PresentableView<DiscoverGameChoiceConfigPresenter>(DiscoverGameChoiceConfigPresenter::class), DiscoverGameChoiceConfigView {
+    private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null).presentOnChange(DiscoverGameChoiceConfigPresenter::onDiscoverGameChoiceChanged)
     override var discoverGameChooseResults by discoverGameChooseResultsProperty
 
     init {

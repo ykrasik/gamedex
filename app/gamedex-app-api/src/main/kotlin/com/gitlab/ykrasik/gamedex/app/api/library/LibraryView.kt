@@ -28,18 +28,16 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
  * Date: 15/04/2018
  * Time: 08:10
  */
-interface LibraryView : View<LibraryView.Event> {
-    sealed class Event {
-        object AddLibraryClicked : Event()
-        data class EditLibraryClicked(val library: Library) : Event()
-        data class DeleteLibraryClicked(val library: Library) : Event()
-    }
-
-    var libraries: ListObservable<Library>
+interface LibraryView : View {
+    var libraries: ListObservable<Library>   // TODO: Make this a val and bind to it.
 
     fun showAddLibraryView(): LibraryData?
     fun showEditLibraryView(library: Library): LibraryData?
     fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>): Boolean
 }
 
-interface LibraryPresenter : Presenter<LibraryView>
+interface LibraryPresenter : Presenter<LibraryView> {
+    fun onAddLibrary()
+    fun onEditLibrary(library: Library)
+    fun onDeleteLibrary(library: Library)
+}

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
+import com.gitlab.ykrasik.gamedex.app.api.View
 
 /**
  * User: ykrasik
@@ -25,11 +25,9 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
  * Time: 13:31
  */
 // FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-interface GameDiscoveryView : ViewCanRunTask<GameDiscoveryView.Event> {
-    sealed class Event {
-        object SearchNewGamesClicked : Event()
-        object SearchGamesWithoutProvidersClicked : Event()
-    }
-}
+interface GameDiscoveryView : View
 
-interface GameDiscoveryPresenter : Presenter<GameDiscoveryView>
+interface GameDiscoveryPresenter : Presenter<GameDiscoveryView> {
+    fun onSearchNewGames()
+    fun onSearchGamesWithoutProviders()
+}

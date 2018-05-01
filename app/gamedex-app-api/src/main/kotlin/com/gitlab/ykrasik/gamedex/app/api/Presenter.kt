@@ -16,21 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-
 /**
  * User: ykrasik
  * Date: 21/04/2018
  * Time: 16:55
  */
-interface Presenter<V : View<*>> {
+interface Presenter<V : View> {
     fun present(view: V)
 }
 
-interface View<Event> {
-    val events: ReceiveChannel<Event>
-}
-
-interface ViewCanRunTask<Event> : View<Event> {
-    var canRunTask: Boolean
+interface View {
+    var enabled: Boolean
 }

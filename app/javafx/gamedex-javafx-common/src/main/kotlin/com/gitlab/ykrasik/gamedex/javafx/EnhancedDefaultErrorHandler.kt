@@ -33,7 +33,7 @@ import java.util.logging.Logger
  * It exists because CancellationExceptions were being logged to the logger as errors.
  */
 class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
-    val log = Logger.getLogger("ErrorHandler")
+    private val log = Logger.getLogger("ErrorHandler")
 
     override fun uncaughtException(t: Thread, error: Throwable) {
         if (error is CancellationException) return

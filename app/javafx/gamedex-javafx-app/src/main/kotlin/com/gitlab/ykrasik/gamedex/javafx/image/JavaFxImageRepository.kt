@@ -28,6 +28,7 @@ import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.toProperty
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,16 +42,17 @@ class JavaFxImageRepository @Inject constructor(private val imageRepository: Ima
     private val loading = getResourceAsByteArray("spinner.gif").toImage()
     private val noImage = getResourceAsByteArray("no-image-available.png").toImage().toProperty()
 
-//    private val cache = HashMap<String?, ObservableValue<Image>>(5000)
+    // A short-term cache to work around request bursts while the game wall is being first loaded
+    private val cache = Cache<String, ObservableValue<Image>>(100)
 
     // Only meant to be accessed by the ui thread.
     fun fetchImage(url: String?, gameId: Int, persistIfAbsent: Boolean): ObservableValue<Image> =
         if (url == null) {
             noImage
         } else {
-//            cache.getOrPut(url) {
+            cache.getOrPut(url) {
                 imageRepository.fetchImage(url, gameId, persistIfAbsent).toObservableImage()
-//            }
+            }
         }
 
     // Only meant to be accessed by the ui thread.
@@ -63,12 +65,23 @@ class JavaFxImageRepository @Inject constructor(private val imageRepository: Ima
 
     private fun Deferred<ByteArray>.toObservableImage(): ObservableValue<Image> {
         val p = SimpleObjectProperty<Image>(loading)
-        launch(CommonPool) {
-            val image = await().toImage()
-            withContext(JavaFx) {
-                p.value = image
+        if (this.isCompleted) {
+            p.value = this.getCompleted().toImage()
+        } else {
+            launch(CommonPool) {
+                val image = await().toImage()
+                withContext(JavaFx) {
+                    p.value = image
+                }
             }
         }
         return p
+    }
+
+    // Only meant to be accessed by the ui thread.
+    private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
+            return size > maxSize
+        }
     }
 }

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.GameDiscoveryView
 import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableViewCanRunTask
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
 import javafx.geometry.Pos
@@ -36,15 +36,13 @@ import tornadofx.useMaxWidth
  * Time: 10:54
  */
 // FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-class JavaFxGameDiscoveryView : PresentableViewCanRunTask<GameDiscoveryView.Event>(), GameDiscoveryView {
-    private val presenter: GameDiscoveryPresenter by di()
-
+class JavaFxGameDiscoveryView : PresentableView<GameDiscoveryPresenter>(GameDiscoveryPresenter::class), GameDiscoveryView {
     init {
         presenter.present(this)
     }
 
     override val root = searchButton("Discover") {
-        enableWhen { canRunTaskProperty }
+        enableWhen { enabledProperty }
         // TODO: This is pretty ugly.
         val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
             discoverGameChooseResultsMenu()
@@ -55,7 +53,7 @@ class JavaFxGameDiscoveryView : PresentableViewCanRunTask<GameDiscoveryView.Even
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Search all libraries for new games")
-                setOnAction { sendEvent(GameDiscoveryView.Event.SearchNewGamesClicked) }
+                presentOnAction(GameDiscoveryPresenter::onSearchNewGames)
             }
             separator()
             // TODO: Why did I put this here? What's the relation between refreshLibrary & this?
@@ -63,7 +61,7 @@ class JavaFxGameDiscoveryView : PresentableViewCanRunTask<GameDiscoveryView.Even
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Re-Discover all games that don't yet have all available providers")
-                setOnAction { sendEvent(GameDiscoveryView.Event.SearchGamesWithoutProvidersClicked) }
+                presentOnAction(GameDiscoveryPresenter::onSearchGamesWithoutProviders)
             }
         }
         setOnAction {

@@ -17,18 +17,16 @@
 package com.gitlab.ykrasik.gamedex.app.api.game.download
 
 import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
+import com.gitlab.ykrasik.gamedex.app.api.View
 
 // FIXME: Doesn't look like this is needed, this feels like a part of the GameScreenPresenter.
-interface GameDownloadView : ViewCanRunTask<GameDownloadView.Event> {
-    sealed class Event {
-        data class StalePeriodTextChanged(val stalePeriod: String) : Event()
-
-        object RedownloadAllStaleGamesClicked : Event()
-    }
-
+interface GameDownloadView : View {
     var stalePeriodText: String
     var stalePeriodValidationError: String?
 }
 
-interface GameDownloadPresenter : Presenter<GameDownloadView>
+interface GameDownloadPresenter : Presenter<GameDownloadView> {
+    fun onStalePeriodTextChanged(stalePeriodText: String)
+
+    fun onRedownloadAllStaleGames()
+}

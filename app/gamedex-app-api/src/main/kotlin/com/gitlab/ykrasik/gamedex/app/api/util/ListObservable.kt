@@ -30,6 +30,8 @@ interface ListObservable<out T> : List<T> {
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
     suspend fun <R> buffered(f: suspend () -> R): R
+
+    // TODO: Add a 'bind'
 }
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {

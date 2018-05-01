@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.general
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.Presenter
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
+import com.gitlab.ykrasik.gamedex.app.api.View
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import java.io.File
 
@@ -28,14 +28,7 @@ import java.io.File
  * Date: 02/04/2018
  * Time: 09:27
  */
-interface GeneralSettingsView : ViewCanRunTask<GeneralSettingsView.Event> {
-    sealed class Event {
-        object ExportDatabaseClicked : Event()
-        object ImportDatabaseClicked : Event()
-        object ClearUserDataClicked : Event()
-        object CleanupDbClicked : Event()
-    }
-
+interface GeneralSettingsView : View {
     fun selectDatabaseExportDirectory(initialDirectory: File?): File?
     fun selectDatabaseImportFile(initialDirectory: File?): File?
     fun browseDirectory(directory: File)
@@ -45,7 +38,12 @@ interface GeneralSettingsView : ViewCanRunTask<GeneralSettingsView.Event> {
     fun confirmDeleteStaleData(staleData: StaleData): Boolean
 }
 
-interface GeneralSettingsPresenter : Presenter<GeneralSettingsView>
+interface GeneralSettingsPresenter : Presenter<GeneralSettingsView> {
+    fun onExportDatabase()
+    fun onImportDatabase()
+    fun onClearUserData()
+    fun onCleanupDb()
+}
 
 data class StaleData(
     val libraries: List<Library>,

@@ -34,9 +34,7 @@ import java.io.File
  * Date: 12/10/2016
  * Time: 10:56
  */
-class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibraryView {
-    private val presenter: EditLibraryPresenter by di()
-
+class JavaFxEditLibraryView : PresentableView<EditLibraryPresenter>(EditLibraryPresenter::class), EditLibraryView {
     private val canChangePlatformProperty = SimpleBooleanProperty(false)
     override var canChangePlatform by canChangePlatformProperty
 
@@ -72,12 +70,12 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
             toolbar {
                 acceptButton {
                     enableWhen { canAcceptProperty }
-                    setOnAction { sendEvent(EditLibraryView.Event.AcceptButtonClicked) }
+                    presentOnAction(EditLibraryPresenter::onAccept)
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction { sendEvent(EditLibraryView.Event.CancelButtonClicked) }
+                    presentOnAction(EditLibraryPresenter::onCancel)
                 }
             }
         }
@@ -100,7 +98,7 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
             }
         }
         jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
-            setOnAction { sendEvent(EditLibraryView.Event.BrowseClicked) }
+            presentOnAction(EditLibraryPresenter::onBrowse)
         }
     }
 
@@ -118,7 +116,7 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
     }
 
     fun show(library: Library?): LibraryData? {
-        sendEvent(EditLibraryView.Event.Shown(library))
+        presenter.onShown(library)
         openModal(block = true)
         return dataToReturn
     }
@@ -131,9 +129,9 @@ class JavaFxEditLibraryView : PresentableView<EditLibraryView.Event>(), EditLibr
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 
     private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = presentableProperty(EditLibraryView.Event::LibraryNameChanged) { SimpleStringProperty("") }
-        val pathProperty = presentableProperty(EditLibraryView.Event::LibraryPathChanged) { SimpleStringProperty("") }
-        val platformProperty = presentableProperty(EditLibraryView.Event::LibraryPlatformChanged) { SimpleObjectProperty(Platform.pc) }
+        val nameProperty = presentableProperty(EditLibraryPresenter::onNameChanged) { SimpleStringProperty("") }
+        val pathProperty = presentableProperty(EditLibraryPresenter::onPathChanged) { SimpleStringProperty("") }
+        val platformProperty = presentableProperty(EditLibraryPresenter::onPlatformChanged) { SimpleObjectProperty(Platform.pc) }
 
         override fun toString() = "LibraryViewModel(name = $name, platform = $platform, path = $path)"
     }

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.general
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.general.GeneralSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.BasePresenterCanRunTask
+import com.gitlab.ykrasik.gamedex.core.BasePresenter
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone
@@ -37,20 +37,13 @@ class GeneralSettingsPresenterImpl @Inject constructor(
     private val generalSettingsService: GeneralSettingsService,
     userConfigRepository: UserConfigRepository,
     taskRunner: TaskRunner
-) : BasePresenterCanRunTask<GeneralSettingsView.Event, GeneralSettingsView>(taskRunner), GeneralSettingsPresenter {
+) : BasePresenter<GeneralSettingsView>(taskRunner), GeneralSettingsPresenter {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
-    override fun doInitView(view: GeneralSettingsView) {}
+    override fun initView(view: GeneralSettingsView) {}
 
-    override suspend fun handleEvent(event: GeneralSettingsView.Event) = when (event) {
-        is GeneralSettingsView.Event.ExportDatabaseClicked -> handleExportDatabase()
-        is GeneralSettingsView.Event.ImportDatabaseClicked -> handleImportDatabase()
-        is GeneralSettingsView.Event.ClearUserDataClicked -> handleClearUserData()
-        is GeneralSettingsView.Event.CleanupDbClicked -> handleCleanupDb()
-    }
-
-    private suspend fun handleExportDatabase() {
-        val selectedDirectory = view.selectDatabaseExportDirectory(generalUserConfig.exportDbDirectory) ?: return
+    override fun onExportDatabase() = handle {
+        val selectedDirectory = view.selectDatabaseExportDirectory(generalUserConfig.exportDbDirectory) ?: return@handle
         generalUserConfig.exportDbDirectory = selectedDirectory
         val timestamp = now.withZone(DateTimeZone.getDefault())
         val timestamptedPath = Paths.get(
@@ -63,22 +56,22 @@ class GeneralSettingsPresenterImpl @Inject constructor(
         view.browseDirectory(timestamptedPath.parentFile)
     }
 
-    private suspend fun handleImportDatabase() {
-        val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return
+    override fun onImportDatabase() = handle {
+        val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return@handle
         if (view.confirmImportDatabase()) {
             generalSettingsService.importDatabase(file).runTask()
         }
     }
 
-    private suspend fun handleClearUserData() {
+    override fun onClearUserData() = handle {
         if (view.confirmClearUserData()) {
             generalSettingsService.deleteAllUserData().runTask()
         }
     }
 
-    private suspend fun handleCleanupDb() {
+    override fun onCleanupDb() = handle {
         val staleData = generalSettingsService.detectStaleData().runTask()
-        if (staleData.isEmpty) return
+        if (staleData.isEmpty) return@handle
 
         if (view.confirmDeleteStaleData(staleData)) {
             // TODO: Create backup before deleting

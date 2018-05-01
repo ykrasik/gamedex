@@ -35,37 +35,31 @@ import javax.inject.Singleton
 class LibraryPresenterImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val taskRunner: TaskRunner
-) : BasePresenter<LibraryView.Event, LibraryView>(), LibraryPresenter {
+    taskRunner: TaskRunner
+) : BasePresenter<LibraryView>(taskRunner), LibraryPresenter {
 
     override fun initView(view: LibraryView) {
         view.libraries = libraryService.libraries
     }
 
-    override suspend fun handleEvent(event: LibraryView.Event) = when (event) {
-        LibraryView.Event.AddLibraryClicked -> handleAddLibraryClicked()
-        is LibraryView.Event.EditLibraryClicked -> handleEditLibraryClicked(event.library)
-        is LibraryView.Event.DeleteLibraryClicked -> handleDeleteLibraryClicked(event.library)
-    }
-
-    private suspend fun handleAddLibraryClicked() {
+    override fun onAddLibrary() = handle {
         val data = view.showAddLibraryView()
         if (data != null) {
-            taskRunner.runTask(libraryService.add(data))
+            libraryService.add(data).runTask()
         }
     }
 
-    private suspend fun handleEditLibraryClicked(library: Library) {
+    override fun onEditLibrary(library: Library) = handle {
         val data = view.showEditLibraryView(library)
         if (data != null) {
-            taskRunner.runTask(libraryService.replace(library, data))
+            libraryService.replace(library, data).runTask()
         }
     }
 
-    private suspend fun handleDeleteLibraryClicked(library: Library) {
+    override fun onDeleteLibrary(library: Library) = handle {
         val gamesToBeDeleted = gameService.games.filter { it.library.id == library.id }
         if (view.confirmDeleteLibrary(library, gamesToBeDeleted)) {
-            taskRunner.runTask(libraryService.delete(library))
+            libraryService.delete(library).runTask()
         }
     }
 }

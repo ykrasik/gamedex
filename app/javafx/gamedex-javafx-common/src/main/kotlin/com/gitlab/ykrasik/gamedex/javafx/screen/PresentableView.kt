@@ -16,42 +16,46 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewCanRunTask
+import com.gitlab.ykrasik.gamedex.app.api.Presenter
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.experimental.channels.Channel
+import javafx.scene.control.ButtonBase
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView<E>(title: String? = null, icon: Glyph? = null) :
-    View(title, icon), com.gitlab.ykrasik.gamedex.app.api.View<E> {
+abstract class PresentableView<out P : Presenter<*>>(presenterClass: KClass<P>, title: String? = null, icon: Glyph? = null)
+    : View(title, icon), com.gitlab.ykrasik.gamedex.app.api.View {
+    // There's runtime IllegalAccessErrors thrown if this is made protected :(
+    val presenter: P = FX.dicontainer!!.getInstance(presenterClass)
 
-    override val events = Channel<E>(capacity = 32)
+    protected val enabledProperty = SimpleBooleanProperty(false)
+    override var enabled by enabledProperty
 
-    protected fun sendEvent(event: E) = events.offer(event)
-
-    protected fun <T, P : ObservableValue<T>> P.eventOnChange(factory: (T) -> E) = apply {
-        onChange { sendEvent(factory(it!!)) }
+    // There's runtime IllegalAccessErrors thrown if this is made protected :(
+    fun <T, O : ObservableValue<T>> O.presentOnChange(call: (P, T) -> Unit) = apply {
+        onChange { call(presenter, it!!) }
     }
 
     // There's runtime IllegalAccessErrors thrown if this is made protected :(
-    inline fun <reified T : Any, reified P : Property<T>> ViewModel.presentableProperty(crossinline eventFactory: (T) -> E,
-                                                                                        crossinline propertyFactory: () -> P): Property<T> =
-        bind<P, T, P> { propertyFactory() }.apply {
+    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (P, T) -> Unit,
+                                                                                        crossinline propertyFactory: () -> O): Property<T> =
+        bind<O, T, O> { propertyFactory() }.apply {
             onChange {
-                events.offer(eventFactory(it!!))
+                call(presenter, it!!)
                 commit()
             }
         }
-}
 
-abstract class PresentableViewCanRunTask<E>(title: String? = null, icon: Glyph? = null) : PresentableView<E>(title, icon), ViewCanRunTask<E> {
-    protected val canRunTaskProperty = SimpleBooleanProperty(false)
-    override var canRunTask by canRunTaskProperty
+    protected inline fun ButtonBase.presentOnAction(crossinline call: (P) -> Unit) {
+        setOnAction {
+            call(presenter)
+        }
+    }
 }

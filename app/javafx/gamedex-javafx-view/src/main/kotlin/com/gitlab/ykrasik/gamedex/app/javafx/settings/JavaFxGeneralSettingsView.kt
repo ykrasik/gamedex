@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableViewCanRunTask
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -39,9 +39,7 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.Event>("General Settings", Theme.Icon.settings()), GeneralSettingsView {
-    private val presenter: GeneralSettingsPresenter by di()
-
+class JavaFxGeneralSettingsView : PresentableView<GeneralSettingsPresenter>(GeneralSettingsPresenter::class, "General Settings", Theme.Icon.settings()), GeneralSettingsView {
     init {
         presenter.present(this)
     }
@@ -53,8 +51,8 @@ class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskProperty }
-                    setOnAction { sendEvent(GeneralSettingsView.Event.ExportDatabaseClicked) }
+                    enableWhen { enabledProperty }
+                    presentOnAction(GeneralSettingsPresenter::onExportDatabase)
                 }
             }
             row {
@@ -62,8 +60,8 @@ class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskProperty }
-                    setOnAction { sendEvent(GeneralSettingsView.Event.ImportDatabaseClicked) }
+                    enableWhen { enabledProperty }
+                    presentOnAction(GeneralSettingsPresenter::onImportDatabase)
                 }
             }
             row {
@@ -75,8 +73,8 @@ class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    enableWhen { canRunTaskProperty }
-                    setOnAction { sendEvent(GeneralSettingsView.Event.ClearUserDataClicked) }
+                    enableWhen { enabledProperty }
+                    presentOnAction(GeneralSettingsPresenter::onClearUserData)
                 }
             }
             row {
@@ -84,8 +82,8 @@ class JavaFxGeneralSettingsView : PresentableViewCanRunTask<GeneralSettingsView.
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    enableWhen { canRunTaskProperty }
-                    setOnAction { sendEvent(GeneralSettingsView.Event.CleanupDbClicked) }
+                    enableWhen { enabledProperty }
+                    presentOnAction(GeneralSettingsPresenter::onCleanupDb)
                 }
             }
         }

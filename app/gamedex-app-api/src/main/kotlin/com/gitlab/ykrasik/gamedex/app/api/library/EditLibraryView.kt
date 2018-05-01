@@ -28,18 +28,7 @@ import java.io.File
  * Date: 21/04/2018
  * Time: 07:05
  */
-interface EditLibraryView : View<EditLibraryView.Event> {
-    sealed class Event {
-        data class Shown(val library: Library?) : Event()
-        object AcceptButtonClicked : Event()
-        object CancelButtonClicked : Event()
-        object BrowseClicked : Event()
-
-        data class LibraryNameChanged(val name: String) : Event()
-        data class LibraryPathChanged(val path: String) : Event()
-        data class LibraryPlatformChanged(val platform: Platform) : Event()
-    }
-
+interface EditLibraryView : View {
     var canChangePlatform: Boolean
     var canAccept: Boolean
 
@@ -56,4 +45,14 @@ interface EditLibraryView : View<EditLibraryView.Event> {
     fun close(data: LibraryData?)
 }
 
-interface EditLibraryPresenter : Presenter<EditLibraryView>
+interface EditLibraryPresenter : Presenter<EditLibraryView> {
+    fun onShown(library: Library?)
+
+    fun onAccept()
+    fun onCancel()
+    fun onBrowse()
+
+    fun onNameChanged(name: String)
+    fun onPathChanged(path: String)
+    fun onPlatformChanged(platform: Platform)
+}

@@ -26,18 +26,16 @@ import org.joda.time.DateTime
  * Date: 25/04/2018
  * Time: 21:00
  */
-interface LogView : View<LogView.Event> {
-    sealed class Event {
-        data class LevelChanged(val level: String) : Event()
-        data class LogTailChanged(val logTail: Boolean) : Event()
-    }
-
+interface LogView : View {
     var entries: ListObservable<LogEntry>
 
     var level: String
     var logTail: Boolean
 }
 
-interface LogPresenter : Presenter<LogView>
+interface LogPresenter : Presenter<LogView> {
+    fun onLevelChanged(level: String)
+    fun onLogTailChanged(logTail: Boolean)
+}
 
 data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
