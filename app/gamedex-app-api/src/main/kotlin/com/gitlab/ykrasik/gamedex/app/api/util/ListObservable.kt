@@ -157,10 +157,20 @@ inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultD
     return list
 }
 
-inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> {
-    val list = ListObservableImpl<T>()
+inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> List<R>): ListObservable<R> =
+    subscribeTransform(context) { it.flatMap(f) }
+
+inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> =
+    subscribeTransform(context) { it.filter(f) }
+
+
+inline fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+    subscribeTransform(context) { it.distinct() }
+
+inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext, crossinline f: (List<T>) -> List<R>): ListObservable<R> {
+    val list = ListObservableImpl<R>()
     itemsChannel.subscribe(context) {
-        list.setAll(it.filter(f))
+        list.setAll(f(it))
     }
     return list
 }

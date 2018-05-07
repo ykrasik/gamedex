@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryViewPresenter
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryViewPresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -39,7 +38,6 @@ import javax.inject.Singleton
 @Singleton
 class EditLibraryViewPresenterFactoryImpl @Inject constructor(
     private val libraryService: LibraryService,
-    private val taskRunner: TaskRunner,
     userConfigRepository: UserConfigRepository
 ) : EditLibraryViewPresenterFactory {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
@@ -59,7 +57,7 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
         }
 
         override fun onAccept() {
-            check(view.canAccept) { "Cannot accept invalid state!" }
+            check(view.nameValidationError == null && view.pathValidationError == null) { "Cannot accept invalid state!" }
             view.close(LibraryData(name = view.name, path = view.path.toFile(), platform = view.platform))
         }
 
@@ -80,12 +78,10 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
 
         override fun onNameChanged(name: String) {
             validateName()
-            setCanAccept()
         }
 
         override fun onPathChanged(path: String) {
             validatePath()
-            setCanAccept()
         }
 
         override fun onPlatformChanged(platform: Platform) {
@@ -96,7 +92,6 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
         private fun validate() {
             validateName()
             validatePath()
-            setCanAccept()
         }
 
         private fun validateName() {
@@ -121,9 +116,5 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
 
         private val isAvailableNewPath get() = view.initialLibrary == null && libraryService.isAvailableNewPath(view.path.toFile())
         private val isAvailableUpdatedPath get() = view.initialLibrary != null && libraryService.isAvailableUpdatedPath(view.initialLibrary!!, view.path.toFile())
-
-        private fun setCanAccept() {
-            view.canAccept = view.nameValidationError == null && view.pathValidationError == null
-        }
     }
 }

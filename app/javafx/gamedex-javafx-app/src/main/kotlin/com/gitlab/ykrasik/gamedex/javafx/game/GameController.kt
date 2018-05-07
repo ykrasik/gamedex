@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
-import com.gitlab.ykrasik.gamedex.javafx.game.tag.TagFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.SimpleStringProperty
@@ -127,7 +127,7 @@ class GameController @Inject constructor(
     suspend fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Game =
         commonGamePresenterOps.editDetails(game) { EditGameDataFragment(game, initialTab).show() } ?: game
 
-    suspend fun tag(game: Game): Game = commonGamePresenterOps.tag(game) { TagFragment(game).show() } ?: game
+    suspend fun tag(game: Game): Game = commonGamePresenterOps.tag(game) { JavaFxTagGameView().show(game) } ?: game
 
     suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game)) ?: game
 

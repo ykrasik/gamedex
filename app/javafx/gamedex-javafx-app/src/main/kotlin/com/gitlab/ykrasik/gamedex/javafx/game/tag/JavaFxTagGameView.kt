@@ -17,10 +17,15 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import javafx.collections.FXCollections
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
+import javafx.collections.SetChangeListener
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
 import tornadofx.*
@@ -30,23 +35,40 @@ import tornadofx.*
  * Date: 16/05/2017
  * Time: 10:12
  */
-class TagFragment(game: Game) : Fragment("Tag") {
-    private val gameController: GameController by di()
+class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
+    override val tags = mutableListOf<String>().observable()
+    override val checkedTags = mutableSetOf<String>().observable()
 
-    private val tags = FXCollections.observableArrayList(gameController.tags)
-    private val checkedTags = HashSet(game.tags).observable()
+    private val gameProperty = SimpleObjectProperty<Game>()
+    override var game by gameProperty
+
+    private val toggleAllProperty = SimpleBooleanProperty(false)
+    override var toggleAll by toggleAllProperty
+
+    private val viewModel = TagViewModel()
+    override var newTagName by viewModel.nameProperty
+
+    private val nameValidationErrorProperty = SimpleStringProperty(null)
+    override var nameValidationError by nameValidationErrorProperty
+
+    private val presenter = presenters.tagGameView.present(this)
 
     private var choice: TagGameChoice = TagGameChoice.Cancel
+
+    init {
+        checkedTags.addListener(SetChangeListener<String> { tags.invalidate() })
+        nameValidationErrorProperty.onChange { viewModel.validate() }
+    }
 
     override val root = borderpane {
         addClass(Style.tagWindow)
         top {
             toolbar {
-                acceptButton { setOnAction { close(choice = TagGameChoice.Select(checkedTags.toList())) } }
+                acceptButton { presentOnAction { presenter.onAccept() } }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { setOnAction { close(choice = TagGameChoice.Cancel) } }
+                cancelButton { presentOnAction { presenter.onCancel() } }
             }
         }
         center {
@@ -66,32 +88,26 @@ class TagFragment(game: Game) : Fragment("Tag") {
         }
     }
 
-    private fun EventTarget.toggleAllButton() = jfxToggleButton {
+    private fun EventTarget.toggleAllButton() = jfxToggleButton(toggleAllProperty, "Toggle All") {
         tooltip("Toggle all")
-        isSelected = tags.toSet() == checkedTags
-        selectedProperty().onChange {
-            if (it) checkedTags.addAll(tags) else checkedTags.clear()
-            tags.invalidate()
-        }
+        selectedProperty().presentOnChange { presenter.onToggleAllChanged(it) }
     }
 
     private fun EventTarget.addTagButton() {
         label("New Tag:")
-        val newTagName = textfield {
+        val newTagName = textfield(viewModel.nameProperty) {
             setId(Style.newTagTextField)
             promptText = "Tag Name"
             isFocusTraversable = false
+            validator(ValidationTrigger.None) {
+                nameValidationError?.let { if (it.isEmpty()) null else error(it) }
+            }
         }
 
-        val alreadyExists = tags.containing(newTagName.textProperty())
         jfxButton(graphic = Theme.Icon.plus(20.0)) {
-            disableWhen { newTagName.textProperty().let { name -> name.isEmpty.or(name.isNull).or(alreadyExists) } }
+            disableWhen { nameValidationErrorProperty.isNotNull }
             defaultButtonProperty().bind(newTagName.focusedProperty())
-            setOnAction {
-                checkTag(newTagName.text)
-                tags += newTagName.text
-                newTagName.clear()
-            }
+            presentOnAction { presenter.onAddNewTag() }
         }
     }
 
@@ -100,30 +116,29 @@ class TagFragment(game: Game) : Fragment("Tag") {
         tags.performing { tags ->
             replaceChildren {
                 tags.sorted().forEach { tag ->
-                    // TODO: Display the same way that genres are displayed in the filter menu?
                     jfxToggleButton {
                         text = tag
                         isSelected = checkedTags.contains(tag)
-                        selectedProperty().onChange {
-                            if (it) checkTag(tag) else uncheckTag(tag)
-                        }
+                        selectedProperty().presentOnChange { presenter.onTagToggleChanged(tag, it) }
                     }
                 }
             }
         }
     }
 
-    private fun checkTag(tag: String) { checkedTags += tag }
-    private fun uncheckTag(tag: String) { checkedTags -= tag }
-
-    fun show(): TagGameChoice {
-        openWindow(block = true, owner = null)
+    fun show(game: Game): TagGameChoice {
+        presenter.onShown(game)
+        openWindow(block = true)
         return choice
     }
 
-    private fun close(choice: TagGameChoice) {
+    override fun close(choice: TagGameChoice) {
         this.choice = choice
         close()
+    }
+
+    private inner class TagViewModel : ViewModel() {
+        val nameProperty = presentableProperty({ presenter.onNewTagNameChanged(it) }, { SimpleStringProperty("") })
     }
 
     class Style : Stylesheet() {

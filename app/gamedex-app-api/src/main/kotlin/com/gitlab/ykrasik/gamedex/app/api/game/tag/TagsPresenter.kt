@@ -14,27 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.common
+package com.gitlab.ykrasik.gamedex.app.api.game.tag
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 02/05/2018
- * Time: 22:02
+ * Date: 06/05/2018
+ * Time: 18:04
  */
-interface TagGamePresenter {
-    suspend fun tagGame(game: Game): Game?
+interface TagsPresenter
+
+interface ViewWithTags {
+    val tags: MutableList<String>
 }
 
-interface ViewCanTagGame {
-    fun showTagGameView(game: Game): TagGameChoice
-}
-
-sealed class TagGameChoice {
-    data class Select(val tags: List<String>) : TagGameChoice()
-    object Cancel : TagGameChoice()
-}
-
-interface TagGamePresenterFactory : PresenterFactory<ViewCanTagGame, TagGamePresenter>
+interface TagsPresenterFactory : PresenterFactory<ViewWithTags, TagsPresenter>

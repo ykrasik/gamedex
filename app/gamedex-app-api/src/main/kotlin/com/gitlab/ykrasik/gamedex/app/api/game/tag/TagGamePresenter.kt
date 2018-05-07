@@ -14,20 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.tag
+package com.gitlab.ykrasik.gamedex.app.api.game.tag
 
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.test.randomGame
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 13/05/2017
- * Time: 12:12
+ * Date: 02/05/2018
+ * Time: 22:02
  */
-object TagFragmentTestApp : BaseFragmentTestApp() {
-    override fun init() {
-        println("Result: " + JavaFxTagGameView().show(randomGame()))
-    }
-
-    @JvmStatic fun main(args: Array<String>) {}
+interface TagGamePresenter {
+    suspend fun tagGame(game: Game): Game?
 }
+
+interface ViewCanTagGame {
+    fun showTagGameView(game: Game): TagGameChoice
+}
+
+sealed class TagGameChoice {
+    data class Select(val tags: List<String>) : TagGameChoice()
+    object Cancel : TagGameChoice()
+}
+
+interface TagGamePresenterFactory : PresenterFactory<ViewCanTagGame, TagGamePresenter>

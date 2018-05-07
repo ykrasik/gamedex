@@ -14,20 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.tag
+package com.gitlab.ykrasik.gamedex.core.game.tag
 
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.test.randomGame
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewWithTags
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
+import com.gitlab.ykrasik.gamedex.core.bindTo
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 13/05/2017
- * Time: 12:12
+ * Date: 06/05/2018
+ * Time: 18:50
  */
-object TagFragmentTestApp : BaseFragmentTestApp() {
-    override fun init() {
-        println("Result: " + JavaFxTagGameView().show(randomGame()))
+@Singleton
+class TagsPresenterFactoryImpl @Inject constructor(
+    private val gameService: GameService
+) : TagsPresenterFactory {
+    override fun present(view: ViewWithTags): TagsPresenter = object : TagsPresenter {
+        init {
+            gameService.tags.bindTo(view.tags)
+        }
     }
-
-    @JvmStatic fun main(args: Array<String>) {}
 }

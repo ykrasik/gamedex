@@ -20,12 +20,12 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanEditGame
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu

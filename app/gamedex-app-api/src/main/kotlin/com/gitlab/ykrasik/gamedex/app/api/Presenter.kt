@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.api
 
 import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
@@ -27,6 +26,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.RediscoverGamePresenterF
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDurationPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameViewPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabasePresenterFactory
@@ -58,13 +60,16 @@ data class Presenters @Inject constructor(
 
     val editGame: EditGamePresenterFactory,
     val deleteGame: DeleteGamePresenterFactory,
-    val tagGame: TagGamePresenterFactory,
     val gameDetails: GameDetailsPresenterFactory,
     val discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
     val discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
     val discoverNewGames: DiscoverNewGamesPresenterFactory,
     val rediscoverGame: RediscoverGamePresenterFactory,
     val redownloadGame: RedownloadGamePresenterFactory,
+
+    val tagGame: TagGamePresenterFactory,
+    val tags: TagsPresenterFactory,
+    val tagGameView: TagGameViewPresenterFactory,
 
     val gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
     val redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,

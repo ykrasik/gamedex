@@ -41,7 +41,6 @@ interface EditLibraryViewPresenter {
 
 interface EditLibraryView {
     var canChangePlatform: Boolean
-    var canAccept: Boolean
 
     var initialLibrary: Library?
     var name: String

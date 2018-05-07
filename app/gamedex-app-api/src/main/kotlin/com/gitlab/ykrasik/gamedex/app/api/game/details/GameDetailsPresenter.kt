@@ -30,6 +30,7 @@ interface GameDetailsPresenter {
     fun onShow(game: Game)
 }
 
+// TODO: Break this down into viewWithPoster & viewWithWebBrowser?
 interface GameDetailsView {
     var game: Game
 

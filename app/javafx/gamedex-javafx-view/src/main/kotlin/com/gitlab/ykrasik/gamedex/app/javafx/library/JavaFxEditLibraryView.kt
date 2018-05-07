@@ -38,9 +38,6 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private val canChangePlatformProperty = SimpleBooleanProperty(false)
     override var canChangePlatform by canChangePlatformProperty
 
-    private val canAcceptProperty = SimpleBooleanProperty(false)
-    override var canAccept by canAcceptProperty
-
     private var initialLibraryProperty = SimpleObjectProperty<Library?>(null)
     override var initialLibrary by initialLibraryProperty
 
@@ -69,7 +66,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         top {
             toolbar {
                 acceptButton {
-                    enableWhen { canAcceptProperty }
+                    enableWhen { nameValidationErrorProperty.isNull.and(pathValidationErrorProperty.isNull) }
                     presentOnAction { presenter.onAccept() }
                 }
                 spacer()

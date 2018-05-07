@@ -14,15 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.common
+package com.gitlab.ykrasik.gamedex.core.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
-import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGameChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGamePresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.common.TagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanTagGame
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.runOnUi
