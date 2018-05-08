@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.game.common
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
@@ -62,30 +61,6 @@ class CommonGamePresenterOps @Inject constructor(
 
         val userData = this.userData ?: UserData()
         return copy(userData = userData.copy(overrides = overrides))
-    }
-
-    suspend fun tag(game: Game, showTagView: (Game) -> TagGameChoice): Game? {
-        val choice = showTagView(game)
-        val tags = when (choice) {
-            is TagGameChoice.Select -> choice.tags
-            is TagGameChoice.Cancel -> return null
-        }
-
-        val newRawGame = game.rawGame.withTags(tags)
-        return if (newRawGame.userData != game.rawGame.userData) {
-            taskRunner.runTask(gameService.replace(game, newRawGame))
-        } else {
-            null
-        }
-    }
-
-    private fun RawGame.withTags(tags: List<String>): RawGame {
-        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
-        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-        if (tags == userData?.tags ?: emptyList<String>()) return this
-
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(tags = tags))
     }
 
     suspend fun delete(game: Game, showDeleteGameView: (Game) -> DeleteGameChoice): Boolean {

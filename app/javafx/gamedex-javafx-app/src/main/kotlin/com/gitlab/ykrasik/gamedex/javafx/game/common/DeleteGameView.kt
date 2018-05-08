@@ -21,10 +21,8 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanEditGame
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
-import com.gitlab.ykrasik.gamedex.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
 import javafx.beans.property.SimpleBooleanProperty
 
@@ -33,11 +31,6 @@ import javafx.beans.property.SimpleBooleanProperty
  * Date: 02/05/2018
  * Time: 22:08
  */
-// FIXME: Make TagFragment a view and have it implement this interface
-object TagGameViewShower : ViewCanTagGame {
-    override fun showTagGameView(game: Game) = JavaFxTagGameView().show(game)
-}
-
 // FIXME: Make EditFragment a view and have it implement this interface
 object EditGameViewShower : ViewCanEditGame {
     override fun showEditGameView(game: Game, initialTab: GameDataType) =

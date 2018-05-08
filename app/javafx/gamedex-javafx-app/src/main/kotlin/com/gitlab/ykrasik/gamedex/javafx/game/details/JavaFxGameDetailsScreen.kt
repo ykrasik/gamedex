@@ -29,10 +29,10 @@ import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.common.EditGameViewShower
-import com.gitlab.ykrasik.gamedex.javafx.game.common.TagGameViewShower
 import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
@@ -51,6 +51,8 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     GameDetailsView, ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
     ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val imageLoader: ImageLoader by di()
+
+    private val tagView: JavaFxTagGameView by inject()
 
     private val browser = YouTubeWebBrowser()
 
@@ -154,7 +156,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
     override fun showEditGameView(game: Game, initialTab: GameDataType) = EditGameViewShower.showEditGameView(game, initialTab)
 
-    override fun showTagGameView(game: Game) = TagGameViewShower.showTagGameView(game)
+    override fun showTagGameView(game: Game) = tagView.show(game)
 
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 

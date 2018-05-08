@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.tag
 
+import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.test.randomGame
 

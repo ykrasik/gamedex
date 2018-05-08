@@ -18,23 +18,34 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
-import tornadofx.*
+import tornadofx.addClass
+import tornadofx.enableWhen
+import tornadofx.separator
+import tornadofx.vbox
 
 /**
  * User: ykrasik
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : View() {
+class GameContextMenu : PresentableView(), ViewCanTagGame {
+    private val tagGameView: JavaFxTagGameView by inject()
+
     private val controller: GameController by di()
+
+    private val tagGamePresenter = presenters.tagGame.present(this)
 
     private lateinit var game: Game
 
@@ -58,13 +69,7 @@ class GameContextMenu : View() {
             }
         }
         separator()
-        item("Tag", Theme.Icon.tag(size)) {
-            setOnAction {
-                javaFx {
-                    controller.tag(game)
-                }
-            }
-        }
+        item("Tag", Theme.Icon.tag(size)) { presentOnAction { tagGamePresenter.tagGame(game) } }
         separator()
         item("Refresh", Theme.Icon.refresh(size)) {
             enableWhen { controller.canRunLongTask }
@@ -117,4 +122,6 @@ class GameContextMenu : View() {
             popover.show(node, e.screenX, e.screenY)
         }
     }
+
+    override fun showTagGameView(game: Game) = tagGameView.show(game)
 }
