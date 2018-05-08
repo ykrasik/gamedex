@@ -28,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
@@ -153,9 +152,6 @@ class GameController @Inject constructor(
             taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) }))
         }
     }
-
-    suspend fun delete(game: Game): Boolean =
-        commonGamePresenterOps.delete(game) { DeleteGameView.showConfirmDeleteGame(it) }
 
     fun byId(id: Int): Game = gameService[id]
 }

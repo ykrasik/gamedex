@@ -17,13 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.game.common
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -61,25 +57,5 @@ class CommonGamePresenterOps @Inject constructor(
 
         val userData = this.userData ?: UserData()
         return copy(userData = userData.copy(overrides = overrides))
-    }
-
-    suspend fun delete(game: Game, showDeleteGameView: (Game) -> DeleteGameChoice): Boolean {
-        val choice = showDeleteGameView(game)
-        val (confirm, fromFileSystem) = when (choice) {
-            is DeleteGameChoice.Confirm -> Pair(true, choice.fromFileSystem)
-            DeleteGameChoice.Cancel -> Pair(false, false)
-        }
-
-        if (confirm) {
-            withContext(CommonPool) {
-                if (fromFileSystem) {
-                    game.path.deleteWithChildren()
-                }
-
-                taskRunner.runTask(gameService.delete(game))
-            }
-        }
-
-        return confirm
     }
 }

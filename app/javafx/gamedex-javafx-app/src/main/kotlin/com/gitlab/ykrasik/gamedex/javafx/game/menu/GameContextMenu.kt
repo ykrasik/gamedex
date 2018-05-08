@@ -18,12 +18,14 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
@@ -40,12 +42,13 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanTagGame {
+class GameContextMenu : PresentableView(), ViewCanTagGame, ViewCanDeleteGame {
     private val tagGameView: JavaFxTagGameView by inject()
 
     private val controller: GameController by di()
 
     private val tagGamePresenter = presenters.tagGame.present(this)
+    private val deleteGamePresenter = presenters.deleteGame.present(this)
 
     private lateinit var game: Game
 
@@ -99,13 +102,7 @@ class GameContextMenu : PresentableView(), ViewCanTagGame {
             }
         }
         separator()
-        item("Delete", Theme.Icon.delete(size)) {
-            setOnAction {
-                javaFx {
-                    controller.delete(game)
-                }
-            }
-        }
+        item("Delete", Theme.Icon.delete(size)) { presentOnAction { deleteGamePresenter.deleteGame(game) } }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {
@@ -124,4 +121,5 @@ class GameContextMenu : PresentableView(), ViewCanTagGame {
     }
 
     override fun showTagGameView(game: Game) = tagGameView.show(game)
+    override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 }
