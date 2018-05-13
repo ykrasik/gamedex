@@ -120,7 +120,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             }
         }
         center {
-            tabPane = tabpane {
+            tabPane = jfxTabPane {
                 addClass(CommonStyle.hiddenTabPaneHeader)
                 paddingRight = 10.0
             }

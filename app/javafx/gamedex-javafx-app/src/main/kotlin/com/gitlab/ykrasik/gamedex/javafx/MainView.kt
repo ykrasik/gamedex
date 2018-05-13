@@ -72,7 +72,7 @@ class MainView : View("GameDex") {
                 }
             }
             center {
-                tabPane = tabpane {
+                tabPane = jfxTabPane {
                     addClass(CommonStyle.hiddenTabPaneHeader)
 
                     previousScreen = screenTab(gameScreen)

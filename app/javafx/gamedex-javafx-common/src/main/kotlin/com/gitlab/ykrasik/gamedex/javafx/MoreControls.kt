@@ -18,10 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.javafx.control.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.javafx.control.ImageViewResizingPane
-import com.jfoenix.controls.JFXButton
-import com.jfoenix.controls.JFXCheckBox
-import com.jfoenix.controls.JFXToggleButton
-import com.jfoenix.controls.JFXToggleNode
+import com.jfoenix.controls.*
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
@@ -360,3 +357,5 @@ fun ToggleGroup.disallowDeselection() {
 @Suppress("UNCHECKED_CAST")
 fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Unit = {}) =
     imageview(image as ObservableValue<Image?>, op)
+
+inline fun EventTarget.jfxTabPane(op: JFXTabPane.() -> Unit = {}): JFXTabPane = opcr(this, JFXTabPane(), op)

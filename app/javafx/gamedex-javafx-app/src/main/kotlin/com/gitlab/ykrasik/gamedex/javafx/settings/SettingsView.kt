@@ -73,7 +73,9 @@ class SettingsView : View("Settings") {
             }
         }
         center {
-            tabPane = tabpane { addClass(CommonStyle.hiddenTabPaneHeader) }
+            tabPane = jfxTabPane {
+                addClass(CommonStyle.hiddenTabPaneHeader)
+            }
         }
         left {
             hbox(spacing = 5.0) {
