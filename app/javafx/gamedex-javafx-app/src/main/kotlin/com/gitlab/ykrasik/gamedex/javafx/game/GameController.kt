@@ -17,16 +17,14 @@
 package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.game.common.CommonGamePresenterOps
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -52,8 +50,7 @@ class GameController @Inject constructor(
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
     private val taskRunner: JavaFxTaskRunner,
-    userConfigRepository: UserConfigRepository,
-    private val commonGamePresenterOps: CommonGamePresenterOps
+    userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
@@ -117,8 +114,6 @@ class GameController @Inject constructor(
     }
 
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
-    suspend fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Game =
-        commonGamePresenterOps.editDetails(game) { editView.show(game, initialTab) } ?: game
 
     suspend fun renameFolder(game: Game, initialSuggestion: String? = null) = withContext(JavaFx) {
         val (library, newPath) = RenameMoveFolderFragment(game, initialSuggestion

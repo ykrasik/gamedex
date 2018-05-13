@@ -25,11 +25,11 @@ import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
-import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node

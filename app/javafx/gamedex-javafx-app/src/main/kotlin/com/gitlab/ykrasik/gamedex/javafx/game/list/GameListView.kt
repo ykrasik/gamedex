@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.list
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.imageview
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds

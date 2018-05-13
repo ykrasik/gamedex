@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallUserConfig
-import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImageFactory
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.google.inject.AbstractModule

@@ -14,16 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.edit
+package com.gitlab.ykrasik.gamedex.app.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.GameDataOverrideViewModel
 import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.ObjectProperty

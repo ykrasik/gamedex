@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.image
+package com.gitlab.ykrasik.gamedex.app.javafx.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository

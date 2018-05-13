@@ -32,8 +32,8 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseRes
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
-import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
-import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar

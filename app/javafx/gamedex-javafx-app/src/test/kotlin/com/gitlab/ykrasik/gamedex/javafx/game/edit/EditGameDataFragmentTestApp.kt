@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.test.randomGame
 
