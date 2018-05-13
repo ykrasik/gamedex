@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.collections.SetChangeListener
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
 import tornadofx.*
@@ -56,7 +55,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     private var choice: TagGameChoice = TagGameChoice.Cancel
 
     init {
-        checkedTags.addListener(SetChangeListener<String> { tags.invalidate() })
+        checkedTags.onChange { tags.invalidate() }
         nameValidationErrorProperty.onChange { viewModel.validate() }
     }
 

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -82,6 +83,7 @@ data class ProviderData(
     val gameData: GameData
 )
 
+@JsonIgnoreProperties("thumbnailUrl", "posterUrl", "screenshotUrls")
 data class GameData(
     val siteUrl: String,
     val name: String,
@@ -91,7 +93,11 @@ data class GameData(
     val userScore: Score?,
     val genres: List<String>,
     val imageUrls: ImageUrls
-)
+) {
+    val thumbnailUrl get() = imageUrls.thumbnailUrl
+    val posterUrl get() = imageUrls.posterUrl
+    val screenshotUrls get() = imageUrls.screenshotUrls
+}
 
 data class Score(
     val score: Double,

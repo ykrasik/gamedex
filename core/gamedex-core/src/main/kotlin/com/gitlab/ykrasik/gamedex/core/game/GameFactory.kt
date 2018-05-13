@@ -59,10 +59,10 @@ class GameFactory @Inject constructor(
         description = firstBy(providerUserConfig.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(providerUserConfig.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.
-        criticScore = firstBy(providerUserConfig.criticScoreOrder, userData?.criticScoreOverride(), { Score(it as Double, 1) }) {
+        criticScore = firstBy(providerUserConfig.criticScoreOrder, userData?.criticScoreOverride()) {
             it.gameData.criticScore.minOrNull()
         },
-        userScore = firstBy(providerUserConfig.userScoreOrder, userData?.userScoreOverride(), { Score(it as Double, 1) }) {
+        userScore = firstBy(providerUserConfig.userScoreOrder, userData?.userScoreOverride()) {
             it.gameData.userScore.minOrNull()
         },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),

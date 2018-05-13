@@ -19,12 +19,12 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
@@ -32,7 +32,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseRes
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
-import com.gitlab.ykrasik.gamedex.javafx.game.common.EditGameViewShower
+import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
@@ -52,6 +52,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val imageLoader: ImageLoader by di()
 
+    private val editGameView: JavaFxEditGameView by inject()
     private val tagView: JavaFxTagGameView by inject()
 
     private val browser = YouTubeWebBrowser()
@@ -154,7 +155,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
     override fun displayWebPage(url: String) = browser.load(url)
 
-    override fun showEditGameView(game: Game, initialTab: GameDataType) = EditGameViewShower.showEditGameView(game, initialTab)
+    override fun showEditGameView(game: Game, initialTab: GameDataType) = editGameView.show(game, initialTab)
 
     override fun showTagGameView(game: Game) = tagView.show(game)
 

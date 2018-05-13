@@ -19,6 +19,9 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
+import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
@@ -26,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
+import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
@@ -42,13 +46,17 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanTagGame, ViewCanDeleteGame {
+class GameContextMenu : PresentableView(), ViewCanTagGame, ViewCanDeleteGame, ViewCanRedownloadGame, ViewCanRediscoverGame, ViewCanEditGame {
     private val tagGameView: JavaFxTagGameView by inject()
+    private val editGameView: JavaFxEditGameView by inject()
 
     private val controller: GameController by di()
 
     private val tagGamePresenter = presenters.tagGame.present(this)
     private val deleteGamePresenter = presenters.deleteGame.present(this)
+    private val redownloadPresenter = presenters.redownloadGame.present(this)
+    private val rediscoverPresenter = presenters.rediscoverGame.present(this)
+    private val editGamePresenter = presenters.editGame.present(this)
 
     private lateinit var game: Game
 
@@ -57,41 +65,23 @@ class GameContextMenu : PresentableView(), ViewCanTagGame, ViewCanDeleteGame {
         val size = 20.0
         item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        item("Edit", Theme.Icon.edit(size)) {
-            setOnAction {
-                javaFx {
-                    controller.editDetails(game)
-                }
-            }
-        }
-        item("Change Thumbnail", Theme.Icon.thumbnail(size)) {
-            setOnAction {
-                javaFx {
-                    controller.editDetails(game, initialTab = GameDataType.thumbnail)
-                }
-            }
+        item("Edit", Theme.Icon.edit(size)) { presentOnAction { editGamePresenter.editGame(game, initialTab = GameDataType.name_) } }
+        item("Change Thumbnail", Theme.Icon.thumbnail(size)) { 
+            presentOnAction { editGamePresenter.editGame(game, initialTab = GameDataType.thumbnail) }
         }
         separator()
         item("Tag", Theme.Icon.tag(size)) { presentOnAction { tagGamePresenter.tagGame(game) } }
         separator()
-        item("Refresh", Theme.Icon.refresh(size)) {
-            enableWhen { controller.canRunLongTask }
-            setOnAction {
-                javaFx {
-                    controller.refreshGame(game)
-                }
-            }
+        item("Re-Download", Theme.Icon.download(size)) {
+            enableWhen { enabledProperty }
+            presentOnAction { redownloadPresenter.redownloadGame(game) }
         }
         item("Re-Discover", Theme.Icon.search(size)) {
-            enableWhen { controller.canRunLongTask }
+            enableWhen { enabledProperty }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            setOnAction {
-                javaFx {
-                    controller.searchGame(game)
-                }
-            }
+            presentOnAction { rediscoverPresenter.rediscoverGame(game) }
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
@@ -122,4 +112,5 @@ class GameContextMenu : PresentableView(), ViewCanTagGame, ViewCanDeleteGame {
 
     override fun showTagGameView(game: Game) = tagGameView.show(game)
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
+    override fun showEditGameView(game: Game, initialTab: GameDataType) = editGameView.show(game, initialTab)
 }

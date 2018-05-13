@@ -49,7 +49,7 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     }
 
     inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: suspend (T) -> Unit,
-                                                                                        crossinline propertyFactory: () -> O): Property<T> =
+                                                                                        crossinline propertyFactory: () -> O): O =
         bind<O, T, O> { propertyFactory() }.apply {
             onChange {
                 present { call(it!!) }

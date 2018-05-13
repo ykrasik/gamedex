@@ -129,7 +129,5 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         val nameProperty = presentableProperty({ presenter.onNameChanged(it) }, { SimpleStringProperty("") })
         val pathProperty = presentableProperty({ presenter.onPathChanged(it) }, { SimpleStringProperty("") })
         val platformProperty = presentableProperty({ presenter.onPlatformChanged(it) }, { SimpleObjectProperty(Platform.pc) })
-
-        override fun toString() = "LibraryViewModel(name = $name, platform = $platform, path = $path)"
     }
 }

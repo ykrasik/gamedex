@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
@@ -46,6 +47,7 @@ import javax.inject.Singleton
 class GameProviderServiceImpl @Inject constructor(
     private val repo: GameProviderRepository,
     private val fileSystemService: FileSystemService,
+    private val imageFactory: ImageFactory,
     userConfigRepository: UserConfigRepository,
     private val chooser: SearchChooser // TODO: Get rid of this... return a class that can be displayed and support continuing from it.
 ) : GameProviderService {
@@ -55,6 +57,8 @@ class GameProviderServiceImpl @Inject constructor(
     override val enabledProviders = repo.enabledProviders
     override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
+
+    override val logos = allProviders.map { it.id to imageFactory(it.logo) }.toMap()
 
     override fun checkAtLeastOneProviderEnabled() =
         check(repo.enabledProviders.isNotEmpty()) {

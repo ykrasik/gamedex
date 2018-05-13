@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.common
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import javax.inject.Inject

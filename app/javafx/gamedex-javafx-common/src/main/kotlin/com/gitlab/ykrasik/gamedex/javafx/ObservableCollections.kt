@@ -22,9 +22,7 @@ import javafx.beans.property.BooleanProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.FXCollections
-import javafx.collections.ListChangeListener
-import javafx.collections.ObservableList
+import javafx.collections.*
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.SortedFilteredList
@@ -88,6 +86,12 @@ class InitOnceListObservable<T>(private val observableList: ObservableList<T>) :
         value.toObservableList(observableList)
     }
 }
+
+inline fun <T> ObservableSet<T>.onChange(crossinline f: (SetChangeListener.Change<out T>) -> Unit): SetChangeListener<T> =
+    SetChangeListener<T> { f(it) }.apply { addListener(this) }
+
+inline fun <K, V> ObservableMap<K, V>.onChange(crossinline f: (MapChangeListener.Change<out K, out V>) -> Unit): MapChangeListener<K, V> =
+    MapChangeListener<K, V> { f(it) }.apply { addListener(this) }
 
 // TODO: I think this can all be done using objectBinding.
 /*******************************************************************************************************

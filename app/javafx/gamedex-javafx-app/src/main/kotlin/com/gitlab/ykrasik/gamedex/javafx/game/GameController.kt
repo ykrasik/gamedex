@@ -23,12 +23,10 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.common.CommonGamePresenterOps
-import com.gitlab.ykrasik.gamedex.core.game.discover.GameDiscoveryService
-import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.edit.EditGameDataFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -52,8 +50,6 @@ import javax.inject.Singleton
 @Singleton
 class GameController @Inject constructor(
     private val gameService: GameService,
-    private val gameDiscoveryService: GameDiscoveryService,
-    private val gameDownloadService: GameDownloadService,
     private val fileSystemService: FileSystemService,
     private val taskRunner: JavaFxTaskRunner,
     userConfigRepository: UserConfigRepository,
@@ -62,6 +58,7 @@ class GameController @Inject constructor(
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val mainView: MainView by inject()
+    private val editView: JavaFxEditGameView by inject()
 
     private val logger = logger()
 
@@ -114,8 +111,6 @@ class GameController @Inject constructor(
     val genres = games.flatMapping(Game::genres).distincting().sorted()
     val tags = games.flatMapping(Game::tags).distincting()
 
-    val canRunLongTask = taskRunner.canRunTaskProperty     // FIXME: This is only here to tell us when we can show notifications, move this logic to a TaskManager.
-
     fun clearFilters() {
         gameUserConfig.currentPlatformFilter = Filter.`true`
         searchQueryProperty.value = ""
@@ -123,11 +118,7 @@ class GameController @Inject constructor(
 
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
     suspend fun editDetails(game: Game, initialTab: GameDataType = GameDataType.name_): Game =
-        commonGamePresenterOps.editDetails(game) { EditGameDataFragment(game, initialTab).show() } ?: game
-
-    suspend fun searchGame(game: Game) = taskRunner.runTask(gameDiscoveryService.rediscoverGame(game)) ?: game
-
-    suspend fun refreshGame(game: Game) = taskRunner.runTask(gameDownloadService.redownloadGame(game))
+        commonGamePresenterOps.editDetails(game) { editView.show(game, initialTab) } ?: game
 
     suspend fun renameFolder(game: Game, initialSuggestion: String? = null) = withContext(JavaFx) {
         val (library, newPath) = RenameMoveFolderFragment(game, initialSuggestion

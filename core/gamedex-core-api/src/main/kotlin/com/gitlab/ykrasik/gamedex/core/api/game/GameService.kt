@@ -27,6 +27,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
  */
 interface GameService {
     val games: ListObservable<Game>
+    val genres: ListObservable<String>
     val tags: ListObservable<String>
 
     operator fun get(id: Int): Game

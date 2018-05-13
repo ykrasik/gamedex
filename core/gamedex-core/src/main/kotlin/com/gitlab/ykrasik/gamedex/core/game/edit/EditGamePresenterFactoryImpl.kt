@@ -14,13 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.common
+package com.gitlab.ykrasik.gamedex.core.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGamePresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanEditGame
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameDetailsChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.runOnUi

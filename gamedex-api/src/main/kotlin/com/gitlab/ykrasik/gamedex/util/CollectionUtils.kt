@@ -34,3 +34,16 @@ inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedTo(dest
     for (item in this) destination.addAll(transform(index++, item))
     return destination
 }
+
+inline fun <K, V> Map<K, V>.mapNotNullToMap(crossinline f: (K, V) -> Pair<K, V>?): Map<K, V> {
+    if (this.isEmpty()) return this
+
+    val map = mutableMapOf<K, V>()
+    forEach { k, v ->
+        val newKeyValue = f(k, v)
+        if (newKeyValue != null) {
+            map[newKeyValue.first] = newKeyValue.second
+        }
+    }
+    return map
+}

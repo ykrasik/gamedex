@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 import com.gitlab.ykrasik.gamedex.test.randomGame
 
 /**
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.test.randomGame
  */
 object EditGameDataFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        println("Result: " + EditGameDataFragment(randomGame(), initialTab = GameDataType.name_).show())
+        println("Result: " + JavaFxEditGameView().show(randomGame(), initialTab = GameDataType.name_))
     }
 
     @JvmStatic fun main(args: Array<String>) {}

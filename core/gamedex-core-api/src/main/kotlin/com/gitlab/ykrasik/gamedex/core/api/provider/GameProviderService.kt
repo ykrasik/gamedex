@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.api.provider
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -41,6 +42,8 @@ interface GameProviderService {
 
     fun provider(id: ProviderId): GameProvider
     fun isEnabled(id: ProviderId): Boolean
+
+    val logos: Map<ProviderId, Image>
 
     // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
     fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>

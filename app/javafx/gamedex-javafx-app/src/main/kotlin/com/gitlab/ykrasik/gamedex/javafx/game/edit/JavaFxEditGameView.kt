@@ -17,13 +17,18 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGameDetailsChoice
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameDetailsChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.GameDataOverrideViewModel
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.image.JavaFxImage
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.beans.property.StringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.Tab
@@ -32,9 +37,6 @@ import javafx.scene.control.ToggleGroup
 import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
 import tornadofx.*
-import java.net.URL
-import java.time.LocalDate
-import java.util.*
 
 /**
  * User: ykrasik
@@ -43,13 +45,44 @@ import java.util.*
  */
 // TODO: Consider allowing to delete provider data.
 // TODO: Add a way to clear provider excludes.
-class EditGameDataFragment(private val game: Game, private val initialTab: GameDataType) : Fragment(game.name) {
-    private val gameProviderService: GameProviderService by di()
+class JavaFxEditGameView : PresentableView(), EditGameView {
     private val imageLoader: ImageLoader by di()
 
     private var tabPane: TabPane by singleAssign()
 
-    private val rawGame = game.rawGame.copy(providerData = game.rawGame.providerData.sortedBy { it.header.id })
+    private val gameProperty = SimpleObjectProperty<Game>()
+    override var game by gameProperty
+
+    override var initialTab: GameDataType = GameDataType.name_
+
+    // TODO: Consider representing this as a CustomProvider in the UserData
+    private val nameOverrideProperty = overrideProperty<String>()
+    override var nameOverride by nameOverrideProperty
+
+    private val descriptionOverrideProperty = overrideProperty<String>()
+    override var descriptionOverride by descriptionOverrideProperty
+
+    private val releaseDateOverrideProperty = overrideProperty<String>()
+    override var releaseDateOverride by releaseDateOverrideProperty
+
+    private val userScoreOverrideProperty = overrideProperty<Score>()
+    override var userScoreOverride by userScoreOverrideProperty
+
+    private val criticScoreOverrideProperty = overrideProperty<Score>()
+    override var criticScoreOverride by criticScoreOverrideProperty
+
+    private val thumbnailUrlOverrideProperty = overrideProperty<String>()
+    override var thumbnailUrlOverride by thumbnailUrlOverrideProperty
+
+    private val posterUrlOverrideProperty = overrideProperty<String>()
+    override var posterUrlOverride by posterUrlOverrideProperty
+
+    private fun <T> overrideProperty() =
+        SimpleObjectProperty<GameDataOverrideViewModel<T>>(GameDataOverrideViewModel())
+
+    private val presenter = presenters.editGameView.present(this)
+
+    private var choice: EditGameDetailsChoice = EditGameDetailsChoice.Cancel
 
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()
@@ -59,10 +92,9 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         }
     }
 
-    // TODO: Play around with representing this as a CustomProvider in the UserData
-    private var overrides = HashMap(rawGame.userData?.overrides ?: emptyMap())
-
-    private var choice: EditGameDetailsChoice = EditGameDetailsChoice.Cancel
+    init {
+        titleProperty.bind(gameProperty.stringBinding { it?.name })
+    }
 
     override val root = borderpane {
         prefWidth = screenBounds.width.let { it * 2 / 3 }
@@ -71,19 +103,19 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    setOnAction { close(choice = EditGameDetailsChoice.Override(overrides)) }
+                    presentOnAction { presenter.onAccept() }
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 toolbarButton(graphic = Theme.Icon.clear()) {
                     tooltip("Reset all to default")
-                    setOnAction { close(choice = EditGameDetailsChoice.Clear) }
+                    presentOnAction { presenter.onClear() }
                 }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction { close(choice = EditGameDetailsChoice.Cancel) }
+                    presentOnAction { presenter.onCancel() }
                 }
             }
         }
@@ -108,63 +140,60 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
         entry(
             GameDataType.name_,
-            providerDataExtractor = { it.gameData.name },
+            nameOverrideProperty,
+            providerDataExtractor = GameData::name,
             gameDataExtractor = Game::name,
-            dataDisplay = ::displayText,
-            deserializer = ::asText
+            dataDisplay = ::displayText
         )
         entry(
             GameDataType.description,
-            providerDataExtractor = { it.gameData.description },
+            descriptionOverrideProperty,
+            providerDataExtractor = GameData::description,
             gameDataExtractor = Game::description,
-            dataDisplay = displayWrappedText(maxWidth = screenBounds.width / 2),
-            deserializer = ::asText
+            dataDisplay = displayWrappedText(maxWidth = screenBounds.width / 2)
         )
         entry(
             GameDataType.releaseDate,
-            providerDataExtractor = { it.gameData.releaseDate },
+            releaseDateOverrideProperty,
+            providerDataExtractor = GameData::releaseDate,
             gameDataExtractor = Game::releaseDate,
-            dataDisplay = ::displayText,
-            deserializer = ::deserializeDate
+            dataDisplay = ::displayText
         )
         entry(
             GameDataType.criticScore,
-            providerDataExtractor = { it.gameData.criticScore },
+            criticScoreOverrideProperty,
+            providerDataExtractor = GameData::criticScore,
             gameDataExtractor = Game::criticScore,
-            dataDisplay = ::displayScore,
-            deserializer = ::deserializeScore,
-            serializer = ::serializeScore
+            dataDisplay = ::displayScore
         )
         entry(
             GameDataType.userScore,
-            providerDataExtractor = { it.gameData.userScore },
+            userScoreOverrideProperty,
+            providerDataExtractor = GameData::userScore,
             gameDataExtractor = Game::userScore,
-            dataDisplay = ::displayScore,
-            deserializer = ::deserializeScore,
-            serializer = ::serializeScore
+            dataDisplay = ::displayScore
         )
         entry(
             GameDataType.thumbnail,
-            providerDataExtractor = { it.gameData.imageUrls.thumbnailUrl },
+            thumbnailUrlOverrideProperty,
+            providerDataExtractor = GameData::thumbnailUrl,
             gameDataExtractor = Game::thumbnailUrl,
-            dataDisplay = ::imageDisplay,
-            deserializer = ::deserializeUrl
+            dataDisplay = ::imageDisplay
         )
         entry(
             GameDataType.poster,
-            providerDataExtractor = { it.gameData.imageUrls.posterUrl },
+            posterUrlOverrideProperty,
+            providerDataExtractor = GameData::posterUrl,
             gameDataExtractor = Game::posterUrl,
-            dataDisplay = ::imageDisplay,
-            deserializer = ::deserializeUrl
+            dataDisplay = ::imageDisplay
         )
     }
 
     private fun <T : Any> VBox.entry(type: GameDataType,
-                                     providerDataExtractor: (ProviderData) -> T?,
+                                     overrideViewModelProperty: ObjectProperty<GameDataOverrideViewModel<T>>,
+                                     providerDataExtractor: (GameData) -> T?,
                                      gameDataExtractor: (Game) -> T?,
-                                     dataDisplay: (EventTarget, T) -> Any,
-                                     deserializer: (String) -> T,
-                                     serializer: (T) -> Any = Any::toString) {
+                                     dataDisplay: (EventTarget, T) -> Any) {
         jfxToggleNode(type.displayName, group = navigationToggle) {
             useMaxWidth = true
             tabPane.tab(type.displayName) {
@@ -177,19 +206,25 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                 scrollpane(fitToWidth = false) {
                     vbox(spacing = 10.0) {
                         // Existing provider data
-                        rawGame.providerData.forEach { providerData ->
-                            providerDataExtractor(providerData)?.let { data ->
-                                jfxToggleNode(group = toggleGroup) {
-                                    useMaxWidth = true
-                                    if (gameDataExtractor(game) == data) {
-                                        isSelected = true
-                                    }
-                                    userData = SingleChoice.Override(GameDataOverride.Provider(providerData.header.id))
-                                    graphic = hbox(spacing = 10.0) {
-                                        alignment = Pos.CENTER_LEFT
-                                        paddingAll = 10.0
-                                        children += gameProviderService.provider(providerData.header.id).logoImage.toImageView(height = 120.0, width = 100.0)
-                                        dataDisplay(this@hbox, data)
+                        vbox(spacing = 10.0) {
+                            gameProperty.onChange { game ->
+                                replaceChildren {
+                                    game!!.rawGame.providerData.sortedBy { it.header.id }.forEach { providerData ->
+                                        providerDataExtractor(providerData.gameData)?.let { data ->
+                                            jfxToggleNode(group = toggleGroup) {
+                                                useMaxWidth = true
+                                                isSelected = gameDataExtractor(game) == data
+                                                selectedProperty().presentOnChange {
+                                                    presenter.onProviderOverrideSelected(type, providerData.header.id, it)
+                                                }
+                                                graphic = hbox(spacing = 10.0) {
+                                                    alignment = Pos.CENTER_LEFT
+                                                    paddingAll = 10.0
+                                                    children += logo(providerData.header.id).toImageView(height = 120.0, width = 100.0)
+                                                    dataDisplay(this@hbox, data)
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -197,33 +232,23 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
 
                         // Custom
                         hbox {
-                            val customRawDataProperty = SimpleStringProperty()
-                            val viewModel = CustomTextViewModel(customRawDataProperty)
-                            val customDataProperty = customRawDataProperty.map { it?.let(deserializer) }
-
-                            jfxToggleNode(group = toggleGroup) {
+                            val customToggleNode = jfxToggleNode(group = toggleGroup) {
                                 useMaxWidth = true
-                                disableWhen { customDataProperty.isNull }
+                                enableWhen { overrideViewModelProperty.map { it!!.customValue }.isNotNull }
 
-                                val currentOverride = game.userData?.overrides?.get(type)
-                                if (currentOverride is GameDataOverride.Custom) {
-                                    isSelected = true
-                                    customDataProperty.value = deserializer(currentOverride.value.toString())
+                                overrideViewModelProperty.perform {
+                                    isSelected = it.override != null && it.override is GameDataOverride.Custom
                                 }
 
-                                customDataProperty.onChange { customValue ->
-                                    userData = SingleChoice.Override(GameDataOverride.Custom(serializer(customValue!!)))
-                                    // Need to deselect before selecting, otherwise if this toggle was previously selected it will not fire
-                                    // the change listener on the toggle group
-                                    isSelected = false
-                                    isSelected = true
+                                selectedProperty().presentOnChange {
+                                    presenter.onCustomOverrideSelected(type, it)
                                 }
 
                                 graphic = hbox(spacing = 10.0) {
                                     alignment = Pos.CENTER_LEFT
                                     paddingAll = 10.0
 
-                                    customDataProperty.perform { customValue ->
+                                    overrideViewModelProperty.map { it!!.customValue }.perform { customValue ->
                                         replaceChildren {
                                             text("Custom") { addClass(Style.textData) }
                                             if (customValue != null) {
@@ -237,20 +262,17 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                             buttonWithPopover(graphic = Theme.Icon.edit(), closeOnClick = false, styleClass = null) { popOver ->
                                 hbox(spacing = 5.0) {
                                     alignment = Pos.CENTER_LEFT
+                                    val viewModel = CustomTextViewModel(type)
+                                    overrideViewModelProperty.onChange {
+                                        viewModel.textProperty.value = it!!.rawCustomValue
+                                        viewModel.validate()
+                                    }
                                     textfield(viewModel.textProperty) {
                                         minWidth = 300.0
                                         promptText = "Custom ${type.displayName}"
 
-                                        validator {
-                                            if (it.isNullOrBlank()) error("Cannot be empty!")
-                                            else {
-                                                try {
-                                                    deserializer(it!!)
-                                                    null
-                                                } catch (e: Exception) {
-                                                    error("Invalid ${type.displayName}")
-                                                }
-                                            }
+                                        validator(ValidationTrigger.None) {
+                                            overrideViewModelProperty.value.customValueValidationError?.let { error(it) }
                                         }
                                     }
                                     acceptButton {
@@ -258,12 +280,19 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                                         enableWhen { viewModel.valid }
                                         setOnAction {
                                             popOver.hide()
-                                            viewModel.commit()
+                                            present { presenter.onCustomOverrideValueAccepted(type) }
+                                            customToggleNode.isSelected = true
+                                        }
+                                    }
+                                    cancelButton {
+                                        isCancelButton = true
+                                        setOnAction {
+                                            popOver.hide()
+                                            present { presenter.onCustomOverrideValueRejected(type) }
                                         }
                                     }
                                 }
                             }.apply { useMaxHeight = true }
-                            viewModel.validate(decorateErrors = false)
                         }
 
                         // Reset button
@@ -275,23 +304,7 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
                                 children += Theme.Icon.timesCircle(40.0)
                                 text("Reset to default") { addClass(Style.textData) }
                             }
-                            userData = SingleChoice.Clear
-                        }
-                    }
-                }
-
-                with(toggleGroup) {
-                    val initialSelection = selectedToggle
-                    val initialUserData = initialSelection?.userData
-                    selectedToggleProperty().onChange { newValue ->
-                        if (newValue!! != initialSelection || newValue.userData != initialUserData) {
-                            val choice = newValue.userData as SingleChoice
-                            when (choice) {
-                                is SingleChoice.Override -> overrides[type] = choice.override
-                                is SingleChoice.Clear -> overrides.remove(type)
-                            }
-                        } else {
-                            overrides.remove(type)
+                            selectedProperty().presentOnChange { presenter.onClearOverrideSelected(type, it) }
                         }
                     }
                 }
@@ -299,12 +312,6 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         }
         separator()
     }
-
-    private fun deserializeScore(raw: String) = Score(raw.toDouble(), numReviews = 1)
-    private fun serializeScore(score: Score) = score.score
-    private fun asText(raw: String) = raw
-    private fun deserializeUrl(raw: String) = run { URL(raw); raw }
-    private fun deserializeDate(raw: String) = run { LocalDate.parse(raw); raw }
 
     private fun displayScore(target: EventTarget, score: Score) =
         displayText(target, "${score.score} Based on ${score.numReviews} reviews.")
@@ -323,29 +330,25 @@ class EditGameDataFragment(private val game: Game, private val initialTab: GameD
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
         isPreserveRatio = true
-        imageProperty().bind(imageLoader.fetchImage(url, game.id, persistIfAbsent = false))
+        imageProperty().bind(imageLoader.loadImage(presenter.fetchImage(url)))
     }
 
-    fun show(): EditGameDetailsChoice {
+    fun show(game: Game, initialTab: GameDataType): EditGameDetailsChoice {
+        // TODO: Select initial selection.
+        presenter.onShown(game, initialTab)
         openWindow(block = true)
         return choice
     }
 
-    private fun close(choice: EditGameDetailsChoice) {
+    override fun close(choice: EditGameDetailsChoice) {
         this.choice = choice
         close()
     }
 
-    private sealed class SingleChoice {
-        data class Override(val override: GameDataOverride) : SingleChoice()
-        object Clear : SingleChoice()
-    }
+    private fun logo(id: ProviderId) = (presenter.providerLogo(id) as JavaFxImage).image
 
-    private class CustomTextViewModel(p: StringProperty) : ViewModel() {
-        val textProperty = bind { p }
-        var text by textProperty
-
-        override fun toString() = "CustomTextViewModel(text = $text)"
+    private inner class CustomTextViewModel(type: GameDataType) : ViewModel() {
+        val textProperty = presentableProperty({ presenter.onCustomOverrideValueChanged(type, it) }, { SimpleStringProperty("") })
     }
 
     class Style : Stylesheet() {

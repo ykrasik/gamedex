@@ -163,7 +163,6 @@ inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = Defa
 inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> =
     subscribeTransform(context) { it.filter(f) }
 
-
 inline fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
     subscribeTransform(context) { it.distinct() }
 

@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.common.EditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
@@ -26,6 +25,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.RediscoverGamePresenterF
 import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDurationPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
@@ -48,7 +49,6 @@ import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.common.DeleteGamePresenterFactoryImpl
-import com.gitlab.ykrasik.gamedex.core.game.common.EditGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenterFactoryImpl
@@ -57,6 +57,8 @@ import com.gitlab.ykrasik.gamedex.core.game.discover.RediscoverGamePresenterFact
 import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactoryImpl
+import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactoryImpl
+import com.gitlab.ykrasik.gamedex.core.game.edit.EditGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagsPresenterFactoryImpl
@@ -96,6 +98,8 @@ object CoreModule : AbstractModule() {
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(EditGamePresenterFactory::class.java).to(EditGamePresenterFactoryImpl::class.java)
+        bind(EditGameViewPresenterFactory::class.java).to(EditGameViewPresenterFactoryImpl::class.java)
+
         bind(DeleteGamePresenterFactory::class.java).to(DeleteGamePresenterFactoryImpl::class.java)
 
         bind(TagGamePresenterFactory::class.java).to(TagGamePresenterFactoryImpl::class.java)
