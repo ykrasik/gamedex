@@ -265,8 +265,8 @@ inline fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
             }
         }
     }.apply {
-        if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
-        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
+        if (text != null) textProperty().bind(selectedItemProperty.map { if (it != null) text(it) else null })
+        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { if (it != null) graphic(it) else null })
     }
 
 inline fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,

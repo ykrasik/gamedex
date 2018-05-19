@@ -25,16 +25,11 @@ import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.rename.RenameMoveFolderFragment
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
-import java.nio.file.Files
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,15 +44,11 @@ import javax.inject.Singleton
 class GameController @Inject constructor(
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
-    private val taskRunner: JavaFxTaskRunner,
     userConfigRepository: UserConfigRepository
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val mainView: MainView by inject()
-    private val editView: JavaFxEditGameView by inject()
-
-    private val logger = logger()
 
     val searchQueryProperty = SimpleStringProperty("")
 
@@ -114,30 +105,6 @@ class GameController @Inject constructor(
     }
 
     fun viewDetails(game: Game) = mainView.showGameDetails(game)
-
-    suspend fun renameFolder(game: Game, initialSuggestion: String? = null) = withContext(JavaFx) {
-        val (library, newPath) = RenameMoveFolderFragment(game, initialSuggestion
-            ?: game.path.name).show()
-            ?: return@withContext
-
-        withContext(CommonPool) {
-            val fullPath = library.path.resolve(newPath)
-            logger.info("Renaming/Moving: ${game.path} -> $fullPath")
-
-            val parent = fullPath.parentFile
-            if (parent != library.path && !parent.exists()) {
-                parent.mkdirs()
-            }
-            if (!game.path.renameTo(fullPath)) {
-                // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
-                // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
-                // and throws an exception if it fails.
-                Files.move(game.path.toPath(), fullPath.toPath())
-            }
-
-            taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath) }))
-        }
-    }
 
     fun byId(id: Int): Game = gameService[id]
 }

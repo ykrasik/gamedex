@@ -45,7 +45,6 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
     override fun present(view: EditLibraryView): EditLibraryViewPresenter = object : EditLibraryViewPresenter {
         override fun onShown(library: Library?) {
             view.initialLibrary = library
-            view.canChangePlatform = library == null
             view.name = library?.name ?: ""
             view.path = library?.path?.toString() ?: ""
             view.platform = library?.platform ?: Platform.pc
@@ -85,7 +84,7 @@ class EditLibraryViewPresenterFactoryImpl @Inject constructor(
         }
 
         override fun onPlatformChanged(platform: Platform) {
-            check(view.platform == view.initialLibrary?.platform || view.canChangePlatform) { "Changing library platform for an existing library is not allowed: ${view.initialLibrary}" }
+            check(view.initialLibrary == null || view.platform == view.initialLibrary!!.platform) { "Changing library platform for an existing library is not allowed: ${view.initialLibrary}" }
             validate()
         }
 

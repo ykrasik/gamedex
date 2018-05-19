@@ -97,8 +97,9 @@ class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd
             item("Delete", graphic = Theme.Icon.delete(20.0)) {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
             }.action { deleteLibrary() }
-
         }
+
+        onDoubleClick { editLibrary() }
 
         allowDeselection(onClickAgain = false)
     }

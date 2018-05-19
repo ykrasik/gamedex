@@ -27,6 +27,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesP
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
@@ -59,6 +61,8 @@ import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPres
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGameViewPresenterFactoryImpl
+import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactoryImpl
+import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagsPresenterFactoryImpl
@@ -105,6 +109,9 @@ object CoreModule : AbstractModule() {
         bind(TagGamePresenterFactory::class.java).to(TagGamePresenterFactoryImpl::class.java)
         bind(TagsPresenterFactory::class.java).to(TagsPresenterFactoryImpl::class.java)
         bind(TagGameViewPresenterFactory::class.java).to(TagGameViewPresenterFactoryImpl::class.java)
+
+        bind(RenameMoveGamePresenterFactory::class.java).to(RenameMoveGamePresenterFactoryImpl::class.java)
+        bind(RenameMoveGameViewPresenterFactory::class.java).to(RenameMoveGameViewPresenterFactoryImpl::class.java)
 
         bind(GameDetailsPresenterFactory::class.java).to(GameDetailsPresenterFactoryImpl::class.java)
 

@@ -201,6 +201,7 @@ fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMen
     graphic = { it.toLogo() }
 )
 
+@Deprecated("Delegate to presenter for this.")
 inline fun EventTarget.pathButton(path: File, op: JFXButton.() -> Unit = {}) = jfxButton(path.path) {
     isFocusTraversable = false
     setOnAction { browse(path) }

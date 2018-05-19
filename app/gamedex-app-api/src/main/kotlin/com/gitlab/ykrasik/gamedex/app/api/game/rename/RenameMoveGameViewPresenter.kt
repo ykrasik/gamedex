@@ -14,43 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.library
+package com.gitlab.ykrasik.gamedex.app.api.game.rename
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 import java.io.File
 
 /**
  * User: ykrasik
- * Date: 21/04/2018
- * Time: 07:05
+ * Date: 17/05/2018
+ * Time: 09:10
  */
-interface EditLibraryViewPresenter {
-    fun onShown(library: Library?)
+interface RenameMoveGameViewPresenter {
+    fun onShown(game: Game, initialName: String)
 
     fun onAccept()
     fun onCancel()
-    fun onBrowse()
 
-    fun onNameChanged(name: String)
+    fun onBrowsePath()
+    fun onBrowseToGame()
+
+    fun onLibraryChanged(library: Library)
     fun onPathChanged(path: String)
-    fun onPlatformChanged(platform: Platform)
+    fun onNameChanged(name: String)
 }
 
-interface EditLibraryView {
-    var initialLibrary: Library?
-    var name: String
+interface RenameMoveGameView {
+    val possibleLibraries: MutableList<Library>
+
+    var game: Game
+    var library: Library
     var path: String
-    var platform: Platform
+    var name: String
 
     var nameValidationError: String?
-    var pathValidationError: String?
 
-    fun selectDirectory(initialDirectory: File?): File?
+    fun selectDirectory(initialDirectory: File): File?
+    fun browseTo(dir: File)
 
-    fun close(data: LibraryData?)
+    fun close(choice: RenameMoveGameChoice)
 }
 
-interface EditLibraryViewPresenterFactory : PresenterFactory<EditLibraryView, EditLibraryViewPresenter>
+interface RenameMoveGameViewPresenterFactory : PresenterFactory<RenameMoveGameView, RenameMoveGameViewPresenter>

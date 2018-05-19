@@ -21,12 +21,11 @@ import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
+import javafx.scene.control.TextInputControl
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
-import tornadofx.ViewModel
-import tornadofx.onChange
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -56,6 +55,13 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
                 commit()
             }
         }
+
+    fun TextInputControl.validatorFrom(viewModel: ViewModel, errorValue: ObservableValue<String?>) {
+        errorValue.onChange { viewModel.validate() }
+        validator(ValidationTrigger.None) {
+            errorValue.value?.let { error(it) }
+        }
+    }
 
     fun ButtonBase.presentOnAction(f: suspend () -> Unit) {
         setOnAction { present(f) }

@@ -17,9 +17,15 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
+import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.game.rename.JavaFxRenameMoveGameView
+import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
@@ -33,8 +39,10 @@ import tornadofx.*
  * Date: 24/06/2017
  * Time: 18:52
  */
-class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : Fragment() {
-    private val gameController: GameController by di()
+class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView(), ViewCanRenameMoveGame {
+    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
+
+    private val renameMoveGamePresenter = presenters.renameMoveGame.present(this)
 
     override val root = form {
         addClass(CommonStyle.centered)
@@ -45,11 +53,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
 
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
-                setOnAction {
-                    javaFx {
-                        gameController.renameFolder(game, diff.expectedName)
-                    }
-                }
+                presentOnAction { renameMoveGamePresenter.renameMove(game, diff.expectedName) }
             }
             // TODO: Add a 'search only this provider' option
         }
@@ -78,6 +82,8 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
             Delta.TYPE.INSERT -> Style.insert
         })
     }
+
+    override fun showRenameMoveGameView(game: Game, initialName: String) = renameMoveGameView.show(game, initialName)
 
     class Style : Stylesheet() {
         companion object {
