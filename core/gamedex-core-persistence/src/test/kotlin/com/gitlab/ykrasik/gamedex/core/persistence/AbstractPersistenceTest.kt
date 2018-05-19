@@ -61,18 +61,18 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
-                id = randomString(),
+                id = randomWord(),
                 apiUrl = randomUrl(),
                 updateDate = randomDateTime()
             ),
             gameData = GameData(
                 siteUrl = randomUrl(),
                 name = randomName(),
-                description = randomSentence(),
+                description = randomParagraph(),
                 releaseDate = randomLocalDateString(),
                 criticScore = randomScore(),
                 userScore = randomScore(),
-                genres = listOf(randomString(), randomString()),
+                genres = listOf(randomWord(), randomWord()),
                 imageUrls = ImageUrls(
                     thumbnailUrl = randomUrl(),
                     posterUrl = randomUrl(),
@@ -83,8 +83,8 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun randomUserData() = UserData(
             overrides = randomProviderOverrides(),
-            tags = listOf(randomString(), randomString()),
-            excludedProviders = listOf(randomString(), randomString())
+            tags = listOf(randomWord(), randomWord()),
+            excludedProviders = listOf(randomWord(), randomWord())
         )
 
         fun randomProviderOverrides() = mapOf(
@@ -101,17 +101,17 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun randomCustomOverrides() = mapOf(
             GameDataType.name_ to customDataOverride(randomName()),
-            GameDataType.description to customDataOverride(randomSentence()),
+            GameDataType.description to customDataOverride(randomParagraph()),
             GameDataType.releaseDate to customDataOverride(randomLocalDateString()),
             GameDataType.criticScore to customDataOverride(randomScore().score),
             GameDataType.userScore to customDataOverride(randomScore().score),
-            GameDataType.genres to customDataOverride(listOf(randomString(), randomString(), randomString())),
+            GameDataType.genres to customDataOverride(listOf(randomWord(), randomWord(), randomWord())),
             GameDataType.thumbnail to customDataOverride(randomUrl()),
             GameDataType.poster to customDataOverride(randomUrl()),
             GameDataType.screenshots to customDataOverride(listOf(randomUrl(), randomUrl()))
         )
 
-        private fun providerOverride() = GameDataOverride.Provider(randomString())
+        private fun providerOverride() = GameDataOverride.Provider(randomWord())
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
         fun givenGame(library: Library = this.library,
@@ -139,7 +139,7 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
 
         fun givenImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> = insertImage(game, url)
         fun insertImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> {
-            val data = randomString().toByteArray()
+            val data = randomWord().toByteArray()
             persistenceService.insertImage(game.id, url, data)
             return data.toList()
         }

@@ -105,11 +105,11 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
             }
             get("$imagePath/$thumbnailPath/{imageName}") {
                 delay(400)
-                call.respond(TestImages.randomImage())
+                call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())
             }
             get("$imagePath/$posterPath/{imageName}") {
                 delay(600)
-                call.respond(TestImages.randomImage())     // TODO: Use a different set of images
+                call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Use a different set of images
             }
         }
     }
@@ -122,11 +122,11 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(millis: Int) = delay(rnd.nextInt(millis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(millis: Int) = delay(randomInt(millis).toLong(), TimeUnit.MILLISECONDS)
 
-    private fun randomSearchResults(name: String): String = List(rnd.nextInt(10)) {
+    private fun randomSearchResults(name: String): String = randomList(10) {
         IgdbClient.SearchResult(
-            id = rnd.nextInt(),
+            id = randomInt(),
             name = "$name ${randomName()}",
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -142,23 +142,23 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
     private fun randomDetailResponse(): String = listOf(IgdbClient.DetailsResult(
         url = randomUrl(),
         name = randomName(),
-        summary = randomSentence(maxWords = 50),
+        summary = randomParagraph(),
         releaseDates = randomReleaseDates(),
         aggregatedRating = randomScore().score,
         aggregatedRatingCount = randomScore().numReviews,
         rating = randomScore().score,
         ratingCount = randomScore().numReviews,
-        cover = IgdbClient.Image(cloudinaryId = randomString()),
-        screenshots = List(rnd.nextInt(10)) { randomImage() },
-        genres = List(rnd.nextInt(4)) {
+        cover = IgdbClient.Image(cloudinaryId = randomWord()),
+        screenshots = randomList(10) { randomImage() },
+        genres = randomList(4) {
             listOf(2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 24, 25, 26, 30, 31, 32, 33).randomElement()
         }
     )).toJsonStr()
 
-    private fun randomReleaseDates() = List(rnd.nextInt(4)) { randomReleaseDate() }
+    private fun randomReleaseDates() = randomList(3) { randomReleaseDate() }
 
     private fun randomReleaseDate(): IgdbClient.ReleaseDate {
-        val category = rnd.nextInt(8)
+        val category = randomInt(7)
         val date = randomLocalDate()
         val human = when (category) {
             0 -> date.toString("YYYY-MMM-dd")
@@ -178,7 +178,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
         )
     }
 
-    private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
+    private fun randomImage() = IgdbClient.Image(cloudinaryId = randomWord())
 
     fun start() = apply {
         ktor.start(wait = false)

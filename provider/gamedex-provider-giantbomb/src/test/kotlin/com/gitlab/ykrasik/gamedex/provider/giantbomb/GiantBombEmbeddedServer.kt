@@ -91,11 +91,11 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
             }
             get("$thumbnailPath/{imageName}") {
                 delay(400)
-                call.respond(TestImages.randomImage())
+                call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())
             }
             get("$superPath/{imageName}") {
                 delay(600)
-                call.respond(TestImages.randomImage())     // TODO: Return a different set of images
+                call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Return a different set of images
             }
             get(apiDetailPath) {
                 authorized {
@@ -114,11 +114,11 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(millis: Int) = delay(rnd.nextInt(millis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(millis: Int) = delay(randomInt(millis).toLong(), TimeUnit.MILLISECONDS)
 
     private fun randomSearchResponse() = GiantBombClient.SearchResponse(
         statusCode = GiantBombClient.Status.ok,
-        results = List(rnd.nextInt(10)) {
+        results = randomList(10) {
             GiantBombClient.SearchResult(
                 apiDetailUrl = apiDetailsUrl,
                 name = randomName(),
@@ -133,19 +133,19 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         results = listOf(GiantBombClient.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = randomName(),
-            deck = randomSentence(maxWords = 15),
+            deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
             image = randomImage(),
-            images = List(rnd.nextInt(10)) { randomImage() },
-            genres = List(rnd.nextInt(4)) {
-                GiantBombClient.Genre(name = randomString())
+            images = randomList(10) { randomImage() },
+            genres = randomList(4) {
+                GiantBombClient.Genre(name = randomWord())
             }
         ))
     )
 
     private fun randomImage() = GiantBombClient.Image(
-        thumbUrl = "$thumbnailUrl/${randomString()}",
-        superUrl = "$superUrl/${randomString()}"
+        thumbUrl = "$thumbnailUrl/${randomWord()}",
+        superUrl = "$superUrl/${randomWord()}"
     )
 
     fun start() = apply {
@@ -224,7 +224,7 @@ private fun GiantBombClient.Image.toMap() = mapOf(
 
 private fun GiantBombClient.Genre.toMap() = mapOf(
     "api_detail_url" to randomUrl(),
-    "id" to rnd.nextInt(100),
+    "id" to randomInt(100),
     "name" to name,
     "site_detail_url" to randomUrl()
 )

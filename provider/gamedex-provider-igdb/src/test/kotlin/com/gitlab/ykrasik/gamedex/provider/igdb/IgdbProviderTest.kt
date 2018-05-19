@@ -55,7 +55,7 @@ class IgdbProviderTest : ScopedWordSpec() {
 
             "be able to return multiple search results" test {
                 val searchResult1 = searchResult(name)
-                val searchResult2 = searchResult("$name ${randomString()}")
+                val searchResult2 = searchResult("$name ${randomWord()}")
                 givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
 
                 search(name) should have2SearchResultsThat { first, second ->
@@ -264,12 +264,12 @@ class IgdbProviderTest : ScopedWordSpec() {
 
     class Scope {
         val platform = randomEnum<Platform>()
-        val platformId = rnd.nextInt(100)
-        val genreId = rnd.nextInt(100)
-        val genre = randomString()
+        val platformId = randomInt(100)
+        val genreId = randomInt(100)
+        val genre = randomWord()
         val name = randomName()
         val releaseDate = randomLocalDateString()
-        val account = IgdbUserAccount(apiKey = randomString())
+        val account = IgdbUserAccount(apiKey = randomWord())
 
         val baseUrl = randomUrl()
         val baseImageUrl = randomUrl()
@@ -281,7 +281,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun searchResult(name: String = this.name,
                          releaseDate: String = randomLocalDateString(),
                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
-            id = rnd.nextInt(),
+            id = randomInt(),
             name = name,
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -293,9 +293,9 @@ class IgdbProviderTest : ScopedWordSpec() {
 
         fun detailsResult(releaseDate: String = randomLocalDateString(),
                           releaseDatePlatformId: Int = this.platformId) = IgdbClient.DetailsResult(
-            url = randomString(),
+            url = randomWord(),
             name = name,
-            summary = randomSentence(),
+            summary = randomParagraph(),
             releaseDates = listOf(releaseDate(releaseDate, releaseDatePlatformId)),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -312,7 +312,7 @@ class IgdbProviderTest : ScopedWordSpec() {
             human = releaseDate
         )
 
-        fun image(cloudinaryId: String? = randomString()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
+        fun image(cloudinaryId: String? = randomWord()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
             `when`(client.search(name, platform, account)).thenReturn(results)
@@ -331,7 +331,7 @@ class IgdbProviderTest : ScopedWordSpec() {
             endpoint = baseUrl,
             baseImageUrl = baseImageUrl,
             accountUrl = "",
-            maxSearchResults = rnd.nextInt(),
+            maxSearchResults = randomInt(),
             thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
             posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
             screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,

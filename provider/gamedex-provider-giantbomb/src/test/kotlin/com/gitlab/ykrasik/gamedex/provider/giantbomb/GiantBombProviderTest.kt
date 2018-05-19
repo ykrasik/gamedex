@@ -55,7 +55,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
             "be able to return multiple search results" test {
                 val searchResult1 = searchResult(name)
-                val searchResult2 = searchResult("$name ${randomString()}")
+                val searchResult2 = searchResult("$name ${randomWord()}")
                 givenClientSearchReturns(listOf(searchResult1, searchResult2), name)
 
                 search(name) should have2SearchResultsThat { first, second ->
@@ -184,8 +184,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
         val platform = randomEnum<Platform>()
         val name = randomName()
         val apiDetailUrl = randomUrl()
-        val account = GiantBombUserAccount(apiKey = randomString())
-        val noImage = randomString()
+        val account = GiantBombUserAccount(apiKey = randomWord())
+        val noImage = randomWord()
 
         fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
@@ -199,11 +199,11 @@ class GiantBombProviderTest : ScopedWordSpec() {
         fun detailsResult(name: String = this.name) = GiantBombClient.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = name,
-            deck = randomSentence(),
+            deck = randomParagraph(),
             originalReleaseDate = randomLocalDate(),
             image = randomImage(),
             images = listOf(randomImage(), randomImage()),
-            genres = listOf(GiantBombClient.Genre(randomString()))
+            genres = listOf(GiantBombClient.Genre(randomWord()))
         )
 
         fun givenClientSearchReturns(results: List<GiantBombClient.SearchResult>, name: String = this.name) =

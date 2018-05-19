@@ -92,9 +92,9 @@ class GiantBombClientIT : ScopedWordSpec() {
         val baseUrl = "http://localhost:$port/"
         val detailPath = randomPath()
         val detailUrl = "$baseUrl$detailPath"
-        val apiKey = randomString()
+        val apiKey = randomWord()
         val platform = randomEnum<Platform>()
-        val platformId = rnd.nextInt(100)
+        val platformId = randomInt(100)
         val name = randomName()
 
         private fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
@@ -114,7 +114,7 @@ class GiantBombClientIT : ScopedWordSpec() {
             results = listOf(GiantBombClient.DetailsResult(
                 siteDetailUrl = randomUrl(),
                 name = randomName(),
-                deck = randomSentence(),
+                deck = randomParagraph(),
                 originalReleaseDate = randomLocalDate(),
                 image = randomImage(),
                 images = listOf(randomImage(), randomImage()),

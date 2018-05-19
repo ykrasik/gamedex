@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.javafx
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import com.gitlab.ykrasik.gamedex.test.TestImages
 import com.google.inject.AbstractModule
 import com.google.inject.Binding
 import com.google.inject.Key
@@ -67,7 +66,7 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
 
     protected abstract fun init(view: T)
 
-    private fun randomImage(): Image = Image(ByteArrayInputStream(TestImages.randomImage()))
+    private fun randomImage(): Image = Image(ByteArrayInputStream(com.gitlab.ykrasik.gamedex.test.randomImage()))
 
     class TestLauncher : App(TestInitialView::class)
     class TestInitialView : View() {

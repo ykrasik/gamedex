@@ -16,10 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.test
 
+import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.util.now
 import com.gitlab.ykrasik.gamedex.util.toFile
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
+import org.reflections.Reflections
+import org.reflections.scanners.ResourcesScanner
+import java.text.DecimalFormat
 import java.util.*
 
 /**
@@ -27,52 +31,48 @@ import java.util.*
  * Date: 19/03/2017
  * Time: 13:45
  */
+private object TestResources {
+    val words = javaClass.getResource("words.txt").readText().lines()
+
+    /* These images were all taken from [[igdb.com]] */
+    val images = Reflections("com.gitlab.ykrasik.gamedex.test.images", ResourcesScanner())
+        .getResources { true }
+        .map { this::class.java.getResource("/$it") }
+}
+
 val rnd = Random()
+private val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-fun randomString(length: Int = 8, variance: Int = 2): String {
-    val str = StringBuilder()
-    repeat(length.withVariance(variance)) {
-        str.append(chars[rnd.nextInt(chars.length)])
-    }
-    return str.toString()
-}
+/**
+ * [max] is inclusive.
+ */
+fun randomInt(max: Int = Int.MAX_VALUE - 1, min: Int = 0): Int = if (min != max) rnd.nextInt(max + 1 - min) + min else min
 
-fun randomSentence(maxWords: Int = 5, avgWordLength: Int = 8, variance: Int = 2, delimiter: String = " "): String {
-    val str = StringBuilder()
-    repeat(maxOf(rnd.nextInt(maxWords), 3)) {
-        str.append(randomString(avgWordLength, variance))
-        str.append(delimiter)
-    }
-    str.deleteCharAt(str.length - 1)
-    return str.toString()
-}
+inline fun <T> randomList(max: Int = Int.MAX_VALUE - 1, min: Int = 1, f: (Int) -> T): List<T> =
+    List(randomInt(min = min, max = max), f)
 
-fun Int.withVariance(variance: Int): Int =
-    if (variance == 0) {
-        this
-    } else {
-        val multiplier: Int = rnd.nextInt(variance) + 1
-        if (rnd.nextBoolean()) (this * multiplier) else (this / multiplier)
-    }
+fun randomWord() = TestResources.words.randomElement()
+fun randomWords(maxWords: Int = Int.MAX_VALUE - 1, minWords: Int = 1): List<String> =
+    randomList(min = minWords, max = maxWords) { randomWord() }
 
-fun randomPath(): String = randomSentence(maxWords = 7, delimiter = "/")
+fun randomName(maxWords: Int = 6): String = randomWords(maxWords).joinToString(" ") { it.capitalize() }
+
+fun randomParagraph(minWords: Int = 20, maxWords: Int = 100): String =
+    randomWords(minWords = minWords, maxWords = maxWords).joinToString(" ").capitalize()
+
+fun randomPath(maxElements: Int = 4): String = randomWords(maxElements).joinToString("/")
 fun randomFile() = randomPath().toFile()
-fun randomUrl() = "http://${randomSentence(maxWords = 3, delimiter = ".")}/${randomPath()}}"
-fun randomName() = randomSentence(maxWords = 4, avgWordLength = 6, variance = 2)
+fun randomUrl() = "http://${randomWords(minWords = 3, maxWords = 3).joinToString(".")}/${randomPath()}".toLowerCase()
 
-fun randomDateTime(): DateTime = now.plusSeconds((if (rnd.nextBoolean()) 1 else -1) * rnd.nextInt(999999999))
+fun randomDateTime(): DateTime = now.minusSeconds(rnd.nextInt(999999999))
 fun randomLocalDate(): LocalDate = randomDateTime().toLocalDate()
 fun randomLocalDateString(): String = randomLocalDate().toString()
 
+fun randomScore() = Score(score = DecimalFormat("###.##").format(rnd.nextDouble() * 100).toDouble(), numReviews = randomInt(30))
+
 inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 
-fun <T> List<T>.randomElement(): T = this[rnd.nextInt(size)]
-fun <T> List<T>.randomElementExcluding(excluded: T): T {
-    require(this.any { it != excluded })
-    while(true) {
-        val element = this.randomElement()
-        if (element != excluded) return element
-    }
-}
-fun <T> Array<T>.randomElement(): T = this[rnd.nextInt(size)]
+fun randomImage(): ByteArray = TestResources.images.randomElement().readBytes()
+
+fun <T> List<T>.randomElement(): T = this[randomInt(size - 1)]
+fun <T> Array<T>.randomElement(): T = this[randomInt(size - 1)]

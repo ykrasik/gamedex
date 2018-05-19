@@ -94,16 +94,16 @@ class IgdbClientIT : ScopedWordSpec() {
     inner class Scope {
         val baseUrl = "http://localhost:$port"
         val baseImageUrl = "$baseUrl/images"
-        val id = rnd.nextInt()
+        val id = randomInt()
         val detailUrl = "$baseUrl/$id"
-        val apiKey = randomString()
-        val maxSearchResults = rnd.nextInt()
+        val apiKey = randomWord()
+        val maxSearchResults = randomInt()
         val platform = randomEnum<Platform>()
-        val platformId = rnd.nextInt(100)
+        val platformId = randomInt(100)
         val name = randomName()
 
         val searchResult = IgdbClient.SearchResult(
-            id = rnd.nextInt(),
+            id = randomInt(),
             name = randomName(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -114,9 +114,9 @@ class IgdbClientIT : ScopedWordSpec() {
         )
 
         val detailsResult = IgdbClient.DetailsResult(
-            url = randomString(),
+            url = randomWord(),
             name = randomName(),
-            summary = randomSentence(),
+            summary = randomParagraph(),
             releaseDates = listOf(randomReleaseDate()),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
@@ -124,7 +124,7 @@ class IgdbClientIT : ScopedWordSpec() {
             ratingCount = randomScore().numReviews,
             cover = randomImage(),
             screenshots = listOf(randomImage(), randomImage()),
-            genres = listOf(rnd.nextInt(100))
+            genres = listOf(randomInt(100))
         )
 
         private fun randomReleaseDate() = IgdbClient.ReleaseDate(
@@ -133,7 +133,7 @@ class IgdbClientIT : ScopedWordSpec() {
             human = randomLocalDate().toString("YYYY-MMM-dd")
         )
 
-        private fun randomImage() = IgdbClient.Image(cloudinaryId = randomString())
+        private fun randomImage() = IgdbClient.Image(cloudinaryId = randomWord())
 
         val account = IgdbUserAccount(apiKey = apiKey)
 

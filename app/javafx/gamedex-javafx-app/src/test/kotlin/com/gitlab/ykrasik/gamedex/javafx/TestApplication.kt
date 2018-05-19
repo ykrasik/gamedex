@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.ImageUrls
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
@@ -27,6 +24,8 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.toFile
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -51,7 +50,7 @@ object TestApplication {
         System.setProperty("gameDex.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
 
         // Pre-Load test images
-        TestImages
+        randomImage()
 
         giantBombServer.start().use {
             igdbServer.start().use {
@@ -70,9 +69,15 @@ object TestApplication {
         val persistenceService = PersistenceServiceImpl(PersistenceConfig("jdbc:h2:./test", "org.h2.Driver", "sa", ""))
         persistenceService.dropDb()
 
-        val libraries = (1..5).zip(listOf(Platform.pc, Platform.android, Platform.mac, Platform.excluded, Platform.pc)).map { (i, platform) ->
-            val name = "lib$i"
-            persistenceService.insertLibrary(LibraryData(name, randomFile(), platform))
+        val basePath = "E:\\Work\\gamedex"
+        val libraries = listOf(
+            Platform.pc to "app",
+            Platform.android to "build",
+            Platform.mac to "conf",
+            Platform.excluded to "core",
+            Platform.pc to "db"
+        ).map { (platform, name) ->
+            persistenceService.insertLibrary(LibraryData(name, "$basePath\\$name".toFile(), platform))
         }.filter { it.platform != Platform.excluded }
 
         val executor = Executors.newFixedThreadPool(10)
@@ -81,9 +86,14 @@ object TestApplication {
             (0 until numGames).map {
                 async(context) {
                     val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
+                    val path = randomPath(maxElements = 6)
                     persistenceService.insertGame(
-                        metadata = randomMetadata(libraries.randomElement().id),
-                        providerData = List(rnd.nextInt(providerIds.size + 1)) {
+                        metadata = Metadata(
+                            libraryId = libraries.randomElement().id,
+                            path = path,
+                            updateDate = now
+                        ),
+                        providerData = randomList(providerIds.size) {
                             val providerId = providerIds.randomElement()
                             providerIds -= providerId
                             randomProviderData(providerId)
@@ -97,13 +107,26 @@ object TestApplication {
     }
 
     private fun randomProviderData(id: ProviderId) = ProviderData(
-        header = randomProviderHeader(id, apiUrl(id)),
-        gameData = randomGameData(imageUrls(id))
+        header = ProviderHeader(
+            id = id,
+            apiUrl = apiUrl(id),
+            updateDate = now.minusYears(1)
+        ),
+        gameData = GameData(
+            siteUrl = randomUrl(),
+            name = randomName(),
+            description = randomParagraph(),
+            releaseDate = randomLocalDateString(),
+            criticScore = randomScore(),
+            userScore = randomScore(),
+            genres = randomList(4) { "Genre ${randomInt(30)}" },
+            imageUrls = imageUrls(id)
+        )
     )
 
     private fun apiUrl(id: ProviderId) = when (id) {
         giantBombServer.providerId -> giantBombServer.apiDetailsUrl
-        igdbServer.providerId -> igdbServer.detailsUrl(rnd.nextInt())
+        igdbServer.providerId -> igdbServer.detailsUrl(randomInt())
         else -> error("Invalid providerId: $id")
     }
 
@@ -114,22 +137,22 @@ object TestApplication {
     }
 
     private fun randomGiantBombImageUrls() = ImageUrls(
-        thumbnailUrl = "${giantBombServer.thumbnailUrl}/${randomString()}.jpg".sometimesNull(),
-        posterUrl = "${giantBombServer.superUrl}/${randomString()}.jpg".sometimesNull(),
-        screenshotUrls = List(rnd.nextInt(10)) { "${giantBombServer.screenshotUrl}/${randomString()}.jpg" }
+        thumbnailUrl = "${giantBombServer.thumbnailUrl}/${randomWord()}.jpg".sometimesNull(),
+        posterUrl = "${giantBombServer.superUrl}/${randomWord()}.jpg".sometimesNull(),
+        screenshotUrls = randomList(10) { "${giantBombServer.screenshotUrl}/${randomWord()}.jpg" }
     )
 
     private fun randomIgdbImageUrls() = ImageUrls(
-        thumbnailUrl = "${igdbServer.thumbnailUrl}/${randomString()}.png".sometimesNull(),
-        posterUrl = "${igdbServer.posterUrl}/${randomString()}.png".sometimesNull(),
-        screenshotUrls = List(rnd.nextInt(10)) { "${igdbServer.screenshotUrl}/${randomString()}.png" }
+        thumbnailUrl = "${igdbServer.thumbnailUrl}/${randomWord()}.png".sometimesNull(),
+        posterUrl = "${igdbServer.posterUrl}/${randomWord()}.png".sometimesNull(),
+        screenshotUrls = randomList(10) { "${igdbServer.screenshotUrl}/${randomWord()}.png" }
     )
 
     // 9/10 chance.
-    private fun String.sometimesNull() = if (rnd.nextInt(11) < 10) this else null
+    private fun String.sometimesNull() = if (randomInt(10) < 10) this else null
 }
 
 class StubNewDirectoryDetector : NewDirectoryDetector {
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) =
-        List(rnd.nextInt(4)) { randomFile() }
+        randomList(4) { randomFile() }
 }
