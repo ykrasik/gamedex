@@ -20,7 +20,13 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
+import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
+import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsRemovedEvent
+import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsSetEvent
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,9 +38,34 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameDetailsPresenterFactoryImpl @Inject constructor(
+    private val gameService: GameService,
     private val imageRepository: ImageRepository
 ) : GameDetailsPresenterFactory {
-    override fun present(view: GameDetailsView): GameDetailsPresenter = object : GameDetailsPresenter {
+    override fun present(view: GameDetailsView) = object : GameDetailsPresenter {
+        init {
+            gameService.games.changesChannel.subscribe(uiThreadDispatcher) { event ->
+                val game = view.game ?: return@subscribe
+                when (event) {
+                    is ListItemRemovedEvent -> {
+                        if (event.item == game) close()
+                    }
+                    is ListItemsRemovedEvent -> {
+                        if (event.items.contains(game)) close()
+                    }
+                    is ListItemSetEvent -> {
+                        if (event.item.id == game.id) onShow(event.item)
+                    }
+                    is ListItemsSetEvent -> {
+                        val relevantGame = event.items.find { it.id == game.id }
+                        if (relevantGame != null) onShow(relevantGame)
+                    }
+                    else -> {
+                        // ignored
+                    }
+                }
+            }
+        }
+
         override fun onShow(game: Game) {
             view.game = game
             view.displayWebPage(youTubeSearchUrl(game))
@@ -48,5 +79,9 @@ class GameDetailsPresenterFactoryImpl @Inject constructor(
         private fun youTubeSearchUrl(game: Game) =
             "https://www.youtube.com/results?search_query=${URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")}"
 
+        private fun close() {
+            view.requestClose()
+            view.game = null
+        }
     }
 }

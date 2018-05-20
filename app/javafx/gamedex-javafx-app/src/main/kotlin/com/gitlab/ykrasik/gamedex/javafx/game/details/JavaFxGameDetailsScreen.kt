@@ -29,11 +29,11 @@ import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
@@ -73,9 +73,9 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     private val deleteGamePresenter = presenters.deleteGame.present(this)
 
     override fun ToolBar.constructToolbar() {
-        editButton { presentOnAction { editGame(GameDataType.name_) } }
+        editButton { onAction { editGame(GameDataType.name_) } }
         verticalSeparator()
-        tagButton { presentOnAction { tagGame() } }
+        tagButton { onAction { tagGamePresenter.tagGame(game) } }
         verticalSeparator()
 
         spacer()
@@ -85,12 +85,12 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            presentOnAction { rediscoverGame() }
+            onAction { rediscoverGamePresenter.rediscoverGame(game) }
         }
         verticalSeparator()
-        downloadButton("Re-Download") { presentOnAction { redownloadGame() } }
+        downloadButton("Re-Download") { onAction { redownloadGamePresenter.redownloadGame(game) } }
         verticalSeparator()
-        deleteButton("Delete") { presentOnAction { deleteGame() } }
+        deleteButton("Delete") { onAction { deleteGamePresenter.deleteGame(game) } }
         verticalSeparator()
     }
 
@@ -104,9 +104,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
             contextmenu {
                 item("Change", graphic = Theme.Icon.poster(20.0)).action {
-                    present {
-                        editGame(GameDataType.poster)
-                    }
+                    editGame(GameDataType.poster)
                 }
             }
 
@@ -134,8 +132,10 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
             // Top
             stackpane {
                 gameProperty.onChange { game ->
-                    replaceChildren {
-                        children += GameDetailsFragment(game!!, evenIfEmpty = true).root
+                    if (game != null) {
+                        replaceChildren {
+                            children += GameDetailsFragment(game, evenIfEmpty = true).root
+                        }
                     }
                 }
             }
@@ -161,21 +161,10 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 
-    private suspend fun editGame(initialTab: GameDataType) = handleNewGame { editGamePresenter.editGame(game, initialTab) }
-    private suspend fun tagGame() = handleNewGame { tagGamePresenter.tagGame(game) }
-    private suspend fun rediscoverGame() = handleNewGame { rediscoverGamePresenter.rediscoverGame(game) }
-    private suspend fun redownloadGame() = handleNewGame { redownloadGamePresenter.redownloadGame(game) }
-    private suspend fun deleteGame() {
-        if (deleteGamePresenter.deleteGame(game)) {
-            closeRequestedProperty.value = true
-        }
-    }
+    private fun editGame(initialTab: GameDataType) = editGamePresenter.editGame(game, initialTab)
 
-    private inline fun handleNewGame(f: () -> Game?) {
-        val newGame = f()
-        if (newGame != null) {
-            game = newGame
-        }
+    override fun requestClose() {
+        closeRequestedProperty.value = true
     }
 
     companion object {

@@ -62,12 +62,12 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
                 acceptButton {
                     isDefaultButton = true
                     enableWhen { viewModel.valid }
-                    presentOnAction { presenter.onAccept() }
+                    onAction(presenter::onAccept)
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    presentOnAction { presenter.onCancel() }
+                    onAction(presenter::onCancel)
                 }
             }
         }
@@ -88,7 +88,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
             validatorFrom(viewModel, pathValidationErrorProperty)
         }
         jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
-            presentOnAction { presenter.onBrowse() }
+            onAction(presenter::onBrowse)
         }
     }
 
@@ -117,8 +117,8 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 
     private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = presentableProperty({ presenter.onNameChanged(it) }) { SimpleStringProperty("") }
-        val pathProperty = presentableProperty({ presenter.onPathChanged(it) }) { SimpleStringProperty("") }
-        val platformProperty = presentableProperty({ presenter.onPlatformChanged(it) }) { SimpleObjectProperty(Platform.pc) }
+        val nameProperty = presentableProperty(presenter::onNameChanged) { SimpleStringProperty("") }
+        val pathProperty = presentableProperty(presenter::onPathChanged) { SimpleStringProperty("") }
+        val platformProperty = presentableProperty(presenter::onPlatformChanged) { SimpleObjectProperty(Platform.pc) }
     }
 }

@@ -18,10 +18,8 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 
 /**
  * User: ykrasik
@@ -32,14 +30,6 @@ fun launchOnUi(f: suspend () -> Unit) {
     launch(uiThreadDispatcher) {
         f()
     }
-}
-
-suspend fun <T> runOnWorker(f: suspend () -> T): T = withContext(CommonPool) {
-    f()
-}
-
-suspend fun <T> runOnUi(f: suspend () -> T): T = withContext(uiThreadDispatcher) {
-    f()
 }
 
 fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {

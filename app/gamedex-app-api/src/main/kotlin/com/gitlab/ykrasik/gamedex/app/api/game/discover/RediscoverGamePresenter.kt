@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 09:43
  */
 interface RediscoverGamePresenter {
-    suspend fun rediscoverGame(game: Game): Game?
+    fun rediscoverGame(game: Game)
 }
 
 interface ViewCanRediscoverGame

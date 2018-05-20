@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 10:31
  */
 interface RenameMoveGamePresenter {
-    suspend fun renameMove(game: Game, initialName: String? = null): Game?
+    fun renameMove(game: Game, initialName: String? = null)
 }
 
 interface ViewCanRenameMoveGame {

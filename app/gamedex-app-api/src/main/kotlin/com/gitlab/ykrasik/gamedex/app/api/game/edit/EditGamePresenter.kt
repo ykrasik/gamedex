@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 10:01
  */
 interface EditGamePresenter {
-    suspend fun editGame(game: Game, initialTab: GameDataType): Game?
+    fun editGame(game: Game, initialTab: GameDataType)
 }
 
 interface ViewCanEditGame {

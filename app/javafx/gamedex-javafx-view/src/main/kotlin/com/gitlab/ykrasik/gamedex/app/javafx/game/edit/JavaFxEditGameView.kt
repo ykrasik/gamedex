@@ -103,19 +103,19 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    presentOnAction { presenter.onAccept() }
+                    onAction(presenter::onAccept)
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 toolbarButton(graphic = Theme.Icon.clear()) {
                     tooltip("Reset all to default")
-                    presentOnAction { presenter.onClear() }
+                    onAction(presenter::onClear)
                 }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    presentOnAction { presenter.onCancel() }
+                    onAction(presenter::onCancel)
                 }
             }
         }
@@ -278,17 +278,17 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                     acceptButton {
                                         isDefaultButton = true
                                         enableWhen { viewModel.valid }
-                                        setOnAction {
+                                        onAction {
                                             popOver.hide()
-                                            present { presenter.onCustomOverrideValueAccepted(type) }
+                                            presenter.onCustomOverrideValueAccepted(type)
                                             customToggleNode.isSelected = true
                                         }
                                     }
                                     cancelButton {
                                         isCancelButton = true
-                                        setOnAction {
+                                        onAction {
                                             popOver.hide()
-                                            present { presenter.onCustomOverrideValueRejected(type) }
+                                            presenter.onCustomOverrideValueRejected(type)
                                         }
                                     }
                                 }

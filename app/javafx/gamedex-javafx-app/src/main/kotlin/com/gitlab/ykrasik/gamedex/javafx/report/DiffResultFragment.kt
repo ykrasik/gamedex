@@ -53,7 +53,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
 
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
-                presentOnAction { renameMoveGamePresenter.renameMove(game, diff.expectedName) }
+                onAction { renameMoveGamePresenter.renameMove(game, diff.expectedName) }
             }
             // TODO: Add a 'search only this provider' option
         }

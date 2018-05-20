@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.runOnUi
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +39,7 @@ class DeleteGamePresenterFactoryImpl @Inject constructor(
     private val gameService: GameService
 ) : DeleteGamePresenterFactory {
     override fun present(view: ViewCanDeleteGame): DeleteGamePresenter = object : DeleteGamePresenter {
-        override suspend fun deleteGame(game: Game): Boolean = runOnUi {
+        override fun deleteGame(game: Game) = launchOnUi {
             val choice = view.showConfirmDeleteGame(game)
             val (confirm, fromFileSystem) = when (choice) {
                 is DeleteGameChoice.Confirm -> Pair(true, choice.fromFileSystem)
@@ -53,8 +53,6 @@ class DeleteGamePresenterFactoryImpl @Inject constructor(
 
                 taskRunner.runTask(gameService.delete(game))
             }
-
-            confirm
         }
     }
 }

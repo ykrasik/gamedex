@@ -41,6 +41,8 @@ object TestApplication {
     val giantBombServer = GiantBombFakeServer(9001, apiKey = "valid")
     val igdbServer = IgdbFakeServer(9002, apiKey = "valid")
 
+    lateinit var libraries: List<Library>
+
     @JvmStatic
     fun main(args: Array<String>) {
         System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:./test")
@@ -70,7 +72,7 @@ object TestApplication {
         persistenceService.dropDb()
 
         val basePath = "E:\\Work\\gamedex"
-        val libraries = listOf(
+        libraries = listOf(
             Platform.pc to "app",
             Platform.android to "build",
             Platform.mac to "conf",
@@ -86,7 +88,7 @@ object TestApplication {
             (0 until numGames).map {
                 async(context) {
                     val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
-                    val path = randomPath(maxElements = 6)
+                    val path = randomPath(maxElements = 6, minElements = 3)
                     persistenceService.insertGame(
                         metadata = Metadata(
                             libraryId = libraries.randomElement().id,
@@ -154,5 +156,5 @@ object TestApplication {
 
 class StubNewDirectoryDetector : NewDirectoryDetector {
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) =
-        randomList(4) { randomFile() }
+        randomList(4) { TestApplication.libraries.randomElement().path.resolve(randomFile()) }
 }

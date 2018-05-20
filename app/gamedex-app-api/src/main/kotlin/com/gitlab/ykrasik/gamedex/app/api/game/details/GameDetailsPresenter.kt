@@ -32,11 +32,13 @@ interface GameDetailsPresenter {
 
 // TODO: Break this down into viewWithPoster & viewWithWebBrowser?
 interface GameDetailsView {
-    var game: Game
+    var game: Game?
 
     var poster: Deferred<Image>?
 
     fun displayWebPage(url: String)
+
+    fun requestClose()
 }
 
 interface GameDetailsPresenterFactory : PresenterFactory<GameDetailsView, GameDetailsPresenter>

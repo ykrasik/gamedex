@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.runOnUi
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,19 +38,17 @@ class EditGamePresenterFactoryImpl @Inject constructor(
     private val gameService: GameService
 ) : EditGamePresenterFactory {
     override fun present(view: ViewCanEditGame): EditGamePresenter = object : EditGamePresenter {
-        override suspend fun editGame(game: Game, initialTab: GameDataType): Game? = runOnUi {
+        override fun editGame(game: Game, initialTab: GameDataType) = launchOnUi {
             val choice = view.showEditGameView(game, initialTab)
             val overrides = when (choice) {
                 is EditGameDetailsChoice.Override -> choice.overrides
                 EditGameDetailsChoice.Clear -> emptyMap()
-                EditGameDetailsChoice.Cancel -> return@runOnUi null
+                EditGameDetailsChoice.Cancel -> return@launchOnUi
             }
 
             val newRawGame = game.rawGame.withDataOverrides(overrides)
             if (newRawGame.userData != game.rawGame.userData) {
                 taskRunner.runTask(gameService.replace(game, newRawGame))
-            } else {
-                null
             }
         }
 

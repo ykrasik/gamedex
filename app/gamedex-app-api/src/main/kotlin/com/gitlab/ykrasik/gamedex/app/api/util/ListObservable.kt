@@ -61,8 +61,15 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     }
 
     fun removeAt(index: Int) {
-        _list = _list.filterIndexed { i, _ -> i != index }
-        notifyChange(ListItemRemovedEvent(index))
+        var removed: T? = null
+        _list = _list.filterIndexed { i, item ->
+            val keep = i != index
+            if (!keep) {
+                removed = item
+            }
+            keep
+        }
+        notifyChange(ListItemRemovedEvent(index, removed!!))
     }
 
     operator fun minusAssign(items: List<T>) = removeAll(items)
@@ -137,7 +144,7 @@ enum class ListChangeType { Add, Remove, Set }
 sealed class ListChangeEvent<out T>(val type: ListChangeType)
 data class ListItemAddedEvent<out T>(val item: T) : ListChangeEvent<T>(ListChangeType.Add)
 data class ListItemsAddedEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Add)
-data class ListItemRemovedEvent<out T>(val index: Int) : ListChangeEvent<T>(ListChangeType.Remove)
+data class ListItemRemovedEvent<out T>(val index: Int, val item: T) : ListChangeEvent<T>(ListChangeType.Remove)
 data class ListItemsRemovedEvent<out T>(val indices: List<Int>, val items: List<T>) : ListChangeEvent<T>(ListChangeType.Remove)
 data class ListItemSetEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
 data class ListItemsSetEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
@@ -163,7 +170,7 @@ inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = Defa
 inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> =
     subscribeTransform(context) { it.filter(f) }
 
-inline fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
     subscribeTransform(context) { it.distinct() }
 
 inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext, crossinline f: (List<T>) -> List<R>): ListObservable<R> {

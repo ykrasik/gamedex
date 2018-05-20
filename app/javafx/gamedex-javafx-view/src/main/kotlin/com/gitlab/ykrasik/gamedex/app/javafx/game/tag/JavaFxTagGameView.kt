@@ -63,11 +63,11 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         addClass(Style.tagWindow)
         top {
             toolbar {
-                acceptButton { presentOnAction { presenter.onAccept() } }
+                acceptButton { onAction(presenter::onAccept) }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { presentOnAction { presenter.onCancel() } }
+                cancelButton { onAction(presenter::onCancel) }
             }
         }
         center {
@@ -106,7 +106,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         jfxButton(graphic = Theme.Icon.plus(20.0)) {
             disableWhen { nameValidationErrorProperty.isNotNull }
             defaultButtonProperty().bind(newTagName.focusedProperty())
-            presentOnAction { presenter.onAddNewTag() }
+            onAction(presenter::onAddNewTag)
         }
     }
 
@@ -137,7 +137,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     }
 
     private inner class TagViewModel : ViewModel() {
-        val nameProperty = presentableProperty({ presenter.onNewTagNameChanged(it) }, { SimpleStringProperty("") })
+        val nameProperty = presentableProperty(presenter::onNewTagNameChanged) { SimpleStringProperty("") }
     }
 
     class Style : Stylesheet() {

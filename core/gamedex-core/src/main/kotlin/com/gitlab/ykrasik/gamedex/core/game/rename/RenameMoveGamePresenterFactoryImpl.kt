@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFac
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.runOnUi
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
 import kotlinx.coroutines.experimental.CommonPool
@@ -45,9 +45,9 @@ class RenameMoveGamePresenterFactoryImpl @Inject constructor(
     private val log = logger()
 
     override fun present(view: ViewCanRenameMoveGame) = object : RenameMoveGamePresenter {
-        override suspend fun renameMove(game: Game, initialName: String?): Game? = runOnUi {
+        override fun renameMove(game: Game, initialName: String?) = launchOnUi {
             val choice = view.showRenameMoveGameView(game, initialName ?: game.path.name) as? RenameMoveGameChoice.Accept
-                ?: return@runOnUi null
+                ?: return@launchOnUi
 
             withContext(CommonPool) {
                 val (library, path, name) = choice

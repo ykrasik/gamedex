@@ -23,7 +23,6 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 
@@ -43,15 +42,15 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
         }
     }
 
-    inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: suspend (T) -> Unit) = apply {
-        onChange { present { call(it!!) } }
+    inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: (T) -> Unit) = apply {
+        onChange { call(it!!) }
     }
 
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: suspend (T) -> Unit,
+    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (T) -> Unit,
                                                                                         crossinline propertyFactory: () -> O): O =
         bind<O, T, O> { propertyFactory() }.apply {
             onChange {
-                present { call(it!!) }
+                call(it!!)
                 commit()
             }
         }
@@ -63,13 +62,5 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
         }
     }
 
-    fun ButtonBase.presentOnAction(f: suspend () -> Unit) {
-        setOnAction { present(f) }
-    }
-
-    fun present(f: suspend () -> Unit) {
-        launch(JavaFx) {
-            f()
-        }
-    }
+    inline fun ButtonBase.onAction(crossinline f: () -> Unit) = setOnAction { f() }
 }

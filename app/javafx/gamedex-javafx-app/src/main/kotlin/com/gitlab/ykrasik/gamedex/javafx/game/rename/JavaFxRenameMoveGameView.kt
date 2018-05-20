@@ -67,12 +67,12 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                 acceptButton {
                     isDefaultButton = true
                     enableWhen { viewModel.valid }
-                    presentOnAction { presenter.onAccept() }
+                    onAction(presenter::onAccept)
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    presentOnAction { presenter.onCancel() }
+                    onAction(presenter::onCancel)
                 }
             }
         }
@@ -83,7 +83,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                     field("From") {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it?.path?.toString() })
-                            presentOnAction { presenter.onBrowseToGame() }
+                            onAction(presenter::onBrowseToGame)
                         }
                     }
                     separator()
@@ -105,7 +105,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                                 gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
                                 textProperty().bind(viewModel.pathProperty.map { if (it!!.isEmpty()) File.separator else it })
-                                presentOnAction { presenter.onBrowsePath() }
+                                onAction(presenter::onBrowsePath)
                             }
 
                             verticalSeparator { gridpaneConstraints { columnRowIndex(3, 0); rowSpan = 2 } }
@@ -138,8 +138,8 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     override fun browseTo(dir: File) = browse(dir)
 
     private inner class RenameFolderViewModel : ViewModel() {
-        val libraryProperty = presentableProperty({ presenter.onLibraryChanged(it) }) { SimpleObjectProperty<Library>() }
-        val pathProperty = presentableProperty({ presenter.onPathChanged(it) }) { SimpleStringProperty("") }
-        val nameProperty = presentableProperty({ presenter.onNameChanged(it) }) { SimpleStringProperty("") }
+        val libraryProperty = presentableProperty(presenter::onLibraryChanged) { SimpleObjectProperty<Library>() }
+        val pathProperty = presentableProperty(presenter::onPathChanged) { SimpleStringProperty("") }
+        val nameProperty = presentableProperty(presenter::onNameChanged) { SimpleStringProperty("") }
     }
 }

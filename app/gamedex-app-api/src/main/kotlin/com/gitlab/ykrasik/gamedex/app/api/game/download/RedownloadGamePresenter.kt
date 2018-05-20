@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 14:23
  */
 interface RedownloadGamePresenter {
-    suspend fun redownloadGame(game: Game): Game
+    fun redownloadGame(game: Game)
 }
 
 interface ViewCanRedownloadGame

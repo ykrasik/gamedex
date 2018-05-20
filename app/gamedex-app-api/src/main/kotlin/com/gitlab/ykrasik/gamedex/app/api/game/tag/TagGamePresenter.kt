@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 22:02
  */
 interface TagGamePresenter {
-    suspend fun tagGame(game: Game): Game?
+    fun tagGame(game: Game)
 }
 
 interface ViewCanTagGame {

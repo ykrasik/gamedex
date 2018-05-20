@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.RediscoverGamePresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.RediscoverGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.runOnUi
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +36,7 @@ class RediscoverGamePresenterFactoryImpl @Inject constructor(
     private val taskRunner: TaskRunner
 ) : RediscoverGamePresenterFactory {
     override fun present(view: ViewCanRediscoverGame): RediscoverGamePresenter = object : RediscoverGamePresenter {
-        override suspend fun rediscoverGame(game: Game): Game? = runOnUi {
+        override fun rediscoverGame(game: Game) = launchOnUi {
             taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
         }
     }

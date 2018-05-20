@@ -54,18 +54,18 @@ class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd
     }
 
     override fun ToolBar.constructToolbar() {
-        addButton { setOnAction { addLibrary() } }
+        addButton { onAction(::addLibrary) }
         verticalSeparator()
         editButton {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            setOnAction { editLibrary() }
+            onAction(::editLibrary)
         }
         verticalSeparator()
         spacer()
         verticalSeparator()
         deleteButton("Delete") {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            setOnAction { deleteLibrary() }
+            onAction(::deleteLibrary)
         }
     }
 
@@ -88,15 +88,15 @@ class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd
         }
 
         contextmenu {
-            item("Add", graphic = Theme.Icon.plus(20.0)).action { addLibrary() }
+            item("Add", graphic = Theme.Icon.plus(20.0)).action(::addLibrary)
             separator()
             item("Edit", graphic = Theme.Icon.edit(20.0)) {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }.action { editLibrary() }
+            }.action(::editLibrary)
             separator()
             item("Delete", graphic = Theme.Icon.delete(20.0)) {
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }.action { deleteLibrary() }
+            }.action(::deleteLibrary)
         }
 
         onDoubleClick { editLibrary() }
@@ -116,9 +116,9 @@ class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd
             }
         }
 
-    private fun addLibrary() = present { addLibraryPresenter.addLibrary() }
-    private fun editLibrary() = present { editLibraryPresenter.editLibrary(selectedLibrary) }
-    private fun deleteLibrary() = present { deleteLibraryPresenter.deleteLibrary(selectedLibrary) }
+    private fun addLibrary() = addLibraryPresenter.addLibrary()
+    private fun editLibrary() = editLibraryPresenter.editLibrary(selectedLibrary)
+    private fun deleteLibrary() = deleteLibraryPresenter.deleteLibrary(selectedLibrary)
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

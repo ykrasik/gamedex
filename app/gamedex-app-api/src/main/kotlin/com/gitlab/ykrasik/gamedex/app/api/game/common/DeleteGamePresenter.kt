@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
  * Time: 10:42
  */
 interface DeleteGamePresenter {
-    suspend fun deleteGame(game: Game): Boolean
+    fun deleteGame(game: Game)
 }
 
 interface ViewCanDeleteGame {

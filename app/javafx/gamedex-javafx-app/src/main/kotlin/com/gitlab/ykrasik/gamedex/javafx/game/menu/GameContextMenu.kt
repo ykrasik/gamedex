@@ -70,30 +70,30 @@ class GameContextMenu : PresentableView(),
         val size = 20.0
         item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        item("Edit", Theme.Icon.edit(size)) { presentOnAction { editGamePresenter.editGame(game, initialTab = GameDataType.name_) } }
+        item("Edit", Theme.Icon.edit(size)) { onAction { editGamePresenter.editGame(game, initialTab = GameDataType.name_) } }
         item("Change Thumbnail", Theme.Icon.thumbnail(size)) { 
-            presentOnAction { editGamePresenter.editGame(game, initialTab = GameDataType.thumbnail) }
+            onAction { editGamePresenter.editGame(game, initialTab = GameDataType.thumbnail) }
         }
         separator()
-        item("Tag", Theme.Icon.tag(size)) { presentOnAction { tagGamePresenter.tagGame(game) } }
+        item("Tag", Theme.Icon.tag(size)) { onAction { tagGamePresenter.tagGame(game) } }
         separator()
         item("Re-Download", Theme.Icon.download(size)) {
             enableWhen { enabledProperty }
-            presentOnAction { redownloadPresenter.redownloadGame(game) }
+            onAction { redownloadPresenter.redownloadGame(game) }
         }
         item("Re-Discover", Theme.Icon.search(size)) {
             enableWhen { enabledProperty }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            presentOnAction { rediscoverPresenter.rediscoverGame(game) }
+            onAction { rediscoverPresenter.rediscoverGame(game) }
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
-            presentOnAction { renameMoveGamePresenter.renameMove(game) }
+            onAction { renameMoveGamePresenter.renameMove(game) }
         }
         separator()
-        item("Delete", Theme.Icon.delete(size)) { presentOnAction { deleteGamePresenter.deleteGame(game) } }
+        item("Delete", Theme.Icon.delete(size)) { onAction { deleteGamePresenter.deleteGame(game) } }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {

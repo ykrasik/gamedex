@@ -54,7 +54,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction { exportDatabasePresenter.exportDatabase() }
+                    onAction(exportDatabasePresenter::exportDatabase)
                 }
             }
             row {
@@ -62,7 +62,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction { importDatabasePresenter.importDatabase() }
+                    onAction(importDatabasePresenter::importDatabase)
                 }
             }
             row {
@@ -74,7 +74,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    presentOnAction { clearUserDataPresenter.clearUserData() }
+                    onAction(clearUserDataPresenter::clearUserData)
                 }
             }
             row {
@@ -82,7 +82,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    presentOnAction { cleanupDbPresenter.cleanupDb() }
+                    onAction(cleanupDbPresenter::cleanupDb)
                 }
             }
         }

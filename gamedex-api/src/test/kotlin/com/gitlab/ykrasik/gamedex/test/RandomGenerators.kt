@@ -60,7 +60,7 @@ fun randomName(maxWords: Int = 6): String = randomWords(maxWords).joinToString("
 fun randomParagraph(minWords: Int = 20, maxWords: Int = 100): String =
     randomWords(minWords = minWords, maxWords = maxWords).joinToString(" ").capitalize()
 
-fun randomPath(maxElements: Int = 4): String = randomWords(maxElements).joinToString("/")
+fun randomPath(maxElements: Int = 4, minElements: Int = 1): String = randomWords(minWords = minElements, maxWords = maxElements).joinToString("/")
 fun randomFile() = randomPath().toFile()
 fun randomUrl() = "http://${randomWords(minWords = 3, maxWords = 3).joinToString(".")}/${randomPath()}".toLowerCase()
 

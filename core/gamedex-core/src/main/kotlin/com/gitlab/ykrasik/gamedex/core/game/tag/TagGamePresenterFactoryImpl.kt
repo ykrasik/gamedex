@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.runOnUi
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,18 +40,16 @@ class TagGamePresenterFactoryImpl @Inject constructor(
     private val gameService: GameService
 ) : TagGamePresenterFactory {
     override fun present(view: ViewCanTagGame): TagGamePresenter = object : TagGamePresenter {
-        override suspend fun tagGame(game: Game): Game? = runOnUi {
+        override fun tagGame(game: Game) = launchOnUi {
             val choice = view.showTagGameView(game)
             val tags = when (choice) {
                 is TagGameChoice.Select -> choice.tags
-                is TagGameChoice.Cancel -> return@runOnUi null
+                is TagGameChoice.Cancel -> return@launchOnUi
             }
 
             val newRawGame = game.rawGame.withTags(tags)
             if (newRawGame.userData != game.rawGame.userData) {
                 taskRunner.runTask(gameService.replace(game, newRawGame))
-            } else {
-                null
             }
         }
     }

@@ -52,7 +52,7 @@ class JavaFxGameDiscoveryView : PresentableView(), ViewCanDiscoverNewGames, View
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Search all libraries for new games")
-                presentOnAction { discoverNewGamesPresenter.discoverNewGames() }
+                onAction(discoverNewGamesPresenter::discoverNewGames)
             }
             separator()
             // TODO: Why did I put this here? What's the relation between refreshLibrary & this?
@@ -60,7 +60,7 @@ class JavaFxGameDiscoveryView : PresentableView(), ViewCanDiscoverNewGames, View
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Re-Discover all games that don't yet have all available providers")
-                presentOnAction { discoverGamesWithoutProvidersPresenter.discoverGamesWithoutProviders() }
+                onAction(discoverGamesWithoutProvidersPresenter::discoverGamesWithoutProviders)
             }
         }
         setOnAction {

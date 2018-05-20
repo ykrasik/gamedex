@@ -65,9 +65,7 @@ class JavaFxGameDownloadView : PresentableView(), ViewWithDownloadStaleDuration,
             tooltip("Re-Download all games that were last downloaded before the stale duration")
             setOnAction {
                 popover.hide()
-                present {
-                    redownloadAllStaleGames.redownloadAllStaleGames()
-                }
+                redownloadAllStaleGames.redownloadAllStaleGames()
             }
         }
     }.apply {
@@ -75,6 +73,6 @@ class JavaFxGameDownloadView : PresentableView(), ViewWithDownloadStaleDuration,
     }
 
     private inner class PeriodViewModel : ViewModel() {
-        val stalePeriodTextProperty = presentableProperty({ stalePeriodPresenter.onStalePeriodTextChanged(it) }, { SimpleStringProperty("") })
+        val stalePeriodTextProperty = presentableProperty(stalePeriodPresenter::onStalePeriodTextChanged) { SimpleStringProperty("") }
     }
 }
