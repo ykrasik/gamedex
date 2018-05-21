@@ -25,11 +25,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWith
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
@@ -47,12 +45,10 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
-    GameDetailsView, ViewCanEditGame, ViewCanDeleteGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
+    GameDetailsView, ViewCanDeleteGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
     ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val viewManager: ViewManager by di()
     private val imageLoader: ImageLoader by di()
-
-    private val editGameView: JavaFxEditGameView by inject()
 
     private val browser = YouTubeWebBrowser()
 
@@ -65,7 +61,6 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     override val useDefaultNavigationButton = false
 
     private val gameDetailsPresenter = presenters.gameDetails.present(this)
-    private val editGamePresenter = presenters.editGame.present(this)
     private val rediscoverGamePresenter = presenters.rediscoverGame.present(this)
     private val redownloadGamePresenter = presenters.redownloadGame.present(this)
     private val deleteGamePresenter = presenters.deleteGame.present(this)
@@ -153,11 +148,9 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
     override fun displayWebPage(url: String) = browser.load(url)
 
-    override fun showEditGameView(game: Game, initialTab: GameDataType) = editGameView.show(game, initialTab)
-
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 
-    private fun editGame(initialTab: GameDataType) = editGamePresenter.editGame(game, initialTab)
+    private fun editGame(initialTab: GameDataType) = viewManager.showEditGameView(game, initialTab)
 
     override fun requestClose() {
         closeRequestedProperty.value = true

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
 
 /**
  * User: ykrasik
@@ -24,5 +25,6 @@ import com.gitlab.ykrasik.gamedex.Game
  * Time: 10:29
  */
 interface ViewManager {
+    fun showEditGameView(game: Game, initialScreen: GameDataType)
     fun showTagGameView(game: Game)
 }

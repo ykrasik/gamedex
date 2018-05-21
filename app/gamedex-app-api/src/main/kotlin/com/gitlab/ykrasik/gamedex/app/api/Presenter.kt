@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDuratio
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
@@ -60,7 +59,6 @@ data class Presenters @Inject constructor(
     val editLibraryView: EditLibraryViewPresenterFactory,
 
     val editGame: EditGamePresenterFactory,
-    val editGameView: EditGameViewPresenterFactory,
     val deleteGame: DeleteGamePresenterFactory,
     val renameMoveGame: RenameMoveGamePresenterFactory,
     val renameMoveGameView: RenameMoveGameViewPresenterFactory,

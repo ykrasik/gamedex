@@ -19,25 +19,55 @@ package com.gitlab.ykrasik.gamedex.app.api.game.edit
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataOverride
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.experimental.Deferred
 
 /**
  * User: ykrasik
- * Date: 02/05/2018
- * Time: 10:01
+ * Date: 10/05/2018
+ * Time: 08:08
  */
 interface EditGamePresenter {
-    fun editGame(game: Game, initialTab: GameDataType)
+    fun onShown(game: Game, initialScreen: GameDataType)
+
+    fun fetchImage(url: String): Deferred<Image>
+    fun providerLogo(providerId: ProviderId): Image
+
+    fun onProviderOverrideSelected(type: GameDataType, providerId: ProviderId, selected: Boolean)
+    fun onCustomOverrideSelected(type: GameDataType, selected: Boolean)
+    fun onClearOverrideSelected(type: GameDataType, selected: Boolean)
+    fun onCustomOverrideValueChanged(type: GameDataType, rawValue: String)
+    fun onCustomOverrideValueAccepted(type: GameDataType)
+    fun onCustomOverrideValueRejected(type: GameDataType)
+
+    fun onAccept()
+    fun onClear()
+    fun onCancel()
 }
 
-interface ViewCanEditGame {
-    fun showEditGameView(game: Game, initialTab: GameDataType): EditGameDetailsChoice
+interface EditGameView {
+    var game: Game
+    var initialScreen: GameDataType
+
+    var nameOverride: GameDataOverrideViewModel<String>
+    var descriptionOverride: GameDataOverrideViewModel<String>
+    var releaseDateOverride: GameDataOverrideViewModel<String>
+    var criticScoreOverride: GameDataOverrideViewModel<Score>
+    var userScoreOverride: GameDataOverrideViewModel<Score>
+    var thumbnailUrlOverride: GameDataOverrideViewModel<String>
+    var posterUrlOverride: GameDataOverrideViewModel<String>
+
+    fun closeView()
 }
 
-sealed class EditGameDetailsChoice {
-    data class Override(val overrides: Map<GameDataType, GameDataOverride>) : EditGameDetailsChoice()
-    object Cancel : EditGameDetailsChoice()
-    object Clear : EditGameDetailsChoice()
-}
+data class GameDataOverrideViewModel<T>(
+    val override: GameDataOverride? = null,
+    val rawCustomValue: String = "",
+    val customValue: T? = null,
+    val customValueValidationError: String? = null
+)
 
-interface EditGamePresenterFactory : PresenterFactory<ViewCanEditGame, EditGamePresenter>
+interface EditGamePresenterFactory : PresenterFactory<EditGameView, EditGamePresenter>

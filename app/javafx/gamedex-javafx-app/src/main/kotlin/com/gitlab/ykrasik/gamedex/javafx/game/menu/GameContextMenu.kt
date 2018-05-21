@@ -22,11 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
@@ -48,10 +46,9 @@ import tornadofx.vbox
  * Time: 21:20
  */
 class GameContextMenu : PresentableView(),
-    ViewCanDeleteGame, ViewCanRedownloadGame, ViewCanRediscoverGame, ViewCanEditGame, ViewCanRenameMoveGame {
+    ViewCanDeleteGame, ViewCanRedownloadGame, ViewCanRediscoverGame, ViewCanRenameMoveGame {
     private val viewManager: ViewManager by di()
 
-    private val editGameView: JavaFxEditGameView by inject()
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
 
     private val controller: GameController by di()
@@ -59,7 +56,6 @@ class GameContextMenu : PresentableView(),
     private val deleteGamePresenter = presenters.deleteGame.present(this)
     private val redownloadPresenter = presenters.redownloadGame.present(this)
     private val rediscoverPresenter = presenters.rediscoverGame.present(this)
-    private val editGamePresenter = presenters.editGame.present(this)
     private val renameMoveGamePresenter = presenters.renameMoveGame.present(this)
 
     private lateinit var game: Game
@@ -69,10 +65,8 @@ class GameContextMenu : PresentableView(),
         val size = 20.0
         item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        item("Edit", Theme.Icon.edit(size)) { onAction { editGamePresenter.editGame(game, initialTab = GameDataType.name_) } }
-        item("Change Thumbnail", Theme.Icon.thumbnail(size)) {
-            onAction { editGamePresenter.editGame(game, initialTab = GameDataType.thumbnail) }
-        }
+        item("Edit", Theme.Icon.edit(size)) { onAction { editGame(GameDataType.name_) } }
+        item("Change Thumbnail", Theme.Icon.thumbnail(size)) { onAction { editGame(GameDataType.thumbnail) } }
         separator()
         item("Tag", Theme.Icon.tag(size)) { onAction { viewManager.showTagGameView(game) } }
         separator()
@@ -110,7 +104,8 @@ class GameContextMenu : PresentableView(),
         }
     }
 
+    private fun editGame(initialScreen: GameDataType) = viewManager.showEditGameView(game, initialScreen)
+
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
-    override fun showEditGameView(game: Game, initialTab: GameDataType) = editGameView.show(game, initialTab)
     override fun showRenameMoveGameView(game: Game, initialName: String) = renameMoveGameView.show(game, initialName)
 }

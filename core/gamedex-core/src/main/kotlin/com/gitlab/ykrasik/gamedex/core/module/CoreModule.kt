@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.download.GameDownloadStaleDuratio
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadAllStaleGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
@@ -58,7 +57,6 @@ import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPr
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactoryImpl
-import com.gitlab.ykrasik.gamedex.core.game.edit.EditGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactoryImpl
@@ -98,7 +96,6 @@ object CoreModule : AbstractModule() {
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(EditGamePresenterFactory::class.java).to(EditGamePresenterFactoryImpl::class.java)
-        bind(EditGameViewPresenterFactory::class.java).to(EditGameViewPresenterFactoryImpl::class.java)
 
         bind(DeleteGamePresenterFactory::class.java).to(DeleteGamePresenterFactoryImpl::class.java)
 

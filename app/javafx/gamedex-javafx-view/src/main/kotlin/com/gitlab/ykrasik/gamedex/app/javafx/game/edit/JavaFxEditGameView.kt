@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameDetailsChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.GameDataOverrideViewModel
 import com.gitlab.ykrasik.gamedex.app.api.presenters
@@ -53,7 +52,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
-    override var initialTab: GameDataType = GameDataType.name_
+    override var initialScreen: GameDataType = GameDataType.name_
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     private val nameOverrideProperty = overrideProperty<String>()
@@ -80,9 +79,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
     private fun <T> overrideProperty() =
         SimpleObjectProperty<GameDataOverrideViewModel<T>>(GameDataOverrideViewModel())
 
-    private val presenter = presenters.editGameView.present(this)
-
-    private var choice: EditGameDetailsChoice = EditGameDetailsChoice.Cancel
+    private val presenter = presenters.editGame.present(this)
 
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()
@@ -198,7 +195,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             useMaxWidth = true
             tabPane.tab(type.displayName) {
                 this@jfxToggleNode.userData = this
-                if (type == initialTab) {
+                if (type == initialScreen) {
                     this@jfxToggleNode.isSelected = true
                 }
 
@@ -333,17 +330,13 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
         imageProperty().bind(imageLoader.loadImage(presenter.fetchImage(url)))
     }
 
-    fun show(game: Game, initialTab: GameDataType): EditGameDetailsChoice {
+    fun show(game: Game, initialScreen: GameDataType) {
         // TODO: Select initial selection.
-        presenter.onShown(game, initialTab)
+        presenter.onShown(game, initialScreen)
         openWindow(block = true)
-        return choice
     }
 
-    override fun close(choice: EditGameDetailsChoice) {
-        this.choice = choice
-        close()
-    }
+    override fun closeView() = close()
 
     private fun logo(id: ProviderId) = (presenter.providerLogo(id) as JavaFxImage).image
 

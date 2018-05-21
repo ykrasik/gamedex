@@ -43,7 +43,6 @@ class LibraryController @Inject constructor(
 ) : Controller() {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    val allLibraries = libraryService.libraries.toObservableList()
     val realLibraries = libraryService.realLibraries.toObservableList()
     val platformLibraries = realLibraries.sortedFiltered().apply {
         predicateProperty.bind(gameUserConfig.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
