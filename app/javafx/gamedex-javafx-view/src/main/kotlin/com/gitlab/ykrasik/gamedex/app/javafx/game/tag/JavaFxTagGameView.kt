@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -50,9 +49,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    private val presenter = presenters.tagGameView.present(this)
-
-    private var choice: TagGameChoice = TagGameChoice.Cancel
+    private val presenter = presenters.tagGame.present(this)
 
     init {
         checkedTags.onChange { tags.invalidate() }
@@ -89,7 +86,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
 
     private fun EventTarget.toggleAllButton() = jfxToggleButton(toggleAllProperty, "Toggle All") {
         tooltip("Toggle all")
-        selectedProperty().presentOnChange { presenter.onToggleAllChanged(it) }
+        selectedProperty().presentOnChange(presenter::onToggleAllChanged)
     }
 
     private fun EventTarget.addTagButton() {
@@ -125,16 +122,12 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         }
     }
 
-    fun show(game: Game): TagGameChoice {
+    fun show(game: Game) {
         presenter.onShown(game)
         openWindow(block = true)
-        return choice
     }
 
-    override fun close(choice: TagGameChoice) {
-        this.choice = choice
-        close()
-    }
+    override fun closeView() = close()
 
     private inner class TagViewModel : ViewModel() {
         val nameProperty = presentableProperty(presenter::onNewTagNameChanged) { SimpleStringProperty("") }

@@ -19,10 +19,9 @@ package com.gitlab.ykrasik.gamedex.core.game.tag
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenter
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
+import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.launchOnUi
@@ -31,35 +30,87 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/05/2018
- * Time: 22:03
+ * Date: 06/05/2018
+ * Time: 18:25
  */
 @Singleton
 class TagGamePresenterFactoryImpl @Inject constructor(
-    private val taskRunner: TaskRunner,
-    private val gameService: GameService
+    private val gameService: GameService,
+    private val taskRunner: TaskRunner
 ) : TagGamePresenterFactory {
-    override fun present(view: ViewCanTagGame): TagGamePresenter = object : TagGamePresenter {
-        override fun tagGame(game: Game) = launchOnUi {
-            val choice = view.showTagGameView(game)
-            val tags = when (choice) {
-                is TagGameChoice.Select -> choice.tags
-                is TagGameChoice.Cancel -> return@launchOnUi
-            }
+    override fun present(view: TagGameView): TagGamePresenter = object : TagGamePresenter {
+        private var ignoreNextUntoggleAll = false
 
-            val newRawGame = game.rawGame.withTags(tags)
-            if (newRawGame.userData != game.rawGame.userData) {
-                taskRunner.runTask(gameService.replace(game, newRawGame))
+        override fun onShown(game: Game) {
+            view.game = game
+            view.tags.clear()
+            view.tags.addAll(gameService.tags)
+            view.checkedTags.clear()
+            view.checkedTags.addAll(game.tags)
+            view.toggleAll = view.tags.toSet() == game.tags.toSet()
+            view.nameValidationError = null
+        }
+
+        override fun onToggleAllChanged(toggleAll: Boolean) {
+            if (toggleAll) {
+                view.checkedTags.addAll(view.tags)
+            } else {
+                if (!ignoreNextUntoggleAll) {
+                    view.checkedTags.clear()
+                }
+                ignoreNextUntoggleAll = false
             }
         }
-    }
 
-    private fun RawGame.withTags(tags: List<String>): RawGame {
-        // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
-        // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-        if (tags == userData?.tags ?: emptyList<String>()) return this
+        override fun onTagToggleChanged(tag: String, toggle: Boolean) {
+            if (toggle) {
+                ignoreNextUntoggleAll = false
+                view.checkedTags += tag
+                if (view.checkedTags == view.tags.toSet()) {
+                    view.toggleAll = true
+                }
+            } else {
+                ignoreNextUntoggleAll = true
+                view.checkedTags -= tag
+                view.toggleAll = false
+            }
+        }
 
-        val userData = this.userData ?: UserData()
-        return copy(userData = userData.copy(tags = tags))
+        override fun onNewTagNameChanged(name: String) {
+            view.nameValidationError = when {
+                name.isEmpty() -> ""
+                view.tags.contains(name) -> "Tag already exists!"
+                else -> null
+            }
+        }
+
+        override fun onAddNewTag() {
+            view.tags += view.newTagName
+            view.checkedTags += view.newTagName
+            view.newTagName = ""
+        }
+
+        override fun onAccept() = launchOnUi {
+            val newRawGame = view.game.rawGame.withTags(view.checkedTags)
+            if (newRawGame.userData != view.game.rawGame.userData) {
+                taskRunner.runTask(gameService.replace(view.game, newRawGame))
+            }
+            view.closeView()
+        }
+
+        private fun RawGame.withTags(tags: Collection<String>): RawGame {
+            // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
+            // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
+            val newTags = tags.toList().sorted()
+            if (newTags == userData?.tags ?: emptyList<String>()) return this
+
+            val userData = this.userData ?: UserData()
+            return copy(userData = userData.copy(tags = newTags))
+        }
+
+        override fun onCancel() {
+            view.closeView()
+        }
+
     }
 }

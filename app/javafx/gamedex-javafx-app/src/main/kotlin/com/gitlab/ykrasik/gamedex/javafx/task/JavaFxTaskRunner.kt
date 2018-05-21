@@ -117,8 +117,6 @@ class JavaFxTaskRunner : TaskRunner {
         return notificationPane
     }
 
-    val canRunTaskProperty = notificationPane.showingProperty().not()
-
     override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
         require(currentJob == null) { "Already running a job: $currentJob" }
 

@@ -30,8 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameViewPresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabasePresenterFactory
@@ -74,8 +72,6 @@ data class Presenters @Inject constructor(
     val redownloadGame: RedownloadGamePresenterFactory,
 
     val tagGame: TagGamePresenterFactory,
-    val tags: TagsPresenterFactory,
-    val tagGameView: TagGameViewPresenterFactory,
 
     val gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
     val redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,

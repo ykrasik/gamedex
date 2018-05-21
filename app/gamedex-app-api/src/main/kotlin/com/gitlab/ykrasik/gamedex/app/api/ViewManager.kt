@@ -14,19 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.tag
+package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import com.gitlab.ykrasik.gamedex.Game
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 18:04
+ * Date: 21/05/2018
+ * Time: 10:29
  */
-interface TagsPresenter
-
-interface ViewWithTags {
-    val tags: MutableList<String>
+interface ViewManager {
+    fun showTagGameView(game: Game)
 }
-
-interface TagsPresenterFactory : PresenterFactory<ViewWithTags, TagsPresenter>

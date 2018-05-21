@@ -14,41 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game.tag
+package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
+import tornadofx.View
+import tornadofx.vbox
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 18:10
+ * Date: 21/05/2018
+ * Time: 10:37
  */
-interface TagGameViewPresenter {
-    fun onShown(game: Game)
+class JavaFxViewManager : View(), ViewManager {
+    override val root = vbox()  // Unused.
 
-    fun onAccept()
-    fun onCancel()
+    private val tagGameView: JavaFxTagGameView by inject()
 
-    fun onToggleAllChanged(toggleAll: Boolean)
-    fun onTagToggleChanged(tag: String, toggle: Boolean)
-
-    fun onNewTagNameChanged(name: String)
-    fun onAddNewTag()
+    override fun showTagGameView(game: Game) = tagGameView.show(game)
 }
-
-interface TagGameView {
-    var game: Game
-
-    val tags: MutableList<String>
-    val checkedTags: MutableSet<String>
-
-    var toggleAll: Boolean
-
-    var newTagName: String
-    var nameValidationError: String?
-
-    fun close(choice: TagGameChoice)
-}
-
-interface TagGameViewPresenterFactory : PresenterFactory<TagGameView, TagGameViewPresenter>

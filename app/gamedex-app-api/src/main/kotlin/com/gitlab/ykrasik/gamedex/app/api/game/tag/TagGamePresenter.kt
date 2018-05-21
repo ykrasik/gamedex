@@ -21,20 +21,34 @@ import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
- * Date: 02/05/2018
- * Time: 22:02
+ * Date: 06/05/2018
+ * Time: 18:10
  */
 interface TagGamePresenter {
-    fun tagGame(game: Game)
+    fun onShown(game: Game)
+
+    fun onToggleAllChanged(toggleAll: Boolean)
+    fun onTagToggleChanged(tag: String, toggle: Boolean)
+
+    fun onNewTagNameChanged(name: String)
+    fun onAddNewTag()
+
+    fun onAccept()
+    fun onCancel()
 }
 
-interface ViewCanTagGame {
-    fun showTagGameView(game: Game): TagGameChoice
+interface TagGameView {
+    var game: Game
+
+    val tags: MutableList<String>
+    val checkedTags: MutableSet<String>
+
+    var toggleAll: Boolean
+
+    var newTagName: String
+    var nameValidationError: String?
+
+    fun closeView()
 }
 
-sealed class TagGameChoice {
-    data class Select(val tags: List<String>) : TagGameChoice()
-    object Cancel : TagGameChoice()
-}
-
-interface TagGamePresenterFactory : PresenterFactory<ViewCanTagGame, TagGamePresenter>
+interface TagGamePresenterFactory : PresenterFactory<TagGameView, TagGamePresenter>

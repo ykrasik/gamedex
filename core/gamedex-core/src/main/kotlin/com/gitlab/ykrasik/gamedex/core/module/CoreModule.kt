@@ -30,8 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameViewPresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabasePresenterFactory
@@ -64,8 +62,6 @@ import com.gitlab.ykrasik.gamedex.core.game.edit.EditGameViewPresenterFactoryImp
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGameViewPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactoryImpl
-import com.gitlab.ykrasik.gamedex.core.game.tag.TagGameViewPresenterFactoryImpl
-import com.gitlab.ykrasik.gamedex.core.game.tag.TagsPresenterFactoryImpl
 import com.gitlab.ykrasik.gamedex.core.general.*
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
@@ -107,8 +103,6 @@ object CoreModule : AbstractModule() {
         bind(DeleteGamePresenterFactory::class.java).to(DeleteGamePresenterFactoryImpl::class.java)
 
         bind(TagGamePresenterFactory::class.java).to(TagGamePresenterFactoryImpl::class.java)
-        bind(TagsPresenterFactory::class.java).to(TagsPresenterFactoryImpl::class.java)
-        bind(TagGameViewPresenterFactory::class.java).to(TagGameViewPresenterFactoryImpl::class.java)
 
         bind(RenameMoveGamePresenterFactory::class.java).to(RenameMoveGamePresenterFactoryImpl::class.java)
         bind(RenameMoveGameViewPresenterFactory::class.java).to(RenameMoveGameViewPresenterFactoryImpl::class.java)

@@ -38,7 +38,7 @@ private class JavaFxDiscoverGameChoiceConfigView : PresentableView(), ViewCanCha
     private val presenter = presenters.discoverGameChooseResults.present(this)
 
     init {
-        discoverGameChooseResultsProperty.presentOnChange { presenter.onDiscoverGameChoiceChanged(it) }
+        discoverGameChooseResultsProperty.presentOnChange(presenter::onDiscoverGameChoiceChanged)
     }
 
     override val root = vbox(spacing = 5.0) {

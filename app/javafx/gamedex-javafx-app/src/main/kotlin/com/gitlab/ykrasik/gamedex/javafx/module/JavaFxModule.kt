@@ -16,14 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.module
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallUserConfig
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.google.inject.AbstractModule
@@ -36,14 +36,10 @@ import com.google.inject.multibindings.Multibinder
  */
 object JavaFxModule : AbstractModule() {
     override fun configure() {
+        bind(ViewManager::class.java).to(JavaFxViewManager::class.java)
         bind(TaskRunner::class.java).to(JavaFxTaskRunner::class.java)
         bind(SearchChooser::class.java).to(JavaFxSearchChooser::class.java)
         bind(ImageFactory::class.java).toInstance(JavaFxImageFactory)
-
-        // Instruct Guice to eagerly create these classes
-        // (during preloading, to avoid the JavaFx thread from lazily creating them on first access)
-        bind(ImageLoader::class.java)
-        bind(GameController::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(GameWallUserConfig::class.java)

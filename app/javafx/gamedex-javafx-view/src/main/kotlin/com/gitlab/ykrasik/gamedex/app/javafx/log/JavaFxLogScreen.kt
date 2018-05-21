@@ -54,8 +54,8 @@ class JavaFxLogScreen : PresentableGamedexScreen("Log", Theme.Icon.book()), View
 
     init {
         presenters.logEntries.present(this)
-        levelProperty.presentOnChange { logLevelPresenter.onLevelChanged(it) }
-        logTailProperty.presentOnChange { logTailPresenter.onLogTailChanged(it) }
+        levelProperty.presentOnChange(logLevelPresenter::onLevelChanged)
+        logTailProperty.presentOnChange(logTailPresenter::onLogTailChanged)
 
         entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
         levelProperty.onChange { entries.refilter() }

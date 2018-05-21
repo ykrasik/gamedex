@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
@@ -25,12 +26,10 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
 import com.gitlab.ykrasik.gamedex.app.api.game.edit.ViewCanEditGame
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
@@ -48,12 +47,12 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
-    GameDetailsView, ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
+    GameDetailsView, ViewCanEditGame, ViewCanDeleteGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
     ViewCanRediscoverGame, ViewCanRedownloadGame {
+    private val viewManager: ViewManager by di()
     private val imageLoader: ImageLoader by di()
 
     private val editGameView: JavaFxEditGameView by inject()
-    private val tagView: JavaFxTagGameView by inject()
 
     private val browser = YouTubeWebBrowser()
 
@@ -67,7 +66,6 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
 
     private val gameDetailsPresenter = presenters.gameDetails.present(this)
     private val editGamePresenter = presenters.editGame.present(this)
-    private val tagGamePresenter = presenters.tagGame.present(this)
     private val rediscoverGamePresenter = presenters.rediscoverGame.present(this)
     private val redownloadGamePresenter = presenters.redownloadGame.present(this)
     private val deleteGamePresenter = presenters.deleteGame.present(this)
@@ -75,7 +73,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     override fun ToolBar.constructToolbar() {
         editButton { onAction { editGame(GameDataType.name_) } }
         verticalSeparator()
-        tagButton { onAction { tagGamePresenter.tagGame(game) } }
+        tagButton { onAction { viewManager.showTagGameView(game) } }
         verticalSeparator()
 
         spacer()
@@ -156,8 +154,6 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     override fun displayWebPage(url: String) = browser.load(url)
 
     override fun showEditGameView(game: Game, initialTab: GameDataType) = editGameView.show(game, initialTab)
-
-    override fun showTagGameView(game: Game) = tagView.show(game)
 
     override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 
