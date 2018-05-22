@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
 import javafx.geometry.Pos

@@ -19,13 +19,14 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget

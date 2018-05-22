@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.disallowDeselection
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import tornadofx.*
@@ -33,13 +34,10 @@ import tornadofx.*
  */
 private class JavaFxDiscoverGameChoiceConfigView : PresentableView(), ViewCanChangeDiscoverGameChooseResults {
     private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null)
+        .presentOnChange { presenter.onDiscoverGameChoiceChanged(it) }
     override var discoverGameChooseResults by discoverGameChooseResultsProperty
 
     private val presenter = presenters.discoverGameChooseResults.present(this)
-
-    init {
-        discoverGameChooseResultsProperty.presentOnChange(presenter::onDiscoverGameChoiceChanged)
-    }
 
     override val root = vbox(spacing = 5.0) {
         togglegroup {

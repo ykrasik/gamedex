@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
@@ -30,8 +29,8 @@ import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.common.DeleteGameView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
@@ -45,7 +44,7 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
-    GameDetailsView, ViewCanDeleteGame, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
+    GameDetailsView, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
     ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val viewManager: ViewManager by di()
     private val imageLoader: ImageLoader by di()
@@ -63,7 +62,6 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     private val gameDetailsPresenter = presenters.gameDetails.present(this)
     private val rediscoverGamePresenter = presenters.rediscoverGame.present(this)
     private val redownloadGamePresenter = presenters.redownloadGame.present(this)
-    private val deleteGamePresenter = presenters.deleteGame.present(this)
 
     override fun ToolBar.constructToolbar() {
         editButton { onAction { editGame(GameDataType.name_) } }
@@ -83,7 +81,7 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
         verticalSeparator()
         downloadButton("Re-Download") { onAction { redownloadGamePresenter.redownloadGame(game) } }
         verticalSeparator()
-        deleteButton("Delete") { onAction { deleteGamePresenter.deleteGame(game) } }
+        deleteButton("Delete") { onAction { viewManager.showDeleteGameView(game) } }
         verticalSeparator()
     }
 
@@ -147,8 +145,6 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     fun show(game: Game) = gameDetailsPresenter.onShow(game)
 
     override fun displayWebPage(url: String) = browser.load(url)
-
-    override fun showConfirmDeleteGame(game: Game) = DeleteGameView.showConfirmDeleteGame(game)
 
     private fun editGame(initialTab: GameDataType) = viewManager.showEditGameView(game, initialTab)
 

@@ -26,5 +26,6 @@ import com.gitlab.ykrasik.gamedex.GameDataType
  */
 interface ViewManager {
     fun showEditGameView(game: Game, initialScreen: GameDataType)
+    fun showDeleteGameView(game: Game)
     fun showTagGameView(game: Game)
 }

@@ -41,26 +41,26 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
             enabledProperty.value = it == null
         }
     }
-
-    inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: (T) -> Unit) = apply {
-        onChange { call(it!!) }
-    }
-
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (T) -> Unit,
-                                                                                        crossinline propertyFactory: () -> O): O =
-        bind<O, T, O> { propertyFactory() }.apply {
-            onChange {
-                call(it!!)
-                commit()
-            }
-        }
-
-    fun TextInputControl.validatorFrom(viewModel: ViewModel, errorValue: ObservableValue<String?>) {
-        errorValue.onChange { viewModel.validate() }
-        validator(ValidationTrigger.None) {
-            errorValue.value?.let { error(it) }
-        }
-    }
-
-    inline fun ButtonBase.onAction(crossinline f: () -> Unit) = setOnAction { f() }
 }
+
+inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: (T) -> Unit) = apply {
+    onChange { call(it!!) }
+}
+
+inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (T) -> Unit,
+                                                                                    crossinline propertyFactory: () -> O): O =
+    bind<O, T, O> { propertyFactory() }.apply {
+        onChange {
+            call(it!!)
+            commit()
+        }
+    }
+
+fun TextInputControl.validatorFrom(viewModel: ViewModel, errorValue: ObservableValue<String?>) {
+    errorValue.onChange { viewModel.validate() }
+    validator(ValidationTrigger.None) {
+        errorValue.value?.let { error(it) }
+    }
+}
+
+inline fun ButtonBase.onAction(crossinline f: () -> Unit) = setOnAction { f() }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGameChooseResultsPresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.DiscoverGamesWithoutProvidersPresenterFactory

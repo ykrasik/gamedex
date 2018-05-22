@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.control.ListCell

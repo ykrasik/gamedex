@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import javafx.scene.control.ToolBar
 import tornadofx.*
 

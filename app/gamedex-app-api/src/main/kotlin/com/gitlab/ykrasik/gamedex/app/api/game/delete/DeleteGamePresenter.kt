@@ -14,30 +14,31 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.common
+package com.gitlab.ykrasik.gamedex.app.api.game.delete
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
-import javafx.beans.property.SimpleBooleanProperty
+import com.gitlab.ykrasik.gamedex.app.api.PresenterFactory
 
 /**
  * User: ykrasik
  * Date: 02/05/2018
- * Time: 22:08
+ * Time: 10:42
  */
-object DeleteGameView : ViewCanDeleteGame {
-    override fun showConfirmDeleteGame(game: Game): DeleteGameChoice {
-        val fromFileSystem = SimpleBooleanProperty(false)
-        val confirm = areYouSureDialog("Delete game '${game.name}'?") {
-            jfxCheckBox(fromFileSystem, "From File System")
-        }
-        return if (confirm) {
-            DeleteGameChoice.Confirm(fromFileSystem.value)
-        } else {
-            DeleteGameChoice.Cancel
-        }
-    }
+interface DeleteGamePresenter {
+    fun onGameChanged(game: Game)
+
+    fun onFromFileSystemChanged(fromFileSystem: Boolean)
+
+    fun onAccept()
+    fun onCancel()
 }
+
+interface DeleteGameView {
+    var game: Game
+
+    var fromFileSystem: Boolean
+
+    fun closeView()
+}
+
+interface DeleteGamePresenterFactory : PresenterFactory<DeleteGameView, DeleteGamePresenter>

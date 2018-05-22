@@ -21,6 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
+import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
+import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty

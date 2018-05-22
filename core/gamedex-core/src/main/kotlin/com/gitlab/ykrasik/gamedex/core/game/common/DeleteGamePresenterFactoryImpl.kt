@@ -17,10 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.game.common
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGameChoice
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.common.DeleteGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.app.api.game.common.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.app.api.game.delete.DeleteGamePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.delete.DeleteGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.game.delete.DeleteGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.launchOnUi
@@ -38,21 +37,26 @@ class DeleteGamePresenterFactoryImpl @Inject constructor(
     private val taskRunner: TaskRunner,
     private val gameService: GameService
 ) : DeleteGamePresenterFactory {
-    override fun present(view: ViewCanDeleteGame): DeleteGamePresenter = object : DeleteGamePresenter {
-        override fun deleteGame(game: Game) = launchOnUi {
-            val choice = view.showConfirmDeleteGame(game)
-            val (confirm, fromFileSystem) = when (choice) {
-                is DeleteGameChoice.Confirm -> Pair(true, choice.fromFileSystem)
-                DeleteGameChoice.Cancel -> Pair(false, false)
+    override fun present(view: DeleteGameView): DeleteGamePresenter = object : DeleteGamePresenter {
+        override fun onGameChanged(game: Game) {
+            view.fromFileSystem = false
+        }
+
+        override fun onFromFileSystemChanged(fromFileSystem: Boolean) {
+        }
+
+        override fun onAccept() = launchOnUi {
+            if (view.fromFileSystem) {
+                view.game.path.deleteWithChildren()
             }
 
-            if (confirm) {
-                if (fromFileSystem) {
-                    game.path.deleteWithChildren()
-                }
+            taskRunner.runTask(gameService.delete(view.game))
 
-                taskRunner.runTask(gameService.delete(game))
-            }
+            view.closeView()
+        }
+
+        override fun onCancel() {
+            view.closeView()
         }
     }
 }

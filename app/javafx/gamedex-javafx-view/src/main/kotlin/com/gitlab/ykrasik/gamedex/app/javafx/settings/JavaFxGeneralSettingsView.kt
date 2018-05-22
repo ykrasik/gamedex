@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
 import javafx.geometry.Pos

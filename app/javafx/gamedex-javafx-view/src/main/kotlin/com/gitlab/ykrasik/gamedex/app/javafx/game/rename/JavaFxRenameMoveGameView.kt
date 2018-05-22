@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.rename
+package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
@@ -23,6 +23,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
+import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
+import com.gitlab.ykrasik.gamedex.javafx.screen.validatorFrom
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
