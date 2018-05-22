@@ -44,6 +44,7 @@ class GameDetailsPresenterFactoryImpl @Inject constructor(
     override fun present(view: GameDetailsView) = object : GameDetailsPresenter {
         init {
             gameService.games.changesChannel.subscribe(uiThreadDispatcher) { event ->
+                // TODO: Find a better way of doing this only when the view is active
                 val game = view.game ?: return@subscribe
                 when (event) {
                     is ListItemRemovedEvent -> {

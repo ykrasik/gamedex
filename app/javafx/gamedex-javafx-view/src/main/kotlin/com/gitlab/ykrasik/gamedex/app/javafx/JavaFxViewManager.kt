@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import tornadofx.View
 import tornadofx.vbox
@@ -34,9 +35,11 @@ class JavaFxViewManager : View(), ViewManager {
     override val root = vbox()  // Unused.
 
     private val editGameView: JavaFxEditGameView by inject()
+    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
     private val tagGameView: JavaFxTagGameView by inject()
 
     override fun showEditGameView(game: Game, initialScreen: GameDataType) = editGameView.show(game, initialScreen)
     override fun showDeleteGameView(game: Game) = JavaFxDeleteGameView.show(game)
+    override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.show(game, initialName)
     override fun showTagGameView(game: Game) = tagGameView.show(game)
 }

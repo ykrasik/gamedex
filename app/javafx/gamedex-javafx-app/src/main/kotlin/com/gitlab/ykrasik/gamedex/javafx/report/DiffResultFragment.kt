@@ -17,9 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
-import com.gitlab.ykrasik.gamedex.app.api.presenters
-import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
@@ -40,10 +38,8 @@ import tornadofx.*
  * Date: 24/06/2017
  * Time: 18:52
  */
-class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView(), ViewCanRenameMoveGame {
-    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-
-    private val renameMoveGamePresenter = presenters.renameMoveGame.present(this)
+class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView() {
+    private val viewManager: ViewManager by di()
 
     override val root = form {
         addClass(CommonStyle.centered)
@@ -54,7 +50,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
 
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
-                onAction { renameMoveGamePresenter.renameMove(game, diff.expectedName) }
+                onAction { viewManager.showRenameMoveGameView(game, initialName = diff.expectedName) }
             }
             // TODO: Add a 'search only this provider' option
         }
@@ -83,8 +79,6 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
             Delta.TYPE.INSERT -> Style.insert
         })
     }
-
-    override fun showRenameMoveGameView(game: Game, initialName: String) = renameMoveGameView.show(game, initialName)
 
     class Style : Stylesheet() {
         companion object {

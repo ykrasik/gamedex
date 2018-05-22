@@ -24,6 +24,8 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.launchOnUi
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +49,9 @@ class DeleteGamePresenterFactoryImpl @Inject constructor(
 
         override fun onAccept() = launchOnUi {
             if (view.fromFileSystem) {
-                view.game.path.deleteWithChildren()
+                withContext(CommonPool) {
+                    view.game.path.deleteWithChildren()
+                }
             }
 
             taskRunner.runTask(gameService.delete(view.game))

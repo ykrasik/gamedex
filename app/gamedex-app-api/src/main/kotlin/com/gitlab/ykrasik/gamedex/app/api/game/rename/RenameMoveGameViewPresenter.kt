@@ -26,8 +26,8 @@ import java.io.File
  * Date: 17/05/2018
  * Time: 09:10
  */
-interface RenameMoveGameViewPresenter {
-    fun onShown(game: Game, initialName: String)
+interface RenameMoveGamePresenter {
+    fun onShown(game: Game, initialName: String?)
 
     fun onAccept()
     fun onCancel()
@@ -53,7 +53,7 @@ interface RenameMoveGameView {
     fun selectDirectory(initialDirectory: File): File?
     fun browseTo(dir: File)
 
-    fun close(choice: RenameMoveGameChoice)
+    fun closeView()
 }
 
-interface RenameMoveGameViewPresenterFactory : PresenterFactory<RenameMoveGameView, RenameMoveGameViewPresenter>
+interface RenameMoveGamePresenterFactory : PresenterFactory<RenameMoveGameView, RenameMoveGamePresenter>

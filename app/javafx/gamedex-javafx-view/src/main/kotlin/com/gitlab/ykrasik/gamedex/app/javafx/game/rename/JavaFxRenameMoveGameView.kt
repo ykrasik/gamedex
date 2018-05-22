@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameChoice
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -54,9 +53,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    private val presenter = presenters.renameMoveGameView.present(this)
-
-    private var choice: RenameMoveGameChoice = RenameMoveGameChoice.Cancel
+    private val presenter = presenters.renameMoveGame.present(this)
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it?.path}" })
@@ -125,16 +122,12 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
         }
     }
 
-    fun show(game: Game, initialName: String): RenameMoveGameChoice {
+    fun show(game: Game, initialName: String?) {
         presenter.onShown(game, initialName)
         openModal(block = true, stageStyle = StageStyle.UNIFIED)
-        return choice
     }
 
-    override fun close(choice: RenameMoveGameChoice) {
-        this.choice = choice
-        close()
-    }
+    override fun closeView() = close()
 
     override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
 

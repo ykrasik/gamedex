@@ -18,14 +18,20 @@ package com.gitlab.ykrasik.gamedex.core.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameChoice
+import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenter
+import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenter
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameViewPresenterFactory
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.bindTo
+import com.gitlab.ykrasik.gamedex.core.launchOnUi
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.withContext
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,28 +42,55 @@ import javax.inject.Singleton
  * Time: 12:15
  */
 @Singleton
-class RenameMoveGameViewPresenterFactoryImpl @Inject constructor(
-    private val libraryService: LibraryService
-) : RenameMoveGameViewPresenterFactory {
-    override fun present(view: RenameMoveGameView) = object : RenameMoveGameViewPresenter {
+class RenameMoveGamePresenterFactoryImpl @Inject constructor(
+    private val libraryService: LibraryService,
+    private val gameService: GameService,
+    private val taskRunner: TaskRunner
+) : RenameMoveGamePresenterFactory {
+    override fun present(view: RenameMoveGameView) = object : RenameMoveGamePresenter {
+        private val log = logger()
+
         init {
             libraryService.realLibraries.bindTo(view.possibleLibraries)
         }
 
-        override fun onShown(game: Game, initialName: String) {
+        override fun onShown(game: Game, initialName: String?) {
             view.game = game
             view.library = game.library
             view.path = game.rawGame.metadata.path.toFile().let { it.parentFile?.path ?: "" }
-            view.name = initialName
+            view.name = initialName ?: game.name
         }
 
-        override fun onAccept() {
+        override fun onAccept() = launchOnUi {
             check(view.nameValidationError == null) { "Cannot accept invalid state!" }
-            view.close(RenameMoveGameChoice.Accept(view.library, view.path, view.name))
+            withContext(CommonPool) {
+                val library = view.library
+                val game = view.game
+                val path = view.path
+                val name = view.name
+                val newPath = path.toFile().resolve(name)
+                val fullPath = library.path.resolve(newPath)
+                log.info("Renaming/Moving: ${game.path} -> $fullPath")
+
+                val parent = fullPath.parentFile
+                if (parent != library.path && !parent.exists()) {
+                    parent.mkdirs()
+                }
+                if (!game.path.renameTo(fullPath)) {
+                    // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
+                    // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
+                    // and throws an exception if it fails.
+                    Files.move(game.path.toPath(), fullPath.toPath())
+                }
+
+                taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
+            }
+
+            view.closeView()
         }
 
         override fun onCancel() {
-            view.close(RenameMoveGameChoice.Cancel)
+            view.closeView()
         }
 
         override fun onBrowsePath() {

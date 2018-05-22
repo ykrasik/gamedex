@@ -21,12 +21,10 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
 import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import com.jfoenix.controls.JFXButton
@@ -44,16 +42,13 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRediscoverGame, ViewCanRenameMoveGame {
+class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRediscoverGame {
     private val viewManager: ViewManager by di()
-
-    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
 
     private val controller: GameController by di()
 
     private val redownloadPresenter = presenters.redownloadGame.present(this)
     private val rediscoverPresenter = presenters.rediscoverGame.present(this)
-    private val renameMoveGamePresenter = presenters.renameMoveGame.present(this)
 
     private lateinit var game: Game
 
@@ -80,7 +75,7 @@ class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRedisco
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
-            onAction { renameMoveGamePresenter.renameMove(game) }
+            onAction { viewManager.showRenameMoveGameView(game) }
         }
         separator()
         item("Delete", Theme.Icon.delete(size)) { onAction { viewManager.showDeleteGameView(game) } }
@@ -102,6 +97,4 @@ class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRedisco
     }
 
     private fun editGame(initialScreen: GameDataType) = viewManager.showEditGameView(game, initialScreen)
-
-    override fun showRenameMoveGameView(game: Game, initialName: String) = renameMoveGameView.show(game, initialName)
 }
