@@ -21,10 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.scene.control.ListCell
@@ -35,34 +34,30 @@ import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
 
-
 /**
  * User: ykrasik
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableGamedexScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewWithLogLevel, ViewWithLogTail {
+class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewWithLogLevel, ViewWithLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
-    private val levelProperty = SimpleStringProperty()
+    override val levelChanges = BroadcastEventChannel<String>()
+    private val levelProperty = SimpleStringProperty("").eventOnChange(levelChanges)
     override var level by levelProperty
 
-    private val logTailProperty = SimpleBooleanProperty(false)
+    override val logTailChanges = BroadcastEventChannel<Boolean>()
+    private val logTailProperty = SimpleBooleanProperty(false).eventOnChange(logTailChanges)
     override var logTail by logTailProperty
 
-    private val logLevelPresenter = presenters.logLevel.present(this)
-    private val logTailPresenter = presenters.logTail.present(this)
-
     init {
-        presenters.logEntries.present(this)
-        levelProperty.presentOnChange(logLevelPresenter::onLevelChanged)
-        logTailProperty.presentOnChange(logTailPresenter::onLogTailChanged)
-
         entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
         levelProperty.onChange { entries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
 //        })
+
+        viewService.register(this)
     }
 
     override fun ToolBar.constructToolbar() {

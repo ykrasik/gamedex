@@ -16,9 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.dialog
 
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.acceptButton
 import com.gitlab.ykrasik.gamedex.javafx.cancelButton
+import javafx.beans.property.StringProperty
 import javafx.geometry.Pos
 import javafx.scene.image.Image
 import javafx.scene.layout.VBox
@@ -31,6 +33,47 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 19:45
  */
+fun UIComponent.areYouSureDialogContainer(acceptActions: BroadcastEventChannel<Unit>,
+                                          cancelActions: BroadcastEventChannel<Unit>,
+                                          text: StringProperty = "Are You Sure?".toProperty(),
+                                          op: (VBox.() -> Unit)? = null) =
+    borderpane {
+        minWidth = 400.0
+        minHeight = 100.0
+        top {
+            toolbar {
+                acceptButton {
+                    isDefaultButton = true
+                    setOnAction { acceptActions.offer(Unit) }
+                }
+                spacer()
+                cancelButton {
+                    isCancelButton = true
+                    setOnAction { cancelActions.offer(Unit) }
+                }
+            }
+        }
+        center {
+            vbox(spacing = 10.0) {
+                hbox {
+                    paddingAll = 20.0
+                    alignment = Pos.CENTER_LEFT
+                    label(text)
+                    spacer()
+                    imageview(Theme.Images.warning)
+                }
+                if (op != null) {
+                    separator()
+                    vbox(spacing = 10.0) {
+                        paddingAll = 20.0
+                        paddingRight = 30.0
+                        op(this)
+                    }
+                }
+            }
+        }
+    }
+
 fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
     private var accept = false
 

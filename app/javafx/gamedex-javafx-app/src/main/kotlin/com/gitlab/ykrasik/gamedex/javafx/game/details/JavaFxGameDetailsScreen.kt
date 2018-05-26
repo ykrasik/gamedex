@@ -19,17 +19,15 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.details.GameDetailsView
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverGamesWithoutProviders
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanDiscoverNewGames
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
-import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.game.RediscoverGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
@@ -43,9 +41,7 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
-    GameDetailsView, ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders,
-    ViewCanRediscoverGame, ViewCanRedownloadGame {
+class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, RediscoverGameView, RedownloadGameView {
     private val viewManager: ViewManager by di()
     private val imageLoader: ImageLoader by di()
 
@@ -57,11 +53,14 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
     private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
     override var poster by posterProperty
 
+    override val redownloadGameActions = BroadcastEventChannel<Game>()
+    override val rediscoverGameActions = BroadcastEventChannel<Game>()
+
     override val useDefaultNavigationButton = false
 
-    private val gameDetailsPresenter = presenters.gameDetails.present(this)
-    private val rediscoverGamePresenter = presenters.rediscoverGame.present(this)
-    private val redownloadGamePresenter = presenters.redownloadGame.present(this)
+    init {
+        viewService.register(this)
+    }
 
     override fun ToolBar.constructToolbar() {
         editButton { onAction { editGame(GameDataType.name_) } }
@@ -76,10 +75,10 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            onAction { rediscoverGamePresenter.rediscoverGame(game) }
+            eventOnAction(rediscoverGameActions) { game }
         }
         verticalSeparator()
-        downloadButton("Re-Download") { onAction { redownloadGamePresenter.redownloadGame(game) } }
+        downloadButton("Re-Download") { eventOnAction(redownloadGameActions) { game } }
         verticalSeparator()
         deleteButton("Delete") { onAction { viewManager.showDeleteGameView(game) } }
         verticalSeparator()
@@ -138,17 +137,16 @@ class JavaFxGameDetailsScreen : PresentableGamedexScreen(),
         }
     }
 
-    override fun onUndock() {
-        browser.stop()
+    fun show(game: Game) {
+        this.game = game
     }
-
-    fun show(game: Game) = gameDetailsPresenter.onShow(game)
 
     override fun displayWebPage(url: String) = browser.load(url)
 
     private fun editGame(initialTab: GameDataType) = viewManager.showEditGameView(game, initialTab)
 
-    override fun requestClose() {
+    override fun closeView() {
+        browser.stop()
         closeRequestedProperty.value = true
     }
 

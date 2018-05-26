@@ -54,7 +54,7 @@ buildscript {
             delegate
         }
 
-        h2 = [group: 'com.h2database', name: 'h2', version: '1.4.197']
+        h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
         exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.2']
 
         rx = [:].with {

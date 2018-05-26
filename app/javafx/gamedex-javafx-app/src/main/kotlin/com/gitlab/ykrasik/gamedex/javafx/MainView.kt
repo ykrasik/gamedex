@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import javafx.collections.ObservableList
@@ -58,7 +58,7 @@ class MainView : View("GameDex") {
 
     // FIXME: Temp until all screens are presentable
     private val screenToolbars = mutableMapOf<GamedexScreen, ObservableList<Node>>()
-    private val presentableScreenToolbars = mutableMapOf<PresentableGamedexScreen, ObservableList<Node>>()
+    private val presentableScreenToolbars = mutableMapOf<PresentableScreen, ObservableList<Node>>()
 
     override val root = taskRunner.init {
         borderpane {
@@ -96,7 +96,7 @@ class MainView : View("GameDex") {
     }
 
     // FIXME: Temp until all screens are presentable
-    private fun TabPane.screenTab(screen: PresentableGamedexScreen) = tab(screen) {
+    private fun TabPane.screenTab(screen: PresentableScreen) = tab(screen) {
         userData = screen
         graphic = screen.icon
     }
@@ -116,7 +116,7 @@ class MainView : View("GameDex") {
                 }
             } else {
                 // FIXME: Temp until all screens are presentable
-                val screen = tab.userData as PresentableGamedexScreen
+                val screen = tab.userData as PresentableScreen
                 if (screen.useDefaultNavigationButton) {
                     navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
                 }
@@ -153,7 +153,9 @@ class MainView : View("GameDex") {
         if (tab.userData is GamedexScreen) {
             (tab.userData as GamedexScreen).onUndock()
         } else {
-            (tab.userData as PresentableGamedexScreen).onUndock()
+            val screen = tab.userData as PresentableScreen
+            screen.onUndock()
+            screen.onUndockListeners?.forEach { it.invoke(screen) }
         }
     }
 
@@ -162,11 +164,12 @@ class MainView : View("GameDex") {
         if (tab.userData is GamedexScreen) {
             val screen = tab.userData as GamedexScreen
             screen.onDock()
-            tab.run { screen.populateToolbar() }
+            screen.populateToolbar()
         } else {
-            val screen = tab.userData as PresentableGamedexScreen
+            val screen = tab.userData as PresentableScreen
             screen.onDock()
-            tab.run { screen.populateToolbar() }
+            screen.onDockListeners?.forEach { it.invoke(screen) }
+            screen.populateToolbar()
         }
     }
 
@@ -188,7 +191,7 @@ class MainView : View("GameDex") {
     }
 
     // FIXME: Temp until all screens are presentable
-    private fun PresentableGamedexScreen.populateToolbar() {
+    private fun PresentableScreen.populateToolbar() {
         toolbar.replaceChildren {
             items += presentableScreenToolbars.getOrPut(this@populateToolbar) {
                 // TODO: Find a neater solution, like not using ToolBar.constructToolbar()

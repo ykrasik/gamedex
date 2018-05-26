@@ -17,15 +17,11 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
-import com.gitlab.ykrasik.gamedex.javafx.screen.validatorFrom
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
@@ -37,13 +33,23 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
-    private var initialLibraryProperty = SimpleObjectProperty<Library?>(null)
-    override var initialLibrary by initialLibraryProperty
+    private var libraryProperty = SimpleObjectProperty<Library?>(null)
+    override var library by libraryProperty
+
+    override val nameChanges = BroadcastEventChannel<String>()
+    override val pathChanges = BroadcastEventChannel<String>()
+    override val platformChanges = BroadcastEventChannel<Platform>()
 
     private val viewModel = LibraryViewModel()
     override var name by viewModel.nameProperty
     override var path by viewModel.pathProperty
     override var platform by viewModel.platformProperty
+
+    private inner class LibraryViewModel : ViewModel() {
+        val nameProperty = presentableStringProperty(nameChanges)
+        val pathProperty = presentableStringProperty(pathChanges)
+        val platformProperty = presentableProperty(platformChanges) { SimpleObjectProperty(Platform.pc) }
+    }
 
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
@@ -51,12 +57,13 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private val pathValidationErrorProperty = SimpleStringProperty(null)
     override var pathValidationError by pathValidationErrorProperty
 
-    private var dataToReturn: LibraryData? = null
-
-    private val presenter = presenters.editLibraryView.present(this)
+    override val browseActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = BroadcastEventChannel<Unit>()
+    override val cancelActions = BroadcastEventChannel<Unit>()
 
     init {
-        titleProperty.bind(initialLibraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
+        titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
+        viewService.register(this)
     }
 
     override val root = borderpane {
@@ -65,12 +72,12 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
                 acceptButton {
                     isDefaultButton = true
                     enableWhen { viewModel.valid }
-                    onAction(presenter::onAccept)
+                    eventOnAction(acceptActions)
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    onAction(presenter::onCancel)
+                    eventOnAction(cancelActions)
                 }
             }
         }
@@ -91,7 +98,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
             validatorFrom(viewModel, pathValidationErrorProperty)
         }
         jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
-            onAction(presenter::onBrowse)
+            eventOnAction(browseActions)
         }
     }
 
@@ -102,26 +109,16 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     }
 
     private fun Fieldset.platformField() = field("Platform") {
-        enableWhen { initialLibraryProperty.isNull }
+        enableWhen { libraryProperty.isNull }
         platformComboBox(viewModel.platformProperty)
     }
 
-    fun show(library: Library?): LibraryData? {
-        presenter.onShown(library)
-        openModal(block = true)
-        return dataToReturn
+    fun show(library: Library?) {
+        this.library = library
+        openModal()
     }
 
-    override fun close(data: LibraryData?) {
-        dataToReturn = data
-        close()
-    }
+    override fun closeView() = close()
 
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
-
-    private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = presentableProperty(presenter::onNameChanged) { SimpleStringProperty("") }
-        val pathProperty = presentableProperty(presenter::onPathChanged) { SimpleStringProperty("") }
-        val platformProperty = presentableProperty(presenter::onPlatformChanged) { SimpleObjectProperty(Platform.pc) }
-    }
 }

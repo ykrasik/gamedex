@@ -18,15 +18,23 @@ package com.gitlab.ykrasik.gamedex.app.api
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Library
 
 /**
  * User: ykrasik
  * Date: 21/05/2018
  * Time: 10:29
+ *
+ * A required implementation by the view layer that allows switching between views.
  */
+// TODO: Rename to ViewSwitcher?
 interface ViewManager {
     fun showEditGameView(game: Game, initialScreen: GameDataType)
     fun showDeleteGameView(game: Game)
     fun showRenameMoveGameView(game: Game, initialName: String? = null)
     fun showTagGameView(game: Game)
+
+    fun showAddLibraryView()
+    fun showEditLibraryView(library: Library)
+    fun showDeleteLibraryView(library: Library)
 }

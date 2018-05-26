@@ -67,7 +67,7 @@ internal class GameServiceImpl @Inject constructor(
         doneMessage { "Added $processed/$totalWork Games." }
 
         totalWork = requests.size
-        this@GameServiceImpl.games.buffered {
+        repo.games.buffered {
             requests.chunked(50).flatMap { requests ->
                 repo.addAll(requests) { incProgress() }.map { it.toGame() }
             }
@@ -92,7 +92,7 @@ internal class GameServiceImpl @Inject constructor(
         doneMessage { "Deleted $processed/$totalWork Games." }
 
         totalWork = games.size
-        this@GameServiceImpl.games.buffered {
+        repo.games.buffered {
             games.chunked(200).forEach { chunk ->
                 repo.deleteAll(chunk.map { it.rawGame })
                 incProgress(chunk.size)

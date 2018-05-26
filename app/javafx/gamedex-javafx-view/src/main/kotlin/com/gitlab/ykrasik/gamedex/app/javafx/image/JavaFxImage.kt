@@ -23,11 +23,8 @@ import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.image.Image
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import tornadofx.toProperty
 import java.util.*
 import javax.inject.Inject
@@ -51,6 +48,37 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
 
     // A short-term cache to work around request bursts while the game wall is being first loaded
     private val cache = Cache<String, ObservableValue<Image>>(100)
+
+//    fun loadImage(fetchImageRequests: SendChannel<FetchImageRequest>,
+//                  url: String?,
+//                  gameId: Int,
+//                  persistIfAbsent: Boolean): ObservableValue<Image> {
+//        if (url == null) return noImage.toProperty()
+//
+//        val response = CompletableDeferred<Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>>()
+//        fetchImageRequests.offer(FetchImageRequest(url, gameId, persistIfAbsent, response))
+//
+//        val p = SimpleObjectProperty<Image>(loading)
+//        launch(CommonPool) {
+//            val image = response.await().await().image
+//            withContext(JavaFx) {
+//                p.value = image
+//            }
+//        }
+//        return p
+//    }
+
+    fun loadImage(f: () -> CompletableDeferred<Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>>?): ObservableValue<Image> {
+        val response = f() ?: return noImage.toProperty()
+        val p = SimpleObjectProperty<Image>(loading)
+        launch(CommonPool) {
+            val image = response.await().await().image
+            withContext(JavaFx) {
+                p.value = image
+            }
+        }
+        return p
+    }
 
     fun loadImage(image: Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>?): ObservableValue<Image> =
         image?.toObservableImage() ?: noImage.toProperty()

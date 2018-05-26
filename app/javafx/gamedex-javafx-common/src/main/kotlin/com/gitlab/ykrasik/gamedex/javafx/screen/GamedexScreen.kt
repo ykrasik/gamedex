@@ -36,11 +36,17 @@ abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
 }
 
 // FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
-abstract class PresentableGamedexScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
+abstract class PresentableScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
     abstract fun ToolBar.constructToolbar()
 
     open val useDefaultNavigationButton: Boolean = true
 
     // FIXME: Yuck
     val closeRequestedProperty = SimpleBooleanProperty(false)
+
+    init {
+        // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
+        // This is just how TornadoFx works.
+        skipFirstDock = true
+    }
 }

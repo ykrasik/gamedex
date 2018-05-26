@@ -18,28 +18,41 @@ package com.gitlab.ykrasik.gamedex.app.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
+import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import tornadofx.View
 import tornadofx.vbox
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 21/05/2018
  * Time: 10:37
  */
+@Singleton
 class JavaFxViewManager : View(), ViewManager {
     override val root = vbox()  // Unused.
 
     private val editGameView: JavaFxEditGameView by inject()
     private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
     private val tagGameView: JavaFxTagGameView by inject()
+    private val deleteGameView: JavaFxDeleteGameView by inject()
+
+    private val editLibraryView: JavaFxEditLibraryView by inject()
+    private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
 
     override fun showEditGameView(game: Game, initialScreen: GameDataType) = editGameView.show(game, initialScreen)
-    override fun showDeleteGameView(game: Game) = JavaFxDeleteGameView.show(game)
+    override fun showDeleteGameView(game: Game) = deleteGameView.show(game)
     override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.show(game, initialName)
     override fun showTagGameView(game: Game) = tagGameView.show(game)
+
+    override fun showAddLibraryView() = editLibraryView.show(library = null)
+    override fun showEditLibraryView(library: Library) = editLibraryView.show(library)
+    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.show(library)
 }

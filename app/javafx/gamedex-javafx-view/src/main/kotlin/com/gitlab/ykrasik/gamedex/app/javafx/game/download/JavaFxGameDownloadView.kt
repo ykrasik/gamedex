@@ -16,12 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 
-import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadAllStaleGames
-import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewWithDownloadStaleDuration
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.game.DownloadStaleDurationView
+import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadAllStaleGamesView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import org.controlsfx.control.PopOver
@@ -32,27 +31,29 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 10:57
  */
-class JavaFxGameDownloadView : PresentableView(), ViewWithDownloadStaleDuration, ViewCanRedownloadAllStaleGames {
+class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, RedownloadAllStaleGamesView {
+    override val stalePeriodTextChanges = BroadcastEventChannel<String>()
     private val viewModel = PeriodViewModel()
     override var stalePeriodText by viewModel.stalePeriodTextProperty
+
+    private inner class PeriodViewModel : ViewModel() {
+        val stalePeriodTextProperty = presentableStringProperty(stalePeriodTextChanges)
+    }
 
     private val stalePeriodValidationErrorProperty = SimpleStringProperty(null)
     override var stalePeriodValidationError by stalePeriodValidationErrorProperty
 
-    private val stalePeriodPresenter = presenters.gameDownloadStaleDuration.present(this)
-    private val redownloadAllStaleGames = presenters.redownloadAllStaleGames.present(this)
+    override val redownloadAllStaleGamesActions = BroadcastEventChannel<Unit>()
 
     init {
-        stalePeriodValidationErrorProperty.onChange { viewModel.validate() }
+        viewService.register(this)
     }
 
     override val root = buttonWithPopover("Re-Download", graphic = Theme.Icon.download(), arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->
         labeled("Stale Duration", listOf(CommonStyle.headerLabel)) {
             textfield(viewModel.stalePeriodTextProperty) {
                 isFocusTraversable = false
-                validator(ValidationTrigger.None) {
-                    stalePeriodValidationError?.let { error(it) }
-                }
+                validatorFrom(viewModel, stalePeriodValidationErrorProperty)
             }
         }.apply {
             paddingAll = 5.0
@@ -64,16 +65,11 @@ class JavaFxGameDownloadView : PresentableView(), ViewWithDownloadStaleDuration,
             alignment = Pos.CENTER_LEFT
             disableWhen(viewModel.valid.not())
             tooltip("Re-Download all games that were last downloaded before the stale duration")
-            setOnAction {
+            eventOnAction(redownloadAllStaleGamesActions) {
                 popover.hide()
-                redownloadAllStaleGames.redownloadAllStaleGames()
             }
         }
     }.apply {
         enableWhen { enabledProperty }
-    }
-
-    private inner class PeriodViewModel : ViewModel() {
-        val stalePeriodTextProperty = presentableProperty(stalePeriodPresenter::onStalePeriodTextChanged) { SimpleStringProperty("") }
     }
 }

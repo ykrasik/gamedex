@@ -29,8 +29,10 @@ import kotlinx.coroutines.experimental.Deferred
  */
 interface ImageRepository {
     // TODO: gameId is only here in order to link the url to a game so the image is auto-deleted with the game. Can also do this manually.
+    // TODO: Make this suspend and return an image.
     fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image>
 
+    // TODO: Make this suspend and return an image.
     fun downloadImage(url: String): Deferred<Image>
 
     fun fetchImagesExcept(exceptUrls: List<String>): List<Pair<String, FileSize>>

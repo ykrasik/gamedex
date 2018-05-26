@@ -89,6 +89,8 @@ inline fun <E, R> SendChannel<E>.produceOnly(block: SendChannel<E>.() -> R): R =
         close()
     }
 
+fun <T> channel(): Channel<T> = Channel(capacity = 32)
+
 // capacity = 2 to accomodate the closeToken being sent.
 fun <T> singleValueChannel(value: T): ReceiveChannel<T> = Channel<T>(capacity = 2).apply { offer(value); close() }
 

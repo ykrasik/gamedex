@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxGameDiscoveryView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -46,7 +46,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private val gameListView: GameListView by inject()
 
     private val filterMenu: GameFilterMenu by inject()
-    private val discoveryView: JavaFxGameDiscoveryView by inject()
+    private val discoverGamesView: JavaFxDiscoverGamesView by inject()
     private val downloadView: JavaFxGameDownloadView by inject()
 
     // FIXME: Change search -> sync, refresh maybe to download?
@@ -61,7 +61,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         spacer()
 
         verticalSeparator()
-        items += discoveryView.root
+        items += discoverGamesView.root
         verticalSeparator()
         items += downloadView.root
         verticalSeparator()

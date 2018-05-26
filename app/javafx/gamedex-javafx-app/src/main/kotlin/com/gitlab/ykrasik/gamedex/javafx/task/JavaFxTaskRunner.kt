@@ -30,12 +30,9 @@ import javafx.scene.Parent
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.withContext
 import org.controlsfx.control.NotificationPane
 import tornadofx.*
 import javax.inject.Singleton
@@ -118,7 +115,7 @@ class JavaFxTaskRunner : TaskRunner {
     }
 
     override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
-        require(currentJob == null) { "Already running a job: $currentJob" }
+        check(currentJob == null) { "Already running a job: $currentJob" }
 
         try {
             mainTask = task
@@ -151,7 +148,13 @@ class JavaFxTaskRunner : TaskRunner {
             taskProperties.forEach { it.close() }
             taskProperties.clear()
             tasks.clear()
-            showInfoNotification(task.doneMessage.await())
+
+            // This is OMFG. Showing the notification as part of the regular flow (not in a new coroutine)
+            // causes an issue with modal windows not reporting that being hidden.
+            javaFx {
+                delay(1)
+                showInfoNotification(task.doneMessage.await())
+            }
         }
     }
 

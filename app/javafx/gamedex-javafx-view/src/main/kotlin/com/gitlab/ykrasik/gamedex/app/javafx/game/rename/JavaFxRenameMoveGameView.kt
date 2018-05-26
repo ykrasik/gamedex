@@ -18,13 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.game.rename.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
-import com.gitlab.ykrasik.gamedex.javafx.screen.validatorFrom
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -42,21 +39,37 @@ import java.io.File
 class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     override val possibleLibraries = mutableListOf<Library>().observable()
 
+    override var initialName: String? = null
+
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
+    override val libraryChanges = BroadcastEventChannel<Library>()
+    override val pathChanges = BroadcastEventChannel<String>()
+    override val nameChanges = BroadcastEventChannel<String>()
     private val viewModel = RenameFolderViewModel()
+
     override var library by viewModel.libraryProperty
     override var path by viewModel.pathProperty
     override var name by viewModel.nameProperty
 
+    private inner class RenameFolderViewModel : ViewModel() {
+        val libraryProperty = presentableProperty(libraryChanges) { SimpleObjectProperty<Library>() }
+        val pathProperty = presentableStringProperty(pathChanges)
+        val nameProperty = presentableStringProperty(nameChanges)
+    }
+
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    private val presenter = presenters.renameMoveGame.present(this)
+    override val selectDirectoryActions = BroadcastEventChannel<Unit>()
+    override val browseToGameActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = BroadcastEventChannel<Unit>()
+    override val cancelActions = BroadcastEventChannel<Unit>()
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it?.path}" })
+        viewService.register(this)
     }
 
     override val root = borderpane {
@@ -67,12 +80,12 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                 acceptButton {
                     isDefaultButton = true
                     enableWhen { viewModel.valid }
-                    onAction(presenter::onAccept)
+                    eventOnAction(acceptActions)
                 }
                 spacer()
                 cancelButton {
                     isCancelButton = true
-                    onAction(presenter::onCancel)
+                    eventOnAction(cancelActions)
                 }
             }
         }
@@ -83,7 +96,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                     field("From") {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it?.path?.toString() })
-                            onAction(presenter::onBrowseToGame)
+                            eventOnAction(browseToGameActions)
                         }
                     }
                     separator()
@@ -105,7 +118,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                                 gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
                                 textProperty().bind(viewModel.pathProperty.map { if (it!!.isEmpty()) File.separator else it })
-                                onAction(presenter::onBrowsePath)
+                                eventOnAction(selectDirectoryActions)
                             }
 
                             verticalSeparator { gridpaneConstraints { columnRowIndex(3, 0); rowSpan = 2 } }
@@ -123,8 +136,9 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     }
 
     fun show(game: Game, initialName: String?) {
-        presenter.onShown(game, initialName)
-        openModal(block = true, stageStyle = StageStyle.UNIFIED)
+        this.game = game
+        this.initialName = initialName
+        openModal(stageStyle = StageStyle.UNIFIED)
     }
 
     override fun closeView() = close()
@@ -132,10 +146,4 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
 
     override fun browseTo(dir: File) = browse(dir)
-
-    private inner class RenameFolderViewModel : ViewModel() {
-        val libraryProperty = presentableProperty(presenter::onLibraryChanged) { SimpleObjectProperty<Library>() }
-        val pathProperty = presentableProperty(presenter::onPathChanged) { SimpleStringProperty("") }
-        val nameProperty = presentableProperty(presenter::onNameChanged) { SimpleStringProperty("") }
-    }
 }

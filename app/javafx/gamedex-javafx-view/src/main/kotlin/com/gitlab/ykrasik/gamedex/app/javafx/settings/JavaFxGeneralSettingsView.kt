@@ -17,14 +17,13 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.general.*
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -40,12 +39,16 @@ import java.io.File
  * Time: 14:57
  */
 class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon.settings()),
-    ViewCanExportDatabase, ViewCanImportDatabase, ViewCanClearUserData, ViewCanCleanupDb {
+    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupDbView {
 
-    private val exportDatabasePresenter = presenters.exportDatabase.present(this)
-    private val importDatabasePresenter = presenters.importDatabase.present(this)
-    private val clearUserDataPresenter = presenters.clearUserData.present(this)
-    private val cleanupDbPresenter = presenters.cleanupDb.present(this)
+    override val exportDatabaseActions = BroadcastEventChannel<Unit>()
+    override val importDatabaseActions = BroadcastEventChannel<Unit>()
+    override val clearUserDataActions = BroadcastEventChannel<Unit>()
+    override val cleanupDbActions = BroadcastEventChannel<Unit>()
+
+    init {
+        viewService.register(this)
+    }
 
     override val root = vbox {
         group("Database") {
@@ -55,7 +58,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.exportButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    onAction(exportDatabasePresenter::exportDatabase)
+                    eventOnAction(exportDatabaseActions)
                 }
             }
             row {
@@ -63,7 +66,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.importButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    onAction(importDatabasePresenter::importDatabase)
+                    eventOnAction(importDatabaseActions)
                 }
             }
             row {
@@ -75,7 +78,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
                     tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    onAction(clearUserDataPresenter::clearUserData)
+                    eventOnAction(clearUserDataActions)
                 }
             }
             row {
@@ -83,7 +86,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    onAction(cleanupDbPresenter::cleanupDb)
+                    eventOnAction(cleanupDbActions)
                 }
             }
         }

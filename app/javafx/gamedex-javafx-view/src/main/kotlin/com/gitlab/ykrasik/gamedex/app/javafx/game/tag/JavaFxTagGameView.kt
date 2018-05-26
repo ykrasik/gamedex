@@ -17,13 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.tag.TagGameView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -43,31 +40,42 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
-    private val toggleAllProperty = SimpleBooleanProperty(false)
+    override val checkAllChanges = BroadcastEventChannel<Boolean>()
+    private val toggleAllProperty = SimpleBooleanProperty(false).eventOnChange(checkAllChanges)
     override var toggleAll by toggleAllProperty
 
+    override val checkTagChanges = BroadcastEventChannel<Pair<String, Boolean>>()
+
+    override val newTagNameChanges = BroadcastEventChannel<String>()
     private val viewModel = TagViewModel()
     override var newTagName by viewModel.nameProperty
+
+    private inner class TagViewModel : ViewModel() {
+        val nameProperty = presentableStringProperty(newTagNameChanges)
+    }
 
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    private val presenter = presenters.tagGame.present(this)
+    override val addNewTagActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = BroadcastEventChannel<Unit>()
+    override val cancelActions = BroadcastEventChannel<Unit>()
 
     init {
         checkedTags.onChange { tags.invalidate() }
         nameValidationErrorProperty.onChange { viewModel.validate() }
+        viewService.register(this)
     }
 
     override val root = borderpane {
         addClass(Style.tagWindow)
         top {
             toolbar {
-                acceptButton { onAction(presenter::onAccept) }
+                acceptButton { eventOnAction(acceptActions) }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                cancelButton { onAction(presenter::onCancel) }
+                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {
@@ -76,7 +84,9 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
                 gridpane {
                     hgap = 5.0
                     row {
-                        toggleAllButton()
+                        jfxToggleButton(toggleAllProperty, "Toggle All") {
+                            tooltip("Toggle all")
+                        }
                         verticalSeparator()
                         addTagButton()
                     }
@@ -85,11 +95,6 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
                 existingTags()
             }
         }
-    }
-
-    private fun EventTarget.toggleAllButton() = jfxToggleButton(toggleAllProperty, "Toggle All") {
-        tooltip("Toggle all")
-        selectedProperty().presentOnChange(presenter::onToggleAllChanged)
     }
 
     private fun EventTarget.addTagButton() {
@@ -106,7 +111,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         jfxButton(graphic = Theme.Icon.plus(20.0)) {
             disableWhen { nameValidationErrorProperty.isNotNull }
             defaultButtonProperty().bind(newTagName.focusedProperty())
-            onAction(presenter::onAddNewTag)
+            eventOnAction(addNewTagActions)
         }
     }
 
@@ -118,7 +123,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
                     jfxToggleButton {
                         text = tag
                         isSelected = checkedTags.contains(tag)
-                        selectedProperty().presentOnChange { presenter.onTagToggleChanged(tag, it) }
+                        selectedProperty().eventOnChange(checkTagChanges) { tag to it }
                     }
                 }
             }
@@ -126,15 +131,11 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     }
 
     fun show(game: Game) {
-        presenter.onShown(game)
-        openWindow(block = true)
+        this.game = game
+        openModal()
     }
 
     override fun closeView() = close()
-
-    private inner class TagViewModel : ViewModel() {
-        val nameProperty = presentableProperty(presenter::onNewTagNameChanged) { SimpleStringProperty("") }
-    }
 
     class Style : Stylesheet() {
         companion object {

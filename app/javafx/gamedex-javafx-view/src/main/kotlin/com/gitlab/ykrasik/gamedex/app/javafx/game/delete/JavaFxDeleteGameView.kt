@@ -17,44 +17,47 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.delete.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.presenters
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialogContainer
 import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.stage.StageStyle
 import tornadofx.getValue
 import tornadofx.setValue
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
  * Date: 02/05/2018
  * Time: 22:08
  */
-object JavaFxDeleteGameView : DeleteGameView {
-    private val gameProperty = SimpleObjectProperty<Game>().presentOnChange { presenter.onGameChanged(it) }
+class JavaFxDeleteGameView : PresentableView(), DeleteGameView {
+    private val gameProperty = SimpleObjectProperty<Game>()
     override var game: Game by gameProperty
 
-    private val fromFileSystemProperty = SimpleBooleanProperty(false).presentOnChange { presenter.onFromFileSystemChanged(it) }
+    override val fromFileSystemChanges = BroadcastEventChannel<Boolean>()
+    private val fromFileSystemProperty = SimpleBooleanProperty(false).eventOnChange(fromFileSystemChanges)
     override var fromFileSystem by fromFileSystemProperty
 
-    private val presenter = presenters.deleteGame.present(this)
+    override val acceptActions = BroadcastEventChannel<Unit>()
+    override val cancelActions = BroadcastEventChannel<Unit>()
+
+    init {
+        titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it?.name}'?"})
+        viewService.register(this)
+    }
+
+    override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {
+        jfxCheckBox(fromFileSystemProperty, "From File System")
+    }
 
     fun show(game: Game) {
-        JavaFxDeleteGameView.game = game
-        val accept = areYouSureDialog("Delete game '${game.name}'?") {
-            jfxCheckBox(fromFileSystemProperty, "From File System")
-        }
-        // Not entirely controlled by the presenter, but good enough.
-        if (accept) {
-            presenter.onAccept()
-        } else {
-            presenter.onCancel()
-        }
+        this.game = game
+        openModal(stageStyle = StageStyle.UNIFIED)
     }
 
-    override fun closeView() {
-        // Closed automatically by the dialog
-    }
+    override fun closeView() = close()
 }

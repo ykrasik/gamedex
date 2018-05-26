@@ -16,17 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.library
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
-import com.gitlab.ykrasik.gamedex.app.api.presenters
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableGamedexScreen
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.scene.control.ToolBar
 import tornadofx.*
 
@@ -37,42 +31,35 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd()),
-    ViewWithLibraries, ViewCanAddLibrary, ViewCanEditLibrary, ViewCanDeleteLibrary {
-    private val editLibraryView: JavaFxEditLibraryView by inject()
+class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()), ViewWithLibraries {
+    private val viewManager: ViewManager by di()
 
     override val libraries = mutableListOf<Library>().observable()
 
-    private val addLibraryPresenter = presenters.addLibrary.present(this)
-    private val editLibraryPresenter = presenters.editLibrary.present(this)
-    private val deleteLibraryPresenter = presenters.deleteLibrary.present(this)
-
     init {
-        presenters.libraries.present(this)
-        libraries.onChange {
-            root.resizeColumnsToFitContent()
-        }
+        viewService.register(this)
     }
 
     override fun ToolBar.constructToolbar() {
-        addButton { onAction(::addLibrary) }
+        addButton { setOnAction { addLibrary() } }
         verticalSeparator()
         editButton {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            onAction(::editLibrary)
+            setOnAction { editLibrary() }
         }
         verticalSeparator()
         spacer()
         verticalSeparator()
         deleteButton("Delete") {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            onAction(::deleteLibrary)
+            setOnAction { deleteLibrary() }
         }
     }
 
     override val root = tableview(libraries) {
         isEditable = false
         columnResizePolicy = SmartResize.POLICY
+        libraries.onChange { resizeColumnsToFitContent() }
 
         readonlyColumn("Name", Library::name) {
             isSortable = false
@@ -105,21 +92,9 @@ class JavaFxLibraryScreen : PresentableGamedexScreen("Libraries", Theme.Icon.hdd
         allowDeselection(onClickAgain = false)
     }
 
-    override fun showAddLibraryView() = editLibraryView.show(library = null)
-
-    override fun showEditLibraryView(library: Library) = editLibraryView.show(library)
-
-    override fun confirmDeleteLibrary(library: Library, gamesToBeDeleted: List<Game>) =
-        areYouSureDialog("Delete library '${library.name}'?") {
-            if (gamesToBeDeleted.isNotEmpty()) {
-                label("The following ${gamesToBeDeleted.size} games will also be deleted:")
-                listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
-            }
-        }
-
-    private fun addLibrary() = addLibraryPresenter.addLibrary()
-    private fun editLibrary() = editLibraryPresenter.editLibrary(selectedLibrary)
-    private fun deleteLibrary() = deleteLibraryPresenter.deleteLibrary(selectedLibrary)
+    private fun addLibrary() = viewManager.showAddLibraryView()
+    private fun editLibrary() = viewManager.showEditLibraryView(selectedLibrary)
+    private fun deleteLibrary() = viewManager.showDeleteLibraryView(selectedLibrary)
 
     private val selectedLibrary: Library get() = root.selectedItem!!
 }

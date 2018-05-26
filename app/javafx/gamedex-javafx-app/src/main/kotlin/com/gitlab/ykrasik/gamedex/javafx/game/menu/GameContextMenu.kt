@@ -19,9 +19,9 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.discover.ViewCanRediscoverGame
-import com.gitlab.ykrasik.gamedex.app.api.game.download.ViewCanRedownloadGame
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.game.RediscoverGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
@@ -42,15 +42,19 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRediscoverGame {
+class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameView {
     private val viewManager: ViewManager by di()
 
     private val controller: GameController by di()
 
-    private val redownloadPresenter = presenters.redownloadGame.present(this)
-    private val rediscoverPresenter = presenters.rediscoverGame.present(this)
+    override val redownloadGameActions = BroadcastEventChannel<Game>()
+    override val rediscoverGameActions = BroadcastEventChannel<Game>()
 
     private lateinit var game: Game
+
+    init {
+        viewService.register(this)
+    }
 
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
@@ -64,14 +68,14 @@ class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRedisco
         separator()
         item("Re-Download", Theme.Icon.download(size)) {
             enableWhen { enabledProperty }
-            onAction { redownloadPresenter.redownloadGame(game) }
+            eventOnAction(redownloadGameActions) { game }
         }
         item("Re-Discover", Theme.Icon.search(size)) {
             enableWhen { enabledProperty }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            onAction { rediscoverPresenter.rediscoverGame(game) }
+            eventOnAction(rediscoverGameActions) { game }
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
@@ -87,6 +91,8 @@ class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRedisco
 
     private val popover = popOver { children += root }.apply { isAutoFix = false }
 
+    private fun editGame(initialScreen: GameDataType) = viewManager.showEditGameView(game, initialScreen)
+
     fun install(node: Node, game: () -> Game) {
         node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
         node.setOnContextMenuRequested { e ->
@@ -95,6 +101,4 @@ class GameContextMenu : PresentableView(), ViewCanRedownloadGame, ViewCanRedisco
             popover.show(node, e.screenX, e.screenY)
         }
     }
-
-    private fun editGame(initialScreen: GameDataType) = viewManager.showEditGameView(game, initialScreen)
 }

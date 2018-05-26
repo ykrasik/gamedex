@@ -17,20 +17,19 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.EditGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.edit.GameDataOverrideViewModel
-import com.gitlab.ykrasik.gamedex.app.api.presenters
+import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentOnChange
-import com.gitlab.ykrasik.gamedex.javafx.screen.presentableProperty
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.Tab
@@ -38,6 +37,8 @@ import javafx.scene.control.TabPane
 import javafx.scene.control.ToggleGroup
 import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
+import kotlinx.coroutines.experimental.CompletableDeferred
+import kotlinx.coroutines.experimental.Deferred
 import tornadofx.*
 
 /**
@@ -52,10 +53,14 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
 
     private var tabPane: TabPane by singleAssign()
 
+    private var initialScreen: GameDataType = GameDataType.name_
+
+    override var providerLogos = mutableMapOf<ProviderId, Image>()
+
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
-    override var initialScreen: GameDataType = GameDataType.name_
+    override val fetchThumbnailRequests = channel<FetchThumbnailRequest>()
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     private val nameOverrideProperty = overrideProperty<String>()
@@ -82,7 +87,17 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
     private fun <T> overrideProperty() =
         SimpleObjectProperty<GameDataOverrideViewModel<T>>(GameDataOverrideViewModel())
 
-    private val presenter = presenters.editGame.present(this)
+    override val providerOverrideSelectionChanges = BroadcastEventChannel<Triple<GameDataType, ProviderId, Boolean>>()
+    override val customOverrideSelectionChanges = BroadcastEventChannel<Pair<GameDataType, Boolean>>()
+    override val clearOverrideSelectionChanges = BroadcastEventChannel<Pair<GameDataType, Boolean>>()
+
+    override val customOverrideValueChanges = BroadcastEventChannel<Pair<GameDataType, String>>()
+    override val customOverrideValueAcceptActions = BroadcastEventChannel<GameDataType>()
+    override val customOverrideValueRejectActions = BroadcastEventChannel<GameDataType>()
+
+    override val acceptActions = BroadcastEventChannel<Unit>()
+    override val clearActions = BroadcastEventChannel<Unit>()
+    override val cancelActions = BroadcastEventChannel<Unit>()
 
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()
@@ -94,6 +109,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
 
     init {
         titleProperty.bind(gameProperty.stringBinding { it?.name })
+        viewService.register(this)
     }
 
     override val root = borderpane {
@@ -103,19 +119,19 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    onAction(presenter::onAccept)
+                    eventOnAction(acceptActions)
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 toolbarButton(graphic = Theme.Icon.clear()) {
                     tooltip("Reset all to default")
-                    onAction(presenter::onClear)
+                    eventOnAction(clearActions)
                 }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    onAction(presenter::onCancel)
+                    eventOnAction(cancelActions)
                 }
             }
         }
@@ -214,8 +230,8 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                             jfxToggleNode(group = toggleGroup) {
                                                 useMaxWidth = true
                                                 isSelected = gameDataExtractor(game) == data
-                                                selectedProperty().presentOnChange {
-                                                    presenter.onProviderOverrideSelected(type, providerData.header.id, it)
+                                                selectedProperty().eventOnChange(providerOverrideSelectionChanges) {
+                                                    Triple(type, providerData.header.id, it)
                                                 }
                                                 graphic = hbox(spacing = 10.0) {
                                                     alignment = Pos.CENTER_LEFT
@@ -240,9 +256,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                     isSelected = it.override != null && it.override is GameDataOverride.Custom
                                 }
 
-                                selectedProperty().presentOnChange {
-                                    presenter.onCustomOverrideSelected(type, it)
-                                }
+                                selectedProperty().eventOnChange(customOverrideSelectionChanges) { type to it }
 
                                 graphic = hbox(spacing = 10.0) {
                                     alignment = Pos.CENTER_LEFT
@@ -265,30 +279,26 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                     val viewModel = CustomTextViewModel(type)
                                     overrideViewModelProperty.onChange {
                                         viewModel.textProperty.value = it!!.rawCustomValue
-                                        viewModel.validate()
                                     }
                                     textfield(viewModel.textProperty) {
                                         minWidth = 300.0
                                         promptText = "Custom ${type.displayName}"
-
-                                        validator(ValidationTrigger.None) {
-                                            overrideViewModelProperty.value.customValueValidationError?.let { error(it) }
-                                        }
+                                        validatorFrom(viewModel, overrideViewModelProperty.map { it!!.customValueValidationError })
                                     }
                                     acceptButton {
                                         isDefaultButton = true
                                         enableWhen { viewModel.valid }
-                                        onAction {
+                                        setOnAction {
                                             popOver.hide()
-                                            presenter.onCustomOverrideValueAccepted(type)
+                                            customOverrideValueAcceptActions.offer(type)
                                             customToggleNode.isSelected = true
                                         }
                                     }
                                     cancelButton {
                                         isCancelButton = true
-                                        onAction {
+                                        eventOnAction(customOverrideValueRejectActions) {
                                             popOver.hide()
-                                            presenter.onCustomOverrideValueRejected(type)
+                                            type
                                         }
                                     }
                                 }
@@ -304,7 +314,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                 children += Theme.Icon.timesCircle(40.0)
                                 text("Reset to default") { addClass(Style.textData) }
                             }
-                            selectedProperty().presentOnChange { presenter.onClearOverrideSelected(type, it) }
+                            selectedProperty().eventOnChange(clearOverrideSelectionChanges) { type to it }
                         }
                     }
                 }
@@ -330,21 +340,26 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
         fitHeight = 300.0       // TODO: Config?
         fitWidth = 200.0
         isPreserveRatio = true
-        imageProperty().bind(imageLoader.loadImage(presenter.fetchImage(url)))
+        imageProperty().bind(imageLoader.loadImage {
+            val response = CompletableDeferred<Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>>()
+            fetchThumbnailRequests.offer(FetchThumbnailRequest(url, response))
+            response
+        })
     }
 
     fun show(game: Game, initialScreen: GameDataType) {
+        this.game = game
+        this.initialScreen = initialScreen
         // TODO: Select initial selection.
-        presenter.onShown(game, initialScreen)
-        openWindow(block = true)
+        openModal()
     }
 
     override fun closeView() = close()
 
-    private fun logo(id: ProviderId) = (presenter.providerLogo(id) as JavaFxImage).image
+    private fun logo(id: ProviderId) = (providerLogos[id]!! as JavaFxImage).image
 
     private inner class CustomTextViewModel(type: GameDataType) : ViewModel() {
-        val textProperty = presentableProperty({ presenter.onCustomOverrideValueChanged(type, it) }, { SimpleStringProperty("") })
+        val textProperty = presentableStringProperty(customOverrideValueChanges) { type to it }
     }
 
     class Style : Stylesheet() {
