@@ -7,3 +7,6 @@ systemProp.gameDex.igdb.apiKey={yourApiKey}
 
 ### Native distribution:
 `gradlew jfxNative`
+
+### Check for library version updates
+`gradlew versions`
