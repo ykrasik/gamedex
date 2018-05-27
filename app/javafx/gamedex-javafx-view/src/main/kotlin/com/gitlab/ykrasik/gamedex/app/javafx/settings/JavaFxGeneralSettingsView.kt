@@ -47,8 +47,8 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
     private val cleanupDbPresenter = presenters.cleanupDb.present(this)
 
     override val root = vbox {
-        enableWhen { enabledProperty }
         group("Database") {
+            enableWhen { enabledProperty }
             row {
                 jfxButton("Export Database", Theme.Icon.upload()) {
                     addClass(CommonStyle.thinBorder, Style.exportButton)
