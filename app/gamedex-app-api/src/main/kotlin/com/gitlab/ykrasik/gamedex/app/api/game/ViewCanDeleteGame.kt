@@ -16,13 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:38
+ * Date: 01/06/2018
+ * Time: 09:25
  */
-interface RedownloadAllStaleGamesView {
-    val redownloadAllStaleGamesActions: BroadcastReceiveChannel<Unit>
+interface ViewCanDeleteGame {
+    val deleteGameActions: BroadcastReceiveChannel<Game>
 }

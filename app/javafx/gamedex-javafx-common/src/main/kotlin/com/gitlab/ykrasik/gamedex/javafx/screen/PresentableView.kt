@@ -65,17 +65,17 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     fun <T, O : ObservableValue<T>> O.eventOnChange(channel: BroadcastEventChannel<T>) = eventOnChange(channel) { it }
 
     inline fun <T, R, O : ObservableValue<T>> O.eventOnChange(channel: BroadcastEventChannel<R>, crossinline factory: (T) -> R) = apply {
-        onChange { channel.offer(factory(it!!)) }
+        onChange { channel.event(factory(it!!)) }
     }
 
     // TODO: Find a better name
     fun ButtonBase.eventOnAction(channel: BroadcastEventChannel<Unit>) = apply {
-        setOnAction { channel.offer(Unit) }
+        setOnAction { channel.event(Unit) }
     }
 
     // TODO: Find a better name
     inline fun <T> ButtonBase.eventOnAction(channel: BroadcastEventChannel<T>, crossinline f: () -> T) = apply {
-        setOnAction { channel.offer(f()) }
+        setOnAction { channel.event(f()) }
     }
 
     fun ViewModel.presentableStringProperty(channel: BroadcastEventChannel<String>): Property<String> =
@@ -94,7 +94,7 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
                                                                                            crossinline valueFactory: (T) -> R): O =
         bind<O, T, O> { propertyFactory() }.apply {
             onChange {
-                channel.offer(valueFactory(it!!))
+                channel.event(valueFactory(it!!))
                 commit()
             }
         }
@@ -105,19 +105,6 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
             errorValue.value?.let { error(it) }
         }
     }
+
+    fun <E> BroadcastEventChannel<E>.event(e: E) = offer(e)
 }
-
-inline fun <T, O : ObservableValue<T>> O.presentOnChange(crossinline call: (T) -> Unit) = apply {
-    onChange { call(it!!) }
-}
-
-inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(crossinline call: (T) -> Unit,
-                                                                                    crossinline propertyFactory: () -> O): O =
-    bind<O, T, O> { propertyFactory() }.apply {
-        onChange {
-            call(it!!)
-            commit()
-        }
-    }
-
-inline fun ButtonBase.onAction(crossinline f: () -> Unit) = setOnAction { f() }

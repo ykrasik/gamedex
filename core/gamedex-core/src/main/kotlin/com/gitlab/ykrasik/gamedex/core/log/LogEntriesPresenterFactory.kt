@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.log
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.bindTo
 import javax.inject.Singleton
 
 @Singleton

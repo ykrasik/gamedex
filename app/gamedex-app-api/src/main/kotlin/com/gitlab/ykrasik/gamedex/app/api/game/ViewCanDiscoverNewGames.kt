@@ -14,33 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.discover
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRediscoverGame
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 10:05
+ * Time: 09:42
  */
-@Singleton
-class RediscoverGamePresenterFactory @Inject constructor(
-    private val gameDiscoveryService: GameDiscoveryService,
-    private val taskRunner: TaskRunner
-) : PresenterFactory<ViewCanRediscoverGame> {
-    override fun present(view: ViewCanRediscoverGame) = object : Presenter() {
-        init {
-            view.rediscoverGameActions.actionOnUi { rediscoverGame(it) }
-        }
-
-        private suspend fun rediscoverGame(game: Game) {
-            taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
-        }
-    }
+interface ViewCanDiscoverNewGames {
+    val discoverNewGamesActions: BroadcastReceiveChannel<Unit>
 }

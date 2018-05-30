@@ -16,25 +16,53 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 
 /**
  * User: ykrasik
  * Date: 21/05/2018
  * Time: 10:29
  *
- * A required implementation by the view layer that allows switching between views.
+ * A required implementation by the view layer that allows showing & hiding views.
  */
-// TODO: Rename to ViewSwitcher?
 interface ViewManager {
-    fun showEditGameView(game: Game, initialScreen: GameDataType)
-    fun showDeleteGameView(game: Game)
-    fun showRenameMoveGameView(game: Game, initialName: String? = null)
-    fun showTagGameView(game: Game)
+    val editLibraryView: EditLibraryView
+    fun showEditLibraryView(view: EditLibraryView)
+    fun showEditLibraryView(f: EditLibraryView.() -> Unit) = mutateAndShow(editLibraryView, f, this::showEditLibraryView)
+    fun closeEditLibraryView(view: EditLibraryView)
 
-    fun showAddLibraryView()
-    fun showEditLibraryView(library: Library)
-    fun showDeleteLibraryView(library: Library)
+    val deleteLibraryView: DeleteLibraryView
+    fun showDeleteLibraryView(view: DeleteLibraryView)
+    fun showDeleteLibraryView(f: DeleteLibraryView.() -> Unit) = mutateAndShow(deleteLibraryView, f, this::showDeleteLibraryView)
+    fun closeDeleteLibraryView(view: DeleteLibraryView)
+
+    val editGameView: EditGameView
+    fun showEditGameView(view: EditGameView)
+    fun showEditGameView(f: EditGameView.() -> Unit) = mutateAndShow(editGameView, f, this::showEditGameView)
+    fun closeEditGameView(view: EditGameView)
+
+    val deleteGameView: DeleteGameView
+    fun showDeleteGameView(view: DeleteGameView)
+    fun showDeleteGameView(f: DeleteGameView.() -> Unit) = mutateAndShow(deleteGameView, f, this::showDeleteGameView)
+    fun closeDeleteGameView(view: DeleteGameView)
+
+    val renameMoveGameView: RenameMoveGameView
+    fun showRenameMoveGameView(view: RenameMoveGameView)
+    fun showRenameMoveGameView(f: RenameMoveGameView.() -> Unit) = mutateAndShow(renameMoveGameView, f, this::showRenameMoveGameView)
+    fun closeRenameMoveGameView(view: RenameMoveGameView)
+
+    val tagGameView: TagGameView
+    fun showTagGameView(view: TagGameView)
+    fun showTagGameView(f: TagGameView.() -> Unit) = mutateAndShow(tagGameView, f, this::showTagGameView)
+    fun closeTagGameView(view: TagGameView)
+
+    private inline fun <V> mutateAndShow(view: V, mutator: (V) -> Unit, show: (V) -> Unit) {
+        mutator(view)
+        show(view)
+    }
 }

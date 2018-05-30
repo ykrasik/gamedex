@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.stage.StageStyle
 import tornadofx.getValue
 import tornadofx.setValue
 import tornadofx.stringBinding
@@ -53,11 +52,4 @@ class JavaFxDeleteGameView : PresentableView(), DeleteGameView {
     override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {
         jfxCheckBox(fromFileSystemProperty, "From File System")
     }
-
-    fun show(game: Game) {
-        this.game = game
-        openModal(stageStyle = StageStyle.UNIFIED)
-    }
-
-    override fun closeView() = close()
 }

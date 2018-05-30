@@ -51,6 +51,4 @@ interface RenameMoveGameView {
 
     val acceptActions: BroadcastReceiveChannel<Unit>
     val cancelActions: BroadcastReceiveChannel<Unit>
-
-    fun closeView()
 }

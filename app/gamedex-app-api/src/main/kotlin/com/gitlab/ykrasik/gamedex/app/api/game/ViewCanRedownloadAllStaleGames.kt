@@ -14,20 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.library
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 18/03/2017
- * Time: 17:11
+ * Date: 06/05/2018
+ * Time: 09:38
  */
-object AddLibraryFragmentTestApp : BaseFragmentTestApp() {
-    override fun init() {
-        println("Result: " + JavaFxEditLibraryView().show(library = null))
-    }
-
-    @JvmStatic fun main(args: Array<String>) {  }
+interface ViewCanRedownloadAllStaleGames {
+    val redownloadAllStaleGamesActions: BroadcastReceiveChannel<Unit>
 }

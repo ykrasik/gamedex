@@ -27,7 +27,6 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.HPos
 import javafx.scene.layout.Priority
-import javafx.stage.StageStyle
 import tornadofx.*
 import java.io.File
 
@@ -134,14 +133,6 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
             }
         }
     }
-
-    fun show(game: Game, initialName: String?) {
-        this.game = game
-        this.initialName = initialName
-        openModal(stageStyle = StageStyle.UNIFIED)
-    }
-
-    override fun closeView() = close()
 
     override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
 

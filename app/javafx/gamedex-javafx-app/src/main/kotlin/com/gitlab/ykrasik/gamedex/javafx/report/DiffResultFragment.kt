@@ -17,14 +17,14 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
@@ -38,8 +38,12 @@ import tornadofx.*
  * Date: 24/06/2017
  * Time: 18:52
  */
-class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView() {
-    private val viewManager: ViewManager by di()
+class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView(), ViewCanRenameMoveGame {
+    override val renameMoveGameActions = BroadcastEventChannel<Pair<Game, String?>>()
+
+    init {
+        viewRegistry.register(this)
+    }
 
     override val root = form {
         addClass(CommonStyle.centered)
@@ -50,7 +54,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
 
         popoverContextMenu {
             jfxButton("Rename to Expected", Theme.Icon.folder()) {
-                onAction { viewManager.showRenameMoveGameView(game, initialName = diff.expectedName) }
+                eventOnAction(renameMoveGameActions) { game to diff.expectedName }
             }
             // TODO: Add a 'search only this provider' option
         }

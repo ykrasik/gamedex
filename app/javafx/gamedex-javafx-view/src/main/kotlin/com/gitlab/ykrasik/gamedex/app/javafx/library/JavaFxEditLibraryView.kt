@@ -113,12 +113,5 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         platformComboBox(viewModel.platformProperty)
     }
 
-    fun show(library: Library?) {
-        this.library = library
-        openModal()
-    }
-
-    override fun closeView() = close()
-
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)
 }

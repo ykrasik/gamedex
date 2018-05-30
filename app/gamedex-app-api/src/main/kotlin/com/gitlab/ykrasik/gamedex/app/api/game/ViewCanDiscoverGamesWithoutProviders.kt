@@ -20,18 +20,9 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 14:18
+ * Date: 06/05/2018
+ * Time: 09:43
  */
-interface DiscoverGameChooseResultsView {
-    var discoverGameChooseResults: DiscoverGameChooseResults
-    val discoverGameChooseResultsChanges: BroadcastReceiveChannel<DiscoverGameChooseResults>
-}
-
-// FIXME: Make this an inner class of GameUserConfig after it's refactored.
-enum class DiscoverGameChooseResults(val description: String) {
-    chooseIfNonExact("If no exact match: Choose"),
-    alwaysChoose("Always choose"),
-    skipIfNonExact("If no exact match: Skip"),
-    proceedWithoutIfNonExact("If no exact match: Proceed Without")
+interface ViewCanDiscoverGamesWithoutProviders {
+    val discoverGamesWithoutProvidersActions: BroadcastReceiveChannel<Unit>
 }

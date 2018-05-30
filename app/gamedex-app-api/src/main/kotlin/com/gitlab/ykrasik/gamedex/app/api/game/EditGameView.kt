@@ -35,6 +35,7 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 interface EditGameView {
     var providerLogos: MutableMap<ProviderId, Image>
 
+    var initialScreen: GameDataType
     var game: Game
 
     val fetchThumbnailRequests: ReceiveChannel<FetchThumbnailRequest>
@@ -58,8 +59,6 @@ interface EditGameView {
     val acceptActions: BroadcastReceiveChannel<Unit>
     val clearActions: BroadcastReceiveChannel<Unit>
     val cancelActions: BroadcastReceiveChannel<Unit>
-
-    fun closeView()
 }
 
 data class GameDataOverrideViewModel<T>(

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
@@ -27,15 +28,16 @@ import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPr
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.general.CleanupDbPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.general.ClearUserDataPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.general.ExportDatabasePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.general.ImportDatabasePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.library.DeleteLibraryPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.library.EditLibraryPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.library.LibrariesPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenterFactory
@@ -51,48 +53,68 @@ import kotlin.reflect.KClass
 @Singleton
 class ViewRegistryImpl @Inject constructor(
     libraries: LibrariesPresenterFactory,
+    showAddLibrary: ShowAddLibraryPresenterFactory,
+    showEditLibrary: ShowEditLibraryPresenterFactory,
     editLibrary: EditLibraryPresenterFactory,
+    showDeleteLibrary: ShowDeleteLibraryPresenterFactory,
     deleteLibrary: DeleteLibraryPresenterFactory,
+
     gameDetails: GameDetailsPresenterFactory,
     redownloadGame: RedownloadGamePresenterFactory,
     rediscoverGame: RediscoverGamePresenterFactory,
+    showEditGame: ShowEditGamePresenterFactory,
     editGame: EditGamePresenterFactory,
-    tagGame: TagGamePresenterFactory,
-    renameMoveGame: RenameMoveGamePresenterFactory,
+    showDeleteGame: ShowDeleteGamePresenterFactory,
     deleteGame: DeleteGamePresenterFactory,
+    showRenameMoveGame: ShowRenameMoveGamePresenterFactory,
+    renameMoveGame: RenameMoveGamePresenterFactory,
+    showTagGame: ShowTagGamePresenterFactory,
+    tagGame: TagGamePresenterFactory,
     gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
     redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,
     discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
     discoverNewGames: DiscoverNewGamesPresenterFactory,
     discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
+
     exportDatabase: ExportDatabasePresenterFactory,
     importDatabase: ImportDatabasePresenterFactory,
     clearUserData: ClearUserDataPresenterFactory,
     cleanupDb: CleanupDbPresenterFactory,
+
     logEntries: LogEntriesPresenterFactory,
     logLevel: LogLevelPresenterFactory,
     logTail: LogTailPresenterFactory
 ) : ViewRegistry {
     private val presenterClasses: Map<KClass<*>, PresenterFactory<*>> = listOf(
         presenter(libraries),
+        presenter(showAddLibrary),
+        presenter(showEditLibrary),
         presenter(editLibrary),
+        presenter(showDeleteLibrary),
         presenter(deleteLibrary),
+
         presenter(gameDetails),
         presenter(redownloadGame),
         presenter(rediscoverGame),
+        presenter(showEditGame),
         presenter(editGame),
-        presenter(tagGame),
-        presenter(renameMoveGame),
+        presenter(showDeleteGame),
         presenter(deleteGame),
+        presenter(showRenameMoveGame),
+        presenter(renameMoveGame),
+        presenter(showTagGame),
+        presenter(tagGame),
         presenter(gameDownloadStaleDuration),
         presenter(redownloadAllStaleGames),
         presenter(discoverGameChooseResults),
         presenter(discoverNewGames),
         presenter(discoverGamesWithoutProviders),
+
         presenter(exportDatabase),
         presenter(importDatabase),
         presenter(clearUserData),
         presenter(cleanupDb),
+
         presenter(logEntries),
         presenter(logLevel),
         presenter(logTail)

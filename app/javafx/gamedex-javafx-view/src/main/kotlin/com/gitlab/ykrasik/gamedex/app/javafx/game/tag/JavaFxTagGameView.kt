@@ -130,13 +130,6 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         }
     }
 
-    fun show(game: Game) {
-        this.game = game
-        openModal()
-    }
-
-    override fun closeView() = close()
-
     class Style : Stylesheet() {
         companion object {
             val tagWindow by cssclass()

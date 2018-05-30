@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -39,6 +40,7 @@ import javax.inject.Singleton
 class EditLibraryPresenterFactory @Inject constructor(
     private val taskRunner: TaskRunner,
     private val libraryService: LibraryService,
+    private val viewManager: ViewManager,
     userConfigRepository: UserConfigRepository
 ) : PresenterFactory<EditLibraryView> {
     private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
@@ -129,11 +131,13 @@ class EditLibraryPresenterFactory @Inject constructor(
 
             taskRunner.runTask(task)
 
-            view.closeView()
+            close()
         }
 
         private fun onCancel() {
-            view.closeView()
+            close()
         }
+
+        private fun close() = viewManager.closeEditLibraryView(view)
     }
 }

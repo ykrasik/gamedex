@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.edit
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
@@ -42,7 +43,8 @@ class EditGamePresenterFactory @Inject constructor(
     private val imageRepository: ImageRepository,
     private val gameProviderService: GameProviderService,
     private val gameService: GameService,
-    private val taskRunner: TaskRunner
+    private val taskRunner: TaskRunner,
+    private val viewManager: ViewManager
 ) : PresenterFactory<EditGameView> {
     override fun present(view: EditGameView) = object : Presenter() {
         init {
@@ -198,17 +200,19 @@ class EditGamePresenterFactory @Inject constructor(
             }.toMap()
 
             writeOverrides(overrides)
-            view.closeView()
+            close()
         }
 
         private suspend fun onClear() {
             writeOverrides(emptyMap())
-            view.closeView()
+            close()
         }
 
         private fun onCancel() {
-            view.closeView()
+            close()
         }
+
+        private fun close() = viewManager.closeEditGameView(view)
 
         private suspend fun writeOverrides(overrides: Map<GameDataType, GameDataOverride>) {
             val newRawGame = view.game.rawGame.withDataOverrides(overrides)

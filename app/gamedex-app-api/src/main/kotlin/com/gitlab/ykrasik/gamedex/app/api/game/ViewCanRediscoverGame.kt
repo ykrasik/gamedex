@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 14:23
+ * Time: 09:43
  */
-interface RedownloadGameView {
-    val redownloadGameActions: BroadcastReceiveChannel<Game>
+interface ViewCanRediscoverGame {
+    val rediscoverGameActions: BroadcastReceiveChannel<Game>
 }

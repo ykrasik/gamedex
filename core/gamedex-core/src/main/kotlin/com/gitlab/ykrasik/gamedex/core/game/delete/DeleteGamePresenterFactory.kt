@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.delete
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -35,7 +36,8 @@ import javax.inject.Singleton
 @Singleton
 class DeleteGamePresenterFactory @Inject constructor(
     private val taskRunner: TaskRunner,
-    private val gameService: GameService
+    private val gameService: GameService,
+    private val viewManager: ViewManager
 ) : PresenterFactory<DeleteGameView> {
     override fun present(view: DeleteGameView) = object : Presenter() {
         init {
@@ -56,11 +58,13 @@ class DeleteGamePresenterFactory @Inject constructor(
 
             taskRunner.runTask(gameService.delete(view.game))
 
-            view.closeView()
+            close()
         }
 
         private fun onCancel() {
-            view.closeView()
+            close()
         }
+
+        private fun close() = viewManager.closeDeleteGameView(view)
     }
 }

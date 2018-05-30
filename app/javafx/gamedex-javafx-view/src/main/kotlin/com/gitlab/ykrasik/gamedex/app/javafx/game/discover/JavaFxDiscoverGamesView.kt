@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGamesWithoutProvidersView
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverNewGamesView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverGamesWithoutProviders
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
@@ -36,7 +36,7 @@ import tornadofx.useMaxWidth
  * Date: 05/06/2017
  * Time: 10:54
  */
-class JavaFxDiscoverGamesView : PresentableView(), DiscoverNewGamesView, DiscoverGamesWithoutProvidersView {
+class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, ViewCanDiscoverGamesWithoutProviders {
     override val discoverNewGamesActions = BroadcastEventChannel<Unit>()
     override val discoverGamesWithoutProvidersActions = BroadcastEventChannel<Unit>()
 

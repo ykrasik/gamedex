@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 
 import com.gitlab.ykrasik.gamedex.app.api.game.DownloadStaleDurationView
-import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadAllStaleGamesView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadAllStaleGames
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
@@ -31,7 +31,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 10:57
  */
-class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, RedownloadAllStaleGamesView {
+class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, ViewCanRedownloadAllStaleGames {
     override val stalePeriodTextChanges = BroadcastEventChannel<String>()
     private val viewModel = PeriodViewModel()
     override var stalePeriodText by viewModel.stalePeriodTextProperty

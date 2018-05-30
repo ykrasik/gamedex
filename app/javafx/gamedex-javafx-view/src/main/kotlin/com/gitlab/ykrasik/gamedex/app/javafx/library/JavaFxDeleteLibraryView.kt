@@ -57,11 +57,4 @@ class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
             modalStage?.sizeToScene()
         }
     }
-
-    fun show(library: Library) {
-        this.library = library
-        openModal()
-    }
-
-    override fun closeView() = close()
 }

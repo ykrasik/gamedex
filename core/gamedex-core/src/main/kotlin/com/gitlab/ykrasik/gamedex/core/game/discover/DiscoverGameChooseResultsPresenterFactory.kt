@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResultsView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithDiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
@@ -33,10 +33,10 @@ import javax.inject.Singleton
 @Singleton
 class DiscoverGameChooseResultsPresenterFactory @Inject constructor(
     userConfigRepository: UserConfigRepository
-) : PresenterFactory<DiscoverGameChooseResultsView> {
+) : PresenterFactory<ViewWithDiscoverGameChooseResults> {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    override fun present(view: DiscoverGameChooseResultsView) = object : Presenter() {
+    override fun present(view: ViewWithDiscoverGameChooseResults) = object : Presenter() {
         init {
             gameUserConfig.discoverGameChooseResultsSubject.subscribe {
                 view.discoverGameChooseResults = it

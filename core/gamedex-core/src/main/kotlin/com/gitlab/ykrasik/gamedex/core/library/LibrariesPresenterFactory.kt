@@ -20,14 +20,11 @@ import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.bindTo
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LibrariesPresenterFactory @Inject constructor(
-    private val libraryService: LibraryService
-) : PresenterFactory<ViewWithLibraries> {
+class LibrariesPresenterFactory @Inject constructor(private val libraryService: LibraryService) : PresenterFactory<ViewWithLibraries> {
     override fun present(view: ViewWithLibraries) = object : Presenter() {
         init {
             libraryService.libraries.bindTo(view.libraries)

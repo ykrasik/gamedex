@@ -18,17 +18,13 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.RediscoverGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
@@ -41,8 +37,8 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, RediscoverGameView, RedownloadGameView {
-    private val viewManager: ViewManager by di()
+class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame,
+    GameDetailsView, ViewCanRediscoverGame, ViewCanRedownloadGame {
     private val imageLoader: ImageLoader by di()
 
     private val browser = YouTubeWebBrowser()
@@ -53,6 +49,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, Rediscover
     private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
     override var poster by posterProperty
 
+    override val editGameActions = BroadcastEventChannel<Pair<Game, GameDataType>>()
+    override val deleteGameActions = BroadcastEventChannel<Game>()
+    override val tagGameActions = BroadcastEventChannel<Game>()
     override val redownloadGameActions = BroadcastEventChannel<Game>()
     override val rediscoverGameActions = BroadcastEventChannel<Game>()
 
@@ -63,9 +62,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, Rediscover
     }
 
     override fun ToolBar.constructToolbar() {
-        editButton { onAction { editGame(GameDataType.name_) } }
+        editButton { setOnAction { editGame(GameDataType.name_) } }
         verticalSeparator()
-        tagButton { onAction { viewManager.showTagGameView(game) } }
+        tagButton { eventOnAction(tagGameActions) { game } }
         verticalSeparator()
 
         spacer()
@@ -80,7 +79,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, Rediscover
         verticalSeparator()
         downloadButton("Re-Download") { eventOnAction(redownloadGameActions) { game } }
         verticalSeparator()
-        deleteButton("Delete") { onAction { viewManager.showDeleteGameView(game) } }
+        deleteButton("Delete") { eventOnAction(deleteGameActions) { game } }
         verticalSeparator()
     }
 
@@ -143,7 +142,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, Rediscover
 
     override fun displayWebPage(url: String) = browser.load(url)
 
-    private fun editGame(initialTab: GameDataType) = viewManager.showEditGameView(game, initialTab)
+    private fun editGame(initialTab: GameDataType) = editGameActions.event(game to initialTab)
 
     override fun closeView() {
         browser.stop()

@@ -53,9 +53,10 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
 
     private var tabPane: TabPane by singleAssign()
 
-    private var initialScreen: GameDataType = GameDataType.name_
-
     override var providerLogos = mutableMapOf<ProviderId, Image>()
+
+    private val initialScreenProperty = SimpleObjectProperty(GameDataType.name_)
+    override var initialScreen by initialScreenProperty
 
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
@@ -101,7 +102,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
 
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()
-        // TODO: Move selection stuff to the end.
         selectedToggleProperty().onChange {
             tabPane.selectionModel.select(it!!.userData as Tab)
         }
@@ -139,6 +139,9 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             tabPane = jfxTabPane {
                 addClass(CommonStyle.hiddenTabPaneHeader)
                 paddingRight = 10.0
+                initialScreenProperty.onChange { type ->
+                    navigationToggle.selectToggle(navigationToggle.toggles.find { (it.userData as Tab).userData as GameDataType == type })
+                }
             }
         }
         left {
@@ -214,10 +217,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             useMaxWidth = true
             tabPane.tab(type.displayName) {
                 this@jfxToggleNode.userData = this
-                if (type == initialScreen) {
-                    this@jfxToggleNode.isSelected = true
-                }
-
+                userData = type
                 val toggleGroup = ToggleGroup().apply { disallowDeselection() }
                 scrollpane(fitToWidth = false) {
                     vbox(spacing = 10.0) {
@@ -290,7 +290,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                         enableWhen { viewModel.valid }
                                         setOnAction {
                                             popOver.hide()
-                                            customOverrideValueAcceptActions.offer(type)
+                                            customOverrideValueAcceptActions.event(type)
                                             customToggleNode.isSelected = true
                                         }
                                     }
@@ -346,15 +346,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             response
         })
     }
-
-    fun show(game: Game, initialScreen: GameDataType) {
-        this.game = game
-        this.initialScreen = initialScreen
-        // TODO: Select initial selection.
-        openModal()
-    }
-
-    override fun closeView() = close()
 
     private fun logo(id: ProviderId) = (providerLogos[id]!! as JavaFxImage).image
 

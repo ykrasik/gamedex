@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverNewGamesView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
@@ -32,8 +32,8 @@ import javax.inject.Singleton
 class DiscoverNewGamesPresenterFactory @Inject constructor(
     private val gameDiscoveryService: GameDiscoveryService,
     private val taskRunner: TaskRunner
-) : PresenterFactory<DiscoverNewGamesView> {
-    override fun present(view: DiscoverNewGamesView) = object : Presenter() {
+) : PresenterFactory<ViewCanDiscoverNewGames> {
+    override fun present(view: ViewCanDiscoverNewGames) = object : Presenter() {
         init {
             view.discoverNewGamesActions.actionOnUi { discoverNewGames() }
         }

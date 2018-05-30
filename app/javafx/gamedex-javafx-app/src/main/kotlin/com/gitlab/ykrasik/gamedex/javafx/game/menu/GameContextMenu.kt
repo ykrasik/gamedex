@@ -18,15 +18,12 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.RediscoverGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.screen.onAction
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
@@ -42,11 +39,14 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameView {
-    private val viewManager: ViewManager by di()
-
+class GameContextMenu : PresentableView(), ViewCanEditGame, ViewCanDeleteGame, ViewCanRenameMoveGame, ViewCanTagGame,
+    ViewCanRedownloadGame, ViewCanRediscoverGame {
     private val controller: GameController by di()
 
+    override val editGameActions = BroadcastEventChannel<Pair<Game, GameDataType>>()
+    override val deleteGameActions = BroadcastEventChannel<Game>()
+    override val renameMoveGameActions = BroadcastEventChannel<Pair<Game, String?>>()
+    override val tagGameActions = BroadcastEventChannel<Game>()
     override val redownloadGameActions = BroadcastEventChannel<Game>()
     override val rediscoverGameActions = BroadcastEventChannel<Game>()
 
@@ -61,10 +61,10 @@ class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameVie
         val size = 20.0
         item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
         separator()
-        item("Edit", Theme.Icon.edit(size)) { onAction { editGame(GameDataType.name_) } }
-        item("Change Thumbnail", Theme.Icon.thumbnail(size)) { onAction { editGame(GameDataType.thumbnail) } }
+        item("Edit", Theme.Icon.edit(size)) { setOnAction { editGame(GameDataType.name_) } }
+        item("Change Thumbnail", Theme.Icon.thumbnail(size)) { setOnAction { editGame(GameDataType.thumbnail) } }
         separator()
-        item("Tag", Theme.Icon.tag(size)) { onAction { viewManager.showTagGameView(game) } }
+        item("Tag", Theme.Icon.tag(size)) { eventOnAction(tagGameActions) { game } }
         separator()
         item("Re-Download", Theme.Icon.download(size)) {
             enableWhen { enabledProperty }
@@ -79,10 +79,10 @@ class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameVie
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
-            onAction { viewManager.showRenameMoveGameView(game) }
+            eventOnAction(renameMoveGameActions) { game to null }
         }
         separator()
-        item("Delete", Theme.Icon.delete(size)) { onAction { viewManager.showDeleteGameView(game) } }
+        item("Delete", Theme.Icon.delete(size)) { eventOnAction(deleteGameActions) { game } }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {
@@ -91,7 +91,7 @@ class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameVie
 
     private val popover = popOver { children += root }.apply { isAutoFix = false }
 
-    private fun editGame(initialScreen: GameDataType) = viewManager.showEditGameView(game, initialScreen)
+    private fun editGame(initialScreen: GameDataType) = editGameActions.event(game to initialScreen)
 
     fun install(node: Node, game: () -> Game) {
         node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }

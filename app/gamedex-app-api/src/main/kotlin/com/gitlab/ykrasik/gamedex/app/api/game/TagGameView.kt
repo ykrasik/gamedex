@@ -44,7 +44,4 @@ interface TagGameView {
 
     val acceptActions: BroadcastReceiveChannel<Unit>
     val cancelActions: BroadcastReceiveChannel<Unit>
-
-    // TODO: Move closeView to viewManager?
-    fun closeView()
 }

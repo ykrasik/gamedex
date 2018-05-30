@@ -46,6 +46,4 @@ interface EditLibraryView {
     val cancelActions: BroadcastReceiveChannel<Unit>
 
     fun selectDirectory(initialDirectory: File?): File?
-
-    fun closeView()
 }

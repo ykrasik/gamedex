@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.download
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGame
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
@@ -28,8 +28,8 @@ import javax.inject.Singleton
 class RedownloadGamePresenterFactory @Inject constructor(
     private val gameDownloadService: GameDownloadService,
     private val taskRunner: TaskRunner
-) : PresenterFactory<RedownloadGameView> {
-    override fun present(view: RedownloadGameView) = object : Presenter() {
+) : PresenterFactory<ViewCanRedownloadGame> {
+    override fun present(view: ViewCanRedownloadGame) = object : Presenter() {
         init {
             view.redownloadGameActions.actionOnUi { redownloadGame(it) }
         }

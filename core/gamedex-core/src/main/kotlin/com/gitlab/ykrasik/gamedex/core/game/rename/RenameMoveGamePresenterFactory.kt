@@ -16,13 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.rename
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.bindTo
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
 import kotlinx.coroutines.experimental.CommonPool
@@ -42,7 +42,8 @@ import javax.inject.Singleton
 class RenameMoveGamePresenterFactory @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val taskRunner: TaskRunner
+    private val taskRunner: TaskRunner,
+    private val viewManager: ViewManager
 ) : PresenterFactory<RenameMoveGameView> {
     override fun present(view: RenameMoveGameView) = object : Presenter() {
         private val log = logger()
@@ -142,11 +143,13 @@ class RenameMoveGamePresenterFactory @Inject constructor(
                 taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
             }
 
-            view.closeView()
+            close()
         }
 
         private fun onCancel() {
-            view.closeView()
+            close()
         }
+
+        private fun close() = viewManager.closeRenameMoveGameView(view)
     }
 }

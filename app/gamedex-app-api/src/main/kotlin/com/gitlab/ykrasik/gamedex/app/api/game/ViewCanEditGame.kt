@@ -17,13 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:43
+ * Date: 31/05/2018
+ * Time: 10:19
  */
-interface RediscoverGameView {
-    val rediscoverGameActions: BroadcastReceiveChannel<Game>
+interface ViewCanEditGame {
+    val editGameActions: BroadcastReceiveChannel<Pair<Game, GameDataType>>
 }

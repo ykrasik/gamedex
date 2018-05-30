@@ -14,15 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.delete
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:42
+ * Date: 01/06/2018
+ * Time: 09:27
  */
-interface DiscoverNewGamesView {
-    val discoverNewGamesActions: BroadcastReceiveChannel<Unit>
+@Singleton
+class ShowDeleteGamePresenterFactory @Inject constructor(private val viewManager: ViewManager) : PresenterFactory<ViewCanDeleteGame> {
+    override fun present(view: ViewCanDeleteGame) = object : Presenter() {
+        init {
+            view.deleteGameActions.actionOnUi { game ->
+                viewManager.showDeleteGameView {
+                    this.game = game
+                }
+            }
+        }
+    }
 }

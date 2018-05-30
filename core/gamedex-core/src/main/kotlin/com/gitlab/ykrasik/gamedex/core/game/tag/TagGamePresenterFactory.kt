@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game.tag
 
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -34,7 +35,8 @@ import javax.inject.Singleton
 @Singleton
 class TagGamePresenterFactory @Inject constructor(
     private val gameService: GameService,
-    private val taskRunner: TaskRunner
+    private val taskRunner: TaskRunner,
+    private val viewManager: ViewManager
 ) : PresenterFactory<TagGameView> {
     override fun present(view: TagGameView) = object : Presenter() {
         private var ignoreNextUncheckAll = false
@@ -105,7 +107,7 @@ class TagGamePresenterFactory @Inject constructor(
                 taskRunner.runTask(gameService.replace(view.game, newRawGame))
             }
 
-            view.closeView()
+            close()
         }
 
         private fun RawGame.withTags(tags: Collection<String>): RawGame {
@@ -119,7 +121,9 @@ class TagGamePresenterFactory @Inject constructor(
         }
 
         private fun onCancel() {
-            view.closeView()
+            close()
         }
+
+        private fun close() = viewManager.closeTagGameView(view)
     }
 }

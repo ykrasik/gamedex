@@ -16,10 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
@@ -39,20 +42,33 @@ import javax.inject.Singleton
 class JavaFxViewManager : View(), ViewManager {
     override val root = vbox()  // Unused.
 
-    private val editGameView: JavaFxEditGameView by inject()
-    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-    private val tagGameView: JavaFxTagGameView by inject()
-    private val deleteGameView: JavaFxDeleteGameView by inject()
+    override val editLibraryView: JavaFxEditLibraryView by inject()
+    override fun showEditLibraryView(view: EditLibraryView) = view.openModal()
+    override fun closeEditLibraryView(view: EditLibraryView) = view.close()
 
-    private val editLibraryView: JavaFxEditLibraryView by inject()
-    private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
+    override val deleteLibraryView: JavaFxDeleteLibraryView by inject()
+    override fun showDeleteLibraryView(view: DeleteLibraryView) = view.openModal()
+    override fun closeDeleteLibraryView(view: DeleteLibraryView) = view.close()
 
-    override fun showEditGameView(game: Game, initialScreen: GameDataType) = editGameView.show(game, initialScreen)
-    override fun showDeleteGameView(game: Game) = deleteGameView.show(game)
-    override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.show(game, initialName)
-    override fun showTagGameView(game: Game) = tagGameView.show(game)
+    override val editGameView: JavaFxEditGameView by inject()
+    override fun showEditGameView(view: EditGameView) = view.openModal()
+    override fun closeEditGameView(view: EditGameView) = view.close()
 
-    override fun showAddLibraryView() = editLibraryView.show(library = null)
-    override fun showEditLibraryView(library: Library) = editLibraryView.show(library)
-    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.show(library)
+    override val deleteGameView: JavaFxDeleteGameView by inject()
+    override fun showDeleteGameView(view: DeleteGameView) = view.openModal()
+    override fun closeDeleteGameView(view: DeleteGameView) = view.close()
+
+    override val renameMoveGameView: JavaFxRenameMoveGameView by inject()
+    override fun showRenameMoveGameView(view: RenameMoveGameView) = view.openModal()
+    override fun closeRenameMoveGameView(view: RenameMoveGameView) = view.close()
+
+    override val tagGameView: JavaFxTagGameView by inject()
+    override fun showTagGameView(view: TagGameView) = view.openModal()
+    override fun closeTagGameView(view: TagGameView) = view.close()
+
+    private fun Any.openModal() {
+        (this as View).openModal()
+    }
+
+    private fun Any.close() = (this as View).close()
 }

@@ -32,7 +32,4 @@ interface DeleteLibraryView {
 
     val acceptActions: BroadcastReceiveChannel<Unit>
     val cancelActions: BroadcastReceiveChannel<Unit>
-
-    // TODO: Move closeView to viewManager?
-    fun closeView()
 }
