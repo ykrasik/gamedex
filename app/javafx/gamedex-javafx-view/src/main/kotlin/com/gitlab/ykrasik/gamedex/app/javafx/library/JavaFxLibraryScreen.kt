@@ -37,7 +37,7 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()), Vi
     override val libraries = mutableListOf<Library>().observable()
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override fun ToolBar.constructToolbar() {

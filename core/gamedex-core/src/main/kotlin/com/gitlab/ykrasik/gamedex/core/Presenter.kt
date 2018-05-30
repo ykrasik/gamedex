@@ -87,29 +87,29 @@ abstract class Presenter {
             }
         }
     }
+
+    protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {
+        list.clear()
+        list.addAll(this)
+        return reportChangesTo(list)
+    }
+
+    protected fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
+        changesChannel.subscribe(uiThreadDispatcher) { event ->
+            when (event) {
+                is ListItemAddedEvent -> list += event.item
+                is ListItemsAddedEvent -> list += event.items
+                is ListItemRemovedEvent -> list.removeAt(event.index)
+                is ListItemsRemovedEvent -> list.removeAll(event.items)
+                is ListItemSetEvent -> list[event.index] = event.item
+                is ListItemsSetEvent -> {
+                    list.clear()
+                    list.addAll(event.items)
+                }
+            }
+        }
 }
 
 interface PresenterFactory<in V> {
     fun present(view: V): Presenter
 }
-
-fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {
-    list.clear()
-    list.addAll(this)
-    return reportChangesTo(list)
-}
-
-fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
-    changesChannel.subscribe(uiThreadDispatcher) { event ->
-        when (event) {
-            is ListItemAddedEvent -> list += event.item
-            is ListItemsAddedEvent -> list += event.items
-            is ListItemRemovedEvent -> list.removeAt(event.index)
-            is ListItemsRemovedEvent -> list.removeAll(event.items)
-            is ListItemSetEvent -> list[event.index] = event.item
-            is ListItemsSetEvent -> {
-                list.clear()
-                list.addAll(event.items)
-            }
-        }
-    }

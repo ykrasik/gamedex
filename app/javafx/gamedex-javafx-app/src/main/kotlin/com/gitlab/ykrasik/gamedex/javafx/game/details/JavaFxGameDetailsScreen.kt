@@ -59,7 +59,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(), GameDetailsView, Rediscover
     override val useDefaultNavigationButton = false
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override fun ToolBar.constructToolbar() {

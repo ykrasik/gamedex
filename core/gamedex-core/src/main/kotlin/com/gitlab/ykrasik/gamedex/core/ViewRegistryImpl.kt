@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewService
+import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenterFactory
@@ -41,6 +41,7 @@ import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenterFactory
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -48,78 +49,71 @@ import javax.inject.Singleton
  * Time: 17:33
  */
 @Singleton
-class ViewServiceImpl @Inject constructor(
-    private val libraries: LibrariesPresenterFactory,
-    private val editLibrary: EditLibraryPresenterFactory,
-    private val deleteLibrary: DeleteLibraryPresenterFactory,
-    private val gameDetails: GameDetailsPresenterFactory,
-    private val redownloadGame: RedownloadGamePresenterFactory,
-    private val rediscoverGame: RediscoverGamePresenterFactory,
-    private val editGame: EditGamePresenterFactory,
-    private val tagGame: TagGamePresenterFactory,
-    private val renameMoveGame: RenameMoveGamePresenterFactory,
-    private val deleteGame: DeleteGamePresenterFactory,
-    private val gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
-    private val redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,
-    private val discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
-    private val discoverNewGames: DiscoverNewGamesPresenterFactory,
-    private val discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
-    private val exportDatabase: ExportDatabasePresenterFactory,
-    private val importDatabase: ImportDatabasePresenterFactory,
-    private val clearUserData: ClearUserDataPresenterFactory,
-    private val cleanupDb: CleanupDbPresenterFactory,
-    private val logEntries: LogEntriesPresenterFactory,
-    private val logLevel: LogLevelPresenterFactory,
-    private val logTail: LogTailPresenterFactory
-) : ViewService {
+class ViewRegistryImpl @Inject constructor(
+    libraries: LibrariesPresenterFactory,
+    editLibrary: EditLibraryPresenterFactory,
+    deleteLibrary: DeleteLibraryPresenterFactory,
+    gameDetails: GameDetailsPresenterFactory,
+    redownloadGame: RedownloadGamePresenterFactory,
+    rediscoverGame: RediscoverGamePresenterFactory,
+    editGame: EditGamePresenterFactory,
+    tagGame: TagGamePresenterFactory,
+    renameMoveGame: RenameMoveGamePresenterFactory,
+    deleteGame: DeleteGamePresenterFactory,
+    gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
+    redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,
+    discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
+    discoverNewGames: DiscoverNewGamesPresenterFactory,
+    discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
+    exportDatabase: ExportDatabasePresenterFactory,
+    importDatabase: ImportDatabasePresenterFactory,
+    clearUserData: ClearUserDataPresenterFactory,
+    cleanupDb: CleanupDbPresenterFactory,
+    logEntries: LogEntriesPresenterFactory,
+    logLevel: LogLevelPresenterFactory,
+    logTail: LogTailPresenterFactory
+) : ViewRegistry {
+    private val presenterClasses: Map<KClass<*>, PresenterFactory<*>> = listOf(
+        presenter(libraries),
+        presenter(editLibrary),
+        presenter(deleteLibrary),
+        presenter(gameDetails),
+        presenter(redownloadGame),
+        presenter(rediscoverGame),
+        presenter(editGame),
+        presenter(tagGame),
+        presenter(renameMoveGame),
+        presenter(deleteGame),
+        presenter(gameDownloadStaleDuration),
+        presenter(redownloadAllStaleGames),
+        presenter(discoverGameChooseResults),
+        presenter(discoverNewGames),
+        presenter(discoverGamesWithoutProviders),
+        presenter(exportDatabase),
+        presenter(importDatabase),
+        presenter(clearUserData),
+        presenter(cleanupDb),
+        presenter(logEntries),
+        presenter(logLevel),
+        presenter(logTail)
+    ).toMap()
+
     private val activePresenters = mutableMapOf<Any, List<Presenter>>()
+
+    private inline fun <reified V : Any> presenter(factory: PresenterFactory<V>) = V::class to factory
 
     override fun register(view: Any) {
         check(activePresenters.put(view, presentView(view)) == null) { "View already registered: $view" }
     }
 
-    private fun presentView(view: Any): List<Presenter> = view.run {
-        listOfNotNull(
-            presentViewIfApplicable(libraries),
-            presentViewIfApplicable(editLibrary),
-            presentViewIfApplicable(deleteLibrary),
-            presentViewIfApplicable(gameDetails),
-            presentViewIfApplicable(redownloadGame),
-            presentViewIfApplicable(rediscoverGame),
-            presentViewIfApplicable(editGame),
-            presentViewIfApplicable(tagGame),
-            presentViewIfApplicable(renameMoveGame),
-            presentViewIfApplicable(deleteGame),
-            presentViewIfApplicable(gameDownloadStaleDuration),
-            presentViewIfApplicable(redownloadAllStaleGames),
-            presentViewIfApplicable(discoverGameChooseResults),
-            presentViewIfApplicable(discoverNewGames),
-            presentViewIfApplicable(discoverGamesWithoutProviders),
-            presentViewIfApplicable(exportDatabase),
-            presentViewIfApplicable(importDatabase),
-            presentViewIfApplicable(clearUserData),
-            presentViewIfApplicable(cleanupDb),
-            presentViewIfApplicable(logEntries),
-            presentViewIfApplicable(logLevel),
-            presentViewIfApplicable(logTail)
-        )
+    private fun presentView(view: Any): List<Presenter> {
+        @Suppress("UNCHECKED_CAST")
+        fun <T> PresenterFactory<*>.doPresent() = (this as PresenterFactory<T>).present(view as T)
+
+        return view.javaClass.interfaces.map { iface ->
+            presenterClasses[iface.kotlin]!!.doPresent<Any>()
+        }
     }
-
-    private inline fun <reified V> Any.presentViewIfApplicable(factory: PresenterFactory<V>): Presenter? =
-        (this as? V)?.let { factory.present(it) }
-
-//    private fun presentView(view: Any): List<Presenter> = view.javaClass.interfaces.mapNotNull { iface ->
-//        when (iface.kotlin) {
-//            RedownloadGameView::class -> redownloadGame.present(view as RedownloadGameView)
-//            TagGameView::class -> tagGame.present(view as TagGameView)
-//            RenameMoveGameView::class -> renameMoveGame.present(view as RenameMoveGameView)
-//            DeleteGameView::class -> deleteGame.present(view as DeleteGameView)
-//            DownloadStaleDurationView::class -> gameDownloadStaleDuration.present(view as DownloadStaleDurationView)
-//            RedownloadAllStaleGamesView::class -> redownloadAllStaleGames.present(view as RedownloadAllStaleGamesView)
-//            DiscoverGameChooseResultsView::class -> discoverGameChooseResults.present(view as DiscoverGameChooseResultsView)
-//            else -> null
-//        }
-//    }
 
     override fun unregister(view: Any) {
         val presentersToDestroy = checkNotNull(activePresenters.remove(view)) { "View not registered: $view" }

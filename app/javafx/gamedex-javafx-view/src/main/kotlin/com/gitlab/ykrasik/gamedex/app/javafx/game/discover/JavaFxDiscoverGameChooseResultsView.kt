@@ -38,7 +38,7 @@ private class JavaFxDiscoverGameChooseResultsView : PresentableView(), DiscoverG
     override var discoverGameChooseResults by discoverGameChooseResultsProperty
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = vbox(spacing = 5.0) {

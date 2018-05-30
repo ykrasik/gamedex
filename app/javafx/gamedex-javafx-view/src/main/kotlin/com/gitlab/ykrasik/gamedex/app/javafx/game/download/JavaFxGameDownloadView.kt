@@ -46,7 +46,7 @@ class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, Red
     override val redownloadAllStaleGamesActions = BroadcastEventChannel<Unit>()
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = buttonWithPopover("Re-Download", graphic = Theme.Icon.download(), arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->

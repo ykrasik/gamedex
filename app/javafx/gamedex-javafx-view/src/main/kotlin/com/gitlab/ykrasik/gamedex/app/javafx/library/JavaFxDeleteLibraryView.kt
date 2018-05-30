@@ -43,7 +43,7 @@ class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { "Delete Library '${it?.name}'?"})
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {

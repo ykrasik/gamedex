@@ -47,7 +47,7 @@ class JavaFxDeleteGameView : PresentableView(), DeleteGameView {
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it?.name}'?"})
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {

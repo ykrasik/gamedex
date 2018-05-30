@@ -64,7 +64,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     init {
         checkedTags.onChange { tags.invalidate() }
         nameValidationErrorProperty.onChange { viewModel.validate() }
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = borderpane {

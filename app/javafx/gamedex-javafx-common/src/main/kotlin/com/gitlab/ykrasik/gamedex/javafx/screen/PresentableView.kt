@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewService
+import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import javafx.beans.property.Property
@@ -36,7 +36,7 @@ import tornadofx.*
  */
 abstract class PresentableView(title: String? = null, icon: Glyph? = null) : View(title, icon) {
     private val taskRunner: TaskRunner by di()
-    protected val viewService: ViewService by di()
+    protected val viewRegistry: ViewRegistry by di()
 
     val enabledProperty = SimpleBooleanProperty(false)
 
@@ -51,13 +51,13 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
 
         whenDocked {
             if (!skipFirstDock) {
-                viewService.onShow(this)
+                viewRegistry.onShow(this)
             }
             skipFirstDock = false
         }
         whenUndocked {
             if (!skipFirstDock) {
-                viewService.onHide(this)
+                viewRegistry.onHide(this)
             }
         }
     }

@@ -41,7 +41,7 @@ class JavaFxDiscoverGamesView : PresentableView(), DiscoverNewGamesView, Discove
     override val discoverGamesWithoutProvidersActions = BroadcastEventChannel<Unit>()
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = searchButton("Discover") {

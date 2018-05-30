@@ -69,7 +69,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it?.path}" })
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = borderpane {

@@ -47,7 +47,7 @@ class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon
     override val cleanupDbActions = BroadcastEventChannel<Unit>()
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = vbox {

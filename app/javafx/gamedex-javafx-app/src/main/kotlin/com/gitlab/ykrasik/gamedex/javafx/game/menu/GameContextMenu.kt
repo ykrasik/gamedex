@@ -53,7 +53,7 @@ class GameContextMenu : PresentableView(), RedownloadGameView, RediscoverGameVie
     private lateinit var game: Game
 
     init {
-        viewService.register(this)
+        viewRegistry.register(this)
     }
 
     override val root = vbox {

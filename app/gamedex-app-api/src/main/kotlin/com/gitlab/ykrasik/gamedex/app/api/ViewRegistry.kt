@@ -23,8 +23,7 @@ package com.gitlab.ykrasik.gamedex.app.api
  *
  * Provided to the view layer to allow views to register themselves.
  */
-// TODO: Rename to ViewRegistry?
-interface ViewService {
+interface ViewRegistry {
     fun register(view: Any)
     fun unregister(view: Any)
 

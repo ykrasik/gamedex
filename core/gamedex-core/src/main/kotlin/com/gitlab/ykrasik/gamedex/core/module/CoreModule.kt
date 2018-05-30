@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewService
-import com.gitlab.ykrasik.gamedex.core.ViewServiceImpl
+import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
@@ -53,7 +53,7 @@ import javax.inject.Singleton
  */
 object CoreModule : AbstractModule() {
     override fun configure() {
-        bind(ViewService::class.java).to(ViewServiceImpl::class.java)
+        bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
         bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
         bind(GameService::class.java).to(GameServiceImpl::class.java)
