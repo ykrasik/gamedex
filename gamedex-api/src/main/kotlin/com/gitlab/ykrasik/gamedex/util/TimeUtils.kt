@@ -14,17 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
- * Date: 28/01/2018
- * Time: 09:23
+ * Date: 04/06/2018
+ * Time: 09:44
  */
-data class ReportConfig(
-    val name: String,
-    val filter: Filter,
-    val excludedGames: List<Int>
+private val timeUnits = listOf(
+    TimeUnit.DAYS to "d",
+    TimeUnit.HOURS to "h",
+    TimeUnit.MINUTES to "m",
+    TimeUnit.SECONDS to "s",
+    TimeUnit.MILLISECONDS to "ms"
 )
+
+fun Long.toHumanReadableDuration(): String {
+    var accumulated = this
+
+    val builder = StringBuilder()
+    timeUnits.forEach { (timeUnit, name) ->
+        val convertedDuration = timeUnit.convert(accumulated, TimeUnit.MILLISECONDS)
+        if (convertedDuration > 0) {
+            builder.append(convertedDuration).append(name).append('.')
+            accumulated -= TimeUnit.MILLISECONDS.convert(convertedDuration, timeUnit)
+        }
+    }
+    return if (builder.isEmpty()) "0ms" else builder.substring(0, builder.length - 1)
+}

@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.api.file
 import com.gitlab.ykrasik.gamedex.FolderMetadata
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.runBlocking
 import java.io.File
 
 /**
@@ -29,7 +28,6 @@ import java.io.File
  */
 interface FileSystemService {
     fun size(file: File): Deferred<FileSize>
-    fun sizeSync(file: File): FileSize = runBlocking { size(file).await() }
 
     // TODO: Make this a channel?
     fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>

@@ -14,17 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 28/01/2018
- * Time: 09:23
+ * Date: 02/06/2018
+ * Time: 10:20
  */
-data class ReportConfig(
-    val name: String,
-    val filter: Filter,
-    val excludedGames: List<Int>
-)
+interface GameFilterView {
+    val possibleGenres: MutableList<String>
+    val possibleTags: MutableList<String>
+    val possibleLibraries: MutableList<Library>
+    val possibleProviderIds: MutableList<ProviderId>
+    val possibleRules: MutableList<KClass<out Filter.Rule>>
+
+    var filter: Filter
+
+    val wrapInAndActions: BroadcastReceiveChannel<Filter>
+    val wrapInOrActions: BroadcastReceiveChannel<Filter>
+    val wrapInNotActions: BroadcastReceiveChannel<Filter>
+    val unwrapNotActions: BroadcastReceiveChannel<Filter.Not>
+    val clearFilterActions: BroadcastReceiveChannel<Unit>
+    val updateFilterActions: BroadcastReceiveChannel<Pair<Filter.Rule, Filter.Rule>>
+    val replaceFilterActions: BroadcastReceiveChannel<Pair<Filter, KClass<out Filter>>>
+    val deleteFilterActions: BroadcastReceiveChannel<Filter>
+}
+
+interface MenuGameFilterView : GameFilterView
+interface ReportGameFilterView : GameFilterView

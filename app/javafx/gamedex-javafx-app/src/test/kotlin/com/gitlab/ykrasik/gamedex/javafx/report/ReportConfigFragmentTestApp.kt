@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.report
 
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
 
 /**
  * User: ykrasik

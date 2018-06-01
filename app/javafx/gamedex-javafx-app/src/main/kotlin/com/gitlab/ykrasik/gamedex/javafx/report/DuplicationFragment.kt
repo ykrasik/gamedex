@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -33,12 +34,14 @@ class DuplicationFragment(
     duplication: Filter.Duplications.GameDuplication,
     gamesTable: TableView<Game>
 ) : Fragment() {
+    private val gameService: GameService by di()
+
     override val root = form {
         addClass(CommonStyle.centered)
         fieldset {
             inputGrow = Priority.ALWAYS
             field {
-                val game = duplication.duplicatedGame
+                val game = gameService[duplication.duplicatedGameId]
                 jfxButton(game.name) {
                     addClass(CommonStyle.fillAvailableWidth)
                     setOnAction {

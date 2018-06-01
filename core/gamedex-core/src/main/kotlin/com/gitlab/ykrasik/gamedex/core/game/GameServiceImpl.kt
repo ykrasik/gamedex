@@ -53,8 +53,8 @@ internal class GameServiceImpl @Inject constructor(
     }
 
     override val games = repo.games.mapping { it.toGame() } as ListObservableImpl<Game> // ugly cast, whatever.
-    override val genres = games.flatMapping { it.genres }.distincting()
-    override val tags = games.flatMapping { it.tags }.distincting()
+    override val genres = games.flatMapping { it.genres }.distincting().sortingBy { it }
+    override val tags = games.flatMapping { it.tags }.distincting().sortingBy { it }
 
     override fun add(request: AddGameRequest) = quickTask("Adding Game '${request.metadata.path}'...") {
         message1 = "Adding Game '${request.metadata.path}'..."

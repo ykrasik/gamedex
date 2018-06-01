@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
@@ -76,6 +78,9 @@ class ViewRegistryImpl @Inject constructor(
     discoverNewGames: DiscoverNewGamesPresenterFactory,
     discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
 
+    menuGameFilter: MenuGameFilterPresenterFactory,
+    reportGameFilter: ReportGameFilterPresenterFactory,
+
     exportDatabase: ExportDatabasePresenterFactory,
     importDatabase: ImportDatabasePresenterFactory,
     clearUserData: ClearUserDataPresenterFactory,
@@ -109,6 +114,9 @@ class ViewRegistryImpl @Inject constructor(
         presenter(discoverGameChooseResults),
         presenter(discoverNewGames),
         presenter(discoverGamesWithoutProviders),
+
+        presenter(menuGameFilter),
+        presenter(reportGameFilter),
 
         presenter(exportDatabase),
         presenter(importDatabase),

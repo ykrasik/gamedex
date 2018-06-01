@@ -119,7 +119,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         addClass(Style.tagDisplay)
         tags.performing { tags ->
             replaceChildren {
-                tags.sorted().forEach { tag ->
+                tags.forEach { tag ->
                     jfxToggleButton {
                         text = tag
                         isSelected = checkedTags.contains(tag)

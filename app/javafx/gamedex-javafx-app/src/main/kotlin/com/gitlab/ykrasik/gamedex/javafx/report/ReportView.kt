@@ -17,8 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -138,7 +139,7 @@ class ReportView(val reportConfig: ReportConfig) : View(reportConfig.name, Theme
         minWidthFitContent(indexColumn)
     }
 
-    private fun EventTarget.additionalInfoView() = tableview<Filter.AdditionalData> {
+    private fun EventTarget.additionalInfoView() = tableview<FilterContextImpl.AdditionalData> {
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
 //        simpleColumn("Rule") { result -> result.rule.name }
         customGraphicColumn("Value") {

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.core.api.util.combineLatest
 import com.gitlab.ykrasik.gamedex.core.api.util.mapBidirectional

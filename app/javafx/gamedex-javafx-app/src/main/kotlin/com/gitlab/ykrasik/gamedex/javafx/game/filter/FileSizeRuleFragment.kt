@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.filter
 
-import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.javafx.mapBidirectional
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import javafx.beans.property.Property

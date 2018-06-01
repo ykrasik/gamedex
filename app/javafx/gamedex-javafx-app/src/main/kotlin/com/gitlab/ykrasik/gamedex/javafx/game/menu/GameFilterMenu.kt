@@ -16,16 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.menu
 
-import com.gitlab.ykrasik.gamedex.core.FilterSet
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.game.filter.FilterFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxMenuGameFilterView
 import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
 
@@ -35,15 +28,9 @@ import tornadofx.*
  * Time: 19:48
  */
 class GameFilterMenu : View() {
-    private val gameController: GameController by di()
-    private val libraryService: LibraryService by di()
-    private val gameProviderService: GameProviderService by di()
-    private val userConfigRepository: UserConfigRepository by di()
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+    private val filterView: JavaFxMenuGameFilterView by inject()
 
-    private val filterSet = FilterSet.Builder(gameUserConfig, libraryService, gameController, gameProviderService)
-        .without(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
-        .build()
+    private val gameController: GameController by di()
 
     override val root = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         form {
@@ -65,7 +52,10 @@ class GameFilterMenu : View() {
             addClass(CommonStyle.fillAvailableWidth)
             isCancelButton = true
             isFocusTraversable = false
-            setOnAction { gameController.clearFilters() }
+            setOnAction {
+                gameController.clearFilters()
+                filterView.clearFilterActions.offer(Unit) // TODO: clearFilterActions.event(Unit)
+            }
         }
     }
 
@@ -91,12 +81,7 @@ class GameFilterMenu : View() {
 
     private fun Fieldset.filter() = field {
         vbox {
-            val filterProperty = gameUserConfig.currentPlatformFilterSubject
-            val fragment = FilterFragment(filterProperty, filterSet)
-            fragment.newFilterObservable.subscribe {
-                filterProperty.value_ = it
-            }
-            children += fragment.root
+            children += filterView.root
         }
     }
 }

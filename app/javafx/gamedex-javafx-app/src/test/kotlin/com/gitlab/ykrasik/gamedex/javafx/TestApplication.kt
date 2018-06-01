@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
@@ -26,6 +29,7 @@ import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.now
 import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -71,6 +75,7 @@ object TestApplication {
         persistenceService.dropDb()
         if (numGames == null) return
 
+        val start = System.currentTimeMillis()
         val basePath = "E:\\Work\\gamedex"
         val libraries = listOf(
             Platform.pc to "app",
@@ -105,6 +110,7 @@ object TestApplication {
                 }
             }.forEach { it.await() }
         }
+        println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).toHumanReadableDuration()}")
         executor.shutdownNow()
     }
 

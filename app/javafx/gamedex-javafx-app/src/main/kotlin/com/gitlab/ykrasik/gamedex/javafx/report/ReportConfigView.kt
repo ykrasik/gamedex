@@ -17,19 +17,15 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.FilterSet
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
 import com.gitlab.ykrasik.gamedex.core.api.util.modifyValue
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
-import com.gitlab.ykrasik.gamedex.javafx.game.filter.FilterFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxReportGameFilterView
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.property.StringProperty
@@ -45,12 +41,11 @@ import tornadofx.*
  * Time: 16:56
  */
 class ReportConfigView : View("Report Config") {
-    private val libraryService: LibraryService by di()
     private val gameController: GameController by di()
-    private val gameProviderService: GameProviderService by di()
     private val userConfigRepository: UserConfigRepository by di()
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
     private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
+
+    private val filterView: JavaFxReportGameFilterView by inject()
 
     private val initialReportConfigSubject = behaviorSubject<ReportConfig>()
     private val currentReportConfigSubject = behaviorSubject<ReportConfig>().apply {
@@ -66,19 +61,19 @@ class ReportConfigView : View("Report Config") {
     private val reportNameProperty = SimpleStringProperty()
     private val viewModel = ReportNameViewModel(reportNameProperty)
 
-    private val filterSet = FilterSet.Builder(gameUserConfig, libraryService, gameController, gameProviderService).build()
-    private val filterFragment = FilterFragment(currentReportConfigSubject.map { it.filter }, filterSet)
-
-    private val isValid = viewModel.valid.and(filterFragment.isValid)
+    private val isValid = viewModel.valid.and(filterView.isValid)
 
     private var accept = false
 
     init {
         initialReportConfigSubject.subscribe {
             reportNameProperty.value = it.name
+            filterView.filter = it.filter
         }
-        filterFragment.newFilterObservable.subscribe { newFilter ->
-            currentReportConfigSubject.modifyValue { it.copy(filter = newFilter) }
+
+        filterView.filterProperty.onChange { newFilter ->
+            currentReportConfigSubject.modifyValue { it.copy(filter = newFilter!!) }
+            currentStage?.sizeToScene()
         }
     }
 
@@ -123,7 +118,7 @@ class ReportConfigView : View("Report Config") {
                 hbox {
                     vbox(spacing = 10.0) {
                         header("Rules")
-                        children += filterFragment.root
+                        children += filterView.root
                     }
                     verticalSeparator { removeWhen { Bindings.isEmpty(excludedGames) } }
                     vbox(spacing = 10.0) {
@@ -159,7 +154,7 @@ class ReportConfigView : View("Report Config") {
 
     fun show(reportConfig: ReportConfig): ReportConfig? {
         initialReportConfigSubject.onNext(reportConfig)
-        openWindow(block = true)
+        openModal(block = true)
         return if (accept) currentReportConfigSubject.value_ else null
     }
 

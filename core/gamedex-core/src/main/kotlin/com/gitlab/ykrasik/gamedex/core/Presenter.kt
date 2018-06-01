@@ -94,7 +94,7 @@ abstract class Presenter {
         return reportChangesTo(list)
     }
 
-    protected fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
+    private fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
         changesChannel.subscribe(uiThreadDispatcher) { event ->
             when (event) {
                 is ListItemAddedEvent -> list += event.item

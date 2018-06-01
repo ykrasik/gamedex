@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.report
 
-import com.gitlab.ykrasik.gamedex.core.game.Filter
-import com.gitlab.ykrasik.gamedex.core.game.Filter.Companion.not
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter.Companion.not
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
 import javax.inject.Singleton
@@ -30,28 +30,31 @@ import javax.inject.Singleton
 // TODO: Put reports in persistence & make a ReportRepository
 @Singleton
 class ReportUserConfig : UserConfig() {
+    private val noCriticScore = Filter.CriticScore(Filter.ScoreRule.NoScore)
+    private val noUserScore = Filter.UserScore(Filter.ScoreRule.NoScore)
+
     override val scope = UserConfigScope("report") {
         Data(
             reports = listOf(
                 ReportConfig("Name Diff", Filter.NameDiff(), excludedGames = emptyList()),
                 ReportConfig("Duplications", Filter.Duplications(), excludedGames = emptyList()),
                 ReportConfig("Very Low Score",
-                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not and {
-                        Filter.UserScore(60.0).not and Filter.noUserScore.not
+                    Filter.CriticScore(60.0).not and noCriticScore.not and {
+                        Filter.UserScore(60.0).not and noUserScore.not
                     }, excludedGames = emptyList()
                 ),
                 ReportConfig("Low Score",
-                    Filter.CriticScore(60.0).not and Filter.noCriticScore.not or {
-                        Filter.UserScore(60.0).not and Filter.noUserScore.not
+                    Filter.CriticScore(60.0).not and noCriticScore.not or {
+                        Filter.UserScore(60.0).not and noUserScore.not
                     }, excludedGames = emptyList()
                 ),
                 ReportConfig("Missing Score",
-                    Filter.noCriticScore or Filter.noUserScore and not {
-                        Filter.noCriticScore and Filter.noUserScore
+                    noCriticScore or noUserScore and not {
+                        noCriticScore and noUserScore
                     }, excludedGames = emptyList()
                 ),
                 ReportConfig("No Score",
-                    Filter.noCriticScore and Filter.noUserScore,
+                    noCriticScore and noUserScore,
                     excludedGames = emptyList()
                 ),
                 ReportConfig("Missing Providers", not {

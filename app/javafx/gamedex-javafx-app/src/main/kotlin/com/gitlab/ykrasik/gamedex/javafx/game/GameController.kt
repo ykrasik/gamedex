@@ -17,20 +17,22 @@
 package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import com.gitlab.ykrasik.gamedex.util.logger
+import javafx.beans.property.Property
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
+import kotlinx.coroutines.experimental.runBlocking
 import tornadofx.Controller
 import java.util.*
+import java.util.function.Predicate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,9 +55,14 @@ class GameController @Inject constructor(
     val searchQueryProperty = SimpleStringProperty("")
 
     private val compositeFilterPredicate = run {
-        val context = Filter.Context(emptyList(), fileSystemService)
-        val filterPredicate = gameUserConfig.currentPlatformFilterSubject.toBindingCached().toPredicate { filter, game: Game ->
-            filter!!.evaluate(game, context)
+        val context = FilterContextImpl(emptyList(), fileSystemService)
+        val filterPredicate: Property<Predicate<Game>> = SimpleObjectProperty(Predicate { true })
+        gameUserConfig.currentPlatformFilterSubject.subscribe { filter ->
+            filterPredicate.value = Predicate { game ->
+                runBlocking {
+                    filter!!.evaluate(game, context)
+                }
+            }
         }
 
         val searchPredicate = searchQueryProperty.toPredicate { query, game: Game -> game.matchesSearchQuery(query!!) }
@@ -74,7 +81,7 @@ class GameController @Inject constructor(
             GameUserConfig.SortBy.userScore -> userScoreComparator.then(nameComparator)
             GameUserConfig.SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             GameUserConfig.SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            GameUserConfig.SortBy.size -> compareBy<Game> { fileSystemService.sizeSync(it.path) }.then(nameComparator)        // FIXME: Hangs UI thread!!!
+            GameUserConfig.SortBy.size -> compareBy<Game> { runBlocking { fileSystemService.size(it.path).await() } }.then(nameComparator)        // FIXME: Hangs UI thread!!!
             GameUserConfig.SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
             GameUserConfig.SortBy.updateDate -> compareBy(Game::updateDate)
         }
@@ -95,9 +102,6 @@ class GameController @Inject constructor(
         filteredItems.predicateProperty().bind(compositeFilterPredicate)
         sortedItems.comparatorProperty().bind(sortComparator)
     }
-
-    val genres = games.flatMapping(Game::genres).distincting().sorted()
-    val tags = games.flatMapping(Game::tags).distincting()
 
     fun clearFilters() {
         gameUserConfig.currentPlatformFilter = Filter.`true`

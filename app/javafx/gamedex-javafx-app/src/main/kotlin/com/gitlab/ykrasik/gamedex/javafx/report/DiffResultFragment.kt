@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.core.game.Filter
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton

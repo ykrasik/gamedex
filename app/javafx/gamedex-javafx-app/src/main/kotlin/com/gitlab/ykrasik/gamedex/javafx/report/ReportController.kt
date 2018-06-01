@@ -17,9 +17,11 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.game.Filter
+import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -88,7 +90,7 @@ class ReportController @Inject constructor(
     fun generateReport(config: ReportConfig) = OngoingReport(config)
 
     inner class OngoingReport(private val config: ReportConfig) {
-        val resultsProperty: Property<MultiMap<Game, Filter.AdditionalData>> = SimpleObjectProperty(emptyMap())
+        val resultsProperty: Property<MultiMap<Game, FilterContextImpl.AdditionalData>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
         private var subscription: SubscriptionReceiveChannel<*>? = null
@@ -105,7 +107,7 @@ class ReportController @Inject constructor(
             subscription = gameService.games.itemsChannel.subscribe(JavaFx) { games ->
                 isCalculating = true
                 launch(CommonPool) {
-                    val result = calculate(games)
+                    val result = calculate(games).map { (id, additionalData) -> gameService[id] to additionalData.toList() }.toMap()
                     withContext(JavaFx) {
                         resultsProperty.value = result
                         isCalculating = false
@@ -114,14 +116,14 @@ class ReportController @Inject constructor(
             }
         }
 
-        private fun calculate(games: List<Game>): MultiMap<Game, Filter.AdditionalData> {
-            val context = Filter.Context(games, fileSystemService)
+        private suspend fun calculate(games: List<Game>): Map<GameId, Set<FilterContextImpl.AdditionalData>> {
+            val context = FilterContextImpl(games, fileSystemService)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
                 !config.excludedGames.contains(game.id) && config.filter.evaluate(game, context)
             }
             progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
-            return matchingGames.map { it to emptyList<Filter.AdditionalData>() }.toMap() + context.additionalData
+            return matchingGames.map { it.id to emptySet<FilterContextImpl.AdditionalData>() }.toMap() + context.additionalData
         }
 
         fun stop() {

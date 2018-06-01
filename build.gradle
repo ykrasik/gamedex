@@ -242,6 +242,7 @@ project("gamedex-api") {
 project("app:gamedex-app-api") {
     dependencies {
         fullDependency ":gamedex-api"
+        compile diff
     }
 }
 
@@ -273,7 +274,6 @@ project("core:gamedex-core") {
         compile logback
 
         compile reflections
-        compile diff
     }
 }
 

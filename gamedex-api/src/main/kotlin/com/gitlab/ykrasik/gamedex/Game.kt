@@ -68,8 +68,10 @@ data class Game(
     override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
 }
 
+typealias GameId = Int
+
 data class RawGame(
-    val id: Int,
+    val id: GameId,
     val metadata: Metadata,
     val providerData: List<ProviderData>,
     val userData: UserData?    // TODO: Make this non-nullable?

@@ -173,6 +173,9 @@ inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDi
 fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
     subscribeTransform(context) { it.distinct() }
 
+inline fun <T, R : Comparable<R>> ListObservable<T>.sortingBy(context: CoroutineContext = DefaultDispatcher, crossinline selector: (T) -> R?): ListObservable<T> =
+    subscribeTransform(context) { it.sortedBy(selector) }
+
 inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext, crossinline f: (List<T>) -> List<R>): ListObservable<R> {
     val list = ListObservableImpl<R>()
     itemsChannel.subscribe(context) {

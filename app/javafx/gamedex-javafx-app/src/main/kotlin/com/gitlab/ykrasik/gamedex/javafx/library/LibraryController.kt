@@ -16,15 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.library
 
-import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
-import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.javafx.toObservableList
-import com.gitlab.ykrasik.gamedex.javafx.toPredicateF
 import tornadofx.Controller
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,18 +31,6 @@ import javax.inject.Singleton
 // FIXME: Get rid of this class.
 @Deprecated("Should be handled by LibraryPresenter.")
 @Singleton
-class LibraryController @Inject constructor(
-    private val libraryService: LibraryService,
-    userConfigRepository: UserConfigRepository
-) : Controller() {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
+class LibraryController @Inject constructor(libraryService: LibraryService) : Controller() {
     val realLibraries = libraryService.realLibraries.toObservableList()
-    val platformLibraries = realLibraries.sortedFiltered().apply {
-        predicateProperty.bind(gameUserConfig.platformSubject.toBindingCached().toPredicateF { platform, library: Library ->
-            library.platform == platform
-        })
-    }
-
-    fun getBy(platform: Platform, name: String) = libraryService[platform, name]
 }
