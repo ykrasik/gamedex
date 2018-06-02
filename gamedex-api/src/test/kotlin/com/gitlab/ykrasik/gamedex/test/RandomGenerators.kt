@@ -33,6 +33,7 @@ import java.util.*
  */
 private object TestResources {
     val words = javaClass.getResource("words.txt").readText().lines()
+    val genres = javaClass.getResource("genres.txt").readText().lines()
 
     /* These images were all taken from [[igdb.com]] */
     val images = Reflections("com.gitlab.ykrasik.gamedex.test.images", ResourcesScanner())
@@ -41,7 +42,6 @@ private object TestResources {
 }
 
 val rnd = Random()
-private val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 /**
  * [max] is inclusive.
@@ -70,9 +70,11 @@ fun randomLocalDateString(): String = randomLocalDate().toString()
 
 fun randomScore() = Score(score = DecimalFormat("###.##").format(rnd.nextDouble() * 100).toDouble(), numReviews = randomInt(30))
 
-inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
+fun randomGenre() = TestResources.genres.randomElement()
 
 fun randomImage(): ByteArray = TestResources.images.randomElement().readBytes()
+
+inline fun <reified E : Enum<E>> randomEnum(): E = E::class.java.enumConstants.randomElement()
 
 fun <T> List<T>.randomElement(): T = this[randomInt(size - 1)]
 fun <T> Array<T>.randomElement(): T = this[randomInt(size - 1)]

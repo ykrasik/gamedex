@@ -1,0 +1,108 @@
+2D
+3D
+4X
+Action
+Action Adventure
+Action RPG
+Action-Adventure
+Adventure
+Arcade
+Artillery
+Automobile
+Baseball
+Beat-'Em-Up
+Block-Breaking
+Board / Card Game
+Board Games
+Brawler
+Breeding/Constructing
+Business / Tycoon
+Car Combat
+Card Game
+Career
+City Building
+Civilian
+Combat
+Command
+Compilation
+Console-style RPG
+Defense
+Driving
+Driving/Racing
+Dual-Joystick Shooter
+Educational
+Fantasy
+Fighting
+First-Person
+First-Person Shooter
+Fishing
+Flight
+Flight Simulator
+Football
+Gambling
+General
+Government
+Hack & Slash/Beat 'Em Up
+Historic
+Horizontal
+Horror
+Indie
+Japanese-Style
+Linear
+Logic
+MMORPG
+Management
+Military
+Miscellaneous
+Modern
+Motocross
+Motorcycle
+Music
+Music/Rhythm
+Open-World
+Other
+PC-style RPG
+Pinball
+Platformer
+Point-and-Click
+Puzzle
+Quiz/Trivia
+Racing
+Real Time Strategy (RTS)
+Real-Time
+Real-Time Strategy
+Roguelike
+Role-Playing
+Role-Playing Game (RPG)
+Sandbox
+Sci-Fi
+Scrolling
+Shoot 'Em Up
+Shoot-'Em-Up
+Shooter
+Simulation
+Small Spaceship
+Space
+Sport
+Sports
+Strategy
+Survival
+Tactical
+Tactics
+Team
+Text
+Text Adventure
+Third-Person
+Top-Down
+Train
+Trivia/Board Game
+Turn-Based
+Turn-Based Strategy (TBS)
+Tycoon
+Vehicle
+Vehicular Combat
+Vertical
+Virtual
+Virtual Life
+Wargame
+Western-Style

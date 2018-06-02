@@ -67,16 +67,13 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     init {
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
 
-        create()
+        transaction {
+            create()
+        }
     }
 
-    private fun create() = transaction {
-        SchemaUtils.create(*tables)
-    }
-
-    private fun drop() = transaction {
-        SchemaUtils.drop(*tables)
-    }
+    private fun create() = SchemaUtils.create(*tables)
+    private fun drop() = SchemaUtils.drop(*tables)
 
     override fun dropDb() = transaction {
         drop()

@@ -211,6 +211,7 @@ project("gamedex-api") {
         from sourceSets.test.allSource
         exclude '**/*.jpg'
         exclude '**/words.txt'
+        exclude '**/genres.txt'
     }
 
     publishing {

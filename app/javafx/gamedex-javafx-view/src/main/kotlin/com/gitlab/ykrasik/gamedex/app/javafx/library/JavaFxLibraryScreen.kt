@@ -93,7 +93,11 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
             }.action(::deleteLibrary)
         }
 
-        onDoubleClick { editLibrary() }
+        onDoubleClick {
+            if (selectedItem != null) {
+                editLibrary()
+            }
+        }
 
         allowDeselection(onClickAgain = false)
     }

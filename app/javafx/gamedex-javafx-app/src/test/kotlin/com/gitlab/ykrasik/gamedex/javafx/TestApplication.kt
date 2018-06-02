@@ -41,11 +41,12 @@ object TestApplication {
     val giantBombServer = GiantBombFakeServer(9001, apiKey = "valid")
     val igdbServer = IgdbFakeServer(9002, apiKey = "valid")
 
-    lateinit var libraries: List<Library>
+    val dbUrl = "jdbc:h2:./test"
+    val persistenceService by lazy { PersistenceServiceImpl(PersistenceConfig(dbUrl, "org.h2.Driver", "sa", "")) }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:./test")
+        System.setProperty("gameDex.persistence.dbUrl", dbUrl)
         System.setProperty("gameDex.provider.giantBomb.endpoint", giantBombServer.endpointUrl)
         System.setProperty("gameDex.provider.igdb.endpoint", igdbServer.endpointUrl)
         System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
@@ -56,23 +57,22 @@ object TestApplication {
 
         giantBombServer.start().use {
             igdbServer.start().use {
-                generateDb()
+                generateDb(
+                    numGames = 5000
+//                    numGames = null
+                )
 
                 Main.main(args)
             }
         }
     }
 
-    private fun generateDb() {
-        val numGames = 5000
-
-//        val guice = GuiceDiContainer()
-//        val persistenceService = guice.getInstance(PersistenceService::class)
-        val persistenceService = PersistenceServiceImpl(PersistenceConfig("jdbc:h2:./test", "org.h2.Driver", "sa", ""))
+    private fun generateDb(numGames: Int?) {
         persistenceService.dropDb()
+        if (numGames == null) return
 
         val basePath = "E:\\Work\\gamedex"
-        libraries = listOf(
+        val libraries = listOf(
             Platform.pc to "app",
             Platform.android to "build",
             Platform.mac to "conf",
@@ -121,7 +121,7 @@ object TestApplication {
             releaseDate = randomLocalDateString(),
             criticScore = randomScore(),
             userScore = randomScore(),
-            genres = randomList(4) { "Genre ${randomInt(30)}" },
+            genres = randomList(4) { randomGenre() },
             imageUrls = imageUrls(id)
         )
     )
@@ -155,6 +155,8 @@ object TestApplication {
 }
 
 class StubNewDirectoryDetector : NewDirectoryDetector {
-    override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) =
-        randomList(4) { TestApplication.libraries.randomElement().path.resolve(randomFile()) }
+    override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
+        val libraries = TestApplication.persistenceService.fetchLibraries().filter { it.platform != Platform.excluded }
+        return randomList(4) { libraries.randomElement().path.resolve(randomFile()) }
+    }
 }

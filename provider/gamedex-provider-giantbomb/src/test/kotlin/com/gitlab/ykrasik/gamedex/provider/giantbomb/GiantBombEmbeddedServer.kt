@@ -138,7 +138,7 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
             image = randomImage(),
             images = randomList(10) { randomImage() },
             genres = randomList(4) {
-                GiantBombClient.Genre(name = randomWord())
+                GiantBombClient.Genre(name = randomGenre())
             }
         ))
     )
