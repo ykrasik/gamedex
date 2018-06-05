@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
@@ -31,25 +30,15 @@ import tornadofx.*
  */
 class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
     private val userConfigRepository: UserConfigRepository by di()
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
     private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
-    private val displayTypeProperty = gameUserConfig.displayTypeSubject.toPropertyCached()
-    private val isWallDisplay = displayTypeProperty.isEqualTo(GameUserConfig.DisplayType.wall)
-
     override val root = form {
-        fieldset("Game Display Type") {
-            field("Type") { enumComboBox(displayTypeProperty) }
-        }
-
         fieldset("Overlay") {
-            visibleWhen { isWallDisplay }
             overlaySettings("MetaTag", gameWallUserConfig.metaTagOverlay)
             overlaySettings("Version", gameWallUserConfig.versionOverlay)
         }
         fieldset("Cell") {
             setId(Style.gameWallSettings)
-            visibleWhen { isWallDisplay }
             cellSettings()
         }
     }

@@ -22,14 +22,16 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadVie
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.list.GameListView
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameFilterMenu
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
 import com.gitlab.ykrasik.gamedex.javafx.library.LibraryController
 import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
 import javafx.event.EventTarget
 import javafx.scene.control.ToolBar
-import tornadofx.*
+import tornadofx.cleanBind
+import tornadofx.sizeProperty
+import tornadofx.spacer
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -43,7 +45,6 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
     private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val gameWallView: GameWallView by inject()
-    private val gameListView: GameListView by inject()
 
     private val filterMenu: GameFilterMenu by inject()
     private val discoverGamesView: JavaFxDiscoverGamesView by inject()
@@ -67,13 +68,7 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
         verticalSeparator()
     }
 
-    override val root = stackpane()
-
-    init {
-        gameUserConfig.displayTypeSubject.subscribe {
-            root.replaceChildren(it!!.toNode())
-        }
-    }
+    override val root = gameWallView.root
 
     private fun EventTarget.platformButton() {
         // TODO: Prefer doing this through rx operators.
@@ -109,11 +104,6 @@ class GameScreen : GamedexScreen("Games", Theme.Icon.games()) {
             text = { it.sortBy.key },
             graphic = { it.order.toGraphic() }
         )
-    }
-
-    private fun GameUserConfig.DisplayType.toNode() = when (this) {
-        GameUserConfig.DisplayType.wall -> gameWallView.root
-        GameUserConfig.DisplayType.list -> gameListView.root
     }
 
     private fun GameUserConfig.SortType.toGraphic() = when (this) {

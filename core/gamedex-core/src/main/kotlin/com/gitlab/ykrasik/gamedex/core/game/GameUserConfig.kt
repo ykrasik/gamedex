@@ -37,7 +37,6 @@ import javax.inject.Singleton
 class GameUserConfig : UserConfig() {
     override val scope = UserConfigScope("game") {
         Data(
-            displayType = DisplayType.wall,
             platform = Platform.pc,
             platformSettings = emptyMap(),
             sort = Sort(),
@@ -45,9 +44,6 @@ class GameUserConfig : UserConfig() {
             stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
         )
     }
-
-    val displayTypeSubject = scope.subject(Data::displayType) { copy(displayType = it) }
-    var displayType by displayTypeSubject
 
     val platformSubject = scope.subject(Data::platform) { copy(platform = it) }
     var platform by platformSubject
@@ -74,8 +70,6 @@ class GameUserConfig : UserConfig() {
 
     val stalePeriodSubject = scope.subject(Data::stalePeriod) { copy(stalePeriod = it) }
     var stalePeriod by stalePeriodSubject
-
-    enum class DisplayType { wall, list }
 
     data class Sort(
         val sortBy: SortBy = SortBy.criticScore,
@@ -105,7 +99,6 @@ class GameUserConfig : UserConfig() {
     }
 
     data class Data(
-        val displayType: DisplayType,
         val platform: Platform,
         val platformSettings: Map<Platform, GamePlatformSettings>,
         val sort: Sort,
