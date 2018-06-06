@@ -14,25 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.module
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.google.inject.AbstractModule
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 30/05/2017
- * Time: 22:14
+ * Date: 06/06/2018
+ * Time: 09:02
  */
-object ProviderScannerModule : AbstractModule() {
-    override fun configure() {
-        val providerModules = scanProviderModules()
-        providerModules.forEach { install(it) }
-    }
-
-    private fun scanProviderModules(): List<AbstractModule> {
-        val classes = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
-        return classes.map { it.kotlin.objectInstance!! }
-    }
+interface ViewCanSearchGames {
+    var searchText: String
+    val searchTextChanges: BroadcastReceiveChannel<String>
 }

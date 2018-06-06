@@ -14,25 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.module
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.google.inject.AbstractModule
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 30/05/2017
- * Time: 22:14
+ * Date: 06/06/2018
+ * Time: 10:24
  */
-object ProviderScannerModule : AbstractModule() {
-    override fun configure() {
-        val providerModules = scanProviderModules()
-        providerModules.forEach { install(it) }
-    }
+@Singleton
+class SearchGamesPresenterFactory @Inject constructor(
+    userConfigRepository: UserConfigRepository
+) : PresenterFactory<ViewCanSearchGames> {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
-    private fun scanProviderModules(): List<AbstractModule> {
-        val classes = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
-        return classes.map { it.kotlin.objectInstance!! }
+    override fun present(view: ViewCanSearchGames) = object : Presenter() {
+        init {
+            view.searchText = gameUserConfig.currentPlatformSearch
+            view.searchTextChanges.subscribeOnUi(::onSearchTextChanged)
+        }
+
+        private fun onSearchTextChanged(searchText: String) {
+            gameUserConfig.currentPlatformSearch = searchText
+        }
     }
 }

@@ -53,14 +53,17 @@ class GameUserConfig : UserConfig() {
 
     // TODO: Write unit tests for this.
     val currentPlatformSettingsSubject = platformSettingsSubject.combineLatest(platformSubject) { settings, platform ->
-        settings.getOrElse(platform) { GamePlatformSettings(Filter.`true`) }
+        settings.getOrElse(platform) { GamePlatformSettings(Filter.`true`, "") }
     }.toBehaviorSubjectOnChange {
         platformSettings += platform to it
     }
     var currentPlatformSettings by currentPlatformSettingsSubject
 
-    val currentPlatformFilterSubject = currentPlatformSettingsSubject.mapBidirectional({ filter }, { GamePlatformSettings(this) })
+    val currentPlatformFilterSubject = currentPlatformSettingsSubject.mapBidirectional({ filter }, { currentPlatformSettings.copy(filter = this) })
     var currentPlatformFilter by currentPlatformFilterSubject
+
+    val currentPlatformSearchSubject = currentPlatformSettingsSubject.mapBidirectional({ search }, { currentPlatformSettings.copy(search = this) })
+    var currentPlatformSearch by currentPlatformSearchSubject
 
     val sortSubject = scope.subject(Data::sort) { copy(sort = it) }
     var sort by sortSubject
@@ -108,5 +111,6 @@ class GameUserConfig : UserConfig() {
 }
 
 data class GamePlatformSettings(
-    val filter: Filter
+    val filter: Filter,
+    val search: String
 )

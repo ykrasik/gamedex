@@ -14,23 +14,43 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.library
+package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
+import com.gitlab.ykrasik.gamedex.app.api.util.distincting
+import com.gitlab.ykrasik.gamedex.app.api.util.mapping
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.javafx.toObservableList
-import tornadofx.Controller
+import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 23/04/2017
- * Time: 11:05
+ * Date: 06/06/2018
+ * Time: 09:45
  */
-// FIXME: Get rid of this class.
-@Deprecated("Should be handled by LibraryPresenter.")
 @Singleton
-class LibraryController @Inject constructor(libraryService: LibraryService) : Controller() {
-    val realLibraries = libraryService.realLibraries.toObservableList()
+class SelectPlatformPresenterFactory @Inject constructor(
+    libraryService: LibraryService,
+    userConfigRepository: UserConfigRepository
+) : PresenterFactory<ViewCanSelectPlatform> {
+    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+    private val platformsWithLibraries = libraryService.realLibraries.mapping { it.platform }.distincting()
+
+    override fun present(view: ViewCanSelectPlatform) = object : Presenter() {
+        init {
+            platformsWithLibraries.bindTo(view.availablePlatforms)
+
+            view.currentPlatform = gameUserConfig.platform
+            view.currentPlatformChanges.subscribeOnUi(::onCurrentPlatformChanged)
+        }
+
+        private fun onCurrentPlatformChanged(currentPlatform: Platform) {
+            gameUserConfig.platform = currentPlatform
+        }
+    }
 }

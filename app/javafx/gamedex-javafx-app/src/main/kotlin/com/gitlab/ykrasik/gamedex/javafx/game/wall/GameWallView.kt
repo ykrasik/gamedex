@@ -17,13 +17,19 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameContextMenu
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
 import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
+import com.gitlab.ykrasik.gamedex.util.toPredicate
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
@@ -38,7 +44,16 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : View("Games Wall") {
+class GameWallView : PresentableView("Games Wall"), ViewWithGames {
+    override val games = mutableListOf<Game>().sortedFiltered()
+
+    private val sortProperty = SimpleObjectProperty(Comparator.comparing(Game::name))
+    override var sort by sortProperty
+    
+    private val filterProperty = SimpleObjectProperty({_: Game -> true})
+    override var filter by filterProperty
+    private val filterPredicateProperty = filterProperty.map { it!!.toPredicate() }
+
     private val gameController: GameController by di()
     private val imageLoader: ImageLoader by di()
     private val userConfigRepository: UserConfigRepository by di()
@@ -46,7 +61,13 @@ class GameWallView : View("Games Wall") {
 
     private val gameContextMenu: GameContextMenu by inject()
 
-    override val root = GridView(gameController.sortedFilteredGames).apply {
+    init {
+        games.sortedItems.comparatorProperty().bind(sortProperty)
+        games.filteredItems.predicateProperty().bind(filterPredicateProperty)
+        viewRegistry.register(this)
+    }
+
+    override val root = GridView(games).apply {
         setId(Style.gameWall)
 
         cellHeightProperty().bind(gameWallUserConfig.cell.heightSubject.toBindingCached())

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.util
 import com.google.common.io.Resources
 import java.awt.Desktop
 import java.net.URI
+import java.util.function.Predicate
 
 /**
  * User: ykrasik
@@ -47,3 +48,5 @@ inline fun <T> nanosTaken(block: () -> T) : Pair<T, Long> {
     val taken = System.nanoTime() - start
     return result to taken
 }
+
+fun <T> ((T) -> Boolean).toPredicate() = Predicate<T> { this(it) }

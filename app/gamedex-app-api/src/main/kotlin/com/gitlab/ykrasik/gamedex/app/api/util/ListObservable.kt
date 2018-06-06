@@ -17,6 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.util
 
 import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.channels.map
+import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -170,6 +174,9 @@ inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = Defa
 inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> =
     subscribeTransform(context) { it.filter(f) }
 
+fun <T> ListObservable<T>.filtering(channel: ReceiveChannel<(T) -> Boolean>, context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+    subscribeTransformChannel(context, channel.map { f -> { list: List<T> -> list.filter(f) } })
+
 fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
     subscribeTransform(context) { it.distinct() }
 
@@ -180,6 +187,16 @@ inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext
     val list = ListObservableImpl<R>()
     itemsChannel.subscribe(context) {
         list.setAll(f(it))
+    }
+    return list
+}
+
+fun <T, R> ListObservable<T>.subscribeTransformChannel(context: CoroutineContext, channel: ReceiveChannel<(List<T>) -> List<R>>): ListObservable<R> {
+    val list = ListObservableImpl<R>()
+    launch(context) {
+        itemsChannel.subscribe().combineLatest(channel).consumeEach { (items, f) ->
+            list.setAll(f(items))
+        }
     }
     return list
 }

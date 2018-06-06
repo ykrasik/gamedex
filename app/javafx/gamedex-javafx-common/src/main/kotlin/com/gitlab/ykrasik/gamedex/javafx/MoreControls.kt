@@ -284,10 +284,11 @@ inline fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.
         hbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
         if (closeOnClick) addEventFilter(MouseEvent.MOUSE_CLICKED) { popover.hide() }
         addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) popover.hide() }
-    }
-    scrollpane.content = VBox().apply {
-        addClass(CommonStyle.popoverMenu)
-        op(popover)
+
+        content = VBox().apply {
+            addClass(CommonStyle.popoverMenu)
+            op(popover)
+        }
     }
     contentNode = scrollpane
 }

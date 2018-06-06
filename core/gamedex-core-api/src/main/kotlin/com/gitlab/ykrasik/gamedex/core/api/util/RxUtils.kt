@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.util
 
+import com.gitlab.ykrasik.gamedex.app.api.util.conflatedChannel
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
 import io.reactivex.Observable
@@ -23,6 +24,7 @@ import io.reactivex.Scheduler
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.experimental.CoroutineDispatcher
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlin.reflect.KProperty
 
 /**
@@ -112,4 +114,12 @@ fun <T> Observable<T>.toBehaviorSubjectOnChange(f: (T) -> Unit): BehaviorSubject
         f(it)
     }
     return subject
+}
+
+fun <T> BehaviorSubject<T>.toConflatedChannel(): Channel<T> = toConflatedChannel { it }
+
+inline fun <T, R> BehaviorSubject<T>.toConflatedChannel(crossinline f: (T) -> R): Channel<R> = conflatedChannel<R>().apply {
+    subscribe {
+        offer(f(it))
+    }
 }

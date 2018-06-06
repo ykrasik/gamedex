@@ -108,3 +108,35 @@ operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<
 //operator fun <T> SendChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
 //    offer(value)
 //}
+
+fun <A, B> ReceiveChannel<A>.combineLatest(
+    other: ReceiveChannel<B>,
+    context: CoroutineContext = CommonPool
+): ReceiveChannel<Pair<A, B>> {
+    val channel = Channel<Pair<A, B>>(capacity = 0)
+    val sourceA: ReceiveChannel<A> = this@combineLatest
+    val sourceB: ReceiveChannel<B> = other
+
+    var latestA: A? = null
+    var latestB: B? = null
+
+    launch(context) {
+        sourceA.consumeEach { a ->
+            latestA = a
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+    }
+
+    launch(context) {
+        sourceB.consumeEach { b ->
+            latestB = b
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+    }
+
+    return channel
+}

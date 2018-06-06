@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.GamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
@@ -31,6 +32,8 @@ import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPres
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.presenter.SearchGamesPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenterFactory
@@ -60,6 +63,11 @@ class ViewRegistryImpl @Inject constructor(
     editLibrary: EditLibraryPresenterFactory,
     showDeleteLibrary: ShowDeleteLibraryPresenterFactory,
     deleteLibrary: DeleteLibraryPresenterFactory,
+
+    selectPlatform: SelectPlatformPresenterFactory,
+
+    games: GamesPresenterFactory,
+    searchGames: SearchGamesPresenterFactory,
 
     gameDetails: GameDetailsPresenterFactory,
     redownloadGame: RedownloadGamePresenterFactory,
@@ -97,6 +105,11 @@ class ViewRegistryImpl @Inject constructor(
         presenter(editLibrary),
         presenter(showDeleteLibrary),
         presenter(deleteLibrary),
+
+        presenter(selectPlatform),
+
+        presenter(games),
+        presenter(searchGames),
 
         presenter(gameDetails),
         presenter(redownloadGame),

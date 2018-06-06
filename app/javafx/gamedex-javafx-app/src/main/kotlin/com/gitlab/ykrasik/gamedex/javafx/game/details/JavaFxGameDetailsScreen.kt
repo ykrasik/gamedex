@@ -121,10 +121,8 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
             // Top
             stackpane {
                 gameProperty.onChange { game ->
-                    if (game != null) {
-                        replaceChildren {
-                            children += GameDetailsFragment(game, evenIfEmpty = true).root
-                        }
+                    replaceChildren {
+                        children += GameDetailsFragment(game!!, evenIfEmpty = true).root
                     }
                 }
             }

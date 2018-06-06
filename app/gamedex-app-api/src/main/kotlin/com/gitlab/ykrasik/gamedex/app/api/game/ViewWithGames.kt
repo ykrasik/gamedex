@@ -14,25 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.module
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.google.inject.AbstractModule
+import com.gitlab.ykrasik.gamedex.Game
 
 /**
  * User: ykrasik
- * Date: 30/05/2017
- * Time: 22:14
+ * Date: 06/06/2018
+ * Time: 09:51
  */
-object ProviderScannerModule : AbstractModule() {
-    override fun configure() {
-        val providerModules = scanProviderModules()
-        providerModules.forEach { install(it) }
-    }
+interface ViewWithGames {
+    val games: MutableList<Game>
 
-    private fun scanProviderModules(): List<AbstractModule> {
-        val classes = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
-        return classes.map { it.kotlin.objectInstance!! }
-    }
+    // FIXME: There is an assumption that the view's platform has a more efficient way of representing sort & filter
+    // FIXME: than our primitive approach. This is so-so, find a way to handle this on the presenter side.
+    var sort: Comparator<Game>
+    var filter: (Game) -> Boolean
 }
