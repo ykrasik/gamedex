@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.util.behaviorSubject
 import com.gitlab.ykrasik.gamedex.core.api.util.modifyValue
 import com.gitlab.ykrasik.gamedex.core.api.util.value_
@@ -24,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxReportGameFilterView
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleStringProperty
@@ -41,7 +41,7 @@ import tornadofx.*
  * Time: 16:56
  */
 class ReportConfigView : View("Report Config") {
-    private val gameController: GameController by di()
+    private val gameService: GameService by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
 
@@ -56,7 +56,7 @@ class ReportConfigView : View("Report Config") {
 
     // TODO: Move this logic to presenter.
     private val disallowedNames = initialReportConfigSubject.map { reportUserConfig.reports.keys - it.name }.toObservableList()
-    private val excludedGames = currentReportConfigSubject.map { it.excludedGames.map { gameController.byId(it) } }.toObservableList()
+    private val excludedGames = currentReportConfigSubject.map { it.excludedGames.map { gameService[it] } }.toObservableList()
 
     private val reportNameProperty = SimpleStringProperty()
     private val viewModel = ReportNameViewModel(reportNameProperty)

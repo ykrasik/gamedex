@@ -55,8 +55,6 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
     override val redownloadGameActions = channel<Game>()
     override val rediscoverGameActions = channel<Game>()
 
-    override val useDefaultNavigationButton = false
-
     init {
         viewRegistry.register(this)
     }
@@ -134,17 +132,12 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
         }
     }
 
-    fun show(game: Game) {
-        this.game = game
-    }
-
     override fun displayWebPage(url: String) = browser.load(url)
 
     private fun editGame(initialTab: GameDataType) = editGameActions.event(game to initialTab)
 
-    override fun closeView() {
+    override fun onUndock() {
         browser.stop()
-        closeRequestedProperty.value = true
     }
 
     companion object {

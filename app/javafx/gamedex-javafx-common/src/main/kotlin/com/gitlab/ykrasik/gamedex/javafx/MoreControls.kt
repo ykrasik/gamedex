@@ -19,11 +19,14 @@ package com.gitlab.ykrasik.gamedex.javafx
 import com.gitlab.ykrasik.gamedex.javafx.control.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.javafx.control.ImageViewResizingPane
 import com.jfoenix.controls.*
+import javafx.animation.FadeTransition
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
+import javafx.geometry.Pos
+import javafx.scene.Cursor
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
@@ -35,9 +38,11 @@ import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
 import javafx.util.Callback
+import javafx.util.Duration
 import org.controlsfx.control.MaskerPane
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
+import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
 import kotlin.reflect.KProperty1
 
@@ -360,3 +365,50 @@ fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Uni
     imageview(image as ObservableValue<Image?>, op)
 
 inline fun EventTarget.jfxTabPane(op: JFXTabPane.() -> Unit = {}): JFXTabPane = opcr(this, JFXTabPane(), op)
+
+inline fun EventTarget.clearableTextfield(op: CustomTextField.() -> Unit = {}) = opcr(this, CustomTextField()) {
+    useMaxWidth = true
+    alignment = Pos.CENTER_LEFT
+
+    val clearButton = jfxButton(graphic = Theme.Icon.clear(size = 14.0)) {
+        isCancelButton = true
+        opacity = 0.0
+        cursor = Cursor.DEFAULT
+        managedProperty().bind(editableProperty())
+        visibleProperty().bind(editableProperty())
+        setOnAction {
+            requestFocus()
+            clear()
+        }
+    }
+
+    right = StackPane().apply {
+        padding {
+            top = 4
+            bottom = 3
+        }
+        addChildIfPossible(clearButton)
+    }
+
+    val fader = FadeTransition(Duration.millis(350.0), clearButton)
+    fader.cycleCount = 1
+
+    val setButtonVisible = { visible: Boolean ->
+        fader.fromValue = if (visible) 0.0 else 1.0
+        fader.toValue = if (visible) 1.0 else 0.0
+        fader.play()
+    }
+
+    textProperty().onChange {
+        val isTextEmpty = text == null || text.isEmpty()
+        val isButtonVisible = fader.node.opacity > 0
+
+        if (isTextEmpty && isButtonVisible) {
+            setButtonVisible(false)
+        } else if (!isTextEmpty && !isButtonVisible) {
+            setButtonVisible(true)
+        }
+    }
+
+    op()
+}

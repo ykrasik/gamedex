@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.details.ShowGameDetailsPreseneterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverNewGamesPresenterFactory
@@ -69,6 +70,7 @@ class ViewRegistryImpl @Inject constructor(
     games: GamesPresenterFactory,
     searchGames: SearchGamesPresenterFactory,
 
+    showGameDetails: ShowGameDetailsPreseneterFactory,
     gameDetails: GameDetailsPresenterFactory,
     redownloadGame: RedownloadGamePresenterFactory,
     rediscoverGame: RediscoverGamePresenterFactory,
@@ -111,6 +113,7 @@ class ViewRegistryImpl @Inject constructor(
         presenter(games),
         presenter(searchGames),
 
+        presenter(showGameDetails),
         presenter(gameDetails),
         presenter(redownloadGame),
         presenter(rediscoverGame),

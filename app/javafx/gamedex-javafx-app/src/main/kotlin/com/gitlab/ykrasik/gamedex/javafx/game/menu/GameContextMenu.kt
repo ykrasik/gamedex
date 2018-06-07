@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
@@ -39,10 +38,9 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanEditGame, ViewCanDeleteGame, ViewCanRenameMoveGame, ViewCanTagGame,
-    ViewCanRedownloadGame, ViewCanRediscoverGame {
-    private val controller: GameController by di()
-
+class GameContextMenu : PresentableView(), ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
+    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRedownloadGame, ViewCanRediscoverGame {
+    override val showGameDetailsActions = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<Pair<Game, String?>>()
@@ -59,7 +57,7 @@ class GameContextMenu : PresentableView(), ViewCanEditGame, ViewCanDeleteGame, V
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
         val size = 20.0
-        item("View", Theme.Icon.view(size)) { setOnAction { controller.viewDetails(game) } }
+        item("View", Theme.Icon.view(size)) { eventOnAction(showGameDetailsActions) { game } }
         separator()
         item("Edit", Theme.Icon.edit(size)) { setOnAction { editGame(GameDataType.name_) } }
         item("Change Thumbnail", Theme.Icon.thumbnail(size)) { setOnAction { editGame(GameDataType.thumbnail) } }

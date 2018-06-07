@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.GamedexScreen
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
@@ -40,7 +40,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 16:25
  */
-class ReportsScreen : GamedexScreen("Reports", Theme.Icon.chart()) {
+class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
     private val reportController: ReportController by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val reportUserConfig = userConfigRepository[ReportUserConfig::class]

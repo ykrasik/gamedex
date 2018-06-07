@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
@@ -38,7 +39,8 @@ import javax.inject.Singleton
 @Singleton
 class GameDetailsPresenterFactory @Inject constructor(
     private val gameService: GameService,
-    private val imageRepository: ImageRepository
+    private val imageRepository: ImageRepository,
+    private val viewManager: ViewManager
 ) : PresenterFactory<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : Presenter() {
         init {
@@ -86,7 +88,7 @@ class GameDetailsPresenterFactory @Inject constructor(
             "https://www.youtube.com/results?search_query=${URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")}"
 
         private fun close() {
-            view.closeView()
+            viewManager.closeGameDetailsView(view)
         }
     }
 }

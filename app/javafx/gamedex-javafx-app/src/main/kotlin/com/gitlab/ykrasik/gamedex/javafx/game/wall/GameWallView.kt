@@ -17,10 +17,11 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.map
@@ -44,7 +45,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : PresentableView("Games Wall"), ViewWithGames {
+class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGameDetails {
     override val games = mutableListOf<Game>().sortedFiltered()
 
     private val sortProperty = SimpleObjectProperty(Comparator.comparing(Game::name))
@@ -54,7 +55,8 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames {
     override var filter by filterProperty
     private val filterPredicateProperty = filterProperty.map { it!!.toPredicate() }
 
-    private val gameController: GameController by di()
+    override val showGameDetailsActions = channel<Game>()
+
     private val imageLoader: ImageLoader by di()
     private val userConfigRepository: UserConfigRepository by di()
     private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
@@ -97,7 +99,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames {
                     2 -> {
                         popOver.hide()
                         if (e.button == MouseButton.PRIMARY) {
-                            gameController.viewDetails(cell.item)
+                            showGameDetailsActions.event(cell.item)
                         }
                     }
                 }

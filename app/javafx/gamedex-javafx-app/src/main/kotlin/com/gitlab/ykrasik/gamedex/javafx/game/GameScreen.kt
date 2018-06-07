@@ -28,16 +28,10 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxMenuGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
-import javafx.animation.FadeTransition
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
-import javafx.geometry.Pos
-import javafx.scene.Cursor
 import javafx.scene.control.ToolBar
-import javafx.scene.layout.StackPane
-import javafx.util.Duration
-import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
 
 /**
@@ -131,66 +125,12 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
         children += filterView.root
     }
 
-    private fun EventTarget.searchField() {
-        val search = CustomTextField().apply {
-            setupClearButtonField()
-            useMaxWidth = true
-            alignment = Pos.CENTER_LEFT
-            promptText = "Search"
-            left = Theme.Icon.search(18.0)
-            text = searchText
-            searchTextProperty.bindBidirectional(textProperty())
-            focusedProperty().onChange {
-                javaFx {
-                    selectAll()
-                }
-            }
-            tooltip("Ctrl+f")
-        }
-        addChildIfPossible(search)
-        shortcut("ctrl+f") {
-            search.requestFocus()
-        }
-    }
-
-    private fun CustomTextField.setupClearButtonField() {
-        val clearButton = jfxButton(graphic = Theme.Icon.clear(size = 14.0)) {
-            isCancelButton = true
-            opacity = 0.0
-            cursor = Cursor.DEFAULT
-            managedProperty().bind(editableProperty())
-            visibleProperty().bind(editableProperty())
-            setOnAction {
-                requestFocus()
-                clear()
-            }
-        }
-
-        right = StackPane().apply {
-            padding {
-                top = 4
-                bottom = 3
-            }
-            addChildIfPossible(clearButton)
-        }
-
-        val fader = FadeTransition(Duration.millis(350.0), clearButton)
-        fader.cycleCount = 1
-        fun setButtonVisible(visible: Boolean) {
-            fader.fromValue = if (visible) 0.0 else 1.0
-            fader.toValue = if (visible) 1.0 else 0.0
-            fader.play()
-        }
-
-        textProperty().onChange {
-            val isTextEmpty = text == null || text.isEmpty()
-            val isButtonVisible = fader.node.opacity > 0
-
-            if (isTextEmpty && isButtonVisible) {
-                setButtonVisible(false)
-            } else if (!isTextEmpty && !isButtonVisible) {
-                setButtonVisible(true)
-            }
-        }
+    private fun EventTarget.searchField() = clearableTextfield {
+        promptText = "Search"
+        left = Theme.Icon.search(18.0)
+        text = searchText
+        searchTextProperty.bindBidirectional(textProperty())
+        tooltip("Ctrl+f")
+        shortcut("ctrl+f") { requestFocus() }
     }
 }

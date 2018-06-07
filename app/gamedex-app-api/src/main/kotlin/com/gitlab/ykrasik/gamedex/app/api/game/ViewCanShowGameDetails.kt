@@ -14,25 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.util
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import org.reflections.Reflections
-import org.reflections.scanners.ResourcesScanner
-import org.reflections.scanners.SubTypesScanner
-import java.net.URL
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.Game
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 07/10/2016
- * Time: 16:23
+ * Date: 08/06/2018
+ * Time: 09:39
  */
-object ClassPathScanner {
-    fun scanResources(basePackage: String, predicate: (String) -> Boolean): List<URL> {
-        return Reflections(basePackage, ResourcesScanner()).getResources { predicate(it!!) }
-            .map { this::class.java.getResource("/$it") }
-    }
-
-    fun <T : Any> scanSubTypes(basePackage: String, type: KClass<T>): Set<Class<out T>> =
-        Reflections(basePackage, SubTypesScanner()).getSubTypesOf(type.java)
+interface ViewCanShowGameDetails {
+    val showGameDetailsActions: ReceiveChannel<Game>
 }

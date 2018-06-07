@@ -14,13 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx
+package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
@@ -29,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameVie
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
 import tornadofx.View
 import tornadofx.vbox
 import javax.inject.Singleton
@@ -41,6 +39,12 @@ import javax.inject.Singleton
 @Singleton
 class JavaFxViewManager : View(), ViewManager {
     override val root = vbox()  // Unused.
+
+    private val mainView: MainView by inject()
+
+    override val gameDetailsView: JavaFxGameDetailsScreen by inject()
+    override fun showGameDetailsView(view: GameDetailsView) = mainView.showGameDetails()
+    override fun closeGameDetailsView(view: GameDetailsView) = mainView.showPreviousScreen()
 
     override val editLibraryView: JavaFxEditLibraryView by inject()
     override fun showEditLibraryView(view: EditLibraryView) = view.openModal()

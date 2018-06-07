@@ -26,14 +26,12 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
-import javafx.scene.Parent
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import org.controlsfx.control.NotificationPane
+import org.controlsfx.control.MaskerPane
 import tornadofx.*
 import javax.inject.Singleton
 
@@ -45,8 +43,6 @@ import javax.inject.Singleton
 // TODO: Separate into TaskView & Presenter
 @Singleton
 class JavaFxTaskRunner : TaskRunner {
-    private val notificationPane = NotificationPane().apply { isCloseButtonVisible = false }
-
     private val currentJobProperty = SimpleObjectProperty<Job?>(null)
     private var currentJob by currentJobProperty
 
@@ -101,17 +97,10 @@ class JavaFxTaskRunner : TaskRunner {
         }
     }
 
-    // FIXME: fix this, the notificationPane is redundant.
-    fun <T : Parent> init(f: () -> T): NotificationPane {
-        notificationPane.content = StackPane().apply {
-            children += f()
-            maskerPane {
-                visibleWhen { currentJobProperty.isNotNull }
-                progressProperty().bind(mainTaskProperties.progress)
-                textProperty().bind(mainTaskProperties.title)
-            }
-        }
-        return notificationPane
+    fun maskerPane() = MaskerPane().apply {
+        visibleWhen { currentJobProperty.isNotNull }
+        progressProperty().bind(mainTaskProperties.progress)
+        textProperty().bind(mainTaskProperties.title)
     }
 
     override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
@@ -165,16 +154,11 @@ class JavaFxTaskRunner : TaskRunner {
             .position(Pos.TOP_LEFT)
 
         longRunningNotification!!.show()
-
-//        notificationPane.graphic = taskView
-//        notificationPane.show()
     }
 
     private fun hidePersistentNotification() {
         longRunningNotification!!.hide()
         longRunningNotification = null
-
-//        notificationPane.hide()
     }
 
     // FIXME: Showing notifications causes the FontAwesome glyphs to bug up for the notification Pane. Maybe use BootstrapFx instead?

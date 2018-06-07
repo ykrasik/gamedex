@@ -32,6 +32,4 @@ interface GameDetailsView {
     var poster: Deferred<Image>?
 
     fun displayWebPage(url: String)
-
-    fun closeView()
 }

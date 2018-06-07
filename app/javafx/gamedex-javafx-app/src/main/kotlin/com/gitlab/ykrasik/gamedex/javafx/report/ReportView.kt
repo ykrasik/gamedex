@@ -18,15 +18,17 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.GameController
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameContextMenu
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
@@ -42,9 +44,10 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-class ReportView(val reportConfig: ReportConfig) : View(reportConfig.name, Theme.Icon.chart()) {
+class ReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.name, Theme.Icon.chart()), ViewCanShowGameDetails {
+    override val showGameDetailsActions = channel<Game>()
+
     private val reportController: ReportController by di()
-    private val gameController: GameController by di()
     private val fileSystemService: FileSystemService by di()
 
     private val gameContextMenu: GameContextMenu by inject()
@@ -61,6 +64,10 @@ class ReportView(val reportConfig: ReportConfig) : View(reportConfig.name, Theme
     private val selectedGame by selectedGameProperty
 
     private val additionalInfoProperty = selectedGameProperty.map { report.results[it] }
+
+    init {
+        viewRegistry.register(this)
+    }
 
     override val root = hbox {
         useMaxSize = true
@@ -123,7 +130,7 @@ class ReportView(val reportConfig: ReportConfig) : View(reportConfig.name, Theme
         }.apply { minWidth = 60.0 }
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
-        onUserSelect { gameController.viewDetails(it) }
+        onUserSelect { showGameDetailsActions.event(it) }
 
         searchProperty.onChange { query ->
             if (query.isNullOrEmpty()) return@onChange

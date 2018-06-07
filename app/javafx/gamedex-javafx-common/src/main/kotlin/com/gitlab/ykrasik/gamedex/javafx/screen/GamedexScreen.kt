@@ -16,33 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.screen
 
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.control.ToolBar
 import org.controlsfx.glyphfont.Glyph
-import tornadofx.View
 
 /**
  * User: ykrasik
  * Date: 01/05/2017
  * Time: 15:50
  */
-abstract class GamedexScreen(title: String, icon: Glyph?) : View(title, icon) {
-    abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
-}
-
-// FIXME: Delete the above GamedexScreen and rename this to GamedexScreen when all views have a presenter.
 abstract class PresentableScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
     abstract fun ToolBar.constructToolbar()
-
-    open val useDefaultNavigationButton: Boolean = true
-
-    // FIXME: Yuck
-    val closeRequestedProperty = SimpleBooleanProperty(false)
 
     init {
         // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.

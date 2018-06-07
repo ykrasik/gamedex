@@ -14,25 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.util
+package com.gitlab.ykrasik.gamedex.core.game.details
 
-import org.reflections.Reflections
-import org.reflections.scanners.ResourcesScanner
-import org.reflections.scanners.SubTypesScanner
-import java.net.URL
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 07/10/2016
- * Time: 16:23
+ * Date: 08/06/2018
+ * Time: 09:38
  */
-object ClassPathScanner {
-    fun scanResources(basePackage: String, predicate: (String) -> Boolean): List<URL> {
-        return Reflections(basePackage, ResourcesScanner()).getResources { predicate(it!!) }
-            .map { this::class.java.getResource("/$it") }
+@Singleton
+class ShowGameDetailsPreseneterFactory @Inject constructor(private val viewManager: ViewManager) : PresenterFactory<ViewCanShowGameDetails> {
+    override fun present(view: ViewCanShowGameDetails) = object : Presenter() {
+        init {
+            view.showGameDetailsActions.actionOnUi { game ->
+                viewManager.showGameDetailsView {
+                    this.game = game
+                }
+            }
+        }
     }
-
-    fun <T : Any> scanSubTypes(basePackage: String, type: KClass<T>): Set<Class<out T>> =
-        Reflections(basePackage, SubTypesScanner()).getSubTypesOf(type.java)
 }

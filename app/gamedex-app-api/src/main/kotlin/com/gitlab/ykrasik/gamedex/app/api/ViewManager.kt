@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 
@@ -35,6 +32,11 @@ interface ViewManager {
     fun showEditLibraryView(view: EditLibraryView)
     fun showEditLibraryView(f: EditLibraryView.() -> Unit) = mutateAndShow(editLibraryView, f, this::showEditLibraryView)
     fun closeEditLibraryView(view: EditLibraryView)
+
+    val gameDetailsView: GameDetailsView
+    fun showGameDetailsView(view: GameDetailsView)
+    fun showGameDetailsView(f: GameDetailsView.() -> Unit) = mutateAndShow(gameDetailsView, f, this::showGameDetailsView)
+    fun closeGameDetailsView(view: GameDetailsView)
 
     val deleteLibraryView: DeleteLibraryView
     fun showDeleteLibraryView(view: DeleteLibraryView)
