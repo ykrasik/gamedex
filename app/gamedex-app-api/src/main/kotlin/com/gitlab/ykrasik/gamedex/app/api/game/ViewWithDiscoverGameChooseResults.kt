@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  */
 interface ViewWithDiscoverGameChooseResults {
     var discoverGameChooseResults: DiscoverGameChooseResults
-    val discoverGameChooseResultsChanges: BroadcastReceiveChannel<DiscoverGameChooseResults>
+    val discoverGameChooseResultsChanges: ReceiveChannel<DiscoverGameChooseResults>
 }
 
 // FIXME: Make this an inner class of GameUserConfig after it's refactored.

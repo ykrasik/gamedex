@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.GameDataOverride
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.Deferred
@@ -48,17 +47,17 @@ interface EditGameView {
     var thumbnailUrlOverride: GameDataOverrideViewModel<String>
     var posterUrlOverride: GameDataOverrideViewModel<String>
 
-    val providerOverrideSelectionChanges: BroadcastReceiveChannel<Triple<GameDataType, ProviderId, Boolean>>
-    val customOverrideSelectionChanges: BroadcastReceiveChannel<Pair<GameDataType, Boolean>>
-    val clearOverrideSelectionChanges: BroadcastReceiveChannel<Pair<GameDataType, Boolean>>
+    val providerOverrideSelectionChanges: ReceiveChannel<Triple<GameDataType, ProviderId, Boolean>>
+    val customOverrideSelectionChanges: ReceiveChannel<Pair<GameDataType, Boolean>>
+    val clearOverrideSelectionChanges: ReceiveChannel<Pair<GameDataType, Boolean>>
 
-    val customOverrideValueChanges: BroadcastReceiveChannel<Pair<GameDataType, String>>
-    val customOverrideValueAcceptActions: BroadcastReceiveChannel<GameDataType>
-    val customOverrideValueRejectActions: BroadcastReceiveChannel<GameDataType>
+    val customOverrideValueChanges: ReceiveChannel<Pair<GameDataType, String>>
+    val customOverrideValueAcceptActions: ReceiveChannel<GameDataType>
+    val customOverrideValueRejectActions: ReceiveChannel<GameDataType>
 
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val clearActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val clearActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }
 
 data class GameDataOverrideViewModel<T>(

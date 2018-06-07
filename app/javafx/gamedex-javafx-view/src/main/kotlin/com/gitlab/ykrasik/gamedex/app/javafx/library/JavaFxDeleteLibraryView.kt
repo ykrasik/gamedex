@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialogContainer
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.performing
@@ -38,8 +38,8 @@ class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
 
     override val gamesToBeDeleted = mutableListOf<Game>().observable()
 
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { "Delete Library '${it?.name}'?"})

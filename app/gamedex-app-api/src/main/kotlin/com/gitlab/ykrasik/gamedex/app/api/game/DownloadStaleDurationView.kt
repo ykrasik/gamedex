@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  */
 interface DownloadStaleDurationView {
     var stalePeriodText: String
-    val stalePeriodTextChanges: BroadcastReceiveChannel<String>
+    val stalePeriodTextChanges: ReceiveChannel<String>
 
     var stalePeriodValidationError: String?
 }

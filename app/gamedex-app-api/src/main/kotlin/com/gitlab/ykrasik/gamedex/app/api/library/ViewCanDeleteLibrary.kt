@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  * Time: 10:42
  */
 interface ViewCanDeleteLibrary {
-    val deleteLibraryActions: BroadcastReceiveChannel<Library>
+    val deleteLibraryActions: ReceiveChannel<Library>
 }

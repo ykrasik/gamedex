@@ -90,7 +90,7 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
             // providers are a static configuration that can't change during runtime, so no need to set rules.
 
             view.filter = Filter.`true`
-            
+
             gameUserConfig.platformSubject.subscribe {
                 setPossibleLibraries()
                 view.filter = gameUserConfig.currentPlatformFilter
@@ -131,7 +131,7 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
                     if (view.possibleGenres.size <= 1) {
                         rules -= Filter.Genre::class
                     }
-                    if (view.possibleTags.size  <= 1) {
+                    if (view.possibleTags.size < 1) {
                         rules -= Filter.Tag::class
                     }
                     if (view.possibleLibraries.size <= 1) {
@@ -209,5 +209,5 @@ class ReportGameFilterPresenterFactory @Inject constructor(
 
     override fun filterLibrary(library: Library, currentPlatform: Platform) = true
 
-    override fun afterFilterSet(filter: Filter) { }
+    override fun afterFilterSet(filter: Filter) {}
 }

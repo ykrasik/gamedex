@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleObjectProperty
@@ -36,9 +36,9 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private var libraryProperty = SimpleObjectProperty<Library?>(null)
     override var library by libraryProperty
 
-    override val nameChanges = BroadcastEventChannel<String>()
-    override val pathChanges = BroadcastEventChannel<String>()
-    override val platformChanges = BroadcastEventChannel<Platform>()
+    override val nameChanges = channel<String>()
+    override val pathChanges = channel<String>()
+    override val platformChanges = channel<Platform>()
 
     private val viewModel = LibraryViewModel()
     override var name by viewModel.nameProperty
@@ -57,9 +57,9 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private val pathValidationErrorProperty = SimpleStringProperty(null)
     override var pathValidationError by pathValidationErrorProperty
 
-    override val browseActions = BroadcastEventChannel<Unit>()
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val browseActions = channel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })

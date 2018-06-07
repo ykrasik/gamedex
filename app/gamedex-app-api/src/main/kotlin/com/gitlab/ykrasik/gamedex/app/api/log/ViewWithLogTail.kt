@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,5 +25,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  */
 interface ViewWithLogTail {
     var logTail: Boolean
-    val logTailChanges: BroadcastReceiveChannel<Boolean>
+    val logTailChanges: ReceiveChannel<Boolean>
 }

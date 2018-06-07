@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.scene.control.ToolBar
@@ -38,9 +38,9 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
     ViewWithLibraries, ViewCanAddLibrary, ViewCanEditLibrary, ViewCanDeleteLibrary {
 
     override val libraries = mutableListOf<Library>().observable()
-    override val addLibraryActions = BroadcastEventChannel<Unit>()
-    override val editLibraryActions = BroadcastEventChannel<Library>()
-    override val deleteLibraryActions = BroadcastEventChannel<Library>()
+    override val addLibraryActions = channel<Unit>()
+    override val editLibraryActions = channel<Library>()
+    override val deleteLibraryActions = channel<Library>()
 
     init {
         viewRegistry.register(this)
@@ -111,7 +111,7 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
     }
 
     private fun deleteLibrary() {
-        deleteLibraryActions.offer(selectedLibrary)
+        deleteLibraryActions.event(selectedLibrary)
     }
 
     private val selectedLibrary: Library get() = root.selectedItem!!

@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 
 import com.gitlab.ykrasik.gamedex.app.api.game.DownloadStaleDurationView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadAllStaleGames
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleStringProperty
@@ -32,7 +32,7 @@ import tornadofx.*
  * Time: 10:57
  */
 class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, ViewCanRedownloadAllStaleGames {
-    override val stalePeriodTextChanges = BroadcastEventChannel<String>()
+    override val stalePeriodTextChanges = channel<String>()
     private val viewModel = PeriodViewModel()
     override var stalePeriodText by viewModel.stalePeriodTextProperty
 
@@ -43,7 +43,7 @@ class JavaFxGameDownloadView : PresentableView(), DownloadStaleDurationView, Vie
     private val stalePeriodValidationErrorProperty = SimpleStringProperty(null)
     override var stalePeriodValidationError by stalePeriodValidationErrorProperty
 
-    override val redownloadAllStaleGamesActions = BroadcastEventChannel<Unit>()
+    override val redownloadAllStaleGamesActions = channel<Unit>()
 
     init {
         viewRegistry.register(this)

@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter.Companion.name
 import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.game.MenuGameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.game.ReportGameFilterView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
@@ -39,6 +39,7 @@ import javafx.scene.control.ContentDisplay
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.*
 import kotlin.reflect.KClass
 
@@ -58,14 +59,14 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
     val filterProperty: ReadOnlyObjectProperty<Filter> = _filterProperty
     override var filter by _filterProperty
 
-    override val wrapInAndActions = BroadcastEventChannel<Filter>()
-    override val wrapInOrActions = BroadcastEventChannel<Filter>()
-    override val wrapInNotActions = BroadcastEventChannel<Filter>()
-    override val unwrapNotActions = BroadcastEventChannel<Filter.Not>()
-    override val clearFilterActions = BroadcastEventChannel<Unit>()
-    override val updateFilterActions = BroadcastEventChannel<Pair<Filter.Rule, Filter.Rule>>()
-    override val replaceFilterActions = BroadcastEventChannel<Pair<Filter, KClass<out Filter>>>()
-    override val deleteFilterActions = BroadcastEventChannel<Filter>()
+    override val wrapInAndActions = channel<Filter>()
+    override val wrapInOrActions = channel<Filter>()
+    override val wrapInNotActions = channel<Filter>()
+    override val unwrapNotActions = channel<Filter.Not>()
+    override val clearFilterActions = channel<Unit>()
+    override val updateFilterActions = channel<Pair<Filter.Rule, Filter.Rule>>()
+    override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
+    override val deleteFilterActions = channel<Filter>()
 
     private var indent = 0
 
@@ -153,7 +154,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
         val negated = parentFilter is Filter.Not
         val target = if (negated) parentFilter else currentFilter
         buttonWithPopover(graphic = Theme.Icon.plus(), styleClass = null) {
-            fun operatorButton(name: String, channel: BroadcastEventChannel<Filter>) = jfxButton(name) {
+            fun operatorButton(name: String, channel: Channel<Filter>) = jfxButton(name) {
                 useMaxWidth = true
                 eventOnAction(channel) { target }
             }

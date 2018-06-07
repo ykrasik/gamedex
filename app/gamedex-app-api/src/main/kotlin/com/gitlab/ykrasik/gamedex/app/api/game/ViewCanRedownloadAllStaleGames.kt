@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  * Time: 09:38
  */
 interface ViewCanRedownloadAllStaleGames {
-    val redownloadAllStaleGamesActions: BroadcastReceiveChannel<Unit>
+    val redownloadAllStaleGamesActions: ReceiveChannel<Unit>
 }

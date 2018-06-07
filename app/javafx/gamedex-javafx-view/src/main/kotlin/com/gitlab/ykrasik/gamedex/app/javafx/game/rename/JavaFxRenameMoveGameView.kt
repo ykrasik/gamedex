@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.util.browse
@@ -43,9 +43,9 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
-    override val libraryChanges = BroadcastEventChannel<Library>()
-    override val pathChanges = BroadcastEventChannel<String>()
-    override val nameChanges = BroadcastEventChannel<String>()
+    override val libraryChanges = channel<Library>()
+    override val pathChanges = channel<String>()
+    override val nameChanges = channel<String>()
     private val viewModel = RenameFolderViewModel()
 
     override var library by viewModel.libraryProperty
@@ -61,10 +61,10 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    override val selectDirectoryActions = BroadcastEventChannel<Unit>()
-    override val browseToGameActions = BroadcastEventChannel<Unit>()
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val selectDirectoryActions = channel<Unit>()
+    override val browseToGameActions = channel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it?.path}" })

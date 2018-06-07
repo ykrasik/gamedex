@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.io.File
 
 /**
@@ -30,20 +30,20 @@ interface EditLibraryView {
     var library: Library?
 
     var name: String
-    val nameChanges: BroadcastReceiveChannel<String>
+    val nameChanges: ReceiveChannel<String>
 
     var path: String
-    val pathChanges: BroadcastReceiveChannel<String>
+    val pathChanges: ReceiveChannel<String>
 
     var platform: Platform
-    val platformChanges: BroadcastReceiveChannel<Platform>
+    val platformChanges: ReceiveChannel<Platform>
 
     var nameValidationError: String?
     var pathValidationError: String?
 
-    val browseActions: BroadcastReceiveChannel<Unit>
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val browseActions: ReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 
     fun selectDirectory(initialDirectory: File?): File?
 }

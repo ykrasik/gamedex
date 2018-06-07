@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.general
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  * Time: 12:28
  */
 interface ClearUserDataView {
-    val clearUserDataActions: BroadcastReceiveChannel<Unit>
+    val clearUserDataActions: ReceiveChannel<Unit>
 
     fun confirmClearUserData(): Boolean
 }

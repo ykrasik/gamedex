@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -26,5 +26,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  * Time: 10:19
  */
 interface ViewCanEditGame {
-    val editGameActions: BroadcastReceiveChannel<Pair<Game, GameDataType>>
+    val editGameActions: ReceiveChannel<Pair<Game, GameDataType>>
 }

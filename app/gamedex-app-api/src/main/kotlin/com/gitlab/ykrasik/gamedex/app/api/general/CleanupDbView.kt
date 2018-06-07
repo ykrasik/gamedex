@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.general
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.FileSize
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.FileSize
  * Time: 12:29
  */
 interface CleanupDbView {
-    val cleanupDbActions: BroadcastReceiveChannel<Unit>
+    val cleanupDbActions: ReceiveChannel<Unit>
 
     fun confirmDeleteStaleData(staleData: StaleData): Boolean
 }

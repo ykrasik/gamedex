@@ -18,13 +18,13 @@ package com.gitlab.ykrasik.gamedex.javafx.screen
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
@@ -62,34 +62,34 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
         }
     }
 
-    fun <T, O : ObservableValue<T>> O.eventOnChange(channel: BroadcastEventChannel<T>) = eventOnChange(channel) { it }
+    fun <T, O : ObservableValue<T>> O.eventOnChange(channel: Channel<T>) = eventOnChange(channel) { it }
 
-    inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: BroadcastEventChannel<R>, crossinline factory: (T) -> R) = apply {
+    inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: Channel<R>, crossinline factory: (T) -> R) = apply {
         onChange { channel.event(factory(it!!)) }
     }
 
     // TODO: Find a better name
-    fun ButtonBase.eventOnAction(channel: BroadcastEventChannel<Unit>) = apply {
+    fun ButtonBase.eventOnAction(channel: Channel<Unit>) = apply {
         setOnAction { channel.event(Unit) }
     }
 
     // TODO: Find a better name
-    inline fun <T> ButtonBase.eventOnAction(channel: BroadcastEventChannel<T>, crossinline f: () -> T) = apply {
+    inline fun <T> ButtonBase.eventOnAction(channel: Channel<T>, crossinline f: () -> T) = apply {
         setOnAction { channel.event(f()) }
     }
 
-    fun ViewModel.presentableStringProperty(channel: BroadcastEventChannel<String>): Property<String> =
+    fun ViewModel.presentableStringProperty(channel: Channel<String>): Property<String> =
         presentableProperty(channel) { SimpleStringProperty("") }
 
-    inline fun <R> ViewModel.presentableStringProperty(channel: BroadcastEventChannel<R>,
+    inline fun <R> ViewModel.presentableStringProperty(channel: Channel<R>,
                                                        crossinline factory: (String) -> R): Property<String> =
         presentableProperty(channel, { SimpleStringProperty("") }, factory)
 
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(channel: BroadcastEventChannel<T>,
+    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<T>,
                                                                                         crossinline propertyFactory: () -> O): O =
         presentableProperty(channel, propertyFactory) { it }
 
-    inline fun <reified T : Any, R, reified O : Property<T>> ViewModel.presentableProperty(channel: BroadcastEventChannel<R>,
+    inline fun <reified T : Any, R, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<R>,
                                                                                            crossinline propertyFactory: () -> O,
                                                                                            crossinline valueFactory: (T) -> R): O =
         bind<O, T, O> { propertyFactory() }.apply {
@@ -106,5 +106,5 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
         }
     }
 
-    fun <E> BroadcastEventChannel<E>.event(e: E) = offer(e)
+    fun <E> Channel<E>.event(e: E) = offer(e)
 }

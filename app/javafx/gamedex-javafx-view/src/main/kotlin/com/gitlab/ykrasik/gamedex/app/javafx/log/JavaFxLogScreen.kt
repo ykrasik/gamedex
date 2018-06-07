@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.beans.property.SimpleBooleanProperty
@@ -42,11 +42,11 @@ import java.io.StringWriter
 class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewWithLogLevel, ViewWithLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
-    override val levelChanges = BroadcastEventChannel<String>()
+    override val levelChanges = channel<String>()
     private val levelProperty = SimpleStringProperty("").eventOnChange(levelChanges)
     override var level by levelProperty
 
-    override val logTailChanges = BroadcastEventChannel<Boolean>()
+    override val logTailChanges = channel<Boolean>()
     private val logTailProperty = SimpleBooleanProperty(false).eventOnChange(logTailChanges)
     override var logTail by logTailProperty
 

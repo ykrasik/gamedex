@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -31,17 +31,17 @@ interface TagGameView {
     val checkedTags: MutableSet<String>
 
     var toggleAll: Boolean
-    val checkAllChanges: BroadcastReceiveChannel<Boolean>
+    val checkAllChanges: ReceiveChannel<Boolean>
 
-    val checkTagChanges: BroadcastReceiveChannel<Pair<String, Boolean>>
+    val checkTagChanges: ReceiveChannel<Pair<String, Boolean>>
 
     var newTagName: String
-    val newTagNameChanges: BroadcastReceiveChannel<String>
+    val newTagNameChanges: ReceiveChannel<String>
 
     var nameValidationError: String?
 
-    val addNewTagActions: BroadcastReceiveChannel<Unit>
+    val addNewTagActions: ReceiveChannel<Unit>
 
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }

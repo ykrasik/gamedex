@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -49,11 +49,11 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
     private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
     override var poster by posterProperty
 
-    override val editGameActions = BroadcastEventChannel<Pair<Game, GameDataType>>()
-    override val deleteGameActions = BroadcastEventChannel<Game>()
-    override val tagGameActions = BroadcastEventChannel<Game>()
-    override val redownloadGameActions = BroadcastEventChannel<Game>()
-    override val rediscoverGameActions = BroadcastEventChannel<Game>()
+    override val editGameActions = channel<Pair<Game, GameDataType>>()
+    override val deleteGameActions = channel<Game>()
+    override val tagGameActions = channel<Game>()
+    override val redownloadGameActions = channel<Game>()
+    override val rediscoverGameActions = channel<Game>()
 
     override val useDefaultNavigationButton = false
 

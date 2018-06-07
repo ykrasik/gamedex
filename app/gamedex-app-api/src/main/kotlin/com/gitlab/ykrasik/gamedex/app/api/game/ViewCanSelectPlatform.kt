@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -28,5 +28,5 @@ interface ViewCanSelectPlatform {
     val availablePlatforms: MutableList<Platform>
 
     var currentPlatform: Platform
-    val currentPlatformChanges: BroadcastEventChannel<Platform>
+    val currentPlatformChanges: ReceiveChannel<Platform>
 }

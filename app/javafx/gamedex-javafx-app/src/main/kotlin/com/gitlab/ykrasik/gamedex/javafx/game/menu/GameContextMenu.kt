@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.menu
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.GameController
@@ -43,12 +43,12 @@ class GameContextMenu : PresentableView(), ViewCanEditGame, ViewCanDeleteGame, V
     ViewCanRedownloadGame, ViewCanRediscoverGame {
     private val controller: GameController by di()
 
-    override val editGameActions = BroadcastEventChannel<Pair<Game, GameDataType>>()
-    override val deleteGameActions = BroadcastEventChannel<Game>()
-    override val renameMoveGameActions = BroadcastEventChannel<Pair<Game, String?>>()
-    override val tagGameActions = BroadcastEventChannel<Game>()
-    override val redownloadGameActions = BroadcastEventChannel<Game>()
-    override val rediscoverGameActions = BroadcastEventChannel<Game>()
+    override val editGameActions = channel<Pair<Game, GameDataType>>()
+    override val deleteGameActions = channel<Game>()
+    override val renameMoveGameActions = channel<Pair<Game, String?>>()
+    override val tagGameActions = channel<Game>()
+    override val redownloadGameActions = channel<Game>()
+    override val rediscoverGameActions = channel<Game>()
 
     private lateinit var game: Game
 

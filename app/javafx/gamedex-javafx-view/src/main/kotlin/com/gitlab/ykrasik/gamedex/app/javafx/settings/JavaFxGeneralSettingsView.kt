@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.general.*
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
@@ -41,10 +42,10 @@ import java.io.File
 class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon.settings()),
     ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupDbView {
 
-    override val exportDatabaseActions = BroadcastEventChannel<Unit>()
-    override val importDatabaseActions = BroadcastEventChannel<Unit>()
-    override val clearUserDataActions = BroadcastEventChannel<Unit>()
-    override val cleanupDbActions = BroadcastEventChannel<Unit>()
+    override val exportDatabaseActions = channel<Unit>()
+    override val importDatabaseActions = channel<Unit>()
+    override val clearUserDataActions = channel<Unit>()
+    override val cleanupDbActions = channel<Unit>()
 
     init {
         viewRegistry.register(this)

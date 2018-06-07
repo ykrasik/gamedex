@@ -88,17 +88,17 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
     private fun <T> overrideProperty() =
         SimpleObjectProperty<GameDataOverrideViewModel<T>>(GameDataOverrideViewModel())
 
-    override val providerOverrideSelectionChanges = BroadcastEventChannel<Triple<GameDataType, ProviderId, Boolean>>()
-    override val customOverrideSelectionChanges = BroadcastEventChannel<Pair<GameDataType, Boolean>>()
-    override val clearOverrideSelectionChanges = BroadcastEventChannel<Pair<GameDataType, Boolean>>()
+    override val providerOverrideSelectionChanges = channel<Triple<GameDataType, ProviderId, Boolean>>()
+    override val customOverrideSelectionChanges = channel<Pair<GameDataType, Boolean>>()
+    override val clearOverrideSelectionChanges = channel<Pair<GameDataType, Boolean>>()
 
-    override val customOverrideValueChanges = BroadcastEventChannel<Pair<GameDataType, String>>()
-    override val customOverrideValueAcceptActions = BroadcastEventChannel<GameDataType>()
-    override val customOverrideValueRejectActions = BroadcastEventChannel<GameDataType>()
+    override val customOverrideValueChanges = channel<Pair<GameDataType, String>>()
+    override val customOverrideValueAcceptActions = channel<GameDataType>()
+    override val customOverrideValueRejectActions = channel<GameDataType>()
 
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val clearActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val clearActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     private val navigationToggle = ToggleGroup().apply {
         disallowDeselection()

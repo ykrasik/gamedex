@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -29,7 +30,7 @@ import kotlinx.coroutines.experimental.launch
  * Time: 08:17
  */
 abstract class Presenter {
-    protected val subscriptions = mutableListOf<SubscriptionReceiveChannel<*>>()
+    protected val jobs = mutableListOf<Job>()
 
     private var _showing = false
     protected val showing get() = _showing
@@ -52,31 +53,11 @@ abstract class Presenter {
 
     fun destroy() {
         if (_showing) hide()
-        subscriptions.forEach { it.close() }
-        subscriptions.clear()
+        jobs.forEach { it.cancel() }
+        jobs.clear()
     }
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) {
-        subscriptions += subscribe(uiThreadDispatcher) {
-            try {
-                f(it)
-            } catch (e: Exception) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
-    }
-
-    protected inline fun <T> BroadcastReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) {
-        subscriptions += subscribe(uiThreadDispatcher) {
-            try {
-                f(it)
-            } catch (e: Exception) {
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-            }
-        }
-    }
-
-    protected inline fun <T> ReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) {
+    protected inline fun <T> ReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) = managed {
         launch(uiThreadDispatcher) {
             consumeEach {
                 try {
@@ -86,6 +67,20 @@ abstract class Presenter {
                 }
             }
         }
+    }
+
+    protected inline fun <T> ReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) = actionOnUi {
+        f(it)
+    }
+
+    protected inline fun <T> BroadcastReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) =
+        subscribe().actionOnUi(f)
+
+    protected inline fun <T> BroadcastReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) =
+        subscribe().subscribeOnUi(f)
+
+    protected inline fun managed(f: () -> Job) {
+        jobs += f()
     }
 
     protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {

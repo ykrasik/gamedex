@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialogContainer
 import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
@@ -37,12 +37,12 @@ class JavaFxDeleteGameView : PresentableView(), DeleteGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game: Game by gameProperty
 
-    override val fromFileSystemChanges = BroadcastEventChannel<Boolean>()
+    override val fromFileSystemChanges = channel<Boolean>()
     private val fromFileSystemProperty = SimpleBooleanProperty(false).eventOnChange(fromFileSystemChanges)
     override var fromFileSystem by fromFileSystemProperty
 
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it?.name}'?"})

@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.io.File
 
 /**
@@ -33,22 +33,22 @@ interface RenameMoveGameView {
     var game: Game
 
     var library: Library
-    val libraryChanges: BroadcastReceiveChannel<Library>
+    val libraryChanges: ReceiveChannel<Library>
 
     var path: String
-    val pathChanges: BroadcastReceiveChannel<String>
+    val pathChanges: ReceiveChannel<String>
 
     var name: String
-    val nameChanges: BroadcastReceiveChannel<String>
+    val nameChanges: ReceiveChannel<String>
 
     var nameValidationError: String?
 
-    val selectDirectoryActions: BroadcastReceiveChannel<Unit>
+    val selectDirectoryActions: ReceiveChannel<Unit>
     fun selectDirectory(initialDirectory: File): File?
 
-    val browseToGameActions: BroadcastReceiveChannel<Unit>
+    val browseToGameActions: ReceiveChannel<Unit>
     fun browseTo(dir: File)
 
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }

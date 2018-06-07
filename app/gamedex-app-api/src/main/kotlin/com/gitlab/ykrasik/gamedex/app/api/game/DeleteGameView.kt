@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -28,8 +28,8 @@ interface DeleteGameView {
     var game: Game
 
     var fromFileSystem: Boolean
-    val fromFileSystemChanges: BroadcastReceiveChannel<Boolean>
+    val fromFileSystemChanges: ReceiveChannel<Boolean>
 
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.library
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -24,5 +24,5 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
  * Time: 10:25
  */
 interface ViewCanAddLibrary {
-    val addLibraryActions: BroadcastReceiveChannel<Unit>
+    val addLibraryActions: ReceiveChannel<Unit>
 }

@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
@@ -56,11 +56,11 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
-    override val currentPlatformChanges = BroadcastEventChannel<Platform>()
+    override val currentPlatformChanges = channel<Platform>()
     private val currentPlatformProperty = SimpleObjectProperty<Platform>().eventOnChange(currentPlatformChanges)
     override var currentPlatform by currentPlatformProperty
 
-    override val searchTextChanges = BroadcastEventChannel<String>()
+    override val searchTextChanges = channel<String>()
     private val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
     override var searchText by searchTextProperty
 

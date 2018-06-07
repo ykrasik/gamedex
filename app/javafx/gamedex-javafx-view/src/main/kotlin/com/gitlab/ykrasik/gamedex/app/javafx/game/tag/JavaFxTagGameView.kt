@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
@@ -40,13 +40,13 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
-    override val checkAllChanges = BroadcastEventChannel<Boolean>()
+    override val checkAllChanges = channel<Boolean>()
     private val toggleAllProperty = SimpleBooleanProperty(false).eventOnChange(checkAllChanges)
     override var toggleAll by toggleAllProperty
 
-    override val checkTagChanges = BroadcastEventChannel<Pair<String, Boolean>>()
+    override val checkTagChanges = channel<Pair<String, Boolean>>()
 
-    override val newTagNameChanges = BroadcastEventChannel<String>()
+    override val newTagNameChanges = channel<String>()
     private val viewModel = TagViewModel()
     override var newTagName by viewModel.nameProperty
 
@@ -57,9 +57,9 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     private val nameValidationErrorProperty = SimpleStringProperty(null)
     override var nameValidationError by nameValidationErrorProperty
 
-    override val addNewTagActions = BroadcastEventChannel<Unit>()
-    override val acceptActions = BroadcastEventChannel<Unit>()
-    override val cancelActions = BroadcastEventChannel<Unit>()
+    override val addNewTagActions = channel<Unit>()
+    override val acceptActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     init {
         checkedTags.onChange { tags.invalidate() }

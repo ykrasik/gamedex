@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -30,6 +30,6 @@ interface DeleteLibraryView {
 
     val gamesToBeDeleted: MutableList<Game>
 
-    val acceptActions: BroadcastReceiveChannel<Unit>
-    val cancelActions: BroadcastReceiveChannel<Unit>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }

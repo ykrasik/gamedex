@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
@@ -39,7 +39,7 @@ import tornadofx.*
  * Time: 18:52
  */
 class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView(), ViewCanRenameMoveGame {
-    override val renameMoveGameActions = BroadcastEventChannel<Pair<Game, String?>>()
+    override val renameMoveGameActions = channel<Pair<Game, String?>>()
 
     init {
         viewRegistry.register(this)

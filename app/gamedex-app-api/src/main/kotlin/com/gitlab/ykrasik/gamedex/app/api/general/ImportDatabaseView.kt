@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.general
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.io.File
 
 /**
@@ -25,7 +25,7 @@ import java.io.File
  * Time: 12:05
  */
 interface ImportDatabaseView {
-    val importDatabaseActions: BroadcastReceiveChannel<Unit>
+    val importDatabaseActions: ReceiveChannel<Unit>
 
     fun selectDatabaseImportFile(initialDirectory: File?): File?
     fun confirmImportDatabase(): Boolean
