@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.ImageUrls
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
@@ -95,7 +92,7 @@ object TestApplication {
                     val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
                     val path = randomPath(maxElements = 6, minElements = 3)
                     persistenceService.insertGame(
-                        metadata = Metadata(
+                        metadata = com.gitlab.ykrasik.gamedex.Metadata(
                             libraryId = libraries.randomElement().id,
                             path = path,
                             updateDate = now

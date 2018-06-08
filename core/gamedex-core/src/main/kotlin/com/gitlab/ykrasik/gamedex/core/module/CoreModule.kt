@@ -38,6 +38,7 @@ import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
+import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.multibindings.Multibinder
@@ -53,6 +54,11 @@ import javax.inject.Singleton
  */
 object CoreModule : AbstractModule() {
     override fun configure() {
+        // Install all providers detected by classpath scan
+        ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class).forEach {
+            install(it.kotlin.objectInstance!!)
+        }
+
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
         bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)

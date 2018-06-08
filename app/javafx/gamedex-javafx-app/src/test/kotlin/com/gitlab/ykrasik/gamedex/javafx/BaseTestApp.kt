@@ -17,11 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
-import com.google.inject.AbstractModule
-import com.google.inject.Binding
-import com.google.inject.Key
+import com.google.inject.*
 import com.google.inject.spi.Elements
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
@@ -44,7 +43,7 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
         System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
 
         // Mock imageLoader.
-        val appModuleWithoutImageRepo = Elements.getModule(Elements.getElements(JavaFxModule).filter {
+        val javaFxModuleWithoutImageRepo = Elements.getModule(Elements.getElements(JavaFxModule).filter {
             it is Binding<*> && it.key != Key.get(ImageRepository::class.java)
         })
         val mockImageRepoModule = object : AbstractModule() {
@@ -56,7 +55,7 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
             }
         }
         FX.dicontainer = GuiceDiContainer(
-            GuiceDiContainer.defaultModules - JavaFxModule + appModuleWithoutImageRepo + mockImageRepoModule
+            Guice.createInjector(Stage.PRODUCTION, CoreModule, javaFxModuleWithoutImageRepo, mockImageRepoModule)
         )
 
         Companion.view = view

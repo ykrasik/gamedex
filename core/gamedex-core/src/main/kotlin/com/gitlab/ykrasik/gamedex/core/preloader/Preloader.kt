@@ -16,18 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.core.preloader
 
-import com.gitlab.ykrasik.gamedex.app.api.util.task
+import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
+import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
+import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.module.ProviderScannerModule
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
-import com.google.inject.Module
-import com.google.inject.Stage
+import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import org.slf4j.bridge.SLF4JBridgeHandler
 
 /**
@@ -35,56 +37,59 @@ import org.slf4j.bridge.SLF4JBridgeHandler
  * Date: 13/04/2018
  * Time: 09:06
  */
-object Preloader {
-    init {
+class PreloaderImpl : Preloader {
+    override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(CommonPool) {
         SLF4JBridgeHandler.removeHandlersForRootLogger()
         SLF4JBridgeHandler.install()
         GamedexLogAppender.init()
-    }
 
-    fun load(vararg extraModules: Module) = task("Loading...") {
-        message1 = "Loading..."
+        withContext(uiThreadDispatcher) {
+            view.progress = 0.0
+            view.message = "Loading..."
+        }
 
         // While loading, display all log messages in the task
-        val subscription = GamedexLog.entries.itemsChannel.subscribe {
+        val subscription = GamedexLog.entries.itemsChannel.subscribe(uiThreadDispatcher) {
             if (it.isNotEmpty()) {
-                message1 = it.last().message
+                view.message = it.last().message
             }
         }
 
         val userConfig = PreloaderUserConfig()
 
         var componentCount = 0
-        val lifecycleModule = LifecycleModule(object : ProvisionListener {
-            override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
-                componentCount++
-                try {
-                    progress(componentCount, userConfig.diComponents)
-                } catch (_: ClosedSendChannelException) {
-                    // This happens when we don't pre-load all required classes during this stage
-                    // Some classes get lazily loaded, which will trigger this exception.
-                    println("Lazy loading: ${provision!!.binding.key}")  // TODO: Temp
-                    // FIXME: Make sure everything is pre-loaded!
-                }
-            }
 
-        })
-        val injector = Guice.createInjector(Stage.PRODUCTION,
-            ProviderScannerModule, CoreModule, lifecycleModule, *extraModules
-        )
+        val loadProgressModule = object : AbstractModule() {
+            override fun configure() {
+                bindListener(Matchers.any(), object : ProvisionListener {
+                    override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
+                        componentCount++
+                        launch(uiThreadDispatcher) {
+                            try {
+                                view.progress = componentCount.toDouble() / userConfig.diComponents
+                            } catch (_: ClosedSendChannelException) {
+                                // This happens when we don't pre-load all required classes during this stage
+                                // Some classes get lazily loaded, which will trigger this exception.
+                                println("Lazy loading: ${provision!!.binding.key}")  // TODO: Temp
+                                // FIXME: Make sure everything is pre-loaded!
+                            }
+                        }
+                    }
+                })
+            }
+        }
+        val injector = Guice.createInjector(Stage.PRODUCTION, CoreModule, loadProgressModule, *extraModules)
 
         subscription.cancel()
-        message1 = "Done loading."
 
         // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
         userConfig.diComponents = componentCount
 
-        injector
-    }
-
-    private class LifecycleModule(private val listener: ProvisionListener) : AbstractModule() {
-        override fun configure() {
-            bindListener(Matchers.any(), listener)
+        withContext(uiThreadDispatcher) {
+            view.message = "Done loading."
         }
+        delay(10)       // Delay to allow the 'done' message to display.
+
+        return@withContext injector
     }
 }

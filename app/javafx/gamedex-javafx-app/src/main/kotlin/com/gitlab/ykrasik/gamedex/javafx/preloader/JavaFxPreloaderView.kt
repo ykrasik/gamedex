@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
-import com.gitlab.ykrasik.gamedex.core.preloader.Preloader
+import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
+import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
@@ -25,16 +26,21 @@ import javafx.beans.property.SimpleStringProperty
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
+import java.util.*
 
 /**
  * User: ykrasik
  * Date: 01/04/2017
  * Time: 21:53
  */
-class PreloaderView : View("GameDex") {
+class JavaFxPreloaderView : View("GameDex"), PreloaderView {
     private var logo = resources.image("gamedex.jpg")
+
     private val progressProperty = SimpleDoubleProperty()
+    override var progress by progressProperty
+
     private val messageProperty = SimpleStringProperty()
+    override var message by messageProperty
 
     override val root = vbox(spacing = 5) {
         paddingAll = 5.0
@@ -59,10 +65,10 @@ class PreloaderView : View("GameDex") {
         Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
 
         javaFx {
-            val task = Preloader.load(JavaFxModule)
-            progressProperty.bind(task.progressChannel.toObservableValue(0.0))
-            messageProperty.bind(task.message1Channel.toObservableValue(""))
-            val injector = withContext(CommonPool) { task.run() }
+            val preloader = withContext(CommonPool) {
+                ServiceLoader.load(Preloader::class.java).iterator().next()
+            }
+            val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
             replaceWith(MainView::class)
         }

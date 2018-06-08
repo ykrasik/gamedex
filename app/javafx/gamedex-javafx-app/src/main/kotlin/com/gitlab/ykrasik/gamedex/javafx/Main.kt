@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadScheduler
-import com.gitlab.ykrasik.gamedex.javafx.preloader.PreloaderView
+import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.App
@@ -29,7 +29,7 @@ import tornadofx.launch
  * Date: 08/10/2016
  * Time: 21:40
  */
-class Main : App(PreloaderView::class) {
+class Main : App(JavaFxPreloaderView::class) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {

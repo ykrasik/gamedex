@@ -14,27 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.preloader
-
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
+package com.gitlab.ykrasik.gamedex.app.api.preloader
 
 /**
  * User: ykrasik
- * Date: 09/03/2018
- * Time: 09:28
+ * Date: 08/06/2018
+ * Time: 21:21
  */
-class PreloaderUserConfig : UserConfig() {
-    override val scope = UserConfigScope("preloader") {
-        Data(
-            diComponents = 78
-        )
-    }
-
-    val diComponentsSubject = scope.subject(Data::diComponents) { copy(diComponents = it) }
-    var diComponents by diComponentsSubject
-
-    data class Data(
-        val diComponents: Int
-    )
+interface PreloaderView {
+    var progress: Double
+    var message: String
 }

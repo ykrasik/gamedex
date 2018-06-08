@@ -34,6 +34,7 @@ license {
     exclude '**/*.png'
     exclude '**/*.jpg'
     exclude '**/*.conf'
+    exclude '**/*.Preloader'
 
     exclude '**/FixedRatingSkin.kt'
     exclude '**/Notification.kt'

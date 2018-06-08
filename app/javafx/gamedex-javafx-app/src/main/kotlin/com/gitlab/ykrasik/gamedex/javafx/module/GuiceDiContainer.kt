@@ -16,12 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.module
 
-import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.module.ProviderScannerModule
-import com.google.inject.Guice
 import com.google.inject.Injector
-import com.google.inject.Module
-import com.google.inject.Stage
 import tornadofx.DIContainer
 import kotlin.reflect.KClass
 
@@ -32,12 +27,4 @@ import kotlin.reflect.KClass
  */
 class GuiceDiContainer(private val injector: Injector) : DIContainer {
     override fun <T : Any> getInstance(type: KClass<T>): T = injector.getInstance(type.java)
-
-    companion object {
-        val defaultModules = listOf(ProviderScannerModule, CoreModule, JavaFxModule)
-
-        operator fun invoke(modules: List<Module> = defaultModules): GuiceDiContainer = GuiceDiContainer(
-            Guice.createInjector(Stage.PRODUCTION, modules)
-        )
-    }
 }

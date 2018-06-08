@@ -14,25 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.module
+package com.gitlab.ykrasik.gamedex.app.api.preloader
 
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.google.inject.AbstractModule
+import com.google.inject.Injector
+import com.google.inject.Module
 
 /**
  * User: ykrasik
- * Date: 30/05/2017
- * Time: 22:14
+ * Date: 08/06/2018
+ * Time: 21:21
+ *
+ * Provided using the Java SPI mechanism.
  */
-object ProviderScannerModule : AbstractModule() {
-    override fun configure() {
-        val providerModules = scanProviderModules()
-        providerModules.forEach { install(it) }
-    }
-
-    private fun scanProviderModules(): List<AbstractModule> {
-        val classes = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
-        return classes.map { it.kotlin.objectInstance!! }
-    }
+interface Preloader {
+    suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector
 }
