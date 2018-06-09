@@ -18,12 +18,18 @@ package com.gitlab.ykrasik.gamedex.javafx.preloader
 
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.EnhancedDefaultErrorHandler
+import com.gitlab.ykrasik.gamedex.javafx.MainView
+import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.geometry.Pos
+import javafx.scene.text.Font
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
 import java.util.*
@@ -36,41 +42,54 @@ import java.util.*
 class JavaFxPreloaderView : View("GameDex"), PreloaderView {
     private var logo = resources.image("gamedex.jpg")
 
-    private val progressProperty = SimpleDoubleProperty()
+    private val progressProperty = SimpleDoubleProperty(0.0)
     override var progress by progressProperty
 
     private val messageProperty = SimpleStringProperty()
     override var message by messageProperty
 
-    override val root = vbox(spacing = 5) {
-        paddingAll = 5.0
-        imageview {
-            image = logo
+    override val root = stackpane {
+        alignment = Pos.CENTER
+        group {
+            // Groups don't fill their parent's size, which is exactly what we want here.
+            vbox(spacing = 5) {
+                paddingAll = 5.0
+                imageview {
+                    image = logo
 
-            clipRectangle {
-                arcWidth = 10.0
-                arcHeight = 10.0
-                heightProperty().bind(logo.heightProperty())
-                widthProperty().bind(logo.widthProperty())
+                    clipRectangle {
+                        arcWidth = 10.0
+                        arcHeight = 10.0
+                        heightProperty().bind(logo.heightProperty())
+                        widthProperty().bind(logo.widthProperty())
+                    }
+                }
+                stackpane {
+                    alignment = Pos.CENTER_RIGHT
+                    progressbar(progressProperty) { useMaxWidth = true }
+                    label(progressProperty.stringBinding { "${(it!!.toDouble() * 100).toInt()}%" }) {
+                        paddingRight = 5.0
+                    }
+                }
+                text(messageProperty) {
+                    font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
+                }
             }
         }
-        progressbar(progressProperty) { useMaxWidth = true }
-        label(messageProperty)
     }
 
     override fun onDock() {
-        primaryStage.x = screenBounds.minX + screenBounds.width / 2 - logo.width / 2
-        primaryStage.y = screenBounds.minY + screenBounds.height / 3 - logo.height / 2
+        primaryStage.isMaximized = true
 
         Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
 
-        javaFx {
-            val preloader = withContext(CommonPool) {
-                ServiceLoader.load(Preloader::class.java).iterator().next()
-            }
+        launch(CommonPool) {
+            val preloader = ServiceLoader.load(Preloader::class.java).iterator().next()
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
-            replaceWith(MainView::class)
+            withContext(JavaFx) {
+                replaceWith(find(MainView::class), ViewTransition.Fade(3.seconds))
+            }
         }
     }
 }

@@ -163,11 +163,6 @@ class MainView : PresentableView("GameDex") {
         setOnAction { action() }
     }
 
-    override fun onDock() {
-        primaryStage.isMaximized = true
-        root.fade(0.5.seconds, 0.0, reversed = true)
-    }
-
     // TODO: Try to move this responsibility to the viewManager.
     fun showGameDetails() {
         tabPane.selectionModel.selectLast()
