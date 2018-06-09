@@ -43,7 +43,7 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
         System.setProperty("gameDex.persistence.dbUrl", "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
 
         // Mock imageLoader.
-        val javaFxModuleWithoutImageRepo = Elements.getModule(Elements.getElements(JavaFxModule).filter {
+        val coreModuleWithoutImageRepo = Elements.getModule(Elements.getElements(CoreModule).filter {
             it is Binding<*> && it.key != Key.get(ImageRepository::class.java)
         })
         val mockImageRepoModule = object : AbstractModule() {
@@ -55,7 +55,7 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
             }
         }
         FX.dicontainer = GuiceDiContainer(
-            Guice.createInjector(Stage.PRODUCTION, CoreModule, javaFxModuleWithoutImageRepo, mockImageRepoModule)
+            Guice.createInjector(Stage.PRODUCTION, JavaFxModule, coreModuleWithoutImageRepo, mockImageRepoModule)
         )
 
         Companion.view = view

@@ -20,7 +20,9 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallUserConfig
+import javafx.beans.property.Property
 import javafx.geometry.Pos
+import javafx.scene.paint.Color
 import tornadofx.*
 
 /**
@@ -32,26 +34,71 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
     private val userConfigRepository: UserConfigRepository by di()
     private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
-    override val root = form {
-        fieldset("Overlay") {
-            overlaySettings("MetaTag", gameWallUserConfig.metaTagOverlay)
-            overlaySettings("Version", gameWallUserConfig.versionOverlay)
-        }
-        fieldset("Cell") {
-            setId(Style.gameWallSettings)
-            cellSettings()
+    override val root = scrollpane {
+        form {
+            fieldset("Overlay") {
+                overlaySettings("Name", gameWallUserConfig.nameOverlay)
+                overlaySettings("MetaTag", gameWallUserConfig.metaTagOverlay)
+                overlaySettings("Version", gameWallUserConfig.versionOverlay)
+            }
+            fieldset("Cell") {
+                cellSettings()
+            }
         }
     }
 
-    // TODO: Configure overlay color.
     private fun Fieldset.overlaySettings(name: String, overlay: GameWallUserConfig.OverlaySettingsAccessor) =
         field("Display $name Overlay") {
-            hbox(spacing = 5.0) {
-                alignment = Pos.CENTER_LEFT
+            form {
                 val isShowProperty = overlay.isShowSubject.toPropertyCached()
-                jfxToggleButton(isShowProperty)
-                labeled("Position") { enumComboBox(overlay.positionSubject.toPropertyCached()) }.apply { showWhen { isShowProperty } }
-                jfxToggleButton(overlay.fillWidthSubject.toPropertyCached(), "Fill Width") { showWhen { isShowProperty } }
+                fieldset {
+                    field("Show") {
+                        hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                            jfxToggleButton(isShowProperty)
+                            jfxCheckBox(overlay.showOnlyWhenActiveSubject.toPropertyCached(), "Only When Active") {
+                                showWhen { isShowProperty }
+                            }
+                        }
+                    }
+                }
+                fieldset {
+                    showWhen { isShowProperty }
+                    field("Position") {
+                        hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                            enumComboBox(overlay.positionSubject.toPropertyCached())
+                            jfxCheckBox(overlay.fillWidthSubject.toPropertyCached(), "Fill Width")
+                        }
+                    }
+                    field("Font") {
+                        hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                            adjustableTextField(overlay.fontSizeSubject.toPropertyCached(), "Font Size", min = 1, max = 90)
+                            jfxCheckBox(overlay.boldSubject.toPropertyCached(), "Bold")
+                            jfxCheckBox(overlay.italicSubject.toPropertyCached(), "Italic")
+                        }
+                    }
+                    field("Font Color") {
+                        colorpicker(Color.valueOf(overlay.fontColor)) {
+                            setOnAction {
+                                overlay.fontColor = value.toString()
+                            }
+                        }
+                    }
+                    field("Background Color") {
+                        colorpicker(Color.valueOf(overlay.backgroundColor)) {
+                            setOnAction {
+                                overlay.backgroundColor = value.toString()
+                            }
+                        }
+                    }
+                    field("Opacity") {
+                        hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                            val slider = slider(min = 0, max = 1.0, value = overlay.opacity) {
+                                valueProperty().bindBidirectional(overlay.opacitySubject.toPropertyCached() as Property<Number>)
+                            }
+                            label(slider.valueProperty().stringBinding { it!!.toString() })
+                        }
+                    }
+                }
             }
         }
 

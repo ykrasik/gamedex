@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
+import com.gitlab.ykrasik.gamedex.javafx.javaFx
 
 /**
  * User: ykrasik
@@ -25,7 +26,9 @@ import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
  */
 object SettingsFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        println("Result: " + SettingsView().show())
+        javaFx {
+            println("Result: " + SettingsView().show())
+        }
     }
 
     @JvmStatic fun main(args: Array<String>) {}

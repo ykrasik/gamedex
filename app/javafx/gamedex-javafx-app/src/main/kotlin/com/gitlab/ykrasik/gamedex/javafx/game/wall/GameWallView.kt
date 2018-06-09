@@ -87,17 +87,20 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                 when (e.clickCount) {
                     1 -> with(popOver) {
                         if (isShowing) {
+                            cell.markSelected(false)
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
                             contentNode = GameDetailsFragment(cell.item!!, withDescription = false).root.apply {
                                 addClass(Style.quickDetails)
                             }
+                            cell.markSelected(true)
                             show(cell)
                         }
                     }
                     2 -> {
                         popOver.hide()
+                        cell.markSelected(false)
                         if (e.button == MouseButton.PRIMARY) {
                             showGameDetailsActions.event(cell.item)
                         }
@@ -132,6 +135,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     private inner class GameWallCell : GridCell<Game>() {
         private val fragment = GameWallCellFragment()
         private val imageView get() = fragment.imageView
+        private val nameOverlay get() = fragment.nameOverlay
         private val metaTagOverlay get() = fragment.metaTagOverlay
         private val versionOverlay get() = fragment.versionOverlay
 
@@ -143,10 +147,15 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             gameWallUserConfig.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
         }
 
+        fun markSelected(selected: Boolean) {
+            fragment.isSelected = selected
+        }
+
         override fun updateItem(item: Game?, empty: Boolean) {
             super.updateItem(item, empty)
 
             if (item != null) {
+                nameOverlay.text = item.name
                 metaTagOverlay.text = item.folderMetadata.metaTag
                 versionOverlay.text = item.folderMetadata.version
                 imageView.imageProperty().cleanBind(imageLoader.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))

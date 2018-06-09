@@ -50,7 +50,7 @@ class SettingsController @Inject constructor(private val userConfigRepository: U
         providerUserConfig.modify(providerId) { copy(enable = enable) }
     }
 
-    fun showSettingsMenu() {
+    suspend fun showSettingsMenu() {
         userConfigRepository.saveSnapshot()
         try {
             val accept = settingsView.show()

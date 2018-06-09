@@ -41,20 +41,47 @@ class GameWallUserConfig : UserConfig() {
                 horizontalSpacing = 3.0,
                 verticalSpacing = 3.0
             ),
+            name = OverlaySettings(
+                show = false,
+                position = Pos.TOP_CENTER,
+                fillWidth = true,
+                fontSize = 13,
+                bold = true,
+                italic = false,
+                fontColor = "#ffffff",
+                backgroundColor = "#4d66cc",
+                opacity = 0.85,
+                showOnlyWhenActive = true
+            ),
             metaTag = OverlaySettings(
                 show = true,
                 position = Pos.BOTTOM_CENTER,
-                fillWidth = true
+                fillWidth = true,
+                fontSize = 12,
+                bold = false,
+                italic = true,
+                fontColor = "#000000",
+                backgroundColor = "#cce6ff",
+                opacity = 0.85,
+                showOnlyWhenActive = true
             ),
             version = OverlaySettings(
                 show = true,
-                position = Pos.TOP_RIGHT,
-                fillWidth = false
+                position = Pos.BOTTOM_RIGHT,
+                fillWidth = false,
+                fontSize = 12,
+                bold = false,
+                italic = true,
+                fontColor = "#000000",
+                backgroundColor = "#D3D3D3",
+                opacity = 0.85,
+                showOnlyWhenActive = true
             )
         )
     }
 
     val cell = CellSettingsAccessor()
+    val nameOverlay = OverlaySettingsAccessor(Data::name, Data::withName)
     val metaTagOverlay = OverlaySettingsAccessor(Data::metaTag, Data::withMetaTag)
     val versionOverlay = OverlaySettingsAccessor(Data::version, Data::withVersion)
 
@@ -90,6 +117,27 @@ class GameWallUserConfig : UserConfig() {
 
         val fillWidthSubject = scope.subject({ extractor().fillWidth }, { modifier { copy(fillWidth = it) } })
         var fillWidth by fillWidthSubject
+        
+        val fontSizeSubject = scope.subject({ extractor().fontSize }, { modifier { copy(fontSize = it) } })
+        var fontSize by fontSizeSubject
+
+        val boldSubject = scope.subject({ extractor().bold }, { modifier { copy(bold = it) } })
+        var bold by boldSubject
+
+        val italicSubject = scope.subject({ extractor().italic }, { modifier { copy(italic = it) } })
+        var italic by italicSubject
+        
+        val fontColorSubject = scope.subject({ extractor().fontColor }, { modifier { copy(fontColor = it) } })
+        var fontColor by fontColorSubject
+
+        val backgroundColorSubject = scope.subject({ extractor().backgroundColor }, { modifier { copy(backgroundColor = it) } })
+        var backgroundColor by backgroundColorSubject
+
+        val opacitySubject = scope.subject({ extractor().opacity }, { modifier { copy(opacity = it) } })
+        var opacity by opacitySubject
+
+        val showOnlyWhenActiveSubject = scope.subject({ extractor().showOnlyWhenActive }, { modifier { copy(showOnlyWhenActive = it) } })
+        var showOnlyWhenActive by showOnlyWhenActiveSubject
     }
 
     enum class ImageDisplayType { fit, stretch }
@@ -107,15 +155,24 @@ class GameWallUserConfig : UserConfig() {
     data class OverlaySettings(
         val show: Boolean,
         val position: Pos,
-        val fillWidth: Boolean
+        val fillWidth: Boolean,
+        val fontSize: Int,
+        val bold: Boolean,
+        val italic: Boolean,
+        val fontColor: String,
+        val backgroundColor: String,
+        val opacity: Double,
+        val showOnlyWhenActive: Boolean
     )
 
     data class Data(
         val cell: CellSettings,
+        val name: OverlaySettings,
         val metaTag: OverlaySettings,
         val version: OverlaySettings
     ) {
         fun withCell(f: CellSettings.() -> CellSettings) = copy(cell = f(cell))
+        fun withName(f: OverlaySettings.() -> OverlaySettings) = copy(name = f(name))
         fun withMetaTag(f: OverlaySettings.() -> OverlaySettings) = copy(metaTag = f(metaTag))
         fun withVersion(f: OverlaySettings.() -> OverlaySettings) = copy(version = f(version))
     }

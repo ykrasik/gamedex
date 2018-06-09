@@ -23,11 +23,12 @@ import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.scene.Node
+import javafx.scene.control.Slider
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.Toggle
 import javafx.scene.text.FontWeight
-import javafx.stage.Modality
+import kotlinx.coroutines.experimental.CompletableDeferred
 import tornadofx.*
 
 /**
@@ -46,19 +47,29 @@ class SettingsView : View("Settings") {
 
     private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
 
-    private var accept = false
+    private var opacitySlider: Slider by singleAssign()
+
+    private var accept = CompletableDeferred(false)
     private val viewProperty = "view"
     private val tabProperty = "tab"
 
     override val root = borderpane {
+        prefHeight = screenBounds.height * 3 / 4
         top {
             toolbar {
                 acceptButton {
                     isDefaultButton = true
                     setOnAction {
-                        accept = true
+                        accept.complete(true)
                         close()
                     }
+                }
+                verticalSeparator()
+                spacer()
+                verticalSeparator()
+                label("Opacity")
+                opacitySlider = slider(min = 0.2, max = 1, value = 1) {
+                    tooltip("Hold 'ctrl' to hide temporarily.")
                 }
                 verticalSeparator()
                 spacer()
@@ -66,7 +77,7 @@ class SettingsView : View("Settings") {
                 cancelButton {
                     isCancelButton = true
                     setOnAction {
-                        accept = false
+                        accept.complete(false)
                         close()
                     }
                 }
@@ -123,6 +134,22 @@ class SettingsView : View("Settings") {
                 verticalSeparator(padding = 0.0)
             }
         }
+
+        var hidden = false
+        var prevOpacity = 1.0
+        setOnKeyPressed { e ->
+            if (e.isControlDown) {
+                prevOpacity = opacitySlider.value
+                opacitySlider.value = 0.0
+                hidden = true
+            }
+        }
+        setOnKeyReleased {
+            if (hidden) {
+                opacitySlider.value = prevOpacity
+                hidden = false
+            }
+        }
     }
 
     private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
@@ -132,10 +159,12 @@ class SettingsView : View("Settings") {
         op()
     }
 
-    fun show(): Boolean {
+    suspend fun show(): Boolean {
         (selectedToggleProperty.value.properties[viewProperty] as UIComponent).onDock()
-        openWindow(block = true, modality = Modality.APPLICATION_MODAL)
-        return accept
+        accept = CompletableDeferred()
+        val stage = openModal()!!
+        stage.opacityProperty().cleanBind(opacitySlider.valueProperty())
+        return accept.await()
     }
 
     class Style : Stylesheet() {

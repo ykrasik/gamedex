@@ -109,7 +109,11 @@ class MainView : PresentableView("GameDex") {
 
         separator()
 
-        navigationButton("Settings", Theme.Icon.settings()) { settingsController.showSettingsMenu() }.apply {
+        navigationButton("Settings", Theme.Icon.settings()) {
+            javaFx {
+                settingsController.showSettingsMenu()
+            }
+        }.apply {
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
         }
@@ -118,7 +122,7 @@ class MainView : PresentableView("GameDex") {
 
         navigationButton("Quit", Theme.Icon.quit()) { System.exit(0) }
     }.apply {
-        textProperty().bind(tabPane.selectionModel.selectedItemProperty().map { it!!.text })
+        textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 
     init {
@@ -143,7 +147,6 @@ class MainView : PresentableView("GameDex") {
         val screen = this
         toolbar.replaceChildren {
             items += toolbars.getOrPut(screen) {
-                // TODO: Find a neater solution, like not using ToolBar.constructToolbar()
                 ToolBar().apply {
                     if (screen !in nonNavigableScreens) {
                         items += mainNavigationButton

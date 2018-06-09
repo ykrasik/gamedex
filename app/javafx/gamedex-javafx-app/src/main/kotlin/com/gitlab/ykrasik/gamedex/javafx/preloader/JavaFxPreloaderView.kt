@@ -64,15 +64,15 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                         widthProperty().bind(logo.widthProperty())
                     }
                 }
-                stackpane {
-                    alignment = Pos.CENTER_RIGHT
-                    progressbar(progressProperty) { useMaxWidth = true }
-                    label(progressProperty.stringBinding { "${(it!!.toDouble() * 100).toInt()}%" }) {
-                        paddingRight = 5.0
+                progressbar(progressProperty) { useMaxWidth = true }
+                hbox {
+                    label(messageProperty) {
+                        font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
                     }
-                }
-                text(messageProperty) {
-                    font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
+                    spacer()
+                    label(progressProperty.stringBinding { "${(it!!.toDouble() * 100).toInt()}%" }) {
+                        font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
+                    }
                 }
             }
         }

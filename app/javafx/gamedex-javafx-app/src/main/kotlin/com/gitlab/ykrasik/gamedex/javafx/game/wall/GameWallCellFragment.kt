@@ -18,6 +18,9 @@ package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
+import io.reactivex.rxkotlin.Observables
+import javafx.beans.property.ReadOnlyBooleanProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -28,6 +31,9 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.scene.text.Font
+import javafx.scene.text.FontPosture
+import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -41,11 +47,18 @@ class GameWallCellFragment : Fragment() {
 
     private var content: StackPane by singleAssign()
     private var _imageView: ImageView by singleAssign()
+    private var _nameOverlay: Label by singleAssign()
     private var _metaTagOverlay: Label by singleAssign()
     private var _versionOverlay: Label by singleAssign()
     private var border: Rectangle by singleAssign()
 
+    private lateinit var isHoverProperty: ReadOnlyBooleanProperty
+
+    private val isSelectedProperty = SimpleBooleanProperty(false)
+    var isSelected by isSelectedProperty
+
     val imageView get() = _imageView
+    val nameOverlay get() = _nameOverlay
     val metaTagOverlay get() = _metaTagOverlay
     val versionOverlay get() = _versionOverlay
 
@@ -53,6 +66,7 @@ class GameWallCellFragment : Fragment() {
         val root = this
         minWidthProperty().bind(maxWidthProperty())
         minHeightProperty().bind(maxHeightProperty())
+        isHoverProperty = hoverProperty()
 
         val dropshadow = DropShadow().apply { input = Glow() }
         setOnMouseEntered { effect = dropshadow }
@@ -85,6 +99,7 @@ class GameWallCellFragment : Fragment() {
                 content.requestLayout()
             }
 
+            _nameOverlay = overlayLabel(gameWallUserConfig.nameOverlay)
             _metaTagOverlay = overlayLabel(gameWallUserConfig.metaTagOverlay)
             _versionOverlay = overlayLabel(gameWallUserConfig.versionOverlay)
 
@@ -110,11 +125,24 @@ class GameWallCellFragment : Fragment() {
         }
     }
 
-    // TODO: Allow configuring the overlay color / opacity.
     private fun EventTarget.overlayLabel(overlay: GameWallUserConfig.OverlaySettingsAccessor) = label {
         addClass(Style.overlayText)
+        val showOnlyWhenActive = overlay.showOnlyWhenActiveSubject.toPropertyCached().toBoolean()
+        visibleWhen {
+            overlay.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty).and(
+                showOnlyWhenActive.and(isHoverProperty.or(isSelectedProperty)).or(showOnlyWhenActive.not())
+            )
+        }
 
-        visibleWhen { overlay.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty) }
+        fontProperty().bind(
+            Observables.combineLatest(overlay.fontSizeSubject, overlay.boldSubject, overlay.italicSubject) { size, bold, italic ->
+                Font.font(null, if (bold) FontWeight.BOLD else null, if (italic) FontPosture.ITALIC else null, size.toDouble())
+            }.toBindingCached()
+        )
+        textFillProperty().bind(overlay.fontColorSubject.map { Color.valueOf(it) }.toBindingCached())
+        backgroundProperty().bind(overlay.backgroundColorSubject.map { Background(BackgroundFill(Color.valueOf(it), null, null)) }.toBindingCached())
+        opacityProperty().bind(overlay.opacitySubject.toPropertyCached())
+
         maxWidthProperty().bind(overlay.fillWidthSubject.toPropertyCached().map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
         overlay.positionSubject.subscribe { position -> StackPane.setAlignment(this, position) }
     }
@@ -130,8 +158,6 @@ class GameWallCellFragment : Fragment() {
 
         init {
             overlayText {
-                backgroundColor = multi(Color.LIGHTGRAY)
-                opacity = 0.85
                 padding = box(5.px)
                 alignment = Pos.BASELINE_CENTER
             }
