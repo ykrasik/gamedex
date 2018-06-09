@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode
@@ -42,6 +43,7 @@ class SettingsView : View("Settings") {
     private val providerOrderView: ProviderOrderSettingsView by inject()
 
     private val gameProviderService: GameProviderService by di()
+    private val userConfigRepository: UserConfigRepository by di() // FIXME: Temp.
 
     private var tabPane: TabPane by singleAssign()
 
@@ -73,6 +75,12 @@ class SettingsView : View("Settings") {
                 }
                 verticalSeparator()
                 spacer()
+                verticalSeparator()
+                resetToDefaultButton("Reset to Defaults") {
+                    setOnAction {
+                        userConfigRepository.restoreDefaults()
+                    }
+                }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true

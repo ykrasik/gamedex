@@ -77,14 +77,20 @@ class GameSettingsView : View("Game Settings", Theme.Icon.games()) {
                         }
                     }
                     field("Font Color") {
-                        colorpicker(Color.valueOf(overlay.fontColor)) {
+                        colorpicker {
+                            overlay.textColorSubject.subscribe {
+                                value = Color.valueOf(it)
+                            }
                             setOnAction {
-                                overlay.fontColor = value.toString()
+                                overlay.textColor = value.toString()
                             }
                         }
                     }
                     field("Background Color") {
-                        colorpicker(Color.valueOf(overlay.backgroundColor)) {
+                        colorpicker {
+                            overlay.backgroundColorSubject.subscribe {
+                                value = Color.valueOf(it)
+                            }
                             setOnAction {
                                 overlay.backgroundColor = value.toString()
                             }

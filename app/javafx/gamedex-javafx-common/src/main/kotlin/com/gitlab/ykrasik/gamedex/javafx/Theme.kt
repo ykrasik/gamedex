@@ -136,6 +136,12 @@ inline fun EventTarget.backButton(text: String? = null, size: Double = defaultIc
         op()
     }
 
+inline fun EventTarget.resetToDefaultButton(text: String? = null, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
+    toolbarButton(text, Theme.Icon.clear(size)) {
+        tooltip("Reset to Defaults")
+        op()
+    }
+
 inline fun EventTarget.addButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(graphic = Theme.Icon.plus(size)) {
         addClass(CommonStyle.acceptButton)

@@ -31,20 +31,26 @@ class UserConfigRepository @Inject constructor(private val userConfigs: MutableS
     @Suppress("UNCHECKED_CAST")
     operator fun <T : UserConfig> get(klass: KClass<T>): T = userConfigs.find { it::class == klass }!! as T
 
-    fun saveSnapshot() = userConfigs.forEach {
-        it.disableWrite()
-        it.saveSnapshot()
+    fun saveSnapshot() = withConfigs {
+        disableWrite()
+        saveSnapshot()
     }
 
-    fun revertSnapshot() = userConfigs.forEach {
-        it.restoreSnapshot()
-        it.enableWrite()
-        it.clearSnapshot()
+    fun revertSnapshot() = withConfigs {
+        restoreSnapshot()
+        enableWrite()
+        clearSnapshot()
     }
 
-    fun commitSnapshot() = userConfigs.forEach {
-        it.enableWrite()
-        it.flush()
-        it.clearSnapshot()
+    fun commitSnapshot() = withConfigs {
+        enableWrite()
+        flush()
+        clearSnapshot()
     }
+
+    fun restoreDefaults() = withConfigs {
+        restoreDefaults()
+    }
+
+    private inline fun withConfigs(f: UserConfig.() -> Unit) = userConfigs.forEach(f)
 }

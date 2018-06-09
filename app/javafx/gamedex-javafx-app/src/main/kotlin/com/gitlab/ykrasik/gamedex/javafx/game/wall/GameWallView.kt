@@ -32,7 +32,6 @@ import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
-import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.stage.Screen
 import org.controlsfx.control.GridCell
@@ -77,17 +76,19 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         horizontalCellSpacingProperty().bind(gameWallUserConfig.cell.horizontalSpacingSubject.toBindingCached())
         verticalCellSpacingProperty().bind(gameWallUserConfig.cell.verticalSpacingSubject.toBindingCached())
 
-        val popOver = popOver().apply {
-            addEventHandler(MouseEvent.MOUSE_PRESSED) { hide() }
-        }
+        val popOver = popOver(closeOnClick = false)
+        var popOverShowing = false
 
         setCellFactory {
             val cell = GameWallCell()
             cell.setOnMouseClicked { e ->
+                popOver.setOnHidden {
+                    cell.markSelected(false)
+                }
                 when (e.clickCount) {
                     1 -> with(popOver) {
-                        if (isShowing) {
-                            cell.markSelected(false)
+                        if (popOverShowing) {
+                            popOverShowing = false
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             arrowLocation = determineArrowLocation(e.screenX, e.screenY)
@@ -96,11 +97,11 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                             }
                             cell.markSelected(true)
                             show(cell)
+                            popOverShowing = true
                         }
                     }
                     2 -> {
                         popOver.hide()
-                        cell.markSelected(false)
                         if (e.button == MouseButton.PRIMARY) {
                             showGameDetailsActions.event(cell.item)
                         }

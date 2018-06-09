@@ -37,6 +37,8 @@ abstract class UserConfig {
 
     fun flush() = scope.flush()
 
+    fun restoreDefaults() = scope.restoreDefaults()
+
     // Convenience shortcuts for subclasses
     operator fun <T> BehaviorSubject<T>.getValue(thisRef: Any, property: KProperty<*>) = value_
     operator fun <T> BehaviorSubject<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {

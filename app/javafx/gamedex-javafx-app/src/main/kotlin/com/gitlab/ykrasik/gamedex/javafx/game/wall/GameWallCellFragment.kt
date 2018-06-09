@@ -139,7 +139,7 @@ class GameWallCellFragment : Fragment() {
                 Font.font(null, if (bold) FontWeight.BOLD else null, if (italic) FontPosture.ITALIC else null, size.toDouble())
             }.toBindingCached()
         )
-        textFillProperty().bind(overlay.fontColorSubject.map { Color.valueOf(it) }.toBindingCached())
+        textFillProperty().bind(overlay.textColorSubject.map { Color.valueOf(it) }.toBindingCached())
         backgroundProperty().bind(overlay.backgroundColorSubject.map { Background(BackgroundFill(Color.valueOf(it), null, null)) }.toBindingCached())
         opacityProperty().bind(overlay.opacitySubject.toPropertyCached())
 

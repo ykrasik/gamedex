@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
@@ -124,10 +123,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                toolbarButton(graphic = Theme.Icon.clear()) {
-                    tooltip("Reset all to default")
-                    eventOnAction(clearActions)
-                }
+                resetToDefaultButton { eventOnAction(clearActions) }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true

@@ -40,6 +40,7 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
     private val accountRequired = provider.accountFeature != null
     private val checking = false.toProperty()
 
+    // FIXME: This doesn't update when settings are reset to default.
     private val stateProperty = when {
         !accountRequired -> State.NotRequired
         settings.account != null -> State.Valid

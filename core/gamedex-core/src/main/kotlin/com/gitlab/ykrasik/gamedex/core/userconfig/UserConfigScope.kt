@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
  * Date: 11/10/2016
  * Time: 10:34
  */
-class UserConfigScope<T : Any>(name: String, klass: KClass<T>, default: () -> T) {
+class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val default: () -> T) {
     private val file = "conf/$name.json".toFile()
 
     private var enableWrite = true
@@ -90,6 +90,10 @@ class UserConfigScope<T : Any>(name: String, klass: KClass<T>, default: () -> T)
 
     fun flush() {
         update(data)
+    }
+
+    fun restoreDefaults() {
+        data = default()
     }
 
     companion object {

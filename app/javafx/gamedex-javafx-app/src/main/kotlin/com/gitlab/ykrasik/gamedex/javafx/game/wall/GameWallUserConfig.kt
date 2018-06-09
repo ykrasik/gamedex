@@ -42,13 +42,13 @@ class GameWallUserConfig : UserConfig() {
                 verticalSpacing = 3.0
             ),
             name = OverlaySettings(
-                show = false,
+                show = true,
                 position = Pos.TOP_CENTER,
                 fillWidth = true,
                 fontSize = 13,
                 bold = true,
                 italic = false,
-                fontColor = "#ffffff",
+                textColor = "#ffffff",
                 backgroundColor = "#4d66cc",
                 opacity = 0.85,
                 showOnlyWhenActive = true
@@ -60,7 +60,7 @@ class GameWallUserConfig : UserConfig() {
                 fontSize = 12,
                 bold = false,
                 italic = true,
-                fontColor = "#000000",
+                textColor = "#000000",
                 backgroundColor = "#cce6ff",
                 opacity = 0.85,
                 showOnlyWhenActive = true
@@ -69,10 +69,10 @@ class GameWallUserConfig : UserConfig() {
                 show = true,
                 position = Pos.BOTTOM_RIGHT,
                 fillWidth = false,
-                fontSize = 12,
+                fontSize = 16,
                 bold = false,
                 italic = true,
-                fontColor = "#000000",
+                textColor = "#000000",
                 backgroundColor = "#D3D3D3",
                 opacity = 0.85,
                 showOnlyWhenActive = true
@@ -127,8 +127,8 @@ class GameWallUserConfig : UserConfig() {
         val italicSubject = scope.subject({ extractor().italic }, { modifier { copy(italic = it) } })
         var italic by italicSubject
         
-        val fontColorSubject = scope.subject({ extractor().fontColor }, { modifier { copy(fontColor = it) } })
-        var fontColor by fontColorSubject
+        val textColorSubject = scope.subject({ extractor().textColor }, { modifier { copy(textColor = it) } })
+        var textColor by textColorSubject
 
         val backgroundColorSubject = scope.subject({ extractor().backgroundColor }, { modifier { copy(backgroundColor = it) } })
         var backgroundColor by backgroundColorSubject
@@ -159,7 +159,7 @@ class GameWallUserConfig : UserConfig() {
         val fontSize: Int,
         val bold: Boolean,
         val italic: Boolean,
-        val fontColor: String,
+        val textColor: String,
         val backgroundColor: String,
         val opacity: Double,
         val showOnlyWhenActive: Boolean
