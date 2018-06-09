@@ -19,12 +19,13 @@ package com.gitlab.ykrasik.gamedex.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.userconfig.SettingsService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.scene.Node
-import javafx.scene.control.Slider
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.Toggle
@@ -39,17 +40,18 @@ import tornadofx.*
  */
 class SettingsView : View("Settings") {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
-    private val gameSettingsView: GameSettingsView by inject()
+    private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
     private val providerOrderView: ProviderOrderSettingsView by inject()
 
     private val gameProviderService: GameProviderService by di()
     private val userConfigRepository: UserConfigRepository by di() // FIXME: Temp.
+    private val settingsService: SettingsService by di() // FIXME: Temp.
 
     private var tabPane: TabPane by singleAssign()
 
     private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
 
-    private var opacitySlider: Slider by singleAssign()
+    private val windowOpacity = SimpleDoubleProperty(1.0)
 
     private var accept = CompletableDeferred(false)
     private val viewProperty = "view"
@@ -69,8 +71,7 @@ class SettingsView : View("Settings") {
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                label("Opacity")
-                opacitySlider = slider(min = 0.2, max = 1, value = 1) {
+                percentSlider(windowOpacity, min = 0.2, max = 1, text = "Opacity") {
                     tooltip("Hold 'ctrl' to hide temporarily.")
                 }
                 verticalSeparator()
@@ -79,6 +80,7 @@ class SettingsView : View("Settings") {
                 resetToDefaultButton("Reset to Defaults") {
                     setOnAction {
                         userConfigRepository.restoreDefaults()
+                        settingsService.restoreDefaults()
                     }
                 }
                 verticalSeparator()
@@ -112,7 +114,7 @@ class SettingsView : View("Settings") {
                             }
                         }
                         entry(generalSettingsView).apply { isSelected = true }
-                        entry(gameSettingsView)
+                        entry(gameDisplaySettingsView)
                         entry(providerOrderView)
                         separator {
                             paddingTop = 10.0
@@ -147,14 +149,14 @@ class SettingsView : View("Settings") {
         var prevOpacity = 1.0
         setOnKeyPressed { e ->
             if (e.isControlDown) {
-                prevOpacity = opacitySlider.value
-                opacitySlider.value = 0.0
+                prevOpacity = windowOpacity.value
+                windowOpacity.value = 0.0
                 hidden = true
             }
         }
         setOnKeyReleased {
             if (hidden) {
-                opacitySlider.value = prevOpacity
+                windowOpacity.value = prevOpacity
                 hidden = false
             }
         }
@@ -171,7 +173,7 @@ class SettingsView : View("Settings") {
         (selectedToggleProperty.value.properties[viewProperty] as UIComponent).onDock()
         accept = CompletableDeferred()
         val stage = openModal()!!
-        stage.opacityProperty().cleanBind(opacitySlider.valueProperty())
+        stage.opacityProperty().cleanBind(windowOpacity)
         return accept.await()
     }
 

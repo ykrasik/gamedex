@@ -16,11 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.javafx.*
-import io.reactivex.rxkotlin.Observables
+import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
+import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
+import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.javafx.map
+import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxOverlayDisplaySettings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -41,11 +46,12 @@ import tornadofx.*
  * Date: 17/06/2017
  * Time: 10:07
  */
-class GameWallCellFragment : Fragment() {
-    private val userConfigRepository: UserConfigRepository by di()
-    private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
-
-    private var content: StackPane by singleAssign()
+class GameWallCellFragment(
+    cellDisplaySettings: JavaFxCellDisplaySettings,
+    nameOverlayDisplaySettings: JavaFxOverlayDisplaySettings,
+    metaTagOverlayDisplaySettings: JavaFxOverlayDisplaySettings,
+    versionOverlayDisplaySettings: JavaFxOverlayDisplaySettings
+) : Fragment() {
     private var _imageView: ImageView by singleAssign()
     private var _nameOverlay: Label by singleAssign()
     private var _metaTagOverlay: Label by singleAssign()
@@ -72,7 +78,7 @@ class GameWallCellFragment : Fragment() {
         setOnMouseEntered { effect = dropshadow }
         setOnMouseExited { effect = null }
 
-        this@GameWallCellFragment.content = stackpane {
+        stackpane {
             val content = this
 
             // TODO: Allow configuring this.
@@ -88,8 +94,9 @@ class GameWallCellFragment : Fragment() {
 
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
-            gameWallUserConfig.cell.isFixedSizeSubject.subscribe { isFixedSize ->
-                if (isFixedSize) {
+
+            cellDisplaySettings.imageDisplayTypeProperty.perform {
+                if (it == ImageDisplayType.FixedSize) {
                     maxWidthProperty().cleanBind(root.widthProperty())
                     maxHeightProperty().cleanBind(root.heightProperty())
                 } else {
@@ -99,12 +106,12 @@ class GameWallCellFragment : Fragment() {
                 content.requestLayout()
             }
 
-            _nameOverlay = overlayLabel(gameWallUserConfig.nameOverlay)
-            _metaTagOverlay = overlayLabel(gameWallUserConfig.metaTagOverlay)
-            _versionOverlay = overlayLabel(gameWallUserConfig.versionOverlay)
+            _nameOverlay = overlayLabel(nameOverlayDisplaySettings)
+            _metaTagOverlay = overlayLabel(metaTagOverlayDisplaySettings)
+            _versionOverlay = overlayLabel(versionOverlayDisplaySettings)
 
             this@GameWallCellFragment.border = rectangle {
-                visibleWhen { gameWallUserConfig.cell.isShowBorderSubject.toBindingCached() }
+                visibleWhen { cellDisplaySettings.showBorderProperty }
 
                 x = 1.0
                 y = 1.0
@@ -125,26 +132,26 @@ class GameWallCellFragment : Fragment() {
         }
     }
 
-    private fun EventTarget.overlayLabel(overlay: GameWallUserConfig.OverlaySettingsAccessor) = label {
+    private fun EventTarget.overlayLabel(settings: JavaFxOverlayDisplaySettings) = label {
         addClass(Style.overlayText)
-        val showOnlyWhenActive = overlay.showOnlyWhenActiveSubject.toPropertyCached().toBoolean()
         visibleWhen {
-            overlay.isShowSubject.toPropertyCached().toBoolean().and(textProperty().isNotEmpty).and(
-                showOnlyWhenActive.and(isHoverProperty.or(isSelectedProperty)).or(showOnlyWhenActive.not())
+            settings.enabledProperty.and(textProperty().isNotEmpty).and(
+                settings.showOnlyWhenActiveProperty.and(isHoverProperty.or(isSelectedProperty)).or(settings.showOnlyWhenActiveProperty.not())
             )
         }
 
-        fontProperty().bind(
-            Observables.combineLatest(overlay.fontSizeSubject, overlay.boldSubject, overlay.italicSubject) { size, bold, italic ->
-                Font.font(null, if (bold) FontWeight.BOLD else null, if (italic) FontPosture.ITALIC else null, size.toDouble())
-            }.toBindingCached()
-        )
-        textFillProperty().bind(overlay.textColorSubject.map { Color.valueOf(it) }.toBindingCached())
-        backgroundProperty().bind(overlay.backgroundColorSubject.map { Background(BackgroundFill(Color.valueOf(it), null, null)) }.toBindingCached())
-        opacityProperty().bind(overlay.opacitySubject.toPropertyCached())
+        val fontSettings = SimpleObjectProperty(FontSettings())
+        settings.fontSizeProperty.onChange { fontSettings.value = fontSettings.value.copy(size = it) }
+        settings.boldFontProperty.onChange { fontSettings.value = fontSettings.value.copy(weight = if (it) FontWeight.BOLD else null) }
+        settings.italicFontProperty.onChange { fontSettings.value = fontSettings.value.copy(posture = if (it) FontPosture.ITALIC else null) }
 
-        maxWidthProperty().bind(overlay.fillWidthSubject.toPropertyCached().map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
-        overlay.positionSubject.subscribe { position -> StackPane.setAlignment(this, position) }
+        fontProperty().bind(fontSettings.map { it!!.toFont() })
+        textFillProperty().bind(settings.textColorProperty.map { Color.valueOf(it) })
+        backgroundProperty().bind(settings.backgroundColorProperty.map { Background(BackgroundFill(Color.valueOf(it), null, null)) })
+        opacityProperty().bind(settings.opacityProperty)
+
+        maxWidthProperty().bind(settings.fillWidthProperty.map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
+        settings.positionProperty.perform { position -> StackPane.setAlignment(this, positions[position]!!) }
     }
 
     class Style : Stylesheet() {
@@ -162,5 +169,27 @@ class GameWallCellFragment : Fragment() {
                 alignment = Pos.BASELINE_CENTER
             }
         }
+    }
+
+    private data class FontSettings(
+        val size: Int = -1,
+        val weight: FontWeight? = null,
+        val posture: FontPosture? = null
+    ) {
+        fun toFont() = Font.font(null, weight, posture, size.toDouble())
+    }
+
+    companion object {
+        private val positions = mapOf(
+            DisplayPosition.TopLeft to Pos.TOP_LEFT,
+            DisplayPosition.TopCenter to Pos.TOP_CENTER,
+            DisplayPosition.TopRight to Pos.TOP_RIGHT,
+            DisplayPosition.CenterLeft to Pos.CENTER_LEFT,
+            DisplayPosition.Center to Pos.CENTER,
+            DisplayPosition.CenterRight to Pos.CENTER_RIGHT,
+            DisplayPosition.BottomLeft to Pos.BOTTOM_LEFT,
+            DisplayPosition.BottomCenter to Pos.BOTTOM_CENTER,
+            DisplayPosition.BottomRight to Pos.BOTTOM_RIGHT
+        )
     }
 }

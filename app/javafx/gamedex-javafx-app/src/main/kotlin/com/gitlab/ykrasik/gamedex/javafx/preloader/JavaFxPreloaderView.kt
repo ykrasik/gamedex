@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.javafx.EnhancedDefaultErrorHandler
 import com.gitlab.ykrasik.gamedex.javafx.MainView
+import com.gitlab.ykrasik.gamedex.javafx.asPercent
 import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
@@ -70,7 +71,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                         font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
                     }
                     spacer()
-                    label(progressProperty.stringBinding { "${(it!!.toDouble() * 100).toInt()}%" }) {
+                    label(progressProperty.asPercent()) {
                         font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
                     }
                 }

@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone

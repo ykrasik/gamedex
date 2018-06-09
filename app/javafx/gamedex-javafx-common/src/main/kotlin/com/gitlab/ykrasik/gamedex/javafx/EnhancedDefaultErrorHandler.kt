@@ -21,6 +21,7 @@ import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
 import tornadofx.*
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
@@ -36,7 +37,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
     private val log = Logger.getLogger("ErrorHandler")
 
     override fun uncaughtException(t: Thread, error: Throwable) {
-        if (error is CancellationException) return
+        if (error is CancellationException && error !is ClosedSendChannelException) return
 
         log.log(Level.SEVERE, "Uncaught error", error)
 

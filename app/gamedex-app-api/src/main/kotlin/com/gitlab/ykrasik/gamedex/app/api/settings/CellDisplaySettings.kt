@@ -14,28 +14,45 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.module
+package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
-import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxViewManager
-import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import com.google.inject.AbstractModule
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 11/10/2016
- * Time: 11:16
+ * Date: 10/06/2018
+ * Time: 12:23
  */
-object JavaFxModule : AbstractModule() {
-    override fun configure() {
-        bind(ViewManager::class.java).to(JavaFxViewManager::class.java)
-        bind(TaskRunner::class.java).to(JavaFxTaskRunner::class.java)
-        bind(SearchChooser::class.java).to(JavaFxSearchChooser::class.java)
-        bind(ImageFactory::class.java).toInstance(JavaFxImageFactory)
-    }
+interface ViewWithGameCellDisplaySettings {
+    val cellDisplaySettings: CellDisplaySettings
+}
+
+interface ViewCanChangeGameCellDisplaySettings {
+    val mutableCellDisplaySettings: MutableCellDisplaySettings
+}
+
+interface CellDisplaySettings {
+    var imageDisplayType: ImageDisplayType
+    var showBorder: Boolean
+    var width: Double
+    var height: Double
+    var horizontalSpacing: Double
+    var verticalSpacing: Double
+}
+
+interface MutableCellDisplaySettings : CellDisplaySettings {
+    val imageDisplayTypeChanges: ReceiveChannel<ImageDisplayType>
+    val showBorderChanges: ReceiveChannel<Boolean>
+    val widthChanges: ReceiveChannel<Double>
+    val heightChanges: ReceiveChannel<Double>
+    val horizontalSpacingChanges: ReceiveChannel<Double>
+    val verticalSpacingChanges: ReceiveChannel<Double>
+}
+
+enum class ImageDisplayType(val displayName: String) {
+    FixedSize("Fixed Size"),
+    Fit("Fit"),
+    Stretch("Stretch");
+
+    override fun toString() = displayName
 }

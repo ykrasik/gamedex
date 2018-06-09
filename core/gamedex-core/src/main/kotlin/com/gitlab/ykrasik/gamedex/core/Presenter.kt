@@ -18,11 +18,13 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.launch
+import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.reflect.KMutableProperty0
 
 /**
  * User: ykrasik
@@ -57,8 +59,14 @@ abstract class Presenter {
         jobs.clear()
     }
 
-    protected inline fun <T> ReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) = managed {
-        launch(uiThreadDispatcher) {
+    protected inline fun managed(f: () -> Job) {
+        jobs += f()
+    }
+
+    protected inline fun <T> ReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) = actionOn(uiThreadDispatcher, f)
+
+    protected inline fun <T> ReceiveChannel<T>.actionOn(context: CoroutineContext, crossinline f: suspend (T) -> Unit) = managed {
+        launch(context) {
             consumeEach {
                 try {
                     f(it)
@@ -79,18 +87,10 @@ abstract class Presenter {
     protected inline fun <T> BroadcastReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) =
         subscribe().subscribeOnUi(f)
 
-    protected inline fun managed(f: () -> Job) {
-        jobs += f()
-    }
-
-    protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> {
+    protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
         list.clear()
         list.addAll(this)
-        return reportChangesTo(list)
-    }
-
-    private fun <T> ListObservable<T>.reportChangesTo(list: MutableList<T>): SubscriptionReceiveChannel<ListChangeEvent<T>> =
-        changesChannel.subscribe(uiThreadDispatcher) { event ->
+        changesChannel.subscribeOnUi { event ->
             when (event) {
                 is ListItemAddedEvent -> list += event.item
                 is ListItemsAddedEvent -> list += event.items
@@ -103,6 +103,20 @@ abstract class Presenter {
                 }
             }
         }
+    }
+
+    protected fun <T> BroadcastEventChannel<T>.bind(viewProperty: KMutableProperty0<T>,
+                                                    changesChannel: ReceiveChannel<T>,
+                                                    context: CoroutineContext = CommonPool) {
+        reportChangesTo(viewProperty)
+        changesChannel.actionOn(context) { offer(it) }
+    }
+
+    protected fun <T> BroadcastEventChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
+                                                               context: CoroutineContext = uiThreadDispatcher) {
+        viewProperty.set(peek()!!)
+        subscribe().actionOn(context) { viewProperty.set(it) }
+    }
 }
 
 interface PresenterFactory<in V> {

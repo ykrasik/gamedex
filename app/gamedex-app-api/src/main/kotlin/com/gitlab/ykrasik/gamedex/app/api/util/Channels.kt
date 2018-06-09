@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.util
 
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.CoroutineContext
@@ -49,12 +50,21 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
 
     suspend fun send(element: T) = channel.send(element)
     fun offer(element: T) = channel.offer(element)
+    fun peek(): T? = subscribe().let { subscription ->
+        subscription.poll().apply { subscription.close() }
+    }
 
     fun close() = channel.close()
+
+    operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
+    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
+        offer(value)
+    }
 
     companion object {
         fun <T> conflated(): BroadcastEventChannel<T> = BroadcastEventChannel(Channel.CONFLATED)
         fun <T> conflated(initial: T): BroadcastEventChannel<T> = conflated<T>().apply { offer(initial) }
+        inline fun <T> conflated(initial: () -> T): BroadcastEventChannel<T> = conflated(initial())
     }
 }
 
@@ -139,4 +149,26 @@ fun <A, B> ReceiveChannel<A>.combineLatest(
     }
 
     return channel
+}
+
+fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Unconfined): ReceiveChannel<T> {
+    var last: T? = null
+    return filter(context) {
+        val keep = it != last
+        if (keep) println("distinctUntilChanged: $last -> $it")
+        last = it
+        keep
+    }
+}
+
+fun <T> ReceiveChannel<T>.zipWithPrevious(context: CoroutineContext = Unconfined): ReceiveChannel<Pair<T, T>> {
+    var last: T? = null
+    return produce(context) {
+        consumeEach {
+            if (last != null) {
+                send(last!! to it)
+            }
+            last = it
+        }
+    }
 }

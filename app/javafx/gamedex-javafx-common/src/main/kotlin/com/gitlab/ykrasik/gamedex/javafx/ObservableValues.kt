@@ -28,21 +28,19 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import kotlinx.coroutines.experimental.channels.Channel
 import tornadofx.cleanBind
 import tornadofx.onChange
-import java.util.function.Predicate
 
 /**
  * User: ykrasik
  * Date: 16/05/2017
  * Time: 10:24
  */
-fun <T> ObservableValue<T>.subscribeFx(f: suspend (T) -> Unit) {
-    onChange {
-        javaFx {
-            f(it!!)
-        }
-    }
+fun <T, O : ObservableValue<T>> O.eventOnChange(channel: Channel<T>): O = eventOnChange(channel) { it }
+
+inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: Channel<R>, crossinline factory: (T) -> R): O = apply {
+    onChange { channel.offer(factory(it!!)) }
 }
 
 // FIXME: Looks like these caches don't solve listener leaks. Instead of leaking on the source observable,
@@ -148,20 +146,6 @@ fun <T> ObservableValue<T>.perform(f: (T) -> Unit) {
     fun doPerform() = f(value)
     doPerform()
     this.onChange { doPerform() }
-}
-
-fun <T, R> ObservableValue<T>.toPredicate(f: (T?, R) -> Boolean): Property<Predicate<R>> =
-    map { t -> Predicate { r: R -> f(t, r) } }
-
-fun <T, R> ObservableValue<T>.toPredicateF(f: (T?, R) -> Boolean): Property<(R) -> Boolean> =
-    map { t -> { r: R -> f(t, r) } }
-
-infix fun <T> ObservableValue<Predicate<T>>.and(other: ObservableValue<Predicate<T>>): Property<Predicate<T>> {
-    fun compose() = this.value.and(other.value)
-    val property = SimpleObjectProperty(compose())
-    this.onChange { property.set(compose()) }
-    other.onChange { property.set(compose()) }
-    return property
 }
 
 fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {

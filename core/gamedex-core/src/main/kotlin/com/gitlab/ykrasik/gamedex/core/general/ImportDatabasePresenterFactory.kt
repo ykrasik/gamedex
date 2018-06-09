@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton

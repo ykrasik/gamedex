@@ -47,6 +47,7 @@ import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.settings.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -96,6 +97,15 @@ class ViewRegistryImpl @Inject constructor(
     clearUserData: ClearUserDataPresenterFactory,
     cleanupDb: CleanupDbPresenterFactory,
 
+    changeGameCellDisplaySettings: ChangeGameCellDisplaySettingsPresenterFactory,
+    gameCellDisplaySettings: GameCellDisplaySettingsPresenterFactory,
+    changeGameNameOverlayDisplaySettings: ChangeGameNameOverlayDisplaySettingsPresenterFactory,
+    gameNameOverlayDisplaySettings: GameNameOverlayDisplaySettingsPresenterFactory,
+    changeGameMetaTagOverlayDisplaySettings: ChangeGameMetaTagOverlayDisplaySettingsPresenterFactory,
+    gameMetaTagOverlayDisplaySettings: GameMetaTagOverlayDisplaySettingsPresenterFactory,
+    changeGameVersionOverlayDisplaySettings: ChangeGameVersionOverlayDisplaySettingsPresenterFactory,
+    gameVersionOverlayDisplaySettings: GameVersionOverlayDisplaySettingsPresenterFactory,
+
     logEntries: LogEntriesPresenterFactory,
     logLevel: LogLevelPresenterFactory,
     logTail: LogTailPresenterFactory
@@ -138,6 +148,15 @@ class ViewRegistryImpl @Inject constructor(
         presenter(importDatabase),
         presenter(clearUserData),
         presenter(cleanupDb),
+
+        presenter(changeGameCellDisplaySettings),
+        presenter(gameCellDisplaySettings),
+        presenter(changeGameNameOverlayDisplaySettings),
+        presenter(gameNameOverlayDisplaySettings),
+        presenter(changeGameMetaTagOverlayDisplaySettings),
+        presenter(gameMetaTagOverlayDisplaySettings),
+        presenter(changeGameVersionOverlayDisplaySettings),
+        presenter(gameVersionOverlayDisplaySettings),
 
         presenter(logEntries),
         presenter(logLevel),

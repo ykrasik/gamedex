@@ -51,12 +51,6 @@ import kotlin.reflect.KProperty1
  * Date: 16/05/2017
  * Time: 09:33
  */
-// TODO: Should probably replace with popoverComboMenu
-inline fun <reified T : Enum<T>> EventTarget.enumComboBox(property: Property<T>? = null, noinline op: ComboBox<T>.() -> Unit = {}): ComboBox<T> {
-    val enumValues = T::class.java.enumConstants.asList().observable<T>()
-    return combobox(property, enumValues, op)
-}
-
 fun <S, T> TableView<S>.simpleColumn(title: String, valueProvider: (S) -> T): TableColumn<S, T> {
     val column = TableColumn<S, T>(title)
     column.cellValueFactory = Callback { SimpleObjectProperty(valueProvider(it.value)) }
@@ -223,6 +217,24 @@ inline fun EventTarget.buttonWithPopover(text: String? = null,
         val popover = popOver(arrowLocation, closeOnClick, op)
         setOnAction { popover.toggle(this) }
     }
+
+inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(selectedItemProperty: Property<T>,
+                                                           arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+                                                           styleClass: CssRule? = null,
+                                                           itemStyleClass: CssRule? = null,
+                                                           noinline text: ((T) -> String)? = Any?::toString,
+                                                           noinline graphic: ((T) -> Node)? = null,
+                                                           menuOp: VBox.(T) -> Unit = {}) =
+    popoverComboMenu(
+        possibleItems = T::class.java.enumConstants.asList(),
+        selectedItemProperty = selectedItemProperty,
+        arrowLocation = arrowLocation,
+        styleClass = styleClass,
+        itemStyleClass = itemStyleClass,
+        text = text,
+        graphic = graphic,
+        menuOp = menuOp
+    )
 
 // TODO: Change style classes to lists.
 inline fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
@@ -412,3 +424,24 @@ inline fun EventTarget.clearableTextfield(op: CustomTextField.() -> Unit = {}) =
 
     op()
 }
+
+inline fun EventTarget.percentSlider(property: Property<Number>,
+                                     min: Number? = null,
+                                     max: Number? = null,
+                                     text: String? = null,
+                                     crossinline op: Slider.() -> Unit = {}): Slider {
+    lateinit var slider: Slider
+    hbox(spacing = 5.0, alignment = Pos.CENTER_LEFT) {
+        val label = if (text != null) label(text) else null
+        slider = slider(min, max) {
+            paddingTop = 3.0
+            valueProperty().bindBidirectional(property)
+            label?.labelFor = this
+            op()
+        }
+        label(slider.valueProperty().asPercent())
+    }
+    return slider
+}
+
+fun ObservableValue<Number>.asPercent() = stringBinding { "${Math.min(((it ?: 0).toDouble() * 100).toInt(), 100)}%" }

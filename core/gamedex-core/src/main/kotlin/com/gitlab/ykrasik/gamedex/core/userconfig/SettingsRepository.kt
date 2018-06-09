@@ -16,57 +16,89 @@
 
 package com.gitlab.ykrasik.gamedex.core.userconfig
 
-import com.gitlab.ykrasik.gamedex.core.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.distinctUntilChanged
 import com.gitlab.ykrasik.gamedex.util.*
-import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.channels.drop
+import kotlinx.coroutines.experimental.channels.map
 import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.Executors
 import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 11/10/2016
- * Time: 10:34
+ * Date: 09/06/2018
+ * Time: 21:39
  */
-class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val default: () -> T) {
+abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
     private val file = "conf/$name.json".toFile()
 
     private var enableWrite = true
 
-    private val dataSubject = run {
-        val data = if (file.exists()) {
-            try {
-                log.trace { "Reading $name settings..." }
-                file.readJson(klass)
-            } catch (e: Exception) {
-                log.error("Error reading $name settings! Resetting to default...", e)
-                null
-            }
-        } else {
-            log.trace { "[$file] Settings file doesn't exist. Creating default..." }
+    @Suppress("LeakingThis")
+    private var _data: T = if (file.exists()) {
+        try {
+            log.trace { "Reading $name settings..." }
+            file.readJson(klass)
+        } catch (e: Exception) {
+            log.error("Error reading $name settings! Resetting to default...", e)
             null
-        } ?: default().apply { update(this) }
-        val observable = data.toBehaviorSubject()
-        observable.skip(1).subscribe {
-            if (enableWrite) {
-                update(it!!)
+        }
+    } else {
+        log.trace { "[$file] Settings file doesn't exist. Creating default..." }
+        null
+    } ?: defaultSettings().apply { update(this) }
+
+    private val dataChannel = BroadcastEventChannel.conflated(_data)
+
+    private var data: T
+        get() = _data
+        set(value) {
+            this.dataChannel.offer(value)
+        }
+
+    private var snapshot: T? = null
+
+    init {
+        launch(CommonPool) {
+            dataChannel.subscribe().drop(1).distinctUntilChanged().consumeEach {
+                _data = it
+                if (enableWrite) {
+                    update(it)
+                }
             }
         }
-        observable
     }
-    private var data: T by dataSubject
 
-    fun <R> subject(extractor: Extractor<T, R>, modifier: Modifier<T, R>): BehaviorSubject<R> =
-        dataSubject.mapBidirectional(extractor, { data.modifier(this) }, uiThreadScheduler)
+    protected abstract fun defaultSettings(): T
 
-    // TODO: Do this through an actor?
     private fun update(data: T) = launch(dispatcher) {
         file.create()
+        log.trace { "Writing $file..." }
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
     }
 
-    private var snapshot: T? = null
+    fun modify(f: (T) -> T) {
+        data = f(data)
+    }
+
+    fun <R> map(extractor: Extractor<T, R>, modifier: Modifier<T, R>): BroadcastEventChannel<R> {
+        val channel = BroadcastEventChannel.conflated(extractor(data))
+        launch(CommonPool) {
+            dataChannel.subscribe().map { extractor(it) }.distinctUntilChanged().consumeEach {
+                channel.send(it)
+            }
+        }
+        launch(CommonPool) {
+            channel.subscribe().map { data.modifier(it) }.distinctUntilChanged().consumeEach {
+                dataChannel.send(it)
+            }
+        }
+        return channel
+    }
 
     fun saveSnapshot() {
         snapshot = data
@@ -93,7 +125,7 @@ class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val defau
     }
 
     fun restoreDefaults() {
-        data = default()
+        data = defaultSettings()
     }
 
     companion object {
@@ -102,7 +134,5 @@ class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val defau
         }.asCoroutineDispatcher()
 
         private val log = logger()
-
-        inline operator fun <reified T : Any> invoke(name: String, noinline default: () -> T): UserConfigScope<T> = UserConfigScope(name, T::class, default)
     }
 }

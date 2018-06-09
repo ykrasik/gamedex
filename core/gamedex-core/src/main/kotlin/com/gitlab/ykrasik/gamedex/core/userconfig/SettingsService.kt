@@ -14,28 +14,52 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.module
+package com.gitlab.ykrasik.gamedex.core.userconfig
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
-import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxViewManager
-import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
-import com.google.inject.AbstractModule
+import com.google.inject.ImplementedBy
+import com.google.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 11/10/2016
- * Time: 11:16
+ * Date: 09/06/2018
+ * Time: 22:04
  */
-object JavaFxModule : AbstractModule() {
-    override fun configure() {
-        bind(ViewManager::class.java).to(JavaFxViewManager::class.java)
-        bind(TaskRunner::class.java).to(JavaFxTaskRunner::class.java)
-        bind(SearchChooser::class.java).to(JavaFxSearchChooser::class.java)
-        bind(ImageFactory::class.java).toInstance(JavaFxImageFactory)
+@ImplementedBy(SettingsServiceImpl::class)
+interface SettingsService {
+    val gameDisplay: GameDisplaySettingsRepository
+
+    fun saveSnapshot()
+    fun revertSnapshot()
+    fun commitSnapshot()
+    fun restoreDefaults()
+}
+
+@Singleton
+class SettingsServiceImpl : SettingsService {
+    override val gameDisplay = GameDisplaySettingsRepository()
+
+    private val all = listOf(gameDisplay)
+
+    override fun saveSnapshot() = withSettings {
+        disableWrite()
+        saveSnapshot()
     }
+
+    override fun revertSnapshot() = withSettings {
+        restoreSnapshot()
+        enableWrite()
+        clearSnapshot()
+    }
+
+    override fun commitSnapshot() = withSettings {
+        enableWrite()
+        flush()
+        clearSnapshot()
+    }
+
+    override fun restoreDefaults() = withSettings {
+        restoreDefaults()
+    }
+
+    private inline fun withSettings(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
 }

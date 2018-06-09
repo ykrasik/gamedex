@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.log
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.general.GeneralUserConfig
+import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import javax.inject.Inject
 import javax.inject.Singleton

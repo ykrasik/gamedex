@@ -19,16 +19,17 @@ package com.gitlab.ykrasik.gamedex.javafx.game.wall
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
+import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.menu.GameContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
-import com.gitlab.ykrasik.gamedex.javafx.toBindingCached
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
@@ -44,21 +45,27 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGameDetails {
+class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGameDetails,
+    ViewWithGameCellDisplaySettings, ViewWithNameOverlayDisplaySettings, ViewWithMetaTagOverlayDisplaySettings,
+    ViewWithVersionOverlayDisplaySettings {
+
     override val games = mutableListOf<Game>().sortedFiltered()
 
     private val sortProperty = SimpleObjectProperty(Comparator.comparing(Game::name))
     override var sort by sortProperty
-    
-    private val filterProperty = SimpleObjectProperty({_: Game -> true})
+
+    private val filterProperty = SimpleObjectProperty { _: Game -> true }
     override var filter by filterProperty
     private val filterPredicateProperty = filterProperty.map { it!!.toPredicate() }
 
     override val showGameDetailsActions = channel<Game>()
 
+    override val cellDisplaySettings = JavaFxCellDisplaySettings()
+    override val nameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+    override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+    override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+
     private val imageLoader: ImageLoader by di()
-    private val userConfigRepository: UserConfigRepository by di()
-    private val gameWallUserConfig = userConfigRepository[GameWallUserConfig::class]
 
     private val gameContextMenu: GameContextMenu by inject()
 
@@ -69,12 +76,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     }
 
     override val root = GridView(games).apply {
-        setId(Style.gameWall)
-
-        cellHeightProperty().bind(gameWallUserConfig.cell.heightSubject.toBindingCached())
-        cellWidthProperty().bind(gameWallUserConfig.cell.widthSubject.toBindingCached())
-        horizontalCellSpacingProperty().bind(gameWallUserConfig.cell.horizontalSpacingSubject.toBindingCached())
-        verticalCellSpacingProperty().bind(gameWallUserConfig.cell.verticalSpacingSubject.toBindingCached())
+        cellHeightProperty().bind(cellDisplaySettings.heightProperty)
+        cellWidthProperty().bind(cellDisplaySettings.widthProperty)
+        horizontalCellSpacingProperty().bind(cellDisplaySettings.horizontalSpacingProperty)
+        verticalCellSpacingProperty().bind(cellDisplaySettings.verticalSpacingProperty)
 
         val popOver = popOver(closeOnClick = false)
         var popOverShowing = false
@@ -102,6 +107,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                     }
                     2 -> {
                         popOver.hide()
+                        popOverShowing = false
                         if (e.button == MouseButton.PRIMARY) {
                             showGameDetailsActions.event(cell.item)
                         }
@@ -134,7 +140,9 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     }
 
     private inner class GameWallCell : GridCell<Game>() {
-        private val fragment = GameWallCellFragment()
+        private val fragment = GameWallCellFragment(
+            cellDisplaySettings, nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings
+        )
         private val imageView get() = fragment.imageView
         private val nameOverlay get() = fragment.nameOverlay
         private val metaTagOverlay get() = fragment.metaTagOverlay
@@ -145,7 +153,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             fragment.root.maxHeightProperty().bind(this.heightProperty())
             graphic = fragment.root
 
-            gameWallUserConfig.cell.imageDisplayTypeSubject.subscribe { requestLayout() }
+            cellDisplaySettings.imageDisplayTypeProperty.onChange { requestLayout() }
         }
 
         fun markSelected(selected: Boolean) {
@@ -170,9 +178,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         }
 
         override fun resize(width: Double, height: Double) {
-            imageView.isPreserveRatio = when (gameWallUserConfig.cell.imageDisplayType) {
-                GameWallUserConfig.ImageDisplayType.fit -> true
-                GameWallUserConfig.ImageDisplayType.stretch -> isPreserveImageRatio()
+            imageView.isPreserveRatio = when (cellDisplaySettings.imageDisplayType) {
+                ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
+                ImageDisplayType.Stretch -> isPreserveImageRatio()
+                else -> throw RuntimeException()
             }
 
             super.resize(width, height)
@@ -202,7 +211,6 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     class Style : Stylesheet() {
         companion object {
-            val gameWall by cssid()
             val quickDetails by cssclass()
 
             init {
@@ -211,8 +219,6 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         }
 
         init {
-            gameWall {
-            }
             quickDetails {
                 padding = box(20.px)
                 backgroundColor = multi(Color.LIGHTGRAY)

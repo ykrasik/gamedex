@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.settings
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.userconfig.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
@@ -38,7 +39,8 @@ import javax.inject.Singleton
  */
 // TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
-class SettingsController @Inject constructor(private val userConfigRepository: UserConfigRepository) : Controller() {
+class SettingsController @Inject constructor(private val userConfigRepository: UserConfigRepository,
+                                             private val settingsService: SettingsService) : Controller() {
     private val logger = logger()
 
     private val settingsView: SettingsView by inject()
@@ -52,16 +54,20 @@ class SettingsController @Inject constructor(private val userConfigRepository: U
 
     suspend fun showSettingsMenu() {
         userConfigRepository.saveSnapshot()
+        settingsService.saveSnapshot()
         try {
             val accept = settingsView.show()
             if (accept) {
                 userConfigRepository.commitSnapshot()
+                settingsService.commitSnapshot()
             } else {
                 userConfigRepository.revertSnapshot()
+                settingsService.revertSnapshot()
             }
         } catch (e: Exception) {
             logger.error("Error updating settings!", e)
             userConfigRepository.revertSnapshot()
+            settingsService.revertSnapshot()
         }
     }
 
