@@ -31,6 +31,8 @@ import tornadofx.launch
  */
 class Main : App(JavaFxPreloaderView::class) {
     companion object {
+        var startTime = System.currentTimeMillis()
+
         @JvmStatic
         fun main(args: Array<String>) {
             uiThreadScheduler = JavaFxScheduler.platform()

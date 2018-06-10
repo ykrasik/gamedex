@@ -42,6 +42,7 @@ inline fun <T> millisTaken(block: () -> T) : Pair<T, Long> {
     val taken = System.currentTimeMillis() - start
     return result to taken
 }
+
 inline fun <T> nanosTaken(block: () -> T) : Pair<T, Long> {
     val start = System.nanoTime()
     val result = block()

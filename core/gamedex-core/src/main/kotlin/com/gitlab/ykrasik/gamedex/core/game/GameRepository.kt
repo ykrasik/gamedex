@@ -21,6 +21,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.millisTaken
+import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import javax.inject.Inject
@@ -39,8 +41,8 @@ internal class GameRepository @Inject constructor(private val persistenceService
 
     private fun fetchGames(): List<RawGame> {
         log.info("Fetching games...")
-        val games = persistenceService.fetchGames()
-        log.info("Fetched ${games.size} games.")
+        val (games, millisTaken) = millisTaken { persistenceService.fetchGames() }
+        log.info("Fetched ${games.size} games in ${millisTaken.toHumanReadableDuration()}")
         return games
     }
 

@@ -29,6 +29,7 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.text.Font
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
@@ -89,6 +90,8 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
             withContext(JavaFx) {
+                message = "Loading user interface..."
+                delay(5)       // Delay to allow the 'done' message to display.
                 replaceWith(find(MainView::class), ViewTransition.Fade(3.seconds))
             }
         }

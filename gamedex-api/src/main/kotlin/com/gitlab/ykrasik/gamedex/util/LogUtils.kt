@@ -117,3 +117,9 @@ inline fun Logger.error(t: Throwable, crossinline msg: () -> String) {
 inline fun Logger.error(marker: Marker, t: Throwable, crossinline msg: (Marker) -> String) {
     if (isErrorEnabled(marker)) error(marker, msg(marker), t)
 }
+
+inline fun <T> Logger.time(msg: (String) -> String, f: () -> T): T {
+    val (result, millisTaken) = millisTaken(f)
+    info(msg(millisTaken.toHumanReadableDuration()))
+    return result
+}

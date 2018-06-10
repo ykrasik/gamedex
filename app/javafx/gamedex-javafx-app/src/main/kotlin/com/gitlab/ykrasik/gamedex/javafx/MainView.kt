@@ -25,6 +25,8 @@ import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -39,6 +41,8 @@ import tornadofx.*
  * Time: 22:44
  */
 class MainView : PresentableView("GameDex") {
+    private val logger = logger()
+
     private val gameScreen: GameScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: JavaFxLibraryScreen by inject()
@@ -172,4 +176,9 @@ class MainView : PresentableView("GameDex") {
     }
 
     fun showPreviousScreen() = tabPane.selectionModel.select(previousScreen)
+
+    override fun onDock() {
+        val applicationStartTime = System.currentTimeMillis() - Main.startTime
+        logger.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
+    }
 }

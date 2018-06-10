@@ -38,6 +38,9 @@ import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
+import com.gitlab.ykrasik.gamedex.util.info
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.multibindings.Multibinder
@@ -52,10 +55,15 @@ import javax.inject.Singleton
  * Time: 21:55
  */
 object CoreModule : AbstractModule() {
+    private val log = logger("Core")
+
     override fun configure() {
         // Install all providers detected by classpath scan
-        ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class).forEach {
-            install(it.kotlin.objectInstance!!)
+        log.info { "Detecting providers..." }
+        log.time({ "Detected providers in $it" }) {
+            ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class).forEach {
+                install(it.kotlin.objectInstance!!)
+            }
         }
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
@@ -78,13 +86,19 @@ object CoreModule : AbstractModule() {
     @Provides
     @Singleton
     fun config(): Config {
-        val configurationFiles = ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
-            it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
+        log.info("Detecting configuration...")
+        val configurationFiles = log.time({ "Detected configuration in $it" }) {
+            ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
+                it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
+            }
         }
 
         // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
-        return configurationFiles.fold(ConfigFactory.load()) { current, url ->
-            current.withFallback(ConfigFactory.parseURL(url))
+        log.info("Loading configuration...")
+        return log.time({ "Loaded configuration in $it" }) {
+            configurationFiles.fold(ConfigFactory.load()) { current, url ->
+                current.withFallback(ConfigFactory.parseURL(url))
+            }
         }
     }
 

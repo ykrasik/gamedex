@@ -16,25 +16,22 @@
 
 package com.gitlab.ykrasik.gamedex.core.preloader
 
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 
 /**
  * User: ykrasik
  * Date: 09/03/2018
  * Time: 09:28
  */
-class PreloaderUserConfig : UserConfig() {
-    override val scope = UserConfigScope("preloader") {
-        Data(
-            diComponents = 78
-        )
-    }
-
-    val diComponentsSubject = scope.subject(Data::diComponents) { copy(diComponents = it) }
-    var diComponents by diComponentsSubject
-
+class PreloaderSettingsRepository : SettingsRepository<PreloaderSettingsRepository.Data>("preloader", Data::class) {
     data class Data(
         val diComponents: Int
     )
+
+    override fun defaultSettings() = Data(
+        diComponents = 85
+    )
+
+    val diComponentsChannel = map(Data::diComponents) { copy(diComponents = it) }
+    var diComponents by diComponentsChannel
 }

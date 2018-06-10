@@ -21,6 +21,8 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.millisTaken
+import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import javax.inject.Inject
@@ -39,8 +41,8 @@ internal class LibraryRepository @Inject constructor(private val persistenceServ
 
     private fun fetchLibraries(): List<Library> {
         log.info("Fetching libraries...")
-        val libraries = persistenceService.fetchLibraries()
-        log.info("Fetched ${libraries.size} libraries.")
+        val (libraries, millisTaken) = millisTaken { persistenceService.fetchLibraries() }
+        log.info("Fetched ${libraries.size} libraries in ${millisTaken.toHumanReadableDuration()}")
         return libraries
     }
 

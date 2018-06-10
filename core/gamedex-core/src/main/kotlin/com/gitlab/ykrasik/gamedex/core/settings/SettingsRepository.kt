@@ -41,14 +41,16 @@ abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
     @Suppress("LeakingThis")
     private var _data: T = if (file.exists()) {
         try {
-            log.trace { "Reading $name settings..." }
-            file.readJson(klass)
+            log.info("Reading $name settings...")
+            log.time({ "Read $name settings in $it" }) {
+                file.readJson(klass)
+            }
         } catch (e: Exception) {
             log.error("Error reading $name settings! Resetting to default...", e)
             null
         }
     } else {
-        log.trace { "[$file] Settings file doesn't exist. Creating default..." }
+        log.info("[$file] Settings file doesn't exist. Creating default...")
         null
     } ?: defaultSettings().apply { update(this) }
 
@@ -77,7 +79,7 @@ abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
 
     private fun update(data: T) = launch(dispatcher) {
         file.create()
-        log.trace { "Writing $file..." }
+        log.trace("Writing $file...")
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
     }
 
