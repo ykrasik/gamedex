@@ -14,17 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter
+package com.gitlab.ykrasik.gamedex.core.game.all
 
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
 import com.gitlab.ykrasik.gamedex.app.api.util.distincting
 import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,22 +33,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class SelectPlatformPresenterFactory @Inject constructor(
-    libraryService: LibraryService,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService,
+    libraryService: LibraryService
 ) : PresenterFactory<ViewCanSelectPlatform> {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
     private val platformsWithLibraries = libraryService.realLibraries.mapping { it.platform }.distincting()
 
     override fun present(view: ViewCanSelectPlatform) = object : Presenter() {
         init {
             platformsWithLibraries.bindTo(view.availablePlatforms)
-
-            view.currentPlatform = gameUserConfig.platform
-            view.currentPlatformChanges.subscribeOnUi(::onCurrentPlatformChanged)
-        }
-
-        private fun onCurrentPlatformChanged(currentPlatform: Platform) {
-            gameUserConfig.platform = currentPlatform
+            settingsService.game.bind({ platformChannel }, view::currentPlatform, view.currentPlatformChanges) {
+                copy(platform = it)
+            }
         }
     }
 }

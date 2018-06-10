@@ -19,8 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game.download
 import com.gitlab.ykrasik.gamedex.app.api.game.DownloadStaleDurationView
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import org.joda.time.PeriodType
 import org.joda.time.format.PeriodFormatterBuilder
 import javax.inject.Inject
@@ -33,9 +32,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameDownloadStaleDurationPresenterFactory @Inject constructor(
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) : PresenterFactory<DownloadStaleDurationView> {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     private val formatter = PeriodFormatterBuilder()
         .appendYears().appendSuffix("y").appendSeparator(" ")
@@ -47,7 +45,7 @@ class GameDownloadStaleDurationPresenterFactory @Inject constructor(
 
     override fun present(view: DownloadStaleDurationView) = object : Presenter() {
         init {
-            gameUserConfig.stalePeriodSubject.subscribe {
+            settingsService.game.stalePeriodChannel.subscribeOnUi {
                 val sb = StringBuffer()
                 formatter.printTo(sb, it.normalizedStandard(PeriodType.yearMonthDayTime()))
                 view.stalePeriodText = sb.toString()
@@ -58,7 +56,7 @@ class GameDownloadStaleDurationPresenterFactory @Inject constructor(
 
         private fun onStalePeriodTextChanged(stalePeriodText: String) {
             view.stalePeriodValidationError = try {
-                gameUserConfig.stalePeriod = formatter.parsePeriod(stalePeriodText)
+                settingsService.game.modify { copy(stalePeriod = formatter.parsePeriod(stalePeriodText)) }
                 null
             } catch (e: Exception) {
                 "Invalid duration! Format: {x}y {x}mo {x}d {x}h {x}m {x}s"

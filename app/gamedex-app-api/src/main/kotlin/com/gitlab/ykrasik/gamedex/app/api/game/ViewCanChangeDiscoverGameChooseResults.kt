@@ -14,35 +14,23 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import java.io.File
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 25/05/2016
- * Time: 11:29
+ * Date: 29/04/2018
+ * Time: 14:18
  */
-data class Library(
-    val id: Int,
-    val data: LibraryData
-) {
-    val name get() = data.name
-    val path get() = data.path
-    val platform get() = data.platform
+interface ViewCanChangeDiscoverGameChooseResults {
+    var discoverGameChooseResults: DiscoverGameChooseResults
+    val discoverGameChooseResultsChanges: ReceiveChannel<DiscoverGameChooseResults>
 }
 
-data class LibraryData(
-    val name: String,
-    val path: File,
-    val platform: Platform
-)
-
-enum class Platform(val displayName: String) {
-    pc("PC"),
-    mac("Mac"),
-    android("Android"),
-    excluded("Excluded");
-
-    override fun toString() = displayName
+enum class DiscoverGameChooseResults(val description: String) {
+    chooseIfNonExact("If no exact match: Choose"),
+    alwaysChoose("Always choose"),
+    skipIfNonExact("If no exact match: Skip"),
+    proceedWithoutIfNonExact("If no exact match: Proceed Without")
 }

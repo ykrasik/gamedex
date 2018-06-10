@@ -109,7 +109,7 @@ class EditLibraryPresenterFactory @Inject constructor(
         private fun onBrowse() {
             val initialDirectory = settingsService.general.prevDirectory.existsOrNull()
             val selectedDirectory = view.selectDirectory(initialDirectory) ?: return
-            settingsService.general.prevDirectory = selectedDirectory
+            settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
             view.path = selectedDirectory.toString()
             if (view.name.isEmpty()) {
                 view.name = selectedDirectory.name

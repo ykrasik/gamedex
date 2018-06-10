@@ -92,7 +92,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             withContext(JavaFx) {
                 message = "Loading user interface..."
                 delay(5)       // Delay to allow the 'done' message to display.
-                replaceWith(find(MainView::class), ViewTransition.Fade(3.seconds))
+                replaceWith(find(MainView::class), ViewTransition.Fade(2.seconds))
             }
         }
     }

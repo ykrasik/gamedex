@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.disallowDeselection
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
@@ -31,7 +31,7 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 21:15
  */
-private class JavaFxDiscoverGameChooseResultsView : PresentableView(), ViewWithDiscoverGameChooseResults {
+private class JavaFxDiscoverGameChooseResultsView : PresentableView(), ViewCanChangeDiscoverGameChooseResults {
     override val discoverGameChooseResultsChanges = channel<DiscoverGameChooseResults>()
     private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null)
         .eventOnChange(discoverGameChooseResultsChanges)

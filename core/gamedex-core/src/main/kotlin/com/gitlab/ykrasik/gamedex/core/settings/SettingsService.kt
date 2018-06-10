@@ -27,7 +27,11 @@ import com.google.inject.Singleton
 @ImplementedBy(SettingsServiceImpl::class)
 interface SettingsService {
     val general: GeneralSettingsRepository
-    val gameDisplay: GameDisplaySettingsRepository
+    val game: GameSettingsRepository
+    val cellDisplay: GameCellDisplaySettingsRepository
+    val nameDisplay: GameNameDisplaySettingsRepository
+    val metaTagDisplay: GameMetaTagDisplaySettingsRepository
+    val versionDisplay: GameVersionDisplaySettingsRepository
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -37,31 +41,37 @@ interface SettingsService {
 
 @Singleton
 class SettingsServiceImpl : SettingsService {
-    override val general = GeneralSettingsRepository()
-    override val gameDisplay = GameDisplaySettingsRepository()
+    private val all = mutableListOf<SettingsRepository<*>>()
 
-    private val all = listOf(gameDisplay, general)
+    override val general = repo { GeneralSettingsRepository() }
+    override val game = repo { GameSettingsRepository() }
+    override val cellDisplay = repo { GameCellDisplaySettingsRepository() }
+    override val nameDisplay = repo { GameNameDisplaySettingsRepository() }
+    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository() }
+    override val versionDisplay = repo { GameVersionDisplaySettingsRepository() }
 
-    override fun saveSnapshot() = withSettings {
+    private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
+
+    override fun saveSnapshot() = withRepos {
         disableWrite()
         saveSnapshot()
     }
 
-    override fun revertSnapshot() = withSettings {
+    override fun revertSnapshot() = withRepos {
         restoreSnapshot()
         enableWrite()
         clearSnapshot()
     }
 
-    override fun commitSnapshot() = withSettings {
+    override fun commitSnapshot() = withRepos {
         enableWrite()
         flush()
         clearSnapshot()
     }
 
-    override fun restoreDefaults() = withSettings {
+    override fun restoreDefaults() = withRepos {
         restoreDefaults()
     }
 
-    private inline fun withSettings(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
+    private inline fun withRepos(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
 }

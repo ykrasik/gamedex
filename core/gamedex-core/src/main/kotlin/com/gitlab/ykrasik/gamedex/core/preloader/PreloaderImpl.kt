@@ -16,12 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.preloader
 
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
+import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -55,8 +57,10 @@ class PreloaderImpl : Preloader {
 
             // While loading, display all log messages in the task
             val subscription = GamedexLog.entries.itemsChannel.subscribe(uiThreadDispatcher) {
-                if (it.isNotEmpty()) {
-                    view.message = it.last().message
+                it.lastOrNull()?.let {
+                    if (it.level.ordinal >= LogLevel.Info.ordinal) {
+                        view.message = it.message
+                    }
                 }
             }
 
@@ -88,7 +92,7 @@ class PreloaderImpl : Preloader {
             subscription.cancel()
 
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
-            preloaderSettings.diComponents = componentCount
+            preloaderSettings.modify { copy(diComponents = componentCount) }
 
             withContext(uiThreadDispatcher) {
                 view.message = "Done loading."

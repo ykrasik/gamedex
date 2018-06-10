@@ -14,35 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex
+package com.gitlab.ykrasik.gamedex.core.game.all
 
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeGameSort
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 25/05/2016
- * Time: 11:29
+ * Date: 10/06/2018
+ * Time: 17:51
  */
-data class Library(
-    val id: Int,
-    val data: LibraryData
-) {
-    val name get() = data.name
-    val path get() = data.path
-    val platform get() = data.platform
-}
-
-data class LibraryData(
-    val name: String,
-    val path: File,
-    val platform: Platform
-)
-
-enum class Platform(val displayName: String) {
-    pc("PC"),
-    mac("Mac"),
-    android("Android"),
-    excluded("Excluded");
-
-    override fun toString() = displayName
+@Singleton
+class SortGamesPresenterFactory @Inject constructor(
+    private val settingsService: SettingsService
+) : PresenterFactory<ViewCanChangeGameSort> {
+    override fun present(view: ViewCanChangeGameSort) = object : Presenter() {
+        init {
+            settingsService.game.bind({ sortChannel }, view::sort, view.sortChanges) { copy(sort = it) }
+        }
+    }
 }

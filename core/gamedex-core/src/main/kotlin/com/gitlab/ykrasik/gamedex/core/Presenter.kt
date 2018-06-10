@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -105,15 +106,20 @@ abstract class Presenter {
         }
     }
 
-    protected fun <T> BroadcastEventChannel<T>.bind(viewProperty: KMutableProperty0<T>,
-                                                    changesChannel: ReceiveChannel<T>,
-                                                    context: CoroutineContext = CommonPool) {
-        reportChangesTo(viewProperty)
-        changesChannel.actionOn(context) { offer(it) }
+    protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(channelAccessor: S.() -> BroadcastReceiveChannel<T>,
+                                                                              viewProperty: KMutableProperty0<T>,
+                                                                              changesChannel: ReceiveChannel<T>,
+                                                                              context: CoroutineContext = CommonPool,
+                                                                              crossinline f: (Data).(T) -> Data) {
+        val channel = channelAccessor(this)
+        channel.reportChangesTo(viewProperty)
+        changesChannel.actionOn(context) { change ->
+            this.modify { f(change) }
+        }
     }
 
-    protected fun <T> BroadcastEventChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
-                                                               context: CoroutineContext = uiThreadDispatcher) {
+    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
+                                                                 context: CoroutineContext = uiThreadDispatcher) {
         viewProperty.set(peek()!!)
         subscribe().actionOn(context) { viewProperty.set(it) }
     }

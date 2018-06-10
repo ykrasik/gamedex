@@ -14,24 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.preloader
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 09/03/2018
- * Time: 09:28
+ * Date: 10/06/2018
+ * Time: 17:47
  */
-class PreloaderSettingsRepository : SettingsRepository<PreloaderSettingsRepository.Data>("preloader", Data::class) {
-    data class Data(
-        val diComponents: Int
-    )
+interface ViewCanChangeGameSort {
+    var sort: Sort
+    val sortChanges: ReceiveChannel<Sort>
+}
 
-    override fun defaultSettings() = Data(
-        diComponents = 85
-    )
+data class Sort(
+    val sortBy: SortBy,
+    val order: SortOrder
+)
 
-    val diComponentsChannel = map(Data::diComponents) { copy(diComponents = it) }
-    var diComponents by diComponentsChannel
+enum class SortBy(val displayName: String) {
+    name_("Name"),
+    criticScore("Critic Score"),
+    userScore("User Score"),
+    minScore("Min Score"),
+    avgScore("Average Score"),
+    size("Size"),
+    releaseDate("Release Date"),
+    updateDate("Update Date");
+
+    override fun toString() = displayName
+}
+
+enum class SortOrder(val displayName: String) {
+    asc("Ascending"),
+    desc("Descending");
+
+    fun toggle(): SortOrder = when (this) {
+        asc -> desc
+        desc -> asc
+    }
+
+    override fun toString() = displayName
 }

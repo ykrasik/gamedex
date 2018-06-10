@@ -20,6 +20,9 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.GamesPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.all.SearchGamesPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.all.SelectPlatformPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.game.all.SortGamesPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
@@ -33,8 +36,6 @@ import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPres
 import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.presenter.SearchGamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenterFactory
 import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenterFactory
@@ -70,6 +71,7 @@ class ViewRegistryImpl @Inject constructor(
 
     games: GamesPresenterFactory,
     searchGames: SearchGamesPresenterFactory,
+    sortGames: SortGamesPresenterFactory,
 
     showGameDetails: ShowGameDetailsPreseneterFactory,
     gameDetails: GameDetailsPresenterFactory,
@@ -122,6 +124,7 @@ class ViewRegistryImpl @Inject constructor(
 
         presenter(games),
         presenter(searchGames),
+        presenter(sortGames),
 
         presenter(showGameDetails),
         presenter(gameDetails),

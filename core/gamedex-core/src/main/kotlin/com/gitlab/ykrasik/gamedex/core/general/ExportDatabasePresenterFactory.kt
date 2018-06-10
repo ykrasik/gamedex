@@ -46,7 +46,7 @@ class ExportDatabasePresenterFactory @Inject constructor(
 
         private suspend fun exportDatabase() {
             val selectedDirectory = view.selectDatabaseExportDirectory(settingsService.general.exportDbDirectory) ?: return
-            settingsService.general.exportDbDirectory = selectedDirectory
+            settingsService.general.modify { copy(exportDbDirectory = selectedDirectory) }
             val timestamp = now.withZone(DateTimeZone.getDefault())
             val timestamptedPath = Paths.get(
                 selectedDirectory.toString(),

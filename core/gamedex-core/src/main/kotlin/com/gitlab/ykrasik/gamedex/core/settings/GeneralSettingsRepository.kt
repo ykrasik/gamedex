@@ -39,15 +39,15 @@ class GeneralSettingsRepository : SettingsRepository<GeneralSettingsRepository.D
         logTail = true
     )
 
-    val prevDirectoryChannel = map(Data::prevDirectory) { copy(prevDirectory = it) }
-    var prevDirectory by prevDirectoryChannel
+    val prevDirectoryChannel = channel(Data::prevDirectory)
+    val prevDirectory by prevDirectoryChannel
 
-    val exportDbDirectoryChannel = map(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
-    var exportDbDirectory by exportDbDirectoryChannel
+    val exportDbDirectoryChannel = channel(Data::exportDbDirectory)
+    val exportDbDirectory by exportDbDirectoryChannel
 
-    val logFilterLevelChannel = map(Data::logFilterLevel) { copy(logFilterLevel = it) }
-    var logFilterLevel by logFilterLevelChannel
+    val logFilterLevelChannel = channel(Data::logFilterLevel)
+    val logFilterLevel by logFilterLevelChannel
 
-    val logTailChannel = map(Data::logTail) { copy(logTail = it) }
-    var logTail by logTailChannel
+    val logTailChannel = channel(Data::logTail)
+    val logTail by logTailChannel
 }

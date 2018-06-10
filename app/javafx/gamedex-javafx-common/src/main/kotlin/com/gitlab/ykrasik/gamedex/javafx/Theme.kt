@@ -198,8 +198,7 @@ fun Platform.toLogo(size: Double = 19.0) = when (this) {
     minWidth = Region.USE_PREF_SIZE
 }
 
-fun EventTarget.platformComboBox(selected: Property<Platform>) = popoverComboMenu(
-    possibleItems = Platform.values().toList(),
+fun EventTarget.platformComboBox(selected: Property<Platform>) = enumComboMenu(
     selectedItemProperty = selected,
     styleClass = CommonStyle.platformItem,
     itemStyleClass = CommonStyle.fillAvailableWidth,

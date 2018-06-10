@@ -27,94 +27,88 @@ import javax.inject.Singleton
  * Date: 09/06/2018
  * Time: 18:59
  */
-abstract class ChangeGameOverlayDisplaySettingsPresenterFactory<V> constructor(
-    private val settingsService: SettingsService
-) : PresenterFactory<V> {
+abstract class ChangeGameOverlayDisplaySettingsPresenterFactory<V> : PresenterFactory<V> {
     override fun present(view: V) = object : Presenter() {
         init {
-            val settings = extractSettings(settingsService.gameDisplay)
             with(extractOverlay(view)) {
-                settings.enabledChannel.bind(::enabled, enabledChanges)
-                settings.showOnlyWhenActiveChannel.bind(::showOnlyWhenActive, showOnlyWhenActiveChanges)
-                settings.positionChannel.bind(::position, positionChanges)
-                settings.fillWidthChannel.bind(::fillWidth, fillWidthChanges)
-                settings.fontSizeChannel.bind(::fontSize, fontSizeChanges)
-                settings.boldFontChannel.bind(::boldFont, boldFontChanges)
-                settings.italicFontChannel.bind(::italicFont, italicFontChanges)
-                settings.textColorChannel.bind(::textColor, textColorChanges)
-                settings.backgroundColorChannel.bind(::backgroundColor, backgroundColorChanges)
-                settings.opacityChannel.bind(::opacity, opacityChanges)
+                repo.bind({ enabledChannel }, ::enabled, enabledChanges) { copy(enabled = it) }
+                repo.bind({ showOnlyWhenActiveChannel }, ::showOnlyWhenActive, showOnlyWhenActiveChanges) { copy(showOnlyWhenActive = it) }
+                repo.bind({ positionChannel }, ::position, positionChanges) { copy(position = it) }
+                repo.bind({ fillWidthChannel }, ::fillWidth, fillWidthChanges) { copy(fillWidth = it) }
+                repo.bind({ fontSizeChannel }, ::fontSize, fontSizeChanges) { copy(fontSize = it) }
+                repo.bind({ boldFontChannel }, ::boldFont, boldFontChanges) { copy(boldFont = it) }
+                repo.bind({ italicFontChannel }, ::italicFont, italicFontChanges) { copy(italicFont = it) }
+                repo.bind({ textColorChannel }, ::textColor, textColorChanges) { copy(textColor = it) }
+                repo.bind({ backgroundColorChannel }, ::backgroundColor, backgroundColorChanges) { copy(backgroundColor = it) }
+                repo.bind({ opacityChannel }, ::opacity, opacityChanges) { copy(opacity = it) }
             }
         }
     }
 
-    protected abstract fun extractSettings(repo: GameDisplaySettingsRepository): GameDisplaySettingsRepository.OverlaySettingsAccessor
+    protected abstract val repo: AbstractGameOverlayDisplaySettingsRepository
     protected abstract fun extractOverlay(view: V): MutableOverlayDisplaySettings
 }
 
 @Singleton
-class ChangeGameNameOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeNameOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.nameOverlay
+class ChangeGameNameOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeNameOverlayDisplaySettings>() {
+    override val repo get() = settingsService.nameDisplay
     override fun extractOverlay(view: ViewCanChangeNameOverlayDisplaySettings) = view.mutableNameOverlayDisplaySettings
 }
 
 @Singleton
-class ChangeGameMetaTagOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeMetaTagOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.metaTagOverlay
+class ChangeGameMetaTagOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeMetaTagOverlayDisplaySettings>() {
+    override val repo get() = settingsService.metaTagDisplay
     override fun extractOverlay(view: ViewCanChangeMetaTagOverlayDisplaySettings) = view.mutableMetaTagOverlayDisplaySettings
 }
 
 @Singleton
-class ChangeGameVersionOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeVersionOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.versionOverlay
+class ChangeGameVersionOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    ChangeGameOverlayDisplaySettingsPresenterFactory<ViewCanChangeVersionOverlayDisplaySettings>() {
+    override val repo get() = settingsService.versionDisplay
     override fun extractOverlay(view: ViewCanChangeVersionOverlayDisplaySettings) = view.mutableVersionOverlayDisplaySettings
 }
 
-abstract class GameOverlayDisplaySettingsPresenterFactory<V> constructor(
-    private val settingsService: SettingsService
-) : PresenterFactory<V> {
+abstract class GameOverlayDisplaySettingsPresenterFactory<V> : PresenterFactory<V> {
     override fun present(view: V) = object : Presenter() {
         init {
-            val settings = extractSettings(settingsService.gameDisplay)
             with(extractOverlay(view)) {
-                settings.enabledChannel.reportChangesTo(::enabled)
-                settings.showOnlyWhenActiveChannel.reportChangesTo(::showOnlyWhenActive)
-                settings.positionChannel.reportChangesTo(::position)
-                settings.fillWidthChannel.reportChangesTo(::fillWidth)
-                settings.fontSizeChannel.reportChangesTo(::fontSize)
-                settings.boldFontChannel.reportChangesTo(::boldFont)
-                settings.italicFontChannel.reportChangesTo(::italicFont)
-                settings.textColorChannel.reportChangesTo(::textColor)
-                settings.backgroundColorChannel.reportChangesTo(::backgroundColor)
-                settings.opacityChannel.reportChangesTo(::opacity)
+                repo.enabledChannel.reportChangesTo(::enabled)
+                repo.showOnlyWhenActiveChannel.reportChangesTo(::showOnlyWhenActive)
+                repo.positionChannel.reportChangesTo(::position)
+                repo.fillWidthChannel.reportChangesTo(::fillWidth)
+                repo.fontSizeChannel.reportChangesTo(::fontSize)
+                repo.boldFontChannel.reportChangesTo(::boldFont)
+                repo.italicFontChannel.reportChangesTo(::italicFont)
+                repo.textColorChannel.reportChangesTo(::textColor)
+                repo.backgroundColorChannel.reportChangesTo(::backgroundColor)
+                repo.opacityChannel.reportChangesTo(::opacity)
             }
         }
     }
 
-    protected abstract fun extractSettings(repo: GameDisplaySettingsRepository): GameDisplaySettingsRepository.OverlaySettingsAccessor
-    protected abstract fun extractOverlay(view: V): OverlayDisplaySettings
+    protected abstract val repo: AbstractGameOverlayDisplaySettingsRepository
+    protected abstract fun extractOverlay(view: V): com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
 }
 
 @Singleton
-class GameNameOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    GameOverlayDisplaySettingsPresenterFactory<ViewWithNameOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.nameOverlay
+class GameNameOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    GameOverlayDisplaySettingsPresenterFactory<ViewWithNameOverlayDisplaySettings>() {
+    override val repo get() = settingsService.nameDisplay
     override fun extractOverlay(view: ViewWithNameOverlayDisplaySettings) = view.nameOverlayDisplaySettings
 }
 
 @Singleton
-class GameMetaTagOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    GameOverlayDisplaySettingsPresenterFactory<ViewWithMetaTagOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.metaTagOverlay
+class GameMetaTagOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    GameOverlayDisplaySettingsPresenterFactory<ViewWithMetaTagOverlayDisplaySettings>() {
+    override val repo get() = settingsService.metaTagDisplay
     override fun extractOverlay(view: ViewWithMetaTagOverlayDisplaySettings) = view.metaTagOverlayDisplaySettings
 }
 
 @Singleton
-class GameVersionOverlayDisplaySettingsPresenterFactory @Inject constructor(settingsService: SettingsService) :
-    GameOverlayDisplaySettingsPresenterFactory<ViewWithVersionOverlayDisplaySettings>(settingsService) {
-    override fun extractSettings(repo: GameDisplaySettingsRepository) = repo.versionOverlay
+class GameVersionOverlayDisplaySettingsPresenterFactory @Inject constructor(private val settingsService: SettingsService) :
+    GameOverlayDisplaySettingsPresenterFactory<ViewWithVersionOverlayDisplaySettings>() {
+    override val repo get() = settingsService.versionDisplay
     override fun extractOverlay(view: ViewWithVersionOverlayDisplaySettings) = view.versionOverlayDisplaySettings
 }

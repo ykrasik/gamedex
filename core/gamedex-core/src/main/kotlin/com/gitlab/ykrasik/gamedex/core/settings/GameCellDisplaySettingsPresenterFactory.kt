@@ -34,14 +34,13 @@ class ChangeGameCellDisplaySettingsPresenterFactory @Inject constructor(
 ) : PresenterFactory<ViewCanChangeGameCellDisplaySettings> {
     override fun present(view: ViewCanChangeGameCellDisplaySettings) = object : Presenter() {
         init {
-            val settings = settingsService.gameDisplay.cell
             with(view.mutableCellDisplaySettings) {
-                settings.imageDisplayTypeChannel.bind(::imageDisplayType, imageDisplayTypeChanges)
-                settings.showBorderChannel.bind(::showBorder, showBorderChanges)
-                settings.widthChannel.bind(::width, widthChanges)
-                settings.heightChannel.bind(::height, heightChanges)
-                settings.horizontalSpacingChannel.bind(::horizontalSpacing, horizontalSpacingChanges)
-                settings.verticalSpacingChannel.bind(::verticalSpacing, verticalSpacingChanges)
+                settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, ::imageDisplayType, imageDisplayTypeChanges) { copy(imageDisplayType = it) }
+                settingsService.cellDisplay.bind({ showBorderChannel }, ::showBorder, showBorderChanges) { copy(showBorder = it) }
+                settingsService.cellDisplay.bind({ widthChannel }, ::width, widthChanges) { copy(width = it) }
+                settingsService.cellDisplay.bind({ heightChannel }, ::height, heightChanges) { copy(height = it) }
+                settingsService.cellDisplay.bind({ horizontalSpacingChannel }, ::horizontalSpacing, horizontalSpacingChanges) { copy(horizontalSpacing = it) }
+                settingsService.cellDisplay.bind({ verticalSpacingChannel }, ::verticalSpacing, verticalSpacingChanges) { copy(verticalSpacing = it) }
             }
         }
     }
@@ -53,7 +52,7 @@ class GameCellDisplaySettingsPresenterFactory @Inject constructor(
 ) : PresenterFactory<ViewWithGameCellDisplaySettings> {
     override fun present(view: ViewWithGameCellDisplaySettings) = object : Presenter() {
         init {
-            val settings = settingsService.gameDisplay.cell
+            val settings = settingsService.cellDisplay
             with(view.cellDisplaySettings) {
                 settings.imageDisplayTypeChannel.reportChangesTo(::imageDisplayType)
                 settings.showBorderChannel.reportChangesTo(::showBorder)

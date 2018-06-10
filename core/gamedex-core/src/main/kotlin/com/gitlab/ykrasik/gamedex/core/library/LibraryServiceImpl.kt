@@ -23,8 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.filtering
 import com.gitlab.ykrasik.gamedex.app.api.util.quickTask
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,12 +33,7 @@ import javax.inject.Singleton
  * Time: 19:34
  */
 @Singleton
-internal class LibraryServiceImpl @Inject constructor(
-    private val repo: LibraryRepository,
-    userConfigRepository: UserConfigRepository
-) : LibraryService {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
+internal class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository) : LibraryService {
     override val libraries = repo.libraries
     override val realLibraries = libraries.filtering { it.platform != Platform.excluded }
 

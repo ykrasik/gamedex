@@ -14,35 +14,38 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex
+package com.gitlab.ykrasik.gamedex.core.settings
 
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 
 /**
  * User: ykrasik
- * Date: 25/05/2016
- * Time: 11:29
+ * Date: 16/06/2018
+ * Time: 17:07
  */
-data class Library(
-    val id: Int,
-    val data: LibraryData
-) {
-    val name get() = data.name
-    val path get() = data.path
-    val platform get() = data.platform
-}
+class GameCellDisplaySettingsRepository : SettingsRepository<GameCellDisplaySettingsRepository.Data>("display_cell", Data::class) {
+    data class Data(
+        val imageDisplayType: ImageDisplayType,
+        val showBorder: Boolean,
+        val width: Double,
+        val height: Double,
+        val horizontalSpacing: Double,
+        val verticalSpacing: Double
+    )
 
-data class LibraryData(
-    val name: String,
-    val path: File,
-    val platform: Platform
-)
+    override fun defaultSettings() = Data(
+        imageDisplayType = ImageDisplayType.Stretch,
+        showBorder = true,
+        width = 166.0,
+        height = 166.0,
+        horizontalSpacing = 3.0,
+        verticalSpacing = 3.0
+    )
 
-enum class Platform(val displayName: String) {
-    pc("PC"),
-    mac("Mac"),
-    android("Android"),
-    excluded("Excluded");
-
-    override fun toString() = displayName
+    val imageDisplayTypeChannel = channel(Data::imageDisplayType)
+    val showBorderChannel = channel(Data::showBorder)
+    val widthChannel = channel(Data::width)
+    val heightChannel = channel(Data::height)
+    val horizontalSpacingChannel = channel(Data::horizontalSpacing)
+    val verticalSpacingChannel = channel(Data::verticalSpacing)
 }

@@ -27,8 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.toDate
 import javax.inject.Inject
@@ -44,10 +43,8 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
     private val gameService: GameService,
     private val libraryService: LibraryService,
     private val gameProviderService: GameProviderService,
-    userConfigRepository: UserConfigRepository
+    protected val settingsService: SettingsService
 ) : PresenterFactory<V> {
-    protected val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
     protected abstract val excludedRules: List<KClass<out Filter.Rule>>
     protected abstract val alwaysShowAllRules: Boolean
 
@@ -57,9 +54,9 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
     )
 
     private val rules = mapOf(
-        Filter.Platform::class to { Filter.Platform(gameUserConfig.platform) },
+        Filter.Platform::class to { Filter.Platform(Platform.pc) },
         Filter.Library::class to {
-            Filter.Library(libraryService.realLibraries.find { it.platform == gameUserConfig.platform }!!.id)
+            Filter.Library(libraryService.realLibraries.find { it.platform == settingsService.game.platform }!!.id)
         },
         Filter.Genre::class to { Filter.Genre(gameService.genres.firstOrNull() ?: "") },
         Filter.Tag::class to { Filter.Tag(gameService.tags.firstOrNull() ?: "") },
@@ -89,11 +86,13 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
             view.possibleProviderIds += gameProviderService.allProviders.map { it.id }
             // providers are a static configuration that can't change during runtime, so no need to set rules.
 
-            view.filter = Filter.`true`
+            setPossibleLibraries()
+            view.filter = settingsService.game.currentPlatformSettings.filter
+            setPossibleRules()
 
-            gameUserConfig.platformSubject.subscribe {
+            settingsService.game.platformChannel.subscribeOnUi {
                 setPossibleLibraries()
-                view.filter = gameUserConfig.currentPlatformFilter
+                view.filter = settingsService.game.currentPlatformSettings.filter
                 setPossibleRules()
             }
 
@@ -101,8 +100,6 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
                 setPossibleLibraries()
                 setPossibleRules()
             }
-
-            setPossibleRules()
 
             view.wrapInAndActions.actionOnUi { replaceFilter(it, with = Filter.And(it)) }
             view.wrapInOrActions.actionOnUi { replaceFilter(it, with = Filter.Or(it)) }
@@ -115,7 +112,7 @@ abstract class BaseGameFilterPresenterFactory<V : GameFilterView> constructor(
         }
 
         private fun setPossibleLibraries() {
-            val libraries = libraryService.realLibraries.filter { filterLibrary(it, gameUserConfig.platform) }
+            val libraries = libraryService.realLibraries.filter { filterLibrary(it, settingsService.game.platform) }
             if (libraries != view.possibleLibraries) {
                 view.possibleLibraries.clear()
                 view.possibleLibraries += libraries
@@ -185,15 +182,15 @@ class MenuGameFilterPresenterFactory @Inject constructor(
     gameService: GameService,
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
-    userConfigRepository: UserConfigRepository
-) : BaseGameFilterPresenterFactory<MenuGameFilterView>(gameService, libraryService, gameProviderService, userConfigRepository) {
+    settingsService: SettingsService
+) : BaseGameFilterPresenterFactory<MenuGameFilterView>(gameService, libraryService, gameProviderService, settingsService) {
     override val excludedRules get() = listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
     override val alwaysShowAllRules = false
 
     override fun filterLibrary(library: Library, currentPlatform: Platform) = library.platform == currentPlatform
 
     override fun afterFilterSet(filter: Filter) {
-        gameUserConfig.currentPlatformFilter = filter
+        settingsService.game.modifyCurrentPlatformSettings { copy(filter = filter) }
     }
 }
 
@@ -202,8 +199,8 @@ class ReportGameFilterPresenterFactory @Inject constructor(
     gameService: GameService,
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
-    userConfigRepository: UserConfigRepository
-) : BaseGameFilterPresenterFactory<ReportGameFilterView>(gameService, libraryService, gameProviderService, userConfigRepository) {
+    settingsService: SettingsService
+) : BaseGameFilterPresenterFactory<ReportGameFilterView>(gameService, libraryService, gameProviderService, settingsService) {
     override val excludedRules get() = emptyList<KClass<out Filter.Rule>>()
     override val alwaysShowAllRules = true
 

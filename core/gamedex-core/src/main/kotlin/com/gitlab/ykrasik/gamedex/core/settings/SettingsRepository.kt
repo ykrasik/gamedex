@@ -17,57 +17,51 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.distinctUntilChanged
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.*
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.drop
-import kotlinx.coroutines.experimental.channels.map
 import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.Executors
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 
 /**
  * User: ykrasik
  * Date: 09/06/2018
  * Time: 21:39
  */
-abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
-    private val file = "conf/$name.json".toFile()
+abstract class SettingsRepository<T : Any>(private val name: String, klass: KClass<T>) {
+    private val log = logger()
+    private val file = "conf/$name.conf".toFile()
 
     private var enableWrite = true
 
-    @Suppress("LeakingThis")
-    private var _data: T = if (file.exists()) {
-        try {
-            log.info("Reading $name settings...")
-            log.time({ "Read $name settings in $it" }) {
-                file.readJson(klass)
+    private val rawDataChannel = BroadcastEventChannel.conflated {
+        if (file.exists()) {
+            try {
+                log.info("Reading $file...")
+                log.time({ "Read $file in $it" }) {
+                    file.readJson(klass)
+                }
+            } catch (e: Exception) {
+                log.error("Error reading $file! Resetting to default...", e)
+                null
             }
-        } catch (e: Exception) {
-            log.error("Error reading $name settings! Resetting to default...", e)
+        } else {
+            log.info("[$file] Settings file doesn't exist. Creating default...")
             null
-        }
-    } else {
-        log.info("[$file] Settings file doesn't exist. Creating default...")
-        null
-    } ?: defaultSettings().apply { update(this) }
-
-    private val dataChannel = BroadcastEventChannel.conflated(_data)
-
-    private var data: T
-        get() = _data
-        set(value) {
-            this.dataChannel.offer(value)
-        }
+        } ?: defaultSettings().apply { update(this) }
+    }
+    private val dataChannel = rawDataChannel.distinctUntilChanged()
+    private var data: T by rawDataChannel
 
     private var snapshot: T? = null
 
     init {
-        launch(CommonPool) {
-            dataChannel.subscribe().drop(1).distinctUntilChanged().consumeEach {
-                _data = it
+        launch(settingsHandler) {
+            dataChannel.subscribe().drop(1).consumeEach {
                 if (enableWrite) {
                     update(it)
                 }
@@ -77,29 +71,28 @@ abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
 
     protected abstract fun defaultSettings(): T
 
-    private fun update(data: T) = launch(dispatcher) {
+    private fun update(data: T) = launch(settingsHandler) {
         file.create()
-        log.trace("Writing $file...")
+        log.trace("[$file] Writing: $data")
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
     }
 
-    fun modify(f: (T) -> T) {
+    fun modify(f: T.() -> T) {
         data = f(data)
     }
 
-    fun <R> map(extractor: Extractor<T, R>, modifier: Modifier<T, R>): BroadcastEventChannel<R> {
+    fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R> {
         val channel = BroadcastEventChannel.conflated(extractor(data))
-        launch(CommonPool) {
-            dataChannel.subscribe().map { extractor(it) }.distinctUntilChanged().consumeEach {
-                channel.send(it)
+        launch(settingsHandler) {
+            dataChannel.subscribe().drop(1).consumeEach {
+                channel.send(extractor(it))
             }
         }
-        launch(CommonPool) {
-            channel.subscribe().map { data.modifier(it) }.distinctUntilChanged().consumeEach {
-                dataChannel.send(it)
+        return channel.distinctUntilChanged().apply {
+            subscribe(settingsHandler) {
+                log.debug("[$name] ${extractor.name} = $it")
             }
         }
-        return channel
     }
 
     fun saveSnapshot() {
@@ -130,11 +123,9 @@ abstract class SettingsRepository<T : Any>(name: String, klass: KClass<T>) {
         data = defaultSettings()
     }
 
-    companion object {
-        private val dispatcher = Executors.newSingleThreadScheduledExecutor {
-            Thread(it, "SettingsWriter").apply { isDaemon = true }
+    private companion object {
+        val settingsHandler = Executors.newSingleThreadScheduledExecutor {
+            Thread(it, "SettingsHandler").apply { isDaemon = true }
         }.asCoroutineDispatcher()
-
-        private val log = logger()
     }
 }

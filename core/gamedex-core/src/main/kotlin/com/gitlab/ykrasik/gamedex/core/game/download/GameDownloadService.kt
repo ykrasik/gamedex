@@ -22,8 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,10 +43,8 @@ interface GameDownloadService {
 class GameDownloadServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) : GameDownloadService {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
     override fun redownloadAllGames() = redownloadGames(gameService.games)
 
     override fun redownloadGame(game: Game) = task("Re-Downloading '${game.name}'...") {
@@ -68,7 +65,7 @@ class GameDownloadServiceImpl @Inject constructor(
             // Operate on a copy of the games to avoid concurrent modifications.
             games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
                 val providersToDownload = game.providerHeaders.filter { header ->
-                    header.updateDate.plus(gameUserConfig.stalePeriod).isBeforeNow
+                    header.updateDate.plus(settingsService.game.stalePeriod).isBeforeNow
                 }
                 if (providersToDownload.isNotEmpty()) {
                     downloadGame(game, providersToDownload)

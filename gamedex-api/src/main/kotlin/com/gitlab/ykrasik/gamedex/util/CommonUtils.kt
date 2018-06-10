@@ -28,7 +28,6 @@ import java.util.function.Predicate
  */
 typealias Extractor<T, R> = T.() -> R
 typealias Modifier<T, R> = T.(R) -> T
-typealias NestedModifier<T, R> = T.(R.() -> R) -> T
 
 fun Any.getResourceAsByteArray(path: String): ByteArray = Resources.toByteArray(Resources.getResource(javaClass, path))
 

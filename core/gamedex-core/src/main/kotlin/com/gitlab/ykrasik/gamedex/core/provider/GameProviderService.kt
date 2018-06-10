@@ -26,8 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.api.provider.SearchResults
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
@@ -48,10 +47,9 @@ class GameProviderServiceImpl @Inject constructor(
     private val repo: GameProviderRepository,
     private val fileSystemService: FileSystemService,
     private val imageFactory: ImageFactory,
-    userConfigRepository: UserConfigRepository,
+    private val settingsService: SettingsService,
     private val chooser: SearchChooser // TODO: Get rid of this... return a class that can be displayed and support continuing from it.
 ) : GameProviderService {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
 
     override val allProviders = repo.allProviders
     override val enabledProviders = repo.enabledProviders
@@ -86,7 +84,7 @@ class GameProviderServiceImpl @Inject constructor(
         private val newlyExcludedProviders = mutableListOf<ProviderId>()
         private var userExactMatch: String? = null
 
-        private val chooseResults get() = gameUserConfig.discoverGameChooseResults
+        private val chooseResults get() = settingsService.game.discoverGameChooseResults
 
         // TODO: Support a back button somehow, it's needed...
         suspend fun search(): SearchResults = task.run {

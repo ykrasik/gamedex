@@ -16,12 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,21 +30,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class DiscoverGameChooseResultsPresenterFactory @Inject constructor(
-    userConfigRepository: UserConfigRepository
-) : PresenterFactory<ViewWithDiscoverGameChooseResults> {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
-    override fun present(view: ViewWithDiscoverGameChooseResults) = object : Presenter() {
+    private val settingsService: SettingsService
+) : PresenterFactory<ViewCanChangeDiscoverGameChooseResults> {
+    override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : Presenter() {
         init {
-            gameUserConfig.discoverGameChooseResultsSubject.subscribe {
-                view.discoverGameChooseResults = it
+            settingsService.game.bind({ discoverGameChooseResultsChannel }, view::discoverGameChooseResults, view.discoverGameChooseResultsChanges) {
+                copy(discoverGameChooseResults = it)
             }
-
-            view.discoverGameChooseResultsChanges.subscribeOnUi(::onDiscoverGameChoiceChanged)
-        }
-
-        private fun onDiscoverGameChoiceChanged(discoverGameChooseResults: DiscoverGameChooseResults) {
-            gameUserConfig.discoverGameChooseResults = discoverGameChooseResults
         }
     }
 }

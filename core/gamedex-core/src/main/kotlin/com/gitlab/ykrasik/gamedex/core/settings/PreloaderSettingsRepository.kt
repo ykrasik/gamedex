@@ -14,35 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter
-
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import javax.inject.Inject
-import javax.inject.Singleton
+package com.gitlab.ykrasik.gamedex.core.settings
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 10:24
+ * Date: 09/03/2018
+ * Time: 09:28
  */
-@Singleton
-class SearchGamesPresenterFactory @Inject constructor(
-    userConfigRepository: UserConfigRepository
-) : PresenterFactory<ViewCanSearchGames> {
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
+class PreloaderSettingsRepository : SettingsRepository<PreloaderSettingsRepository.Data>("preloader", Data::class) {
+    data class Data(
+        val diComponents: Int
+    )
 
-    override fun present(view: ViewCanSearchGames) = object : Presenter() {
-        init {
-            view.searchText = gameUserConfig.currentPlatformSearch
-            view.searchTextChanges.subscribeOnUi(::onSearchTextChanged)
-        }
+    override fun defaultSettings() = Data(
+        diComponents = 85
+    )
 
-        private fun onSearchTextChanged(searchText: String) {
-            gameUserConfig.currentPlatformSearch = searchText
-        }
-    }
+    val diComponentsChannel = channel(Data::diComponents)
+    val diComponents by diComponentsChannel
 }

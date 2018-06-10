@@ -14,24 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.all
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.PresenterFactory
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 14:18
+ * Date: 06/06/2018
+ * Time: 10:24
  */
-interface ViewWithDiscoverGameChooseResults {
-    var discoverGameChooseResults: DiscoverGameChooseResults
-    val discoverGameChooseResultsChanges: ReceiveChannel<DiscoverGameChooseResults>
-}
+@Singleton
+class SearchGamesPresenterFactory @Inject constructor(
+    private val settingsService: SettingsService
+) : PresenterFactory<ViewCanSearchGames> {
+    override fun present(view: ViewCanSearchGames) = object : Presenter() {
+        init {
+            view.searchText = settingsService.game.currentPlatformSettings.search
+            view.searchTextChanges.subscribeOnUi(::onSearchTextChanged)
+        }
 
-// FIXME: Make this an inner class of GameUserConfig after it's refactored.
-enum class DiscoverGameChooseResults(val description: String) {
-    chooseIfNonExact("If no exact match: Choose"),
-    alwaysChoose("Always choose"),
-    skipIfNonExact("If no exact match: Skip"),
-    proceedWithoutIfNonExact("If no exact match: Proceed Without")
+        private fun onSearchTextChanged(searchText: String) {
+            settingsService.game.modifyCurrentPlatformSettings { copy(search = searchText) }
+        }
+    }
 }

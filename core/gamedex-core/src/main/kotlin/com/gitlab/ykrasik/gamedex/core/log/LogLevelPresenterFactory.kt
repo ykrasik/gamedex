@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class LogLevelPresenterFactory @Inject constructor(private val settingsService: SettingsService) : PresenterFactory<ViewCanChangeLogLevel> {
     override fun present(view: ViewCanChangeLogLevel) = object : Presenter() {
         init {
-            settingsService.general.logFilterLevelChannel.bind(view::level, view.levelChanges)
+            settingsService.general.bind({ logFilterLevelChannel }, view::level, view.levelChanges) { copy(logFilterLevel = it) }
         }
     }
 }

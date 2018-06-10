@@ -17,13 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
+import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
-import com.gitlab.ykrasik.gamedex.core.game.GameUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxMenuGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
@@ -39,10 +36,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelectPlatform, ViewCanSearchGames {
-    private val userConfigRepository: UserConfigRepository by di()
-    private val gameUserConfig = userConfigRepository[GameUserConfig::class]
-
+class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort {
     private val gameWallView: GameWallView by inject()
     private val filterView: JavaFxMenuGameFilterView by inject()
     private val discoverGamesView: JavaFxDiscoverGamesView by inject()
@@ -57,6 +51,10 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     override val searchTextChanges = channel<String>()
     private val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
     override var searchText by searchTextProperty
+
+    override val sortChanges = channel<Sort>()
+    private val sortProperty = SimpleObjectProperty<Sort>().eventOnChange(sortChanges)
+    override var sort by sortProperty
 
     init {
         viewRegistry.register(this)
@@ -96,28 +94,27 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     }
 
     private fun EventTarget.sortButton() {
-        val sortProperty = gameUserConfig.sortSubject.toPropertyCached()
-        val possibleItems = gameUserConfig.sortSubject.map { sort ->
-            GameUserConfig.SortBy.values().map { sortBy ->
-                GameUserConfig.Sort(
+        val possibleItems = sortProperty.mapToList { sort ->
+            SortBy.values().map { sortBy ->
+                Sort(
                     sortBy = sortBy,
-                    order = if (sortBy == sort.sortBy) sort.order.toggle() else GameUserConfig.SortType.desc
+                    order = if (sortBy == sort!!.sortBy) sort.order.toggle() else SortOrder.desc
                 )
             }
-        }.toObservableList()
+        }
 
         popoverComboMenu(
             possibleItems = possibleItems,
             selectedItemProperty = sortProperty,
             styleClass = CommonStyle.toolbarButton,
-            text = { it.sortBy.key },
+            text = { it.sortBy.displayName },
             graphic = { it.order.toGraphic() }
         )
     }
 
-    private fun GameUserConfig.SortType.toGraphic() = when (this) {
-        GameUserConfig.SortType.asc -> Theme.Icon.ascending()
-        GameUserConfig.SortType.desc -> Theme.Icon.descending()
+    private fun SortOrder.toGraphic() = when (this) {
+        SortOrder.asc -> Theme.Icon.ascending()
+        SortOrder.desc -> Theme.Icon.descending()
     }
 
     private fun EventTarget.filterButton() = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {

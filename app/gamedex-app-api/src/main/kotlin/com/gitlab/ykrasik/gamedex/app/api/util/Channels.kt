@@ -41,6 +41,12 @@ interface BroadcastReceiveChannel<out T> {
         }
         return subscription
     }
+
+    fun peek(): T? = subscribe().let { subscription ->
+        subscription.poll().apply { subscription.close() }
+    }
+
+    operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
 }
 
 class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> {
@@ -50,13 +56,49 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
 
     suspend fun send(element: T) = channel.send(element)
     fun offer(element: T) = channel.offer(element)
-    fun peek(): T? = subscribe().let { subscription ->
-        subscription.poll().apply { subscription.close() }
-    }
+
 
     fun close() = channel.close()
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
+    inline fun <R> map(context: CoroutineContext = Unconfined, crossinline transform: suspend (T) -> R): BroadcastEventChannel<R> {
+        val channel = BroadcastEventChannel.conflated<R>()
+        subscribe(context) {
+            channel.send(transform(it))
+        }
+        return channel
+    }
+
+    inline fun filter(context: CoroutineContext = Unconfined, crossinline filter: suspend (T) -> Boolean): BroadcastEventChannel<T> {
+        val channel = BroadcastEventChannel.conflated<T>()
+        subscribe(context) {
+            if (filter(it)) {
+                channel.send(it)
+            }
+        }
+        return channel
+    }
+
+    fun distinctUntilChanged(context: CoroutineContext = Unconfined): BroadcastEventChannel<T> {
+        var last: T? = null
+        return filter(context) {
+            val keep = it != last
+            last = it
+            keep
+        }
+    }
+
+    fun drop(amount: Int, context: CoroutineContext = Unconfined): BroadcastEventChannel<T> {
+        val channel = BroadcastEventChannel.conflated<T>()
+        var dropped = 0
+        subscribe(context) {
+            dropped += 1
+            if (dropped > amount) {
+                channel.send(it)
+            }
+        }
+        return channel
+    }
+
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
         offer(value)
     }
@@ -68,48 +110,20 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
     }
 }
 
-fun <T> ReceiveChannel<T>.launchConsumeEach(context: CoroutineContext = CommonPool, f: suspend (T) -> Unit) = launch(context) {
-    consumeEach {
-        f(it)
-    }
-}
-
 fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContext = CommonPool) = launch(context) {
     consumeEach {
         channel.send(it)
     }
 }
 
-fun <T> ReceiveChannel<T>.clone(capacity: Int = Channel.UNLIMITED): Pair<ReceiveChannel<T>, ReceiveChannel<T>> {
-    val channel1 = Channel<T>(capacity)
-    val channel2 = Channel<T>(capacity)
-    launch(CommonPool) {
-        consumeEach {
-            channel1.send(it)
-            channel2.send(it)
-        }
-    }
-    return channel1 to channel2
-}
-
-inline fun <E, R> SendChannel<E>.produceOnly(block: SendChannel<E>.() -> R): R =
-    try {
-        block()
-    } finally {
-        close()
-    }
-
 fun <T> channel(): Channel<T> = Channel(capacity = 32)
 
-// capacity = 2 to accomodate the closeToken being sent.
+// capacity = 2 to accommodate the closeToken being sent.
 fun <T> singleValueChannel(value: T): ReceiveChannel<T> = Channel<T>(capacity = 2).apply { offer(value); close() }
 
 fun <T> conflatedChannel(): ConflatedChannel<T> = ConflatedChannel()
-fun <T> conflatedChannel(initial: T): ConflatedChannel<T> = conflatedChannel<T>().apply {
-    offer(initial)
-}
 
-// TODO: Be VERY careful with this, it will only return a value for the first time it's read! Add a global cache? How to clean it?
+// FIXME: Get rid of this.
 operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
 operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
     offer(value)
@@ -147,23 +161,43 @@ fun <A, B> ReceiveChannel<A>.combineLatest(
     return channel
 }
 
+fun <A, B> BroadcastReceiveChannel<A>.combineLatest(
+    other: BroadcastReceiveChannel<B>,
+    context: CoroutineContext = CommonPool
+): BroadcastEventChannel<Pair<A, B>> {
+    val channel = BroadcastEventChannel.conflated<Pair<A, B>>()
+    val sourceA: ReceiveChannel<A> = this@combineLatest.subscribe()
+    val sourceB: ReceiveChannel<B> = other.subscribe()
+
+    var latestA: A? = null
+    var latestB: B? = null
+
+    launch(context) {
+        sourceA.consumeEach { a ->
+            latestA = a
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+    }
+
+    launch(context) {
+        sourceB.consumeEach { b ->
+            latestB = b
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+    }
+
+    return channel
+}
+
 fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Unconfined): ReceiveChannel<T> {
     var last: T? = null
     return filter(context) {
         val keep = it != last
         last = it
         keep
-    }
-}
-
-fun <T> ReceiveChannel<T>.zipWithPrevious(context: CoroutineContext = Unconfined): ReceiveChannel<Pair<T, T>> {
-    var last: T? = null
-    return produce(context) {
-        consumeEach {
-            if (last != null) {
-                send(last!! to it)
-            }
-            last = it
-        }
     }
 }
