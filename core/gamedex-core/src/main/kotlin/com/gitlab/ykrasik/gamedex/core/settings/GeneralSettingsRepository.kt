@@ -14,16 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.log
+package com.gitlab.ykrasik.gamedex.core.settings
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 12:55
+ * Date: 01/05/2017
+ * Time: 19:10
  */
-interface ViewWithLogLevel {
-    var level: String
-    val levelChanges: ReceiveChannel<String>
+class GeneralSettingsRepository : SettingsRepository<GeneralSettingsRepository.Data>("general", Data::class) {
+    data class Data(
+        val prevDirectory: File,
+        val exportDbDirectory: File,
+        val logFilterLevel: LogLevel,
+        val logTail: Boolean
+    )
+
+    override fun defaultSettings() = Data(
+        prevDirectory = File("."),
+        exportDbDirectory = File("."),
+        logFilterLevel = LogLevel.Info,
+        logTail = true
+    )
+
+    val prevDirectoryChannel = map(Data::prevDirectory) { copy(prevDirectory = it) }
+    var prevDirectory by prevDirectoryChannel
+
+    val exportDbDirectoryChannel = map(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
+    var exportDbDirectory by exportDbDirectoryChannel
+
+    val logFilterLevelChannel = map(Data::logFilterLevel) { copy(logFilterLevel = it) }
+    var logFilterLevel by logFilterLevelChannel
+
+    val logTailChannel = map(Data::logTail) { copy(logTail = it) }
+    var logTail by logTailChannel
 }

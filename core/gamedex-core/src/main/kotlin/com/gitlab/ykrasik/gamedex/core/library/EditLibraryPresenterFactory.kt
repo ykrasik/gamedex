@@ -24,8 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -41,10 +40,8 @@ class EditLibraryPresenterFactory @Inject constructor(
     private val taskRunner: TaskRunner,
     private val libraryService: LibraryService,
     private val viewManager: ViewManager,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) : PresenterFactory<EditLibraryView> {
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
-
     override fun present(view: EditLibraryView) = object : Presenter() {
         init {
             view.nameChanges.subscribeOnUi { onNameChanged() }
@@ -110,9 +107,9 @@ class EditLibraryPresenterFactory @Inject constructor(
         private val isAvailableUpdatedPath get() = view.library != null && libraryService.isAvailableUpdatedPath(view.library!!, view.path.toFile())
 
         private fun onBrowse() {
-            val initialDirectory = generalUserConfig.prevDirectory.existsOrNull()
+            val initialDirectory = settingsService.general.prevDirectory.existsOrNull()
             val selectedDirectory = view.selectDirectory(initialDirectory) ?: return
-            generalUserConfig.prevDirectory = selectedDirectory
+            settingsService.general.prevDirectory = selectedDirectory
             view.path = selectedDirectory.toString()
             if (view.name.isEmpty()) {
                 view.name = selectedDirectory.name

@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameCellDisplayS
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.userconfig.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 

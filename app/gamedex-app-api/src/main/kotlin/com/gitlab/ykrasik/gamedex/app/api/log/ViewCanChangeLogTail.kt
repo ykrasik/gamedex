@@ -14,52 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.userconfig
+package com.gitlab.ykrasik.gamedex.app.api.log
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Singleton
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 09/06/2018
- * Time: 22:04
+ * Date: 06/05/2018
+ * Time: 12:57
  */
-@ImplementedBy(SettingsServiceImpl::class)
-interface SettingsService {
-    val gameDisplay: GameDisplaySettingsRepository
-
-    fun saveSnapshot()
-    fun revertSnapshot()
-    fun commitSnapshot()
-    fun restoreDefaults()
-}
-
-@Singleton
-class SettingsServiceImpl : SettingsService {
-    override val gameDisplay = GameDisplaySettingsRepository()
-
-    private val all = listOf(gameDisplay)
-
-    override fun saveSnapshot() = withSettings {
-        disableWrite()
-        saveSnapshot()
-    }
-
-    override fun revertSnapshot() = withSettings {
-        restoreSnapshot()
-        enableWrite()
-        clearSnapshot()
-    }
-
-    override fun commitSnapshot() = withSettings {
-        enableWrite()
-        flush()
-        clearSnapshot()
-    }
-
-    override fun restoreDefaults() = withSettings {
-        restoreDefaults()
-    }
-
-    private inline fun withSettings(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
+interface ViewCanChangeLogTail {
+    var logTail: Boolean
+    val logTailChanges: ReceiveChannel<Boolean>
 }

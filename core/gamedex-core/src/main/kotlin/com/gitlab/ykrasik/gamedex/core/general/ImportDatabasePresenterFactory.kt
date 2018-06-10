@@ -20,8 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,21 +31,19 @@ import javax.inject.Singleton
  */
 @Singleton
 class ImportDatabasePresenterFactory @Inject constructor(
-    private val generalSettingsService: GeneralSettingsService,
+    private val databaseActionsService: DatabaseActionsService,
     private val taskRunner: TaskRunner,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) : PresenterFactory<ImportDatabaseView> {
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
-
     override fun present(view: ImportDatabaseView) = object : Presenter() {
         init {
             view.importDatabaseActions.actionOnUi { importDatabase() }
         }
 
         private suspend fun importDatabase() {
-            val file = view.selectDatabaseImportFile(generalUserConfig.exportDbDirectory) ?: return
+            val file = view.selectDatabaseImportFile(settingsService.general.exportDbDirectory) ?: return
             if (view.confirmImportDatabase()) {
-                taskRunner.runTask(generalSettingsService.importDatabase(file))
+                taskRunner.runTask(databaseActionsService.importDatabase(file))
             }
         }
     }

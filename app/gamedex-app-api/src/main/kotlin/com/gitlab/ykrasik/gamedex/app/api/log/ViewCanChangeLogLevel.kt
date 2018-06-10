@@ -21,9 +21,9 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 12:57
+ * Time: 12:55
  */
-interface ViewWithLogTail {
-    var logTail: Boolean
-    val logTailChanges: ReceiveChannel<Boolean>
+interface ViewCanChangeLogLevel {
+    var level: LogLevel
+    val levelChanges: ReceiveChannel<LogLevel>
 }

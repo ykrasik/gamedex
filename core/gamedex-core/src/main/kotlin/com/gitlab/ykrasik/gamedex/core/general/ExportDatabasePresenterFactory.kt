@@ -20,8 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone
 import java.nio.file.Paths
@@ -35,11 +34,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class ExportDatabasePresenterFactory @Inject constructor(
-    private val generalSettingsService: GeneralSettingsService,
+    private val databaseActionsService: DatabaseActionsService,
     private val taskRunner: TaskRunner,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) : PresenterFactory<ExportDatabaseView> {
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
 
     override fun present(view: ExportDatabaseView) = object : Presenter() {
         init {
@@ -47,8 +45,8 @@ class ExportDatabasePresenterFactory @Inject constructor(
         }
 
         private suspend fun exportDatabase() {
-            val selectedDirectory = view.selectDatabaseExportDirectory(generalUserConfig.exportDbDirectory) ?: return
-            generalUserConfig.exportDbDirectory = selectedDirectory
+            val selectedDirectory = view.selectDatabaseExportDirectory(settingsService.general.exportDbDirectory) ?: return
+            settingsService.general.exportDbDirectory = selectedDirectory
             val timestamp = now.withZone(DateTimeZone.getDefault())
             val timestamptedPath = Paths.get(
                 selectedDirectory.toString(),
@@ -56,7 +54,7 @@ class ExportDatabasePresenterFactory @Inject constructor(
                 "db_${timestamp.toString("HH_mm_ss")}.json"
             ).toFile()
 
-            taskRunner.runTask(generalSettingsService.exportDatabase(timestamptedPath))
+            taskRunner.runTask(databaseActionsService.exportDatabase(timestamptedPath))
             view.browseDirectory(timestamptedPath.parentFile)
         }
     }

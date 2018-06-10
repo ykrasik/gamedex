@@ -16,43 +16,52 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
-import java.io.File
-import javax.inject.Singleton
+import com.google.inject.ImplementedBy
+import com.google.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 19:10
+ * Date: 09/06/2018
+ * Time: 22:04
  */
+@ImplementedBy(SettingsServiceImpl::class)
+interface SettingsService {
+    val general: GeneralSettingsRepository
+    val gameDisplay: GameDisplaySettingsRepository
+
+    fun saveSnapshot()
+    fun revertSnapshot()
+    fun commitSnapshot()
+    fun restoreDefaults()
+}
+
 @Singleton
-class GeneralUserConfig : UserConfig() {
-    override val scope = UserConfigScope("general") {
-        Data(
-            prevDirectory = File("."),
-            exportDbDirectory = File("."),
-            logFilterLevel = "Info",
-            logTail = true
-        )
+class SettingsServiceImpl : SettingsService {
+    override val general = GeneralSettingsRepository()
+    override val gameDisplay = GameDisplaySettingsRepository()
+
+    private val all = listOf(gameDisplay, general)
+
+    override fun saveSnapshot() = withSettings {
+        disableWrite()
+        saveSnapshot()
     }
 
-    val prevDirectorySubject = scope.subject(Data::prevDirectory) { copy(prevDirectory = it) }
-    var prevDirectory by prevDirectorySubject
+    override fun revertSnapshot() = withSettings {
+        restoreSnapshot()
+        enableWrite()
+        clearSnapshot()
+    }
 
-    val exportDbDirectorySubject = scope.subject(Data::exportDbDirectory) { copy(exportDbDirectory = it) }
-    var exportDbDirectory by exportDbDirectorySubject
+    override fun commitSnapshot() = withSettings {
+        enableWrite()
+        flush()
+        clearSnapshot()
+    }
 
-    val logFilterLevelSubject = scope.subject(Data::logFilterLevel) { copy(logFilterLevel = it) }
-    var logFilterLevel by logFilterLevelSubject
+    override fun restoreDefaults() = withSettings {
+        restoreDefaults()
+    }
 
-    val logTailSubject = scope.subject(Data::logTail) { copy(logTail = it) }
-    var logTail by logTailSubject
-
-    data class Data(
-        val prevDirectory: File,
-        val exportDbDirectory: File,
-        val logFilterLevel: String,
-        val logTail: Boolean
-    )
+    private inline fun withSettings(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
 }

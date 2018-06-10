@@ -19,8 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.userconfig.GameDisplaySettingsRepository
-import com.gitlab.ykrasik.gamedex.core.userconfig.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 

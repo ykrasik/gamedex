@@ -47,8 +47,8 @@ import javax.inject.Singleton
  * Date: 01/04/2018
  * Time: 18:11
  */
-@ImplementedBy(GeneralSettingsServiceImpl::class)
-interface GeneralSettingsService {
+@ImplementedBy(DatabaseActionsServiceImpl::class)
+interface DatabaseActionsService {
     fun importDatabase(file: File): Task<Unit>
     fun exportDatabase(file: File): Task<Unit>
 
@@ -59,12 +59,12 @@ interface GeneralSettingsService {
 }
 
 @Singleton
-class GeneralSettingsServiceImpl @Inject constructor(
+class DatabaseActionsServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
     private val imageRepository: ImageRepository,
     private val persistenceService: PersistenceService
-) : GeneralSettingsService {
+) : DatabaseActionsService {
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
         .registerModule(JodaModule())

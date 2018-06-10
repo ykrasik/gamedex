@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeMetaTagOverlayDisplaySettings
@@ -32,7 +32,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:21
  */
-class JavaFxGameDisplaySettingsView : PresentableView("Game Display Settings", Theme.Icon.games()),
+class JavaFxGameDisplaySettingsView : PresentableView("Game Display", Theme.Icon.games()),
     ViewCanChangeGameCellDisplaySettings, ViewCanChangeNameOverlayDisplaySettings,
     ViewCanChangeMetaTagOverlayDisplaySettings, ViewCanChangeVersionOverlayDisplaySettings {
 

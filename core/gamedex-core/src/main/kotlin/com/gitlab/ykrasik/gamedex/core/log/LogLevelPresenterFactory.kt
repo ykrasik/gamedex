@@ -16,30 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogLevel
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LogLevelPresenterFactory @Inject constructor(
-    userConfigRepository: UserConfigRepository
-) : PresenterFactory<ViewWithLogLevel> {
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
-
-    override fun present(view: ViewWithLogLevel) = object : Presenter() {
+class LogLevelPresenterFactory @Inject constructor(private val settingsService: SettingsService) : PresenterFactory<ViewCanChangeLogLevel> {
+    override fun present(view: ViewCanChangeLogLevel) = object : Presenter() {
         init {
-            generalUserConfig.logFilterLevelSubject.subscribe {
-                view.level = it
-            }
-            view.levelChanges.subscribeOnUi(::onLevelChanged)
-        }
-
-        private fun onLevelChanged(level: String) {
-            generalUserConfig.logFilterLevel = level
+            settingsService.general.logFilterLevelChannel.bind(view::level, view.levelChanges)
         }
     }
 }

@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ClearUserDataPresenterFactory @Inject constructor(
-    private val generalSettingsService: GeneralSettingsService,
+    private val databaseActionsService: DatabaseActionsService,
     private val taskRunner: TaskRunner
 ) : PresenterFactory<ClearUserDataView> {
     override fun present(view: ClearUserDataView) = object : Presenter() {
@@ -40,7 +40,7 @@ class ClearUserDataPresenterFactory @Inject constructor(
 
         private suspend fun clearUserData() {
             if (view.confirmClearUserData()) {
-                taskRunner.runTask(generalSettingsService.deleteAllUserData())
+                taskRunner.runTask(databaseActionsService.deleteAllUserData())
             }
         }
     }

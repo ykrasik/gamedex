@@ -27,4 +27,14 @@ interface ViewWithLogEntries {
     val entries: MutableList<LogEntry>
 }
 
-data class LogEntry(val level: String, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
+data class LogEntry(val level: LogLevel, val timestamp: DateTime, val loggerName: String, val message: String, val throwable: Throwable?)
+
+enum class LogLevel(val displayName: String) {
+    Trace("Trace"),
+    Debug("Debug"),
+    Info("Info"),
+    Warn("Warn"),
+    Error("Error");
+
+    override fun toString() = displayName
+}

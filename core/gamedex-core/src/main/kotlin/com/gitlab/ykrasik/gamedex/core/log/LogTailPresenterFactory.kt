@@ -16,30 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogTail
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.settings.GeneralUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LogTailPresenterFactory @Inject constructor(
-    userConfigRepository: UserConfigRepository
-) : PresenterFactory<ViewWithLogTail> {
-    private val generalUserConfig = userConfigRepository[GeneralUserConfig::class]
-
-    override fun present(view: ViewWithLogTail) = object : Presenter() {
+class LogTailPresenterFactory @Inject constructor(private val settingsService: SettingsService) : PresenterFactory<ViewCanChangeLogTail> {
+    override fun present(view: ViewCanChangeLogTail) = object : Presenter() {
         init {
-            generalUserConfig.logTailSubject.subscribe {
-                view.logTail = it
-            }
-            view.logTailChanges.subscribeOnUi(::onLogTailChanged)
-        }
-
-        private fun onLogTailChanged(logTail: Boolean) {
-            generalUserConfig.logTail = logTail
+            settingsService.general.logTailChannel.bind(view::logTail, view.logTailChanges)
         }
     }
 }

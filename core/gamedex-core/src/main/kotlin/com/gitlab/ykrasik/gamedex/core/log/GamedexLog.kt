@@ -22,6 +22,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
+import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import org.joda.time.DateTime
@@ -49,7 +50,7 @@ object GamedexLog {
 class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
     override fun append(e: ILoggingEvent) {
         GamedexLog += LogEntry(
-            level = e.level.toString().toLowerCase(),
+            level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
             timestamp = DateTime(e.timeStamp),
             loggerName = e.loggerName,
             message = e.message,

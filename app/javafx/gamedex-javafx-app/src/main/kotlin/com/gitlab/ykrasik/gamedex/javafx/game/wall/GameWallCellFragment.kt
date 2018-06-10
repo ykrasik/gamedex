@@ -18,11 +18,11 @@ package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
+import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxCellDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.settings.JavaFxOverlayDisplaySettings
 import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty

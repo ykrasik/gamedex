@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CleanupDbPresenterFactory @Inject constructor(
-    private val generalSettingsService: GeneralSettingsService,
+    private val databaseActionsService: DatabaseActionsService,
     private val taskRunner: TaskRunner
 ) : PresenterFactory<CleanupDbView> {
     override fun present(view: CleanupDbView) = object : Presenter() {
@@ -39,12 +39,12 @@ class CleanupDbPresenterFactory @Inject constructor(
         }
 
         private suspend fun cleanupDb() {
-            val staleData = taskRunner.runTask(generalSettingsService.detectStaleData())
+            val staleData = taskRunner.runTask(databaseActionsService.detectStaleData())
             if (staleData.isEmpty) return
 
             if (view.confirmDeleteStaleData(staleData)) {
                 // TODO: Create backup before deleting
-                taskRunner.runTask(generalSettingsService.deleteStaleData(staleData))
+                taskRunner.runTask(databaseActionsService.deleteStaleData(staleData))
             }
         }
     }

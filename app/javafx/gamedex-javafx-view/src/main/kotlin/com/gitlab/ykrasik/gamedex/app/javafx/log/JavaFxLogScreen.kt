@@ -17,15 +17,12 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
-import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogLevel
-import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogTail
+import com.gitlab.ykrasik.gamedex.app.api.log.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleStringProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ListCell
 import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
@@ -39,11 +36,11 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewWithLogLevel, ViewWithLogTail {
+class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewCanChangeLogLevel, ViewCanChangeLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
-    override val levelChanges = channel<String>()
-    private val levelProperty = SimpleStringProperty("").eventOnChange(levelChanges)
+    override val levelChanges = channel<LogLevel>()
+    private val levelProperty = SimpleObjectProperty(LogLevel.Info).eventOnChange(levelChanges)
     override var level by levelProperty
 
     override val logTailChanges = channel<Boolean>()
@@ -61,13 +58,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
     }
 
     override fun ToolBar.constructToolbar() {
-        header("Level").labelFor =
-            popoverComboMenu(
-                possibleItems = listOf(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR).map { it.levelStr.toLowerCase().capitalize() },
-                selectedItemProperty = levelProperty
-            ).apply {
-                minWidth = 60.0
-            }
+        labeled("Level") { enumComboMenu(levelProperty) }
         jfxCheckBox(logTailProperty, "Tail")
     }
 
@@ -125,7 +116,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
         }
     }
 
-    private fun String.toLevel() = Level.toLevel(this)
+    private fun LogLevel.toLevel() = Level.toLevel(this.toString())
 
     class Style : Stylesheet() {
         companion object {

@@ -16,10 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameDisplaySettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.core.userconfig.SettingsService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.jfoenix.controls.JFXToggleNode

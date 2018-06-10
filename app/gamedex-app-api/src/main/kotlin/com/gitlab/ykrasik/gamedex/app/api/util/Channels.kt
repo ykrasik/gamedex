@@ -114,10 +114,6 @@ operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<
 operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
     offer(value)
 }
-//operator fun <T> ReceiveChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
-//operator fun <T> SendChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
-//    offer(value)
-//}
 
 fun <A, B> ReceiveChannel<A>.combineLatest(
     other: ReceiveChannel<B>,
@@ -155,7 +151,6 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Uncon
     var last: T? = null
     return filter(context) {
         val keep = it != last
-        if (keep) println("distinctUntilChanged: $last -> $it")
         last = it
         keep
     }
