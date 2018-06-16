@@ -100,7 +100,7 @@ class PreloaderImpl : Preloader {
 
             injector
         }
-        log.info("Application loaded in ${millisTaken.toHumanReadableDuration()}")
+        log.info("Application loading took ${millisTaken.toHumanReadableDuration()}")
 
         return@withContext injector
     }

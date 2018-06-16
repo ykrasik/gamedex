@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
-import org.h2.jdbc.JdbcSQLException
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 /**
  * User: ykrasik
@@ -89,7 +89,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val path = randomPath()
                 givenGame(path = path)
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     insertGame(path = path)
                 }
             }
@@ -107,7 +107,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "throw an exception when trying to insert a game for a non-existing library" test {
                 val library = givenLibrary()
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     insertGame(library = library.copy(id = library.id + 1))
                 }
             }
@@ -185,7 +185,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val game1 = givenGame(library)
                 val game2 = givenGame(library)
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     persistenceService.updateGame(game1.withMetadata { it.copy(path = game2.metadata.path) })
                 }
 
@@ -210,7 +210,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val library2 = givenLibrary()
                 val game2 = givenGame(library = library2, path = path)
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     persistenceService.updateGame(game1.withMetadata(randomMetadata(library = library2, path = path)))
                 }
 
@@ -220,7 +220,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "throw an exception when trying to update a game to a non-existing library" test {
                 val game = givenGame()
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     persistenceService.updateGame(game.withMetadata(randomMetadata(library = library.copy(id = library.id + 1))))
                 }
             }

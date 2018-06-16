@@ -30,9 +30,9 @@ import kotlin.reflect.KProperty
  * Time: 11:15
  */
 interface BroadcastReceiveChannel<out T> {
-    fun subscribe(): SubscriptionReceiveChannel<T>
+    fun subscribe(): ReceiveChannel<T>
 
-    fun subscribe(context: CoroutineContext = DefaultDispatcher, f: suspend (T) -> Unit): SubscriptionReceiveChannel<T> {
+    fun subscribe(context: CoroutineContext = DefaultDispatcher, f: suspend (T) -> Unit): ReceiveChannel<T> {
         val subscription = subscribe()
         launch(context) {
             subscription.consumeEach {
@@ -43,7 +43,7 @@ interface BroadcastReceiveChannel<out T> {
     }
 
     fun peek(): T? = subscribe().let { subscription ->
-        subscription.poll().apply { subscription.close() }
+        subscription.poll().apply { subscription.cancel() }
     }
 
     operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!

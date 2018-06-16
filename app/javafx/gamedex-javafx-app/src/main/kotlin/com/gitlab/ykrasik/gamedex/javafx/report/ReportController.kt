@@ -33,7 +33,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ProgressIndicator
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.channels.SubscriptionReceiveChannel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
@@ -93,7 +93,7 @@ class ReportController @Inject constructor(
         val resultsProperty: Property<MultiMap<Game, FilterContextImpl.AdditionalData>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
-        private var subscription: SubscriptionReceiveChannel<*>? = null
+        private var subscription: ReceiveChannel<*>? = null
 
         val isCalculatingProperty = SimpleBooleanProperty(false)
         private var isCalculating by isCalculatingProperty

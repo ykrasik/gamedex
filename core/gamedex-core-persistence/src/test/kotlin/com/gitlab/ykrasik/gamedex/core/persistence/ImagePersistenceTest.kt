@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 import com.gitlab.ykrasik.gamedex.test.randomUrl
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
-import org.h2.jdbc.JdbcSQLException
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 /**
  * User: ykrasik
@@ -60,7 +60,7 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
                 val url = randomUrl()
                 givenImage(url = url)
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     insertImage(url = url)
                 }
             }
@@ -71,7 +71,7 @@ class ImagePersistenceTest : AbstractPersistenceTest() {
 
                 val game2 = givenGame()
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     insertImage(game = game2, url = url)
                 }
             }

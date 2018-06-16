@@ -84,8 +84,8 @@ class IgdbProviderContractTest : ScopedWordSpec() {
     val releaseDate = "2016-08-12"
     val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 30)
     val Score?.verifiedUserScore get() = assertScore(min = 62, max = 66, numReviews = 80)
-    val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/sixpdbypwojsyly22a1l.jpg"
-    val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/sixpdbypwojsyly22a1l.jpg"
+    val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/ppt92xozmp6fcaxfce0h.jpg"
+    val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/ppt92xozmp6fcaxfce0h.jpg"
     val url = "https://www.igdb.com/games/no-man-s-sky"
     val description =
         "Inspired by the adventure and imagination that we love from classic science-fiction, No Man's Sky presents you with a galaxy to explore, filled with unique planets and lifeforms, and constant danger and action. \n \nIn No Man's Sky, every star is the light of a distant sun, each orbited by planets filled with life, and you can go to any of them you choose. Fly smoothly from deep space to planetary surfaces, with no loading screens, and no limits. In this infinite procedurally generated universe, you'll discover places and creatures that no other players have seen before - and perhaps never will again."

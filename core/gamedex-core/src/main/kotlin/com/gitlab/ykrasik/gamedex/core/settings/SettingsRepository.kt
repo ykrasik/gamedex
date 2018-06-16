@@ -42,7 +42,7 @@ abstract class SettingsRepository<T : Any>(private val name: String, klass: KCla
         if (file.exists()) {
             try {
                 log.info("Reading $file...")
-                log.time({ "Read $file in $it" }) {
+                log.time({ "Reading $file took $it" }) {
                     file.readJson(klass)
                 }
             } catch (e: Exception) {

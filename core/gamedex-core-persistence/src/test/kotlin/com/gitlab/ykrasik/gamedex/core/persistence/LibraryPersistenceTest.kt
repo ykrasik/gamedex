@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
-import org.h2.jdbc.JdbcSQLException
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 
 /**
  * User: ykrasik
@@ -54,7 +54,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
                 val path = randomPath()
                 val library = givenLibrary(path = path)
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     insertLibrary(path = path)
                 }
 
@@ -92,7 +92,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
 
                 val updatedLibrary = library2.copy(data = library2.data.copy(path = library1.path))
 
-                shouldThrow<JdbcSQLException> {
+                shouldThrow<ExposedSQLException> {
                     persistenceService.updateLibrary(updatedLibrary)
                 }
 

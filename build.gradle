@@ -7,9 +7,8 @@ buildscript {
         appVersion = '0.1.0'
         javaMaxHeap = '3g'
 
-        kotlin_version = '1.2.41'
         ktlin = [:].with {
-            v = '1.2.41'
+            v = '1.2.50'
             majorV = '1.2'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -19,7 +18,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.22.5'
+            v = '0.23.3'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             rx2 = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-rx2', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
@@ -42,12 +41,12 @@ buildscript {
 
         guava = [group: 'com.google.guava', name: 'guava', version: '25.1-jre']
 
-        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.9.9']
+        jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.10']
 
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.9.1'
+            v = '2.9.6'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -55,7 +54,7 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.2']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.3']
 
         rx = [:].with {
             rxKotlin = [group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: '2.2.0']
@@ -88,10 +87,10 @@ buildscript {
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             delegate
         }
-        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.17.0']
+        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.18.0']
 
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
-        gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.17.0']
+        gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.19.0']
         gradleLicense = [group: 'gradle.plugin.nl.javadude.gradle.plugins', name: 'license-gradle-plugin', version: '0.14.0']
     }
 

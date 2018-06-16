@@ -59,7 +59,7 @@ object CoreModule : AbstractModule() {
     override fun configure() {
         // Install all providers detected by classpath scan
         log.info { "Detecting providers..." }
-        log.time({ "Detected providers in $it" }) {
+        log.time({ "Detecting providers took $it" }) {
             ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class).forEach {
                 install(it.kotlin.objectInstance!!)
             }
@@ -85,7 +85,7 @@ object CoreModule : AbstractModule() {
     @Singleton
     fun config(): Config {
         log.info("Detecting configuration...")
-        val configurationFiles = log.time({ "Detected configuration in $it" }) {
+        val configurationFiles = log.time({ "Detecting configuration took $it" }) {
             ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
                 it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
             }
@@ -93,7 +93,7 @@ object CoreModule : AbstractModule() {
 
         // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
         log.info("Loading configuration...")
-        return log.time({ "Loaded configuration in $it" }) {
+        return log.time({ "Loading configuration took $it" }) {
             configurationFiles.fold(ConfigFactory.load()) { current, url ->
                 current.withFallback(ConfigFactory.parseURL(url))
             }
