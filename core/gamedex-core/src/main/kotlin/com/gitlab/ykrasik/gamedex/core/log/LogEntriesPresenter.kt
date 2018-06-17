@@ -14,20 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
- */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class LogEntriesPresenter : Presenter<ViewWithLogEntries> {
+    override fun present(view: ViewWithLogEntries) = object : Presentation() {
+        init {
+            GamedexLog.entries.bindTo(view.entries)
+        }
+    }
 }

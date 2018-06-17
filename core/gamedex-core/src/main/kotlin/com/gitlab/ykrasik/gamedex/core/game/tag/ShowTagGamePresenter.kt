@@ -14,20 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.tag
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 01/06/2018
+ * Time: 10:16
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class ShowTagGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanTagGame> {
+    override fun present(view: ViewCanTagGame) = object : Presentation() {
+        init {
+            view.tagGameActions.actionOnUi { game ->
+                viewManager.showTagGameView {
+                    this.game = game
+                }
+            }
+        }
+    }
 }

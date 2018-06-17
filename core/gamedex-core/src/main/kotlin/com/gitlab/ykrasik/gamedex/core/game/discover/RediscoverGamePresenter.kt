@@ -14,20 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRediscoverGame
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 06/05/2018
+ * Time: 10:05
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
+@Singleton
+class RediscoverGamePresenter @Inject constructor(
+    private val gameDiscoveryService: GameDiscoveryService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanRediscoverGame> {
+    override fun present(view: ViewCanRediscoverGame) = object : Presentation() {
+        init {
+            view.rediscoverGameActions.actionOnUi { rediscoverGame(it) }
+        }
 
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+        private suspend fun rediscoverGame(game: Game) {
+            taskRunner.runTask(gameDiscoveryService.rediscoverGame(game))
+        }
+    }
 }

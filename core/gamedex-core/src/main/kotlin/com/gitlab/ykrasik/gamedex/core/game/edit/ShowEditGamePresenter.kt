@@ -14,20 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.edit
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 31/05/2018
+ * Time: 10:22
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class ShowEditGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditGame> {
+    override fun present(view: ViewCanEditGame) = object : Presentation() {
+        init {
+            view.editGameActions.actionOnUi { (game, initialScreen) ->
+                viewManager.showEditGameView {
+                    this.game = game
+                    this.initialScreen = initialScreen
+                }
+            }
+        }
+    }
 }

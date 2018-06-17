@@ -17,37 +17,37 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.GamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.all.SearchGamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.all.SelectPlatformPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.all.SortGamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.details.ShowGameDetailsPreseneterFactory
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverNewGamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.discover.RediscoverGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.general.CleanupDbPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.general.ClearUserDataPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.general.ExportDatabasePresenterFactory
-import com.gitlab.ykrasik.gamedex.core.general.ImportDatabasePresenterFactory
+import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenter
+import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenter
+import com.gitlab.ykrasik.gamedex.core.game.GamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.all.SearchGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.all.SelectPlatformPresenter
+import com.gitlab.ykrasik.gamedex.core.game.all.SortGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenter
+import com.gitlab.ykrasik.gamedex.core.game.details.ShowGameDetailsPreseneter
+import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenter
+import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenter
+import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverNewGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.discover.RediscoverGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPresenter
+import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenter
+import com.gitlab.ykrasik.gamedex.core.general.CleanupDbPresenter
+import com.gitlab.ykrasik.gamedex.core.general.ClearUserDataPresenter
+import com.gitlab.ykrasik.gamedex.core.general.ExportDatabasePresenter
+import com.gitlab.ykrasik.gamedex.core.general.ImportDatabasePresenter
 import com.gitlab.ykrasik.gamedex.core.library.*
-import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenterFactory
-import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenterFactory
+import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
+import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
+import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
 import com.gitlab.ykrasik.gamedex.core.settings.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -60,59 +60,59 @@ import kotlin.reflect.KClass
  */
 @Singleton
 class ViewRegistryImpl @Inject constructor(
-    libraries: LibrariesPresenterFactory,
-    showAddLibrary: ShowAddLibraryPresenterFactory,
-    showEditLibrary: ShowEditLibraryPresenterFactory,
-    editLibrary: EditLibraryPresenterFactory,
-    showDeleteLibrary: ShowDeleteLibraryPresenterFactory,
-    deleteLibrary: DeleteLibraryPresenterFactory,
+    libraries: LibrariesPresenter,
+    showAddLibrary: ShowAddLibraryPresenter,
+    showEditLibrary: ShowEditLibraryPresenter,
+    editLibrary: EditLibraryPresenter,
+    showDeleteLibrary: ShowDeleteLibraryPresenter,
+    deleteLibrary: DeleteLibraryPresenter,
 
-    selectPlatform: SelectPlatformPresenterFactory,
+    selectPlatform: SelectPlatformPresenter,
 
-    games: GamesPresenterFactory,
-    searchGames: SearchGamesPresenterFactory,
-    sortGames: SortGamesPresenterFactory,
+    games: GamesPresenter,
+    searchGames: SearchGamesPresenter,
+    sortGames: SortGamesPresenter,
 
-    showGameDetails: ShowGameDetailsPreseneterFactory,
-    gameDetails: GameDetailsPresenterFactory,
-    redownloadGame: RedownloadGamePresenterFactory,
-    rediscoverGame: RediscoverGamePresenterFactory,
-    showEditGame: ShowEditGamePresenterFactory,
-    editGame: EditGamePresenterFactory,
-    showDeleteGame: ShowDeleteGamePresenterFactory,
-    deleteGame: DeleteGamePresenterFactory,
-    showRenameMoveGame: ShowRenameMoveGamePresenterFactory,
-    renameMoveGame: RenameMoveGamePresenterFactory,
-    showTagGame: ShowTagGamePresenterFactory,
-    tagGame: TagGamePresenterFactory,
-    gameDownloadStaleDuration: GameDownloadStaleDurationPresenterFactory,
-    redownloadAllStaleGames: RedownloadAllStaleGamesPresenterFactory,
-    discoverGameChooseResults: DiscoverGameChooseResultsPresenterFactory,
-    discoverNewGames: DiscoverNewGamesPresenterFactory,
-    discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenterFactory,
+    showGameDetails: ShowGameDetailsPreseneter,
+    gameDetails: GameDetailsPresenter,
+    redownloadGame: RedownloadGamePresenter,
+    rediscoverGame: RediscoverGamePresenter,
+    showEditGame: ShowEditGamePresenter,
+    editGame: EditGamePresenter,
+    showDeleteGame: ShowDeleteGamePresenter,
+    deleteGame: DeleteGamePresenter,
+    showRenameMoveGame: ShowRenameMoveGamePresenter,
+    renameMoveGame: RenameMoveGamePresenter,
+    showTagGame: ShowTagGamePresenter,
+    tagGame: TagGamePresenter,
+    gameDownloadStaleDuration: GameDownloadStaleDurationPresenter,
+    redownloadAllStaleGames: RedownloadAllStaleGamesPresenter,
+    discoverGameChooseResults: DiscoverGameChooseResultsPresenter,
+    discoverNewGames: DiscoverNewGamesPresenter,
+    discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenter,
 
-    menuGameFilter: MenuGameFilterPresenterFactory,
-    reportGameFilter: ReportGameFilterPresenterFactory,
+    menuGameFilter: MenuGameFilterPresenter,
+    reportGameFilter: ReportGameFilterPresenter,
 
-    exportDatabase: ExportDatabasePresenterFactory,
-    importDatabase: ImportDatabasePresenterFactory,
-    clearUserData: ClearUserDataPresenterFactory,
-    cleanupDb: CleanupDbPresenterFactory,
+    exportDatabase: ExportDatabasePresenter,
+    importDatabase: ImportDatabasePresenter,
+    clearUserData: ClearUserDataPresenter,
+    cleanupDb: CleanupDbPresenter,
 
-    changeGameCellDisplaySettings: ChangeGameCellDisplaySettingsPresenterFactory,
-    gameCellDisplaySettings: GameCellDisplaySettingsPresenterFactory,
-    changeGameNameOverlayDisplaySettings: ChangeGameNameOverlayDisplaySettingsPresenterFactory,
-    gameNameOverlayDisplaySettings: GameNameOverlayDisplaySettingsPresenterFactory,
-    changeGameMetaTagOverlayDisplaySettings: ChangeGameMetaTagOverlayDisplaySettingsPresenterFactory,
-    gameMetaTagOverlayDisplaySettings: GameMetaTagOverlayDisplaySettingsPresenterFactory,
-    changeGameVersionOverlayDisplaySettings: ChangeGameVersionOverlayDisplaySettingsPresenterFactory,
-    gameVersionOverlayDisplaySettings: GameVersionOverlayDisplaySettingsPresenterFactory,
+    changeGameCellDisplaySettings: ChangeGameCellDisplaySettingsPresenter,
+    gameCellDisplaySettings: GameCellDisplaySettingsPresenter,
+    changeGameNameOverlayDisplaySettings: ChangeGameNameOverlayDisplaySettingsPresenter,
+    gameNameOverlayDisplaySettings: GameNameOverlayDisplaySettingsPresenter,
+    changeGameMetaTagOverlayDisplaySettings: ChangeGameMetaTagOverlayDisplaySettingsPresenter,
+    gameMetaTagOverlayDisplaySettings: GameMetaTagOverlayDisplaySettingsPresenter,
+    changeGameVersionOverlayDisplaySettings: ChangeGameVersionOverlayDisplaySettingsPresenter,
+    gameVersionOverlayDisplaySettings: GameVersionOverlayDisplaySettingsPresenter,
 
-    logEntries: LogEntriesPresenterFactory,
-    logLevel: LogLevelPresenterFactory,
-    logTail: LogTailPresenterFactory
+    logEntries: LogEntriesPresenter,
+    logLevel: LogLevelPresenter,
+    logTail: LogTailPresenter
 ) : ViewRegistry {
-    private val presenterClasses: Map<KClass<*>, PresenterFactory<*>> = listOf(
+    private val presenterClasses: Map<KClass<*>, Presenter<*>> = listOf(
         presenter(libraries),
         presenter(showAddLibrary),
         presenter(showEditLibrary),
@@ -166,17 +166,17 @@ class ViewRegistryImpl @Inject constructor(
         presenter(logTail)
     ).toMap()
 
-    private val activePresenters = mutableMapOf<Any, List<Presenter>>()
+    private val activePresentations = mutableMapOf<Any, List<Presentation>>()
 
-    private inline fun <reified V : Any> presenter(factory: PresenterFactory<V>) = V::class to factory
+    private inline fun <reified V : Any> presenter(factory: Presenter<V>) = V::class to factory
 
     override fun register(view: Any) {
-        check(activePresenters.put(view, presentView(view)) == null) { "View already registered: $view" }
+        check(activePresentations.put(view, presentView(view)) == null) { "View already registered: $view" }
     }
 
-    private fun presentView(view: Any): List<Presenter> {
+    private fun presentView(view: Any): List<Presentation> {
         @Suppress("UNCHECKED_CAST")
-        fun <T> PresenterFactory<*>.doPresent() = (this as PresenterFactory<T>).present(view as T)
+        fun <T> Presenter<*>.doPresent() = (this as Presenter<T>).present(view as T)
 
         return view.javaClass.interfaces.map { iface ->
             presenterClasses[iface.kotlin]!!.doPresent<Any>()
@@ -184,19 +184,19 @@ class ViewRegistryImpl @Inject constructor(
     }
 
     override fun unregister(view: Any) {
-        val presentersToDestroy = checkNotNull(activePresenters.remove(view)) { "View not registered: $view" }
+        val presentersToDestroy = checkNotNull(activePresentations.remove(view)) { "View not registered: $view" }
         presentersToDestroy.forEach { it.destroy() }
     }
 
     override fun onShow(view: Any) {
         println("$view: Showing")
         // TODO: Eventually, make it activePresenters[view]!!
-        activePresenters[view]?.forEach { it.show() }
+        activePresentations[view]?.forEach { it.show() }
     }
 
     override fun onHide(view: Any) {
         println("$view: Hidden")
         // TODO: Eventually, make it activePresenters[view]!!
-        activePresenters[view]?.forEach { it.hide() }
+        activePresentations[view]?.forEach { it.hide() }
     }
 }

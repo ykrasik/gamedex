@@ -14,20 +14,34 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 06/05/2018
+ * Time: 13:15
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
+@Singleton
+class ClearUserDataPresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<ClearUserDataView> {
+    override fun present(view: ClearUserDataView) = object : Presentation() {
+        init {
+            view.clearUserDataActions.actionOnUi { clearUserData() }
+        }
 
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+        private suspend fun clearUserData() {
+            if (view.confirmClearUserData()) {
+                taskRunner.runTask(databaseActionsService.deleteAllUserData())
+            }
+        }
+    }
 }

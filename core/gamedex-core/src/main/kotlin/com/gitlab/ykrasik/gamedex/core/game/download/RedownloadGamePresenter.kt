@@ -14,20 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.download
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
- */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
+@Singleton
+class RedownloadGamePresenter @Inject constructor(
+    private val gameDownloadService: GameDownloadService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanRedownloadGame> {
+    override fun present(view: ViewCanRedownloadGame) = object : Presentation() {
+        init {
+            view.redownloadGameActions.actionOnUi { redownloadGame(it) }
+        }
 
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+        private suspend fun redownloadGame(game: Game) {
+            taskRunner.runTask(gameDownloadService.redownloadGame(game))
+        }
+    }
 }

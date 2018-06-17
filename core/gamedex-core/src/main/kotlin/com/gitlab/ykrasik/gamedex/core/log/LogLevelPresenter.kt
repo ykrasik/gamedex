@@ -14,20 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.log
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogLevel
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
- */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class LogLevelPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogLevel> {
+    override fun present(view: ViewCanChangeLogLevel) = object : Presentation() {
+        init {
+            settingsService.general.bind({ logFilterLevelChannel }, view::level, view.levelChanges) { copy(logFilterLevel = it) }
+        }
+    }
 }

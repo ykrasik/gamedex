@@ -14,20 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.all
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 06/06/2018
- * Time: 09:43
+ * Time: 10:24
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
+@Singleton
+class SearchGamesPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewCanSearchGames> {
+    override fun present(view: ViewCanSearchGames) = object : Presentation() {
+        init {
+            view.searchText = settingsService.game.currentPlatformSettings.search
+            view.searchTextChanges.subscribeOnUi(::onSearchTextChanged)
+        }
 
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+        private fun onSearchTextChanged(searchText: String) {
+            settingsService.game.modifyCurrentPlatformSettings { copy(search = searchText) }
+        }
+    }
 }

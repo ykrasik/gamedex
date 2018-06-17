@@ -14,20 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.discover
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 29/04/2018
+ * Time: 14:25
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class DiscoverGameChooseResultsPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewCanChangeDiscoverGameChooseResults> {
+    override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : Presentation() {
+        init {
+            settingsService.game.bind({ discoverGameChooseResultsChannel }, view::discoverGameChooseResults, view.discoverGameChooseResultsChanges) {
+                copy(discoverGameChooseResults = it)
+            }
+        }
+    }
 }

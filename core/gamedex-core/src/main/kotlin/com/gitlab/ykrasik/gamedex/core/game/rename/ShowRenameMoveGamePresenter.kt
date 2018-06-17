@@ -14,20 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.rename
 
-import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/06/2018
- * Time: 09:43
+ * Date: 01/06/2018
+ * Time: 09:47
  */
-// FIXME: Switching platforms has a long response time
-interface ViewCanSelectPlatform {
-    val availablePlatforms: MutableList<Platform>
-
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+@Singleton
+class ShowRenameMoveGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanRenameMoveGame> {
+    override fun present(view: ViewCanRenameMoveGame) = object : Presentation() {
+        init {
+            view.renameMoveGameActions.actionOnUi { (game, initialName) ->
+                viewManager.showRenameMoveGameView {
+                    this.game = game
+                    this.initialName = initialName
+                }
+            }
+        }
+    }
 }
