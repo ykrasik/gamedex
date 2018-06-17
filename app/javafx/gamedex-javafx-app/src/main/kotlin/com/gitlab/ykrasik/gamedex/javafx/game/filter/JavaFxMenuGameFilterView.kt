@@ -106,7 +106,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
                     is Filter.FileSize -> renderFileSizeFilter(filter)
                     else -> filter.toProperty()
                 }
-                ruleProperty.eventOnChange(updateFilterActions, { filter to it })
+                ruleProperty.eventOnChange(updateFilterActions) { filter to it }
             }
         }
     }
