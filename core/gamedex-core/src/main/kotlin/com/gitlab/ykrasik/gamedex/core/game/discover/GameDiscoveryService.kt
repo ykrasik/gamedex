@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.now
 import com.google.inject.ImplementedBy
@@ -46,7 +46,7 @@ interface GameDiscoveryService {
 @Singleton
 class GameDiscoveryServiceImpl @Inject constructor(
     private val gameService: GameService,
-    private val libraryService: LibraryService,
+    private val commonData: CommonData,
     private val fileSystemService: FileSystemService,
     private val gameProviderService: GameProviderService
 ) : GameDiscoveryService {
@@ -80,9 +80,9 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     private fun Task<*>.detectNewDirectories(): List<Pair<Library, File>> {
-        val excludedDirectories = libraryService.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path)
+        val excludedDirectories = commonData.realLibraries.map(Library::path).toSet() + gameService.games.map(Game::path)
 
-        return libraryService.realLibraries.flatMapWithProgress { library ->
+        return commonData.realLibraries.flatMapWithProgress { library ->
             fileSystemService.detectNewDirectories(library.path, excludedDirectories - library.path)
                 .map { library to it }
         }

@@ -30,8 +30,6 @@ import java.io.File
  */
 interface LibraryService {
     val libraries: ListObservable<Library>
-    val realLibraries: ListObservable<Library>
-//    val platformLibraries: ListObservable<Library>
 
     operator fun get(id: Int): Library
     operator fun get(platform: Platform, name: String): Library

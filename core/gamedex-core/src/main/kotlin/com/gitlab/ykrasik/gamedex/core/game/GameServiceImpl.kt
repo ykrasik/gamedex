@@ -52,9 +52,7 @@ internal class GameServiceImpl @Inject constructor(
         }
     }
 
-    override val games = repo.games.mapping { it.toGame() } as ListObservableImpl<Game> // ugly cast, whatever.
-    override val genres = games.flatMapping { it.genres }.distincting().sortingBy { it }
-    override val tags = games.flatMapping { it.tags }.distincting().sortingBy { it }
+    override val games = repo.games.mapping { it.toGame() }
 
     override fun add(request: AddGameRequest) = quickTask("Adding Game '${request.metadata.path}'...") {
         message1 = "Adding Game '${request.metadata.path}'..."
@@ -110,7 +108,8 @@ internal class GameServiceImpl @Inject constructor(
         repo.invalidate()
     }
 
-    private fun rebuildGames() = games.setAll(games.map { it.rawGame.toGame() })
+    // ugly cast, whatever.
+    private fun rebuildGames() = (games as ListObservableImpl<Game>).setAll(games.map { it.rawGame.toGame() })
 
     override fun get(id: Int): Game = games.find { it.id == id }
         ?: throw IllegalArgumentException("Game doesn't exist: id=$id")

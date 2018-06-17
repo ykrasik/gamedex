@@ -17,11 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.game.all
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
-import com.gitlab.ykrasik.gamedex.app.api.util.distincting
-import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,13 +32,11 @@ import javax.inject.Singleton
 @Singleton
 class SelectPlatformPresenterFactory @Inject constructor(
     private val settingsService: SettingsService,
-    libraryService: LibraryService
+    private val commonData: CommonData
 ) : PresenterFactory<ViewCanSelectPlatform> {
-    private val platformsWithLibraries = libraryService.realLibraries.mapping { it.platform }.distincting()
-
     override fun present(view: ViewCanSelectPlatform) = object : Presenter() {
         init {
-            platformsWithLibraries.bindTo(view.availablePlatforms)
+            commonData.platformsWithLibraries.bindTo(view.availablePlatforms)
             settingsService.game.bind({ platformChannel }, view::currentPlatform, view.currentPlatformChanges) {
                 copy(platform = it)
             }

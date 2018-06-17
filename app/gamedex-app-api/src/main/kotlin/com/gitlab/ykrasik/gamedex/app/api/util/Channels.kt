@@ -57,7 +57,6 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
     suspend fun send(element: T) = channel.send(element)
     fun offer(element: T) = channel.offer(element)
 
-
     fun close() = channel.close()
 
     inline fun <R> map(context: CoroutineContext = Unconfined, crossinline transform: suspend (T) -> R): BroadcastEventChannel<R> {

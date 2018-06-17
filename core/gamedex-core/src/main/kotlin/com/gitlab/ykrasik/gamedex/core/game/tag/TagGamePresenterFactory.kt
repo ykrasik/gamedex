@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
+import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +36,7 @@ import javax.inject.Singleton
 @Singleton
 class TagGamePresenterFactory @Inject constructor(
     private val gameService: GameService,
+    private val commonData: CommonData,
     private val taskRunner: TaskRunner,
     private val viewManager: ViewManager
 ) : PresenterFactory<TagGameView> {
@@ -54,7 +56,7 @@ class TagGamePresenterFactory @Inject constructor(
         override fun onShow() {
             val game = view.game
             view.tags.clear()
-            view.tags.addAll(gameService.tags)
+            view.tags.addAll(commonData.tags)
             view.checkedTags.clear()
             view.checkedTags.addAll(game.tags)
             view.toggleAll = view.tags.toSet() == game.tags.toSet()

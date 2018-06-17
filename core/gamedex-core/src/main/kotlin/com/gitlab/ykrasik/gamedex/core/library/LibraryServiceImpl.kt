@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.filtering
 import com.gitlab.ykrasik.gamedex.app.api.util.quickTask
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
@@ -35,7 +34,6 @@ import javax.inject.Singleton
 @Singleton
 internal class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository) : LibraryService {
     override val libraries = repo.libraries
-    override val realLibraries = libraries.filtering { it.platform != Platform.excluded }
 
     override fun get(id: Int) = libraries.find { it.id == id }
         ?: throw IllegalArgumentException("Library doesn't exist: id=$id")

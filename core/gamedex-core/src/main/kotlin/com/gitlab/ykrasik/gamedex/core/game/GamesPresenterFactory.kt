@@ -20,11 +20,10 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
-import com.gitlab.ykrasik.gamedex.app.api.util.filtering
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
+import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.map
@@ -39,7 +38,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GamesPresenterFactory @Inject constructor(
-    gameService: GameService,
+    private val commonData: CommonData,
     fileSystemService: FileSystemService,
     settingsService: SettingsService
 ) : PresenterFactory<ViewWithGames> {
@@ -65,13 +64,6 @@ class GamesPresenterFactory @Inject constructor(
         }
     }
 
-    private val platformPredicateChannel = settingsService.game.platformChannel.subscribe().map { platform ->
-        { game: Game -> game.platform == platform }
-    }
-
-    // The platform doesn't change that often, so an unoptimized filter is acceptable here.
-    private val platformGames = gameService.games.filtering(platformPredicateChannel)
-
     private val filterPredicate = settingsService.game.currentPlatformSettingsChannel.map { settings ->
         val context = FilterContextImpl(emptyList(), fileSystemService)
         return@map { game: Game ->
@@ -84,7 +76,7 @@ class GamesPresenterFactory @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : Presenter() {
         init {
-            platformGames.bindTo(view.games)
+            commonData.platformGames.bindTo(view.games)
             sortComparatorChannel.subscribeOnUi { view.sort = it }
             filterPredicate.subscribeOnUi { view.filter = it }
         }

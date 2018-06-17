@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.PresenterFactory
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
 import kotlinx.coroutines.experimental.CommonPool
@@ -40,7 +40,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class RenameMoveGamePresenterFactory @Inject constructor(
-    private val libraryService: LibraryService,
+    private val commonData: CommonData,
     private val gameService: GameService,
     private val taskRunner: TaskRunner,
     private val viewManager: ViewManager
@@ -49,7 +49,7 @@ class RenameMoveGamePresenterFactory @Inject constructor(
         private val log = logger()
 
         init {
-            libraryService.realLibraries.bindTo(view.possibleLibraries)
+            commonData.realLibraries.bindTo(view.possibleLibraries)
             view.libraryChanges.subscribeOnUi { validate() }
             view.pathChanges.subscribeOnUi { validate() }
             view.nameChanges.subscribeOnUi { validate() }
@@ -85,7 +85,7 @@ class RenameMoveGamePresenterFactory @Inject constructor(
                 try {
                     val basePath = view.library.path.resolve(view.path).normalize()
                     val validBasePath = basePath.startsWith(view.library.path) &&
-                        libraryService.realLibraries.filter { !view.library.path.startsWith(it.path) }.none { basePath.startsWith(it.path) }
+                        commonData.realLibraries.filter { !view.library.path.startsWith(it.path) }.none { basePath.startsWith(it.path) }
                     if (!validBasePath) {
                         return@run "Path is not in library '${view.library.name}'!"
                     }
