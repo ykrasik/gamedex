@@ -34,12 +34,12 @@ class SearchGamesPresenter @Inject constructor(
 ) : Presenter<ViewCanSearchGames> {
     override fun present(view: ViewCanSearchGames) = object : Presentation() {
         init {
-            view.searchText = settingsService.game.currentPlatformSettings.search
+            view.searchText = settingsService.currentPlatformSettings.search
             view.searchTextChanges.forEach { onSearchTextChanged(it) }    // TODO: Debounce
         }
 
         private fun onSearchTextChanged(searchText: String) {
-            settingsService.game.modifyCurrentPlatformSettings { copy(search = searchText) }
+            settingsService.currentPlatformSettings.modify { copy(search = searchText) }
         }
     }
 }

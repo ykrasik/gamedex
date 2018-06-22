@@ -118,8 +118,11 @@ inline fun Logger.error(marker: Marker, t: Throwable, crossinline msg: (Marker) 
     if (isErrorEnabled(marker)) error(marker, msg(marker), t)
 }
 
-inline fun <T> Logger.time(msg: (String) -> String, f: () -> T): T {
+inline fun <T> Logger.time(loadingMessage: String,
+                           doneMessage: (String, T) -> String = { time, _ -> time },
+                           f: () -> T): T {
+    info(loadingMessage)
     val (result, millisTaken) = millisTaken(f)
-    info(msg(millisTaken.toHumanReadableDuration()))
+    info("$loadingMessage Done: ${doneMessage(millisTaken.toHumanReadableDuration(), result)}")
     return result
 }

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.objectMapper
 import com.gitlab.ykrasik.gamedex.util.time
+import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,7 +30,7 @@ import kotlin.reflect.KClass
  * Date: 16/09/2018
  * Time: 14:41
  */
-abstract class JsonStorage<K, V : Any>(protected val basePath: String, private val klass: KClass<V>) : Storage<K, V> {
+abstract class JsonStorage<K, V : Any>(protected val basePath: File, private val klass: KClass<V>) : Storage<K, V> {
     companion object {
         @JvmStatic
         protected val log = logger()
@@ -44,8 +45,7 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: String, private v
     override fun get(id: K): V? {
         val file = fileFor(id)
         return if (file.isFile) {
-            log.info("[$file] Reading...")
-            log.time({ "[$file] Reading... Done: $it" }) {
+            log.time("[$file] Reading...") {
                 deserialize(file)
             }
         } else {
@@ -53,19 +53,19 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: String, private v
         }
     }
 
-    override fun getAll() = streamFiles { stream ->
-        log.info("[$basePath] Reading all files...")
-        log.time({ "[$basePath] Reading all files... Done: $it"}) {
-            stream.mapNotNull { file ->
-                val id = parseId(file.nameWithoutExtension)
-                val value = deserialize(file)
-                value?.let { id to it }
-            }.toMap()
+    override fun getAll() =
+        log.time("[$basePath] Reading all files...", { time, files -> "${files.size} files in $time" }) {
+            streamFiles { stream ->
+                stream.mapNotNull { file ->
+                    val id = parseId(file.nameWithoutExtension)
+                    val value = deserialize(file)
+                    value?.let { id to it }
+                }.toMap()
+            } ?: emptyMap()
         }
-    } ?: emptyMap()
 
     protected abstract fun parseId(fileName: String): K
-    private fun fileFor(id: K) = File("$basePath/$id.json")
+    private fun fileFor(id: K) = basePath.resolve("$id.json")
 
     private fun serialize(file: File, value: V) {
         file.parentFile.mkdirs()
@@ -81,9 +81,8 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: String, private v
         }
 
     protected inline fun <T> streamFiles(f: (Sequence<File>) -> T?): T? {
-        val file = File(basePath)
-        return if (file.isDirectory) {
-            Files.newDirectoryStream(file.toPath()).use { stream ->
+        return if (basePath.isDirectory) {
+            Files.newDirectoryStream(basePath.toPath()).use { stream ->
                 f(stream.asSequence().map { it.toFile() })
             }
         } else {
@@ -92,7 +91,7 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: String, private v
     }
 }
 
-class IntIdJsonStorage<V : Any>(basePath: String, klass: KClass<V>) : JsonStorage<Int, V>(basePath, klass) {
+class IntIdJsonStorage<V : Any>(basePath: File, klass: KClass<V>) : JsonStorage<Int, V>(basePath, klass) {
     // Initialize nextId as the max existing id.
     private val nextId = AtomicInteger(streamFiles { stream -> stream.map { it.nameWithoutExtension.toInt() }.max() } ?: 0)
 
@@ -111,7 +110,7 @@ class IntIdJsonStorage<V : Any>(basePath: String, klass: KClass<V>) : JsonStorag
     override fun parseId(fileName: String) = fileName.toInt()
 }
 
-class StringIdJsonStorage<V : Any>(basePath: String, klass: KClass<V>) : JsonStorage<String, V>(basePath, klass) {
+class StringIdJsonStorage<V : Any>(basePath: File, klass: KClass<V>) : JsonStorage<String, V>(basePath, klass) {
     override fun add(value: V): String {
         throw UnsupportedOperationException("StringId Storage does not support key generation!")
     }
@@ -123,12 +122,19 @@ interface JsonStorageFactory<K> {
     operator fun <V : Any> invoke(basePath: String, klass: KClass<V>): Storage<K, V>
 }
 
+inline operator fun <K, reified V : Any> JsonStorageFactory<K>.invoke(basePath: String): Storage<K, V> =
+    invoke(basePath, V::class)
+
 object IntIdJsonStorageFactory : JsonStorageFactory<Int> {
     override fun <V : Any> invoke(basePath: String, klass: KClass<V>): IntIdJsonStorage<V> =
-        IntIdJsonStorage(basePath, klass)
+        IntIdJsonStorage(basePath.toFile().normalize(), klass)
+
+    inline operator fun <reified V : Any> invoke(basePath: String): IntIdJsonStorage<V> = invoke(basePath, V::class)
 }
 
 object StringIdJsonStorageFactory : JsonStorageFactory<String> {
     override fun <V : Any> invoke(basePath: String, klass: KClass<V>): StringIdJsonStorage<V> =
-        StringIdJsonStorage(basePath, klass)
+        StringIdJsonStorage(basePath.toFile().normalize(), klass)
+
+    inline operator fun <reified V : Any> invoke(basePath: String): StringIdJsonStorage<V> = invoke(basePath, V::class)
 }

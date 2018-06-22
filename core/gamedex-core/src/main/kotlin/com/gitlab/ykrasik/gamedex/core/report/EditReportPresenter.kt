@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,8 +54,7 @@ class EditReportPresenter @Inject constructor(
             val reportConfig = view.reportConfig
             view.name = reportConfig?.name ?: ""
             view.filter = reportConfig?.filter ?: Filter.`true`
-            view.excludedGames.clear()
-            view.excludedGames += reportConfig?.excludedGames?.map { gameService[it] } ?: emptyList()
+            view.excludedGames.setAll(reportConfig?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }
 

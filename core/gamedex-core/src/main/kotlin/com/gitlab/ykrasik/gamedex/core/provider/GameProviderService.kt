@@ -58,21 +58,27 @@ class GameProviderServiceImpl @Inject constructor(
     override val allProviders = repo.allProviders
     private val unsortedProviders = ListObservableImpl<EnabledGameProvider>()
     override val enabledProviders = unsortedProviders
-        .sortingWith(settingsService.providerOrder.searchChannel.map { it.toComparator() }.subscribe()) as ListObservableImpl<EnabledGameProvider>
+        .sortingWith(settingsService.providerOrder.searchChannel.map { it.toComparator() }.subscribe())
 
     init {
-        settingsService.provider.perform { data ->
-            val providers = data.providers.mapNotNull { (providerId, settings) ->
-                if (!settings.enabled) return@mapNotNull null
+        log.info("Detected providers: $allProviders")
 
-                val provider = this.provider(providerId)
-                val account = provider.accountFeature?.createAccount(settings.account)
-                EnabledGameProvider(provider, account)
+        allProviders.forEach { provider ->
+            val providerSettingsRepo = settingsService.providers[provider.id]!!
+            providerSettingsRepo.perform { data ->
+                val enabledProvider = unsortedProviders.find { it.id == provider.id }
+                when {
+                    !data.enabled && enabledProvider != null ->
+                        unsortedProviders -= enabledProvider
+
+                    data.enabled && enabledProvider == null -> {
+                        val account = provider.accountFeature?.createAccount(data.account)
+                        unsortedProviders += EnabledGameProvider(provider, account)
+                    }
+                }
             }
-            unsortedProviders.setAll(providers)
         }
 
-        log.info("Detected providers: $allProviders")
         log.info("Enabled providers: ${unsortedProviders.sortedBy { it.id }}")
     }
 

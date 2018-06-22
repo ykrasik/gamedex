@@ -17,12 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.game.Sort
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
-import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
 import org.joda.time.Period
 import org.joda.time.PeriodType
 
@@ -34,20 +32,15 @@ import org.joda.time.PeriodType
 class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameSettingsRepository.Data>() {
     data class Data(
         val platform: Platform,
-        val platformSettings: Map<Platform, GamePlatformSettings>,
         val sort: Sort,
         val discoverGameChooseResults: DiscoverGameChooseResults,
         val redownloadCreatedBeforePeriod: Period,
         val redownloadUpdatedAfterPeriod: Period
-    ) {
-        fun withPlatFormSettings(f: Map<Platform, GamePlatformSettings>.() -> Map<Platform, GamePlatformSettings>) =
-            copy(platformSettings = f(platformSettings))
-    }
+    )
 
     override val storage = factory("game", Data::class) {
         Data(
             platform = Platform.pc,
-            platformSettings = emptyMap(),
             sort = Sort(
                 sortBy = SortBy.criticScore,
                 order = SortOrder.desc
@@ -61,21 +54,6 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     val platformChannel = storage.channel(Data::platform)
     val platform by platformChannel
 
-    val platformSettingsChannel = storage.channel(Data::platformSettings)
-    val platformSettings by platformSettingsChannel
-
-    val currentPlatformSettingsChannel = platformChannel.combineLatest(platformSettingsChannel).distinctUntilChanged().map { (platform, settings) ->
-        settings[platform] ?: GamePlatformSettings(Filter.`true`, "")
-    }
-    val currentPlatformSettings by currentPlatformSettingsChannel
-
-    fun modifyCurrentPlatformSettings(f: GamePlatformSettings.() -> GamePlatformSettings) = storage.modify {
-        withPlatFormSettings {
-            val currentPlatformSettings = this[platform] ?: GamePlatformSettings(Filter.`true`, "")
-            this + (platform to f(currentPlatformSettings))
-        }
-    }
-
     val sortChannel = storage.channel(Data::sort)
     val sort by sortChannel
 
@@ -88,8 +66,3 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     val redownloadUpdatedAfterPeriodChannel = storage.channel(Data::redownloadUpdatedAfterPeriod)
     val redownloadUpdatedAfterPeriod by redownloadUpdatedAfterPeriodChannel
 }
-
-data class GamePlatformSettings(
-    val filter: Filter,
-    val search: String
-)

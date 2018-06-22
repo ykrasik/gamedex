@@ -26,8 +26,8 @@ import com.gitlab.ykrasik.gamedex.util.Extractor
  * Date: 24/06/2018
  * Time: 10:36
  */
-class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private val gameProviderRepository: GameProviderRepository)
-    : SettingsRepository<ProviderOrderSettingsRepository.Data>() {
+class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private val gameProviderRepository: GameProviderRepository) :
+    SettingsRepository<ProviderOrderSettingsRepository.Data>() {
     data class Data(
         val search: Order,
         val name: Order,
@@ -40,7 +40,7 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private v
         val screenshot: Order
     )
 
-    override val storage = factory("provider_order", Data::class) {
+    override val storage = factory("order", Data::class) {
         Data(
             search = defaultOrder { search },
             name = defaultOrder { name },

@@ -48,9 +48,9 @@ class ProviderSettingsPresenter @Inject constructor(
         init {
             view.providerLogos = gameProviderService.logos
 
-            // FIXME: This doesn't update when settings are reset to default.
-            view.currentAccount = settingsService.provider.providers[view.provider.id]!!.account
-            view.enabled = settingsService.provider.providers[view.provider.id]!!.enabled
+            // This will not update if settings are reset to default - by design.
+            view.currentAccount = settingsService.providers[view.provider.id]!!.account
+            view.enabled = settingsService.providers[view.provider.id]!!.enabled
             view.lastVerifiedAccount = if (view.currentAccount.isNotEmpty()) view.currentAccount else emptyMap()
             view.state = when {
                 view.provider.accountFeature == null -> ProviderAccountState.NotRequired
@@ -87,8 +87,8 @@ class ProviderSettingsPresenter @Inject constructor(
             }
         }
 
-        private inline fun modifyProviderSettings(crossinline f: ProviderSettingsRepository.ProviderSettings.() -> ProviderSettingsRepository.ProviderSettings) {
-            settingsService.provider.modify { modifyProvider(view.provider.id, f) }
+        private inline fun modifyProviderSettings(crossinline f: ProviderSettingsRepository.Data.() -> ProviderSettingsRepository.Data) {
+            settingsService.providers[view.provider.id]!!.modify { f() }
         }
 
         private suspend fun verifyAccount() {

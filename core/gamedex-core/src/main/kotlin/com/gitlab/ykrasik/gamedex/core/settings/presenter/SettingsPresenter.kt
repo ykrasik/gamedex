@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,8 +39,7 @@ class SettingsPresenter @Inject constructor(
 ) : Presenter<SettingsView> {
     override fun present(view: SettingsView) = object : Presentation() {
         init {
-            view.providers.clear()
-            view.providers += gameProviderService.allProviders
+            view.providers.setAll(gameProviderService.allProviders)
             view.providerLogos = gameProviderService.logos
 
             view.acceptActions.forEach { onAccept() }

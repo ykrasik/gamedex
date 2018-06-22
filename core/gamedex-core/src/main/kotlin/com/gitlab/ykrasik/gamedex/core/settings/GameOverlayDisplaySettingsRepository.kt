@@ -23,80 +23,79 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
  * Date: 09/06/2018
  * Time: 20:43
  */
-data class OverlayDisplaySettings(
-    val enabled: Boolean,
-    val showOnlyWhenActive: Boolean,
-    val position: DisplayPosition,
-    val fillWidth: Boolean,
-    val fontSize: Int,
-    val boldFont: Boolean,
-    val italicFont: Boolean,
-    val textColor: String,
-    val backgroundColor: String,
-    val opacity: Double
-)
+class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorageFactory, default: () -> Data) :
+    SettingsRepository<GameOverlayDisplaySettingsRepository.Data>() {
 
-abstract class AbstractGameOverlayDisplaySettingsRepository(factory: SettingsStorageFactory, name: String) : SettingsRepository<OverlayDisplaySettings>() {
-    final override val storage = factory(name, OverlayDisplaySettings::class, ::default)
-
-    val enabledChannel = storage.channel(OverlayDisplaySettings::enabled)
-    val showOnlyWhenActiveChannel = storage.channel(OverlayDisplaySettings::showOnlyWhenActive)
-    val positionChannel = storage.channel(OverlayDisplaySettings::position)
-    val fillWidthChannel = storage.channel(OverlayDisplaySettings::fillWidth)
-    val fontSizeChannel = storage.channel(OverlayDisplaySettings::fontSize)
-    val boldFontChannel = storage.channel(OverlayDisplaySettings::boldFont)
-    val italicFontChannel = storage.channel(OverlayDisplaySettings::italicFont)
-    val textColorChannel = storage.channel(OverlayDisplaySettings::textColor)
-    val backgroundColorChannel = storage.channel(OverlayDisplaySettings::backgroundColor)
-    val opacityChannel = storage.channel(OverlayDisplaySettings::opacity)
-
-    protected abstract fun default(): OverlayDisplaySettings
-}
-
-class GameNameDisplaySettingsRepository(factory: SettingsStorageFactory) :
-    AbstractGameOverlayDisplaySettingsRepository(factory, "display_name") {
-    override fun default() = OverlayDisplaySettings(
-        enabled = true,
-        showOnlyWhenActive = true,
-        position = DisplayPosition.TopCenter,
-        fillWidth = true,
-        fontSize = 13,
-        boldFont = true,
-        italicFont = false,
-        textColor = "#ffffff",
-        backgroundColor = "#4d66cc",
-        opacity = 0.85
+    data class Data(
+        val enabled: Boolean,
+        val showOnlyWhenActive: Boolean,
+        val position: DisplayPosition,
+        val fillWidth: Boolean,
+        val fontSize: Int,
+        val boldFont: Boolean,
+        val italicFont: Boolean,
+        val textColor: String,
+        val backgroundColor: String,
+        val opacity: Double
     )
-}
 
-class GameMetaTagDisplaySettingsRepository(factory: SettingsStorageFactory) :
-    AbstractGameOverlayDisplaySettingsRepository(factory, "display_metatag") {
-    override fun default() = OverlayDisplaySettings(
-        enabled = true,
-        showOnlyWhenActive = true,
-        position = DisplayPosition.BottomCenter,
-        fillWidth = true,
-        fontSize = 12,
-        boldFont = false,
-        italicFont = true,
-        textColor = "#000000",
-        backgroundColor = "#cce6ff",
-        opacity = 0.85
-    )
-}
+    override val storage = factory(name, Data::class, default)
 
-class GameVersionDisplaySettingsRepository(factory: SettingsStorageFactory) :
-    AbstractGameOverlayDisplaySettingsRepository(factory, "display_version") {
-    override fun default() = OverlayDisplaySettings(
-        enabled = true,
-        showOnlyWhenActive = true,
-        position = DisplayPosition.BottomRight,
-        fillWidth = false,
-        fontSize = 16,
-        boldFont = false,
-        italicFont = true,
-        textColor = "#000000",
-        backgroundColor = "#D3D3D3",
-        opacity = 0.85
-    )
+    val enabledChannel = storage.channel(Data::enabled)
+    val showOnlyWhenActiveChannel = storage.channel(Data::showOnlyWhenActive)
+    val positionChannel = storage.channel(Data::position)
+    val fillWidthChannel = storage.channel(Data::fillWidth)
+    val fontSizeChannel = storage.channel(Data::fontSize)
+    val boldFontChannel = storage.channel(Data::boldFont)
+    val italicFontChannel = storage.channel(Data::italicFont)
+    val textColorChannel = storage.channel(Data::textColor)
+    val backgroundColorChannel = storage.channel(Data::backgroundColor)
+    val opacityChannel = storage.channel(Data::opacity)
+
+    companion object {
+        fun name(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("name", factory) {
+            Data(
+                enabled = true,
+                showOnlyWhenActive = true,
+                position = DisplayPosition.TopCenter,
+                fillWidth = true,
+                fontSize = 13,
+                boldFont = true,
+                italicFont = false,
+                textColor = "#ffffff",
+                backgroundColor = "#4d66cc",
+                opacity = 0.85
+            )
+        }
+
+        fun metaTag(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("metatag", factory) {
+            Data(
+                enabled = true,
+                showOnlyWhenActive = true,
+                position = DisplayPosition.BottomCenter,
+                fillWidth = true,
+                fontSize = 12,
+                boldFont = false,
+                italicFont = true,
+                textColor = "#000000",
+                backgroundColor = "#cce6ff",
+                opacity = 0.85
+            )
+        }
+
+        fun version(factory: SettingsStorageFactory) = GameOverlayDisplaySettingsRepository("version", factory) {
+            Data(
+                enabled = true,
+                showOnlyWhenActive = true,
+                position = DisplayPosition.BottomRight,
+                fillWidth = false,
+                fontSize = 16,
+                boldFont = false,
+                italicFont = true,
+                textColor = "#000000",
+                backgroundColor = "#D3D3D3",
+                opacity = 0.85
+            )
+        }
+    }
 }

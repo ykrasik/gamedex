@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.ViewWithReports
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,8 +36,7 @@ class ReportsPresenter @Inject constructor(
     override fun present(view: ViewWithReports) = object : Presentation() {
         init {
             settingsService.report.reportsChannel.forEachImmediately {
-                view.reports.clear()
-                view.reports += it.values.sortedBy { it.name }
+                view.reports.setAll(it.values.sortedBy { it.name })
             }
         }
     }

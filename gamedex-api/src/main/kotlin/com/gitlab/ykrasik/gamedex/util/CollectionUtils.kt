@@ -28,6 +28,11 @@ fun <T, R> Sequence<Pair<T, R>>.toMultiMap(): MultiMap<T, R> = groupBy({ it.firs
 
 fun <T> Sequence<T>.firstNotNull(): T? = this.firstOrNull { it != null }
 
+fun <T> MutableCollection<T>.setAll(iterable: Iterable<T>) {
+    this.clear()
+    this.addAll(iterable)
+}
+
 inline fun <T, R> Iterable<T>.flatMapIndexed(transform: (index: Int, T) -> Iterable<R>): List<R> = flatMapIndexedTo(ArrayList(), transform)
 inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedTo(destination: C, transform: (index: Int, T) -> Iterable<R>): C {
     var index = 0

@@ -33,7 +33,7 @@ class GameCellDisplaySettingsRepository(factory: SettingsStorageFactory) : Setti
         val verticalSpacing: Double
     )
 
-    override val storage = factory("display_cell", Data::class) {
+    override val storage = factory("cell", Data::class) {
         Data(
             imageDisplayType = ImageDisplayType.Stretch,
             showBorder = true,

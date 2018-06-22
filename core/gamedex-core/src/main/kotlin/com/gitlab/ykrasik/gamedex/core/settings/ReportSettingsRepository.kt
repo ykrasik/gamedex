@@ -14,20 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter.Companion.not
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 
 /**
  * User: ykrasik
  * Date: 24/06/2018
  * Time: 16:22
  */
-// TODO: Move to settings package.
 // TODO: Probably a more correct place to put this is PersistenceService
 // TODO: Try to save a report-per-file.
 class ReportSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<ReportSettingsRepository.Data>() {

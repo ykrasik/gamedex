@@ -16,40 +16,31 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 
 /**
  * User: ykrasik
  * Date: 17/06/2018
  * Time: 14:26
  */
-// TODO: Split this into a repo-per-provider
-class ProviderSettingsRepository(factory: SettingsStorageFactory, private val gameProviderRepository: GameProviderRepository) :
+class ProviderSettingsRepository(factory: SettingsStorageFactory, provider: GameProvider) :
     SettingsRepository<ProviderSettingsRepository.Data>() {
-    data class Data(
-        val providers: Map<ProviderId, ProviderSettings>
-    ) {
-        inline fun modifyProvider(providerId: ProviderId, f: ProviderSettings.() -> ProviderSettings) =
-            copy(providers = providers + (providerId to f(providers[providerId]!!)))
-    }
 
-    data class ProviderSettings(
+    data class Data(
         val enabled: Boolean,
         val account: Map<String, String>
     )
 
-    override val storage = factory("provider", Data::class) {
+    override val storage = factory(provider.id.toLowerCase(), Data::class) {
         Data(
-            providers = gameProviderRepository.allProviders.map { provider ->
-                provider.id to ProviderSettings(
-                    enabled = provider.accountFeature == null,
-                    account = emptyMap()
-                )
-            }.toMap()
+            enabled = provider.accountFeature == null,
+            account = emptyMap()
         )
     }
 
-    val providersChannel = storage.channel(Data::providers)
-    val providers by providersChannel
+    val enabledChannel = storage.channel(Data::enabled)
+    val enabled by enabledChannel
+
+    val accountChannel = storage.channel(Data::account)
+    val account by accountChannel
 }

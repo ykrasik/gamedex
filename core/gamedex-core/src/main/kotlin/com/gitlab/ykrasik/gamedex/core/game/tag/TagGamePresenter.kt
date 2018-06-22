@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.common.CommonData
+import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,10 +56,8 @@ class TagGamePresenter @Inject constructor(
 
         override fun onShow() {
             val game = view.game
-            view.tags.clear()
-            view.tags.addAll(commonData.tags)
-            view.checkedTags.clear()
-            view.checkedTags.addAll(game.tags)
+            view.tags.setAll(commonData.tags)
+            view.checkedTags.setAll(game.tags)
             view.toggleAll = view.tags.toSet() == game.tags.toSet()
             view.nameValidationError = null
             ignoreNextUncheckAll = false

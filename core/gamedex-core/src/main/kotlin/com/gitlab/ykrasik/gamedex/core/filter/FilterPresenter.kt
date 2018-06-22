@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.FileSize
+import com.gitlab.ykrasik.gamedex.util.setAll
 import com.gitlab.ykrasik.gamedex.util.toDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -86,8 +87,7 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
             tags.changesChannel.forEach { setPossibleRules() }
 
             // Providers are a static configuration that can't change during runtime, so no need to listen to changes.
-            view.possibleProviderIds.clear()
-            view.possibleProviderIds += commonData.allProviders.map { it.id }
+            view.possibleProviderIds.setAll(commonData.allProviders.map { it.id })
 
             libraries.changesChannel.forEach {
                 setPossibleLibraries()
@@ -116,14 +116,13 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
 
         private fun setState(currentPlatformFilter: Boolean) {
             setPossibleLibraries()
-            view.filter = if (currentPlatformFilter) settingsService.game.currentPlatformSettings.filter else Filter.`true`
+            view.filter = if (currentPlatformFilter) settingsService.currentPlatformSettings.filter else Filter.`true`
             setPossibleRules()
         }
 
         private fun setPossibleLibraries() {
             if (libraries != view.possibleLibraries) {
-                view.possibleLibraries.clear()
-                view.possibleLibraries += libraries
+                view.possibleLibraries.setAll(libraries)
             }
         }
 
@@ -150,8 +149,7 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
             }
 
             if (rules != view.possibleRules) {
-                view.possibleRules.clear()
-                view.possibleRules += rules
+                view.possibleRules.setAll(rules)
             }
         }
 
@@ -193,7 +191,7 @@ class MenuGameFilterPresenter @Inject constructor(commonData: CommonData, settin
     override val tags = commonData.platformTags
 
     override fun afterFilterSet(filter: Filter) {
-        settingsService.game.modifyCurrentPlatformSettings { copy(filter = filter) }
+        settingsService.currentPlatformSettings.modify { copy(filter = filter) }
     }
 }
 

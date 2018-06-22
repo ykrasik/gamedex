@@ -16,9 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.persistence.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
-import com.gitlab.ykrasik.gamedex.core.report.ReportSettingsRepository
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
@@ -34,12 +36,17 @@ interface SettingsService {
     val general: GeneralSettingsRepository
     val game: GameSettingsRepository
     val cellDisplay: GameCellDisplaySettingsRepository
-    val nameDisplay: GameNameDisplaySettingsRepository
-    val metaTagDisplay: GameMetaTagDisplaySettingsRepository
-    val versionDisplay: GameVersionDisplaySettingsRepository
-    val provider: ProviderSettingsRepository
-    val providerOrder: ProviderOrderSettingsRepository
+    val nameDisplay: GameOverlayDisplaySettingsRepository
+    val metaTagDisplay: GameOverlayDisplaySettingsRepository
+    val versionDisplay: GameOverlayDisplaySettingsRepository
     val report: ReportSettingsRepository
+
+    val platforms: Map<Platform, GamePlatformSettingsRepository>
+    val currentPlatformSettingsChannel: BroadcastReceiveChannel<GamePlatformSettingsRepository>
+    val currentPlatformSettings: GamePlatformSettingsRepository
+
+    val providers: Map<ProviderId, ProviderSettingsRepository>
+    val providerOrder: ProviderOrderSettingsRepository
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -49,24 +56,36 @@ interface SettingsService {
 
 @Singleton
 class SettingsServiceImpl @Inject constructor(
-    factory: JsonStorageFactory<String>,
+    private val factory: JsonStorageFactory<String>,
     gameProviderRepository: GameProviderRepository
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
-    private val settingsStorageFactory = SettingsStorageFactory("conf", factory)
-
-    override val general = repo { GeneralSettingsRepository(settingsStorageFactory) }
-    override val game = repo { GameSettingsRepository(settingsStorageFactory) }
-    override val cellDisplay = repo { GameCellDisplaySettingsRepository(settingsStorageFactory) }
-    override val nameDisplay = repo { GameNameDisplaySettingsRepository(settingsStorageFactory) }
-    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository(settingsStorageFactory) }
-    override val versionDisplay = repo { GameVersionDisplaySettingsRepository(settingsStorageFactory) }
-    override val provider = repo { ProviderSettingsRepository(settingsStorageFactory, gameProviderRepository) }
-    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorageFactory, gameProviderRepository) }
-    override val report = repo { ReportSettingsRepository(settingsStorageFactory) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
+
+    override val general = repo { GeneralSettingsRepository(settingsStorage()) }
+    override val game = repo { GameSettingsRepository(settingsStorage()) }
+    override val cellDisplay = repo { GameCellDisplaySettingsRepository(settingsStorage("display")) }
+    override val nameDisplay = repo { GameOverlayDisplaySettingsRepository.name(settingsStorage("display")) }
+    override val metaTagDisplay = repo { GameOverlayDisplaySettingsRepository.metaTag(settingsStorage("display")) }
+    override val versionDisplay = repo { GameOverlayDisplaySettingsRepository.version(settingsStorage("display")) }
+    override val report = repo { ReportSettingsRepository(settingsStorage("report")) }
+
+    override val platforms = Platform.values().filter { it != Platform.excluded }.map { platform ->
+        platform to repo { GamePlatformSettingsRepository(settingsStorage("platform"), platform) }
+    }.toMap()
+
+    override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms[platform]!! }
+    override val currentPlatformSettings by currentPlatformSettingsChannel
+
+    override val providers = gameProviderRepository.allProviders.map { provider ->
+        provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
+    }.toMap()
+
+    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
+
+    private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
 
     override fun saveSnapshot() = safeTry {
         withRepos {
@@ -91,10 +110,12 @@ class SettingsServiceImpl @Inject constructor(
         }
     }
 
-    // FIXME: Do not reset provider accounts.
     override fun resetDefaults() = safeTry {
         withRepos {
-            resetDefaults()
+            // Do not reset provider accounts.
+            if (!providers.values.contains(this)) {
+                resetDefaults()
+            }
         }
     }
 

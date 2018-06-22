@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
+import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
@@ -89,8 +90,7 @@ abstract class Presentation : CoroutineScope {
         subscribe().forEachImmediately(context, f)
 
     protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
-        list.clear()
-        list.addAll(this)
+        list.setAll(this)
         changesChannel.forEach { event ->
             when (event) {
                 is ListItemAddedEvent -> list += event.item
@@ -98,10 +98,7 @@ abstract class Presentation : CoroutineScope {
                 is ListItemRemovedEvent -> list.removeAt(event.index)
                 is ListItemsRemovedEvent -> list.removeAll(event.items)
                 is ListItemSetEvent -> list[event.index] = event.item
-                is ListItemsSetEvent -> {
-                    list.clear()
-                    list.addAll(event.items)
-                }
+                is ListItemsSetEvent -> list.setAll(event.items)
             }
         }
     }

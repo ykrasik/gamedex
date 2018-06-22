@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.settings.AbstractGameOverlayDisplaySettingsRepository
+import com.gitlab.ykrasik.gamedex.core.settings.GameOverlayDisplaySettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,7 +47,7 @@ abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
         }
     }
 
-    protected abstract val repo: AbstractGameOverlayDisplaySettingsRepository
+    protected abstract val repo: GameOverlayDisplaySettingsRepository
     protected abstract fun extractOverlay(view: V): MutableOverlayDisplaySettings
 }
 
@@ -90,7 +90,7 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
         }
     }
 
-    protected abstract val repo: AbstractGameOverlayDisplaySettingsRepository
+    protected abstract val repo: GameOverlayDisplaySettingsRepository
     protected abstract fun extractOverlay(view: V): com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
 }
 

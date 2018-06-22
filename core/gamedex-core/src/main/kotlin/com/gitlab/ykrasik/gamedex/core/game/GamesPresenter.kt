@@ -64,7 +64,9 @@ class GamesPresenter @Inject constructor(
         }
     }
 
-    private val filterPredicate = settingsService.game.currentPlatformSettingsChannel.map { settings ->
+    private val filterPredicate = settingsService.game.platformChannel.flatMap { platform ->
+        settingsService.platforms[platform]!!.dataChannel.subscribe()
+    }.map { settings ->
         val context = FilterContextImpl(emptyList(), fileSystemService)
         return@map { game: Game ->
             game.matchesSearchQuery(settings.search) &&

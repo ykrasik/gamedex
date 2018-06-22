@@ -26,6 +26,7 @@ import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.drop
 import kotlinx.coroutines.experimental.launch
+import java.io.File
 import java.util.concurrent.Executors
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -55,6 +56,7 @@ abstract class SettingsRepository<T : Any> {
 }
 
 class SettingsStorage<T : Any>(
+    basePath: String,
     private val name: String,
     private val default: T,
     private val storage: Storage<String, T>
@@ -62,6 +64,7 @@ class SettingsStorage<T : Any>(
     override val coroutineContext = settingsHandler
 
     private val log = logger()
+    private val displayName = File("$basePath/$name").normalize().toString()
 
     private var enableWrite = true
 
@@ -73,7 +76,7 @@ class SettingsStorage<T : Any>(
             null
         }
         if (existingData == null) {
-            log.info("[$name] Creating default settings...")
+            log.info("[$displayName] Creating default settings...")
             storage[name] = default
             default
         } else {
@@ -117,7 +120,7 @@ class SettingsStorage<T : Any>(
         }
         return channel.distinctUntilChanged().apply {
             subscribe(settingsHandler) {
-                log.debug("[$name] ${extractor.name} = $it")
+                log.debug("[$displayName] ${extractor.name} = $it")
             }
         }
     }
@@ -143,8 +146,10 @@ class SettingsStorage<T : Any>(
     }
 
     fun flush() {
-        launch {
-            storage[name] = data
+        if (snapshot != data) {
+            launch {
+                storage[name] = data
+            }
         }
     }
 
@@ -162,6 +167,6 @@ class SettingsStorage<T : Any>(
 class SettingsStorageFactory(private val basePath: String, private val factory: JsonStorageFactory<String>) {
     operator fun <T : Any> invoke(name: String, klass: KClass<T>, default: () -> T): SettingsStorage<T> {
         val storage = factory(basePath, klass)
-        return SettingsStorage(name, default(), storage)
+        return SettingsStorage(basePath, name, default(), storage)
     }
 }

@@ -14,16 +14,32 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.persistence
+package com.gitlab.ykrasik.gamedex.core.settings
+
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 
 /**
  * User: ykrasik
- * Date: 16/09/2018
- * Time: 09:39
+ * Date: 18/06/2018
+ * Time: 18:24
  */
-interface Storage<K, V> {
-    fun add(value: V): K
-    operator fun set(id: K, value: V)
-    operator fun get(id: K): V?
-    fun getAll(): Map<K, V>
+class GamePlatformSettingsRepository(factory: SettingsStorageFactory, platform: Platform) : SettingsRepository<GamePlatformSettingsRepository.Data>() {
+    data class Data(
+        val filter: Filter,
+        val search: String
+    )
+
+    override val storage = factory(platform.toString().toLowerCase(), Data::class) {
+        Data(
+            filter = Filter.`true`,
+            search = ""
+        )
+    }
+
+    val filterChannel = storage.channel(Data::filter)
+    val filter by filterChannel
+
+    val searchChannel = storage.channel(Data::search)
+    val search by searchChannel
 }
