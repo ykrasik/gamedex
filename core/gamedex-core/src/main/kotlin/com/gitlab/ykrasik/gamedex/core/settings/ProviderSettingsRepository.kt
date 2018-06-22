@@ -21,23 +21,23 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 17/06/2018
  * Time: 14:26
  */
-@Singleton
-class ProviderSettingsRepository @Inject constructor(private val gameProviderRepository: GameProviderRepository) :
-    SettingsRepository<ProviderSettingsRepository.Data>("provider", ProviderSettingsRepository.Data::class) {
+class ProviderSettingsRepository(factory: SettingsStorageFactory, private val gameProviderRepository: GameProviderRepository) :
+    SettingsRepository<ProviderSettingsRepository.Data>() {
     data class Data(
         val providers: Map<ProviderId, ProviderSettings>,
         val order: ProviderOrderSettings
     ) {
         inline fun modifyProvider(providerId: ProviderId, f: ProviderSettings.() -> ProviderSettings) =
             copy(providers = providers + (providerId to f(providers[providerId]!!)))
+
+        inline fun modifyOrder(f: ProviderOrderSettings.() -> ProviderOrderSettings) =
+            copy(order = f(order))
     }
 
     data class ProviderSettings(
@@ -57,33 +57,44 @@ class ProviderSettingsRepository @Inject constructor(private val gameProviderRep
         val screenshot: Order
     )
 
-    override fun defaultSettings() = Data(
-        providers = gameProviderRepository.allProviders.map { provider ->
-            provider.id to ProviderSettings(
-                enabled = provider.accountFeature == null,
-                account = emptyMap()
+    override val storage = factory("provider", Data::class) {
+        Data(
+            providers = gameProviderRepository.allProviders.map { provider ->
+                provider.id to ProviderSettings(
+                    enabled = provider.accountFeature == null,
+                    account = emptyMap()
+                )
+            }.toMap(),
+            order = ProviderOrderSettings(
+                search = defaultOrder { search },
+                name = defaultOrder { name },
+                description = defaultOrder { description },
+                releaseDate = defaultOrder { releaseDate },
+                criticScore = defaultOrder { criticScore },
+                userScore = defaultOrder { userScore },
+                thumbnail = defaultOrder { thumbnail },
+                poster = defaultOrder { poster },
+                screenshot = defaultOrder { screenshot }
             )
-        }.toMap(),
-        order = ProviderOrderSettings(
-            search = defaultOrder { search },
-            name = defaultOrder { name },
-            description = defaultOrder { description },
-            releaseDate = defaultOrder { releaseDate },
-            criticScore = defaultOrder { criticScore },
-            userScore = defaultOrder { userScore },
-            thumbnail = defaultOrder { thumbnail },
-            poster = defaultOrder { poster },
-            screenshot = defaultOrder { screenshot }
         )
-    )
+    }
 
-    private inline fun defaultOrder(crossinline extractor: Extractor<ProviderOrderPriorities, Int>) = Order(
+    private inline fun defaultOrder(crossinline extractor: Extractor<ProviderOrderPriorities, Int>) =
         gameProviderRepository.allProviders.sortedBy { extractor(it.defaultOrder) }.mapIndexed { i, provider -> provider.id to i }.toMap()
-    )
 
-    val providersChannel = channel(Data::providers)
+    val providersChannel = storage.channel(Data::providers)
     val providers by providersChannel
 
-    val orderChannel = channel(Data::order)
+    val orderChannel = storage.channel(Data::order)
     val order by orderChannel
+
+    val searchOrderChannel = orderChannel.map { it.search }
+    val nameOrderChannel = orderChannel.map { it.name }
+    val descriptionOrderChannel = orderChannel.map { it.description }
+    val releaseDateOrderChannel = orderChannel.map { it.releaseDate }
+    val criticScoreOrderChannel = orderChannel.map { it.criticScore }
+    val userScoreOrderChannel = orderChannel.map { it.userScore }
+    val thumbnailOrderChannel = orderChannel.map { it.thumbnail }
+    val posterOrderChannel = orderChannel.map { it.poster }
+    val screenshotOrderChannel = orderChannel.map { it.screenshot }
 }

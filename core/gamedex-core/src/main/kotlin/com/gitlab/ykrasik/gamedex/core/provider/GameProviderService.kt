@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.task
@@ -72,6 +73,8 @@ class GameProviderServiceImpl @Inject constructor(
         log.info("Detected providers: $allProviders")
         log.info("Enabled providers: ${enabledProviders.sortedBy { it.id }}")
     }
+
+    private fun <T : GameProvider> Order.toComparator(): Comparator<T> = Comparator { o1, o2 -> get(o1.id)!!.compareTo(get(o2.id)!!) }
 
     override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }

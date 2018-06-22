@@ -43,16 +43,19 @@ interface SettingsService {
 }
 
 @Singleton
-class SettingsServiceImpl @Inject constructor(gameProviderRepository: GameProviderRepository): SettingsService {
+class SettingsServiceImpl @Inject constructor(
+    factory: SettingsStorageFactory,
+    gameProviderRepository: GameProviderRepository
+): SettingsService {
     private val all = mutableListOf<SettingsRepository<*>>()
 
-    override val general = repo { GeneralSettingsRepository() }
-    override val game = repo { GameSettingsRepository() }
-    override val cellDisplay = repo { GameCellDisplaySettingsRepository() }
-    override val nameDisplay = repo { GameNameDisplaySettingsRepository() }
-    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository() }
-    override val versionDisplay = repo { GameVersionDisplaySettingsRepository() }
-    override val provider = repo { ProviderSettingsRepository(gameProviderRepository) }
+    override val general = repo { GeneralSettingsRepository(factory) }
+    override val game = repo { GameSettingsRepository(factory) }
+    override val cellDisplay = repo { GameCellDisplaySettingsRepository(factory) }
+    override val nameDisplay = repo { GameNameDisplaySettingsRepository(factory) }
+    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository(factory) }
+    override val versionDisplay = repo { GameVersionDisplaySettingsRepository(factory) }
+    override val provider = repo { ProviderSettingsRepository(factory, gameProviderRepository) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 

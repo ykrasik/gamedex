@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
@@ -58,20 +57,5 @@ interface ProviderOrderSettingsView {
     val screenshotChanges: ReceiveChannel<Order>
 }
 
-class Order(private val order: Map<ProviderId, Int>) {
-    operator fun get(id: ProviderId) = order[id]!!
-
-    fun <T : GameProvider> toComparator(): Comparator<T> = Comparator { o1, o2 -> get(o1.id).compareTo(get(o2.id)) }
-
-    fun ordered() = order.entries.sortedBy { it.value }.map { it.key }
-
-    fun switch(a: ProviderId, b: ProviderId): Order {
-        val currentA = order[a]!!
-        val currentB = order[b]!!
-        return Order(order + (a to currentB) + (b to currentA))
-    }
-
-    companion object {
-        val minOrder = -1
-    }
-}
+typealias Order = Map<ProviderId, Int>
+val minOrder = -1

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
+import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -114,7 +115,7 @@ class GameFactory @Inject constructor(
         providerData.sortedBy {
             val providerId = it.header.id
             if (providerId == override?.provider) {
-                Order.minOrder
+                minOrder
             } else {
                 order[providerId]
             }

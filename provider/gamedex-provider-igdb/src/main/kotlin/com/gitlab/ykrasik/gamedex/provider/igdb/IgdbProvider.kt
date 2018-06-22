@@ -140,11 +140,10 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     override val supportedPlatforms = Platform.values().toList()
     override val defaultOrder = config.defaultOrder
     override val accountFeature = object : ProviderUserAccountFeature {
-        private val apiKeyField = "Api Key"
         override val accountUrl = config.accountUrl
-        override val fields = listOf(apiKeyField)
+        override val field1 = "Api Key"
         override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
-            apiKey = fields[apiKeyField]!!
+            apiKey = fields[field1]!!
         )
     }
 

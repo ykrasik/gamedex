@@ -41,9 +41,16 @@ interface GameProvider {
 
 typealias ProviderId = String
 
+/**
+ * Can have up to 4 fields (username, password, apikey etc).
+ */
 interface ProviderUserAccountFeature {
     val accountUrl: String
-    val fields: List<String>
+    val field1: String? get() = null
+    val field2: String? get() = null
+    val field3: String? get() = null
+    val field4: String? get() = null
+    val fields: Int get() = listOfNotNull(field1, field2, field3, field4).size
     fun createAccount(fields: Map<String, String>): ProviderUserAccount
 }
 

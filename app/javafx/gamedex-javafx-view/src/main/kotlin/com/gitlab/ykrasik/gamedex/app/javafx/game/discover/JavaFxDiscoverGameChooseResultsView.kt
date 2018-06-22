@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseRe
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.disallowDeselection
 import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import tornadofx.*

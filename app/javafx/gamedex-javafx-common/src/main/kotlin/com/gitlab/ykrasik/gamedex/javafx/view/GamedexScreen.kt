@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.javafx.view
 
 import javafx.scene.control.ToolBar
 import org.controlsfx.glyphfont.Glyph
@@ -24,12 +24,6 @@ import org.controlsfx.glyphfont.Glyph
  * Date: 01/05/2017
  * Time: 15:50
  */
-abstract class PresentableScreen(title: String = "", icon: Glyph? = null) : PresentableView(title, icon) {
+abstract class PresentableScreen(title: String = "", icon: Glyph? = null) : PresentableTabView(title, icon) {
     abstract fun ToolBar.constructToolbar()
-
-    init {
-        // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
-        // This is just how TornadoFx works.
-        skipFirstDock = true
-    }
 }

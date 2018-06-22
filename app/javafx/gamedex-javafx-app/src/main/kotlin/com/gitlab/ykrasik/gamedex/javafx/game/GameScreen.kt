@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadVie
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxMenuGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableScreen
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget

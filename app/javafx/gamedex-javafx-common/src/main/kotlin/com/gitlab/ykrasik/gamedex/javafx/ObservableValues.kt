@@ -16,15 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.github.thomasnield.rxkotlinfx.toBinding
-import com.gitlab.ykrasik.gamedex.core.api.util.changes
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
-import javafx.beans.binding.Binding
 import javafx.beans.property.*
-import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -43,43 +36,10 @@ inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: Channel<R
     onChange { channel.offer(factory(it!!)) }
 }
 
-// FIXME: Looks like these caches don't solve listener leaks. Instead of leaking on the source observable,
-// FIXME: they leak from the transformed property / binding
-private val propertyCache = mutableMapOf<BehaviorSubject<*>, ObjectProperty<*>>()
-private val bindingCache = mutableMapOf<Observable<*>, Binding<*>>()
-
-@Suppress("UNCHECKED_CAST")
-// FIXME: This shouldn't exist. Re-structure userConfig so we don't have listener leaks.
-fun <T> BehaviorSubject<T>.toPropertyCached(): ObjectProperty<T> = propertyCache.getOrPut(this) {
-    val p = SimpleObjectProperty(value_)
-
-    var shouldCall = true
-    this.changes().subscribe {
-        shouldCall = false
-        p.value = it
-        shouldCall = true
-    }
-    p.onChange {
-        if (shouldCall) {
-            this.value_ = it!!
-        }
-    }
-    p
-} as ObjectProperty<T>
-
-@Suppress("UNCHECKED_CAST")
-// FIXME: This shouldn't exist. Re-structure userConfig so we don't have listener leaks.
-fun <T> Observable<T>.toBindingCached(): Binding<T> = bindingCache.getOrPut(this) { this.toBinding() } as Binding<T>
-
-fun <T> ObservableValue<T>.changeListener(op: (T?) -> Unit): ChangeListener<T> =
-    ChangeListener<T> { _, _, newValue -> op(newValue) }.apply { addListener(this) }
-
 fun <T> ObservableValue<T>.printChanges(id: String) {
     println("$id: $value")
     addListener { _, o, v -> println("$id changed: $o -> $v") }
 }
-
-fun Property<Boolean>.toBoolean() = BooleanProperty.booleanProperty(this)
 
 fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> = map(f) { SimpleObjectProperty(it) }
 fun <T> ObservableValue<T>.mapString(f: (T?) -> String): StringProperty = map(f) { SimpleStringProperty(it) }

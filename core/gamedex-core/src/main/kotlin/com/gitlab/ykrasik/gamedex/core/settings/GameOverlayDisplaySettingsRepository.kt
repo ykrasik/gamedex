@@ -36,21 +36,26 @@ data class OverlayDisplaySettings(
     val opacity: Double
 )
 
-abstract class AbstractGameOverlayDisplaySettingsRepository(name: String) : SettingsRepository<OverlayDisplaySettings>(name, OverlayDisplaySettings::class) {
-    val enabledChannel = channel(OverlayDisplaySettings::enabled)
-    val showOnlyWhenActiveChannel = channel(OverlayDisplaySettings::showOnlyWhenActive)
-    val positionChannel = channel(OverlayDisplaySettings::position)
-    val fillWidthChannel = channel(OverlayDisplaySettings::fillWidth)
-    val fontSizeChannel = channel(OverlayDisplaySettings::fontSize)
-    val boldFontChannel = channel(OverlayDisplaySettings::boldFont)
-    val italicFontChannel = channel(OverlayDisplaySettings::italicFont)
-    val textColorChannel = channel(OverlayDisplaySettings::textColor)
-    val backgroundColorChannel = channel(OverlayDisplaySettings::backgroundColor)
-    val opacityChannel = channel(OverlayDisplaySettings::opacity)
+abstract class AbstractGameOverlayDisplaySettingsRepository(factory: SettingsStorageFactory, name: String) : SettingsRepository<OverlayDisplaySettings>() {
+    final override val storage = factory(name, OverlayDisplaySettings::class, ::default)
+
+    val enabledChannel = storage.channel(OverlayDisplaySettings::enabled)
+    val showOnlyWhenActiveChannel = storage.channel(OverlayDisplaySettings::showOnlyWhenActive)
+    val positionChannel = storage.channel(OverlayDisplaySettings::position)
+    val fillWidthChannel = storage.channel(OverlayDisplaySettings::fillWidth)
+    val fontSizeChannel = storage.channel(OverlayDisplaySettings::fontSize)
+    val boldFontChannel = storage.channel(OverlayDisplaySettings::boldFont)
+    val italicFontChannel = storage.channel(OverlayDisplaySettings::italicFont)
+    val textColorChannel = storage.channel(OverlayDisplaySettings::textColor)
+    val backgroundColorChannel = storage.channel(OverlayDisplaySettings::backgroundColor)
+    val opacityChannel = storage.channel(OverlayDisplaySettings::opacity)
+
+    protected abstract fun default(): OverlayDisplaySettings
 }
 
-class GameNameDisplaySettingsRepository : AbstractGameOverlayDisplaySettingsRepository("display_name") {
-    override fun defaultSettings() = OverlayDisplaySettings(
+class GameNameDisplaySettingsRepository(factory: SettingsStorageFactory) :
+    AbstractGameOverlayDisplaySettingsRepository(factory, "display_name") {
+    override fun default() = OverlayDisplaySettings(
         enabled = true,
         showOnlyWhenActive = true,
         position = DisplayPosition.TopCenter,
@@ -64,8 +69,9 @@ class GameNameDisplaySettingsRepository : AbstractGameOverlayDisplaySettingsRepo
     )
 }
 
-class GameMetaTagDisplaySettingsRepository : AbstractGameOverlayDisplaySettingsRepository("display_metatag") {
-    override fun defaultSettings() = OverlayDisplaySettings(
+class GameMetaTagDisplaySettingsRepository(factory: SettingsStorageFactory) :
+    AbstractGameOverlayDisplaySettingsRepository(factory, "display_metatag") {
+    override fun default() = OverlayDisplaySettings(
         enabled = true,
         showOnlyWhenActive = true,
         position = DisplayPosition.BottomCenter,
@@ -79,8 +85,9 @@ class GameMetaTagDisplaySettingsRepository : AbstractGameOverlayDisplaySettingsR
     )
 }
 
-class GameVersionDisplaySettingsRepository : AbstractGameOverlayDisplaySettingsRepository("display_version") {
-    override fun defaultSettings() = OverlayDisplaySettings(
+class GameVersionDisplaySettingsRepository(factory: SettingsStorageFactory) :
+    AbstractGameOverlayDisplaySettingsRepository(factory, "display_version") {
+    override fun default() = OverlayDisplaySettings(
         enabled = true,
         showOnlyWhenActive = true,
         position = DisplayPosition.BottomRight,

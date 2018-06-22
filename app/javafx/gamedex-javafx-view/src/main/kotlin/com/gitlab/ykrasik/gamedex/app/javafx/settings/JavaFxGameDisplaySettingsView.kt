@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeNameOverlayDispl
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeVersionOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import javafx.geometry.Pos
 import javafx.scene.paint.Color
 import tornadofx.*
@@ -32,7 +32,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:21
  */
-class JavaFxGameDisplaySettingsView : PresentableView("Game Display", Theme.Icon.games()),
+class JavaFxGameDisplaySettingsView : PresentableTabView("Game Display", Theme.Icon.games()),
     ViewCanChangeGameCellDisplaySettings, ViewCanChangeNameOverlayDisplaySettings,
     ViewCanChangeMetaTagOverlayDisplaySettings, ViewCanChangeVersionOverlayDisplaySettings {
 

@@ -20,9 +20,10 @@ import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameDisplaySettingsV
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -46,7 +47,6 @@ class SettingsView : View("Settings") {
     private val providerUserSettingsView: ProviderUserSettingsFragment by inject()
 
     private val gameProviderService: GameProviderService by di()
-    private val userConfigRepository: UserConfigRepository by di() // FIXME: Temp.
     private val settingsService: SettingsService by di() // FIXME: Temp.
 
     private var tabPane: TabPane by singleAssign()
@@ -58,6 +58,7 @@ class SettingsView : View("Settings") {
     private var accept = CompletableDeferred(false)
     private val viewProperty = "view"
     private val tabProperty = "tab"
+    private val providerProperty = "provider"
 
     override val root = borderpane {
         prefHeight = screenBounds.height * 3 / 4
@@ -81,7 +82,6 @@ class SettingsView : View("Settings") {
                 verticalSeparator()
                 resetToDefaultButton("Reset to Defaults") {
                     setOnAction {
-                        userConfigRepository.restoreDefaults()
                         settingsService.restoreDefaults()
                     }
                 }
@@ -111,7 +111,14 @@ class SettingsView : View("Settings") {
                             if (newValue == null) {
                                 selectToggle(oldValue)
                             } else {
-                                (newValue.properties[viewProperty] as UIComponent).callOnDock()
+                                if (oldValue != null) {
+                                    (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
+                                }
+                                val view = newValue.properties[viewProperty] as UIComponent
+                                if (view is ProviderUserSettingsFragment) {
+                                    view.provider = newValue.properties[providerProperty] as GameProvider
+                                }
+                                view.callOnDock()
                                 tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
@@ -123,13 +130,16 @@ class SettingsView : View("Settings") {
                             paddingBottom = 10.0
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
+
+                        // FIXME: Having a single tab for this doesn't do the tab switch slide animation
+                        val tab = tabPane.tab(providerUserSettingsView)
                         gameProviderService.allProviders.forEach { provider ->
-                            val tab = tabPane.tab(providerUserSettingsView)
                             jfxToggleNode(provider.id) {
                                 useMaxWidth = true
                                 graphic = hbox {
-                                    addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
-                                    children += provider.logoImage.toImageView {
+                                    addClass(CommonStyle.jfxToggleNodeLabel)
+                                    useMaxWidth = true
+                                    imageview(provider.logoImage) {
                                         fitHeight = 28.0
                                         isPreserveRatio = true
                                     }
@@ -141,28 +151,8 @@ class SettingsView : View("Settings") {
                                 }
                                 properties += viewProperty to providerUserSettingsView
                                 properties += tabProperty to tab
-                                selectedProperty().onChange {
-                                    if (it) {
-                                        providerUserSettingsView.provider = provider
-                                    }
-                                }
+                                properties += providerProperty to provider
                             }
-//
-//                            val view = JavaFxProviderUserSettingsView(provider)
-//                            entry(view) {
-//                                graphic = hbox {
-//                                    addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
-//                                    children += provider.logoImage.toImageView {
-//                                        fitHeight = 28.0
-//                                        isPreserveRatio = true
-//                                    }
-//                                    spacer {
-//                                        paddingLeft = 5.0
-//                                        paddingRight = 5.0
-//                                    }
-//                                    label(provider.id)
-//                                }
-//                            }
                         }
                         separator()
                     }
@@ -188,7 +178,7 @@ class SettingsView : View("Settings") {
         }
     }
 
-    private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
+    private fun Node.entry(component: PresentableTabView, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
         useMaxWidth = true
         properties += viewProperty to component
         properties += tabProperty to tabPane.tab(component)
@@ -196,7 +186,6 @@ class SettingsView : View("Settings") {
     }
 
     suspend fun show(): Boolean {
-        (selectedToggleProperty.value.properties[viewProperty] as UIComponent).callOnDock()
         accept = CompletableDeferred()
         val stage = openModal()!!
         stage.opacityProperty().cleanBind(windowOpacity)

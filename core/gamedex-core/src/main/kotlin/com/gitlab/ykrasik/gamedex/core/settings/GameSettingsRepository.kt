@@ -31,7 +31,7 @@ import org.joda.time.PeriodType
  * Date: 01/05/2017
  * Time: 19:08
  */
-class GameSettingsRepository : SettingsRepository<GameSettingsRepository.Data>("game", Data::class) {
+class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameSettingsRepository.Data>() {
     data class Data(
         val platform: Platform,
         val platformSettings: Map<Platform, GamePlatformSettings>,
@@ -43,21 +43,23 @@ class GameSettingsRepository : SettingsRepository<GameSettingsRepository.Data>("
             copy(platformSettings = f(platformSettings))
     }
 
-    override fun defaultSettings() = Data(
-        platform = Platform.pc,
-        platformSettings = emptyMap(),
-        sort = Sort(
-            sortBy = SortBy.criticScore,
-            order = SortOrder.desc
-        ),
-        discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
-        stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
-    )
+    override val storage = factory("game", Data::class) {
+        Data(
+            platform = Platform.pc,
+            platformSettings = emptyMap(),
+            sort = Sort(
+                sortBy = SortBy.criticScore,
+                order = SortOrder.desc
+            ),
+            discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
+            stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
+        )
+    }
 
-    val platformChannel = channel(Data::platform)
+    val platformChannel = storage.channel(Data::platform)
     val platform by platformChannel
 
-    val platformSettingsChannel = channel(Data::platformSettings)
+    val platformSettingsChannel = storage.channel(Data::platformSettings)
     val platformSettings by platformSettingsChannel
 
     val currentPlatformSettingsChannel = platformChannel.combineLatest(platformSettingsChannel).distinctUntilChanged().map { (platform, settings) ->
@@ -65,20 +67,20 @@ class GameSettingsRepository : SettingsRepository<GameSettingsRepository.Data>("
     }
     val currentPlatformSettings by currentPlatformSettingsChannel
 
-    fun modifyCurrentPlatformSettings(f: GamePlatformSettings.() -> GamePlatformSettings) = modify {
+    fun modifyCurrentPlatformSettings(f: GamePlatformSettings.() -> GamePlatformSettings) = storage.modify {
         withPlatFormSettings {
             val currentPlatformSettings = this[platform] ?: GamePlatformSettings(Filter.`true`, "")
             this + (platform to f(currentPlatformSettings))
         }
     }
 
-    val sortChannel = channel(Data::sort)
+    val sortChannel = storage.channel(Data::sort)
     val sort by sortChannel
 
-    val discoverGameChooseResultsChannel = channel(Data::discoverGameChooseResults)
+    val discoverGameChooseResultsChannel = storage.channel(Data::discoverGameChooseResults)
     val discoverGameChooseResults by discoverGameChooseResultsChannel
 
-    val stalePeriodChannel = channel(Data::stalePeriod)
+    val stalePeriodChannel = storage.channel(Data::stalePeriod)
     val stalePeriod by stalePeriodChannel
 }
 

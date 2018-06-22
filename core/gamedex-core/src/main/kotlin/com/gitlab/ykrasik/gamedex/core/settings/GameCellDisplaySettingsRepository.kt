@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
  * Date: 16/06/2018
  * Time: 17:07
  */
-class GameCellDisplaySettingsRepository : SettingsRepository<GameCellDisplaySettingsRepository.Data>("display_cell", Data::class) {
+class GameCellDisplaySettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameCellDisplaySettingsRepository.Data>() {
     data class Data(
         val imageDisplayType: ImageDisplayType,
         val showBorder: Boolean,
@@ -33,19 +33,21 @@ class GameCellDisplaySettingsRepository : SettingsRepository<GameCellDisplaySett
         val verticalSpacing: Double
     )
 
-    override fun defaultSettings() = Data(
-        imageDisplayType = ImageDisplayType.Stretch,
-        showBorder = true,
-        width = 166.0,
-        height = 166.0,
-        horizontalSpacing = 3.0,
-        verticalSpacing = 3.0
-    )
+    override val storage = factory("display_cell", Data::class) {
+        Data(
+            imageDisplayType = ImageDisplayType.Stretch,
+            showBorder = true,
+            width = 166.0,
+            height = 166.0,
+            horizontalSpacing = 3.0,
+            verticalSpacing = 3.0
+        )
+    }
 
-    val imageDisplayTypeChannel = channel(Data::imageDisplayType)
-    val showBorderChannel = channel(Data::showBorder)
-    val widthChannel = channel(Data::width)
-    val heightChannel = channel(Data::height)
-    val horizontalSpacingChannel = channel(Data::horizontalSpacing)
-    val verticalSpacingChannel = channel(Data::verticalSpacing)
+    val imageDisplayTypeChannel = storage.channel(Data::imageDisplayType)
+    val showBorderChannel = storage.channel(Data::showBorder)
+    val widthChannel = storage.channel(Data::width)
+    val heightChannel = storage.channel(Data::height)
+    val horizontalSpacingChannel = storage.channel(Data::horizontalSpacing)
+    val verticalSpacingChannel = storage.channel(Data::verticalSpacing)
 }

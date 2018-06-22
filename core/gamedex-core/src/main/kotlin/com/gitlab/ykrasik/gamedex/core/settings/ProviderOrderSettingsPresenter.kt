@@ -37,17 +37,15 @@ class ProviderOrderSettingsPresenter @Inject constructor(
         init {
             view.providerLogos = gameProviderService.logos
 
-            settingsService.provider.orderChannel.subscribeOnUi {
-                view.search = it.search
-                view.name = it.name
-                view.description = it.description
-                view.releaseDate = it.releaseDate
-                view.criticScore = it.criticScore
-                view.userScore = it.userScore
-                view.thumbnail = it.thumbnail
-                view.poster = it.poster
-                view.screenshot = it.screenshot
-            }
+            settingsService.provider.bind({ searchOrderChannel }, view::search, view.searchChanges) { modifyOrder { copy(search = it) } }
+            settingsService.provider.bind({ nameOrderChannel }, view::name, view.nameChanges) { modifyOrder { copy(name = it) } }
+            settingsService.provider.bind({ descriptionOrderChannel }, view::description, view.descriptionChanges) { modifyOrder { copy(description = it) } }
+            settingsService.provider.bind({ releaseDateOrderChannel }, view::releaseDate, view.releaseDateChanges) { modifyOrder { copy(releaseDate = it) } }
+            settingsService.provider.bind({ criticScoreOrderChannel }, view::criticScore, view.criticScoreChanges) { modifyOrder { copy(criticScore = it) } }
+            settingsService.provider.bind({ userScoreOrderChannel }, view::userScore, view.userScoreChanges) { modifyOrder { copy(userScore = it) } }
+            settingsService.provider.bind({ thumbnailOrderChannel }, view::thumbnail, view.thumbnailChanges) { modifyOrder { copy(thumbnail = it) } }
+            settingsService.provider.bind({ posterOrderChannel }, view::poster, view.posterChanges) { modifyOrder { copy(poster = it) } }
+            settingsService.provider.bind({ screenshotOrderChannel }, view::screenshot, view.screenshotChanges) { modifyOrder { copy(screenshot = it) } }
         }
     }
 }

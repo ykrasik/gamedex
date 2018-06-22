@@ -27,6 +27,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
+import javafx.geometry.Rectangle2D
 import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.image.Image
@@ -51,7 +52,7 @@ import java.io.ByteArrayInputStream
  * Date: 02/01/2017
  * Time: 20:45
  */
-val screenBounds = Screen.getPrimary().bounds
+val screenBounds: Rectangle2D = Screen.getPrimary().bounds
 
 fun javaFx(f: suspend CoroutineScope.() -> Unit): Job = launch(JavaFx, block = f)
 
@@ -64,6 +65,11 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
 fun UIComponent.callOnDock() {
     onDock()
     onDockListeners?.forEach { it.invoke(this) }
+}
+
+fun UIComponent.callOnUndock() {
+    onUndock()
+    onUndockListeners?.forEach { it.invoke(this) }
 }
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))

@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.DownloadStaleDurationView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadAllStaleGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import org.controlsfx.control.PopOver

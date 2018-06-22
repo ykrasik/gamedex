@@ -18,12 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverGamesWithoutProviders
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.searchButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.geometry.Pos
 import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver

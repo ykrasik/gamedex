@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
@@ -39,43 +39,43 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:17
  */
-class JavaFxProviderOrderSettingsView : PresentableView("Order", Theme.Icon.settings()), ProviderOrderSettingsView {
+class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Theme.Icon.settings()), ProviderOrderSettingsView {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val searchChanges = channel<Order>()
-    private val searchProperty = SimpleObjectProperty<Order>().eventOnChange(searchChanges)
+    private val searchProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(searchChanges)
     override var search by searchProperty
 
     override val nameChanges = channel<Order>()
-    private val nameProperty = SimpleObjectProperty<Order>().eventOnChange(nameChanges)
+    private val nameProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(nameChanges)
     override var name by nameProperty
 
     override val descriptionChanges = channel<Order>()
-    private val descriptionProperty = SimpleObjectProperty<Order>().eventOnChange(descriptionChanges)
+    private val descriptionProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(descriptionChanges)
     override var description by descriptionProperty
 
     override val releaseDateChanges = channel<Order>()
-    private val releaseDateProperty = SimpleObjectProperty<Order>().eventOnChange(releaseDateChanges)
+    private val releaseDateProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(releaseDateChanges)
     override var releaseDate by releaseDateProperty
 
     override val criticScoreChanges = channel<Order>()
-    private val criticScoreProperty = SimpleObjectProperty<Order>().eventOnChange(criticScoreChanges)
+    private val criticScoreProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(criticScoreChanges)
     override var criticScore by criticScoreProperty
 
     override val userScoreChanges = channel<Order>()
-    private val userScoreProperty = SimpleObjectProperty<Order>().eventOnChange(userScoreChanges)
+    private val userScoreProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(userScoreChanges)
     override var userScore by userScoreProperty
 
     override val thumbnailChanges = channel<Order>()
-    private val thumbnailProperty = SimpleObjectProperty<Order>().eventOnChange(thumbnailChanges)
+    private val thumbnailProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(thumbnailChanges)
     override var thumbnail by thumbnailProperty
 
     override val posterChanges = channel<Order>()
-    private val posterProperty = SimpleObjectProperty<Order>().eventOnChange(posterChanges)
+    private val posterProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(posterChanges)
     override var poster by posterProperty
 
     override val screenshotChanges = channel<Order>()
-    private val screenshotProperty = SimpleObjectProperty<Order>().eventOnChange(screenshotChanges)
+    private val screenshotProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(screenshotChanges)
     override var screenshot by screenshotProperty
 
     init {
@@ -107,9 +107,10 @@ class JavaFxProviderOrderSettingsView : PresentableView("Order", Theme.Icon.sett
         hbox(spacing = 20.0) {
             alignment = Pos.CENTER
             orderProperty.perform { order ->
+                val ordered = order.entries.sortedBy { it.value }.map { it.key }
                 var dragging: ProviderId? = null
                 replaceChildren {
-                    order.ordered().map { providerId ->
+                    ordered.map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
                             graphic = (providerLogos[providerId]!! as JavaFxImage).image.toImageView(height = 50.0, width = 100.0)
@@ -154,6 +155,12 @@ class JavaFxProviderOrderSettingsView : PresentableView("Order", Theme.Icon.sett
                 }
             }
         }
+    }
+
+    private fun Order.switch(a: ProviderId, b: ProviderId): Order {
+        val currentA = get(a)!!
+        val currentB = get(b)!!
+        return this + (a to currentB) + (b to currentA)
     }
 
     class Style : Stylesheet() {

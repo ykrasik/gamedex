@@ -21,15 +21,17 @@ package com.gitlab.ykrasik.gamedex.core.settings
  * Date: 09/03/2018
  * Time: 09:28
  */
-class PreloaderSettingsRepository : SettingsRepository<PreloaderSettingsRepository.Data>("preloader", Data::class) {
+class PreloaderSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<PreloaderSettingsRepository.Data>() {
     data class Data(
         val diComponents: Int
     )
 
-    override fun defaultSettings() = Data(
-        diComponents = 85
-    )
+    override val storage = factory("preloader", Data::class) {
+        Data(
+            diComponents = 85
+        )
+    }
 
-    val diComponentsChannel = channel(Data::diComponents)
+    val diComponentsChannel = storage.channel(Data::diComponents)
     val diComponents by diComponentsChannel
 }

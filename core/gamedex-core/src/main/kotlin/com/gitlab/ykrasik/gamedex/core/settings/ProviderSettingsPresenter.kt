@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CommonPool
@@ -35,12 +36,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProviderSettingsPresenter @Inject constructor(
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val gameProviderService: GameProviderService
 ) : Presenter<ProviderSettingsView> {
     private val log = logger()
 
     override fun present(view: ProviderSettingsView) = object : Presentation() {
         init {
+            view.providerLogos = gameProviderService.logos
+
             view.enabledChanges.actionOnUi { onEnabledChanged(it) }
             view.accountUrlClicks.actionOnUi { onAccountUrlClicked() }
             view.currentAccountChanges.subscribeOnUi(::onCurrentAccountChanged)
@@ -48,6 +52,8 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         override fun onShow() {
+            // FIXME: This doesn't update when settings are reset to default.
+            // FIXME: When switching between tabs, this resets any input the user entered that wasn't validated.
             view.currentAccount = settingsService.provider.providers[view.provider.id]!!.account
             view.isCheckingAccount = false
             view.lastVerifiedAccount = if (view.currentAccount.isNotEmpty()) view.currentAccount else emptyMap()
@@ -61,21 +67,22 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         private fun accountHasEmptyFields(): Boolean =
-            view.currentAccount.size != view.provider.accountFeature!!.fields.size ||
+            view.currentAccount.size != view.provider.accountFeature!!.fields ||
                 view.currentAccount.any { (_, value) -> value.isBlank() }
 
         private suspend fun onEnabledChanged(enabled: Boolean) {
-            if (view.state === ProviderAccountState.Unverified) {
-                verifyAccount()
-            }
-            when {
-                enabled && view.state == ProviderAccountState.Valid ->
-                    modifyProviderSettings { copy(enabled = enabled, account = view.currentAccount) }
-                !enabled -> modifyProviderSettings { copy(enabled = enabled) }
-                else -> {
+            if (enabled) {
+                if (view.state == ProviderAccountState.Unverified) {
+                    verifyAccount()
+                }
+                if (view.state == ProviderAccountState.Valid || view.state == ProviderAccountState.NotRequired) {
+                    modifyProviderSettings { copy(enabled = true, account = view.currentAccount) }
+                } else {
                     view.enabled = false
                     view.onInvalidAccount()
                 }
+            } else {
+                modifyProviderSettings { copy(enabled = false) }
             }
         }
 
@@ -96,6 +103,7 @@ class ProviderSettingsPresenter @Inject constructor(
                 }
                 log.info("[${provider.id}] Valid!")
                 view.state = ProviderAccountState.Valid
+                view.lastVerifiedAccount = view.currentAccount
             } catch (e: Exception) {
                 log.warn("[${provider.id}] Invalid!", e)
                 view.state = ProviderAccountState.Invalid

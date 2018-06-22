@@ -32,6 +32,8 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
+import com.gitlab.ykrasik.gamedex.core.settings.FileSettingsStorageFactory
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
@@ -72,6 +74,8 @@ object CoreModule : AbstractModule() {
 
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
+
+        bind(SettingsStorageFactory::class.java).toInstance(FileSettingsStorageFactory)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
             addBinding().to(ReportUserConfig::class.java)

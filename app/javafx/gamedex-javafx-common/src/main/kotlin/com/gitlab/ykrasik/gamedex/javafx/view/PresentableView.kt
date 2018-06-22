@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.screen
+package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
@@ -38,6 +38,7 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     private val taskRunner: TaskRunner by di()
     protected val viewRegistry: ViewRegistry by di()
 
+    // TODO: It seems like this is already covered by masking the top-most view.
     val enabledProperty = SimpleBooleanProperty(false)
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
@@ -107,4 +108,12 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     }
 
     fun <E> Channel<E>.event(e: E) = offer(e)
+}
+
+abstract class PresentableTabView(title: String? = null, icon: Glyph? = null) : PresentableView(title, icon) {
+    init {
+        // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
+        // This is just how TornadoFx works.
+        skipFirstDock = true
+    }
 }

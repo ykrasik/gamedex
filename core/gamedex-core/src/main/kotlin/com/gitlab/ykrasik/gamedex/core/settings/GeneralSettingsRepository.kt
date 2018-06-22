@@ -24,7 +24,7 @@ import java.io.File
  * Date: 01/05/2017
  * Time: 19:10
  */
-class GeneralSettingsRepository : SettingsRepository<GeneralSettingsRepository.Data>("general", Data::class) {
+class GeneralSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GeneralSettingsRepository.Data>() {
     data class Data(
         val prevDirectory: File,
         val exportDbDirectory: File,
@@ -32,22 +32,24 @@ class GeneralSettingsRepository : SettingsRepository<GeneralSettingsRepository.D
         val logTail: Boolean
     )
 
-    override fun defaultSettings() = Data(
-        prevDirectory = File("."),
-        exportDbDirectory = File("."),
-        logFilterLevel = LogLevel.Info,
-        logTail = true
-    )
+    override val storage = factory("general", Data::class) {
+        Data(
+            prevDirectory = File("."),
+            exportDbDirectory = File("."),
+            logFilterLevel = LogLevel.Info,
+            logTail = true
+        )
+    }
 
-    val prevDirectoryChannel = channel(Data::prevDirectory)
+    val prevDirectoryChannel = storage.channel(Data::prevDirectory)
     val prevDirectory by prevDirectoryChannel
 
-    val exportDbDirectoryChannel = channel(Data::exportDbDirectory)
+    val exportDbDirectoryChannel = storage.channel(Data::exportDbDirectory)
     val exportDbDirectory by exportDbDirectoryChannel
 
-    val logFilterLevelChannel = channel(Data::logFilterLevel)
+    val logFilterLevelChannel = storage.channel(Data::logFilterLevel)
     val logFilterLevel by logFilterLevelChannel
 
-    val logTailChannel = channel(Data::logTail)
+    val logTailChannel = storage.channel(Data::logTail)
     val logTail by logTailChannel
 }

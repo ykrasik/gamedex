@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.app.api.util
 
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.launch
@@ -32,7 +31,7 @@ import kotlin.reflect.KProperty
 interface BroadcastReceiveChannel<out T> {
     fun subscribe(): ReceiveChannel<T>
 
-    fun subscribe(context: CoroutineContext = DefaultDispatcher, f: suspend (T) -> Unit): ReceiveChannel<T> {
+    fun subscribe(context: CoroutineContext = Unconfined, f: suspend (T) -> Unit): ReceiveChannel<T> {
         val subscription = subscribe()
         launch(context) {
             subscription.consumeEach {
@@ -47,6 +46,14 @@ interface BroadcastReceiveChannel<out T> {
     }
 
     operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
+
+    fun <R> map(context: CoroutineContext = Unconfined, transform: suspend (T) -> R): BroadcastEventChannel<R> {
+        val channel = BroadcastEventChannel.conflated<R>()
+        subscribe(context) {
+            channel.send(transform(it))
+        }
+        return channel
+    }
 }
 
 class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> {
@@ -58,14 +65,6 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T> 
     fun offer(element: T) = channel.offer(element)
 
     fun close() = channel.close()
-
-    inline fun <R> map(context: CoroutineContext = Unconfined, crossinline transform: suspend (T) -> R): BroadcastEventChannel<R> {
-        val channel = BroadcastEventChannel.conflated<R>()
-        subscribe(context) {
-            channel.send(transform(it))
-        }
-        return channel
-    }
 
     inline fun filter(context: CoroutineContext = Unconfined, crossinline filter: suspend (T) -> Boolean): BroadcastEventChannel<T> {
         val channel = BroadcastEventChannel.conflated<T>()

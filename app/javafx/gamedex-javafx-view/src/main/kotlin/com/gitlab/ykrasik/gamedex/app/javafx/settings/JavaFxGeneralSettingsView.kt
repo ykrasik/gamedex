@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -38,7 +38,7 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxGeneralSettingsView : PresentableView("General Settings", Theme.Icon.settings()),
+class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.Icon.settings()),
     ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupDbView {
 
     override val exportDatabaseActions = channel<Unit>()
