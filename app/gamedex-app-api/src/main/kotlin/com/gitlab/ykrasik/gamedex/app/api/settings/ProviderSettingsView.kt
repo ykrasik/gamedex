@@ -14,18 +14,41 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.app.api.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 07/04/2017
- * Time: 21:30
+ * Date: 20/06/2018
+ * Time: 09:44
  */
-@Singleton
-class GameProviderRepository @Inject constructor(providers: MutableSet<GameProvider>) {
-    val allProviders: List<GameProvider> = providers.sortedBy { it.id }
+interface ProviderSettingsView {
+    // TODO: Consider just allowing the view to receive this data through a CommonData object
+    var providerLogos: Map<ProviderId, Image>
+
+    var provider: GameProvider
+
+    var state: ProviderAccountState
+
+    var isCheckingAccount: Boolean
+    var lastVerifiedAccount: Map<String, String>
+
+    var currentAccount: Map<String, String>
+    val currentAccountChanges: ReceiveChannel<Map<String, String>>
+
+    var enabled: Boolean
+    val enabledChanges: ReceiveChannel<Boolean>
+
+    val accountUrlClicks: ReceiveChannel<Unit>
+    val verifyAccountRequests: ReceiveChannel<Unit>
+
+    fun onInvalidAccount()
+}
+
+enum class ProviderAccountState {
+    Valid, Invalid, Empty, Unverified, NotRequired
 }

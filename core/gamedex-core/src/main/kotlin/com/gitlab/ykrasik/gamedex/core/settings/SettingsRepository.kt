@@ -77,6 +77,13 @@ abstract class SettingsRepository<T : Any>(private val name: String, klass: KCla
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
     }
 
+    fun perform(f: (T) -> Unit) {
+        f(data)
+        launch(settingsHandler) {
+            dataChannel.subscribe().drop(1).consumeEach(f)
+        }
+    }
+
     fun modify(f: T.() -> T) {
         data = f(data)
     }

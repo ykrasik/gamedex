@@ -42,7 +42,8 @@ import tornadofx.*
 class SettingsView : View("Settings") {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
-    private val providerOrderView: ProviderOrderSettingsView by inject()
+    private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
+    private val providerUserSettingsView: ProviderUserSettingsFragment by inject()
 
     private val gameProviderService: GameProviderService by di()
     private val userConfigRepository: UserConfigRepository by di() // FIXME: Temp.
@@ -110,7 +111,7 @@ class SettingsView : View("Settings") {
                             if (newValue == null) {
                                 selectToggle(oldValue)
                             } else {
-                                (newValue.properties[viewProperty] as UIComponent).onDock()
+                                (newValue.properties[viewProperty] as UIComponent).callOnDock()
                                 tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
@@ -123,8 +124,9 @@ class SettingsView : View("Settings") {
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
                         gameProviderService.allProviders.forEach { provider ->
-                            val view = ProviderUserSettingsFragment(provider)
-                            entry(view) {
+                            val tab = tabPane.tab(providerUserSettingsView)
+                            jfxToggleNode(provider.id) {
+                                useMaxWidth = true
                                 graphic = hbox {
                                     addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
                                     children += provider.logoImage.toImageView {
@@ -137,7 +139,30 @@ class SettingsView : View("Settings") {
                                     }
                                     label(provider.id)
                                 }
+                                properties += viewProperty to providerUserSettingsView
+                                properties += tabProperty to tab
+                                selectedProperty().onChange {
+                                    if (it) {
+                                        providerUserSettingsView.provider = provider
+                                    }
+                                }
                             }
+//
+//                            val view = JavaFxProviderUserSettingsView(provider)
+//                            entry(view) {
+//                                graphic = hbox {
+//                                    addClass(CommonStyle.jfxToggleNodeLabel, CommonStyle.fillAvailableWidth)
+//                                    children += provider.logoImage.toImageView {
+//                                        fitHeight = 28.0
+//                                        isPreserveRatio = true
+//                                    }
+//                                    spacer {
+//                                        paddingLeft = 5.0
+//                                        paddingRight = 5.0
+//                                    }
+//                                    label(provider.id)
+//                                }
+//                            }
                         }
                         separator()
                     }
@@ -164,14 +189,14 @@ class SettingsView : View("Settings") {
     }
 
     private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
-        addClass(CommonStyle.fillAvailableWidth)
+        useMaxWidth = true
         properties += viewProperty to component
         properties += tabProperty to tabPane.tab(component)
         op()
     }
 
     suspend fun show(): Boolean {
-        (selectedToggleProperty.value.properties[viewProperty] as UIComponent).onDock()
+        (selectedToggleProperty.value.properties[viewProperty] as UIComponent).callOnDock()
         accept = CompletableDeferred()
         val stage = openModal()!!
         stage.opacityProperty().cleanBind(windowOpacity)

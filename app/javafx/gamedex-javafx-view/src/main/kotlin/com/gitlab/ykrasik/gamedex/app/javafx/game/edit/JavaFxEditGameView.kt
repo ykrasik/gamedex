@@ -52,7 +52,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
 
     private var tabPane: TabPane by singleAssign()
 
-    override var providerLogos = mutableMapOf<ProviderId, Image>()
+    override var providerLogos = emptyMap<ProviderId, Image>()
 
     private val initialScreenProperty = SimpleObjectProperty(GameDataType.name_)
     override var initialScreen by initialScreenProperty

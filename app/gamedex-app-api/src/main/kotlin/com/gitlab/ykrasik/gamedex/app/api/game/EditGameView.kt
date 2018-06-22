@@ -32,7 +32,8 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 08:08
  */
 interface EditGameView {
-    var providerLogos: MutableMap<ProviderId, Image>
+    // TODO: Consider just allowing the view to receive this data through a CommonData object
+    var providerLogos: Map<ProviderId, Image>
 
     var initialScreen: GameDataType
     var game: Game

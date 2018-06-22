@@ -48,8 +48,7 @@ class EditGamePresenter @Inject constructor(
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : Presentation() {
         init {
-            view.providerLogos.clear()
-            view.providerLogos.putAll(gameProviderService.logos)
+            view.providerLogos = gameProviderService.logos
 
             view.fetchThumbnailRequests.subscribeOnUi(::fetchThumbnail)
 

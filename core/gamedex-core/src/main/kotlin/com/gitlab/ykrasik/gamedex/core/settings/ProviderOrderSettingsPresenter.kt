@@ -14,44 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.util.logger
-import tornadofx.Controller
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 09/05/2017
- * Time: 17:09
+ * Date: 20/06/2018
+ * Time: 09:26
  */
-// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
-class SettingsController @Inject constructor(private val userConfigRepository: UserConfigRepository,
-                                             private val settingsService: SettingsService) : Controller() {
-    private val logger = logger()
+class ProviderOrderSettingsPresenter @Inject constructor(
+    private val gameProviderService: GameProviderService,
+    private val settingsService: SettingsService
+) : Presenter<ProviderOrderSettingsView> {
+    override fun present(view: ProviderOrderSettingsView) = object : Presentation() {
+        init {
+            view.providerLogos = gameProviderService.logos
 
-    private val settingsView: SettingsView by inject()
-
-    suspend fun showSettingsMenu() {
-        userConfigRepository.saveSnapshot()
-        settingsService.saveSnapshot()
-        try {
-            val accept = settingsView.show()
-            if (accept) {
-                userConfigRepository.commitSnapshot()
-                settingsService.commitSnapshot()
-            } else {
-                userConfigRepository.revertSnapshot()
-                settingsService.revertSnapshot()
+            settingsService.provider.orderChannel.subscribeOnUi {
+                view.search = it.search
+                view.name = it.name
+                view.description = it.description
+                view.releaseDate = it.releaseDate
+                view.criticScore = it.criticScore
+                view.userScore = it.userScore
+                view.thumbnail = it.thumbnail
+                view.poster = it.poster
+                view.screenshot = it.screenshot
             }
-        } catch (e: Exception) {
-            logger.error("Error updating settings!", e)
-            userConfigRepository.revertSnapshot()
-            settingsService.revertSnapshot()
         }
     }
 }

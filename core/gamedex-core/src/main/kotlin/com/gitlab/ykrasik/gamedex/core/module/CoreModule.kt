@@ -31,7 +31,6 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
 import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
 import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
@@ -75,7 +74,6 @@ object CoreModule : AbstractModule() {
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
-            addBinding().to(ProviderUserConfig::class.java)
             addBinding().to(ReportUserConfig::class.java)
         }
         bind(UserConfigRepository::class.java)

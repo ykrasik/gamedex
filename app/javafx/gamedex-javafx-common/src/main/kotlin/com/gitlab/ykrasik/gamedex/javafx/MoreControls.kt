@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.FixedRatingSkin
 import com.gitlab.ykrasik.gamedex.javafx.control.ImageViewResizingPane
 import com.jfoenix.controls.*
 import javafx.animation.FadeTransition
+import javafx.beans.property.BooleanProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
@@ -323,6 +324,10 @@ fun <T> ListView<T>.fitAtMost(numItems: Int) {
 }
 
 inline fun StackPane.maskerPane(op: MaskerPane.() -> Unit = {}) = opcr(this, MaskerPane(), op)
+inline fun StackPane.maskerPane(visible: BooleanProperty, op: MaskerPane.() -> Unit = {}) = maskerPane {
+    visibleWhen { visible }
+    op()
+}
 
 inline fun View.skipFirstTime(op: () -> Unit) {
     val skip = properties.getOrDefault("Gamedex.skipFirstTime", true) as Boolean

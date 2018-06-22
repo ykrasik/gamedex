@@ -107,6 +107,8 @@ class ViewRegistryImpl @Inject constructor(
     gameMetaTagOverlayDisplaySettings: GameMetaTagOverlayDisplaySettingsPresenter,
     changeGameVersionOverlayDisplaySettings: ChangeGameVersionOverlayDisplaySettingsPresenter,
     gameVersionOverlayDisplaySettings: GameVersionOverlayDisplaySettingsPresenter,
+    providerOrderSettings: ProviderOrderSettingsPresenter,
+    providerSettings: ProviderSettingsPresenter,
 
     logEntries: LogEntriesPresenter,
     logLevel: LogLevelPresenter,
@@ -160,6 +162,8 @@ class ViewRegistryImpl @Inject constructor(
         presenter(gameMetaTagOverlayDisplaySettings),
         presenter(changeGameVersionOverlayDisplaySettings),
         presenter(gameVersionOverlayDisplaySettings),
+        presenter(providerOrderSettings),
+        presenter(providerSettings),
 
         presenter(logEntries),
         presenter(logLevel),
@@ -190,13 +194,11 @@ class ViewRegistryImpl @Inject constructor(
 
     override fun onShow(view: Any) {
         println("$view: Showing")
-        // TODO: Eventually, make it activePresenters[view]!!
-        activePresentations[view]?.forEach { it.show() }
+        activePresentations[view]!!.forEach { it.show() }
     }
 
     override fun onHide(view: Any) {
         println("$view: Hidden")
-        // TODO: Eventually, make it activePresenters[view]!!
-        activePresentations[view]?.forEach { it.hide() }
+        activePresentations[view]!!.forEach { it.hide() }
     }
 }

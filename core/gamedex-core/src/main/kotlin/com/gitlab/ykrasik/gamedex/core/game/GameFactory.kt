@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -36,10 +36,8 @@ class GameFactory @Inject constructor(
     private val libraryService: LibraryService,
     private val fileSystemService: FileSystemService,
     private val config: GameConfig,
-    userConfigRepository: UserConfigRepository
+    private val settingsService: SettingsService
 ) {
-    private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
-
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
@@ -55,14 +53,14 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.toGameData(): GameData = GameData(
         siteUrl = "", // Not used.
-        name = firstBy(providerUserConfig.nameOrder, userData?.nameOverride()) { it.gameData.name } ?: metadata.path.toFile().name,
-        description = firstBy(providerUserConfig.descriptionOrder, userData?.descriptionOverride()) { it.gameData.description },
-        releaseDate = firstBy(providerUserConfig.releaseDateOrder, userData?.releaseDateOverride()) { it.gameData.releaseDate },
+        name = firstBy(settingsService.provider.order.name, userData?.nameOverride()) { it.gameData.name } ?: metadata.path.toFile().name,
+        description = firstBy(settingsService.provider.order.description, userData?.descriptionOverride()) { it.gameData.description },
+        releaseDate = firstBy(settingsService.provider.order.releaseDate, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.
-        criticScore = firstBy(providerUserConfig.criticScoreOrder, userData?.criticScoreOverride()) {
+        criticScore = firstBy(settingsService.provider.order.criticScore, userData?.criticScoreOverride()) {
             it.gameData.criticScore.minOrNull()
         },
-        userScore = firstBy(providerUserConfig.userScoreOrder, userData?.userScoreOverride()) {
+        userScore = firstBy(settingsService.provider.order.userScore, userData?.userScoreOverride()) {
             it.gameData.userScore.minOrNull()
         },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
@@ -72,9 +70,9 @@ class GameFactory @Inject constructor(
     private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(providerUserConfig.thumbnailOrder, userData?.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(providerUserConfig.posterOrder, userData?.posterOverride()) { it.gameData.imageUrls.posterUrl }
-        val screenshotUrls = listBy(providerUserConfig.screenshotOrder, userData?.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(config.maxScreenshots)
+        val thumbnailUrl = firstBy(settingsService.provider.order.thumbnail, userData?.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(settingsService.provider.order.poster, userData?.posterOverride()) { it.gameData.imageUrls.posterUrl }
+        val screenshotUrls = listBy(settingsService.provider.order.screenshot, userData?.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(config.maxScreenshots)
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,
             posterUrl = posterUrl ?: thumbnailUrl,
@@ -83,7 +81,7 @@ class GameFactory @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(defaultOrder: ProviderUserConfig.Order,
+    private fun <T> RawGame.firstBy(defaultOrder: Order,
                                     override: GameDataOverride?,
                                     converter: (Any) -> T = { it as T },
                                     extractor: (ProviderData) -> T?): T? =
@@ -96,7 +94,7 @@ class GameFactory @Inject constructor(
         }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.listBy(defaultOrder: ProviderUserConfig.Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
+    private fun <T> RawGame.listBy(defaultOrder: Order, override: GameDataOverride?, extractor: (ProviderData) -> List<T>): List<T> =
         when (override) {
             is GameDataOverride.Custom -> override.value as List<T>
             else -> {
@@ -112,11 +110,11 @@ class GameFactory @Inject constructor(
             else -> providerData.flatMap(extractor)
         }
 
-    private fun RawGame.sortDataBy(order: ProviderUserConfig.Order, override: GameDataOverride.Provider?): List<ProviderData> =
+    private fun RawGame.sortDataBy(order: Order, override: GameDataOverride.Provider?): List<ProviderData> =
         providerData.sortedBy {
             val providerId = it.header.id
             if (providerId == override?.provider) {
-                ProviderUserConfig.Order.minOrder
+                Order.minOrder
             } else {
                 order[providerId]
             }

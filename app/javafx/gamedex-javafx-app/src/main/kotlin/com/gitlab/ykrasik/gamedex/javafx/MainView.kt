@@ -142,8 +142,7 @@ class MainView : PresentableView("GameDex") {
 
     private fun prepareNewTab(tab: Tab) {
         val screen = tab.userData as PresentableScreen
-        screen.onDock()
-        screen.onDockListeners?.forEach { it.invoke(screen) }
+        screen.callOnDock()
         screen.populateToolbar()
     }
 

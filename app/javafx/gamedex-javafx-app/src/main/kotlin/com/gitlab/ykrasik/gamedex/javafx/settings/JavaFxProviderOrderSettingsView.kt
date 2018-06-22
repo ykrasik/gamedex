@@ -16,15 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import com.gitlab.ykrasik.gamedex.core.provider.ProviderUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.settings.Order
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import io.reactivex.subjects.BehaviorSubject
+import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
 import javafx.scene.Cursor
 import javafx.scene.effect.DropShadow
@@ -37,42 +39,80 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:17
  */
-class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
-    private val gameProviderService: GameProviderService by di()
-    private val userConfigRepository: UserConfigRepository by di()
-    private val providerUserConfig = userConfigRepository[ProviderUserConfig::class]
+class JavaFxProviderOrderSettingsView : PresentableView("Order", Theme.Icon.settings()), ProviderOrderSettingsView {
+    override var providerLogos = emptyMap<ProviderId, Image>()
+
+    override val searchChanges = channel<Order>()
+    private val searchProperty = SimpleObjectProperty<Order>().eventOnChange(searchChanges)
+    override var search by searchProperty
+
+    override val nameChanges = channel<Order>()
+    private val nameProperty = SimpleObjectProperty<Order>().eventOnChange(nameChanges)
+    override var name by nameProperty
+
+    override val descriptionChanges = channel<Order>()
+    private val descriptionProperty = SimpleObjectProperty<Order>().eventOnChange(descriptionChanges)
+    override var description by descriptionProperty
+
+    override val releaseDateChanges = channel<Order>()
+    private val releaseDateProperty = SimpleObjectProperty<Order>().eventOnChange(releaseDateChanges)
+    override var releaseDate by releaseDateProperty
+
+    override val criticScoreChanges = channel<Order>()
+    private val criticScoreProperty = SimpleObjectProperty<Order>().eventOnChange(criticScoreChanges)
+    override var criticScore by criticScoreProperty
+
+    override val userScoreChanges = channel<Order>()
+    private val userScoreProperty = SimpleObjectProperty<Order>().eventOnChange(userScoreChanges)
+    override var userScore by userScoreProperty
+
+    override val thumbnailChanges = channel<Order>()
+    private val thumbnailProperty = SimpleObjectProperty<Order>().eventOnChange(thumbnailChanges)
+    override var thumbnail by thumbnailProperty
+
+    override val posterChanges = channel<Order>()
+    private val posterProperty = SimpleObjectProperty<Order>().eventOnChange(posterChanges)
+    override var poster by posterProperty
+
+    override val screenshotChanges = channel<Order>()
+    private val screenshotProperty = SimpleObjectProperty<Order>().eventOnChange(screenshotChanges)
+    override var screenshot by screenshotProperty
+
+    init {
+        viewRegistry.register(this)
+    }
 
     override val root = form {
-        // FIXME: Forms take a long time to load!!!
+        // TODO: Forms take a long time to load!!!
         fieldset("Order Priorities") {
             listOf(
-                "Search" to providerUserConfig.searchOrderSubject,
-                "Name" to providerUserConfig.nameOrderSubject,
-                "Description" to providerUserConfig.descriptionOrderSubject,
-                "Release Date" to providerUserConfig.releaseDateOrderSubject,
-                "Critic Score" to providerUserConfig.criticScoreOrderSubject,
-                "User Score" to providerUserConfig.userScoreOrderSubject,
-                "Thumbnail" to providerUserConfig.thumbnailOrderSubject,
-                "Poster" to providerUserConfig.posterOrderSubject,
-                "Screenshots" to providerUserConfig.screenshotOrderSubject
-            ).forEach { (name, orderSubject) ->
+                "Search" to searchProperty,
+                "Name" to nameProperty,
+                "Description" to descriptionProperty,
+                "Release Date" to releaseDateProperty,
+                "Critic Score" to criticScoreProperty,
+                "User Score" to userScoreProperty,
+                "Thumbnail" to thumbnailProperty,
+                "Poster" to posterProperty,
+                "Screenshots" to screenshotProperty
+            ).forEach { (name, orderProperty) ->
                 field(name) {
-                    providerOrder(orderSubject)
+                    providerOrder(orderProperty)
                 }
             }
         }
     }
 
-    private fun Pane.providerOrder(orderSubject: BehaviorSubject<ProviderUserConfig.Order>) {
+    private fun Pane.providerOrder(orderProperty: SimpleObjectProperty<Order>) {
         hbox(spacing = 20.0) {
             alignment = Pos.CENTER
-            orderSubject.subscribe { order ->
+            orderProperty.perform { order ->
                 var dragging: ProviderId? = null
                 replaceChildren {
                     order.ordered().map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
-                            graphic = gameProviderService.allProviders.find { it.id == providerId }!!.logoImage.toImageView(height = 50.0, width = 100.0)
+                            graphic = (providerLogos[providerId]!! as JavaFxImage).image.toImageView(height = 50.0, width = 100.0)
                             userData = providerId
 
                             val dropShadow = DropShadow()
@@ -99,7 +139,7 @@ class ProviderOrderSettingsView : View("Order", Theme.Icon.settings()) {
                                     this@label != label && this@label.boundsInParent.intersects(label.boundsInParent)
                                 }
                                 if (intersect != null) {
-                                    orderSubject.value_ = order.switch(dragging!!, intersect.userData as ProviderId)
+                                    orderProperty.value = order.switch(dragging!!, intersect.userData as ProviderId)
                                 }
                             }
                             setOnMouseEntered {

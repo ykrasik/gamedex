@@ -16,13 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.screen.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
-import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
-import javafx.scene.Node
+import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
@@ -32,24 +39,47 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragment() {
-    private val controller: SettingsController by di()
+class ProviderUserSettingsFragment : PresentableView(), ProviderSettingsView {
+    override var providerLogos = emptyMap<ProviderId, Image>()
 
-    private val settings = controller.providerSettings(provider.id)
+    private val providerProperty = SimpleObjectProperty<GameProvider>()
+    override var provider by providerProperty
 
-    private val accountRequired = provider.accountFeature != null
-    private val checking = false.toProperty()
+    private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)
+    override var state by stateProperty
+
+    private val checkingAccountProperty = SimpleBooleanProperty(false)
+    override var isCheckingAccount by checkingAccountProperty
+    override var lastVerifiedAccount = emptyMap<String, String>()
+
+    override var currentAccount = emptyMap<String, String>()
+    override val currentAccountChanges = channel<Map<String, String>>()
+
+    override val enabledChanges = channel<Boolean>()
+    private val providerEnabledProperty = SimpleBooleanProperty(false).eventOnChange(enabledChanges)
+    override var enabled by providerEnabledProperty
+
+    override val accountUrlClicks = channel<Unit>()
+
+    override val verifyAccountRequests = channel<Unit>()
+
+    private var accountLabelFlashContainer: StackPane by singleAssign()
+
+//    private val settings = controller.providerSettings(provider.id)
+
+//    private val accountRequired = provider.accountFeature != null
+//    private val checking = false.toProperty()
 
     // FIXME: This doesn't update when settings are reset to default.
-    private val stateProperty = when {
-        !accountRequired -> State.NotRequired
-        settings.account != null -> State.Valid
-        else -> State.Empty
-    }.toProperty()
-    private var state by stateProperty
+//    private val stateProperty = when {
+//        !accountRequired -> State.NotRequired
+//        settings.account != null -> State.Valid
+//        else -> State.Empty
+//    }.toProperty()
+//    private var state by stateProperty
 
-    private var currentAccount = mapOf<String, String>()
-    private var lastVerifiedAccount = settings.account ?: emptyMap()
+//    private var currentAccount = mapOf<String, String>()
+//    private var lastVerifiedAccount = settings.account ?: emptyMap()
 
     override val root = vbox {
         hbox {
@@ -60,75 +90,59 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
                 addClass(Style.providerLabel)
             }
             spacer()
-            children += provider.logoImage.toImageView {
+            children += (providerLogos[provider.id]!! as JavaFxImage).image.toImageView {
                 fitHeight = 60.0
                 isPreserveRatio = true
             }
         }
         separator()
         stackpane {
-            form {
-                disableWhen { checking }
-                lateinit var accountLabelFlashContainer: Node
-                fieldset {
-                    field("Enable") {
-                        hbox {
-                            alignment = Pos.BASELINE_CENTER
-                            jfxToggleButton {
-                                isSelected = settings.enable
-                                selectedProperty().onChange { selected ->
-                                    if (selected && state.isValid || !selected) {
-                                        controller.setProviderEnabled(provider.id, enable = selected)
-                                    } else {
-                                        isSelected = false
-                                        accountLabelFlashContainer.flash(target = 0.5, reverse = true)
+            stackpane {
+                providerProperty.onChange { provider ->
+                    replaceChildren {
+                        form {
+                            fieldset {
+                                field("Enable") {
+                                    hbox {
+                                        alignment = Pos.BASELINE_CENTER
+                                        jfxToggleButton(providerEnabledProperty)
+                                        spacer()
+                                        stackpane {
+                                            visibleWhen { stateProperty.isNotEqualTo(ProviderAccountState.NotRequired) }
+                                            label {
+                                                addClass(Style.accountLabel)
+                                                textProperty().bind(stateProperty.map { it!!.text })
+                                                graphicProperty().bind(stateProperty.map { it!!.graphic })
+                                                textFillProperty().bind(stateProperty.map { it!!.color })
+                                            }
+                                            accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
+                                        }
                                     }
                                 }
                             }
-                            spacer()
-                            stackpane {
-                                isVisible = accountRequired
-                                label {
-                                    addClass(Style.accountLabel)
-                                    textProperty().bind(stateProperty.map { it!!.text })
-                                    graphicProperty().bind(stateProperty.map { it!!.graphic })
-                                    textFillProperty().bind(stateProperty.map { it!!.color })
+                            provider!!.accountFeature?.let { accountFeature ->
+                                fieldset("Account") {
+                                    accountFields(accountFeature)
+                                    field("Create") { hyperlink(accountFeature.accountUrl) { eventOnAction(accountUrlClicks) } }
                                 }
-                                accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
-                            }
-                        }
-                    }
-                }
-                provider.accountFeature?.let { accountFeature ->
-                    fieldset("Account") {
-                        accountFields(accountFeature)
-                        field("Create") {
-                            hyperlink(accountFeature.accountUrl) {
-                                setOnAction { accountFeature.accountUrl.browseToUrl() }
                             }
                         }
                     }
                 }
             }
-            maskerPane {
-                visibleWhen { checking }
-            }
+            maskerPane(checkingAccountProperty)
         }
     }
 
     private fun Fieldset.accountFields(accountFeature: ProviderUserAccountFeature) {
         accountFeature.fields.forEach { name ->
             field(name) {
-                val currentValue = settings.account?.get(name) ?: ""
-                currentAccount += name to currentValue
+                val currentValue = currentAccount[name] ?: ""
+//                currentAccount += name to currentValue
                 textfield(currentValue) {
                     textProperty().onChange {
                         currentAccount += name to it!!
-                        state = when {
-                            it.isEmpty() -> State.Empty
-                            currentAccount == lastVerifiedAccount -> State.Valid
-                            else -> State.Unverified
-                        }
+                        currentAccountChanges.offer(currentAccount)
                     }
                 }
             }
@@ -137,74 +151,47 @@ class ProviderUserSettingsFragment(private val provider: GameProvider) : Fragmen
             spacer()
             jfxButton("Verify Account") {
                 addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
-                disableWhen { stateProperty.isEqualTo(State.Empty) }
+                disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
                 isDefaultButton = true
-                setOnAction {
-                    javaFx {
-                        checking.value = true
-                        try {
-                            val valid = controller.validateAndUseAccount(provider, currentAccount)
-                            state = if (valid) {
-                                lastVerifiedAccount = currentAccount
-                                State.Valid
-                            } else {
-                                State.Invalid
-                            }
-                        } finally {
-                            checking.value = false
-                        }
-                    }
-                }
+                eventOnAction(verifyAccountRequests)
             }
         }
     }
 
-    override fun onDock() {
-        state = when {
-            !accountRequired -> State.NotRequired
-            currentAccount.any { it.value.isEmpty() } -> State.Empty
-            settings.account != null -> State.Valid
-            else -> State.Unverified
-        }
-        lastVerifiedAccount = settings.account ?: emptyMap()
+    override fun onInvalidAccount() {
+        accountLabelFlashContainer.flash(target = 0.5, reverse = true)
     }
 
-    private enum class State {
-        Valid {
-            override val isValid = true
-            override val text = "Valid Account"
-            override val graphic get() = Theme.Icon.accept()
-            override val color = Color.GREEN
-        },
-        Invalid {
-            override val isValid = false
-            override val text = "Invalid Account"
-            override val graphic get() = Theme.Icon.cancel()
-            override val color = Color.INDIANRED
-        },
-        Empty {
-            override val isValid = false
-            override val text = "No Account"
-            override val graphic get() = Theme.Icon.exclamationTriangle().apply { color(Color.ORANGE) }
-            override val color = Color.ORANGE
-        },
-        Unverified {
-            override val isValid = false
-            override val text = "Unverified Account"
-            override val graphic get() = Theme.Icon.exclamationTriangle().apply { color(Color.ORANGE) }
-            override val color = Color.ORANGE
-        },
-        NotRequired {
-            override val isValid = true
-            override val text = null
-            override val graphic = null
-            override val color = null
-        };
+//    override fun onDock() {
+//        state = when {
+//            !accountRequired -> State.NotRequired
+//            currentAccount.any { it.value.isEmpty() } -> State.Empty
+//            settings.account != null -> State.Valid
+//            else -> State.Unverified
+//        }
+//        lastVerifiedAccount = settings.account ?: emptyMap()
+//    }
 
-        abstract val isValid: Boolean
-        abstract val text: String?
-        abstract val graphic: Node?
-        abstract val color: Color?
+    private val ProviderAccountState.text get() = when(this) {
+        ProviderAccountState.Valid -> "Valid Account"
+        ProviderAccountState.Invalid -> "Invalid Account"
+        ProviderAccountState.Empty -> "No Account"
+        ProviderAccountState.Unverified -> "Unverified Account"
+        ProviderAccountState.NotRequired -> null
+    }
+
+    private val ProviderAccountState.graphic get() = when(this) {
+        ProviderAccountState.Valid -> Theme.Icon.accept()
+        ProviderAccountState.Invalid -> Theme.Icon.cancel()
+        ProviderAccountState.Empty, ProviderAccountState.Unverified -> Theme.Icon.exclamationTriangle().apply { color(Color.ORANGE) }
+        ProviderAccountState.NotRequired -> null
+    }
+
+    private val ProviderAccountState.color get() = when(this) {
+        ProviderAccountState.Valid -> Color.GREEN
+        ProviderAccountState.Invalid -> Color.INDIANRED
+        ProviderAccountState.Empty, ProviderAccountState.Unverified -> Color.ORANGE
+        ProviderAccountState.NotRequired -> null
     }
 
     class Style : Stylesheet() {

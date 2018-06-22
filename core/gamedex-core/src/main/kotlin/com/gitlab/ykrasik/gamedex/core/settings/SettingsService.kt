@@ -16,8 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.google.inject.ImplementedBy
-import com.google.inject.Singleton
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -32,6 +34,7 @@ interface SettingsService {
     val nameDisplay: GameNameDisplaySettingsRepository
     val metaTagDisplay: GameMetaTagDisplaySettingsRepository
     val versionDisplay: GameVersionDisplaySettingsRepository
+    val provider: ProviderSettingsRepository
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -40,7 +43,7 @@ interface SettingsService {
 }
 
 @Singleton
-class SettingsServiceImpl : SettingsService {
+class SettingsServiceImpl @Inject constructor(gameProviderRepository: GameProviderRepository): SettingsService {
     private val all = mutableListOf<SettingsRepository<*>>()
 
     override val general = repo { GeneralSettingsRepository() }
@@ -49,6 +52,7 @@ class SettingsServiceImpl : SettingsService {
     override val nameDisplay = repo { GameNameDisplaySettingsRepository() }
     override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository() }
     override val versionDisplay = repo { GameVersionDisplaySettingsRepository() }
+    override val provider = repo { ProviderSettingsRepository(gameProviderRepository) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 

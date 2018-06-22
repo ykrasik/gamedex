@@ -61,6 +61,11 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
     runLater(f)
 }
 
+fun UIComponent.callOnDock() {
+    onDock()
+    onDockListeners?.forEach { it.invoke(this) }
+}
+
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
 fun Image.toImageView(height: Number, width: Number): ImageView = toImageView {
     fitHeight = height.toDouble()

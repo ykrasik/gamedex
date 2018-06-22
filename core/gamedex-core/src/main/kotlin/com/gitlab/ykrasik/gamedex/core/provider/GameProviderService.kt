@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
@@ -30,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.now
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -44,22 +46,40 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
-    private val repo: GameProviderRepository,
+    repo: GameProviderRepository,
     private val fileSystemService: FileSystemService,
     private val imageFactory: ImageFactory,
     private val settingsService: SettingsService,
-    private val chooser: SearchChooser // TODO: Get rid of this... return a class that can be displayed and support continuing from it.
+    private val chooser: SearchChooser
 ) : GameProviderService {
+    private val log = logger()
 
     override val allProviders = repo.allProviders
-    override val enabledProviders = repo.enabledProviders
+    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
+
+    init {
+        settingsService.provider.perform { data ->
+            val providers = data.providers.mapNotNull { (providerId, settings) ->
+                if (!settings.enabled) return@mapNotNull null
+
+                val provider = this.provider(providerId)
+                val account = provider.accountFeature?.createAccount(settings.account)
+                EnabledGameProvider(provider, account)
+            }.sortedWith(data.order.search.toComparator())
+            enabledProviders.setAll(providers)
+        }
+
+        log.info("Detected providers: $allProviders")
+        log.info("Enabled providers: ${enabledProviders.sortedBy { it.id }}")
+    }
+
     override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
 
     override val logos = allProviders.map { it.id to imageFactory(it.logo) }.toMap()
 
     override fun checkAtLeastOneProviderEnabled() =
-        check(repo.enabledProviders.isNotEmpty()) {
+        check(enabledProviders.isNotEmpty()) {
             "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
         }
 
@@ -179,6 +199,7 @@ class GameProviderServiceImpl @Inject constructor(
     private class CancelSearchException : RuntimeException()
 }
 
+// FIXME: Get rid of this... use viewManager.
 interface SearchChooser {
     suspend fun choose(data: Data): Choice
 
