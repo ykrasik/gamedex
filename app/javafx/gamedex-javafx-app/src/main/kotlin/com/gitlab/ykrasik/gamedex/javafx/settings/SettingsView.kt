@@ -124,7 +124,7 @@ class SettingsView : View("Settings") {
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
                         gameProviderService.allProviders.forEach { provider ->
-                            val view = ProviderUserSettingsFragment(provider)
+                            val view = JavaFxProviderSettingsView(provider)
                             val tab = tabPane.tab(view)
                             jfxToggleNode(provider.id) {
                                 useMaxWidth = true

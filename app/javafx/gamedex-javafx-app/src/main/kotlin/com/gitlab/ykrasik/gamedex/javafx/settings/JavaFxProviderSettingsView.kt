@@ -38,7 +38,7 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class ProviderUserSettingsFragment(override val provider: GameProvider) : PresentableView(), ProviderSettingsView {
+class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)
