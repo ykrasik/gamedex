@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -44,7 +43,6 @@ class SettingsView : View("Settings") {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
-    private val providerUserSettingsView: ProviderUserSettingsFragment by inject()
 
     private val gameProviderService: GameProviderService by di()
     private val settingsService: SettingsService by di() // FIXME: Temp.
@@ -58,7 +56,6 @@ class SettingsView : View("Settings") {
     private var accept = CompletableDeferred(false)
     private val viewProperty = "view"
     private val tabProperty = "tab"
-    private val providerProperty = "provider"
 
     override val root = borderpane {
         prefHeight = screenBounds.height * 3 / 4
@@ -114,11 +111,7 @@ class SettingsView : View("Settings") {
                                 if (oldValue != null) {
                                     (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
                                 }
-                                val view = newValue.properties[viewProperty] as UIComponent
-                                if (view is ProviderUserSettingsFragment) {
-                                    view.provider = newValue.properties[providerProperty] as GameProvider
-                                }
-                                view.callOnDock()
+                                (newValue.properties[viewProperty] as UIComponent).callOnDock()
                                 tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
@@ -130,10 +123,9 @@ class SettingsView : View("Settings") {
                             paddingBottom = 10.0
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
-
-                        // FIXME: Having a single tab for this doesn't do the tab switch slide animation
-                        val tab = tabPane.tab(providerUserSettingsView)
                         gameProviderService.allProviders.forEach { provider ->
+                            val view = ProviderUserSettingsFragment(provider)
+                            val tab = tabPane.tab(view)
                             jfxToggleNode(provider.id) {
                                 useMaxWidth = true
                                 graphic = hbox {
@@ -149,9 +141,8 @@ class SettingsView : View("Settings") {
                                     }
                                     label(provider.id)
                                 }
-                                properties += viewProperty to providerUserSettingsView
+                                properties += viewProperty to view
                                 properties += tabProperty to tab
-                                properties += providerProperty to provider
                             }
                         }
                         separator()

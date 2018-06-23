@@ -45,25 +45,21 @@ class ProviderSettingsPresenter @Inject constructor(
         init {
             view.providerLogos = gameProviderService.logos
 
-            view.enabledChanges.actionOnUi { onEnabledChanged(it) }
-            view.accountUrlClicks.actionOnUi { onAccountUrlClicked() }
-            view.currentAccountChanges.subscribeOnUi(::onCurrentAccountChanged)
-            view.verifyAccountRequests.actionOnUi { verifyAccount() }
-        }
-
-        override fun onShow() {
             // FIXME: This doesn't update when settings are reset to default.
-            // FIXME: When switching between tabs, this resets any input the user entered that wasn't validated.
             view.currentAccount = settingsService.provider.providers[view.provider.id]!!.account
-            view.isCheckingAccount = false
             view.lastVerifiedAccount = if (view.currentAccount.isNotEmpty()) view.currentAccount else emptyMap()
-
             view.state = when {
                 view.provider.accountFeature == null -> ProviderAccountState.NotRequired
                 accountHasEmptyFields() -> ProviderAccountState.Empty
                 view.currentAccount.isNotEmpty() -> ProviderAccountState.Valid
                 else -> ProviderAccountState.Empty
             }
+            view.isCheckingAccount = false
+
+            view.enabledChanges.actionOnUi { onEnabledChanged(it) }
+            view.accountUrlClicks.actionOnUi { onAccountUrlClicked() }
+            view.currentAccountChanges.subscribeOnUi(::onCurrentAccountChanged)
+            view.verifyAccountRequests.actionOnUi { verifyAccount() }
         }
 
         private fun accountHasEmptyFields(): Boolean =

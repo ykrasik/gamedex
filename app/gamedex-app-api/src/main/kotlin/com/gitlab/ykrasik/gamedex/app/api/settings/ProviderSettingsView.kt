@@ -30,7 +30,7 @@ interface ProviderSettingsView {
     // TODO: Consider just allowing the view to receive this data through a CommonData object
     var providerLogos: Map<ProviderId, Image>
 
-    var provider: GameProvider
+    val provider: GameProvider
 
     var state: ProviderAccountState
 

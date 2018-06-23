@@ -22,10 +22,9 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
@@ -39,11 +38,8 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class ProviderUserSettingsFragment : PresentableTabView(), ProviderSettingsView {
+class ProviderUserSettingsFragment(override val provider: GameProvider) : PresentableView(), ProviderSettingsView {
     override var providerLogos = emptyMap<ProviderId, Image>()
-
-    private val providerProperty = SimpleObjectProperty<GameProvider>()
-    override var provider by providerProperty
 
     private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)
     override var state by stateProperty
@@ -74,12 +70,12 @@ class ProviderUserSettingsFragment : PresentableTabView(), ProviderSettingsView 
         hbox {
             alignment = Pos.CENTER_LEFT
             paddingAll = 10
-            label(providerProperty.map { it?.id }) { addClass(Style.providerLabel) }
+            label(provider.id) { addClass(Style.providerLabel) }
             spacer()
             imageview {
                 fitHeight = 60.0
                 isPreserveRatio = true
-                imageProperty().bind(providerProperty.map { (providerLogos[it?.id] as? JavaFxImage)?.image })
+                image = (providerLogos[provider.id]!! as JavaFxImage).image
             }
         }
         separator()
@@ -104,25 +100,26 @@ class ProviderUserSettingsFragment : PresentableTabView(), ProviderSettingsView 
                         }
                     }
                 }
-                fieldset("Account") {
-                    val accountFeatureProperty = providerProperty.map { it?.accountFeature }
-                    showWhen { accountFeatureProperty.isNotNull }
-                    accountField(accountFeatureProperty.map { it?.field1 })
-                    accountField(accountFeatureProperty.map { it?.field2 })
-                    accountField(accountFeatureProperty.map { it?.field3 })
-                    accountField(accountFeatureProperty.map { it?.field4 })
-                    hbox {
-                        spacer()
-                        jfxButton("Verify Account") {
-                            addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
-                            disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
-                            isDefaultButton = true
-                            eventOnAction(verifyAccountRequests)
+                val accountFeature = provider.accountFeature
+                if (accountFeature != null) {
+                    fieldset("Account") {
+                        accountField(accountFeature.field1)
+                        accountField(accountFeature.field2)
+                        accountField(accountFeature.field3)
+                        accountField(accountFeature.field4)
+                        hbox {
+                            spacer()
+                            jfxButton("Verify Account") {
+                                addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
+                                disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
+                                isDefaultButton = true
+                                eventOnAction(verifyAccountRequests)
+                            }
                         }
-                    }
-                    field("Create") {
-                        hyperlink(accountFeatureProperty.map { it?.accountUrl ?: "" }) {
-                            eventOnAction(accountUrlClicks)
+                        field("Create") {
+                            hyperlink(accountFeature.accountUrl) {
+                                eventOnAction(accountUrlClicks)
+                            }
                         }
                     }
                 }
@@ -131,13 +128,14 @@ class ProviderUserSettingsFragment : PresentableTabView(), ProviderSettingsView 
         }
     }
 
-    private fun Fieldset.accountField(fieldProperty: ObjectProperty<String?>) = field {
-        showWhen { fieldProperty.isNotNull }
-        labelProperty.bind(fieldProperty)
-        val currentValue = currentAccountProperty.map { account -> fieldProperty.value?.let { field -> account!![field] } ?: "" }
-        textfield(currentValue) {
-            textProperty().onChange {
-                currentAccount += (fieldProperty.value ?: "") to it!!
+    private fun Fieldset.accountField(field: String?) {
+        if (field == null) return
+        field(field) {
+            val currentValue = currentAccountProperty.map { account -> account!![field] ?: "" }
+            textfield(currentValue) {
+                textProperty().onChange {
+                    currentAccount += field to it!!
+                }
             }
         }
     }
