@@ -14,23 +14,25 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.javafx.javaFx
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 28/05/2017
- * Time: 12:55
+ * Date: 24/06/2018
+ * Time: 09:38
  */
-object SettingsFragmentTestApp : BaseFragmentTestApp() {
-    override fun init() {
-        javaFx {
-            JavaFxSettingsView().openModal()
-        }
-    }
+interface SettingsView {
+    val providers: MutableList<GameProvider>
+    var providerLogos: Map<ProviderId, Image>
 
-    @JvmStatic fun main(args: Array<String>) {}
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
+    val resetDefaultsActions: ReceiveChannel<Unit>
+
+    fun confirmResetDefaults(): Boolean
 }

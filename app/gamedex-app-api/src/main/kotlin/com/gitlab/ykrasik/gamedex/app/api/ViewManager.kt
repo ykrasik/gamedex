@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 
 /**
  * User: ykrasik
@@ -63,6 +64,11 @@ interface ViewManager {
     fun showTagGameView(f: TagGameView.() -> Unit) = mutateAndShow(tagGameView, f, this::showTagGameView)
     fun closeTagGameView(view: TagGameView)
 
+    val settingsView: SettingsView
+    fun showSettingsView(view: SettingsView)
+    fun showSettingsView(f: SettingsView.() -> Unit) = mutateAndShow(settingsView, f, this::showSettingsView)
+    fun closeSettingsView(view: SettingsView)
+    
     private inline fun <V> mutateAndShow(view: V, mutator: (V) -> Unit, show: (V) -> Unit) {
         mutator(view)
         show(view)

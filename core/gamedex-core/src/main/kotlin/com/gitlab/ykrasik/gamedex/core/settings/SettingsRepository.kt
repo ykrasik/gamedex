@@ -59,7 +59,7 @@ interface SettingsStorage<T : Any> {
     fun disableWrite()
     fun enableWrite()
     fun flush()
-    fun restoreDefaults()
+    fun resetDefaults()
 }
 
 class FileSettingsStorage<T : Any>(private val name: String,
@@ -153,7 +153,7 @@ class FileSettingsStorage<T : Any>(private val name: String,
         update(data)
     }
 
-    override fun restoreDefaults() {
+    override fun resetDefaults() {
         data = default
     }
 
@@ -181,5 +181,5 @@ abstract class SettingsRepository<T : Any> {
 
     fun flush() = storage.flush()
 
-    fun restoreDefaults() = storage.restoreDefaults()
+    fun resetDefaults() = storage.resetDefaults()
 }

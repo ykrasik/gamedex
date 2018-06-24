@@ -14,44 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.core.settings
 
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
-import com.gitlab.ykrasik.gamedex.util.logger
-import tornadofx.Controller
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 09/05/2017
- * Time: 17:09
+ * Date: 24/06/2018
+ * Time: 09:43
  */
-// TODO: Move to tornadoFx di() and have the presenter as a dependency.
 @Singleton
-class SettingsController @Inject constructor(private val userConfigRepository: UserConfigRepository,
-                                             private val settingsService: SettingsService) : Controller() {
-    private val logger = logger()
-
-    private val settingsView: SettingsView by inject()
-
-    suspend fun showSettingsMenu() {
-        userConfigRepository.saveSnapshot()
-        settingsService.saveSnapshot()
-        try {
-            val accept = settingsView.show()
-            if (accept) {
-                userConfigRepository.commitSnapshot()
-                settingsService.commitSnapshot()
-            } else {
-                userConfigRepository.revertSnapshot()
-                settingsService.revertSnapshot()
+class ShowSettingsPresenter @Inject constructor(
+    private val viewManager: ViewManager
+) : Presenter<ViewCanShowSettings> {
+    override fun present(view: ViewCanShowSettings) = object : Presentation() {
+        init {
+            view.showSettingsActions.actionOnUi {
+                viewManager.showSettingsView { }
             }
-        } catch (e: Exception) {
-            logger.error("Error updating settings!", e)
-            userConfigRepository.revertSnapshot()
-            settingsService.revertSnapshot()
         }
     }
 }

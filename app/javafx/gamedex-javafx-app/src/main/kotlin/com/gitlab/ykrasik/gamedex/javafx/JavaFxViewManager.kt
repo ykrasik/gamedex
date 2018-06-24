@@ -20,12 +20,14 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
+import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
 import tornadofx.View
 import tornadofx.vbox
@@ -69,6 +71,10 @@ class JavaFxViewManager : View(), ViewManager {
     override val tagGameView: JavaFxTagGameView by inject()
     override fun showTagGameView(view: TagGameView) = view.openModal()
     override fun closeTagGameView(view: TagGameView) = view.close()
+
+    override val settingsView: JavaFxSettingsView by inject()
+    override fun showSettingsView(view: SettingsView) = view.openModal()
+    override fun closeSettingsView(view: SettingsView) = view.close()
 
     private fun Any.openModal() {
         (this as View).openModal()

@@ -37,6 +37,8 @@ import javax.inject.Singleton
  */
 class JavaFxImage(override val raw: ByteArray, val image: Image) : com.gitlab.ykrasik.gamedex.app.api.image.Image
 
+val com.gitlab.ykrasik.gamedex.app.api.image.Image.image get() = (this as JavaFxImage).image
+
 object JavaFxImageFactory : ImageFactory {
     override fun invoke(data: ByteArray) = JavaFxImage(data, data.toImage())
 }
@@ -117,8 +119,6 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
         }
         return p
     }
-
-    private val com.gitlab.ykrasik.gamedex.app.api.image.Image.image: Image get() = (this as JavaFxImage).image
 
     // Only meant to be accessed by the ui thread.
     private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {

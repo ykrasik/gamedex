@@ -14,13 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
@@ -75,7 +75,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
             imageview {
                 fitHeight = 60.0
                 isPreserveRatio = true
-                image = (providerLogos[provider.id]!! as JavaFxImage).image
+                image = providerLogos[provider.id]!!.image
             }
         }
         separator()

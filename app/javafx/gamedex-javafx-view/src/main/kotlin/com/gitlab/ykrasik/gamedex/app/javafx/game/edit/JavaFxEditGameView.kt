@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -343,7 +343,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
         })
     }
 
-    private fun logo(id: ProviderId) = (providerLogos[id]!! as JavaFxImage).image
+    private fun logo(id: ProviderId) = providerLogos[id]!!.image
 
     private inner class CustomTextViewModel(type: GameDataType) : ViewModel() {
         val textProperty = presentableStringProperty(customOverrideValueChanges) { type to it }

@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.menu
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
@@ -91,6 +91,7 @@ class GameContextMenu : PresentableView(), ViewCanShowGameDetails, ViewCanEditGa
 
     private fun editGame(initialScreen: GameDataType) = editGameActions.event(game to initialScreen)
 
+    // TODO: Allow adding extra buttons, like for report screen.
     fun install(node: Node, game: () -> Game) {
         node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
         node.setOnContextMenuRequested { e ->

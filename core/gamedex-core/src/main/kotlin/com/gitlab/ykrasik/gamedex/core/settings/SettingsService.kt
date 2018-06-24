@@ -39,7 +39,7 @@ interface SettingsService {
     fun saveSnapshot()
     fun revertSnapshot()
     fun commitSnapshot()
-    fun restoreDefaults()
+    fun resetDefaults()
 }
 
 @Singleton
@@ -76,8 +76,9 @@ class SettingsServiceImpl @Inject constructor(
         clearSnapshot()
     }
 
-    override fun restoreDefaults() = withRepos {
-        restoreDefaults()
+    // FIXME: Do not reset provider accounts.
+    override fun resetDefaults() = withRepos {
+        resetDefaults()
     }
 
     private inline fun withRepos(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)

@@ -16,12 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
-import com.gitlab.ykrasik.gamedex.javafx.settings.SettingsController
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
@@ -40,18 +41,19 @@ import tornadofx.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex") {
+class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private val logger = logger()
 
     private val gameScreen: GameScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: JavaFxLibraryScreen by inject()
     private val logScreen: JavaFxLogScreen by inject()
-    private val settingsController: SettingsController by di() // TODO: Probably not the correct way to do this.
 
     private val gameDetailsScreen: JavaFxGameDetailsScreen by inject()
 
     private val taskRunner: JavaFxTaskRunner by di()
+
+    override val showSettingsActions = channel<Unit>()
 
     private var tabPane: TabPane by singleAssign()
     private var toolbar: ToolBar by singleAssign()
@@ -113,11 +115,8 @@ class MainView : PresentableView("GameDex") {
 
         separator()
 
-        navigationButton("Settings", Theme.Icon.settings()) {
-            javaFx {
-                settingsController.showSettingsMenu()
-            }
-        }.apply {
+        navigationButton("Settings", Theme.Icon.settings()) { }.apply {
+            eventOnAction(showSettingsActions)
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
         }

@@ -14,13 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
@@ -113,7 +113,7 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Theme.Icon.s
                     ordered.map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
-                            graphic = (providerLogos[providerId]!! as JavaFxImage).image.toImageView(height = 50.0, width = 100.0)
+                            graphic = providerLogos[providerId]!!.image.toImageView(height = 50.0, width = 100.0)
                             userData = providerId
 
                             val dropShadow = DropShadow()

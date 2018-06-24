@@ -14,15 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.settings
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameDisplaySettingsView
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGeneralSettingsView
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
+import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -31,7 +34,6 @@ import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.Toggle
 import javafx.scene.text.FontWeight
-import kotlinx.coroutines.experimental.CompletableDeferred
 import tornadofx.*
 
 /**
@@ -39,13 +41,17 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class SettingsView : View("Settings") {
+class JavaFxSettingsView : PresentableView("Settings"), SettingsView {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
 
-    private val gameProviderService: GameProviderService by di()
-    private val settingsService: SettingsService by di() // FIXME: Temp.
+    override val providers = mutableListOf<GameProvider>()
+    override var providerLogos = emptyMap<ProviderId, Image>()
+
+    override val acceptActions = channel<Unit>()
+    override val resetDefaultsActions = channel<Unit>()
+    override val cancelActions = channel<Unit>()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -53,9 +59,12 @@ class SettingsView : View("Settings") {
 
     private val windowOpacity = SimpleDoubleProperty(1.0)
 
-    private var accept = CompletableDeferred(false)
     private val viewProperty = "view"
     private val tabProperty = "tab"
+
+    init {
+        viewRegistry.register(this)
+    }
 
     override val root = borderpane {
         prefHeight = screenBounds.height * 3 / 4
@@ -63,10 +72,7 @@ class SettingsView : View("Settings") {
             toolbar {
                 acceptButton {
                     isDefaultButton = true
-                    setOnAction {
-                        accept.complete(true)
-                        close()
-                    }
+                    eventOnAction(acceptActions)
                 }
                 verticalSeparator()
                 spacer()
@@ -77,25 +83,16 @@ class SettingsView : View("Settings") {
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
-                resetToDefaultButton("Reset to Defaults") {
-                    setOnAction {
-                        settingsService.restoreDefaults()
-                    }
-                }
+                resetToDefaultButton("Reset to Defaults") { eventOnAction(resetDefaultsActions) }
                 verticalSeparator()
                 cancelButton {
                     isCancelButton = true
-                    setOnAction {
-                        accept.complete(false)
-                        close()
-                    }
+                    eventOnAction(cancelActions)
                 }
             }
         }
         center {
-            tabPane = jfxTabPane {
-                addClass(CommonStyle.hiddenTabPaneHeader)
-            }
+            tabPane = jfxTabPane { addClass(CommonStyle.hiddenTabPaneHeader) }
         }
         left {
             hbox(spacing = 5.0) {
@@ -123,7 +120,7 @@ class SettingsView : View("Settings") {
                             paddingBottom = 10.0
                         }
                         label("Providers") { addClass(Style.navigationLabel) }
-                        gameProviderService.allProviders.forEach { provider ->
+                        providers.forEach { provider ->
                             val view = JavaFxProviderSettingsView(provider)
                             val tab = tabPane.tab(view)
                             jfxToggleNode(provider.id) {
@@ -131,7 +128,7 @@ class SettingsView : View("Settings") {
                                 graphic = hbox {
                                     addClass(CommonStyle.jfxToggleNodeLabel)
                                     useMaxWidth = true
-                                    imageview(provider.logoImage) {
+                                    imageview(providerLogos[provider.id]!!.image) {
                                         fitHeight = 28.0
                                         isPreserveRatio = true
                                     }
@@ -176,12 +173,11 @@ class SettingsView : View("Settings") {
         op()
     }
 
-    suspend fun show(): Boolean {
-        accept = CompletableDeferred()
-        val stage = openModal()!!
-        stage.opacityProperty().cleanBind(windowOpacity)
-        return accept.await()
+    override fun onDock() {
+        currentStage!!.opacityProperty().cleanBind(windowOpacity)
     }
+
+    override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")
 
     class Style : Stylesheet() {
         companion object {

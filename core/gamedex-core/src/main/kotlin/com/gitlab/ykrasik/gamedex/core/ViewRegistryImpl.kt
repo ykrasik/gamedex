@@ -94,6 +94,9 @@ class ViewRegistryImpl @Inject constructor(
     menuGameFilter: MenuGameFilterPresenter,
     reportGameFilter: ReportGameFilterPresenter,
 
+    showSettings: ShowSettingsPresenter,
+    settings: SettingsPresenter,
+
     exportDatabase: ExportDatabasePresenter,
     importDatabase: ImportDatabasePresenter,
     clearUserData: ClearUserDataPresenter,
@@ -148,6 +151,9 @@ class ViewRegistryImpl @Inject constructor(
 
         presenter(menuGameFilter),
         presenter(reportGameFilter),
+
+        presenter(showSettings),
+        presenter(settings),
 
         presenter(exportDatabase),
         presenter(importDatabase),
