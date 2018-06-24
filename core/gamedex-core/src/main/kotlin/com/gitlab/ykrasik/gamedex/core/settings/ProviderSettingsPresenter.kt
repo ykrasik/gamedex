@@ -47,6 +47,7 @@ class ProviderSettingsPresenter @Inject constructor(
 
             // FIXME: This doesn't update when settings are reset to default.
             view.currentAccount = settingsService.provider.providers[view.provider.id]!!.account
+            view.enabled = settingsService.provider.providers[view.provider.id]!!.enabled
             view.lastVerifiedAccount = if (view.currentAccount.isNotEmpty()) view.currentAccount else emptyMap()
             view.state = when {
                 view.provider.accountFeature == null -> ProviderAccountState.NotRequired
@@ -56,6 +57,7 @@ class ProviderSettingsPresenter @Inject constructor(
             }
             view.isCheckingAccount = false
 
+            // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
             view.enabledChanges.actionOnUi { onEnabledChanged(it) }
             view.accountUrlClicks.actionOnUi { onAccountUrlClicked() }
             view.currentAccountChanges.subscribeOnUi(::onCurrentAccountChanged)

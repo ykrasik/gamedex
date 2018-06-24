@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.app.api.util.sortingWith
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
@@ -56,7 +57,9 @@ class GameProviderServiceImpl @Inject constructor(
     private val log = logger()
 
     override val allProviders = repo.allProviders
-    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
+    private val unsortedProviders = ListObservableImpl<EnabledGameProvider>()
+    override val enabledProviders = unsortedProviders
+        .sortingWith(settingsService.providerOrder.searchChannel.map { it.toComparator() }.subscribe()) as ListObservableImpl<EnabledGameProvider>
 
     init {
         settingsService.provider.perform { data ->
@@ -66,15 +69,15 @@ class GameProviderServiceImpl @Inject constructor(
                 val provider = this.provider(providerId)
                 val account = provider.accountFeature?.createAccount(settings.account)
                 EnabledGameProvider(provider, account)
-            }.sortedWith(data.order.search.toComparator())
-            enabledProviders.setAll(providers)
+            }
+            unsortedProviders.setAll(providers)
         }
 
         log.info("Detected providers: $allProviders")
-        log.info("Enabled providers: ${enabledProviders.sortedBy { it.id }}")
+        log.info("Enabled providers: ${unsortedProviders.sortedBy { it.id }}")
     }
 
-    private fun <T : GameProvider> Order.toComparator(): Comparator<T> = Comparator { o1, o2 -> get(o1.id)!!.compareTo(get(o2.id)!!) }
+    private fun Order.toComparator(): Comparator<EnabledGameProvider> = Comparator { o1, o2 -> get(o1.id)!!.compareTo(get(o2.id)!!) }
 
     override fun provider(id: ProviderId) = allProviders.find { it.id == id }!!
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }

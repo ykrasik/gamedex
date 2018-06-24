@@ -37,15 +37,15 @@ class ProviderOrderSettingsPresenter @Inject constructor(
         init {
             view.providerLogos = gameProviderService.logos
 
-            settingsService.provider.bind({ searchOrderChannel }, view::search, view.searchChanges) { modifyOrder { copy(search = it) } }
-            settingsService.provider.bind({ nameOrderChannel }, view::name, view.nameChanges) { modifyOrder { copy(name = it) } }
-            settingsService.provider.bind({ descriptionOrderChannel }, view::description, view.descriptionChanges) { modifyOrder { copy(description = it) } }
-            settingsService.provider.bind({ releaseDateOrderChannel }, view::releaseDate, view.releaseDateChanges) { modifyOrder { copy(releaseDate = it) } }
-            settingsService.provider.bind({ criticScoreOrderChannel }, view::criticScore, view.criticScoreChanges) { modifyOrder { copy(criticScore = it) } }
-            settingsService.provider.bind({ userScoreOrderChannel }, view::userScore, view.userScoreChanges) { modifyOrder { copy(userScore = it) } }
-            settingsService.provider.bind({ thumbnailOrderChannel }, view::thumbnail, view.thumbnailChanges) { modifyOrder { copy(thumbnail = it) } }
-            settingsService.provider.bind({ posterOrderChannel }, view::poster, view.posterChanges) { modifyOrder { copy(poster = it) } }
-            settingsService.provider.bind({ screenshotOrderChannel }, view::screenshot, view.screenshotChanges) { modifyOrder { copy(screenshot = it) } }
+            settingsService.providerOrder.bind({ searchChannel }, view::search, view.searchChanges) { copy(search = it) }
+            settingsService.providerOrder.bind({ nameChannel }, view::name, view.nameChanges) { copy(name = it) }
+            settingsService.providerOrder.bind({ descriptionChannel }, view::description, view.descriptionChanges) { copy(description = it) }
+            settingsService.providerOrder.bind({ releaseDateChannel }, view::releaseDate, view.releaseDateChanges) { copy(releaseDate = it) }
+            settingsService.providerOrder.bind({ criticScoreChannel }, view::criticScore, view.criticScoreChanges) { copy(criticScore = it) }
+            settingsService.providerOrder.bind({ userScoreChannel }, view::userScore, view.userScoreChanges) { copy(userScore = it) }
+            settingsService.providerOrder.bind({ thumbnailChannel }, view::thumbnail, view.thumbnailChanges) { copy(thumbnail = it) }
+            settingsService.providerOrder.bind({ posterChannel }, view::poster, view.posterChanges) { copy(poster = it) }
+            settingsService.providerOrder.bind({ screenshotChannel }, view::screenshot, view.screenshotChanges) { copy(screenshot = it) }
         }
     }
 }

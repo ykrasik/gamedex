@@ -54,14 +54,15 @@ class GameFactory @Inject constructor(
 
     private fun RawGame.toGameData(): GameData = GameData(
         siteUrl = "", // Not used.
-        name = firstBy(settingsService.provider.order.name, userData?.nameOverride()) { it.gameData.name } ?: metadata.path.toFile().name,
-        description = firstBy(settingsService.provider.order.description, userData?.descriptionOverride()) { it.gameData.description },
-        releaseDate = firstBy(settingsService.provider.order.releaseDate, userData?.releaseDateOverride()) { it.gameData.releaseDate },
+        name = firstBy(settingsService.providerOrder.name, userData?.nameOverride()) { it.gameData.name }
+            ?: metadata.path.toFile().name,
+        description = firstBy(settingsService.providerOrder.description, userData?.descriptionOverride()) { it.gameData.description },
+        releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData?.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.
-        criticScore = firstBy(settingsService.provider.order.criticScore, userData?.criticScoreOverride()) {
+        criticScore = firstBy(settingsService.providerOrder.criticScore, userData?.criticScoreOverride()) {
             it.gameData.criticScore.minOrNull()
         },
-        userScore = firstBy(settingsService.provider.order.userScore, userData?.userScoreOverride()) {
+        userScore = firstBy(settingsService.providerOrder.userScore, userData?.userScoreOverride()) {
             it.gameData.userScore.minOrNull()
         },
         genres = unsortedListBy(userData?.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
@@ -71,9 +72,9 @@ class GameFactory @Inject constructor(
     private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
 
     private fun RawGame.toImageUrls(): ImageUrls {
-        val thumbnailUrl = firstBy(settingsService.provider.order.thumbnail, userData?.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
-        val posterUrl = firstBy(settingsService.provider.order.poster, userData?.posterOverride()) { it.gameData.imageUrls.posterUrl }
-        val screenshotUrls = listBy(settingsService.provider.order.screenshot, userData?.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(config.maxScreenshots)
+        val thumbnailUrl = firstBy(settingsService.providerOrder.thumbnail, userData?.thumbnailOverride()) { it.gameData.imageUrls.thumbnailUrl }
+        val posterUrl = firstBy(settingsService.providerOrder.poster, userData?.posterOverride()) { it.gameData.imageUrls.posterUrl }
+        val screenshotUrls = listBy(settingsService.providerOrder.screenshot, userData?.screenshotsOverride()) { it.gameData.imageUrls.screenshotUrls }.take(config.maxScreenshots)
         return ImageUrls(
             thumbnailUrl = thumbnailUrl ?: posterUrl,
             posterUrl = posterUrl ?: thumbnailUrl,

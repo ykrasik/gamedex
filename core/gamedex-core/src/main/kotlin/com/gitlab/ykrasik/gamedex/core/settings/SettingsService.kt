@@ -35,6 +35,7 @@ interface SettingsService {
     val metaTagDisplay: GameMetaTagDisplaySettingsRepository
     val versionDisplay: GameVersionDisplaySettingsRepository
     val provider: ProviderSettingsRepository
+    val providerOrder: ProviderOrderSettingsRepository
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -56,6 +57,7 @@ class SettingsServiceImpl @Inject constructor(
     override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository(factory) }
     override val versionDisplay = repo { GameVersionDisplaySettingsRepository(factory) }
     override val provider = repo { ProviderSettingsRepository(factory, gameProviderRepository) }
+    override val providerOrder = repo { ProviderOrderSettingsRepository(factory, gameProviderRepository) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 

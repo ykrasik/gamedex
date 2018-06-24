@@ -42,6 +42,7 @@ class SettingsPresenter @Inject constructor(
         init {
             view.providers.clear()
             view.providers += gameProviderService.allProviders
+            view.providerLogos = gameProviderService.logos
 
             view.acceptActions.actionOnUi { onAccept() }
             view.cancelActions.actionOnUi { onCancel() }

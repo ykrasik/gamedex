@@ -142,6 +142,8 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     override fun listIterator() = _list.listIterator()
     override fun listIterator(index: Int) = _list.listIterator(index)
     override fun subList(fromIndex: Int, toIndex: Int) = _list.subList(fromIndex, toIndex)
+
+    override fun toString() = _list.toString()
 }
 
 enum class ListChangeType { Add, Remove, Set }
@@ -182,6 +184,9 @@ fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatc
 
 inline fun <T, R : Comparable<R>> ListObservable<T>.sortingBy(context: CoroutineContext = DefaultDispatcher, crossinline selector: (T) -> R?): ListObservable<T> =
     subscribeTransform(context) { it.sortedBy(selector) }
+
+fun <T> ListObservable<T>.sortingWith(channel: ReceiveChannel<Comparator<T>>, context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+    subscribeTransformChannel(context, channel.map { c -> { list: List<T> -> list.sortedWith(c) } })
 
 inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext, crossinline f: (List<T>) -> List<R>): ListObservable<R> {
     val list = ListObservableImpl<R>()

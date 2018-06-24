@@ -169,8 +169,10 @@ class FileSettingsStorage<T : Any>(private val name: String,
 abstract class SettingsRepository<T : Any> {
     protected abstract val storage: SettingsStorage<T>
 
+    val dataChannel: BroadcastReceiveChannel<T> get() = storage.dataChannel
+
     fun modify(f: T.() -> T) = storage.modify(f)
-    fun perform(f: (T) -> Unit) = storage.perform(f)
+    fun perform(f: (T) -> Unit) = storage.perform(f)    // TODO: I don't like this method.
 
     fun saveSnapshot() = storage.saveSnapshot()
     fun restoreSnapshot() = storage.restoreSnapshot()
