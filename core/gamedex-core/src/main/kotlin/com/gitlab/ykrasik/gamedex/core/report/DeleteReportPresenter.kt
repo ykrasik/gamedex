@@ -14,28 +14,34 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.core.report
 
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import tornadofx.App
-import tornadofx.launch
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanDeleteReport
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 08/10/2016
- * Time: 21:40
+ * Date: 26/06/2018
+ * Time: 09:49
  */
-class Main : App(JavaFxPreloaderView::class) {
-    companion object {
-        var startTime = System.currentTimeMillis()
+@Singleton
+class DeleteReportPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewCanDeleteReport> {
+    override fun present(view: ViewCanDeleteReport) = object : Presentation() {
+        init {
+            view.deleteReportActions.forEach { onDelete(it) }
+        }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            uiThreadDispatcher = Dispatchers.JavaFx
-            launch<Main>(args)
+        private fun onDelete(reportConfig: ReportConfig) {
+            if (view.confirmDelete(reportConfig)) {
+                settingsService.report.modify { modifyReports { it - reportConfig.name } }
+            }
         }
     }
 }

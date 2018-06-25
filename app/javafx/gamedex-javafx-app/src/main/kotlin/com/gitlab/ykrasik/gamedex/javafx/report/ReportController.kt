@@ -18,15 +18,11 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
-import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.javafx.ThreadAwareDoubleProperty
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.util.MultiMap
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
@@ -40,7 +36,6 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import tornadofx.Controller
 import tornadofx.getValue
-import tornadofx.label
 import tornadofx.setValue
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,40 +49,8 @@ import javax.inject.Singleton
 @Singleton
 class ReportController @Inject constructor(
     private val gameService: GameService,
-    private val fileSystemService: FileSystemService,
-    userConfigRepository: UserConfigRepository
+    private val fileSystemService: FileSystemService
 ) : Controller() {
-    private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
-
-    private val reportConfigView: ReportConfigView by inject()
-
-    fun addReport() = editReport(ReportConfig(name = "", filter = Filter.`true`, excludedGames = emptyList()))
-
-    fun editReport(config: ReportConfig): ReportConfig? = updateConfig(config) {
-        reportConfigView.show(config) ?: return null
-    }
-
-    fun excludeGame(config: ReportConfig, game: Game): ReportConfig = updateConfig(config) {
-        config.copy(excludedGames = (config.excludedGames + game.id).distinct())
-    }
-
-    private inline fun updateConfig(oldConfig: ReportConfig, newConfigFactory: () -> ReportConfig): ReportConfig {
-        val newConfig = newConfigFactory()
-        if (newConfig.name != oldConfig.name) {
-            reportUserConfig.reports -= oldConfig.name
-        }
-        reportUserConfig.reports += newConfig.name to newConfig
-        return newConfig
-    }
-
-    fun deleteReport(config: ReportConfig): Boolean {
-        val confirm = areYouSureDialog("Delete report '${config.name}'?") { label("Rules: ${config.filter}") }
-        if (confirm) {
-            reportUserConfig.reports -= config.name
-        }
-        return confirm
-    }
-
     fun generateReport(config: ReportConfig) = OngoingReport(config)
 
     inner class OngoingReport(private val config: ReportConfig) {

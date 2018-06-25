@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.report.ReportSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
@@ -37,6 +38,7 @@ interface SettingsService {
     val versionDisplay: GameVersionDisplaySettingsRepository
     val provider: ProviderSettingsRepository
     val providerOrder: ProviderOrderSettingsRepository
+    val report: ReportSettingsRepository
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -60,6 +62,7 @@ class SettingsServiceImpl @Inject constructor(
     override val versionDisplay = repo { GameVersionDisplaySettingsRepository(factory) }
     override val provider = repo { ProviderSettingsRepository(factory, gameProviderRepository) }
     override val providerOrder = repo { ProviderOrderSettingsRepository(factory, gameProviderRepository) }
+    override val report = repo { ReportSettingsRepository(factory) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 

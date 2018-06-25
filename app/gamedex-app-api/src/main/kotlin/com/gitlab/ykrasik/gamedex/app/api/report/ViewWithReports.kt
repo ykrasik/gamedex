@@ -14,17 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
-
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+package com.gitlab.ykrasik.gamedex.app.api.report
 
 /**
  * User: ykrasik
- * Date: 28/01/2018
- * Time: 09:23
+ * Date: 28/06/2018
+ * Time: 09:19
  */
-data class ReportConfig(
-    val name: String,
-    val filter: Filter,
-    val excludedGames: List<Int>
-)
+interface ViewWithReports {
+    val reports: MutableList<ReportConfig>
+}

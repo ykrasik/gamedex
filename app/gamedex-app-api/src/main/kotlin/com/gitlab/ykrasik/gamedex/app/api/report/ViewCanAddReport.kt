@@ -14,43 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.userconfig
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import javax.inject.Inject
-import javax.inject.Singleton
-import kotlin.reflect.KClass
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 11/03/2018
- * Time: 15:12
+ * Date: 24/06/2018
+ * Time: 18:07
  */
-// TODO: Is this a service?
-@Singleton
-class UserConfigRepository @Inject constructor(private val userConfigs: MutableSet<UserConfig>) {
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : UserConfig> get(klass: KClass<T>): T = userConfigs.find { it::class == klass }!! as T
-
-    fun saveSnapshot() = withConfigs {
-        disableWrite()
-        saveSnapshot()
-    }
-
-    fun revertSnapshot() = withConfigs {
-        restoreSnapshot()
-        enableWrite()
-        clearSnapshot()
-    }
-
-    fun commitSnapshot() = withConfigs {
-        enableWrite()
-        flush()
-        clearSnapshot()
-    }
-
-    fun restoreDefaults() = withConfigs {
-        restoreDefaults()
-    }
-
-    private inline fun withConfigs(f: UserConfig.() -> Unit) = userConfigs.forEach(f)
+interface ViewCanAddReport {
+    val addReportActions: ReceiveChannel<Unit>
 }

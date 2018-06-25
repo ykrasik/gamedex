@@ -16,27 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import io.reactivex.Observable
-import javafx.beans.property.Property
-import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.*
 import tornadofx.SortedFilteredList
 import tornadofx.observable
-import tornadofx.onChange
 
 /**
  * User: ykrasik
  * Date: 20/05/2017
  * Time: 10:58
  */
-fun <T> Observable<out Collection<T>>.toObservableList(): ObservableList<T> {
-    val list = mutableListOf<T>().observable()
-    this.subscribe {
-        list.setAll(it)
-    }
-    return list
-}
-
 inline fun <T> ObservableSet<T>.onChange(crossinline f: (SetChangeListener.Change<out T>) -> Unit): SetChangeListener<T> =
     SetChangeListener<T> { f(it) }.apply { addListener(this) }
 
@@ -51,13 +39,6 @@ fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit): ListChangeLis
     fun doPerform() = f(this)
     doPerform()
     return this.changeListener { doPerform() }
-}
-
-// TODO: Look at using objectBinding()
-fun <T, R> ObservableList<T>.mapProperty(f: (ObservableList<T>) -> R): Property<R> {
-    val property = SimpleObjectProperty(f(this))
-    this.onChange { property.set(f(this)) }
-    return property
 }
 
 fun <T> ObservableList<T>.sortedFiltered() = SortedFilteredList(this)

@@ -14,28 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.core.report
 
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import tornadofx.App
-import tornadofx.launch
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanAddReport
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 08/10/2016
- * Time: 21:40
+ * Date: 24/06/2018
+ * Time: 18:08
  */
-class Main : App(JavaFxPreloaderView::class) {
-    companion object {
-        var startTime = System.currentTimeMillis()
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            uiThreadDispatcher = Dispatchers.JavaFx
-            launch<Main>(args)
+@Singleton
+class ShowAddReportPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanAddReport> {
+    override fun present(view: ViewCanAddReport) = object : Presentation() {
+        init {
+            view.addReportActions.forEach {
+                viewManager.showEditReportView {
+                    reportConfig = null
+                }
+            }
         }
     }
 }

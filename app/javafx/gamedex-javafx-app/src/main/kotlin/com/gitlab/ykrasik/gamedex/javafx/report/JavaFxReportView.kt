@@ -19,12 +19,13 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
-import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.details.YouTubeWebBrowser
@@ -44,7 +45,8 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-class ReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.name, Theme.Icon.chart()), ViewCanShowGameDetails {
+class JavaFxReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.name, Theme.Icon.chart()),
+    ReportView, ViewCanShowGameDetails {
     override val showGameDetailsActions = channel<Game>()
 
     private val reportController: ReportController by di()
@@ -56,6 +58,7 @@ class ReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.
     val report = reportController.generateReport(reportConfig)
     private val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
 
+    // TODO: ViewCanSearchReport
     val searchProperty = SimpleStringProperty("")
 
     private val gamesTable = gamesView(games)
@@ -75,7 +78,7 @@ class ReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.
         // Left
         vbox {
             // Top
-            container(games.mapProperty { "Games: ${it.size}" }) {
+            container(games.sizeProperty.stringBinding { "Games: $it" }) {
                 vgrow = Priority.ALWAYS
                 minHeight = screenBounds.height / 2
                 children += gamesTable

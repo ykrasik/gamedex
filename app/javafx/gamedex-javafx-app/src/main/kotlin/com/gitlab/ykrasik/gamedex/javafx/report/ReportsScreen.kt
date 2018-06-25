@@ -17,22 +17,21 @@
 package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
+import com.gitlab.ykrasik.gamedex.app.api.report.*
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
 import javafx.geometry.Pos
-import javafx.scene.control.*
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import javafx.scene.control.ProgressIndicator
+import javafx.scene.control.Toggle
+import javafx.scene.control.ToggleGroup
+import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import org.controlsfx.control.PopOver
-import org.controlsfx.control.textfield.CustomTextField
-import org.controlsfx.control.textfield.TextFields
 import tornadofx.*
 
 /**
@@ -40,19 +39,23 @@ import tornadofx.*
  * Date: 10/06/2017
  * Time: 16:25
  */
-class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
-    private val reportController: ReportController by di()
-    private val userConfigRepository: UserConfigRepository by di()
-    private val reportUserConfig = userConfigRepository[ReportUserConfig::class]
+class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
+    ViewWithReports, ViewCanAddReport, ViewCanEditReport, ViewCanExcludeGameFromReport, ViewCanDeleteReport {
+    override val reports = mutableListOf<ReportConfig>().observable()
+
+    override val addReportActions = channel<Unit>()
+    override val editReportActions = channel<ReportConfig>()
+    override val excludeGameActions = channel<Pair<String, Game>>()
+    override val deleteReportActions = channel<ReportConfig>()
 
     private var content: VBox by singleAssign()
-    private var searchTextfield: TextField by singleAssign()
+    private val searchTextProperty = SimpleStringProperty("")
 
     private val selection = ToggleGroup()
-    private val screens = FXCollections.observableArrayList<ReportView>()
+    private val screens = FXCollections.observableArrayList<JavaFxReportView>()
 
     private val currentToggle get() = selection.selectedToggleProperty()
-    private val currentScreen = currentToggle.map { it?.userData as? ReportView }
+    private val currentScreen = currentToggle.map { it?.userData as? JavaFxReportView }
     private val currentReport = currentScreen.map { it?.report }
     private val currentReportConfig = currentScreen.map { it?.reportConfig }
     private val currentlySelectedGame = currentScreen.flatMap {
@@ -74,16 +77,20 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
     }
 
     init {
-        reportUserConfig.reportsSubject.subscribe { reports ->
+        viewRegistry.register(this)
+
+        reports.perform { reports ->
             isChangingSettings = true
 
             // TODO: Check for listener leaks.
             cleanupClosedScreen(currentToggle.value)
             selection.toggles.clear()
 
-            screens.setAll(reports.map { ReportView(it.value) })
+            screens.setAll(reports.map { JavaFxReportView(it) })
 
             isChangingSettings = false
+
+            // FIXME: listen to changes of any report & show it on change
         }
 
         selection.selectedToggleProperty().addListener { _, oldToggle, newToggle ->
@@ -102,68 +109,60 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
     }
 
     override fun ToolBar.constructToolbar() {
-        searchTextfield = (TextFields.createClearableTextField() as CustomTextField).apply {
-            promptText = "Search"
-            left = Theme.Icon.search(18.0)
-            isFocusTraversable = false
-
-            addEventHandler(KeyEvent.KEY_PRESSED) { e ->
-                if (e.code == KeyCode.ESCAPE) {
-                    text = ""
-                    root.requestFocus()
-                }
-            }
-        }
-        items += searchTextfield
-        verticalSeparator()
-        addButton { setOnAction { upsertReport { reportController.addReport() } } }
-        verticalSeparator()
-        excludeButton {
-            val text = currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" }
-            textProperty().bind(text)
-            enableWhen { currentlySelectedGame.isNotNull }
-            setOnAction { upsertReport { reportController.excludeGame(currentReportConfig.value!!, currentlySelectedGame.value) } }
-        }
-        verticalSeparator()
-        spacer()
-        verticalSeparator()
-        hbox(spacing = 5.0) {
-            alignment = Pos.CENTER_RIGHT
-            // TODO: Check for listener leaks.
+        buttonWithPopover("None", graphic = Theme.Icon.chart()) {
             screens.perform { screens ->
                 replaceChildren {
-                    screens.forEach { screen ->
-                        jfxToggleNode(screen.title, screen.icon, group = selection) {
-                            popoverContextMenu(PopOver.ArrowLocation.TOP_RIGHT) {
-                                editButton {
-                                    addClass(Style.reportContextMenu)
-                                    setOnAction { upsertReport { reportController.editReport(screen.reportConfig) } }
+                    gridpane {
+                        hgap = 5.0
+                        screens.forEach { screen ->
+                            row {
+                                jfxToggleNode(screen.title, screen.icon, group = selection) {
+                                    useMaxWidth = true
+                                    userData = screen
+                                    isSelected = this == currentToggle.value
                                 }
-                                deleteButton("Delete") {
-                                    addClass(Style.reportContextMenu)
-                                    setOnAction { deleteReport(screen) }
+                                jfxButton(graphic = Theme.Icon.edit()) {
+                                    eventOnAction(editReportActions) { screen.reportConfig }
+                                }
+                                jfxButton(graphic = Theme.Icon.delete()) {
+                                    addClass(CommonStyle.deleteButton)
+                                    eventOnAction(deleteReportActions) { screen.reportConfig }
                                 }
                             }
-                            userData = screen
-                            isSelected = this == currentToggle.value
                         }
+                    }
+                    separator()
+                    addButton {
+                        useMaxWidth = true
+                        alignment = Pos.CENTER
+                        addClass(CommonStyle.thinBorder)
+                        eventOnAction(addReportActions)
                     }
                 }
             }
+        }.apply {
+            addClass(CommonStyle.thinBorder)
+            alignment = Pos.CENTER_LEFT
+            textProperty().bind(currentReportConfig.map { it?.name ?: "Select Report" })
         }
+        verticalSeparator()
+        searchField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
+        verticalSeparator()
+        spacer()
+        verticalSeparator()
+        excludeButton {
+            textProperty().bind(currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
+            enableWhen { currentlySelectedGame.isNotNull }
+            eventOnAction(excludeGameActions) { currentReportConfig.value!!.name to currentlySelectedGame.value }
+        }
+        verticalSeparator()
     }
 
     private fun upsertReport(f: () -> ReportConfig?) {
         val newConfig = f() ?: return
         // Select the newly upserted config.
-        val newToggle = selection.toggles.find { (it.userData as ReportView).reportConfig == newConfig }
+        val newToggle = selection.toggles.find { (it.userData as JavaFxReportView).reportConfig == newConfig }
         selection.selectToggle(newToggle)
-    }
-
-    private fun deleteReport(view: ReportView) {
-        if (reportController.deleteReport(view.reportConfig)) {
-            selection.selectToggle(selection.toggles.firstOrNull())
-        }
     }
 
     override fun onDock() {
@@ -174,35 +173,23 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
         cleanupClosedScreen(currentToggle.value)
     }
 
+    override fun confirmDelete(reportConfig: ReportConfig) =
+    // TODO: Display a read-only view of the rules instead.
+        areYouSureDialog("Delete report '${reportConfig.name}'?") { label("Rules: ${reportConfig.filter}") }
+
     private fun cleanupClosedScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
-        searchTextfield.textProperty().unbindBidirectional(screen.searchProperty)
+        searchTextProperty.unbindBidirectional(screen.searchProperty)
         screen.onUndock()
         content.clear()
     }
 
     private fun prepareNewScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
         screen.onDock()
-        searchTextfield.textProperty().bindBidirectional(screen.searchProperty)
+        searchTextProperty.bindBidirectional(screen.searchProperty)
         content.replaceChildren {
             children += screen.root.apply { vgrow = Priority.ALWAYS }
         }
     }
 
-    private fun Toggle.withScreen(f: (ReportView) -> Unit) = f(userData as ReportView)
-
-    class Style : Stylesheet() {
-        companion object {
-            val reportContextMenu by cssclass()
-
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-            reportContextMenu {
-                alignment = Pos.CENTER_LEFT
-            }
-        }
-    }
+    private fun Toggle.withScreen(f: (JavaFxReportView) -> Unit) = f(userData as JavaFxReportView)
 }

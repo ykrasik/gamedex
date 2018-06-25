@@ -14,28 +14,12 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
-
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import tornadofx.App
-import tornadofx.launch
+package com.gitlab.ykrasik.gamedex.app.api.report
 
 /**
  * User: ykrasik
- * Date: 08/10/2016
- * Time: 21:40
+ * Date: 29/06/2018
+ * Time: 10:29
  */
-class Main : App(JavaFxPreloaderView::class) {
-    companion object {
-        var startTime = System.currentTimeMillis()
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            uiThreadDispatcher = Dispatchers.JavaFx
-            launch<Main>(args)
-        }
-    }
+interface ReportView {
 }

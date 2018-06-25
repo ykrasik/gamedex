@@ -14,21 +14,25 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.core.report
 
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.report.ReportConfig
-import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 18/06/2017
- * Time: 11:11
+ * Date: 29/06/2018
+ * Time: 10:30
  */
-object ReportConfigFragmentTestApp : BaseFragmentTestApp() {
-    override fun init() {
-        println("Result: " + ReportConfigView().show(ReportConfig("", Filter.`true`, emptyList())))
-    }
+@Singleton
+class ReportPresenter @Inject constructor(
 
-    @JvmStatic fun main(args: Array<String>) {  }
+) : Presenter<ReportView> {
+    override fun present(view: ReportView) = object : Presentation() {
+        init {
+        }
+    }
 }

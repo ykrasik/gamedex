@@ -18,22 +18,30 @@ package com.gitlab.ykrasik.gamedex.core.report
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter.Companion.not
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigScope
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 
 /**
  * User: ykrasik
- * Date: 18/06/2017
- * Time: 11:33
+ * Date: 24/06/2018
+ * Time: 16:22
  */
-// TODO: Put reports in persistence & make a ReportRepository
-@Singleton
-class ReportUserConfig : UserConfig() {
-    private val noCriticScore = Filter.CriticScore(Filter.ScoreRule.NoScore)
-    private val noUserScore = Filter.UserScore(Filter.ScoreRule.NoScore)
+// TODO: Move to settings package.
+// TODO: Probably a more correct place to put this is PersistenceService
+// TODO: Try to save a report-per-file.
+class ReportSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<ReportSettingsRepository.Data>() {
+    data class Data(
+        val reports: Map<String, ReportConfig>
+    ) {
+        inline fun modifyReports(f: (Map<String, ReportConfig>) -> Map<String, ReportConfig>) =
+            copy(reports = f(reports))
 
-    override val scope = UserConfigScope("report") {
+        inline fun modifyReport(name: String, f: (ReportConfig) -> ReportConfig) =
+            modifyReports { it + (name to f(it[name]!!)) }
+    }
+
+    override val storage = factory("report", Data::class) {
         Data(
             reports = listOf(
                 ReportConfig("Name Diff", Filter.NameDiff(), excludedGames = emptyList()),
@@ -65,10 +73,11 @@ class ReportUserConfig : UserConfig() {
         )
     }
 
-    val reportsSubject = scope.subject(Data::reports) { copy(reports = it) }
-    var reports by reportsSubject
+    val reportsChannel = storage.channel(Data::reports)
+    val reports by reportsChannel
 
-    data class Data(
-        val reports: Map<String, ReportConfig>
-    )
+    private companion object {
+        val noCriticScore = Filter.CriticScore(Filter.ScoreRule.NoScore)
+        val noUserScore = Filter.UserScore(Filter.ScoreRule.NoScore)
+    }
 }

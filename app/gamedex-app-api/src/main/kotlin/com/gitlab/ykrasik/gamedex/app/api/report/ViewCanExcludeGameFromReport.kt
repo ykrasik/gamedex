@@ -14,34 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.userconfig
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.core.api.util.value_
-import io.reactivex.subjects.BehaviorSubject
-import kotlin.reflect.KProperty
+import com.gitlab.ykrasik.gamedex.Game
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 11/03/2018
- * Time: 15:03
+ * Date: 26/06/2018
+ * Time: 09:32
  */
-abstract class UserConfig {
-    protected abstract val scope: UserConfigScope<*>
-
-    fun saveSnapshot() = scope.saveSnapshot()
-    fun restoreSnapshot() = scope.restoreSnapshot()
-    fun clearSnapshot() = scope.clearSnapshot()
-
-    fun disableWrite() = scope.disableWrite()
-    fun enableWrite() = scope.enableWrite()
-
-    fun flush() = scope.flush()
-
-    fun restoreDefaults() = scope.restoreDefaults()
-
-    // Convenience shortcuts for subclasses
-    operator fun <T> BehaviorSubject<T>.getValue(thisRef: Any, property: KProperty<*>) = value_
-    operator fun <T> BehaviorSubject<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        value_ = value
-    }
+interface ViewCanExcludeGameFromReport {
+    val excludeGameActions: ReceiveChannel<Pair<String, Game>>
 }

@@ -36,11 +36,8 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
-import com.gitlab.ykrasik.gamedex.core.report.ReportUserConfig
 import com.gitlab.ykrasik.gamedex.core.settings.FileSettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfig
-import com.gitlab.ykrasik.gamedex.core.userconfig.UserConfigRepository
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.info
@@ -48,7 +45,6 @@ import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
-import com.google.inject.multibindings.Multibinder
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
@@ -81,11 +77,6 @@ object CoreModule : AbstractModule() {
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(SettingsStorageFactory::class.java).toInstance(FileSettingsStorageFactory)
-
-        with(Multibinder.newSetBinder(binder(), UserConfig::class.java)) {
-            addBinding().to(ReportUserConfig::class.java)
-        }
-        bind(UserConfigRepository::class.java)
     }
 
     @Provides

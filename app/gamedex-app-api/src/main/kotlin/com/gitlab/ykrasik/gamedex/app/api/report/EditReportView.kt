@@ -14,28 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
-import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.javafx.JavaFx
-import tornadofx.App
-import tornadofx.launch
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 08/10/2016
- * Time: 21:40
+ * Date: 24/06/2018
+ * Time: 10:33
  */
-class Main : App(JavaFxPreloaderView::class) {
-    companion object {
-        var startTime = System.currentTimeMillis()
+interface EditReportView {
+    var reportConfig: ReportConfig?
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            uiThreadDispatcher = Dispatchers.JavaFx
-            launch<Main>(args)
-        }
-    }
+    var name: String
+    val nameChanges: ReceiveChannel<String>
+    var nameValidationError: String?
+
+    var filter: Filter
+    val filterChanges: ReceiveChannel<Filter>
+
+    val excludedGames: MutableList<Game>
+
+    val unexcludeGameActions: ReceiveChannel<Game>
+    val acceptActions: ReceiveChannel<Unit>
+    val cancelActions: ReceiveChannel<Unit>
 }
+
+data class ReportConfig(
+    val name: String,
+    val filter: Filter,
+    val excludedGames: List<Int>
+)

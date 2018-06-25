@@ -46,6 +46,7 @@ import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
+import com.gitlab.ykrasik.gamedex.core.report.*
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -93,6 +94,14 @@ class ViewRegistryImpl @Inject constructor(
 
     menuGameFilter: MenuGameFilterPresenter,
     reportGameFilter: ReportGameFilterPresenter,
+
+    reports: ReportsPresenter,
+    report: ReportPresenter,
+    showAddReport: ShowAddReportPresenter,
+    showEditReport: ShowEditReportPresenter,
+    editReport: EditReportPresenter,
+    excludeGameFromReport: ExcludeGameFromReportPresenter,
+    deleteReport: DeleteReportPresenter,
 
     showSettings: ShowSettingsPresenter,
     settings: SettingsPresenter,
@@ -153,6 +162,14 @@ class ViewRegistryImpl @Inject constructor(
 
         presenter(menuGameFilter),
         presenter(reportGameFilter),
+
+        presenter(reports),
+        presenter(report),
+        presenter(showAddReport),
+        presenter(showEditReport),
+        presenter(editReport),
+        presenter(excludeGameFromReport),
+        presenter(deleteReport),
 
         presenter(showSettings),
         presenter(settings),
