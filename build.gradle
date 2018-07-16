@@ -8,7 +8,7 @@ buildscript {
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
-            v = '1.2.50'
+            v = '1.2.51'
             majorV = '1.2'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -18,7 +18,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.23.3'
+            v = '0.23.4'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             rx2 = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-rx2', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
@@ -63,7 +63,7 @@ buildscript {
         }
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14']
-        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.4']
+        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.5']
         tornadoFx = [:].with {
             core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.16']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
@@ -77,12 +77,12 @@ buildscript {
         junit = [group: 'junit', name: 'junit', version: '4.12']
         mockito = [:].with {
             core = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
-            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.5.0']
+            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.6.0']
             delegate
         }
 
         ktor = [:].with {
-            v = '0.9.2'
+            v = '0.9.3'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             delegate
@@ -90,7 +90,7 @@ buildscript {
         wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.18.0']
 
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
-        gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.19.0']
+        gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.20.0']
         gradleLicense = [group: 'gradle.plugin.nl.javadude.gradle.plugins', name: 'license-gradle-plugin', version: '0.14.0']
     }
 
