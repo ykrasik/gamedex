@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
+import com.gitlab.ykrasik.gamedex.Timestamp
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.LocalDate
@@ -27,6 +28,12 @@ import org.joda.time.LocalDate
  */
 val now: DateTime get() = DateTime.now(DateTimeZone.UTC)
 val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
+
+val nowTimestamp: Timestamp
+    get() {
+        val time = now
+        return Timestamp(createDate = time, updateDate = time)
+    }
 
 fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
 fun String.toDate(): LocalDate = LocalDate.parse(this)

@@ -119,7 +119,10 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
                 id = it[Games.id].value,
                 metadata = Metadata(
                     path = it[Games.path],
-                    updateDate = it[Games.updateDate].withZone(DateTimeZone.UTC),
+                    timestamp = Timestamp(
+                        createDate = it[Games.createDate].withZone(DateTimeZone.UTC),
+                        updateDate = it[Games.updateDate].withZone(DateTimeZone.UTC)
+                    ),
                     libraryId = it[Games.libraryId].value
                 ),
                 providerData = it[Games.providerData].listFromJson(),
@@ -132,6 +135,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         val id = Games.insertAndGetId {
             it[libraryId] = metadata.libraryId.toLibraryId()
             it[path] = metadata.path
+            it[createDate] = metadata.createDate
             it[updateDate] = metadata.updateDate
             it[Games.providerData] = providerData.toJsonStr()
             it[Games.userData] = userData?.toJsonStr()

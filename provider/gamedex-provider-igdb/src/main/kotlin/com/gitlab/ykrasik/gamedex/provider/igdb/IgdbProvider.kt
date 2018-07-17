@@ -78,7 +78,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         header = ProviderHeader(
             id = id,
             apiUrl = apiUrl,
-            updateDate = now
+            timestamp = nowTimestamp
         ),
         gameData = GameData(
             siteUrl = this.url,

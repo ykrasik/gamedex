@@ -34,7 +34,7 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import java.io.File
@@ -188,7 +188,7 @@ class GameProviderServiceImpl @Inject constructor(
             return chooser.choose(chooseSearchResultData)
         }
 
-        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, updateDate = now)
+        private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, timestamp = nowTimestamp)
     }
 
     override fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>) = task("Downloading '$name' from ${headers.size} providers...") {
@@ -196,8 +196,13 @@ class GameProviderServiceImpl @Inject constructor(
         message1 = "Downloading '$name' from ${headers.size} providers..."
         headers.map { header ->
             async(CommonPool) {
-                enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
-                    .apply { incProgress() }
+                enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform).let { providerData ->
+                    incProgress()
+
+                    // FIXME: Maybe this logic belongs to the calling class.
+                    // Retain the original header's createDate.
+                    providerData.withCreateDate(header.createDate)
+                }
             }
         }.map { it.await() }
     }

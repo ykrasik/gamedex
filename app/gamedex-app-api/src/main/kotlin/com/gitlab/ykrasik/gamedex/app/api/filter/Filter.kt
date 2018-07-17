@@ -258,7 +258,7 @@ sealed class Filter {
 
         private fun calcDuplications(context: Context): MultiMap<GameId, GameDuplication> = context.cache("Duplications.result") {
             val headerToGames = context.games.asSequence()
-                .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutUpdateDate() to checkedGame } }
+                .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutTimestamp() to checkedGame } }
                 .toMultiMap()
 
             // TODO: Does this belong here?
@@ -280,7 +280,7 @@ sealed class Filter {
             }.toMultiMap()
         }
 
-        private fun ProviderHeader.withoutUpdateDate() = copy(updateDate = DateTime(0))
+        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp(DateTime(0), DateTime(0)))
 
         data class GameDuplication(
             val providerId: ProviderId,

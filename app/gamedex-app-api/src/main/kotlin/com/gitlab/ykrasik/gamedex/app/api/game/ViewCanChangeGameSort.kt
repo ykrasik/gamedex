@@ -41,6 +41,7 @@ enum class SortBy(val displayName: String) {
     avgScore("Average Score"),
     size("Size"),
     releaseDate("Release Date"),
+    createDate("Create Date"),
     updateDate("Update Date");
 
     override fun toString() = displayName

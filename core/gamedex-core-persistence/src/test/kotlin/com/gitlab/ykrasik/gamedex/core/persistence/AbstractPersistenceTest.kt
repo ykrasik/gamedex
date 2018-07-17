@@ -56,14 +56,14 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun randomMetadata(library: Library = this.library, path: String = randomPath()) = Metadata(
             libraryId = library.id,
             path = path,
-            updateDate = randomDateTime()
+            timestamp = randomTimestamp()
         )
 
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
                 id = randomWord(),
                 apiUrl = randomUrl(),
-                updateDate = randomDateTime()
+                timestamp = randomTimestamp()
             ),
             gameData = GameData(
                 siteUrl = randomUrl(),

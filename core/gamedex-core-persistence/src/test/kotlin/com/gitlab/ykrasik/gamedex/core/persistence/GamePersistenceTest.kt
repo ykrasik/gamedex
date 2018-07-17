@@ -124,7 +124,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
 
                 persistenceService.updateGame(updatedGame) shouldBe true
 
-                fetchGames() shouldBe listOf(updatedGame)
+                // Create date is not updated.
+                fetchGames() shouldBe listOf(updatedGame.withMetadata { it.withCreateDate(game.metadata.createDate) })
             }
 
             "update game user data with provider overrides" test {
@@ -170,7 +171,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
                 val updatedGame = game.withMetadata(randomMetadata(library = library2))
                 persistenceService.updateGame(updatedGame) shouldBe true
 
-                fetchGames() shouldBe listOf(updatedGame)
+                // Create date is not updated.
+                fetchGames() shouldBe listOf(updatedGame.withMetadata { it.withCreateDate(game.metadata.createDate) })
             }
 
             "not update a game that doesn't exist" test {

@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
 import com.gitlab.ykrasik.gamedex.util.debug
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -74,7 +74,7 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         header = ProviderHeader(
             id = id,
             apiUrl = apiUrl,
-            updateDate = now
+            timestamp = nowTimestamp
         ),
         gameData = GameData(
             siteUrl = this.siteDetailUrl,

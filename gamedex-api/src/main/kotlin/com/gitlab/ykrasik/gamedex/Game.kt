@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTime
 
 /**
@@ -36,6 +35,7 @@ data class Game(
 ) {
     val id get() = rawGame.id
     val path = library.path.resolve(metadata.path)
+    val createDate get() = metadata.createDate
     val updateDate get() = metadata.updateDate
     val userData get() = rawGame.userData
     private val metadata get() = rawGame.metadata
@@ -83,7 +83,9 @@ data class RawGame(
 data class ProviderData(
     val header: ProviderHeader,
     val gameData: GameData
-)
+) {
+    fun withCreateDate(createDate: DateTime) = copy(header = header.withCreateDate(createDate))
+}
 
 @JsonIgnoreProperties("thumbnailUrl", "posterUrl", "screenshotUrls")
 data class GameData(
@@ -108,11 +110,16 @@ data class Score(
     override fun compareTo(other: Score) = score.compareTo(other.score)
 }
 
+@JsonIgnoreProperties("createDate", "updateDate")
 data class ProviderHeader(
     val id: ProviderId,
     val apiUrl: String,
-    val updateDate: DateTime
-)
+    val timestamp: Timestamp
+) {
+    val createDate get() = timestamp.createDate
+    val updateDate get() = timestamp.updateDate
+    fun withCreateDate(createDate: DateTime) = copy(timestamp = timestamp.withCreateDate(createDate))
+}
 
 data class ImageUrls(
     val thumbnailUrl: String?,
@@ -120,12 +127,28 @@ data class ImageUrls(
     val screenshotUrls: List<String>
 )
 
+@JsonIgnoreProperties("createDate", "updateDate")
 data class Metadata(
     val libraryId: Int,
     val path: String,
+    val timestamp: Timestamp
+) {
+    val createDate get() = timestamp.createDate
+    val updateDate get() = timestamp.updateDate
+    fun withCreateDate(createDate: DateTime) = copy(timestamp = timestamp.withCreateDate(createDate))
+    fun updatedNow() = copy(timestamp = timestamp.updatedNow())
+}
+
+data class Timestamp(
+    val createDate: DateTime,
     val updateDate: DateTime
 ) {
-    fun updatedNow() = copy(updateDate = now)
+    fun withCreateDate(createDate: DateTime) = copy(createDate = createDate)
+    fun updatedNow() = copy(updateDate = com.gitlab.ykrasik.gamedex.util.now)
+
+    companion object {
+        val now get() = com.gitlab.ykrasik.gamedex.util.now.let { now -> Timestamp(now, now) }
+    }
 }
 
 data class FolderMetadata(

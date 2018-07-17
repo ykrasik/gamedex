@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.Timestamp
 import io.kotlintest.TestCase
 import io.kotlintest.matchers.beGreaterThanOrEqualTo
 import io.kotlintest.matchers.beLessThanOrEqualTo
@@ -42,9 +43,11 @@ abstract class ScopedStringSpec : StringSpec() {
 abstract class ScopedWordSpec : WordSpec() {
     override val oneInstancePerTest = false
 
-    val nowMock = DateTime(1).withZone(DateTimeZone.UTC)
+    private val now = DateTime(1).withZone(DateTimeZone.UTC)
+    val nowMock = Timestamp(createDate = now, updateDate = now)
+
     init {
-        DateTimeUtils.setCurrentMillisFixed(1)
+        DateTimeUtils.setCurrentMillisFixed(now.millis)
     }
 
     fun <T> String.inScope(scope: () -> T, test: T.() -> Unit): TestCase = this.invoke { test(scope()) }

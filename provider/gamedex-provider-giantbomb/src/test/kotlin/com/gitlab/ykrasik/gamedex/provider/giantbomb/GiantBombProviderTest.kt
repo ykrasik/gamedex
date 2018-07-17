@@ -107,7 +107,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
                     header = ProviderHeader(
                         id = "GiantBomb",
                         apiUrl = apiDetailUrl,
-                        updateDate = nowMock
+                        timestamp = nowMock
                     ),
                     gameData = GameData(
                         siteUrl = detailsResult.siteDetailUrl,

@@ -75,8 +75,9 @@ internal class GameServiceImpl @Inject constructor(
     override fun replace(source: Game, target: RawGame) = quickTask("Updating Game '${source.name}'...") {
         message1 = "Updating Game '${source.name}'..."
         doneMessage { "Updated Game: '${source.name}'." }
-        repo.replace(source.rawGame, target)
-        target.toGame()
+        val updatedTarget = target.withMetadata { it.updatedNow() }
+        repo.replace(source.rawGame, updatedTarget)
+        updatedTarget.toGame()
     }
 
     override fun delete(game: Game) = quickTask("Deleting Game '${game.name}'...") {

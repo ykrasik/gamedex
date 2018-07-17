@@ -194,6 +194,7 @@ private fun Library.toPortable() = PortableLibrary(
 private data class PortableGame(
     val libraryId: Int,
     val path: String,
+    val createDate: Long,
     val updateDate: Long,
     val providerData: List<PortableProviderData>,
     val userData: PortableUserData?
@@ -202,7 +203,10 @@ private data class PortableGame(
         metadata = Metadata(
             libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
             path = path,
-            updateDate = updateDate.toDateTime()
+            timestamp = Timestamp(
+                createDate = createDate.toDateTime(),
+                updateDate = updateDate.toDateTime()
+            )
         ),
         providerData = providerData.map { it.toProviderData() },
         userData = userData?.toUserData()
@@ -212,6 +216,7 @@ private data class PortableGame(
 private fun Game.toPortable() = PortableGame(
     libraryId = library.id,
     path = rawGame.metadata.path,
+    createDate = createDate.millis,
     updateDate = updateDate.millis,
     providerData = rawGame.providerData.map { it.toPortable() },
     userData = userData?.toPortable()
@@ -220,6 +225,7 @@ private fun Game.toPortable() = PortableGame(
 private data class PortableProviderData(
     val providerId: ProviderId,
     val apiUrl: String,
+    val createDate: Long,
     val updateDate: Long,
     val siteUrl: String,
     val name: String,
@@ -238,7 +244,10 @@ private data class PortableProviderData(
         header = ProviderHeader(
             id = providerId,
             apiUrl = apiUrl,
-            updateDate = updateDate.toDateTime()
+            timestamp = Timestamp(
+                createDate = createDate.toDateTime(),
+                updateDate = updateDate.toDateTime()
+            )
         ),
         gameData = GameData(
             siteUrl = siteUrl,
@@ -262,6 +271,7 @@ private data class PortableProviderData(
 private fun ProviderData.toPortable() = PortableProviderData(
     providerId = header.id,
     apiUrl = header.apiUrl,
+    createDate = header.createDate.millis,
     updateDate = header.updateDate.millis,
     siteUrl = gameData.siteUrl,
     name = gameData.name,

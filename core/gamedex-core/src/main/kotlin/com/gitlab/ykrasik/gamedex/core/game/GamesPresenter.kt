@@ -55,6 +55,7 @@ class GamesPresenter @Inject constructor(
             SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.size -> compareBy<Game> { runBlocking { fileSystemService.size(it.path).await() } }.then(nameComparator)        // FIXME: Hangs UI thread!!!
             SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+            SortBy.createDate -> compareBy(Game::createDate)
             SortBy.updateDate -> compareBy(Game::updateDate)
         }
         if (sort.order == SortOrder.asc) {

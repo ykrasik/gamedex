@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import com.google.inject.ImplementedBy
 import java.io.File
 import javax.inject.Inject
@@ -95,7 +95,7 @@ class GameDiscoveryServiceImpl @Inject constructor(
             metadata = Metadata(
                 libraryId = library.id,
                 path = directory.relativeTo(library.path).path,
-                updateDate = now
+                timestamp = nowTimestamp
             ),
             providerData = results.providerData,
             userData = if (results.excludedProviders.isNotEmpty()) {

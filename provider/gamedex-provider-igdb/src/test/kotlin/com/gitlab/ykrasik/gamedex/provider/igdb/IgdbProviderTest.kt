@@ -160,7 +160,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                     header = ProviderHeader(
                         id = "Igdb",
                         apiUrl = baseUrl,
-                        updateDate = nowMock
+                        timestamp = nowMock
                     ),
                     gameData = GameData(
                         siteUrl = detailsResult.url,

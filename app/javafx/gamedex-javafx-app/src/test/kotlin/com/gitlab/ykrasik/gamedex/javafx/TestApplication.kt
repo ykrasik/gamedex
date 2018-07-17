@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.now
 import com.gitlab.ykrasik.gamedex.util.toFile
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
@@ -95,7 +94,7 @@ object TestApplication {
                         metadata = com.gitlab.ykrasik.gamedex.Metadata(
                             libraryId = libraries.randomElement().id,
                             path = path,
-                            updateDate = now
+                            timestamp = Timestamp.now
                         ),
                         providerData = randomList(providerIds.size) {
                             val providerId = providerIds.randomElement()
@@ -115,7 +114,7 @@ object TestApplication {
         header = ProviderHeader(
             id = id,
             apiUrl = apiUrl(id),
-            updateDate = now.minusYears(1)
+            timestamp = Timestamp.now
         ),
         gameData = GameData(
             siteUrl = randomUrl(),

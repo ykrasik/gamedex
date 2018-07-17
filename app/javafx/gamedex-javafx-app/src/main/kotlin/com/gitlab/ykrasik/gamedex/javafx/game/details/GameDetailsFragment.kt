@@ -29,6 +29,7 @@ import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import org.joda.time.DateTimeZone
 import tornadofx.*
 
 /**
@@ -56,7 +57,8 @@ class GameDetailsFragment(
         userScore()
         genres()
         tags()
-        urls()  // TODO: Should consider having a 'reviews' button.
+        urls()
+        timestamp()
     }
 
     private fun GridPane.name() = row {
@@ -145,6 +147,17 @@ class GameDetailsFragment(
             } else {
                 noContent()
             }
+        }
+    }
+
+    private fun GridPane.timestamp() {
+        row {
+            detailsHeader("Create Date")
+            label(game.createDate.withZone(DateTimeZone.getDefault()).toString("yyyy-MM-dd HH:mm:ss"))
+        }
+        row {
+            detailsHeader("Update Date")
+            label(game.updateDate.withZone(DateTimeZone.getDefault()).toString("yyyy-MM-dd HH:mm:ss"))
         }
     }
 

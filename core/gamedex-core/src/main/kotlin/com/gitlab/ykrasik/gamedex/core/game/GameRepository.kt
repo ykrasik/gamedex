@@ -68,7 +68,7 @@ internal class GameRepository @Inject constructor(private val persistenceService
     }
 
     fun replace(source: RawGame, target: RawGame) {
-        source.verifySuccess { persistenceService.updateGame(target.withMetadata { it.updatedNow() }) }
+        source.verifySuccess { persistenceService.updateGame(target) }
         games.replace(source, target)
     }
 
