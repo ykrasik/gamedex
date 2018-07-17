@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
@@ -36,6 +38,8 @@ val objectMapper: ObjectMapper = ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
     .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
     .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
+    .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+    .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
 
 fun Any.toJsonStr(): String = objectMapper.writeValueAsString(this)
 

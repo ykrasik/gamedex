@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -87,7 +86,6 @@ data class ProviderData(
     fun withCreateDate(createDate: DateTime) = copy(header = header.withCreateDate(createDate))
 }
 
-@JsonIgnoreProperties("thumbnailUrl", "posterUrl", "screenshotUrls")
 data class GameData(
     val siteUrl: String,
     val name: String,
@@ -110,7 +108,6 @@ data class Score(
     override fun compareTo(other: Score) = score.compareTo(other.score)
 }
 
-@JsonIgnoreProperties("createDate", "updateDate")
 data class ProviderHeader(
     val id: ProviderId,
     val apiUrl: String,
@@ -127,7 +124,6 @@ data class ImageUrls(
     val screenshotUrls: List<String>
 )
 
-@JsonIgnoreProperties("createDate", "updateDate")
 data class Metadata(
     val libraryId: Int,
     val path: String,

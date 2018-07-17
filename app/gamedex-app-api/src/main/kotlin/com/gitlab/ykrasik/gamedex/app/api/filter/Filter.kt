@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
@@ -62,7 +61,6 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = Filter.NameDiff::class, name = "nameDiff")
 )
-@JsonIgnoreProperties("name", "not")
 sealed class Filter {
     companion object {
         private val names = mapOf(
