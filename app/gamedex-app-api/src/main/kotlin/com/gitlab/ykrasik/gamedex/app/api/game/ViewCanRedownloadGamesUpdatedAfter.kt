@@ -14,31 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.Timestamp
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.LocalDate
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 28/05/2017
- * Time: 22:05
+ * Date: 06/05/2018
+ * Time: 09:38
  */
-val now: DateTime get() = DateTime.now(DateTimeZone.UTC)
-val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
-
-val nowTimestamp: Timestamp
-    get() {
-        val time = now
-        return Timestamp(createDate = time, updateDate = time)
-    }
-
-fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
-fun String.toDate(): LocalDate = LocalDate.parse(this)
-
-fun LocalDate.toJava(): java.time.LocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
-fun java.time.LocalDate.toJoda(): LocalDate = LocalDate(year, monthValue, dayOfMonth)
-
-fun DateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
+interface ViewCanRedownloadGamesUpdatedAfter {
+    val redownloadGamesUpdatedAfterActions: ReceiveChannel<Unit>
+}

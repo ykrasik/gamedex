@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.util.toHumanReadable
 import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.scene.control.Label
@@ -153,11 +154,11 @@ class GameDetailsFragment(
     private fun GridPane.timestamp() {
         row {
             detailsHeader("Create Date")
-            label(game.createDate.withZone(DateTimeZone.getDefault()).toString("yyyy-MM-dd HH:mm:ss"))
+            label(game.createDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
         }
         row {
             detailsHeader("Update Date")
-            label(game.updateDate.withZone(DateTimeZone.getDefault()).toString("yyyy-MM-dd HH:mm:ss"))
+            label(game.updateDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
         }
     }
 

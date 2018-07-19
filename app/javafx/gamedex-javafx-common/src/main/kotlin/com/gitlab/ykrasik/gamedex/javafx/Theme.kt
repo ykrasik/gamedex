@@ -172,7 +172,7 @@ inline fun EventTarget.tagButton(size: Double = defaultIconSize, crossinline op:
 inline fun EventTarget.searchButton(text: String, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.search(size), op)
 
-inline fun EventTarget.refreshButton(text: String? = "Refresh", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
+inline fun EventTarget.redownloadButton(text: String? = "Refresh", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Theme.Icon.refresh(size), op)
 
 inline fun EventTarget.downloadButton(text: String? = "Download", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =

@@ -37,7 +37,8 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
         val platformSettings: Map<Platform, GamePlatformSettings>,
         val sort: Sort,
         val discoverGameChooseResults: DiscoverGameChooseResults,
-        val stalePeriod: Period
+        val redownloadCreatedBeforePeriod: Period,
+        val redownloadUpdatedAfterPeriod: Period
     ) {
         fun withPlatFormSettings(f: Map<Platform, GamePlatformSettings>.() -> Map<Platform, GamePlatformSettings>) =
             copy(platformSettings = f(platformSettings))
@@ -52,7 +53,8 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
                 order = SortOrder.desc
             ),
             discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
-            stalePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
+            redownloadCreatedBeforePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime()),
+            redownloadUpdatedAfterPeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
         )
     }
 
@@ -80,8 +82,11 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     val discoverGameChooseResultsChannel = storage.channel(Data::discoverGameChooseResults)
     val discoverGameChooseResults by discoverGameChooseResultsChannel
 
-    val stalePeriodChannel = storage.channel(Data::stalePeriod)
-    val stalePeriod by stalePeriodChannel
+    val redownloadCreatedBeforePeriodChannel = storage.channel(Data::redownloadCreatedBeforePeriod)
+    val redownloadCreatedBeforePeriod by redownloadCreatedBeforePeriodChannel
+
+    val redownloadUpdatedAfterPeriodChannel = storage.channel(Data::redownloadUpdatedAfterPeriod)
+    val redownloadUpdatedAfterPeriod by redownloadUpdatedAfterPeriodChannel
 }
 
 data class GamePlatformSettings(

@@ -23,6 +23,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.now
+import com.gitlab.ykrasik.gamedex.util.toHumanReadable
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +36,8 @@ import javax.inject.Singleton
  */
 @ImplementedBy(GameDownloadServiceImpl::class)
 interface GameDownloadService {
-    fun redownloadAllGames(): Task<Unit>
+    fun redownloadGamesCreatedBeforePeriod(): Task<Unit>
+    fun redownloadGamesUpdatedAfterPeriod(): Task<Unit>
 
     fun redownloadGame(game: Game): Task<Game>
 }
@@ -45,7 +48,15 @@ class GameDownloadServiceImpl @Inject constructor(
     private val gameProviderService: GameProviderService,
     private val settingsService: SettingsService
 ) : GameDownloadService {
-    override fun redownloadAllGames() = redownloadGames(gameService.games)
+    override fun redownloadGamesCreatedBeforePeriod(): Task<Unit> {
+        val target = now.minus(settingsService.game.redownloadCreatedBeforePeriod.toDurationTo(now))
+        return redownloadGames("Re-Downloading games created after ${target.toHumanReadable()}...") { it.createDate > target }
+    }
+
+    override fun redownloadGamesUpdatedAfterPeriod(): Task<Unit> {
+        val target = now.minus(settingsService.game.redownloadUpdatedAfterPeriod)
+        return redownloadGames("Re-Downloading games updated before ${target.toHumanReadable()}...") { it.updateDate < target }
+    }
 
     override fun redownloadGame(game: Game) = task("Re-Downloading '${game.name}'...") {
         gameProviderService.checkAtLeastOneProviderEnabled()
@@ -54,21 +65,21 @@ class GameDownloadServiceImpl @Inject constructor(
         downloadGame(game, game.providerHeaders)
     }
 
-    private fun redownloadGames(games: List<Game>) = task("Re-Downloading ${games.size} Games...") {
+    private fun redownloadGames(title: String, shouldRedownload: (ProviderHeader) -> Boolean) = task(title) {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
         val masterTask = this
-        message1 = "Re-Downloading ${games.size} Games..."
-        doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Downloaded $processed / $totalWork Games." }
+        message1 = title
+        var redownloaded = 0
+        doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Downloaded $redownloaded / $totalWork Games." }
 
         runSubTask {
             // Operate on a copy of the games to avoid concurrent modifications.
-            games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
-                val providersToDownload = game.providerHeaders.filter { header ->
-                    header.updateDate.plus(settingsService.game.stalePeriod).isBeforeNow
-                }
+            gameService.games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
+                val providersToDownload = game.providerHeaders.filter(shouldRedownload)
                 if (providersToDownload.isNotEmpty()) {
                     downloadGame(game, providersToDownload)
+                    redownloaded += 1
                 }
             }
         }

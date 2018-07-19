@@ -21,8 +21,17 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 09:38
+ * Time: 09:43
  */
-interface ViewCanRedownloadAllStaleGames {
-    val redownloadAllStaleGamesActions: ReceiveChannel<Unit>
+// FIXME: This sucks, make this a PeriodComponent style thing.
+interface CreatedBeforePeriodView {
+    var createdBeforePeriodText: String
+    val createdBeforePeriodTextChanges: ReceiveChannel<String>
+    var createdBeforePeriodValidationError: String?
+}
+
+interface UpdatedAfterPeriodView {
+    var updatedAfterPeriodText: String
+    val updatedAfterPeriodTextChanges: ReceiveChannel<String>
+    var updatedAfterPeriodValidationError: String?
 }

@@ -31,9 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPr
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenter
 import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverNewGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.discover.RediscoverGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.download.GameDownloadStaleDurationPresenter
-import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadAllStaleGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.download.RedownloadGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.download.*
 import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenter
@@ -85,8 +83,10 @@ class ViewRegistryImpl @Inject constructor(
     renameMoveGame: RenameMoveGamePresenter,
     showTagGame: ShowTagGamePresenter,
     tagGame: TagGamePresenter,
-    gameDownloadStaleDuration: GameDownloadStaleDurationPresenter,
-    redownloadAllStaleGames: RedownloadAllStaleGamesPresenter,
+    redownloadCreatedBeforePeriod: GameRedownloadCreatedBeforePeriodPresenter,
+    redownloadUpdatedAfterPeriod: GameRedownloadUpdatedAfterPeriodPresenter,
+    redownloadGamesCreatedBefore: RedownloadGamesCreatedBeforePresenter,
+    redownloadGamesUpdatedAfter: RedownloadGamesUpdatedAfterPresenter,
     discoverGameChooseResults: DiscoverGameChooseResultsPresenter,
     discoverNewGames: DiscoverNewGamesPresenter,
     discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenter,
@@ -143,8 +143,10 @@ class ViewRegistryImpl @Inject constructor(
         presenter(renameMoveGame),
         presenter(showTagGame),
         presenter(tagGame),
-        presenter(gameDownloadStaleDuration),
-        presenter(redownloadAllStaleGames),
+        presenter(redownloadCreatedBeforePeriod),
+        presenter(redownloadUpdatedAfterPeriod),
+        presenter(redownloadGamesCreatedBefore),
+        presenter(redownloadGamesUpdatedAfter),
         presenter(discoverGameChooseResults),
         presenter(discoverNewGames),
         presenter(discoverGamesWithoutProviders),

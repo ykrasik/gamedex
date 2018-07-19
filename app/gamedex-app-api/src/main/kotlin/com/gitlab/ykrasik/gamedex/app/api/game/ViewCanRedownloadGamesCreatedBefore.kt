@@ -20,12 +20,9 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:43
+ * Date: 20/07/2018
+ * Time: 09:38
  */
-interface DownloadStaleDurationView {
-    var stalePeriodText: String
-    val stalePeriodTextChanges: ReceiveChannel<String>
-
-    var stalePeriodValidationError: String?
+interface ViewCanRedownloadGamesCreatedBefore {
+    val redownloadGamesCreatedBeforeActions: ReceiveChannel<Unit>
 }

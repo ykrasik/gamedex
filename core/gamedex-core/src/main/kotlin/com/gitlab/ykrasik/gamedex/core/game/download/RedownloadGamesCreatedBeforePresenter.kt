@@ -14,31 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.core.game.download
 
-import com.gitlab.ykrasik.gamedex.Timestamp
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.LocalDate
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesCreatedBefore
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 28/05/2017
- * Time: 22:05
+ * Date: 06/05/2018
+ * Time: 13:11
  */
-val now: DateTime get() = DateTime.now(DateTimeZone.UTC)
-val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
-
-val nowTimestamp: Timestamp
-    get() {
-        val time = now
-        return Timestamp(createDate = time, updateDate = time)
+@Singleton
+class RedownloadGamesCreatedBeforePresenter @Inject constructor(
+    private val gameDownloadService: GameDownloadService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanRedownloadGamesCreatedBefore> {
+    override fun present(view: ViewCanRedownloadGamesCreatedBefore) = object : Presentation() {
+        init {
+            view.redownloadGamesCreatedBeforeActions.actionOnUi {
+                taskRunner.runTask(gameDownloadService.redownloadGamesCreatedBeforePeriod())
+            }
+        }
     }
-
-fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
-fun String.toDate(): LocalDate = LocalDate.parse(this)
-
-fun LocalDate.toJava(): java.time.LocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
-fun java.time.LocalDate.toJoda(): LocalDate = LocalDate(year, monthValue, dayOfMonth)
-
-fun DateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
+}
