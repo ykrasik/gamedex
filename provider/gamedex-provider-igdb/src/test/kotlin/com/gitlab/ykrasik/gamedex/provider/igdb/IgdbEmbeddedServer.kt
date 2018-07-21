@@ -90,7 +90,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
                         handle {
                             authorized {
                                 val name = call.parameters["search"]!!
-                                delay(100)
+                                delay(50, 300)
                                 call.respondText(randomSearchResults(name), ContentType.Application.Json)
                             }
                         }
@@ -99,16 +99,16 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
             }
             get("/{id}") {
                 authorized {
-                    delay(100)
+                    delay(200, 800)
                     call.respondText(randomDetailResponse(), ContentType.Application.Json)
                 }
             }
             get("$imagePath/$thumbnailPath/{imageName}") {
-                delay(400)
+                delay(100, 600)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())
             }
             get("$imagePath/$posterPath/{imageName}") {
-                delay(600)
+                delay(200, 800)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Use a different set of images
             }
         }
@@ -122,7 +122,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(millis: Int) = delay(randomInt(millis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong(), TimeUnit.MILLISECONDS)
 
     private fun randomSearchResults(name: String): String = randomList(10) {
         IgdbClient.SearchResult(

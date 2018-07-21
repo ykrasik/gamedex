@@ -85,21 +85,21 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         routing {
             get("/") {
                 authorized {
-                    delay(100)
+                    delay(50, 200)
                     call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
                 }
             }
             get("$thumbnailPath/{imageName}") {
-                delay(400)
+                delay(200, 600)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())
             }
             get("$superPath/{imageName}") {
-                delay(600)
+                delay(300, 800)
                 call.respond(com.gitlab.ykrasik.gamedex.test.randomImage())     // TODO: Return a different set of images
             }
             get(apiDetailPath) {
                 authorized {
-                    delay(100)
+                    delay(400, 1400)
                     call.respondText(randomDetailResponse().toMap().toJsonStr(), ContentType.Application.Json)
                 }
             }
@@ -114,7 +114,7 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(millis: Int) = delay(randomInt(millis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong(), TimeUnit.MILLISECONDS)
 
     private fun randomSearchResponse() = GiantBombClient.SearchResponse(
         statusCode = GiantBombClient.Status.ok,
