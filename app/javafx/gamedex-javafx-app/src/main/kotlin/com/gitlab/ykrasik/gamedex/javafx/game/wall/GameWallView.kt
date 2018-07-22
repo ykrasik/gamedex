@@ -35,6 +35,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.stage.Screen
+import javafx.util.Callback
 import org.controlsfx.control.GridCell
 import org.controlsfx.control.GridView
 import org.controlsfx.control.PopOver
@@ -69,6 +70,9 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     private val gameContextMenu: GameContextMenu by inject()
 
+    private val popOver = popOver(closeOnClick = false)
+    private var popOverShowing = false
+
     init {
         games.sortedItems.comparatorProperty().bind(sortProperty)
         games.filteredItems.predicateProperty().bind(filterPredicateProperty)
@@ -81,8 +85,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         horizontalCellSpacingProperty().bind(cellDisplaySettings.horizontalSpacingProperty)
         verticalCellSpacingProperty().bind(cellDisplaySettings.verticalSpacingProperty)
 
-        val popOver = popOver(closeOnClick = false)
-        var popOverShowing = false
+        cellDisplaySettings.onChange { setCellFactory(GameWallCellFactory()) }
+        listOf(nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings).forEach {
+            it.onChange { setCellFactory(GameWallCellFactory()) }
+        }
 
         setCellFactory {
             val cell = GameWallCell()
@@ -139,21 +145,51 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         return arrowLocation
     }
 
+    private inner class GameWallCellFactory : Callback<GridView<Game>, GridCell<Game>> {
+        override fun call(param: GridView<Game>?): GridCell<Game> {
+            val cell = GameWallCell()
+            cell.setOnMouseClicked { e ->
+                popOver.setOnHidden {
+                    cell.markSelected(false)
+                }
+                when (e.clickCount) {
+                    1 -> with(popOver) {
+                        if (popOverShowing) {
+                            popOverShowing = false
+                            hide()
+                        } else if (e.button == MouseButton.PRIMARY) {
+                            arrowLocation = determineArrowLocation(e.screenX, e.screenY)
+                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false).root.apply {
+                                addClass(Style.quickDetails)
+                            }
+                            cell.markSelected(true)
+                            show(cell)
+                            popOverShowing = true
+                        }
+                    }
+                    2 -> {
+                        popOver.hide()
+                        popOverShowing = false
+                        if (e.button == MouseButton.PRIMARY) {
+                            showGameDetailsActions.event(cell.item)
+                        }
+                    }
+                }
+            }
+            gameContextMenu.install(cell) { cell.item!! }
+            return cell
+        }
+    }
+
     private inner class GameWallCell : GridCell<Game>() {
         private val fragment = GameWallCellFragment(
             cellDisplaySettings, nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings
         )
-        private val imageView get() = fragment.imageView
-        private val nameOverlay get() = fragment.nameOverlay
-        private val metaTagOverlay get() = fragment.metaTagOverlay
-        private val versionOverlay get() = fragment.versionOverlay
 
         init {
             fragment.root.maxWidthProperty().bind(this.widthProperty())
             fragment.root.maxHeightProperty().bind(this.heightProperty())
             graphic = fragment.root
-
-            cellDisplaySettings.imageDisplayTypeProperty.onChange { requestLayout() }
         }
 
         fun markSelected(selected: Boolean) {
@@ -164,21 +200,21 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             super.updateItem(item, empty)
 
             if (item != null) {
-                nameOverlay.text = item.name
-                metaTagOverlay.text = item.folderMetadata.metaTag
-                versionOverlay.text = item.folderMetadata.version
-                imageView.imageProperty().cleanBind(imageLoader.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
+                fragment.nameOverlay = item.name
+                fragment.metaTagOverlay = item.folderMetadata.metaTag
+                fragment.versionOverlay = item.folderMetadata.version
+                fragment.setImage(imageLoader.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
                 tooltip(item.name)
             } else {
-                metaTagOverlay.text = null
-                versionOverlay.text = null
-                imageView.imageProperty().unbind()
-                imageView.image = null
+                fragment.nameOverlay = null
+                fragment.metaTagOverlay = null
+                fragment.versionOverlay = null
+                fragment.clearImage()
             }
         }
 
         override fun resize(width: Double, height: Double) {
-            imageView.isPreserveRatio = when (cellDisplaySettings.imageDisplayType) {
+            fragment.preserveRatio = when (cellDisplaySettings.imageDisplayType) {
                 ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
                 else -> throw RuntimeException()
@@ -188,9 +224,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         }
 
         private fun isPreserveImageRatio(): Boolean {
-            if (imageView.image == null) return true
-
-            val image = imageView.image
+            val image = fragment.image ?: return true
 
             // If the image is fit into the cell, this will be it's size.
             val heightRatio = height / image.height

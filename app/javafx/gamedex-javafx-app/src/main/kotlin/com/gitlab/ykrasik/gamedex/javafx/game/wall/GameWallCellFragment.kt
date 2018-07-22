@@ -16,22 +16,20 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.wall
 
+import com.gitlab.ykrasik.gamedex.app.api.settings.CellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.perform
-import javafx.beans.property.ReadOnlyBooleanProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.event.EventTarget
+import javafx.beans.value.ObservableValue
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
@@ -47,32 +45,23 @@ import tornadofx.*
  * Time: 10:07
  */
 class GameWallCellFragment(
-    cellDisplaySettings: JavaFxCellDisplaySettings,
-    nameOverlayDisplaySettings: JavaFxOverlayDisplaySettings,
-    metaTagOverlayDisplaySettings: JavaFxOverlayDisplaySettings,
-    versionOverlayDisplaySettings: JavaFxOverlayDisplaySettings
+    cellDisplaySettings: CellDisplaySettings,
+    nameOverlayDisplaySettings: OverlayDisplaySettings,
+    metaTagOverlayDisplaySettings: OverlayDisplaySettings,
+    versionOverlayDisplaySettings: OverlayDisplaySettings
 ) : Fragment() {
-    private var _imageView: ImageView by singleAssign()
-    private var _nameOverlay: Label by singleAssign()
-    private var _metaTagOverlay: Label by singleAssign()
-    private var _versionOverlay: Label by singleAssign()
-    private var border: Rectangle by singleAssign()
-
-    private lateinit var isHoverProperty: ReadOnlyBooleanProperty
+    private var imageView: ImageView by singleAssign()
+    private var nameOverlayLabel: Label by singleAssign()
+    private var metaTagOverlayLabel: Label by singleAssign()
+    private var versionOverlayLabel: Label by singleAssign()
 
     private val isSelectedProperty = SimpleBooleanProperty(false)
     var isSelected by isSelectedProperty
-
-    val imageView get() = _imageView
-    val nameOverlay get() = _nameOverlay
-    val metaTagOverlay get() = _metaTagOverlay
-    val versionOverlay get() = _versionOverlay
 
     override val root = stackpane {
         val root = this
         minWidthProperty().bind(maxWidthProperty())
         minHeightProperty().bind(maxHeightProperty())
-        isHoverProperty = hoverProperty()
 
         val dropshadow = DropShadow().apply { input = Glow() }
         setOnMouseEntered { effect = dropshadow }
@@ -84,7 +73,7 @@ class GameWallCellFragment(
             // TODO: Allow configuring this.
             background = Background(BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY))
 
-            _imageView = imageview {
+            imageView = imageview {
                 fadeOnImageChange()
                 isSmooth = true
 
@@ -95,32 +84,30 @@ class GameWallCellFragment(
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
 
-            cellDisplaySettings.imageDisplayTypeProperty.perform {
-                if (it == ImageDisplayType.FixedSize) {
-                    maxWidthProperty().cleanBind(root.widthProperty())
-                    maxHeightProperty().cleanBind(root.heightProperty())
-                } else {
-                    maxWidthProperty().cleanBind(_imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.width) })
-                    maxHeightProperty().cleanBind(_imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.height) })
-                }
-                content.requestLayout()
+            if (cellDisplaySettings.imageDisplayType == ImageDisplayType.FixedSize) {
+                maxWidthProperty().cleanBind(root.widthProperty())
+                maxHeightProperty().cleanBind(root.heightProperty())
+            } else {
+                maxWidthProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.width) })
+                maxHeightProperty().cleanBind(imageView.boundsInParentProperty().doubleBinding { Math.floor(it!!.height) })
             }
+            content.requestLayout()
 
-            _nameOverlay = overlayLabel(nameOverlayDisplaySettings)
-            _metaTagOverlay = overlayLabel(metaTagOverlayDisplaySettings)
-            _versionOverlay = overlayLabel(versionOverlayDisplaySettings)
+            nameOverlayLabel = overlayLabel(nameOverlayDisplaySettings)
+            metaTagOverlayLabel = overlayLabel(metaTagOverlayDisplaySettings)
+            versionOverlayLabel = overlayLabel(versionOverlayDisplaySettings)
 
-            this@GameWallCellFragment.border = rectangle {
-                visibleWhen { cellDisplaySettings.showBorderProperty }
-
-                x = 1.0
-                y = 1.0
-                arcWidth = 20.0
-                arcHeight = 20.0
-                heightProperty().bind(content.heightProperty().subtract(1))
-                widthProperty().bind(content.widthProperty().subtract(1))
-                fill = Color.TRANSPARENT
-                stroke = Color.BLACK
+            if (cellDisplaySettings.showBorder) {
+                rectangle {
+                    x = 1.0
+                    y = 1.0
+                    arcWidth = 20.0
+                    arcHeight = 20.0
+                    heightProperty().bind(content.heightProperty().subtract(1))
+                    widthProperty().bind(content.widthProperty().subtract(1))
+                    fill = Color.TRANSPARENT
+                    stroke = Color.BLACK
+                }
             }
 
             clip = Rectangle().apply {
@@ -132,27 +119,59 @@ class GameWallCellFragment(
         }
     }
 
-    private fun EventTarget.overlayLabel(settings: JavaFxOverlayDisplaySettings) = label {
+    private fun Node.overlayLabel(settings: OverlayDisplaySettings) = label {
         addClass(Style.overlayText)
         visibleWhen {
-            settings.enabledProperty.and(textProperty().isNotEmpty).and(
-                settings.showOnlyWhenActiveProperty.and(isHoverProperty.or(isSelectedProperty)).or(settings.showOnlyWhenActiveProperty.not())
+            val showOnlyWhenActive = settings.showOnlyWhenActive.toProperty()
+            settings.enabled.toProperty().and(textProperty().isNotEmpty).and(
+                showOnlyWhenActive.and(this@overlayLabel.hoverProperty().or(isSelectedProperty)).or(showOnlyWhenActive.not())
             )
         }
 
-        val fontSettings = SimpleObjectProperty(FontSettings())
-        settings.fontSizeProperty.onChange { fontSettings.value = fontSettings.value.copy(size = it) }
-        settings.boldFontProperty.onChange { fontSettings.value = fontSettings.value.copy(weight = if (it) FontWeight.BOLD else null) }
-        settings.italicFontProperty.onChange { fontSettings.value = fontSettings.value.copy(posture = if (it) FontPosture.ITALIC else null) }
+        font = run {
+            val weight = if (settings.boldFont) FontWeight.BOLD else null
+            val posture = if (settings.italicFont) FontPosture.ITALIC else null
+            Font.font(null, weight, posture, settings.fontSize.toDouble())
+        }
+        textFill = Color.valueOf(settings.textColor)
+        background = Background(BackgroundFill(Color.valueOf(settings.backgroundColor), null, null))
+        opacity = settings.opacity
 
-        fontProperty().bind(fontSettings.map { it!!.toFont() })
-        textFillProperty().bind(settings.textColorProperty.map { Color.valueOf(it) })
-        backgroundProperty().bind(settings.backgroundColorProperty.map { Background(BackgroundFill(Color.valueOf(it), null, null)) })
-        opacityProperty().bind(settings.opacityProperty)
-
-        maxWidthProperty().bind(settings.fillWidthProperty.map { if (it!!) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE })
-        settings.positionProperty.perform { position -> StackPane.setAlignment(this, positions[position]!!) }
+        maxWidth = if (settings.fillWidth) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE
+        StackPane.setAlignment(this, positions[settings.position])
     }
+
+    fun setImage(image: ObservableValue<Image>) = imageView.imageProperty().cleanBind(image)
+    fun clearImage() {
+        imageView.imageProperty().unbind()
+        imageView.image = null
+    }
+
+    val image: Image? get() = imageView.image
+
+    var preserveRatio: Boolean
+        get() = imageView.isPreserveRatio
+        set(value) {
+            imageView.isPreserveRatio = value
+        }
+
+    var nameOverlay: String?
+        get() = nameOverlayLabel.text
+        set(value) {
+            nameOverlayLabel.text = value
+        }
+
+    var metaTagOverlay: String?
+        get() = metaTagOverlayLabel.text
+        set(value) {
+            metaTagOverlayLabel.text = value
+        }
+
+    var versionOverlay: String?
+        get() = versionOverlayLabel.text
+        set(value) {
+            versionOverlayLabel.text = value
+        }
 
     class Style : Stylesheet() {
         companion object {
@@ -169,14 +188,6 @@ class GameWallCellFragment(
                 alignment = Pos.BASELINE_CENTER
             }
         }
-    }
-
-    private data class FontSettings(
-        val size: Int = -1,
-        val weight: FontWeight? = null,
-        val posture: FontPosture? = null
-    ) {
-        fun toFont() = Font.font(null, weight, posture, size.toDouble())
     }
 
     companion object {

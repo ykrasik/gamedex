@@ -25,6 +25,7 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
+import tornadofx.onChange
 import tornadofx.setValue
 
 /**
@@ -72,4 +73,9 @@ class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings {
     override val opacityChanges = channel<Double>()
     val opacityProperty = SimpleDoubleProperty().eventOnChange(opacityChanges) { it.toDouble() }
     override var opacity by opacityProperty
+
+    inline fun onChange(crossinline f: () -> Unit) = listOf(
+        enabledProperty, showOnlyWhenActiveProperty, positionProperty, fillWidthProperty, fontSizeProperty, boldFontProperty,
+        italicFontProperty, textColorProperty, backgroundColorProperty, opacityProperty
+    ).forEach { it.onChange { f() } }
 }

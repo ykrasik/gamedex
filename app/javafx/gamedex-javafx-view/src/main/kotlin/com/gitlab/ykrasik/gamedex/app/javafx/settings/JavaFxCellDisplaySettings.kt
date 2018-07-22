@@ -24,6 +24,7 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
+import tornadofx.onChange
 import tornadofx.setValue
 
 /**
@@ -55,4 +56,8 @@ class JavaFxCellDisplaySettings : MutableCellDisplaySettings {
     override val verticalSpacingChanges = channel<Double>()
     val verticalSpacingProperty = SimpleDoubleProperty().eventOnChange(verticalSpacingChanges) { it.toDouble() }
     override var verticalSpacing by verticalSpacingProperty
+
+    inline fun onChange(crossinline f: () -> Unit) = listOf(
+        imageDisplayTypeProperty, showBorderProperty, widthProperty, heightProperty, horizontalSpacingProperty, verticalSpacingProperty
+    ).forEach { it.onChange { f() } }
 }
