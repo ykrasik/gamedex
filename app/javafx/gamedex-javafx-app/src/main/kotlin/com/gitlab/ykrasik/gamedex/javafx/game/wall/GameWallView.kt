@@ -85,6 +85,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         horizontalCellSpacingProperty().bind(cellDisplaySettings.horizontalSpacingProperty)
         verticalCellSpacingProperty().bind(cellDisplaySettings.verticalSpacingProperty)
 
+        // Binding any observable properties inside the GameWallCell causes a memory leak -
+        // the grid constantly constructs new instances of it, so if they retain a listener to the settings - we leak.
+        // A workaround is to re-set the cellFactory whenever any settings change - this causes all cells to be rebuilt
+        // without them having any listeners.
         cellDisplaySettings.onChange { setCellFactory(GameWallCellFactory()) }
         listOf(nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings).forEach {
             it.onChange { setCellFactory(GameWallCellFactory()) }

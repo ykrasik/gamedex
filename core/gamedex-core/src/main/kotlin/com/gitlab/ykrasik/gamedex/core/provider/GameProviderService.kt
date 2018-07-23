@@ -191,9 +191,9 @@ class GameProviderServiceImpl @Inject constructor(
         private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, timestamp = nowTimestamp)
     }
 
-    override fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>) = task("Downloading '$name' from ${headers.size} providers...") {
+    override fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
         totalWork = headers.size
-        message1 = "Downloading '$name' from ${headers.size} providers..."
+        message1 = "Downloading '$name'..."
         headers.map { header ->
             async(CommonPool) {
                 enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform).let { providerData ->

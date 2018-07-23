@@ -101,7 +101,7 @@ class YouTubeWebBrowser : Fragment() {
 
     private fun navigate(back: Boolean) = webView.engine.history.go(if (back) -1 else 1)
 
-    inner class StandaloneBrowserFragment : Fragment() {
+    private inner class StandaloneBrowserFragment : Fragment() {
         override val root = stackpane {
             minWidth = screenBounds.width * 2 / 3
             minHeight = screenBounds.height * 2 / 3
