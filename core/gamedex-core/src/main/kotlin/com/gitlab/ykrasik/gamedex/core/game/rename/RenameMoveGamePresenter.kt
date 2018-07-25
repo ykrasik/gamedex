@@ -64,7 +64,7 @@ class RenameMoveGamePresenter @Inject constructor(
             val game = view.game
             view.library = game.library
             view.path = game.rawGame.metadata.path.toFile().let { it.parentFile?.path ?: "" }
-            view.name = view.initialName ?: game.name
+            view.name = view.initialName ?: game.rawGame.metadata.path.toFile().name
             view.nameValidationError = null
         }
 
