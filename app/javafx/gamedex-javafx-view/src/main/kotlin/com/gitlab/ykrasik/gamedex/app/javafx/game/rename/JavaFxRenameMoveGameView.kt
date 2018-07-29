@@ -76,6 +76,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
         minHeight = 100.0
         top {
             toolbar {
+                enableWhen { enabledProperty }
                 acceptButton {
                     isDefaultButton = true
                     enableWhen { viewModel.valid }
