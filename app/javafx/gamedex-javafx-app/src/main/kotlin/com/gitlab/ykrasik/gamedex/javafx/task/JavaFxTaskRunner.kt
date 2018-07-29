@@ -22,16 +22,19 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
 import com.gitlab.ykrasik.gamedex.app.api.util.TaskType
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
+import com.gitlab.ykrasik.gamedex.util.InitOnce
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.layout.Priority
+import javafx.scene.Node
 import javafx.scene.layout.VBox
+import javafx.scene.text.FontWeight
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import org.controlsfx.control.MaskerPane
+import org.controlsfx.control.NotificationPane
 import tornadofx.*
 import javax.inject.Singleton
 
@@ -46,7 +49,7 @@ class JavaFxTaskRunner : TaskRunner {
     private val currentJobProperty = SimpleObjectProperty<Job?>(null)
     private var currentJob by currentJobProperty
 
-    private var longRunningNotification: Notification? = null
+    private var notificationPane: NotificationPane by InitOnce()
 
     private var mainTask: ReadOnlyTask<*>? = null
     private val mainTaskProperties = TaskProperties()
@@ -60,16 +63,15 @@ class JavaFxTaskRunner : TaskRunner {
         alignment = Pos.CENTER_LEFT
         tasks.performing {
             replaceChildren {
-                hbox(spacing = 5.0) {
-                    paddingAll = 5.0
+                hbox(spacing = 5) {
+                    paddingAll = 5
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    label(mainTaskProperties.title)
+                    label(mainTaskProperties.title) { addClass(Style.taskTitle) }
                     if (mainTask?.type == TaskType.Long) {
-                        jfxButton("Cancel") {
+                        spacer()
+                        toolbarButton("Cancel") {
                             addClass(CommonStyle.thinBorder)
-                            useMaxWidth = true
-                            hgrow = Priority.ALWAYS
                             isCancelButton = true
                             setOnAction {
                                 currentJob!!.cancel()
@@ -79,7 +81,9 @@ class JavaFxTaskRunner : TaskRunner {
                 }
                 separator()
                 gridpane {
-                    paddingAll = 5.0
+                    paddingAll = 5
+                    paddingLeft = 20
+                    paddingBottom = 20
                     hgap = 5.0
                     vgap = 5.0
                     alignment = Pos.CENTER_LEFT
@@ -97,10 +101,19 @@ class JavaFxTaskRunner : TaskRunner {
         }
     }
 
-    fun maskerPane() = MaskerPane().apply {
-        visibleWhen { currentJobProperty.isNotNull }
-        progressProperty().bind(mainTaskProperties.progress)
-        textProperty().bind(mainTaskProperties.title)
+    fun init(f: EventTarget.() -> Node) = NotificationPane().apply {
+        notificationPane = this
+        isCloseButtonVisible = false
+        isShowFromTop = true
+        graphic = taskView
+        content = stackpane {
+            f()
+            maskerPane {
+                visibleWhen { currentJobProperty.isNotNull }
+                progressProperty().bind(mainTaskProperties.progress)
+                textProperty().bind(mainTaskProperties.title)
+            }
+        }
     }
 
     override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
@@ -139,7 +152,7 @@ class JavaFxTaskRunner : TaskRunner {
             tasks.clear()
 
             // This is OMFG. Showing the notification as part of the regular flow (not in a new coroutine)
-            // causes an issue with modal windows not reporting that being hidden.
+            // causes an issue with modal windows not reporting that it is being hidden.
             javaFx {
                 delay(1)
                 showInfoNotification(task.doneMessage.await())
@@ -148,17 +161,11 @@ class JavaFxTaskRunner : TaskRunner {
     }
 
     private fun showPersistentNotification() {
-        longRunningNotification = Notification()
-            .graphic(taskView)
-            .hideCloseButton()
-            .position(Pos.TOP_LEFT)
-
-        longRunningNotification!!.show()
+        notificationPane.show()
     }
 
     private fun hidePersistentNotification() {
-        longRunningNotification!!.hide()
-        longRunningNotification = null
+        notificationPane.hide()
     }
 
     // FIXME: Showing notifications causes the FontAwesome glyphs to bug up for the notification Pane. Maybe use BootstrapFx instead?
@@ -192,6 +199,22 @@ class JavaFxTaskRunner : TaskRunner {
             message2.unbind()
             message1.unbind()
             title.value = ""
+        }
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val taskTitle by cssclass()
+
+            init {
+                importStylesheet(Style::class)
+            }
+        }
+
+        init {
+            taskTitle {
+                fontWeight = FontWeight.BOLD
+            }
         }
     }
 }

@@ -68,7 +68,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
         viewRegistry.register(this)
     }
 
-    override val root = stackpane {
+    override val root = taskRunner.init {
         borderpane {
             top {
                 toolbar = toolbar {
@@ -97,7 +97,6 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
                 }
             }
         }
-        children += taskRunner.maskerPane()
     }
 
     private fun TabPane.screenTab(screen: PresentableScreen) = tab(screen) {
