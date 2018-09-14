@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.api.file
 
-import com.gitlab.ykrasik.gamedex.FolderMetadata
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FolderNameMetadata
+import com.gitlab.ykrasik.gamedex.Game
 import java.io.File
 
 /**
@@ -27,13 +27,13 @@ import java.io.File
  * Time: 14:04
  */
 interface FileSystemService {
-    fun size(file: File): Deferred<FileSize>
+    fun structure(game: Game): FileStructure
 
     // TODO: Make this a channel?
     fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
 
     // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderMetadata
+    fun analyzeFolderName(rawName: String): FolderNameMetadata
     fun fromFileName(name: String): String
     fun toFileName(name: String): String
 }

@@ -125,7 +125,7 @@ class ReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }
-        customGraphicColumn("Size", { game -> fileSystemService.size(game.path).toObservableValue() }) { size ->
+        customGraphicColumn("Size", { game -> fileSystemService.structure(game).size.toProperty() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 

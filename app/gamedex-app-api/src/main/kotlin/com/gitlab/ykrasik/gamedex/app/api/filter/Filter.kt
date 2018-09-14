@@ -26,10 +26,8 @@ import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import com.gitlab.ykrasik.gamedex.util.today
 import difflib.DiffUtils
 import difflib.Patch
-import kotlinx.coroutines.experimental.Deferred
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
-import java.io.File
 import kotlin.reflect.KClass
 
 /**
@@ -91,7 +89,7 @@ sealed class Filter {
 
     val name get() = name(this::class)
     override fun toString() = name
-    abstract suspend fun evaluate(game: Game, context: Context): Boolean
+    abstract fun evaluate(game: Game, context: Context): Boolean
 
     infix fun and(right: Filter) = And(this, right)
     infix fun and(right: () -> Filter) = and(right())
@@ -143,19 +141,19 @@ sealed class Filter {
     }
 
     class And(left: Filter = True(), right: Filter = True()) : BinaryOperator(left, right) {
-        override suspend fun evaluate(game: Game, context: Context) = left.evaluate(game, context) && right.evaluate(game, context)
+        override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) && right.evaluate(game, context)
         override fun new(newLeft: Filter, newRight: Filter) = And(newLeft, newRight)
         override fun toString() = "($left) and ($right)"
     }
 
     class Or(left: Filter = True(), right: Filter = True()) : BinaryOperator(left, right) {
-        override suspend fun evaluate(game: Game, context: Context) = left.evaluate(game, context) || right.evaluate(game, context)
+        override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) || right.evaluate(game, context)
         override fun new(newLeft: Filter, newRight: Filter) = Or(newLeft, newRight)
         override fun toString() = "($left) or ($right)"
     }
 
     class Not(target: Filter = True()) : UnaryOperator(target) {
-        override suspend fun evaluate(game: Game, context: Context) = !target.evaluate(game, context)
+        override fun evaluate(game: Game, context: Context) = !target.evaluate(game, context)
         override fun new(newRule: Filter) = Not(newRule)
         override fun toString() = "!($target)"
     }
@@ -163,11 +161,11 @@ sealed class Filter {
     abstract class Rule : Filter()
 
     class True : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = true
+        override fun evaluate(game: Game, context: Context) = true
     }
 
     abstract class ScoreRule(val target: Double) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context): Boolean {
             val score = extractScore(game, context)
             return when {
                 score == null -> target == NoScore
@@ -197,35 +195,35 @@ sealed class Filter {
     }
 
     class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context): Boolean {
-            val size = context.size(game.path).await()
+        override fun evaluate(game: Game, context: Context): Boolean {
+            val size = context.size(game)
             return size >= target
         }
         override fun toString() = "$name >= ${target.humanReadable}"
     }
 
     class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = game.platform == platform
+        override fun evaluate(game: Game, context: Context) = game.platform == platform
         override fun toString() = "$name == '$platform'"
     }
 
     class Library(val id: Int) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = game.library.id == id
+        override fun evaluate(game: Game, context: Context) = game.library.id == id
         override fun toString() = "$name == Library($id)"
     }
 
     class Genre(val genre: String) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = game.genres.any { it == genre }
+        override fun evaluate(game: Game, context: Context) = game.genres.any { it == genre }
         override fun toString() = "$name == '$genre'"
     }
 
     class Tag(val tag: String) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
+        override fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
         override fun toString() = "$name == '$tag'"
     }
 
     class ReleaseDate(val releaseDate: LocalDate) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context): Boolean {
             val target = try {
                 game.releaseDate!!.toDate()
             } catch (e: Exception) {
@@ -237,7 +235,7 @@ sealed class Filter {
     }
 
     class Provider(val providerId: ProviderId) : Rule() {
-        override suspend fun evaluate(game: Game, context: Context) = game.providerHeaders.any { it.id == providerId }
+        override fun evaluate(game: Game, context: Context) = game.providerHeaders.any { it.id == providerId }
         override fun toString() = "$name == '$providerId'"
     }
 
@@ -245,7 +243,7 @@ sealed class Filter {
     // TODO: Add option that makes metadata an optional match.
     // TODO: This is not a filter.
     class Duplications : Rule() {
-        override suspend fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context): Boolean {
             val allDuplications = calcDuplications(context)
             val gameDuplications = allDuplications[game.id]
             if (gameDuplications != null) {
@@ -287,7 +285,7 @@ sealed class Filter {
     }
 
     class NameDiff : Rule() {
-        override suspend fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context): Boolean {
             // TODO: If the majority of providers agree with the name, it is not a diff.
             val diffs = game.rawGame.providerData.mapNotNull { providerData ->
                 diff(game, providerData, context)
@@ -299,8 +297,8 @@ sealed class Filter {
         }
 
         private fun diff(game: Game, providerData: ProviderData, context: Context): GameNameFolderDiff? {
-            val actualName = game.folderMetadata.rawName
-            val expectedName = expectedFrom(game.folderMetadata, providerData, context)
+            val actualName = game.folderNameMetadata.rawName
+            val expectedName = expectedFrom(game.folderNameMetadata, providerData, context)
             if (actualName == expectedName) return null
 
             val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
@@ -313,7 +311,7 @@ sealed class Filter {
         }
 
         // TODO: This logic looks like it should sit on FolderMetadata.
-        private fun expectedFrom(actual: FolderMetadata, providerData: ProviderData, context: Context): String {
+        private fun expectedFrom(actual: FolderNameMetadata, providerData: ProviderData, context: Context): String {
             val expected = StringBuilder()
             actual.order?.let { order -> expected.append("[$order] ") }
             expected.append(context.toFileName(providerData.gameData.name))
@@ -333,7 +331,7 @@ sealed class Filter {
     interface Context {
         val games: List<Game>
 
-        fun size(file: File): Deferred<com.gitlab.ykrasik.gamedex.util.FileSize>
+        fun size(game: Game): com.gitlab.ykrasik.gamedex.util.FileSize
         fun toFileName(name: String): String
 
         fun addAdditionalInfo(game: Game, rule: Rule, values: List<Any>)

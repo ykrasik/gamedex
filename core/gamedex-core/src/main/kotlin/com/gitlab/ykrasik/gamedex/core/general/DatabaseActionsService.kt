@@ -85,6 +85,8 @@ class DatabaseActionsServiceImpl @Inject constructor(
 
         runMainTask(gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }))
 
+        // TODO: Should somehow cause the FileSystemService to invalidate/recalculate file system cache.
+
         doneMessage { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
     }
 

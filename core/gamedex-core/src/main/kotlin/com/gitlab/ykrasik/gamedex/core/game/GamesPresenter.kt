@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.map
-import kotlinx.coroutines.experimental.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,7 +38,7 @@ import javax.inject.Singleton
 @Singleton
 class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
-    fileSystemService: FileSystemService,
+    private val fileSystemService: FileSystemService,
     settingsService: SettingsService
 ) : Presenter<ViewWithGames> {
     private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
@@ -53,7 +52,7 @@ class GamesPresenter @Inject constructor(
             SortBy.userScore -> userScoreComparator.then(nameComparator)
             SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            SortBy.size -> compareBy<Game> { runBlocking { fileSystemService.size(it.path).await() } }.then(nameComparator)        // FIXME: Hangs UI thread!!!
+            SortBy.size -> compareBy<Game> { fileSystemService.structure(it).size }.then(nameComparator)
             SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
             SortBy.createDate -> compareBy(Game::createDate)
             SortBy.updateDate -> compareBy(Game::updateDate)
@@ -69,9 +68,7 @@ class GamesPresenter @Inject constructor(
         val context = FilterContextImpl(emptyList(), fileSystemService)
         return@map { game: Game ->
             game.matchesSearchQuery(settings.search) &&
-            runBlocking {
                 settings.filter.evaluate(game, context)
-            }
         }
     }
 

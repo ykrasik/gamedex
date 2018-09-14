@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.FolderMetadata
+import com.gitlab.ykrasik.gamedex.FolderNameMetadata
 import javax.inject.Singleton
 
 /**
@@ -31,12 +31,12 @@ class FileNameHandler {
     private val metaTagRegex = "\\[.*?\\]".toRegex()
     private val spacesRegex = "\\s+".toRegex()
 
-    fun analyze(rawName: String): FolderMetadata {
+    fun analyze(rawName: String): FolderNameMetadata {
         val (rawNameWithoutOrder, order) = extractMetadata(rawName, orderRegex)
         val (rawNameWithoutVersion, version) = extractMetadata(rawNameWithoutOrder, versionRegex)
         val (rawNameWithoutMetadata, metaTag) = extractMetadata(rawNameWithoutVersion, metaTagRegex)
 
-        return FolderMetadata(
+        return FolderNameMetadata(
             rawName = rawName,
             gameName = rawNameWithoutMetadata.collapseSpaces(),
             order = order?.toInt(),

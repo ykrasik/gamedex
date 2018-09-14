@@ -26,7 +26,7 @@ import io.kotlintest.mock.mock
  * Time: 20:56
  */
 class FileSystemServiceTest : ScopedWordSpec() {
-    val fileSystemService = FileSystemServiceImpl(mock(), FileNameHandler())
+    val fileSystemService = FileSystemServiceImpl(mock(), FileNameHandler(), mock())
 
     init {
         "analyzeFileName" should {

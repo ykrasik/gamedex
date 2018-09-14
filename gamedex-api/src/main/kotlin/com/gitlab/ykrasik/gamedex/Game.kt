@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.FileSize
 import org.joda.time.DateTime
 
 /**
@@ -30,10 +31,10 @@ data class Game(
     val rawGame: RawGame,
     val library: Library,
     val gameData: GameData,
-    val folderMetadata: FolderMetadata  // TODO: Is this the best place to put this?
+    val folderNameMetadata: FolderNameMetadata  // TODO: Is this the best place to put this?
 ) {
     val id get() = rawGame.id
-    val path = library.path.resolve(metadata.path)
+    val path by lazy { library.path.resolve(metadata.path) }
     val createDate get() = metadata.createDate
     val updateDate get() = metadata.updateDate
     val userData get() = rawGame.userData
@@ -147,7 +148,23 @@ data class Timestamp(
     }
 }
 
-data class FolderMetadata(
+data class FileStructure(
+    val name: String,
+    val size: FileSize,
+    val isDirectory: Boolean,
+    val children: List<FileStructure>
+) {
+    companion object {
+        val NotAvailable = FileStructure(
+            name = "Not Available",
+            size = FileSize.Empty,
+            isDirectory = true,
+            children = emptyList()
+        )
+    }
+}
+
+data class FolderNameMetadata(
     val rawName: String,
     val gameName: String,
     val order: Int?,            // TODO: Consider adding option to display this.

@@ -70,9 +70,7 @@ class GameDetailsFragment(
         }
         label {
             minWidth = 60.0
-            javaFx {
-                text = fileSystemService.size(game.path).await().humanReadable
-            }
+            text = fileSystemService.structure(game).size.humanReadable
         }
     }
 

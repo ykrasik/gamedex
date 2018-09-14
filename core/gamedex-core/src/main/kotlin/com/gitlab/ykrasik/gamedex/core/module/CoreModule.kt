@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
+import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
@@ -23,6 +25,9 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.cache.Cache
+import com.gitlab.ykrasik.gamedex.core.cache.JsonCacheSerDes
+import com.gitlab.ykrasik.gamedex.core.cache.PersistedCache
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
@@ -40,6 +45,7 @@ import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.info
 import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.md5
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
@@ -114,4 +120,15 @@ object CoreModule : AbstractModule() {
     @Provides
     @Singleton
     fun imageConfig(config: Config): ImageConfig = config.extract("gameDex.image")
+
+    @Provides
+    @Singleton
+    fun fileStructureCache(): Cache<Game, FileStructure> {
+        log.info("Reading file system cache...")
+        return log.time({ "Reading file system cache: $it" }) {
+            PersistedCache("cache/filesystem", JsonCacheSerDes()) {
+                "[${it.path.toString().md5()}] ${it.path.name}.json"
+            }
+        }
+    }
 }

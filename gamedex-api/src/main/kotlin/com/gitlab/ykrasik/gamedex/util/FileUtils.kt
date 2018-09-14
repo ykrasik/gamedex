@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.util
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonValue
 import java.awt.Desktop
 import java.io.File
 import java.io.IOException
@@ -49,15 +50,16 @@ fun File.assertExists() = existsOrNull() ?: throw IOException("File doesn't exis
 
 fun browse(path: File) = Desktop.getDesktop().open(path)
 
+// FIXME: Make this an inline class when they are available.
 @JsonIgnoreProperties("humanReadable")
-data class FileSize(val bytes: Long) : Comparable<FileSize> {
-    val humanReadable by lazy {
+data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
+    val humanReadable: String get() {
         val unit = 1024
-        if (bytes < unit) return@lazy "$bytes B"
+        if (bytes < unit) return "$bytes B"
 
         val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
         val pre = ("KMGTPE")[exp - 1]
-        String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
+        return String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
     }
 
     operator fun plus(other: FileSize): FileSize = FileSize(bytes + other.bytes)
@@ -78,5 +80,7 @@ data class FileSize(val bytes: Long) : Comparable<FileSize> {
             val bytes = BigDecimal(number).multiply(BigDecimal.valueOf(1024).pow(pow))
             return FileSize(bytes.toLong())
         }
+
+        val Empty = FileSize(0)
     }
 }

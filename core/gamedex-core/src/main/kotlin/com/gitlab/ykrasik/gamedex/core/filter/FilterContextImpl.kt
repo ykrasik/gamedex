@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import java.io.File
 import kotlin.reflect.KClass
 
 /**
@@ -36,7 +35,7 @@ class FilterContextImpl(
     private val _additionalData = mutableMapOf<GameId, MutableSet<AdditionalData>>()
     val additionalData: Map<GameId, Set<AdditionalData>> = _additionalData
 
-    override fun size(file: File) = fileSystemService.size(file)
+    override fun size(game: Game) = fileSystemService.structure(game).size
 
     override fun toFileName(name: String): String = fileSystemService.toFileName(name)
 

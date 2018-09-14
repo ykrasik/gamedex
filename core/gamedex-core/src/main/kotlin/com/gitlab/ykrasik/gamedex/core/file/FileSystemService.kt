@@ -16,11 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
+import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.cache.Cache
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,19 +35,44 @@ import javax.inject.Singleton
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
-    private val fileNameHandler: FileNameHandler
+    private val fileNameHandler: FileNameHandler,
+    private val fileStructureCache: Cache<Game, FileStructure>
 ) : FileSystemService {
-    // TODO: If first calculation returned 0 (due to file not being available), it will be cached and not be re-calculated.
-    private val sizeCache = mutableMapOf<File, Deferred<FileSize>>()
+    override fun structure(game: Game): FileStructure {
+        val structure = fileStructureCache[game]
 
-    override fun size(file: File): Deferred<FileSize> =
-        sizeCache.getOrPut(file) {
-            async(CommonPool) {
-                file.sizeTaken()
+        // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
+        launch(CommonPool) {
+            val newStructure = calcStructure(game.path)
+            if (newStructure != null && newStructure != structure) {
+                fileStructureCache[game] = newStructure
             }
         }
 
-    private fun File.sizeTaken() = FileSize(walkBottomUp().fold(0L) { acc, f -> if (f.isFile) acc + f.length() else acc })
+        // FIXME: This will first return cached result and only on 2nd call return updated result, find a better solution.
+        return structure ?: FileStructure.NotAvailable
+    }
+
+    private fun calcStructure(file: File): FileStructure? {
+        if (!file.exists()) return null
+
+        return if (file.isDirectory) {
+            val children = file.listFiles().map { calcStructure(it)!! }
+            FileStructure(
+                name = file.name,
+                size = children.fold(FileSize.Empty) { acc, f -> acc + f.size },
+                isDirectory = true,
+                children = children
+            )
+        } else {
+            FileStructure(
+                name = file.name,
+                size = FileSize(file.length()),
+                isDirectory = false,
+                children = emptyList()
+            )
+        }
+    }
 
     // TODO: Have a reference to libraryRepo & gameRepo and calc the excludedDirectories from it.
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) = newDirectoryDetector.detectNewDirectories(dir, excludedDirectories)
@@ -54,4 +81,6 @@ class FileSystemServiceImpl @Inject constructor(
 
     override fun fromFileName(name: String) = fileNameHandler.fromFileName(name)
     override fun toFileName(name: String) = fileNameHandler.toFileName(name)
+
+    // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
 }
