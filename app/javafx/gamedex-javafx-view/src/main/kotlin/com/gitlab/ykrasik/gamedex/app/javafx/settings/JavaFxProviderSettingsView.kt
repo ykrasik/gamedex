@@ -176,7 +176,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
             val flashContainer by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

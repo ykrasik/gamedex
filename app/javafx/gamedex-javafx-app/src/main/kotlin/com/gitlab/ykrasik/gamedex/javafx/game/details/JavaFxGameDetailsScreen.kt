@@ -152,7 +152,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
             val rightGameDetailsView by cssid()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

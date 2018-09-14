@@ -116,7 +116,7 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
             val proceedWithout by cssid()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

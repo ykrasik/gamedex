@@ -355,7 +355,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
             val navigationLabel by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

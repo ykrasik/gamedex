@@ -180,7 +180,7 @@ class GameDetailsFragment(
             val genre by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

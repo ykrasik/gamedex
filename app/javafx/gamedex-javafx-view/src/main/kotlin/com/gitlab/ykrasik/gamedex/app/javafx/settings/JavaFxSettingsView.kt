@@ -184,7 +184,7 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView {
             val navigationLabel by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

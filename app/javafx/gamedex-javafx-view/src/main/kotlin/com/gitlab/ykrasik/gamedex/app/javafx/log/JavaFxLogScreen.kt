@@ -129,7 +129,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
             val error by csspseudoclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

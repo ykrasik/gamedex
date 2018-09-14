@@ -138,7 +138,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
             val tagDisplay by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

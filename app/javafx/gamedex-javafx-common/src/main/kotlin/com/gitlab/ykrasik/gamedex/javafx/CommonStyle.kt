@@ -61,7 +61,7 @@ class CommonStyle : Stylesheet() {
         val thinBorder by cssclass()
 
         init {
-            importStylesheet(CommonStyle::class)
+            importStylesheetSafe(CommonStyle::class)
         }
     }
 

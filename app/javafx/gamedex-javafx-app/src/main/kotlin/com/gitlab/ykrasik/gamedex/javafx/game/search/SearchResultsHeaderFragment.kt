@@ -108,7 +108,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
             val searchResultsLabel by cssid()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

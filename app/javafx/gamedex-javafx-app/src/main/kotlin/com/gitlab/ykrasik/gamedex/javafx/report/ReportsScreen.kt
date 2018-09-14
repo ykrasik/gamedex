@@ -195,7 +195,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
             val reportContextMenu by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

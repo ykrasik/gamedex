@@ -20,10 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.popoverContextMenu
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import difflib.Chunk
 import difflib.Delta
@@ -93,7 +90,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
             val delete by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

@@ -46,6 +46,7 @@ import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 import java.io.ByteArrayInputStream
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -61,6 +62,9 @@ fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApp
 } else {
     runLater(f)
 }
+
+private object StylesheetLock
+fun <T : Stylesheet> importStylesheetSafe(stylesheetType: KClass<T>) = synchronized(StylesheetLock) { importStylesheet(stylesheetType) }
 
 fun UIComponent.callOnDock() {
     onDock()

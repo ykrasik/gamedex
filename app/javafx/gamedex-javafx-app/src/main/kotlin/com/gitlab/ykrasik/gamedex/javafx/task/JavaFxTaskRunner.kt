@@ -207,7 +207,7 @@ class JavaFxTaskRunner : TaskRunner {
             val taskTitle by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

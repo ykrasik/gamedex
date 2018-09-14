@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
@@ -168,7 +169,7 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Theme.Icon.s
             val providerOrderLabel by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

@@ -181,7 +181,7 @@ class ReportConfigView : View("Report Config") {
             val rulesContent by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

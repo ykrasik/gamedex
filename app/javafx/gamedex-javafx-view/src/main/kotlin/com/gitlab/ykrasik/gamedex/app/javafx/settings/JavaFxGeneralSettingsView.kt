@@ -18,11 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.general.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
@@ -142,7 +139,7 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
             val cleanupDbButton by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

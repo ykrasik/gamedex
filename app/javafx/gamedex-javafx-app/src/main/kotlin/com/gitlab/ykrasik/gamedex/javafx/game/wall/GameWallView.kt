@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.popOver
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
@@ -252,7 +253,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             val quickDetails by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 

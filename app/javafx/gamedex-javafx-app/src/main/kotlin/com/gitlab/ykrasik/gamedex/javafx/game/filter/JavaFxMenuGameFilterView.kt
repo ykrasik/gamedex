@@ -248,7 +248,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
             val ruleButton by cssclass()
 
             init {
-                importStylesheet(Style::class)
+                importStylesheetSafe(Style::class)
             }
         }
 
