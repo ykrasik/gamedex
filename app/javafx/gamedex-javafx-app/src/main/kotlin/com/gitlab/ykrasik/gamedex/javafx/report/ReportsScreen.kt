@@ -130,7 +130,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()) {
         hbox(spacing = 5.0) {
             alignment = Pos.CENTER_RIGHT
             // TODO: Check for listener leaks.
-            screens.performing { screens ->
+            screens.perform { screens ->
                 replaceChildren {
                     screens.forEach { screen ->
                         jfxToggleNode(screen.title, screen.icon, group = selection) {

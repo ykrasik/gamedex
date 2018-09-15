@@ -117,7 +117,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
 
     private fun EventTarget.existingTags() = flowpane {
         addClass(Style.tagDisplay)
-        tags.performing { tags ->
+        tags.perform { tags ->
             replaceChildren {
                 tags.forEach { tag ->
                     jfxToggleButton {

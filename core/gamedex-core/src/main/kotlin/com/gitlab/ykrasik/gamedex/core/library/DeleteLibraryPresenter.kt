@@ -40,8 +40,8 @@ class DeleteLibraryPresenter @Inject constructor(
 ) : Presenter<DeleteLibraryView> {
     override fun present(view: DeleteLibraryView) = object : Presentation() {
         init {
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

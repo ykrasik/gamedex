@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
@@ -22,6 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.Dispatchers
@@ -59,10 +61,10 @@ class ProviderSettingsPresenter @Inject constructor(
             view.isCheckingAccount = false
 
             // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
-            view.enabledChanges.actionOnUi { onEnabledChanged(it) }
-            view.accountUrlClicks.actionOnUi { onAccountUrlClicked() }
-            view.currentAccountChanges.subscribeOnUi(::onCurrentAccountChanged)
-            view.verifyAccountRequests.actionOnUi { verifyAccount() }
+            view.enabledChanges.forEach { onEnabledChanged(it) }
+            view.accountUrlClicks.forEach { onAccountUrlClicked() }
+            view.currentAccountChanges.forEach { onCurrentAccountChanged(it) }
+            view.verifyAccountRequests.forEach { verifyAccount() }
         }
 
         private fun accountHasEmptyFields(): Boolean =

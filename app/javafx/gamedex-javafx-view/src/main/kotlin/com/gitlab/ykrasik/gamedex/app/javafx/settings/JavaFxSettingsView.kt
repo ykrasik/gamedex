@@ -70,10 +70,7 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView {
         prefHeight = screenBounds.height * 3 / 4
         top {
             toolbar {
-                acceptButton {
-                    isDefaultButton = true
-                    eventOnAction(acceptActions)
-                }
+                acceptButton { eventOnAction(acceptActions) }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
@@ -85,10 +82,7 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView {
                 verticalSeparator()
                 resetToDefaultButton("Reset to Defaults") { eventOnAction(resetDefaultsActions) }
                 verticalSeparator()
-                cancelButton {
-                    isCancelButton = true
-                    eventOnAction(cancelActions)
-                }
+                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {

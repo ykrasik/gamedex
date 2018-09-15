@@ -33,7 +33,6 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import org.controlsfx.control.NotificationPane
 import tornadofx.*
@@ -62,7 +61,7 @@ class JavaFxTaskRunner : TaskRunner {
     private val taskView = VBox().apply {
         spacing = 5.0
         alignment = Pos.CENTER_LEFT
-        tasks.performing {
+        tasks.perform {
             replaceChildren {
                 hbox(spacing = 5) {
                     paddingAll = 5

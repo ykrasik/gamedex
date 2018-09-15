@@ -35,7 +35,7 @@ class RedownloadGamesUpdatedAfterPresenter @Inject constructor(
 ) : Presenter<ViewCanRedownloadGamesUpdatedAfter> {
     override fun present(view: ViewCanRedownloadGamesUpdatedAfter) = object : Presentation() {
         init {
-            view.redownloadGamesUpdatedAfterActions.actionOnUi {
+            view.redownloadGamesUpdatedAfterActions.forEach {
                 taskRunner.runTask(gameDownloadService.redownloadGamesUpdatedAfterPeriod())
             }
         }

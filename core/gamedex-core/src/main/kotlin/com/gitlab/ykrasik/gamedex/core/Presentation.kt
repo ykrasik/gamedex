@@ -61,9 +61,8 @@ abstract class Presentation : CoroutineScope {
         job.cancel()
     }
 
-    protected inline fun <T> ReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) = actionOn(uiThreadDispatcher, f)
-
-    protected inline fun <T> ReceiveChannel<T>.actionOn(context: CoroutineContext, crossinline f: suspend (T) -> Unit) {
+    protected inline fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiThreadDispatcher,
+                                                       crossinline f: suspend (T) -> Unit) {
         launch(context) {
             consumeEach {
                 try {
@@ -75,20 +74,24 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) = actionOnUi {
-        f(it)
+    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiThreadDispatcher,
+                                                                  crossinline f: (T) -> Unit) {
+        f(poll()!!)
+        forEach(context) { f(it) }
     }
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) =
-        subscribe().actionOnUi(f)
+    protected inline fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiThreadDispatcher,
+                                                                crossinline f: suspend (T) -> Unit) =
+        subscribe().forEach(context, f)
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.subscribeOnUi(crossinline f: (T) -> Unit) =
-        subscribe().subscribeOnUi(f)
+    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiThreadDispatcher,
+                                                                           crossinline f: (T) -> Unit) =
+        subscribe().forEachImmediately(context, f)
 
     protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
         list.clear()
         list.addAll(this)
-        changesChannel.subscribeOnUi { event ->
+        changesChannel.forEach { event ->
             when (event) {
                 is ListItemAddedEvent -> list += event.item
                 is ListItemsAddedEvent -> list += event.items
@@ -110,7 +113,7 @@ abstract class Presentation : CoroutineScope {
                                                                               crossinline f: (Data).(T) -> Data) {
         val channel = channelAccessor(this)
         channel.reportChangesTo(viewProperty)
-        changesChannel.actionOn(context) { change ->
+        changesChannel.forEach(context) { change ->
             this.modify { f(change) }
         }
     }
@@ -118,7 +121,7 @@ abstract class Presentation : CoroutineScope {
     protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
                                                                  context: CoroutineContext = uiThreadDispatcher) {
         viewProperty.set(peek()!!)
-        subscribe().actionOn(context) { viewProperty.set(it) }
+        forEach(context) { viewProperty.set(it) }
     }
 }
 

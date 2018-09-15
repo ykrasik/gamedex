@@ -40,8 +40,8 @@ class DeleteGamePresenter @Inject constructor(
 ) : Presenter<DeleteGameView> {
     override fun present(view: DeleteGameView) = object : Presentation() {
         init {
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

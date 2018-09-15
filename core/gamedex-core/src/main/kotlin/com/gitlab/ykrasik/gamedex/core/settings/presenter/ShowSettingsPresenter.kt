@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
@@ -34,7 +34,7 @@ class ShowSettingsPresenter @Inject constructor(
 ) : Presenter<ViewCanShowSettings> {
     override fun present(view: ViewCanShowSettings) = object : Presentation() {
         init {
-            view.showSettingsActions.actionOnUi {
+            view.showSettingsActions.forEach {
                 viewManager.showSettingsView { }
             }
         }

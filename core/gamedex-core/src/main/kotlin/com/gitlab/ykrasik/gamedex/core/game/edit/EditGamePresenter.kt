@@ -50,18 +50,18 @@ class EditGamePresenter @Inject constructor(
         init {
             view.providerLogos = gameProviderService.logos
 
-            view.fetchThumbnailRequests.subscribeOnUi(::fetchThumbnail)
+            view.fetchThumbnailRequests.forEach { fetchThumbnail(it) }
 
-            view.providerOverrideSelectionChanges.subscribeOnUi { (type, providerId, selected) -> onProviderOverrideSelected(type, providerId, selected) }
-            view.customOverrideSelectionChanges.subscribeOnUi { (type, selected) -> onCustomOverrideSelected(type, selected) }
-            view.clearOverrideSelectionChanges.subscribeOnUi { (type, selected) -> onClearOverrideSelected(type, selected) }
-            view.customOverrideValueChanges.subscribeOnUi { (type, rawValue) -> onCustomOverrideValueChanged(type, rawValue) }
-            view.customOverrideValueAcceptActions.subscribeOnUi(::onCustomOverrideValueAccepted)
-            view.customOverrideValueRejectActions.subscribeOnUi { /* Nothing to do */}
+            view.providerOverrideSelectionChanges.forEach { (type, providerId, selected) -> onProviderOverrideSelected(type, providerId, selected) }
+            view.customOverrideSelectionChanges.forEach { (type, selected) -> onCustomOverrideSelected(type, selected) }
+            view.clearOverrideSelectionChanges.forEach { (type, selected) -> onClearOverrideSelected(type, selected) }
+            view.customOverrideValueChanges.forEach { (type, rawValue) -> onCustomOverrideValueChanged(type, rawValue) }
+            view.customOverrideValueAcceptActions.forEach { onCustomOverrideValueAccepted(it) }
+            view.customOverrideValueRejectActions.forEach { /* Nothing to do */}
 
-            view.acceptActions.actionOnUi { onAccept() }
-            view.clearActions.actionOnUi { onClear() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.acceptActions.forEach { onAccept() }
+            view.clearActions.forEach { onClear() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

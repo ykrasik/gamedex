@@ -116,19 +116,13 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
         prefHeight = screenBounds.height.let { it * 3 / 4 }
         top {
             toolbar {
-                acceptButton {
-                    isDefaultButton = true
-                    eventOnAction(acceptActions)
-                }
+                acceptButton { eventOnAction(acceptActions) }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 resetToDefaultButton { eventOnAction(clearActions) }
                 verticalSeparator()
-                cancelButton {
-                    isCancelButton = true
-                    eventOnAction(cancelActions)
-                }
+                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {
@@ -282,7 +276,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                         validatorFrom(viewModel, overrideViewModelProperty.map { it!!.customValueValidationError })
                                     }
                                     acceptButton {
-                                        isDefaultButton = true
                                         enableWhen { viewModel.valid }
                                         setOnAction {
                                             popOver.hide()
@@ -291,7 +284,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
                                         }
                                     }
                                     cancelButton {
-                                        isCancelButton = true
                                         eventOnAction(customOverrideValueRejectActions) {
                                             popOver.hide()
                                             type

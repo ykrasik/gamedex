@@ -44,13 +44,13 @@ class EditLibraryPresenter @Inject constructor(
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : Presentation() {
         init {
-            view.nameChanges.subscribeOnUi { onNameChanged() }
-            view.pathChanges.subscribeOnUi { onPathChanged() }
-            view.platformChanges.subscribeOnUi { onPlatformChanged() }
+            view.nameChanges.forEach { onNameChanged() }
+            view.pathChanges.forEach { onPathChanged() }
+            view.platformChanges.forEach { onPlatformChanged() }
 
-            view.browseActions.actionOnUi { onBrowse() }
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.browseActions.forEach { onBrowse() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

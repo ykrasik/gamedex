@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.filter.JavaFxMenuGameFilterView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxMenuGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
@@ -68,7 +68,7 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
         verticalSeparator()
         filterButton()
         verticalSeparator()
-        searchField()
+        searchField(this@GameScreen, searchTextProperty)
         verticalSeparator()
 
         spacer()
@@ -120,14 +120,5 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     private fun EventTarget.filterButton() = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
         // FIXME: This is off-center
         children += filterView.root
-    }
-
-    private fun EventTarget.searchField() = clearableTextfield {
-        promptText = "Search"
-        left = Theme.Icon.search(18.0)
-        text = searchText
-        searchTextProperty.bindBidirectional(textProperty())
-        tooltip("Ctrl+f")
-        shortcut("ctrl+f") { requestFocus() }
     }
 }

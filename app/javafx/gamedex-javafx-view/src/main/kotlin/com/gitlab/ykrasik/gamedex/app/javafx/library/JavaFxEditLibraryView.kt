@@ -33,7 +33,7 @@ import java.io.File
  * Time: 10:56
  */
 class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
-    private var libraryProperty = SimpleObjectProperty<Library?>(null)
+    private val libraryProperty = SimpleObjectProperty<Library?>(null)
     override var library by libraryProperty
 
     override val nameChanges = channel<String>()
@@ -70,15 +70,11 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         top {
             toolbar {
                 acceptButton {
-                    isDefaultButton = true
                     enableWhen { viewModel.valid }
                     eventOnAction(acceptActions)
                 }
                 spacer()
-                cancelButton {
-                    isCancelButton = true
-                    eventOnAction(cancelActions)
-                }
+                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {

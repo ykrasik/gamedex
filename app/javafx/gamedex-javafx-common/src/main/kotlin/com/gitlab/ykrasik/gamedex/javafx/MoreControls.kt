@@ -23,6 +23,7 @@ import javafx.animation.FadeTransition
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.StringProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
@@ -102,6 +103,10 @@ fun <S, T> TableView<S>.customGraphicColumn(title: String,
 inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinline graphicFactory: (S) -> Node): TableColumn<S, S> =
     customColumn(title) {
         object : TableCell<S, S>() {
+            init {
+                alignment = Pos.CENTER
+            }
+
             override fun updateItem(item: S?, empty: Boolean) {
                 graphic = item?.let { graphicFactory(it) }
             }
@@ -270,7 +275,7 @@ inline fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
                                             noinline graphic: ((T) -> Node)? = null,
                                             crossinline menuOp: VBox.(T) -> Unit = {}) =
     buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
-        possibleItems.performing { items ->
+        possibleItems.perform { items ->
             replaceChildren {
                 items.forEach { item ->
                     jfxButton(text?.invoke(item), graphic?.invoke(item)) {
@@ -383,9 +388,18 @@ fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Uni
 
 inline fun EventTarget.jfxTabPane(op: JFXTabPane.() -> Unit = {}): JFXTabPane = opcr(this, JFXTabPane(), op)
 
-inline fun EventTarget.clearableTextfield(op: CustomTextField.() -> Unit = {}) = opcr(this, CustomTextField()) {
+fun EventTarget.searchField(component: UIComponent, textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = clearableTextfield(textProperty) {
+    promptText = "Search"
+    left = Theme.Icon.search(18.0)
+    tooltip("Ctrl+f")
+    component.shortcut("ctrl+f") { requestFocus() }
+    op()
+}
+
+inline fun EventTarget.clearableTextfield(textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = opcr(this, CustomTextField()) {
     useMaxWidth = true
     alignment = Pos.CENTER_LEFT
+    textProperty.bindBidirectional(textProperty())
 
     val clearButton = jfxButton(graphic = Theme.Icon.clear(size = 14.0)) {
         isCancelButton = true
@@ -417,7 +431,7 @@ inline fun EventTarget.clearableTextfield(op: CustomTextField.() -> Unit = {}) =
     }
 
     textProperty().onChange {
-        val isTextEmpty = text == null || text.isEmpty()
+        val isTextEmpty = text.isNullOrEmpty()
         val isButtonVisible = fader.node.opacity > 0
 
         if (isTextEmpty && isButtonVisible) {

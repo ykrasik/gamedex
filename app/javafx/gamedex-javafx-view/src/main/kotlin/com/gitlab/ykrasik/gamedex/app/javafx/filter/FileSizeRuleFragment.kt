@@ -14,14 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.filter
+package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.javafx.mapBidirectional
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import javafx.beans.property.Property
 import javafx.geometry.Pos
-import javafx.scene.control.TextField
 import tornadofx.*
 
 /**
@@ -30,18 +29,16 @@ import tornadofx.*
  * Time: 11:36
  */
 class FileSizeRuleFragment(rule: Property<Filter.FileSize>) : Fragment() {
-    private var textField: TextField by singleAssign()
-
     private val sizeTextProperty = rule.mapBidirectional({ target.humanReadable }, { Filter.FileSize(FileSize(this)) })
 
     private val viewModel = FileSizeViewModel(sizeTextProperty).apply {
-        textProperty.onChange { this@apply.commit() }
+        textProperty.onChange { commit() }
         validate(decorateErrors = true)
     }
 
     override val root = hbox {
         alignment = Pos.CENTER_LEFT
-        textField = textfield(viewModel.textProperty) {
+        textfield(viewModel.textProperty) {
             isFocusTraversable = false
             validator {
                 val valid = try {

@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowDeleteGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanDeleteGame> {
     override fun present(view: ViewCanDeleteGame) = object : Presentation() {
         init {
-            view.deleteGameActions.actionOnUi { game ->
+            view.deleteGameActions.forEach { game ->
                 viewManager.showDeleteGameView {
                     this.game = game
                 }

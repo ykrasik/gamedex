@@ -46,13 +46,13 @@ abstract class AbstractRedownloadAfterPeriodPresenter<V>(private val settingsSer
 
     override fun present(view: V) = object : Presentation() {
         init {
-            periodChannel(settingsService.game).subscribeOnUi {
+            periodChannel(settingsService.game).forEach {
                 val sb = StringBuffer()
                 formatter.printTo(sb, it.normalizedStandard(PeriodType.yearMonthDayTime()))
                 setPeriodText(view, sb.toString())
             }
 
-            periodTextChanges(view).subscribeOnUi(::onPeriodTextChanged)
+            periodTextChanges(view).forEach { onPeriodTextChanged(it) }
         }
 
         private fun onPeriodTextChanged(periodText: String) {

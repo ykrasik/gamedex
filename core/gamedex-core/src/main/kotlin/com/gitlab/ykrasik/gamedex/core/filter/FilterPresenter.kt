@@ -16,11 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.filter
 
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.game.MenuGameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.game.ReportGameFilterView
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.common.CommonData
@@ -40,14 +42,13 @@ import kotlin.reflect.KClass
 abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
     private val commonData: CommonData,
     protected val settingsService: SettingsService,
-    onlyPlatformSpecific: Boolean
+    private val bindPlatform: Boolean
 ) : Presenter<V> {
     protected abstract val excludedRules: List<KClass<out Filter.Rule>>
     protected abstract val alwaysShowAllRules: Boolean
-
-    private val libraries = if (onlyPlatformSpecific) commonData.platformLibraries else commonData.realLibraries
-    private val genres = if (onlyPlatformSpecific) commonData.platformGenres else commonData.genres
-    private val tags = if (onlyPlatformSpecific) commonData.platformTags else commonData.tags
+    protected abstract val libraries: ListObservable<Library>
+    protected abstract val genres: ListObservable<String>
+    protected abstract val tags: ListObservable<String>
 
     private val operators = mapOf(
         Filter.And::class to { Filter.And() },
@@ -79,41 +80,43 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
     override fun present(view: V) = object : Presentation() {
         init {
             genres.bindTo(view.possibleGenres)
-            genres.changesChannel.subscribeOnUi { setPossibleRules() }
+            genres.changesChannel.forEach { setPossibleRules() }
 
             tags.bindTo(view.possibleTags)
-            tags.changesChannel.subscribeOnUi { setPossibleRules() }
+            tags.changesChannel.forEach { setPossibleRules() }
 
             // Providers are a static configuration that can't change during runtime, so no need to listen to changes.
             view.possibleProviderIds.clear()
             view.possibleProviderIds += commonData.allProviders.map { it.id }
 
-            setState()
-
-//            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
-            // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
-            settingsService.game.platformChannel.subscribeOnUi {
-                setState()
-            }
-
-            libraries.changesChannel.subscribeOnUi {
+            libraries.changesChannel.forEach {
                 setPossibleLibraries()
                 setPossibleRules()
             }
 
-            view.wrapInAndActions.actionOnUi { replaceFilter(it, with = Filter.And(it)) }
-            view.wrapInOrActions.actionOnUi { replaceFilter(it, with = Filter.Or(it)) }
-            view.wrapInNotActions.actionOnUi { replaceFilter(it, with = Filter.Not(it)) }
-            view.unwrapNotActions.actionOnUi { replaceFilter(it, with = it.target) }
-            view.clearFilterActions.actionOnUi { replaceFilter(view.filter, Filter.`true`) }
-            view.updateFilterActions.actionOnUi { (filter, with) -> replaceFilter(filter, with) }
-            view.replaceFilterActions.actionOnUi { (filter, with) -> replaceFilter(filter, with) }
-            view.deleteFilterActions.actionOnUi { deleteFilter(it) }
+            if (bindPlatform) {
+//            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
+                // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
+                settingsService.game.platformChannel.forEachImmediately {
+                    setState(currentPlatformFilter = true)
+                }
+            } else {
+                setState(currentPlatformFilter = false)
+            }
+
+            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(it)) }
+            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(it)) }
+            view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
+            view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
+            view.clearFilterActions.forEach { replaceFilter(view.filter, Filter.`true`) }
+            view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
+            view.deleteFilterActions.forEach { deleteFilter(it) }
         }
 
-        private fun setState() {
+        private fun setState(currentPlatformFilter: Boolean) {
             setPossibleLibraries()
-            view.filter = settingsService.game.currentPlatformSettings.filter
+            view.filter = if (currentPlatformFilter) settingsService.game.currentPlatformSettings.filter else Filter.`true`
             setPossibleRules()
         }
 
@@ -182,9 +185,12 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
 
 @Singleton
 class MenuGameFilterPresenter @Inject constructor(commonData: CommonData, settingsService: SettingsService) :
-    BaseGameFilterPresenter<MenuGameFilterView>(commonData, settingsService, onlyPlatformSpecific = true) {
+    BaseGameFilterPresenter<MenuGameFilterView>(commonData, settingsService, bindPlatform = true) {
     override val excludedRules get() = listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
     override val alwaysShowAllRules = false
+    override val libraries = commonData.platformLibraries
+    override val genres = commonData.platformGenres
+    override val tags = commonData.platformTags
 
     override fun afterFilterSet(filter: Filter) {
         settingsService.game.modifyCurrentPlatformSettings { copy(filter = filter) }
@@ -193,9 +199,12 @@ class MenuGameFilterPresenter @Inject constructor(commonData: CommonData, settin
 
 @Singleton
 class ReportGameFilterPresenter @Inject constructor(commonData: CommonData, settingsService: SettingsService)
-    : BaseGameFilterPresenter<ReportGameFilterView>(commonData, settingsService, onlyPlatformSpecific = false) {
+    : BaseGameFilterPresenter<ReportGameFilterView>(commonData, settingsService, bindPlatform = false) {
     override val excludedRules get() = emptyList<KClass<out Filter.Rule>>()
     override val alwaysShowAllRules = true
+    override val libraries = commonData.realLibraries
+    override val genres = commonData.genres
+    override val tags = commonData.tags
 
     override fun afterFilterSet(filter: Filter) {}
 }

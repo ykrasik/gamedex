@@ -37,7 +37,7 @@ class ImportDatabasePresenter @Inject constructor(
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : Presentation() {
         init {
-            view.importDatabaseActions.actionOnUi { importDatabase() }
+            view.importDatabaseActions.forEach { importDatabase() }
         }
 
         private suspend fun importDatabase() {

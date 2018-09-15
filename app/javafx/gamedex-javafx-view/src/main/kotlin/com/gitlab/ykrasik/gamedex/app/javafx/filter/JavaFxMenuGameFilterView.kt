@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.filter
+package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
@@ -30,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toJava
 import com.gitlab.ykrasik.gamedex.util.toJoda
 import javafx.beans.property.Property
-import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
@@ -55,9 +54,8 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
     override val possibleProviderIds = mutableListOf<ProviderId>()
     override val possibleRules = mutableListOf<KClass<out Filter.Rule>>().observable()
 
-    private val _filterProperty = SimpleObjectProperty<Filter>(Filter.`true`)
-    val filterProperty: ReadOnlyObjectProperty<Filter> = _filterProperty
-    override var filter by _filterProperty
+    val filterProperty = SimpleObjectProperty<Filter>(Filter.`true`)
+    override var filter by filterProperty
 
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
@@ -74,9 +72,9 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
 
     override val root = vbox {
         fun rerender() = replaceChildren {
-            render(_filterProperty.value, Filter.`true`)
+            render(filterProperty.value, Filter.`true`)
         }
-        _filterProperty.onChange { rerender() }
+        filterProperty.onChange { rerender() }
         possibleRules.onChange { rerender() }
     }
 

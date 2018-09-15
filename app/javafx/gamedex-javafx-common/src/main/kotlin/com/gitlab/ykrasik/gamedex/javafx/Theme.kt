@@ -142,8 +142,8 @@ inline fun EventTarget.resetToDefaultButton(text: String? = null, size: Double =
         op()
     }
 
-inline fun EventTarget.addButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(graphic = Theme.Icon.plus(size)) {
+inline fun EventTarget.addButton(text: String? = null, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
+    toolbarButton(text, graphic = Theme.Icon.plus(size)) {
         addClass(CommonStyle.acceptButton)
         tooltip("Add")
         op()
@@ -163,8 +163,8 @@ inline fun EventTarget.excludeButton(text: String = "Exclude", size: Double = de
         op()
     }
 
-inline fun EventTarget.editButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton("Edit", Theme.Icon.edit(size), op)
+inline fun EventTarget.editButton(text: String? = "Edit", size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
+    toolbarButton(text, Theme.Icon.edit(size), op)
 
 inline fun EventTarget.tagButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton("Tag", Theme.Icon.tag(size), op)

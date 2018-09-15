@@ -42,15 +42,9 @@ fun UIComponent.areYouSureDialogContainer(acceptActions: Channel<Unit>,
         minHeight = 100.0
         top {
             toolbar {
-                acceptButton {
-                    isDefaultButton = true
-                    setOnAction { acceptActions.offer(Unit) }
-                }
+                acceptButton { setOnAction { acceptActions.offer(Unit) } }
                 spacer()
-                cancelButton {
-                    isCancelButton = true
-                    setOnAction { cancelActions.offer(Unit) }
-                }
+                cancelButton { setOnAction { cancelActions.offer(Unit) } }
             }
         }
         center {
@@ -82,14 +76,9 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
         minHeight = 100.0
         top {
             toolbar {
-                acceptButton {
-                    setOnAction { close(accept = true) }
-                }
+                acceptButton { setOnAction { close(accept = true) } }
                 spacer()
-                cancelButton {
-                    isCancelButton = true
-                    setOnAction { close(accept = false) }
-                }
+                cancelButton { setOnAction { close(accept = false) } }
             }
         }
         center {

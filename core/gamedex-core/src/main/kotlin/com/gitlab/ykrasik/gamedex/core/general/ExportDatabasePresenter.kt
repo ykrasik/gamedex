@@ -41,7 +41,7 @@ class ExportDatabasePresenter @Inject constructor(
 
     override fun present(view: ExportDatabaseView) = object : Presentation() {
         init {
-            view.exportDatabaseActions.actionOnUi { exportDatabase() }
+            view.exportDatabaseActions.forEach { exportDatabase() }
         }
 
         private suspend fun exportDatabase() {

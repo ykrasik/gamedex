@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowTagGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanTagGame> {
     override fun present(view: ViewCanTagGame) = object : Presentation() {
         init {
-            view.tagGameActions.actionOnUi { game ->
+            view.tagGameActions.forEach { game ->
                 viewManager.showTagGameView {
                     this.game = game
                 }

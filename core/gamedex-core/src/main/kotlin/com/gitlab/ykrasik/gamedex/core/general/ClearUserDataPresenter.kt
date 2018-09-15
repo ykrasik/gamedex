@@ -35,7 +35,7 @@ class ClearUserDataPresenter @Inject constructor(
 ) : Presenter<ClearUserDataView> {
     override fun present(view: ClearUserDataView) = object : Presentation() {
         init {
-            view.clearUserDataActions.actionOnUi { clearUserData() }
+            view.clearUserDataActions.forEach { clearUserData() }
         }
 
         private suspend fun clearUserData() {

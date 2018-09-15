@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialogContainer
 import com.gitlab.ykrasik.gamedex.javafx.fitAtMost
-import com.gitlab.ykrasik.gamedex.javafx.performing
+import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
@@ -47,7 +47,7 @@ class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
     }
 
     override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {
-        gamesToBeDeleted.performing { gamesToBeDeleted ->
+        gamesToBeDeleted.perform { gamesToBeDeleted ->
             this.replaceChildren {
                 if (gamesToBeDeleted.isNotEmpty()) {
                     label("The following ${gamesToBeDeleted.size} games will also be deleted:")

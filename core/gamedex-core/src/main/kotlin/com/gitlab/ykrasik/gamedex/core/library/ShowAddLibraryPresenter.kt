@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowAddLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanAddLibrary> {
     override fun present(view: ViewCanAddLibrary) = object : Presentation() {
         init {
-            view.addLibraryActions.actionOnUi {
+            view.addLibraryActions.forEach {
                 viewManager.showEditLibraryView {
                     library = null
                 }

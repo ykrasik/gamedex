@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowRenameMoveGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanRenameMoveGame> {
     override fun present(view: ViewCanRenameMoveGame) = object : Presentation() {
         init {
-            view.renameMoveGameActions.actionOnUi { (game, initialName) ->
+            view.renameMoveGameActions.forEach { (game, initialName) ->
                 viewManager.showRenameMoveGameView {
                     this.game = game
                     this.initialName = initialName

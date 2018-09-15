@@ -14,14 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,33 +36,33 @@ class SettingsPresenter @Inject constructor(
     private val gameProviderService: GameProviderService,
     private val viewManager: ViewManager
 ) : Presenter<SettingsView> {
-    private val log = logger()
-
     override fun present(view: SettingsView) = object : Presentation() {
         init {
             view.providers.clear()
             view.providers += gameProviderService.allProviders
             view.providerLogos = gameProviderService.logos
 
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
-            view.resetDefaultsActions.actionOnUi { onResetDefaults() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
+            view.resetDefaultsActions.forEach { onResetDefaults() }
         }
 
         override fun onShow() {
             settingsService.saveSnapshot()
         }
 
-        private fun onAccept() = writeSettings { settingsService.commitSnapshot() }
+        private fun onAccept() {
+            settingsService.commitSnapshot()
+            close()
+        }
 
-        private fun onCancel() = writeSettings { settingsService.revertSnapshot() }
-
-        private fun writeSettings(f: () -> Unit) = try {
-            f()
-            viewManager.closeSettingsView(view)
-        } catch (e: Exception) {
-            log.error("Error updating settings!", e)
+        private fun onCancel() {
             settingsService.revertSnapshot()
+            close()
+        }
+
+        private fun close() {
+            viewManager.closeSettingsView(view)
         }
 
         private fun onResetDefaults() {

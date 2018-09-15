@@ -35,7 +35,7 @@ class DiscoverGamesWithoutProvidersPresenter @Inject constructor(
 ) : Presenter<ViewCanDiscoverGamesWithoutProviders> {
     override fun present(view: ViewCanDiscoverGamesWithoutProviders) = object : Presentation() {
         init {
-            view.discoverGamesWithoutProvidersActions.actionOnUi { discoverGamesWithoutProviders() }
+            view.discoverGamesWithoutProvidersActions.forEach { discoverGamesWithoutProviders() }
         }
 
         private suspend fun discoverGamesWithoutProviders() {

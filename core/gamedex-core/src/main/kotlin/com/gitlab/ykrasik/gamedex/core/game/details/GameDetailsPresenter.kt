@@ -44,8 +44,8 @@ class GameDetailsPresenter @Inject constructor(
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : Presentation() {
         init {
-            gameService.games.changesChannel.subscribeOnUi { event ->
-                if (!showing) return@subscribeOnUi
+            gameService.games.changesChannel.forEach { event ->
+                if (!showing) return@forEach
 
                 val game = view.game
                 when (event) {

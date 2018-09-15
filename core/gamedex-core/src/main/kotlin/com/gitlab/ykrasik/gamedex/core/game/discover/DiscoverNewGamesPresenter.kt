@@ -35,7 +35,7 @@ class DiscoverNewGamesPresenter @Inject constructor(
 ) : Presenter<ViewCanDiscoverNewGames> {
     override fun present(view: ViewCanDiscoverNewGames) = object : Presentation() {
         init {
-            view.discoverNewGamesActions.actionOnUi { discoverNewGames() }
+            view.discoverNewGamesActions.forEach { discoverNewGames() }
         }
 
         private suspend fun discoverNewGames() {

@@ -35,7 +35,7 @@ class CleanupDbPresenter @Inject constructor(
 ) : Presenter<CleanupDbView> {
     override fun present(view: CleanupDbView) = object : Presentation() {
         init {
-            view.cleanupDbActions.actionOnUi { cleanupDb() }
+            view.cleanupDbActions.forEach { cleanupDb() }
         }
 
         private suspend fun cleanupDb() {

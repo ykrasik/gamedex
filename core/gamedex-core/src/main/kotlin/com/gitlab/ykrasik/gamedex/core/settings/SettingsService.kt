@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,7 +48,8 @@ interface SettingsService {
 class SettingsServiceImpl @Inject constructor(
     factory: SettingsStorageFactory,
     gameProviderRepository: GameProviderRepository
-): SettingsService {
+) : SettingsService {
+    private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
 
     override val general = repo { GeneralSettingsRepository(factory) }
@@ -61,27 +63,46 @@ class SettingsServiceImpl @Inject constructor(
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 
-    override fun saveSnapshot() = withRepos {
-        disableWrite()
-        saveSnapshot()
+    override fun saveSnapshot() = safeTry {
+        withRepos {
+            disableWrite()
+            saveSnapshot()
+        }
     }
 
-    override fun revertSnapshot() = withRepos {
-        restoreSnapshot()
-        enableWrite()
-        clearSnapshot()
+    override fun revertSnapshot() = safeTry {
+        withRepos {
+            restoreSnapshot()
+            enableWrite()
+            clearSnapshot()
+        }
     }
 
-    override fun commitSnapshot() = withRepos {
-        enableWrite()
-        flush()
-        clearSnapshot()
+    override fun commitSnapshot() = safeTry(revertFallback = true) {
+        withRepos {
+            enableWrite()
+            flush()
+            clearSnapshot()
+        }
     }
 
     // FIXME: Do not reset provider accounts.
-    override fun resetDefaults() = withRepos {
-        resetDefaults()
+    override fun resetDefaults() = safeTry {
+        withRepos {
+            resetDefaults()
+        }
     }
 
     private inline fun withRepos(f: SettingsRepository<*>.() -> Unit) = all.forEach(f)
+
+    private inline fun safeTry(revertFallback: Boolean = false, f: () -> Unit) {
+        try {
+            f()
+        } catch (e: Exception) {
+            log.error("Error updating settings!", e)
+            if (revertFallback) {
+                revertSnapshot()
+            }
+        }
+    }
 }

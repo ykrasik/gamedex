@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import javafx.geometry.Pos
 import javafx.scene.control.ToolBar
 import tornadofx.*
 
@@ -42,19 +43,21 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
     override val editLibraryActions = channel<Library>()
     override val deleteLibraryActions = channel<Library>()
 
+    private val selectedLibrary: Library get() = root.selectedItem!!
+
     init {
         viewRegistry.register(this)
     }
 
     override fun ToolBar.constructToolbar() {
+        spacer()
+        verticalSeparator()
         addButton { setOnAction { addLibrary() } }
         verticalSeparator()
         editButton {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
             setOnAction { editLibrary() }
         }
-        verticalSeparator()
-        spacer()
         verticalSeparator()
         deleteButton("Delete") {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
@@ -63,7 +66,6 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
     }
 
     override val root = tableview(libraries) {
-        isEditable = false
         columnResizePolicy = SmartResize.POLICY
         libraries.onChange { resizeColumnsToFitContent() }
 
@@ -81,16 +83,23 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
             remainingWidth()
         }
 
-        contextmenu {
-            item("Add", graphic = Theme.Icon.plus(20.0)).action(::addLibrary)
+        popoverContextMenu {
+            addButton("Add") {
+                alignment = Pos.CENTER_LEFT
+                setOnAction { addLibrary() }
+            }
             separator()
-            item("Edit", graphic = Theme.Icon.edit(20.0)) {
+            editButton("Edit") {
+                alignment = Pos.CENTER_LEFT
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }.action(::editLibrary)
+                setOnAction { editLibrary() }
+            }
             separator()
-            item("Delete", graphic = Theme.Icon.delete(20.0)) {
+            deleteButton("Delete") {
+                alignment = Pos.CENTER_LEFT
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-            }.action(::deleteLibrary)
+                setOnAction { deleteLibrary() }
+            }
         }
 
         onDoubleClick {
@@ -102,17 +111,7 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
         allowDeselection(onClickAgain = false)
     }
 
-    private fun addLibrary() {
-        addLibraryActions.event(Unit)
-    }
-
-    private fun editLibrary() {
-        editLibraryActions.event(selectedLibrary)
-    }
-
-    private fun deleteLibrary() {
-        deleteLibraryActions.event(selectedLibrary)
-    }
-
-    private val selectedLibrary: Library get() = root.selectedItem!!
+    private fun addLibrary() = addLibraryActions.event(Unit)
+    private fun editLibrary() = editLibraryActions.event(selectedLibrary)
+    private fun deleteLibrary() = deleteLibraryActions.event(selectedLibrary)
 }

@@ -75,8 +75,8 @@ class GamesPresenter @Inject constructor(
     override fun present(view: ViewWithGames) = object : Presentation() {
         init {
             commonData.platformGames.bindTo(view.games)
-            sortComparatorChannel.subscribeOnUi { view.sort = it }
-            filterPredicate.subscribeOnUi { view.filter = it }
+            sortComparatorChannel.forEach { view.sort = it }
+            filterPredicate.forEach { view.filter = it }
         }
     }
 }

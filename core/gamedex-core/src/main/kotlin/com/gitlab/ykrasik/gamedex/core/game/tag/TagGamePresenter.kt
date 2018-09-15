@@ -44,13 +44,13 @@ class TagGamePresenter @Inject constructor(
         private var ignoreNextUncheckAll = false
 
         init {
-            view.checkAllChanges.subscribeOnUi(::onCheckAllChanged)
-            view.checkTagChanges.subscribeOnUi { (tag, checked) -> onCheckTagChanged(tag, checked) }
-            view.newTagNameChanges.subscribeOnUi(::onNewTagNameChanged)
+            view.checkAllChanges.forEach { onCheckAllChanged(it) }
+            view.checkTagChanges.forEach { (tag, checked) -> onCheckTagChanged(tag, checked) }
+            view.newTagNameChanges.forEach { onNewTagNameChanged(it) }
 
-            view.addNewTagActions.actionOnUi { onAddNewTag() }
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.addNewTagActions.forEach { onAddNewTag() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

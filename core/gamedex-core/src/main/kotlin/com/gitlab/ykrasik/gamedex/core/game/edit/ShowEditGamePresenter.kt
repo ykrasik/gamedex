@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowEditGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditGame> {
     override fun present(view: ViewCanEditGame) = object : Presentation() {
         init {
-            view.editGameActions.actionOnUi { (game, initialScreen) ->
+            view.editGameActions.forEach { (game, initialScreen) ->
                 viewManager.showEditGameView {
                     this.game = game
                     this.initialScreen = initialScreen

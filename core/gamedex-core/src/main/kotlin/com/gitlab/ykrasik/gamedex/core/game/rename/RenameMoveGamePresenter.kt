@@ -52,14 +52,14 @@ class RenameMoveGamePresenter @Inject constructor(
 
         init {
             commonData.realLibraries.bindTo(view.possibleLibraries)
-            view.libraryChanges.subscribeOnUi { validate() }
-            view.pathChanges.subscribeOnUi { validate() }
-            view.nameChanges.subscribeOnUi { validate() }
+            view.libraryChanges.forEach { validate() }
+            view.pathChanges.forEach { validate() }
+            view.nameChanges.forEach { validate() }
 
-            view.selectDirectoryActions.actionOnUi { onSelectDirectory() }
-            view.browseToGameActions.actionOnUi { onBrowseToGame() }
-            view.acceptActions.actionOnUi { onAccept() }
-            view.cancelActions.actionOnUi { onCancel() }
+            view.selectDirectoryActions.forEach { onSelectDirectory() }
+            view.browseToGameActions.forEach { onBrowseToGame() }
+            view.acceptActions.forEach { onAccept() }
+            view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {

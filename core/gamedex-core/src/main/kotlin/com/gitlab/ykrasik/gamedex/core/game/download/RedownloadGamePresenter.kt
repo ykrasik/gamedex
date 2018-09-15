@@ -31,7 +31,7 @@ class RedownloadGamePresenter @Inject constructor(
 ) : Presenter<ViewCanRedownloadGame> {
     override fun present(view: ViewCanRedownloadGame) = object : Presentation() {
         init {
-            view.redownloadGameActions.actionOnUi { redownloadGame(it) }
+            view.redownloadGameActions.forEach { redownloadGame(it) }
         }
 
         private suspend fun redownloadGame(game: Game) {

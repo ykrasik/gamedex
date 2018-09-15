@@ -47,7 +47,7 @@ fun <T> ObservableList<T>.changeListener(op: (ListChangeListener.Change<out T>) 
     ListChangeListener<T> { c -> op(c) }.apply { addListener(this) }
 
 // Perform the action on the initial value of the observable and on each change.
-fun <T> ObservableList<T>.performing(f: (ObservableList<T>) -> Unit): ListChangeListener<T> {
+fun <T> ObservableList<T>.perform(f: (ObservableList<T>) -> Unit): ListChangeListener<T> {
     fun doPerform() = f(this)
     doPerform()
     return this.changeListener { doPerform() }

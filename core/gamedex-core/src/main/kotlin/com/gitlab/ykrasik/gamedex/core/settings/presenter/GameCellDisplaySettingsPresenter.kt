@@ -14,12 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 

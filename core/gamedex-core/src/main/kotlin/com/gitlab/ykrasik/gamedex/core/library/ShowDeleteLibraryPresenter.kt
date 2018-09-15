@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ShowDeleteLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanDeleteLibrary> {
     override fun present(view: ViewCanDeleteLibrary) = object : Presentation() {
         init {
-            view.deleteLibraryActions.actionOnUi { library ->
+            view.deleteLibraryActions.forEach { library ->
                 viewManager.showDeleteLibraryView {
                     this.library = library
                 }

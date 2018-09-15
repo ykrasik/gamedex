@@ -46,7 +46,7 @@ import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
-import com.gitlab.ykrasik.gamedex.core.settings.*
+import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -202,12 +202,14 @@ class ViewRegistryImpl @Inject constructor(
 
     override fun onShow(view: Any) {
         println("$view: Showing")
-        activePresentations[view]!!.forEach { it.show() }
+        // TODO: Eventually, make it activePresentations[view]!!
+        activePresentations[view]?.forEach { it.show() }
     }
 
     override fun onHide(view: Any) {
         println("$view: Hidden")
-        activePresentations[view]!!.forEach { it.hide() }
+        // TODO: Eventually, make it activePresentations[view]!!
+        activePresentations[view]?.forEach { it.hide() }
     }
 
 //    init {

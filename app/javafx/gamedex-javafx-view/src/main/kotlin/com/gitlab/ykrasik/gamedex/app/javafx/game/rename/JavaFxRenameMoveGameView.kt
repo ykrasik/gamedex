@@ -78,15 +78,11 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
             toolbar {
                 enableWhen { enabledProperty }
                 acceptButton {
-                    isDefaultButton = true
                     enableWhen { viewModel.valid }
                     eventOnAction(acceptActions)
                 }
                 spacer()
-                cancelButton {
-                    isCancelButton = true
-                    eventOnAction(cancelActions)
-                }
+                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {

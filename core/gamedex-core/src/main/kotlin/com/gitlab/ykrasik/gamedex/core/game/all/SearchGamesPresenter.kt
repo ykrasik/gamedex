@@ -35,7 +35,7 @@ class SearchGamesPresenter @Inject constructor(
     override fun present(view: ViewCanSearchGames) = object : Presentation() {
         init {
             view.searchText = settingsService.game.currentPlatformSettings.search
-            view.searchTextChanges.subscribeOnUi(::onSearchTextChanged)
+            view.searchTextChanges.forEach { onSearchTextChanged(it) }    // TODO: Debounce
         }
 
         private fun onSearchTextChanged(searchText: String) {

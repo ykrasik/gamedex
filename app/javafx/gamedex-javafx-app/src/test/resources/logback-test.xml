@@ -12,4 +12,6 @@
     <logger name="Exposed" level="info"/>
     <logger name="org.reflections.Reflections" level="off"/>
     <logger name="javafx.scene.control" level="off"/>
+    <logger name="io.netty" level="off"/>
+    <logger name="ktor.application" level="off"/>
 </configuration>
