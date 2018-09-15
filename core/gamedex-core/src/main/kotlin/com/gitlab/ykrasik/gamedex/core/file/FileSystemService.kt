@@ -21,9 +21,10 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.cache.Cache
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
+import kotlinx.coroutines.experimental.*
 import java.io.File
+import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,7 +43,7 @@ class FileSystemServiceImpl @Inject constructor(
         val structure = fileStructureCache[game]
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.IO) {
             val newStructure = calcStructure(game.path)
             if (newStructure != null && newStructure != structure) {
                 fileStructureCache[game] = newStructure
@@ -76,6 +77,20 @@ class FileSystemServiceImpl @Inject constructor(
 
     // TODO: Have a reference to libraryRepo & gameRepo and calc the excludedDirectories from it.
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) = newDirectoryDetector.detectNewDirectories(dir, excludedDirectories)
+
+    override suspend fun move(from: File, to: File) = withContext(Dispatchers.IO) {
+        to.parentFile.mkdirs()
+        if (!from.renameTo(to)) {
+            // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
+            // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
+            // and throws an exception if it fails.
+            Files.move(from.toPath(), to.toPath())
+        }
+    }
+
+    override suspend fun delete(file: File) = withContext(Dispatchers.IO) {
+        file.deleteWithChildren()
+    }
 
     override fun analyzeFolderName(rawName: String) = fileNameHandler.analyze(rawName)
 

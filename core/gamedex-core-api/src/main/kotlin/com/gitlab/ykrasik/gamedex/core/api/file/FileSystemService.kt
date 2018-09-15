@@ -32,6 +32,9 @@ interface FileSystemService {
     // TODO: Make this a channel?
     fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
 
+    suspend fun move(from: File, to: File)
+    suspend fun delete(file: File)
+
     // TODO: Find better names.
     fun analyzeFolderName(rawName: String): FolderNameMetadata
     fun fromFileName(name: String): String

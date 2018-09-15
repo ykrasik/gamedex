@@ -31,7 +31,8 @@ import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
@@ -45,7 +46,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 class PreloaderImpl : Preloader {
     private val log = logger()
 
-    override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(CommonPool) {
+    override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(Dispatchers.IO) {
         val (injector, millisTaken) = millisTaken {
             SLF4JBridgeHandler.removeHandlersForRootLogger()
             SLF4JBridgeHandler.install()

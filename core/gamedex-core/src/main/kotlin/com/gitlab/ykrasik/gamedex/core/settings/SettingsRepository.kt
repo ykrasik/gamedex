@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.settings
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.util.*
+import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.drop
@@ -64,7 +65,9 @@ interface SettingsStorage<T : Any> {
 
 class FileSettingsStorage<T : Any>(private val name: String,
                                    private val default: T,
-                                   klass: KClass<T>) : SettingsStorage<T> {
+                                   klass: KClass<T>) : SettingsStorage<T>, CoroutineScope {
+    override val coroutineContext = settingsHandler
+
     private val log = logger()
     private val file = "conf/$name.conf".toFile()
 
@@ -84,7 +87,7 @@ class FileSettingsStorage<T : Any>(private val name: String,
         } else {
             log.info("[$file] Settings file doesn't exist. Creating default...")
             null
-        } ?: default.apply { update(this) }
+        } ?: default.apply { update(this@apply) }
     }
     private val _dataChannel = rawDataChannel.distinctUntilChanged()
     override val dataChannel = _dataChannel
@@ -93,7 +96,7 @@ class FileSettingsStorage<T : Any>(private val name: String,
     private var snapshot: T? = null
 
     init {
-        launch(settingsHandler) {
+        launch {
             _dataChannel.subscribe().drop(1).consumeEach {
                 if (enableWrite) {
                     update(it)
@@ -102,7 +105,7 @@ class FileSettingsStorage<T : Any>(private val name: String,
         }
     }
 
-    private fun update(data: T) = launch(settingsHandler) {
+    private fun update(data: T) {
         file.create()
         log.trace("[$file] Writing: $data")
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
@@ -110,14 +113,14 @@ class FileSettingsStorage<T : Any>(private val name: String,
 
     override fun perform(f: (T) -> Unit) {
         f(data)
-        launch(settingsHandler) {
+        launch {
             _dataChannel.subscribe().drop(1).consumeEach(f)
         }
     }
 
     override fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R> {
         val channel = BroadcastEventChannel.conflated(extractor(data))
-        launch(settingsHandler) {
+        launch {
             _dataChannel.subscribe().drop(1).consumeEach {
                 channel.send(extractor(it))
             }
@@ -150,7 +153,9 @@ class FileSettingsStorage<T : Any>(private val name: String,
     }
 
     override fun flush() {
-        update(data)
+        launch {
+            update(data)
+        }
     }
 
     override fun resetDefaults() {

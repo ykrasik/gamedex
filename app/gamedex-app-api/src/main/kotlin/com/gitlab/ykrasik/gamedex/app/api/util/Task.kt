@@ -16,15 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.CompletableDeferred
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.experimental.CoroutineContext
-import kotlin.coroutines.experimental.coroutineContext
 
 /**
  * User: ykrasik
@@ -51,9 +46,12 @@ interface ReadOnlyTask<out T> {
 
 class Task<out T>(override val title: String = "",
                   override val type: TaskType = TaskType.Long,
-                  private val doRun: suspend Task<*>.() -> T) : ReadOnlyTask<T> {
+                  private val doRun: suspend Task<*>.() -> T) : ReadOnlyTask<T>, CoroutineScope {
+    // TODO: Sub-tasks aren't linked to this job, this way...
+    private val job = Job()
+    override val coroutineContext = Dispatchers.IO + job
+
     private var started = false
-    private lateinit var context: CoroutineContext
 
     private val _processed = AtomicInteger(0)
     override val processed: Int get() = _processed.get()
@@ -95,14 +93,30 @@ class Task<out T>(override val title: String = "",
 
     fun incProgress(amount: Int = 1) = progress(_processed.addAndGet(amount), totalWork!!)
 
-    override suspend fun run(): T = run(CommonPool)
+    override suspend fun run(): T {
+        require(!started) { "Task was already run: $this" }
+
+        var success = false
+        return try {
+            started = true
+            async {
+                doRun()
+            }.await().apply {
+                success = true
+            }
+        } finally {
+            doneMessage.complete(doneMessageSupplier.invoke(success))
+            progress = 1.0
+            close()
+        }
+    }
 
     suspend fun <R> runSubTask(type: TaskType = TaskType.Long, doRun: suspend Task<*>.() -> R) =
         runSubTask(Task("", type, doRun))
 
     suspend fun <R> runSubTask(subTask: Task<R>): R {
         subTasks.send(subTask)
-        return subTask.run(context)
+        return subTask.run()
     }
 
     suspend fun <R> runMainTask(task: Task<R>): R {
@@ -112,28 +126,8 @@ class Task<out T>(override val title: String = "",
         task.progressChannel.bind(_progressChannel)
         task.message1Channel.bind(_message1Channel)
         task.message2Channel.bind(_message2Channel)
-        return task.run(context).apply {
+        return task.run().apply {
             message2 = task.doneMessage.await()
-        }
-    }
-
-    private suspend fun run(context: CoroutineContext): T {
-        require(!started) { "Task was already run: $this" }
-
-        var success = false
-        return try {
-            started = true
-            async(context) {
-                doRun()
-            }.apply {
-                this@Task.context = coroutineContext
-            }.await().apply {
-                success = true
-            }
-        } finally {
-            doneMessage.complete(doneMessageSupplier.invoke(success))
-            progress = 1.0
-            close()
         }
     }
 

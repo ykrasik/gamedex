@@ -23,8 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,7 +56,7 @@ internal class GameRepository @Inject constructor(private val persistenceService
         // This is in order to allow the ui thread to run roughly once after every chunk.
         // Otherwise, it gets swamped during large operations (import large db) and UI appears to hang.
         val games = requests.map { request ->
-            async(CommonPool) {
+            GlobalScope.async(Dispatchers.IO) {
                 // TODO: Batch insert?
                 persistenceService.insertGame(request.metadata, request.providerData, request.userData).also(afterEach)
             }
@@ -87,7 +86,7 @@ internal class GameRepository @Inject constructor(private val persistenceService
         games.setAll(games.map { it.copy(userData = null) })
     }
 
-    fun invalidate() {
+    suspend fun invalidate() = withContext(Dispatchers.IO) {
         // Re-fetch all games from persistence
         games.setAll(fetchGames())
     }

@@ -108,6 +108,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
                 }
                 ruleProperty.eventOnChange(updateFilterActions) { filter to it }
             }
+            else -> kotlin.error("Unknown filter: $filter")
         }
     }
 

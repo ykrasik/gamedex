@@ -37,6 +37,7 @@ import javax.sql.rowset.serial.SerialBlob
  * Time: 15:10
  */
 // TODO: This really feels like it needs to be broken up into small daos that the repositories will wrap.
+// TODO: Make all these suspend and execute them on Dispatchers.IO internally.
 @ImplementedBy(PersistenceServiceImpl::class)
 interface PersistenceService {
     fun dropDb()

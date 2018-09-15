@@ -61,9 +61,9 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
 //        fetchImageRequests.offer(FetchImageRequest(url, gameId, persistIfAbsent, response))
 //
 //        val p = SimpleObjectProperty<Image>(loading)
-//        launch(CommonPool) {
+//        launch(Dispatchers.Default) {
 //            val image = response.await().await().image
-//            withContext(JavaFx) {
+//            withContext(Dispatchers.JavaFx) {
 //                p.value = image
 //            }
 //        }
@@ -73,9 +73,9 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
     fun loadImage(f: () -> CompletableDeferred<Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>>?): ObservableValue<Image> {
         val response = f() ?: return noImage.toProperty()
         val p = SimpleObjectProperty<Image>(loading)
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.IO) {
             val image = response.await().await().image
-            withContext(JavaFx) {
+            withContext(Dispatchers.JavaFx) {
                 p.value = image
             }
         }
@@ -110,9 +110,9 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
         if (this.isCompleted) {
             p.value = this.getCompleted().image
         } else {
-            launch(CommonPool) {
+            GlobalScope.launch(Dispatchers.IO) {
                 val image = await().image
-                withContext(JavaFx) {
+                withContext(Dispatchers.JavaFx) {
                     p.value = image
                 }
             }

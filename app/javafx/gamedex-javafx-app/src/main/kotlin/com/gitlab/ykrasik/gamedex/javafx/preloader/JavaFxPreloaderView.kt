@@ -28,11 +28,8 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.text.Font
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import tornadofx.*
 import java.util.*
 
@@ -85,11 +82,11 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
 
         Thread.setDefaultUncaughtExceptionHandler(EnhancedDefaultErrorHandler())
 
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.IO) {
             val preloader = ServiceLoader.load(Preloader::class.java).iterator().next()
             val injector = preloader.load(this@JavaFxPreloaderView, JavaFxModule)
             FX.dicontainer = GuiceDiContainer(injector)
-            withContext(JavaFx) {
+            withContext(Dispatchers.JavaFx) {
                 message = "Loading user interface..."
                 delay(5)       // Delay to allow the 'done' message to display.
                 replaceWith(find(MainView::class), ViewTransition.Fade(2.seconds))

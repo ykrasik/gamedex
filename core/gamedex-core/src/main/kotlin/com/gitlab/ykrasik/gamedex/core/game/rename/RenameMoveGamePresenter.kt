@@ -21,14 +21,15 @@ import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.common.CommonData
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.withContext
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,6 +43,7 @@ import javax.inject.Singleton
 class RenameMoveGamePresenter @Inject constructor(
     private val commonData: CommonData,
     private val gameService: GameService,
+    private val fileSystemService: FileSystemService,
     private val taskRunner: TaskRunner,
     private val viewManager: ViewManager
 ) : Presenter<RenameMoveGameView> {
@@ -120,25 +122,14 @@ class RenameMoveGamePresenter @Inject constructor(
 
         private suspend fun onAccept() {
             check(view.nameValidationError == null) { "Cannot accept invalid state!" }
-            withContext(CommonPool) {
+            withContext(Dispatchers.IO) {
                 val library = view.library
                 val game = view.game
-                val path = view.path
-                val name = view.name
-                val newPath = path.toFile().resolve(name)
+                val newPath = view.path.toFile().resolve(view.name)
                 val fullPath = library.path.resolve(newPath)
                 log.info("Renaming/Moving: ${game.path} -> $fullPath")
 
-                val parent = fullPath.parentFile
-                if (parent != library.path && !parent.exists()) {
-                    parent.mkdirs()
-                }
-                if (!game.path.renameTo(fullPath)) {
-                    // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
-                    // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
-                    // and throws an exception if it fails.
-                    Files.move(game.path.toPath(), fullPath.toPath())
-                }
+                fileSystemService.move(from = game.path, to = fullPath)
 
                 taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
             }

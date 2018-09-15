@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.game.search.SearchResultsFragment
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.withContext
 import javax.inject.Singleton
@@ -30,7 +31,7 @@ import javax.inject.Singleton
 // FIXME: Represent this as a stream.
 @Singleton
 class JavaFxSearchChooser : SearchChooser {
-    override suspend fun choose(data: SearchChooser.Data) = withContext(JavaFx) {
+    override suspend fun choose(data: SearchChooser.Data) = withContext(Dispatchers.JavaFx) {
         SearchResultsFragment(data).show()
     }
 }

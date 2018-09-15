@@ -22,10 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,7 +49,7 @@ class ImageRepositoryImpl @Inject constructor(
     // A situation where this method is called once with persistIfAbsent=false and again
     // with the same url but persistIfAbsent=true simply doesn't exist.
     override fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image> = persistedImageCache.getOrPut(url) {
-        async(CommonPool) {
+        GlobalScope.async(Dispatchers.IO) {
             val persistedBytes = persistenceService.fetchImage(url)
             if (persistedBytes != null) {
                 imageFactory(persistedBytes)
@@ -60,7 +57,7 @@ class ImageRepositoryImpl @Inject constructor(
                 val downloadedImage = downloadImage(url).await()
                 if (persistIfAbsent) {
                     // Save downloaded image as a fire-and-forget operation.
-                    launch(CommonPool) {
+                    launch(Dispatchers.IO) {
                         persistenceService.insertImage(gameId, url, downloadedImage.raw)
                     }
                 }
@@ -71,7 +68,7 @@ class ImageRepositoryImpl @Inject constructor(
 
     // Only meant to be accessed by the ui thread.
     override fun downloadImage(url: String): Deferred<Image> = downloadedImageCache.getOrPut(url) {
-        async(CommonPool) {
+        GlobalScope.async(Dispatchers.IO) {
             imageFactory(download(url))
         }
     }

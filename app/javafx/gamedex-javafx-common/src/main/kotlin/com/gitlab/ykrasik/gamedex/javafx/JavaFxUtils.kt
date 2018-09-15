@@ -38,10 +38,8 @@ import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.util.Duration
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
-import kotlinx.coroutines.experimental.launch
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
@@ -55,7 +53,7 @@ import kotlin.reflect.KClass
  */
 val screenBounds: Rectangle2D = Screen.getPrimary().bounds
 
-fun javaFx(f: suspend CoroutineScope.() -> Unit): Job = launch(JavaFx, block = f)
+fun javaFx(f: suspend CoroutineScope.() -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx, block = f)
 
 fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApplicationThread()) {
     f()

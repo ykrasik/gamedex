@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadScheduler
 import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
 import io.reactivex.rxjavafx.schedulers.JavaFxScheduler
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.App
 import tornadofx.launch
@@ -36,7 +37,7 @@ class Main : App(JavaFxPreloaderView::class) {
         @JvmStatic
         fun main(args: Array<String>) {
             uiThreadScheduler = JavaFxScheduler.platform()
-            uiThreadDispatcher = JavaFx
+            uiThreadDispatcher = Dispatchers.JavaFx
             launch<Main>(args)
         }
     }

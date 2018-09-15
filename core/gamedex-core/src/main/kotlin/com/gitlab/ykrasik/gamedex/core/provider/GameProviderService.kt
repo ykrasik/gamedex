@@ -35,7 +35,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.nowTimestamp
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import java.io.File
 import javax.inject.Inject
@@ -195,7 +194,7 @@ class GameProviderServiceImpl @Inject constructor(
         totalWork = headers.size
         message1 = "Downloading '$name'..."
         headers.map { header ->
-            async(CommonPool) {
+            async {
                 enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform).let { providerData ->
                     incProgress()
 

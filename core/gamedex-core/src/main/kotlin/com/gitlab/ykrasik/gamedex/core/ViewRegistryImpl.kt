@@ -209,4 +209,12 @@ class ViewRegistryImpl @Inject constructor(
         println("$view: Hidden")
         activePresentations[view]!!.forEach { it.hide() }
     }
+
+//    init {
+//        Runtime.getRuntime().addShutdownHook(thread(start = false, name = "Shutdown") {
+//            runBlocking {
+//                activePresentations.values.flatten().forEach { it.destroy() }
+//            }
+//        })
+//    }
 }

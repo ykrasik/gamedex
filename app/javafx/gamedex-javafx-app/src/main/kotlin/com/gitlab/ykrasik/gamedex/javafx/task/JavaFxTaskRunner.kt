@@ -33,6 +33,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import org.controlsfx.control.NotificationPane
 import tornadofx.*
@@ -116,7 +117,7 @@ class JavaFxTaskRunner : TaskRunner {
         }
     }
 
-    override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(JavaFx) {
+    override suspend fun <T> runTask(task: ReadOnlyTask<T>): T = withContext(Dispatchers.JavaFx) {
         check(currentJob == null) { "Already running a job: $currentJob" }
 
         try {
@@ -136,7 +137,7 @@ class JavaFxTaskRunner : TaskRunner {
 
             currentlyRunningTaskChannel.send(task)
             // FIXME: Remove this! Should be handled entirely by the task. Should task return a Deferred?
-            async(CommonPool) {
+            async(Dispatchers.IO) {
                 task.run()
             }.apply {
                 currentJob = this

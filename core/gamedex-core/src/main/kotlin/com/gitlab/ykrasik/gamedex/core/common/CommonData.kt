@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.google.inject.ImplementedBy
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.channels.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -70,7 +70,7 @@ class CommonDataImpl @Inject constructor(
     override val tags = games.tags()
 
     // The platform doesn't change that often, so an unoptimized filter is acceptable here.
-    override val platformGames = games.filtering(settingsService.game.platformChannel.subscribe().map(CommonPool) { platform ->
+    override val platformGames = games.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
         { game: Game -> game.platform == platform }
     })
     override val platformGenres = platformGames.genres()
@@ -81,7 +81,7 @@ class CommonDataImpl @Inject constructor(
 
     override val libraries = libraryService.libraries
     override val realLibraries = libraries.filtering { it.platform != Platform.excluded }
-    override val platformLibraries = realLibraries.filtering(settingsService.game.platformChannel.subscribe().map(CommonPool) { platform ->
+    override val platformLibraries = realLibraries.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
         { library: Library -> library.platform == platform }
     })
 

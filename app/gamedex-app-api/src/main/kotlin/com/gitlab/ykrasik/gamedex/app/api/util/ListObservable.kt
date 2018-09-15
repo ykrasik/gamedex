@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.coroutines.experimental.DefaultDispatcher
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.map
@@ -155,7 +156,7 @@ data class ListItemsRemovedEvent<out T>(val indices: List<Int>, val items: List<
 data class ListItemSetEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
 data class ListItemsSetEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
 
-inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> R): ListObservable<R> {
+inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = Dispatchers.Default, crossinline f: (T) -> R): ListObservable<R> {
     val list = ListObservableImpl(this.map(f))
     changesChannel.subscribe(context) { event ->
         when (event) {
@@ -170,22 +171,22 @@ inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = DefaultD
     return list
 }
 
-inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> List<R>): ListObservable<R> =
+inline fun <T, R> ListObservable<T>.flatMapping(context: CoroutineContext = Dispatchers.Default, crossinline f: (T) -> List<R>): ListObservable<R> =
     subscribeTransform(context) { it.flatMap(f) }
 
-inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = DefaultDispatcher, crossinline f: (T) -> Boolean): ListObservable<T> =
+inline fun <T> ListObservable<T>.filtering(context: CoroutineContext = Dispatchers.Default, crossinline f: (T) -> Boolean): ListObservable<T> =
     subscribeTransform(context) { it.filter(f) }
 
-fun <T> ListObservable<T>.filtering(channel: ReceiveChannel<(T) -> Boolean>, context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+fun <T> ListObservable<T>.filtering(channel: ReceiveChannel<(T) -> Boolean>, context: CoroutineContext = Dispatchers.Default): ListObservable<T> =
     subscribeTransformChannel(context, channel.map { f -> { list: List<T> -> list.filter(f) } })
 
-fun <T> ListObservable<T>.distincting(context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+fun <T> ListObservable<T>.distincting(context: CoroutineContext = Dispatchers.Default): ListObservable<T> =
     subscribeTransform(context) { it.distinct() }
 
-inline fun <T, R : Comparable<R>> ListObservable<T>.sortingBy(context: CoroutineContext = DefaultDispatcher, crossinline selector: (T) -> R?): ListObservable<T> =
+inline fun <T, R : Comparable<R>> ListObservable<T>.sortingBy(context: CoroutineContext = Dispatchers.Default, crossinline selector: (T) -> R?): ListObservable<T> =
     subscribeTransform(context) { it.sortedBy(selector) }
 
-fun <T> ListObservable<T>.sortingWith(channel: ReceiveChannel<Comparator<T>>, context: CoroutineContext = DefaultDispatcher): ListObservable<T> =
+fun <T> ListObservable<T>.sortingWith(channel: ReceiveChannel<Comparator<T>>, context: CoroutineContext = Dispatchers.Default): ListObservable<T> =
     subscribeTransformChannel(context, channel.map { c -> { list: List<T> -> list.sortedWith(c) } })
 
 inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext, crossinline f: (List<T>) -> List<R>): ListObservable<R> {
@@ -198,7 +199,7 @@ inline fun <T, R> ListObservable<T>.subscribeTransform(context: CoroutineContext
 
 fun <T, R> ListObservable<T>.subscribeTransformChannel(context: CoroutineContext, channel: ReceiveChannel<(List<T>) -> List<R>>): ListObservable<R> {
     val list = ListObservableImpl<R>()
-    launch(context) {
+    GlobalScope.launch(context) {
         itemsChannel.subscribe().combineLatest(channel).consumeEach { (items, f) ->
             list.setAll(f(items))
         }

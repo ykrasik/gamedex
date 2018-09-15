@@ -24,7 +24,8 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.logger
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -96,7 +97,7 @@ class ProviderSettingsPresenter @Inject constructor(
             try {
                 val newAccount = provider.accountFeature!!.createAccount(view.currentAccount)
                 log.info("[${provider.id}] Validating: $newAccount")
-                withContext(CommonPool) {
+                withContext(Dispatchers.IO) {
                     provider.search("TestSearchToVerifyAccount", Platform.pc, newAccount)
                 }
                 log.info("[${provider.id}] Valid!")

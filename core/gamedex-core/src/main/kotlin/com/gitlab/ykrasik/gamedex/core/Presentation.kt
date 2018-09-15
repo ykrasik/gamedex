@@ -19,7 +19,8 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.CoroutineScope
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -32,8 +33,9 @@ import kotlin.reflect.KMutableProperty0
  * Date: 24/04/2018
  * Time: 08:17
  */
-abstract class Presentation {
-    protected val jobs = mutableListOf<Job>()
+abstract class Presentation : CoroutineScope {
+    private val job = Job()
+    override val coroutineContext = Dispatchers.Default + job
 
     private var _showing = false
     protected val showing get() = _showing
@@ -56,17 +58,12 @@ abstract class Presentation {
 
     fun destroy() {
         if (_showing) hide()
-        jobs.forEach { it.cancel() }
-        jobs.clear()
-    }
-
-    protected inline fun managed(f: () -> Job) {
-        jobs += f()
+        job.cancel()
     }
 
     protected inline fun <T> ReceiveChannel<T>.actionOnUi(crossinline f: suspend (T) -> Unit) = actionOn(uiThreadDispatcher, f)
 
-    protected inline fun <T> ReceiveChannel<T>.actionOn(context: CoroutineContext, crossinline f: suspend (T) -> Unit) = managed {
+    protected inline fun <T> ReceiveChannel<T>.actionOn(context: CoroutineContext, crossinline f: suspend (T) -> Unit) {
         launch(context) {
             consumeEach {
                 try {
@@ -109,7 +106,7 @@ abstract class Presentation {
     protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(channelAccessor: S.() -> BroadcastReceiveChannel<T>,
                                                                               viewProperty: KMutableProperty0<T>,
                                                                               changesChannel: ReceiveChannel<T>,
-                                                                              context: CoroutineContext = CommonPool,
+                                                                              context: CoroutineContext = Dispatchers.Default,
                                                                               crossinline f: (Data).(T) -> Data) {
         val channel = channelAccessor(this)
         channel.reportChangesTo(viewProperty)

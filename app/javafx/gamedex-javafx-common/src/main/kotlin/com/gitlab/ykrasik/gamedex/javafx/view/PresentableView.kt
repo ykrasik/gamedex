@@ -24,6 +24,7 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import org.controlsfx.glyphfont.Glyph
@@ -46,7 +47,7 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     protected var skipFirstDock = false
 
     init {
-        taskRunner.currentlyRunningTaskChannel.subscribe(JavaFx) {
+        taskRunner.currentlyRunningTaskChannel.subscribe(Dispatchers.JavaFx) {
             enabledProperty.value = it == null
         }
 

@@ -8,7 +8,7 @@ buildscript {
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
-            v = '1.2.60'
+            v = '1.2.70'
             majorV = '1.2'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -18,7 +18,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.24.0'
+            v = '0.26.0'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             rx2 = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-rx2', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
@@ -54,7 +54,7 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.4']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.5']
 
         rx = [:].with {
             rxKotlin = [group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: '2.2.0']
@@ -65,7 +65,7 @@ buildscript {
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14']
         jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.6']
         tornadoFx = [:].with {
-            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.16']
+            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.17']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
             delegate
         }
@@ -82,7 +82,7 @@ buildscript {
         }
 
         ktor = [:].with {
-            v = '0.9.3'
+            v = '0.9.4'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             delegate

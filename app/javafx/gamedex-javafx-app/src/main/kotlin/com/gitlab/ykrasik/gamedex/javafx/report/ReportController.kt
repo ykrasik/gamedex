@@ -32,7 +32,8 @@ import javafx.beans.property.Property
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ProgressIndicator
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import kotlinx.coroutines.experimental.launch
@@ -104,11 +105,11 @@ class ReportController @Inject constructor(
             if (subscription != null) return
 
             // TODO: This feels like a task?
-            subscription = gameService.games.itemsChannel.subscribe(JavaFx) { games ->
+            subscription = gameService.games.itemsChannel.subscribe(Dispatchers.JavaFx) { games ->
                 isCalculating = true
-                launch(CommonPool) {
+                GlobalScope.launch(Dispatchers.Default) {
                     val result = calculate(games).map { (id, additionalData) -> gameService[id] to additionalData.toList() }.toMap()
-                    withContext(JavaFx) {
+                    withContext(Dispatchers.JavaFx) {
                         resultsProperty.value = result
                         isCalculating = false
                     }

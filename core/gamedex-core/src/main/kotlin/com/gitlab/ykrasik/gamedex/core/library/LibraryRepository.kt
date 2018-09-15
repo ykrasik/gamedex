@@ -23,7 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.async
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,7 +56,7 @@ internal class LibraryRepository @Inject constructor(private val persistenceServ
 
     suspend fun addAll(data: List<LibraryData>, afterEach: (Library) -> Unit): List<Library> {
         val libraries = data.map { libraryData ->
-            async(CommonPool) {
+            GlobalScope.async(Dispatchers.IO) {
                 persistenceService.insertLibrary(libraryData).also(afterEach)
             }
         }.map {

@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.userconfig
 import com.gitlab.ykrasik.gamedex.core.api.util.*
 import com.gitlab.ykrasik.gamedex.util.*
 import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.Executors
@@ -29,7 +30,9 @@ import kotlin.reflect.KClass
  * Date: 11/10/2016
  * Time: 10:34
  */
-class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val default: () -> T) {
+class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val default: () -> T) : CoroutineScope {
+    override val coroutineContext = dispatcher
+
     private val file = "conf/$name.json".toFile()
 
     private var enableWrite = true
@@ -61,7 +64,7 @@ class UserConfigScope<T : Any>(name: String, klass: KClass<T>, private val defau
         dataSubject.mapBidirectional(extractor, { data.modifier(this) }, uiThreadScheduler)
 
     // TODO: Do this through an actor?
-    private fun update(data: T) = launch(dispatcher) {
+    private fun update(data: T) = launch {
         file.create()
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
     }
