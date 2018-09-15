@@ -45,7 +45,6 @@ import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.info
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.md5
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
@@ -126,8 +125,8 @@ object CoreModule : AbstractModule() {
     fun fileStructureCache(): Cache<Game, FileStructure> {
         log.info("Reading file system cache...")
         return log.time({ "Reading file system cache: $it" }) {
-            PersistedCache("cache/filesystem", JsonCacheSerDes()) {
-                "[${it.path.toString().md5()}] ${it.path.name}.json"
+            PersistedCache("cache/filesystem/games", JsonCacheSerDes()) {
+                "${it.id}.json"
             }
         }
     }
