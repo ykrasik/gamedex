@@ -26,9 +26,9 @@ import kotlin.reflect.full.companionObject
  * Date: 28/04/2017
  * Time: 09:09
  */
-fun <R : Any> R.logger() = logger(unwrapCompanionClass(this::class.java).simpleName ?: "AnonymousClass")
+fun <R : Any> R.logger(): Logger = logger(unwrapCompanionClass(this::class.java).simpleName ?: "AnonymousClass")
 
-fun logger(name: String) = LoggerFactory.getLogger(if (name.endsWith("Impl")) name.dropLast(4) else name)
+fun logger(name: String): Logger = LoggerFactory.getLogger(if (name.endsWith("Impl")) name.dropLast(4) else name)
 
 // unwrap companion class to enclosing class given a Java Class
 private fun <T : Any> unwrapCompanionClass(ofClass: Class<T>): Class<*> =

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings
 
+import com.gitlab.ykrasik.gamedex.core.persistence.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.core.report.ReportSettingsRepository
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -48,21 +49,22 @@ interface SettingsService {
 
 @Singleton
 class SettingsServiceImpl @Inject constructor(
-    factory: SettingsStorageFactory,
+    factory: JsonStorageFactory<String>,
     gameProviderRepository: GameProviderRepository
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
+    private val settingsStorageFactory = SettingsStorageFactory("conf", factory)
 
-    override val general = repo { GeneralSettingsRepository(factory) }
-    override val game = repo { GameSettingsRepository(factory) }
-    override val cellDisplay = repo { GameCellDisplaySettingsRepository(factory) }
-    override val nameDisplay = repo { GameNameDisplaySettingsRepository(factory) }
-    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository(factory) }
-    override val versionDisplay = repo { GameVersionDisplaySettingsRepository(factory) }
-    override val provider = repo { ProviderSettingsRepository(factory, gameProviderRepository) }
-    override val providerOrder = repo { ProviderOrderSettingsRepository(factory, gameProviderRepository) }
-    override val report = repo { ReportSettingsRepository(factory) }
+    override val general = repo { GeneralSettingsRepository(settingsStorageFactory) }
+    override val game = repo { GameSettingsRepository(settingsStorageFactory) }
+    override val cellDisplay = repo { GameCellDisplaySettingsRepository(settingsStorageFactory) }
+    override val nameDisplay = repo { GameNameDisplaySettingsRepository(settingsStorageFactory) }
+    override val metaTagDisplay = repo { GameMetaTagDisplaySettingsRepository(settingsStorageFactory) }
+    override val versionDisplay = repo { GameVersionDisplaySettingsRepository(settingsStorageFactory) }
+    override val provider = repo { ProviderSettingsRepository(settingsStorageFactory, gameProviderRepository) }
+    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorageFactory, gameProviderRepository) }
+    override val report = repo { ReportSettingsRepository(settingsStorageFactory) }
 
     private inline fun <R : SettingsRepository<*>> repo(f: () -> R): R = f().apply { all += this }
 

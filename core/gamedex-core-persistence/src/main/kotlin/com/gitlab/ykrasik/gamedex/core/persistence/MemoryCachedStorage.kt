@@ -14,24 +14,39 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.settings
+package com.gitlab.ykrasik.gamedex.core.persistence
 
 /**
  * User: ykrasik
- * Date: 09/03/2018
- * Time: 09:28
+ * Date: 16/09/2018
+ * Time: 14:41
  */
-class PreloaderSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<PreloaderSettingsRepository.Data>() {
-    data class Data(
-        val diComponents: Int
-    )
+class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K, V> {
+    private val cache = delegate.getAll().toMutableMap()
 
-    override val storage = factory("preloader", Data::class) {
-        Data(
-            diComponents = 97
-        )
+    override fun add(value: V): K {
+        val id = delegate.add(value)
+        cache[id] = value
+        return id
     }
 
-    val diComponentsChannel = storage.channel(Data::diComponents)
-    val diComponents by diComponentsChannel
+    override fun set(id: K, value: V) {
+        delegate[id] = value
+        cache[id] = value
+    }
+
+    override fun get(id: K): V? {
+        val cachedValue = cache[id]
+        if (cachedValue != null) return cachedValue
+
+        val value = delegate[id]
+        if (value != null) {
+            cache[id] = value
+        }
+        return value
+    }
+
+    override fun getAll() = cache.toMap()
 }
+
+fun <K, V> Storage<K, V>.memoryCached(): Storage<K, V> = MemoryCachedStorage(this)

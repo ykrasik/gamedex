@@ -23,8 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.settings.FileSettingsStorageFactory
+import com.gitlab.ykrasik.gamedex.core.persistence.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -66,7 +67,7 @@ class PreloaderImpl : Preloader {
                 }
             }
 
-            val preloaderSettings = PreloaderSettingsRepository(FileSettingsStorageFactory)
+            val preloaderSettings = PreloaderSettingsRepository(SettingsStorageFactory("conf", StringIdJsonStorageFactory))
 
             var componentCount = 0
 

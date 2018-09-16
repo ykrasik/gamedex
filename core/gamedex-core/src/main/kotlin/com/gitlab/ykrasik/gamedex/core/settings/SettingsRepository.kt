@@ -18,7 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.core.persistence.JsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.persistence.Storage
+import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -33,65 +35,55 @@ import kotlin.reflect.KProperty1
  * Date: 09/06/2018
  * Time: 21:39
  */
-interface SettingsStorageFactory {
-    operator fun <T : Any> invoke(name: String, klass: KClass<T>, default: () -> T): SettingsStorage<T>
+abstract class SettingsRepository<T : Any> {
+    protected abstract val storage: SettingsStorage<T>
+
+    val dataChannel: BroadcastReceiveChannel<T> get() = storage.dataChannel
+
+    fun modify(f: T.() -> T) = storage.modify(f)
+    fun perform(f: (T) -> Unit) = storage.perform(f)
+    fun saveSnapshot() = storage.saveSnapshot()
+    fun restoreSnapshot() = storage.restoreSnapshot()
+    fun clearSnapshot() = storage.clearSnapshot()
+
+    fun disableWrite() = storage.disableWrite()
+    fun enableWrite() = storage.enableWrite()
+
+    fun flush() = storage.flush()
+
+    fun resetDefaults() = storage.resetDefaults()
 }
 
-object FileSettingsStorageFactory : SettingsStorageFactory {
-    override fun <T : Any> invoke(name: String, klass: KClass<T>, default: () -> T) =
-        FileSettingsStorage(name, default(), klass)
-}
-
-interface SettingsStorage<T : Any> {
-    var data: T
-    fun modify(f: T.() -> T) {
-        data = f(data)
-    }
-
-    val dataChannel: BroadcastReceiveChannel<T>
-    fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R>
-
-    fun perform(f: (T) -> Unit)
-
-    fun saveSnapshot()
-    fun restoreSnapshot()
-    fun clearSnapshot()
-
-    fun disableWrite()
-    fun enableWrite()
-    fun flush()
-    fun resetDefaults()
-}
-
-class FileSettingsStorage<T : Any>(private val name: String,
-                                   private val default: T,
-                                   klass: KClass<T>) : SettingsStorage<T>, CoroutineScope {
+class SettingsStorage<T : Any>(
+    private val name: String,
+    private val default: T,
+    private val storage: Storage<String, T>
+) : CoroutineScope {
     override val coroutineContext = settingsHandler
 
     private val log = logger()
-    private val file = "conf/$name.conf".toFile()
 
     private var enableWrite = true
 
     private val rawDataChannel = BroadcastEventChannel.conflated {
-        if (file.exists()) {
-            try {
-                log.info("Reading $file...")
-                log.time({ "Reading $file took $it" }) {
-                    file.readJson(klass)
-                }
-            } catch (e: Exception) {
-                log.error("Error reading $file! Resetting to default...", e)
-                null
-            }
-        } else {
-            log.info("[$file] Settings file doesn't exist. Creating default...")
+        val existingData = try {
+            storage[name]
+        } catch (e: Exception) {
+            log.error("[$name] Error!", e)
             null
-        } ?: default.apply { update(this@apply) }
+        }
+        if (existingData == null) {
+            log.info("[$name] Creating default settings...")
+            storage[name] = default
+            default
+        } else {
+            existingData
+        }
     }
+
     private val _dataChannel = rawDataChannel.distinctUntilChanged()
-    override val dataChannel = _dataChannel
-    override var data: T by rawDataChannel
+    val dataChannel = _dataChannel
+    var data: T by rawDataChannel
 
     private var snapshot: T? = null
 
@@ -99,26 +91,24 @@ class FileSettingsStorage<T : Any>(private val name: String,
         launch {
             _dataChannel.subscribe().drop(1).consumeEach {
                 if (enableWrite) {
-                    update(it)
+                    storage[name] = it
                 }
             }
         }
     }
 
-    private fun update(data: T) {
-        file.create()
-        log.trace("[$file] Writing: $data")
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, data)
+    fun modify(f: T.() -> T) {
+        data = f(data)
     }
 
-    override fun perform(f: (T) -> Unit) {
+    fun perform(f: (T) -> Unit) {
         f(data)
         launch {
             _dataChannel.subscribe().drop(1).consumeEach(f)
         }
     }
 
-    override fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R> {
+    fun <R> channel(extractor: KProperty1<T, R>): BroadcastReceiveChannel<R> {
         val channel = BroadcastEventChannel.conflated(extractor(data))
         launch {
             _dataChannel.subscribe().drop(1).consumeEach {
@@ -132,33 +122,33 @@ class FileSettingsStorage<T : Any>(private val name: String,
         }
     }
 
-    override fun saveSnapshot() {
+    fun saveSnapshot() {
         snapshot = data
     }
 
-    override fun restoreSnapshot() {
+    fun restoreSnapshot() {
         data = snapshot!!
     }
 
-    override fun clearSnapshot() {
+    fun clearSnapshot() {
         snapshot = null
     }
 
-    override fun disableWrite() {
+    fun disableWrite() {
         enableWrite = false
     }
 
-    override fun enableWrite() {
+    fun enableWrite() {
         enableWrite = true
     }
 
-    override fun flush() {
+    fun flush() {
         launch {
-            update(data)
+            storage[name] = data
         }
     }
 
-    override fun resetDefaults() {
+    fun resetDefaults() {
         data = default
     }
 
@@ -166,27 +156,12 @@ class FileSettingsStorage<T : Any>(private val name: String,
         private val settingsHandler = Executors.newSingleThreadScheduledExecutor {
             Thread(it, "SettingsHandler").apply { isDaemon = true }
         }.asCoroutineDispatcher()
-
-        inline operator fun <reified T : Any> invoke(name: String, default: () -> T): FileSettingsStorage<T> = FileSettingsStorage(name, default(), T::class)
     }
 }
 
-abstract class SettingsRepository<T : Any> {
-    protected abstract val storage: SettingsStorage<T>
-
-    val dataChannel: BroadcastReceiveChannel<T> get() = storage.dataChannel
-
-    fun modify(f: T.() -> T) = storage.modify(f)
-    fun perform(f: (T) -> Unit) = storage.perform(f)    // TODO: I don't like this method.
-
-    fun saveSnapshot() = storage.saveSnapshot()
-    fun restoreSnapshot() = storage.restoreSnapshot()
-    fun clearSnapshot() = storage.clearSnapshot()
-
-    fun disableWrite() = storage.disableWrite()
-    fun enableWrite() = storage.enableWrite()
-
-    fun flush() = storage.flush()
-
-    fun resetDefaults() = storage.resetDefaults()
+class SettingsStorageFactory(private val basePath: String, private val factory: JsonStorageFactory<String>) {
+    operator fun <T : Any> invoke(name: String, klass: KClass<T>, default: () -> T): SettingsStorage<T> {
+        val storage = factory(basePath, klass)
+        return SettingsStorage(name, default(), storage)
+    }
 }

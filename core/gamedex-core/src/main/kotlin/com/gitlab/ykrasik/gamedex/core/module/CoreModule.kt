@@ -32,11 +32,8 @@ import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
-import com.gitlab.ykrasik.gamedex.core.persistence.Storage
-import com.gitlab.ykrasik.gamedex.core.persistence.memoryCached
+import com.gitlab.ykrasik.gamedex.core.persistence.*
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
-import com.gitlab.ykrasik.gamedex.core.settings.FileSettingsStorageFactory
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.info
@@ -44,6 +41,7 @@ import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
@@ -75,7 +73,9 @@ object CoreModule : AbstractModule() {
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
         bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
-        bind(SettingsStorageFactory::class.java).toInstance(FileSettingsStorageFactory)
+        bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
+        bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
+
     }
 
     @Provides
@@ -115,7 +115,7 @@ object CoreModule : AbstractModule() {
     fun fileStructureStorage(): Storage<GameId, FileStructure> {
         log.info("Reading file system cache...")
         return log.time({ "Reading file system cache: $it" }) {
-            Storage.json<FileStructure>("cache/filesystem/games").memoryCached()
+            Storage.jsonIntId<FileStructure>("cache/filesystem/games").memoryCached()
         }
     }
 }

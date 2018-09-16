@@ -37,8 +37,8 @@ class GameCellDisplaySettingsRepository(factory: SettingsStorageFactory) : Setti
         Data(
             imageDisplayType = ImageDisplayType.Stretch,
             showBorder = true,
-            width = 166.0,
-            height = 166.0,
+            width = 163.0,
+            height = 163.0,
             horizontalSpacing = 3.0,
             verticalSpacing = 3.0
         )
