@@ -18,8 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.file
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.cache.Cache
+import com.gitlab.ykrasik.gamedex.core.persistence.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import kotlinx.coroutines.experimental.*
@@ -37,16 +38,16 @@ import javax.inject.Singleton
 class FileSystemServiceImpl @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val fileNameHandler: FileNameHandler,
-    private val fileStructureCache: Cache<Game, FileStructure>
+    private val fileStructureStorage: Storage<GameId, FileStructure>
 ) : FileSystemService {
     override fun structure(game: Game): FileStructure {
-        val structure = fileStructureCache[game]
+        val structure = fileStructureStorage[game.id]
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {
             val newStructure = calcStructure(game.path)
             if (newStructure != null && newStructure != structure) {
-                fileStructureCache[game] = newStructure
+                fileStructureStorage[game.id] = newStructure
             }
         }
 

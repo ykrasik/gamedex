@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
@@ -25,9 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.cache.Cache
-import com.gitlab.ykrasik.gamedex.core.cache.JsonCacheSerDes
-import com.gitlab.ykrasik.gamedex.core.cache.PersistedCache
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
@@ -35,6 +32,8 @@ import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
+import com.gitlab.ykrasik.gamedex.core.persistence.Storage
+import com.gitlab.ykrasik.gamedex.core.persistence.memoryCached
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.settings.FileSettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
@@ -113,12 +112,10 @@ object CoreModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun fileStructureCache(): Cache<Game, FileStructure> {
+    fun fileStructureStorage(): Storage<GameId, FileStructure> {
         log.info("Reading file system cache...")
         return log.time({ "Reading file system cache: $it" }) {
-            PersistedCache("cache/filesystem/games", JsonCacheSerDes()) {
-                "${it.id}.json"
-            }
+            Storage.json<FileStructure>("cache/filesystem/games").memoryCached()
         }
     }
 }
