@@ -32,8 +32,9 @@ import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
-import com.gitlab.ykrasik.gamedex.core.persistence.*
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
+import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
+import com.gitlab.ykrasik.gamedex.core.storage.*
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -62,6 +63,8 @@ object CoreModule : AbstractModule() {
             providers
         }
 
+        install(ReportModule)
+
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
         bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
@@ -78,18 +81,14 @@ object CoreModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun config(): Config {
-        val configurationFiles = log.time("Detecting configuration...") {
-            ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
-                it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
-            }
+    fun config(): Config = log.time("Loading configuration...") {
+        val configurationFiles = ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
+            it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
         }
 
         // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
-        return log.time("Loading configuration...") {
-            configurationFiles.fold(ConfigFactory.load()) { current, url ->
-                current.withFallback(ConfigFactory.parseURL(url))
-            }
+        configurationFiles.fold(ConfigFactory.load()) { current, url ->
+            current.withFallback(ConfigFactory.parseURL(url))
         }
     }
 
@@ -110,6 +109,6 @@ object CoreModule : AbstractModule() {
     @Singleton
     fun fileStructureStorage(): Storage<GameId, FileStructure> =
         log.time("Reading file system cache...") {
-            IntIdJsonStorageFactory<FileStructure>("cache/filesystem/games").memoryCached()
+            IntIdJsonStorageFactory<FileStructure>("cache/file_structure").memoryCached()
         }
 }

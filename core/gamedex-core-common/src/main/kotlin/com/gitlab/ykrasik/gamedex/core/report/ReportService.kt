@@ -16,27 +16,25 @@
 
 package com.gitlab.ykrasik.gamedex.core.report
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanAddReport
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:08
+ * Date: 19/09/2018
+ * Time: 09:14
  */
-@Singleton
-class ShowAddReportPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanAddReport> {
-    override fun present(view: ViewCanAddReport) = object : Presentation() {
-        init {
-            view.addReportActions.forEach {
-                viewManager.showEditReportView {
-                    reportConfig = null
-                }
-            }
-        }
-    }
+interface ReportService {
+    val reports: ListObservable<Report>
+
+    operator fun get(id: ReportId): Report
+
+    fun add(data: ReportData): Task<Report>
+
+    fun update(report: Report, data: ReportData): Task<Report>
+
+    fun delete(report: Report): Task<Unit>
 }

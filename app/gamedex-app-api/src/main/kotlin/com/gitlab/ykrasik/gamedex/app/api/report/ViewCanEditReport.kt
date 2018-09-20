@@ -24,5 +24,5 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 18:04
  */
 interface ViewCanEditReport {
-    val editReportActions: ReceiveChannel<ReportConfig>
+    val editReportActions: ReceiveChannel<Report>
 }

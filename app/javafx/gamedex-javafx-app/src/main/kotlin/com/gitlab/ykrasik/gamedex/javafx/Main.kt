@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
+import com.gitlab.ykrasik.gamedex.core.uiDispatcher
 import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.javafx.JavaFx
@@ -34,7 +34,7 @@ class Main : App(JavaFxPreloaderView::class) {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            uiThreadDispatcher = Dispatchers.JavaFx
+            uiDispatcher = Dispatchers.JavaFx
             launch<Main>(args)
         }
     }

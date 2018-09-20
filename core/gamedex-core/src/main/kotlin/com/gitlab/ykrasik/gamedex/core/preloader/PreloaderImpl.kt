@@ -19,13 +19,13 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
 import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
-import com.gitlab.ykrasik.gamedex.core.persistence.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.uiDispatcher
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -53,13 +53,13 @@ class PreloaderImpl : Preloader {
             SLF4JBridgeHandler.install()
             GamedexLogAppender.init()
 
-            withContext(uiThreadDispatcher) {
+            withContext(uiDispatcher) {
                 view.progress = 0.0
                 view.message = "Loading..."
             }
 
             // While loading, display all log messages in the task
-            val subscription = GamedexLog.entries.itemsChannel.subscribe(uiThreadDispatcher) {
+            val subscription = GamedexLog.entries.itemsChannel.subscribe(uiDispatcher) {
                 it.lastOrNull()?.let {
                     if (it.level.ordinal >= LogLevel.Info.ordinal) {
                         view.message = it.message
@@ -76,7 +76,7 @@ class PreloaderImpl : Preloader {
                     bindListener(Matchers.any(), object : ProvisionListener {
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                             componentCount++
-                            launch(uiThreadDispatcher) {
+                            launch(uiDispatcher) {
                                 try {
                                     view.progress = componentCount.toDouble() / preloaderSettings.diComponents
                                 } catch (_: ClosedSendChannelException) {
@@ -97,7 +97,7 @@ class PreloaderImpl : Preloader {
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
             preloaderSettings.modify { copy(diComponents = componentCount) }
 
-            withContext(uiThreadDispatcher) {
+            withContext(uiDispatcher) {
                 view.message = "Done loading."
             }
 

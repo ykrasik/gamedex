@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxReportGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -41,8 +41,8 @@ import tornadofx.*
 class JavaFxEditReportView : PresentableView(), EditReportView {
     private val filterView: JavaFxReportGameFilterView by inject()
 
-    private val reportConfigProperty = SimpleObjectProperty<ReportConfig?>(null)
-    override var reportConfig by reportConfigProperty
+    private val reportProperty = SimpleObjectProperty<Report?>(null)
+    override var report by reportProperty
 
     override val nameChanges = channel<String>()
     override val filterChanges = channel<Filter>()
@@ -67,7 +67,7 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
     private val isValid = viewModel.valid.and(filterView.isValid)
 
     init {
-        titleProperty.bind(reportConfigProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report '${it.name}'" })
+        titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report '${it.name}'" })
         excludedGames.onChange { currentStage?.sizeToScene() }
         filterView.filterProperty.onChange { currentStage?.sizeToScene() }
         viewRegistry.register(this)

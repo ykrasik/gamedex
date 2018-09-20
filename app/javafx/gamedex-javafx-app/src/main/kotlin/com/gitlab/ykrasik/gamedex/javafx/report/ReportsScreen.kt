@@ -41,12 +41,12 @@ import tornadofx.*
  */
 class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
     ViewWithReports, ViewCanAddReport, ViewCanEditReport, ViewCanExcludeGameFromReport, ViewCanDeleteReport {
-    override val reports = mutableListOf<ReportConfig>().observable()
+    override val reports = mutableListOf<Report>().observable()
 
     override val addReportActions = channel<Unit>()
-    override val editReportActions = channel<ReportConfig>()
-    override val excludeGameActions = channel<Pair<String, Game>>()
-    override val deleteReportActions = channel<ReportConfig>()
+    override val editReportActions = channel<Report>()
+    override val excludeGameActions = channel<Pair<Report, Game>>()
+    override val deleteReportActions = channel<Report>()
 
     private var content: VBox by singleAssign()
     private val searchTextProperty = SimpleStringProperty("")
@@ -153,12 +153,13 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
         excludeButton {
             textProperty().bind(currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
             enableWhen { currentlySelectedGame.isNotNull }
-            eventOnAction(excludeGameActions) { currentReportConfig.value!!.name to currentlySelectedGame.value }
+            eventOnAction(excludeGameActions) { currentReportConfig.value!! to currentlySelectedGame.value }
         }
         verticalSeparator()
     }
 
-    private fun upsertReport(f: () -> ReportConfig?) {
+    // FIXME: Make changes to the current report re-display the report.
+    private fun upsertReport(f: () -> Report?) {
         val newConfig = f() ?: return
         // Select the newly upserted config.
         val newToggle = selection.toggles.find { (it.userData as JavaFxReportView).reportConfig == newConfig }
@@ -173,9 +174,9 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
         cleanupClosedScreen(currentToggle.value)
     }
 
-    override fun confirmDelete(reportConfig: ReportConfig) =
+    override fun confirmDelete(report: Report) =
     // TODO: Display a read-only view of the rules instead.
-        areYouSureDialog("Delete report '${reportConfig.name}'?") { label("Rules: ${reportConfig.filter}") }
+        areYouSureDialog("Delete report '${report.name}'?") { label("Rules: ${report.filter}") }
 
     private fun cleanupClosedScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
         searchTextProperty.unbindBidirectional(screen.searchProperty)

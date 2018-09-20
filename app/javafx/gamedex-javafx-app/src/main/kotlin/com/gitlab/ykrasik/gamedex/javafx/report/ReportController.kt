@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
@@ -51,9 +51,9 @@ class ReportController @Inject constructor(
     private val gameService: GameService,
     private val fileSystemService: FileSystemService
 ) : Controller() {
-    fun generateReport(config: ReportConfig) = OngoingReport(config)
+    fun generateReport(config: Report) = OngoingReport(config)
 
-    inner class OngoingReport(private val config: ReportConfig) {
+    inner class OngoingReport(private val report: Report) {
         val resultsProperty: Property<MultiMap<Game, FilterContextImpl.AdditionalData>> = SimpleObjectProperty(emptyMap())
         val results by resultsProperty
 
@@ -84,7 +84,7 @@ class ReportController @Inject constructor(
             val context = FilterContextImpl(games, fileSystemService)
             val matchingGames = games.filterIndexed { i, game ->
                 progressProperty.value = i.toDouble() / (games.size - 1)
-                !config.excludedGames.contains(game.id) && config.filter.evaluate(game, context)
+                !report.excludedGames.contains(game.id) && report.filter.evaluate(game, context)
             }
             progressProperty.value = ProgressIndicator.INDETERMINATE_PROGRESS
             return matchingGames.map { it.id to emptySet<FilterContextImpl.AdditionalData>() }.toMap() + context.additionalData

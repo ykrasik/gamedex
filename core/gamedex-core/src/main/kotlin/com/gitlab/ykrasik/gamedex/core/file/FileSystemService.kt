@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.persistence.Storage
+import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
 import kotlinx.coroutines.experimental.*

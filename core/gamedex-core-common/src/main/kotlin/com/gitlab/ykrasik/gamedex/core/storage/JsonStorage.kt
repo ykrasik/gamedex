@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.persistence
+package com.gitlab.ykrasik.gamedex.core.storage
 
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.objectMapper
@@ -36,8 +36,23 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: File, private val
         protected val log = logger()
     }
 
-    override fun set(id: K, value: V) {
+    override fun set(id: K, value: V) = set(id, value) { }
+
+    override fun setIfNotExists(id: K, value: V): Boolean {
+        set(id, value) { file ->
+            if (file.exists()) {
+                return@setIfNotExists false
+            }
+        }
+        return true
+    }
+
+    override fun setOnlyIfExists(id: K, value: V) = check(!setIfNotExists(id, value)) { "File doesn't exist: ${fileFor(id)}" }
+    override fun setOnlyIfDoesntExist(id: K, value: V) = check(setIfNotExists(id, value)) { "File already exists: ${fileFor(id)}" }
+
+    private inline fun set(id: K, value: V, handleFile: (File) -> Unit) {
         val file = fileFor(id)
+        handleFile(file)
         log.trace("[$file] Writing: $value")
         serialize(file, value)
     }
@@ -64,6 +79,17 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: File, private val
             } ?: emptyMap()
         }
 
+    override fun delete(id: K): Boolean {
+        val file = fileFor(id)
+        val isFile = file.isFile
+        if (isFile) {
+            file.delete()
+        }
+        return isFile
+    }
+
+    override fun deleteOnlyIfExists(id: K) = check(delete(id)) { "File doesn't exist: ${fileFor(id)}"}
+
     protected abstract fun parseId(fileName: String): K
     private fun fileFor(id: K) = basePath.resolve("$id.json")
 
@@ -89,6 +115,8 @@ abstract class JsonStorage<K, V : Any>(protected val basePath: File, private val
             null
         }
     }
+
+    override fun toString() = basePath.toString()
 }
 
 class IntIdJsonStorage<V : Any>(basePath: File, klass: KClass<V>) : JsonStorage<Int, V>(basePath, klass) {
@@ -101,7 +129,7 @@ class IntIdJsonStorage<V : Any>(basePath: File, klass: KClass<V>) : JsonStorage<
 
     override fun add(value: V): Int {
         val id = nextId()
-        set(id, value)
+        setOnlyIfDoesntExist(id, value)
         return id
     }
 

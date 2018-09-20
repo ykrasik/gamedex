@@ -22,5 +22,5 @@ package com.gitlab.ykrasik.gamedex.app.api.report
  * Time: 09:19
  */
 interface ViewWithReports {
-    val reports: MutableList<ReportConfig>
+    val reports: MutableList<Report>
 }

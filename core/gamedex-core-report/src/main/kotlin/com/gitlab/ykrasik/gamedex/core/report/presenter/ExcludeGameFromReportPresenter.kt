@@ -14,16 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.persistence
+package com.gitlab.ykrasik.gamedex.core.report.presenter
+
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanExcludeGameFromReport
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 16/09/2018
- * Time: 09:39
+ * Date: 26/06/2018
+ * Time: 09:33
  */
-interface Storage<K, V> {
-    fun add(value: V): K
-    operator fun set(id: K, value: V)
-    operator fun get(id: K): V?
-    fun getAll(): Map<K, V>
+@Singleton
+class ExcludeGameFromReportPresenter @Inject constructor(
+    private val reportService: ReportService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanExcludeGameFromReport> {
+    override fun present(view: ViewCanExcludeGameFromReport) = object : Presentation() {
+        init {
+            view.excludeGameActions.forEach { (report, game) ->
+                taskRunner.runTask(
+                    reportService.update(report, report.data.copy(excludedGames = report.data.excludedGames + game.id))
+                )
+            }
+        }
+    }
 }

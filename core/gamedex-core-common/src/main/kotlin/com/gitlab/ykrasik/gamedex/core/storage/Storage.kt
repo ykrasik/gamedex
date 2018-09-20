@@ -14,17 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
-
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+package com.gitlab.ykrasik.gamedex.core.storage
 
 /**
  * User: ykrasik
- * Date: 26/06/2018
- * Time: 09:48
+ * Date: 16/09/2018
+ * Time: 09:39
  */
-interface ViewCanDeleteReport {
-    val deleteReportActions: ReceiveChannel<Report>
+interface Storage<K, V> {
+    fun add(value: V): K
 
-    fun confirmDelete(report: Report): Boolean
+    operator fun set(id: K, value: V)
+    fun setIfNotExists(id: K, value: V): Boolean
+
+    @Throws(IllegalStateException::class)
+    fun setOnlyIfExists(id: K, value: V)
+
+    @Throws(IllegalStateException::class)
+    fun setOnlyIfDoesntExist(id: K, value: V)
+
+    operator fun get(id: K): V?
+    fun getAll(): Map<K, V>
+
+    fun delete(id: K): Boolean
+
+    @Throws(IllegalStateException::class)
+    fun deleteOnlyIfExists(id: K)
 }

@@ -46,7 +46,6 @@ import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
-import com.gitlab.ykrasik.gamedex.core.report.*
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -95,14 +94,6 @@ class ViewRegistryImpl @Inject constructor(
     menuGameFilter: MenuGameFilterPresenter,
     reportGameFilter: ReportGameFilterPresenter,
 
-    reports: ReportsPresenter,
-    report: ReportPresenter,
-    showAddReport: ShowAddReportPresenter,
-    showEditReport: ShowEditReportPresenter,
-    editReport: EditReportPresenter,
-    excludeGameFromReport: ExcludeGameFromReportPresenter,
-    deleteReport: DeleteReportPresenter,
-
     showSettings: ShowSettingsPresenter,
     settings: SettingsPresenter,
 
@@ -124,7 +115,9 @@ class ViewRegistryImpl @Inject constructor(
 
     logEntries: LogEntriesPresenter,
     logLevel: LogLevelPresenter,
-    logTail: LogTailPresenter
+    logTail: LogTailPresenter,
+
+    presenters: MutableMap<KClass<*>, Presenter<*>>
 ) : ViewRegistry {
     private val presenterClasses: Map<KClass<*>, Presenter<*>> = listOf(
         presenter(libraries),
@@ -163,14 +156,6 @@ class ViewRegistryImpl @Inject constructor(
         presenter(menuGameFilter),
         presenter(reportGameFilter),
 
-        presenter(reports),
-        presenter(report),
-        presenter(showAddReport),
-        presenter(showEditReport),
-        presenter(editReport),
-        presenter(excludeGameFromReport),
-        presenter(deleteReport),
-
         presenter(showSettings),
         presenter(settings),
 
@@ -193,11 +178,11 @@ class ViewRegistryImpl @Inject constructor(
         presenter(logEntries),
         presenter(logLevel),
         presenter(logTail)
-    ).toMap()
+    ).toMap() + presenters
 
     private val activePresentations = mutableMapOf<Any, List<Presentation>>()
 
-    private inline fun <reified V : Any> presenter(factory: Presenter<V>) = V::class to factory
+    private inline fun <reified V : Any> presenter(presenter: Presenter<V>) = V::class to presenter
 
     override fun register(view: Any) {
         check(activePresentations.put(view, presentView(view)) == null) { "View already registered: $view" }
@@ -205,7 +190,7 @@ class ViewRegistryImpl @Inject constructor(
 
     private fun presentView(view: Any): List<Presentation> {
         @Suppress("UNCHECKED_CAST")
-        fun <T> Presenter<*>.doPresent() = (this as Presenter<T>).present(view as T)
+        fun <T : Any> Presenter<*>.doPresent() = (this as Presenter<T>).present(view as T)
 
         return view.javaClass.interfaces.map { iface ->
             presenterClasses[iface.kotlin]!!.doPresent<Any>()

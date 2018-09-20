@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
@@ -45,7 +45,7 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-class JavaFxReportView(val reportConfig: ReportConfig) : PresentableView(reportConfig.name, Theme.Icon.chart()),
+class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.name, Theme.Icon.chart()),
     ReportView, ViewCanShowGameDetails {
     override val showGameDetailsActions = channel<Game>()
 

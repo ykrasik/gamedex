@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
@@ -112,7 +113,8 @@ internal class GameServiceImpl @Inject constructor(
     // ugly cast, whatever.
     private fun rebuildGames() = (games as ListObservableImpl<Game>).setAll(games.map { it.rawGame.toGame() })
 
-    override fun get(id: Int): Game = games.find { it.id == id }
+    // FIXME: ineffective for large collections
+    override fun get(id: GameId): Game = games.find { it.id == id }
         ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)

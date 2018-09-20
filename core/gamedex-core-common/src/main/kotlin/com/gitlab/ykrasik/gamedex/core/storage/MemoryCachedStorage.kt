@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.persistence
+package com.gitlab.ykrasik.gamedex.core.storage
 
 /**
  * User: ykrasik
@@ -35,6 +35,24 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
         cache[id] = value
     }
 
+    override fun setIfNotExists(id: K, value: V): Boolean {
+        val success = delegate.setIfNotExists(id, value)
+        if (success) {
+            cache[id] = value
+        }
+        return success
+    }
+
+    override fun setOnlyIfExists(id: K, value: V) {
+        delegate.setOnlyIfExists(id, value)
+        cache[id] = value
+    }
+
+    override fun setOnlyIfDoesntExist(id: K, value: V) {
+        delegate.setOnlyIfDoesntExist(id, value)
+        cache[id] = value
+    }
+
     override fun get(id: K): V? {
         val cachedValue = cache[id]
         if (cachedValue != null) return cachedValue
@@ -47,6 +65,19 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
     }
 
     override fun getAll() = cache.toMap()
+
+    override fun delete(id: K): Boolean {
+        val success = delegate.delete(id)
+        if (success) {
+            cache -= id
+        }
+        return success
+    }
+
+    override fun deleteOnlyIfExists(id: K) {
+        delegate.deleteOnlyIfExists(id)
+        cache -= id
+    }
 }
 
 fun <K, V> Storage<K, V>.memoryCached(): Storage<K, V> = MemoryCachedStorage(this)

@@ -14,17 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.core
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
+import kotlinx.coroutines.experimental.CoroutineDispatcher
 
 /**
  * User: ykrasik
- * Date: 26/06/2018
- * Time: 09:48
+ * Date: 24/03/2018
+ * Time: 15:56
  */
-interface ViewCanDeleteReport {
-    val deleteReportActions: ReceiveChannel<Report>
-
-    fun confirmDelete(report: Report): Boolean
-}
+var uiDispatcher: CoroutineDispatcher by InitOnceGlobal()

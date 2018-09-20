@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.game.search
 
 import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.imageViewColumn
 import com.gitlab.ykrasik.gamedex.javafx.minWidthFitContent
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult

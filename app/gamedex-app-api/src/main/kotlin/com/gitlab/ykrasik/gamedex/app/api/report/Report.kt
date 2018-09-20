@@ -14,30 +14,43 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewWithReports
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.util.setAll
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Timestamp
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 
 /**
  * User: ykrasik
- * Date: 28/06/2018
- * Time: 09:23
+ * Date: 19/09/2018
+ * Time: 10:10
  */
-@Singleton
-class ReportsPresenter @Inject constructor(
-    private val settingsService: SettingsService
-) : Presenter<ViewWithReports> {
-    override fun present(view: ViewWithReports) = object : Presentation() {
-        init {
-            settingsService.report.reportsChannel.forEachImmediately {
-                view.reports.setAll(it.values.sortedBy { it.name })
-            }
-        }
+typealias ReportId = Int
+
+data class Report(
+    val id: ReportId,
+    val data: ReportData
+) {
+    val name get() = data.name
+    val filter get() = data.filter
+    val excludedGames get() = data.excludedGames
+    val createDate get() = data.timestamp.createDate
+    val updateDate get() = data.timestamp.updateDate
+}
+
+data class ReportData(
+    val name: String,
+    val filter: Filter,
+    val excludedGames: List<Int>,
+    val timestamp: Timestamp
+) {
+    fun createdNow() = copy(timestamp = Timestamp.now)
+    fun updatedNow() = copy(timestamp = timestamp.updatedNow())
+
+    companion object {
+        operator fun invoke(name: String,
+                            filter: Filter,
+                            excludedGames: List<Int> = emptyList(),
+                            timestamp: Timestamp = Timestamp.now): ReportData =
+            ReportData(name, filter, excludedGames, timestamp)
     }
 }

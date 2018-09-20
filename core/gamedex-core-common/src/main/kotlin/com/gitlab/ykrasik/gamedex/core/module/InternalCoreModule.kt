@@ -14,29 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanExcludeGameFromReport
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.google.inject.AbstractModule
+import com.google.inject.TypeLiteral
+import com.google.inject.multibindings.MapBinder
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 26/06/2018
- * Time: 09:33
+ * Date: 19/09/2018
+ * Time: 00:36
  */
-@Singleton
-class ExcludeGameFromReportPresenter @Inject constructor(
-    private val settingsService: SettingsService
-) : Presenter<ViewCanExcludeGameFromReport> {
-    override fun present(view: ViewCanExcludeGameFromReport) = object : Presentation() {
-        init {
-            view.excludeGameActions.forEach { (reportName, game) ->
-                settingsService.report.modify { modifyReport(reportName) { it.copy(excludedGames = it.excludedGames + game.id) } }
-            }
-        }
+abstract class InternalCoreModule : AbstractModule() {
+    protected inline fun <reified T : Presenter<V>, reified V> bindPresenter() {
+        MapBinder.newMapBinder(binder(), object : TypeLiteral<KClass<*>>() {}, object : TypeLiteral<Presenter<*>>() {})
+            .addBinding(V::class).to(T::class.java)
     }
 }

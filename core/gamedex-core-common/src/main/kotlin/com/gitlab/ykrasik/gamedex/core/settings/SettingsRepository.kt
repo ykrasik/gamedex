@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.persistence.JsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.persistence.Storage
+import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.asCoroutineDispatcher

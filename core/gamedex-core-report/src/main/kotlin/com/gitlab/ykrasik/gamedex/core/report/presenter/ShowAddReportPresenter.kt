@@ -14,15 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.util
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
-import com.gitlab.ykrasik.gamedex.util.InitOnceGlobal
-import kotlinx.coroutines.experimental.CoroutineDispatcher
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanAddReport
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 24/03/2018
- * Time: 15:56
+ * Date: 24/06/2018
+ * Time: 18:08
  */
-// FIXME: Move to gamedex-app-api & rename file to UIThreadDispatcher
-var uiThreadDispatcher: CoroutineDispatcher by InitOnceGlobal()
+@Singleton
+class ShowAddReportPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanAddReport> {
+    override fun present(view: ViewCanAddReport) = object : Presentation() {
+        init {
+            view.addReportActions.forEach {
+                viewManager.showEditReportView {
+                    report = null
+                }
+            }
+        }
+    }
+}

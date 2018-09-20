@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.util.*
-import com.gitlab.ykrasik.gamedex.core.api.util.uiThreadDispatcher
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.experimental.CoroutineScope
@@ -34,6 +33,10 @@ import kotlin.reflect.KMutableProperty0
  * Date: 24/04/2018
  * Time: 08:17
  */
+interface Presenter<in V> {
+    fun present(view: V): Presentation
+}
+
 abstract class Presentation : CoroutineScope {
     private val job = Job()
     override val coroutineContext = Dispatchers.Default + job
@@ -62,8 +65,9 @@ abstract class Presentation : CoroutineScope {
         job.cancel()
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiThreadDispatcher,
-                                                       crossinline f: suspend (T) -> Unit) {
+    // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
+    protected fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher,
+                                                f: suspend (T) -> Unit) {
         launch(context) {
             consumeEach {
                 try {
@@ -75,17 +79,18 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiThreadDispatcher,
+    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher,
                                                                   crossinline f: (T) -> Unit) {
         f(poll()!!)
         forEach(context) { f(it) }
     }
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiThreadDispatcher,
-                                                                crossinline f: suspend (T) -> Unit) =
+    // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
+    protected fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher,
+                                                         f: suspend (T) -> Unit) =
         subscribe().forEach(context, f)
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiThreadDispatcher,
+    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher,
                                                                            crossinline f: (T) -> Unit) =
         subscribe().forEachImmediately(context, f)
 
@@ -116,12 +121,8 @@ abstract class Presentation : CoroutineScope {
     }
 
     protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
-                                                                 context: CoroutineContext = uiThreadDispatcher) {
+                                                                 context: CoroutineContext = uiDispatcher) {
         viewProperty.set(peek()!!)
         forEach(context) { viewProperty.set(it) }
     }
-}
-
-interface Presenter<in V> {
-    fun present(view: V): Presentation
 }

@@ -241,8 +241,13 @@ project("app:gamedex-app-api") {
 // FIXME: Remove when all views have presenters
 project("core:gamedex-core-api") {
     dependencies {
-        fullDependency ":gamedex-api"
         fullDependency ":app:gamedex-app-api"
+    }
+}
+
+project("core:gamedex-core-common") {
+    dependencies {
+        fullDependency ":core:gamedex-core-api"
     }
 }
 
@@ -254,10 +259,16 @@ project("core:gamedex-core-persistence") {
     }
 }
 
+project("core:gamedex-core-report") {
+    dependencies {
+        fullDependency ":core:gamedex-core-common"
+    }
+}
+
 project("core:gamedex-core") {
     dependencies {
-        fullDependency ":app:gamedex-app-api"
-        fullDependency ":core:gamedex-core-api"
+        fullDependency ":core:gamedex-core-common"
+        fullDependency ":core:gamedex-core-report"
         compile project(":core:gamedex-core-persistence")
 
         compile slf4j.julBridge

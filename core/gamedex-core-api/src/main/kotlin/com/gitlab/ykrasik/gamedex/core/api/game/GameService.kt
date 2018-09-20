@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
 interface GameService {
     val games: ListObservable<Game>
 
-    operator fun get(id: Int): Game
+    operator fun get(id: GameId): Game
 
     fun add(request: AddGameRequest): Task<Game>
     fun addAll(requests: List<AddGameRequest>): Task<List<Game>>

@@ -26,7 +26,7 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 10:33
  */
 interface EditReportView {
-    var reportConfig: ReportConfig?
+    var report: Report?
 
     var name: String
     val nameChanges: ReceiveChannel<String>
@@ -41,9 +41,3 @@ interface EditReportView {
     val acceptActions: ReceiveChannel<Unit>
     val cancelActions: ReceiveChannel<Unit>
 }
-
-data class ReportConfig(
-    val name: String,
-    val filter: Filter,
-    val excludedGames: List<Int>
-)

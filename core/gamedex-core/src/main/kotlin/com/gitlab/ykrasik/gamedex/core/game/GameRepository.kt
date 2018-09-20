@@ -38,7 +38,7 @@ internal class GameRepository @Inject constructor(private val persistenceService
     val games = ListObservableImpl(fetchGames())
 
     private fun fetchGames(): List<RawGame> =
-        log.time("Fetching games...", { time, libraries -> "${libraries.size} games in $time" }) {
+        log.time("Fetching games...", { time, games -> "${games.size} games in $time" }) {
             persistenceService.fetchGames()
         }
 

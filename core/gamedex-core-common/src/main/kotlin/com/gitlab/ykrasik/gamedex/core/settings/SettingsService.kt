@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.persistence.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.google.inject.ImplementedBy
@@ -39,7 +39,6 @@ interface SettingsService {
     val nameDisplay: GameOverlayDisplaySettingsRepository
     val metaTagDisplay: GameOverlayDisplaySettingsRepository
     val versionDisplay: GameOverlayDisplaySettingsRepository
-    val report: ReportSettingsRepository
 
     val platforms: Map<Platform, GamePlatformSettingsRepository>
     val currentPlatformSettingsChannel: BroadcastReceiveChannel<GamePlatformSettingsRepository>
@@ -70,7 +69,6 @@ class SettingsServiceImpl @Inject constructor(
     override val nameDisplay = repo { GameOverlayDisplaySettingsRepository.name(settingsStorage("display")) }
     override val metaTagDisplay = repo { GameOverlayDisplaySettingsRepository.metaTag(settingsStorage("display")) }
     override val versionDisplay = repo { GameOverlayDisplaySettingsRepository.version(settingsStorage("display")) }
-    override val report = repo { ReportSettingsRepository(settingsStorage("report")) }
 
     override val platforms = Platform.values().filter { it != Platform.excluded }.map { platform ->
         platform to repo { GamePlatformSettingsRepository(settingsStorage("platform"), platform) }

@@ -25,5 +25,5 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 09:32
  */
 interface ViewCanExcludeGameFromReport {
-    val excludeGameActions: ReceiveChannel<Pair<String, Game>>
+    val excludeGameActions: ReceiveChannel<Pair<Report, Game>>
 }

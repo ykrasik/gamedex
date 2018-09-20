@@ -14,17 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
-import com.gitlab.ykrasik.gamedex.app.api.report.ReportConfig
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,8 +37,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class EditReportPresenter @Inject constructor(
-    private val settingsService: SettingsService,
+    private val reportService: ReportService,
     private val gameService: GameService,
+    private val taskRunner: TaskRunner,
     private val viewManager: ViewManager
 ) : Presenter<EditReportView> {
     override fun present(view: EditReportView) = object : Presentation() {
@@ -51,10 +53,10 @@ class EditReportPresenter @Inject constructor(
         }
 
         override fun onShow() {
-            val reportConfig = view.reportConfig
-            view.name = reportConfig?.name ?: ""
-            view.filter = reportConfig?.filter ?: Filter.`true`
-            view.excludedGames.setAll(reportConfig?.excludedGames?.map { gameService[it] } ?: emptyList())
+            val report = view.report
+            view.name = report?.name ?: ""
+            view.filter = report?.filter ?: Filter.`true`
+            view.excludedGames.setAll(report?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }
 
@@ -73,28 +75,26 @@ class EditReportPresenter @Inject constructor(
             }
         }
 
-        private val nameAlreadyUsed get() = view.name in (settingsService.report.reports.keys - view.reportConfig?.name)
+        private val nameAlreadyUsed get() = view.name in (reportService.reports.map { it.name } - view.report?.name)
 
         private fun onUnexcludeGame(game: Game) {
             view.excludedGames -= game
         }
 
-        private fun onAccept() {
+        private suspend fun onAccept() {
             check(view.nameValidationError == null) { "Cannot accept invalid state!" }
-            val newReportConfig = ReportConfig(
+            val newReportData = ReportData(
                 name = view.name,
                 filter = view.filter,
                 excludedGames = view.excludedGames.map { it.id }
             )
-            settingsService.report.modify {
-                modifyReports { reports ->
-                    if (view.reportConfig != null) {
-                        reports - view.reportConfig!!.name + (newReportConfig.name to newReportConfig)
-                    } else {
-                        reports + (newReportConfig.name to newReportConfig)
-                    }
+            taskRunner.runTask(
+                if (view.report != null) {
+                    reportService.update(view.report!!, newReportData)
+                } else {
+                    reportService.add(newReportData)
                 }
-            }
+            )
             close()
         }
 

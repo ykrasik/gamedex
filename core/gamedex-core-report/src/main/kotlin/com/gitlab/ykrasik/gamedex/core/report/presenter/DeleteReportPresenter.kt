@@ -14,17 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanDeleteReport
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 26/06/2018
- * Time: 09:48
+ * Time: 09:49
  */
-interface ViewCanDeleteReport {
-    val deleteReportActions: ReceiveChannel<Report>
+@Singleton
+class DeleteReportPresenter @Inject constructor(
+    private val reportService: ReportService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanDeleteReport> {
+    override fun present(view: ViewCanDeleteReport) = object : Presentation() {
+        init {
+            view.deleteReportActions.forEach { onDelete(it) }
+        }
 
-    fun confirmDelete(report: Report): Boolean
+        private suspend fun onDelete(report: Report) {
+            if (view.confirmDelete(report)) {
+                taskRunner.runTask(reportService.delete(report))
+            }
+        }
+    }
 }

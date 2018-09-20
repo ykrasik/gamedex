@@ -14,29 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanEditReport
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewWithReports
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 24/06/2018
- * Time: 18:05
+ * Date: 28/06/2018
+ * Time: 09:23
  */
 @Singleton
-class ShowEditReportPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditReport> {
-    override fun present(view: ViewCanEditReport) = object : Presentation() {
+class ReportsPresenter @Inject constructor(
+    private val reportService: ReportService
+) : Presenter<ViewWithReports> {
+    override fun present(view: ViewWithReports) = object : Presentation() {
         init {
-            view.editReportActions.forEach { reportConfig ->
-                viewManager.showEditReportView {
-                    this.reportConfig = reportConfig
-                }
-            }
+            reportService.reports.bindTo(view.reports)
         }
     }
 }
