@@ -18,13 +18,13 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.26.0'
+            v = '0.26.1'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
             delegate
         }
 
-        guice = [group: 'com.google.inject', name: 'guice', version: '4.2.0']
+        guice = [group: 'com.google.inject', name: 'guice', version: '4.2.1']
         reflections = [group: 'org.reflections', name: 'reflections', version: '0.9.11']
 
         slf4j = [:].with {
@@ -45,7 +45,7 @@ buildscript {
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.9.6'
+            v = '2.9.7'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -75,12 +75,12 @@ buildscript {
         }
 
         ktor = [:].with {
-            v = '0.9.4'
+            v = '0.9.5'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             delegate
         }
-        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.18.0']
+        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.19.0']
 
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
         gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.20.0']
