@@ -134,19 +134,6 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun fetchGames() = persistenceService.fetchGames()
     }
 
-    open class ImageScope : GameScope() {
-        val game = givenGame()
-
-        fun givenImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> = insertImage(game, url)
-        fun insertImage(game: RawGame = this.game, url: String = randomUrl()): List<Byte> {
-            val data = randomWord().toByteArray()
-            persistenceService.insertImage(game.id, url, data)
-            return data.toList()
-        }
-
-        fun fetchImage(url: String) = persistenceService.fetchImage(url)?.toList()
-    }
-
     companion object {
         val persistenceService = PersistenceServiceImpl(PersistenceConfig(
             dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",

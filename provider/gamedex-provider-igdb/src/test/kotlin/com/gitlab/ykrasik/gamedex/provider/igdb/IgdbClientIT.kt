@@ -56,7 +56,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status" test {
+            "throw IllegalStateException on invalid http response status" test {
                 server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<IllegalStateException> {
@@ -80,7 +80,7 @@ class IgdbClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status" test {
+            "throw IllegalStateException on invalid http response status" test {
                 server.aFetchRequest(id) willFailWith HttpStatus.BAD_REQUEST_400
 
                 val e = shouldThrow<IllegalStateException> {

@@ -26,10 +26,8 @@ import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTimeZone
-import java.sql.Blob
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.sql.rowset.serial.SerialBlob
 
 /**
  * User: ykrasik
@@ -54,16 +52,11 @@ interface PersistenceService {
     fun deleteGame(id: Int): Boolean
     fun deleteGames(gameIds: List<Int>): Int
     fun clearUserData(): Int
-
-    fun fetchImage(url: String): ByteArray?
-    fun insertImage(gameId: Int, url: String, data: ByteArray)
-    fun fetchImageSizesExcept(exceptUrls: List<String>): List<Pair<String, Long>>
-    fun deleteImages(imageUrls: List<String>): Int
 }
 
 @Singleton
 class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : PersistenceService {
-    private val tables = arrayOf(Libraries, Games, Images)
+    private val tables = arrayOf(Libraries, Games)
 
     init {
         Database.connect(config.dbUrl, config.driver, config.user, config.password)
@@ -169,35 +162,8 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
         }
     }
 
-    override fun fetchImage(url: String) = transaction {
-        Images.select { Images.url.eq(url) }.map {
-            it[Images.bytes].bytes
-        }.firstOrNull()
-    }
-
-    override fun insertImage(gameId: Int, url: String, data: ByteArray): Unit = transaction {
-        Images.insert {
-            it[Images.gameId] = gameId.toGameId()
-            it[Images.url] = url
-            it[bytes] = data.toBlob()
-        }
-    }
-
-    override fun fetchImageSizesExcept(exceptUrls: List<String>): List<Pair<String, Long>> = transaction {
-        Images.select { Images.url.notInList(exceptUrls) }.map {
-            it[Images.url] to it[Images.bytes].length()
-        }
-    }
-
-    override fun deleteImages(imageUrls: List<String>) = transaction {
-        Images.deleteWhere { Images.url.inList(imageUrls) }
-    }
-
     private fun Int.toLibraryId() = EntityID(this, Libraries)
     private fun Int.toGameId() = EntityID(this, Games)
-
-    private val Blob.bytes: ByteArray get() = getBytes(0, length().toInt())
-    private fun ByteArray.toBlob(): Blob = SerialBlob(this)
 
     private fun LibraryData.toPersistedData() = PersistedLibraryData(name, platform)
     private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.toFile(), platform)

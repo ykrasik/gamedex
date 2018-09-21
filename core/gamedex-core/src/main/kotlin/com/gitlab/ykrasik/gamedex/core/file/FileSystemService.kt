@@ -23,6 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
+import com.gitlab.ykrasik.gamedex.util.mapNotNullToMap
+import com.google.inject.BindingAnnotation
 import kotlinx.coroutines.experimental.*
 import java.io.File
 import java.nio.file.Files
@@ -38,7 +40,7 @@ import javax.inject.Singleton
 class FileSystemServiceImpl @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
     private val fileNameHandler: FileNameHandler,
-    private val fileStructureStorage: Storage<GameId, FileStructure>
+    @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>
 ) : FileSystemService {
     override fun structure(game: Game): FileStructure {
         val structure = fileStructureStorage[game.id]
@@ -76,6 +78,18 @@ class FileSystemServiceImpl @Inject constructor(
         }
     }
 
+    override fun deleteStructure(gameId: GameId) {
+        fileStructureStorage.delete(gameId)
+    }
+
+    override fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize> {
+        val excudedKeys = excludedGames.mapTo(mutableSetOf()) { it.id }
+        return fileStructureStorage.getAll().mapNotNullToMap { key, _ ->
+            if (key in excudedKeys) return@mapNotNullToMap null
+            key to FileSize(fileStructureStorage.sizeTaken(key))
+        }
+    }
+
     // TODO: Have a reference to libraryRepo & gameRepo and calc the excludedDirectories from it.
     override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) = newDirectoryDetector.detectNewDirectories(dir, excludedDirectories)
 
@@ -100,3 +114,8 @@ class FileSystemServiceImpl @Inject constructor(
 
     // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
 }
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class FileStructureStorage

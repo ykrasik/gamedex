@@ -14,29 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.general
+package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupCacheView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 12:29
+ * Date: 22/09/2018
+ * Time: 14:35
  */
-interface CleanupDbView {
-    val cleanupDbActions: ReceiveChannel<Unit>
+@Singleton
+class CleanupCachePresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<CleanupCacheView> {
+    override fun present(view: CleanupCacheView) = object : Presentation() {
+        init {
+            view.cleanupCacheActions.forEach { cleanupCache() }
+        }
 
-    fun confirmDeleteStaleData(staleData: StaleData): Boolean
-}
+        private suspend fun cleanupCache() {
+            val staleCache = taskRunner.runTask(databaseActionsService.detectStaleCache())
+            if (staleCache.isEmpty) return
 
-data class StaleData(
-    val libraries: List<Library>,
-    val games: List<Game>,
-    val images: List<Pair<String, FileSize>>
-) {
-    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty()
-    val staleImagesSize = images.fold(FileSize(0)) { acc, next -> acc + next.second }
+            if (view.confirmDeleteStaleCache(staleCache)) {
+                taskRunner.runTask(databaseActionsService.deleteStaleCache(staleCache))
+            }
+        }
+    }
 }

@@ -18,10 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
-import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
+import com.google.inject.ImplementedBy
 import kotlinx.coroutines.experimental.*
 import java.util.*
 import javax.inject.Inject
@@ -32,14 +31,30 @@ import javax.inject.Singleton
  * Date: 05/04/2018
  * Time: 11:05
  *
- * This is not a high-throughput repository. It is mostly meant to be called only by the ui thread.
+ * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
  */
+@ImplementedBy(ImageServiceImpl::class)
+interface ImageService {
+    /** Only meant to be called by the UI thread. */
+    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+
+    /** Only meant to be called by the UI thread. */
+    fun downloadImage(url: String): Deferred<Image>
+
+    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
+
+    fun deleteImages(imageUrls: List<String>)
+}
+
 @Singleton
-class ImageRepositoryImpl @Inject constructor(
-    private val persistenceService: PersistenceService,
+class ImageServiceImpl @Inject constructor(
+    private val repo: ImageRepository,
     private val imageFactory: ImageFactory,
     config: ImageConfig
-) : ImageRepository {
+) : ImageService, CoroutineScope {
+    private val job = Job()
+    override val coroutineContext = Dispatchers.IO + job
+
     private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
     private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)
 
@@ -48,17 +63,17 @@ class ImageRepositoryImpl @Inject constructor(
     // if it's already in the cache then it was already called with the exact same 'persistIfAbsent'.
     // A situation where this method is called once with persistIfAbsent=false and again
     // with the same url but persistIfAbsent=true simply doesn't exist.
-    override fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image> = persistedImageCache.getOrPut(url) {
-        GlobalScope.async(Dispatchers.IO) {
-            val persistedBytes = persistenceService.fetchImage(url)
+    override fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image> = persistedImageCache.getOrPut(url) {
+        async {
+            val persistedBytes = repo[url]
             if (persistedBytes != null) {
                 imageFactory(persistedBytes)
             } else {
                 val downloadedImage = downloadImage(url).await()
                 if (persistIfAbsent) {
                     // Save downloaded image as a fire-and-forget operation.
-                    launch(Dispatchers.IO) {
-                        persistenceService.insertImage(gameId, url, downloadedImage.raw)
+                    launch {
+                        repo[url] = downloadedImage.raw
                     }
                 }
                 downloadedImage
@@ -66,18 +81,15 @@ class ImageRepositoryImpl @Inject constructor(
         }
     }
 
-    // Only meant to be accessed by the ui thread.
     override fun downloadImage(url: String): Deferred<Image> = downloadedImageCache.getOrPut(url) {
-        GlobalScope.async(Dispatchers.IO) {
-            imageFactory(download(url))
-        }
+        async { imageFactory(download(url)) }
     }
 
-    override fun fetchImagesExcept(exceptUrls: List<String>): List<Pair<String, FileSize>> =
-        persistenceService.fetchImageSizesExcept(exceptUrls).map { (url, size) -> url to FileSize(size) }
+    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> =
+        repo.fetchImageSizesExcept(exceptUrls)
 
     override fun deleteImages(imageUrls: List<String>) {
-        persistenceService.deleteImages(imageUrls)
+        repo.deleteImages(imageUrls)
     }
 
     // Only meant to be accessed by the ui thread.

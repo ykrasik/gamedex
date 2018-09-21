@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.GridPane
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
@@ -36,12 +37,13 @@ import java.io.File
  * Time: 14:57
  */
 class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.Icon.settings()),
-    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupDbView {
+    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupCacheView, CleanupDataView {
 
     override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
-    override val cleanupDbActions = channel<Unit>()
+    override val cleanupCacheActions = channel<Unit>()
+    override val cleanupDataActions = channel<Unit>()
 
     init {
         viewRegistry.register(this)
@@ -67,7 +69,7 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
                 }
             }
             row {
-                region { prefHeight = 40.0 }
+                region { prefHeight = 20.0 }
             }
             row {
                 jfxButton("Clear User Data", Theme.Icon.delete(color = Color.RED)) {
@@ -79,11 +81,24 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
                 }
             }
             row {
-                jfxButton("Cleanup", Theme.Icon.delete(color = Color.RED)) {
+                region { prefHeight = 20.0 }
+            }
+            row {
+                jfxButton("Cleanup Cache", Theme.Icon.delete(color = Color.ORANGE)) {
                     addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
                     useMaxWidth = true
                     alignment = Pos.CENTER_LEFT
-                    eventOnAction(cleanupDbActions)
+                    tooltip("Cleanup stale cached data, like unused images & file structure cache for deleted games.")
+                    eventOnAction(cleanupCacheActions)
+                }
+            }
+            row {
+                jfxButton("Cleanup Data & Cache", Theme.Icon.delete(color = Color.RED)) {
+                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
+                    useMaxWidth = true
+                    alignment = Pos.CENTER_LEFT
+                    tooltip("Cleanup stale data, like games that point to paths that no longer exists (& also caches).")
+                    eventOnAction(cleanupDataActions)
                 }
             }
         }
@@ -116,7 +131,7 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
         }
     }
 
-    override fun confirmDeleteStaleData(staleData: StaleData) = areYouSureDialog("Delete the following stale data?") {
+    override fun confirmDeleteStaleData(staleData: StaleData) = areYouSureDialog("Delete stale data?") {
         if (staleData.libraries.isNotEmpty()) {
             label("Stale Libraries: ${staleData.libraries.size}")
             listview(staleData.libraries.map { it.path }.observable()) { fitAtMost(5) }
@@ -125,9 +140,19 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
             label("Stale Games: ${staleData.games.size}")
             listview(staleData.games.map { it.path }.observable()) { fitAtMost(5) }
         }
-        if (staleData.images.isNotEmpty()) {
-            label("Stale Images: ${staleData.images.size} (${staleData.staleImagesSize})")
-            listview(staleData.images.map { it.first }.observable()) { fitAtMost(5) }
+        staleCacheView(staleData.staleCache)
+    }
+
+    override fun confirmDeleteStaleCache(staleCache: StaleCache) = areYouSureDialog("Delete stale cache?") {
+        staleCacheView(staleCache)
+    }
+
+    private fun VBox.staleCacheView(staleCache: StaleCache) {
+        if (staleCache.images.isNotEmpty()) {
+            label("Stale Images: ${staleCache.images.size} (${staleCache.staleImagesSizeTaken})")
+        }
+        if (staleCache.fileStructure.isNotEmpty()) {
+            label("Stale File Structure Entries: ${staleCache.fileStructure.size} (${staleCache.staleFileStructureSizeTaken})")
         }
     }
 

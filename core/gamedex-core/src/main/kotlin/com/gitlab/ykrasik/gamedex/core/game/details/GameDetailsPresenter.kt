@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsSetEvent
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +39,7 @@ import javax.inject.Singleton
 @Singleton
 class GameDetailsPresenter @Inject constructor(
     private val gameService: GameService,
-    private val imageRepository: ImageRepository,
+    private val imageService: ImageService,
     private val viewManager: ViewManager
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : Presentation() {
@@ -79,7 +79,7 @@ class GameDetailsPresenter @Inject constructor(
             view.game.let { game ->
                 view.displayWebPage(youTubeSearchUrl(game))
                 view.poster = game.posterUrl?.let { posterUrl ->
-                    imageRepository.fetchImage(posterUrl, game.id, persistIfAbsent = false)
+                    imageService.fetchImage(posterUrl, persistIfAbsent = false)
                 }
             }
         }

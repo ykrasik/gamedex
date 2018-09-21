@@ -28,6 +28,8 @@ fun <T, R> Sequence<Pair<T, R>>.toMultiMap(): MultiMap<T, R> = groupBy({ it.firs
 
 fun <T> Sequence<T>.firstNotNull(): T? = this.firstOrNull { it != null }
 
+fun <T, C : Collection<T>> C.emptyToNull(): C? = if (isEmpty()) null else this
+
 fun <T> MutableCollection<T>.setAll(iterable: Iterable<T>) {
     this.clear()
     this.addAll(iterable)
@@ -40,10 +42,10 @@ inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedTo(dest
     return destination
 }
 
-inline fun <K, V> Map<K, V>.mapNotNullToMap(crossinline f: (K, V) -> Pair<K, V>?): Map<K, V> {
-    if (this.isEmpty()) return this
+inline fun <K, V, K2, V2> Map<K, V>.mapNotNullToMap(crossinline f: (K, V) -> Pair<K2, V2>?): Map<K2, V2> {
+    if (this.isEmpty()) return emptyMap()
 
-    val map = mutableMapOf<K, V>()
+    val map = mutableMapOf<K2, V2>()
     forEach { k, v ->
         val newKeyValue = f(k, v)
         if (newKeyValue != null) {

@@ -20,8 +20,11 @@ import com.google.common.net.UrlEscapers
 import khttp.get
 import khttp.responses.Response
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.net.SocketTimeoutException
+import java.net.URL
 import java.net.URLDecoder
+import java.util.*
 
 /**
  * User: ykrasik
@@ -72,3 +75,11 @@ fun download(url: String,
 
 fun String.urlEncoded() = UrlEscapers.urlFragmentEscaper().escape(this)
 fun String.urlDecoded() = URLDecoder.decode(this, "utf-8")
+
+fun String.base64Encoded() = Base64.getUrlEncoder().encodeToString(this.toByteArray())
+fun String.base64Decoded() = String(Base64.getUrlDecoder().decode(this))
+
+fun String.toUrl() = URL(this)
+
+val URL.filePath get() = File(path)
+val URL.fileName get() = File(path).name

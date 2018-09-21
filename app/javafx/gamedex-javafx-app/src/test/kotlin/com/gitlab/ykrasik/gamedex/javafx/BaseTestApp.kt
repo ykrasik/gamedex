@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
@@ -44,13 +44,13 @@ abstract class BaseTestApp<in T : UIComponent>(view: KClass<out T>) {
 
         // Mock imageLoader.
         val coreModuleWithoutImageRepo = Elements.getModule(Elements.getElements(CoreModule).filter {
-            it is Binding<*> && it.key != Key.get(ImageRepository::class.java)
+            it is Binding<*> && it.key != Key.get(ImageService::class.java)
         })
         val mockImageRepoModule = object : AbstractModule() {
             override fun configure() {
-                bind(ImageRepository::class.java).toInstance(mock {
+                bind(ImageService::class.java).toInstance(mock {
                     on { downloadImage(any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
-                    on { fetchImage(any(), any(), any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
+                    on { fetchImage(any(), any()) }.thenAnswer { SimpleObjectProperty(randomImage()) }
                 })
             }
         }

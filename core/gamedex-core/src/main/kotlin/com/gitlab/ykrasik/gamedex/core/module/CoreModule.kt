@@ -22,23 +22,22 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
-import com.gitlab.ykrasik.gamedex.core.image.ImageRepositoryImpl
+import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.storage.*
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.time
+import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
@@ -72,7 +71,6 @@ object CoreModule : AbstractModule() {
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
-        bind(ImageRepository::class.java).to(ImageRepositoryImpl::class.java)
 
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
@@ -107,8 +105,17 @@ object CoreModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun fileStructureStorage(): Storage<GameId, FileStructure> =
-        log.time("Reading file system cache...") {
-            IntIdJsonStorageFactory<FileStructure>("cache/file_structure").memoryCached()
-        }
+    @FileStructureStorage
+    fun fileStructureStorage(): Storage<GameId, FileStructure> = log.time("Reading file system cache...") {
+        FileStorage.json<FileStructure>("cache/file_structure").intId().memoryCached()
+    }
+
+    @Provides
+    @Singleton
+    @ImageStorage
+    fun imageStorage(): Storage<String, ByteArray> =
+        FileStorage.binary("cache/images").stringId(
+            keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
+            reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
+        )
 }

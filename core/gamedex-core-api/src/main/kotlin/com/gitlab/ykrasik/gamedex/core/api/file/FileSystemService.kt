@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.api.file
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.FolderNameMetadata
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.util.FileSize
 import java.io.File
 
 /**
@@ -28,6 +30,8 @@ import java.io.File
  */
 interface FileSystemService {
     fun structure(game: Game): FileStructure
+    fun deleteStructure(gameId: GameId)
+    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 
     // TODO: Make this a channel?
     fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>

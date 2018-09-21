@@ -25,8 +25,8 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import org.joda.time.LocalDate
 import java.net.URL
@@ -40,7 +40,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class EditGamePresenter @Inject constructor(
-    private val imageRepository: ImageRepository,
+    private val imageService: ImageService,
     private val gameProviderService: GameProviderService,
     private val gameService: GameService,
     private val taskRunner: TaskRunner,
@@ -75,7 +75,7 @@ class EditGamePresenter @Inject constructor(
         }
 
         private fun fetchThumbnail(request: FetchThumbnailRequest) {
-            request.response.complete(imageRepository.fetchImage(request.url, view.game.id, persistIfAbsent = false))
+            request.response.complete(imageService.fetchImage(request.url, persistIfAbsent = false))
         }
 
         private fun onProviderOverrideSelected(type: GameDataType, providerId: ProviderId, selected: Boolean) {

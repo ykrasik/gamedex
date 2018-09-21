@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
+import com.gitlab.ykrasik.gamedex.javafx.javaFx
 import com.gitlab.ykrasik.gamedex.javafx.toImage
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
@@ -44,7 +45,7 @@ object JavaFxImageFactory : ImageFactory {
 }
 
 @Singleton
-class ImageLoader @Inject constructor(private val imageRepository: ImageRepository) {
+class ImageLoader @Inject constructor(private val imageService: ImageService) {
     private val loading = getResourceAsByteArray("spinner.gif").toImage()
     private val noImage = getResourceAsByteArray("no-image-available.png").toImage()
 
@@ -87,12 +88,12 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
 
     // TODO: Delete this
     // Only meant to be accessed by the ui thread.
-    fun fetchImage(url: String?, gameId: Int, persistIfAbsent: Boolean): ObservableValue<Image> =
+    fun fetchImage(url: String?, persistIfAbsent: Boolean): ObservableValue<Image> =
         if (url == null) {
             noImage.toProperty()
         } else {
             cache.getOrPut(url) {
-                imageRepository.fetchImage(url, gameId, persistIfAbsent).toObservableImage()
+                imageService.fetchImage(url,  persistIfAbsent).toObservableImage()
             }
         }
 
@@ -102,7 +103,7 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
         if (url == null) {
             noImage.toProperty()
         } else {
-            imageRepository.downloadImage(url).toObservableImage()
+            imageService.downloadImage(url).toObservableImage()
         }
 
     private fun Deferred<com.gitlab.ykrasik.gamedex.app.api.image.Image>.toObservableImage(): ObservableValue<Image> {
@@ -110,11 +111,8 @@ class ImageLoader @Inject constructor(private val imageRepository: ImageReposito
         if (this.isCompleted) {
             p.value = this.getCompleted().image
         } else {
-            GlobalScope.launch(Dispatchers.IO) {
-                val image = await().image
-                withContext(Dispatchers.JavaFx) {
-                    p.value = image
-                }
+            javaFx {
+                p.value = await().image
             }
         }
         return p

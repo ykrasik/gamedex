@@ -208,7 +208,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                 fragment.nameOverlay = item.name
                 fragment.metaTagOverlay = item.folderNameMetadata.metaTag
                 fragment.versionOverlay = item.folderNameMetadata.version
-                fragment.setImage(imageLoader.fetchImage(item.thumbnailUrl, item.id, persistIfAbsent = true))
+                fragment.setImage(imageLoader.fetchImage(item.thumbnailUrl, persistIfAbsent = true))
                 tooltip(item.name)
             } else {
                 fragment.nameOverlay = null

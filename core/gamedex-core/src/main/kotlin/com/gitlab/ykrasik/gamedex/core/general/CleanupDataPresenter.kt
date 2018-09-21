@@ -14,28 +14,38 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.image
+package com.gitlab.ykrasik.gamedex.core.general
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDataView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 09:27
- *
- * [fetchImage] & [downloadImage] are meant to be called only by the ui thread.
+ * Date: 06/05/2018
+ * Time: 13:17
  */
-interface ImageRepository {
-    // TODO: gameId is only here in order to link the url to a game so the image is auto-deleted with the game. Can also do this manually.
-    // TODO: Make this suspend and return an image.
-    fun fetchImage(url: String, gameId: Int, persistIfAbsent: Boolean): Deferred<Image>
+@Singleton
+class CleanupDataPresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<CleanupDataView> {
+    override fun present(view: CleanupDataView) = object : Presentation() {
+        init {
+            view.cleanupDataActions.forEach { cleanupData() }
+        }
 
-    // TODO: Make this suspend and return an image.
-    fun downloadImage(url: String): Deferred<Image>
+        private suspend fun cleanupData() {
+            val staleData = taskRunner.runTask(databaseActionsService.detectStaleData())
+            if (staleData.isEmpty) return
 
-    fun fetchImagesExcept(exceptUrls: List<String>): List<Pair<String, FileSize>>
-
-    fun deleteImages(imageUrls: List<String>)
+            if (view.confirmDeleteStaleData(staleData)) {
+                // TODO: Create backup before deleting
+                taskRunner.runTask(databaseActionsService.deleteStaleData(staleData))
+            }
+        }
+    }
 }

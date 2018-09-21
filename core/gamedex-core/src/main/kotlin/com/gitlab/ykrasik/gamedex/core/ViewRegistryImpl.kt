@@ -38,10 +38,7 @@ import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenter
-import com.gitlab.ykrasik.gamedex.core.general.CleanupDbPresenter
-import com.gitlab.ykrasik.gamedex.core.general.ClearUserDataPresenter
-import com.gitlab.ykrasik.gamedex.core.general.ExportDatabasePresenter
-import com.gitlab.ykrasik.gamedex.core.general.ImportDatabasePresenter
+import com.gitlab.ykrasik.gamedex.core.general.*
 import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
@@ -100,7 +97,8 @@ class ViewRegistryImpl @Inject constructor(
     exportDatabase: ExportDatabasePresenter,
     importDatabase: ImportDatabasePresenter,
     clearUserData: ClearUserDataPresenter,
-    cleanupDb: CleanupDbPresenter,
+    cleanupCache: CleanupCachePresenter,
+    cleanupData: CleanupDataPresenter,
 
     changeGameCellDisplaySettings: ChangeGameCellDisplaySettingsPresenter,
     gameCellDisplaySettings: GameCellDisplaySettingsPresenter,
@@ -162,7 +160,8 @@ class ViewRegistryImpl @Inject constructor(
         presenter(exportDatabase),
         presenter(importDatabase),
         presenter(clearUserData),
-        presenter(cleanupDb),
+        presenter(cleanupCache),
+        presenter(cleanupData),
 
         presenter(changeGameCellDisplaySettings),
         presenter(gameCellDisplaySettings),

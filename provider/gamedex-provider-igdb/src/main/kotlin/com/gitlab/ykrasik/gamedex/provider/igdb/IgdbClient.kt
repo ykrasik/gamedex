@@ -42,7 +42,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
             "limit" to config.maxSearchResults.toString(),
             "fields" to searchFieldsStr
         )
-        log.trace { "[$platform] Search '$name': ${response.text}" }
+        log.trace { "[$platform] Search '$name': [${response.statusCode}] ${response.text}" }
         return response.listFromJson()
     }
 
@@ -50,7 +50,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         val response = getRequest(url, account,
             "fields" to fetchDetailsFieldsStr
         )
-        log.trace { "Fetch '$url': ${response.text}" }
+        log.trace { "Fetch '$url': [${response.statusCode}] ${response.text}" }
 
         // IGDB returns a list, even though we're fetching by id :/
         return response.listFromJson<DetailsResult> { parseError(it) }.first()
@@ -65,8 +65,12 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     )
 
     private fun parseError(raw: String): String {
-        val errors: List<Error> = raw.listFromJson()
-        return errors.first().error.first()
+        return if (raw.startsWith("{")) {
+            val errors: List<Error> = raw.listFromJson()
+            return errors.first().error.first()
+        } else {
+            raw
+        }
     }
 
     private val Platform.id: Int get() = config.getPlatformId(this)

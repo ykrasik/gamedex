@@ -24,17 +24,20 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.general.StaleCache
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.app.api.util.nonCancellableTask
 import com.gitlab.ykrasik.gamedex.app.api.util.task
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.image.ImageRepository
 import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
+import com.gitlab.ykrasik.gamedex.util.emptyToNull
 import com.gitlab.ykrasik.gamedex.util.toDateTime
 import com.gitlab.ykrasik.gamedex.util.toFile
 import com.google.inject.ImplementedBy
@@ -52,6 +55,9 @@ interface DatabaseActionsService {
     fun importDatabase(file: File): Task<Unit>
     fun exportDatabase(file: File): Task<Unit>
 
+    fun detectStaleCache(): Task<StaleCache>
+    fun deleteStaleCache(staleCache: StaleCache): Task<Unit>
+
     fun detectStaleData(): Task<StaleData>
     fun deleteStaleData(staleData: StaleData): Task<Unit>
 
@@ -62,7 +68,8 @@ interface DatabaseActionsService {
 class DatabaseActionsServiceImpl @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
-    private val imageRepository: ImageRepository,
+    private val imageService: ImageService,
+    private val fileSystemService: FileSystemService,
     private val persistenceService: PersistenceService
 ) : DatabaseActionsService {
     private val objectMapper = ObjectMapper()
@@ -108,20 +115,50 @@ class DatabaseActionsServiceImpl @Inject constructor(
         doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameService.games.size} Games." }
     }
 
+    override fun detectStaleCache() = nonCancellableTask("Detecting stale cache...") {
+        message1 = "Detecting stale cache..."
+
+        val images = run {
+            val usedImages = gameService.games.flatMapWithProgress { game ->
+                game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
+            }
+            imageService.fetchImageSizesExcept(usedImages)
+        }
+
+        val fileStructure = fileSystemService.getFileStructureSizeTakenExcept(gameService.games)
+
+        StaleCache(images, fileStructure).apply {
+            doneMessage { if (isEmpty) "No stale cache detected." else "Stale Cache:\n${toFormattedString()}" }
+        }
+    }
+
+    override fun deleteStaleCache(staleCache: StaleCache) = nonCancellableTask("Deleting Stale Cache...") {
+        totalWork = 2
+
+        staleCache.images.toList().emptyToNull()?.let { images ->
+            message1 = "Deleting stale images..."
+            imageService.deleteImages(images.map { it.first })
+        }
+        incProgress()
+
+        staleCache.fileStructure.toList().emptyToNull()?.let { fileStructure ->
+            message1 = "Deleting stale file structure..."
+            fileStructure.forEach { fileSystemService.deleteStructure(it.first) }
+        }
+        incProgress()
+
+        doneMessage { "Deleted Stale Cache:\n${staleCache.toFormattedString()}" }
+    }
+
     override fun detectStaleData() = nonCancellableTask("Detecting stale data...") {
         message1 = "Detecting stale data..."
 
         val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
         val games = gameService.games.filterWithProgress { !it.path.isDirectory }
 
-        val images = run {
-            val usedImages = gameService.games.flatMapWithProgress { game ->
-                game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
-            }
-            imageRepository.fetchImagesExcept(usedImages)
-        }
+        val staleCache = runMainTask(detectStaleCache())
 
-        StaleData(libraries, games, images).apply {
+        StaleData(libraries, games, staleCache).apply {
             doneMessage { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
         }
     }
@@ -129,35 +166,34 @@ class DatabaseActionsServiceImpl @Inject constructor(
     override fun deleteStaleData(staleData: StaleData) = nonCancellableTask("Deleting Stale Data...") {
         totalWork = 3
 
-        staleData.images.let { images ->
-            if (images.isNotEmpty()) {
-                message1 = "Deleting stale images:"
-                message2 = images.size.toString()
-                imageRepository.deleteImages(images.map { it.first })
-            }
+        staleData.games.emptyToNull()?.let { games ->
+            runMainTask(gameService.deleteAll(games))
         }
         incProgress()
 
-        staleData.games.let { games ->
-            if (games.isNotEmpty()) {
-                runMainTask(gameService.deleteAll(games))
-            }
+        staleData.libraries.emptyToNull()?.let { libraries ->
+            runMainTask(libraryService.deleteAll(libraries))
         }
         incProgress()
 
-        staleData.libraries.let { libraries ->
-            if (staleData.libraries.isNotEmpty()) {
-                runMainTask(libraryService.deleteAll(libraries))
-            }
-        }
+        runMainTask(deleteStaleCache(staleData.staleCache))
         incProgress()
 
         doneMessage { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
     }
 
+    private fun StaleCache.toFormattedString() =
+        listOf(images to "Images", fileStructure to "File Structure Entries")
+            .asSequence()
+            .filter { it.first.isNotEmpty() }
+            .joinToString("\n") { "${it.first.size} ${it.second}" }
+
     private fun StaleData.toFormattedString() =
-        listOf(games to "Games", libraries to "Libraries", images to "Images")
-            .filter { it.first.isNotEmpty() }.joinToString("\n") { "${it.first.size} ${it.second}" }
+        listOf(games to "Games", libraries to "Libraries")
+            .asSequence()
+            .filter { it.first.isNotEmpty() }
+            .joinToString("\n") { "${it.first.size} ${it.second}" } +
+            staleCache.toFormattedString()
 
     override fun deleteAllUserData() = task("Deleting all game user data...") {
         message1 = "Deleting all game user data..."

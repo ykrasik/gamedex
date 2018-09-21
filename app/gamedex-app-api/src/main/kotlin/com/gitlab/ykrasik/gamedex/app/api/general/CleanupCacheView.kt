@@ -14,36 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.storage
+package com.gitlab.ykrasik.gamedex.app.api.general
+
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.util.FileSize
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 16/09/2018
- * Time: 09:39
+ * Date: 22/09/2018
+ * Time: 14:27
  */
-interface Storage<K, V> {
-    fun add(value: V): K
+interface CleanupCacheView {
+    val cleanupCacheActions: ReceiveChannel<Unit>
 
-    operator fun set(key: K, value: V)
-    fun setIfNotExists(key: K, value: V): Boolean
+    fun confirmDeleteStaleCache(staleCache: StaleCache): Boolean
+}
 
-    @Throws(IllegalStateException::class)
-    fun setOnlyIfExists(key: K, value: V)
+data class StaleCache(
+    val images: Map<String, FileSize>,
+    val fileStructure: Map<GameId, FileSize>
+) {
+    val isEmpty = images.isEmpty() && fileStructure.isEmpty()
 
-    @Throws(IllegalStateException::class)
-    fun setOnlyIfDoesntExist(key: K, value: V)
-
-    operator fun get(key: K): V?
-    fun getAll(): Map<K, V>
-
-    fun delete(key: K): Boolean
-
-    @Throws(IllegalStateException::class)
-    fun deleteOnlyIfExists(key: K)
-
-    fun ids(): Iterable<K>
-
-    fun sizeTaken(key: K): Long
-
-    fun sizes(): Map<K, Long> = ids().map { it to sizeTaken(it) }.toMap()
+    val staleImagesSizeTaken get() = images.values.fold(FileSize(0)) { acc, next -> acc + next }
+    val staleFileStructureSizeTaken get() = fileStructure.values.fold(FileSize(0)) { acc, next -> acc + next }
 }

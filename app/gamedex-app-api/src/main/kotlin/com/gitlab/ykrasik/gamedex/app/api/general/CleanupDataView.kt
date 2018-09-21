@@ -14,38 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.general
+package com.gitlab.ykrasik.gamedex.app.api.general
 
-import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDbView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Library
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 13:17
+ * Time: 12:29
  */
-@Singleton
-class CleanupDbPresenter @Inject constructor(
-    private val databaseActionsService: DatabaseActionsService,
-    private val taskRunner: TaskRunner
-) : Presenter<CleanupDbView> {
-    override fun present(view: CleanupDbView) = object : Presentation() {
-        init {
-            view.cleanupDbActions.forEach { cleanupDb() }
-        }
+interface CleanupDataView {
+    val cleanupDataActions: ReceiveChannel<Unit>
 
-        private suspend fun cleanupDb() {
-            val staleData = taskRunner.runTask(databaseActionsService.detectStaleData())
-            if (staleData.isEmpty) return
+    fun confirmDeleteStaleData(staleData: StaleData): Boolean
+}
 
-            if (view.confirmDeleteStaleData(staleData)) {
-                // TODO: Create backup before deleting
-                taskRunner.runTask(databaseActionsService.deleteStaleData(staleData))
-            }
-        }
-    }
+data class StaleData(
+    val libraries: List<Library>,
+    val games: List<Game>,
+    val staleCache: StaleCache
+) {
+    val isEmpty = libraries.isEmpty() && games.isEmpty() && staleCache.isEmpty
 }

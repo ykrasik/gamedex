@@ -48,12 +48,6 @@ internal object Games : IntIdTable() {
     }
 }
 
-internal object Images : IntIdTable() {
-    val gameId = reference("game_id", Games, onDelete = ReferenceOption.CASCADE)
-    val url = varchar("url", length = 255).uniqueIndex()
-    val bytes = blob("bytes")
-}
-
 // This doesn't exist by default in exposed
 fun <T : Table> T.updateAll(body: T.(UpdateStatement) -> Unit): Int {
     val query = UpdateStatement(this, null, null)
