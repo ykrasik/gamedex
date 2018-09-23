@@ -38,6 +38,8 @@ interface Storage<K, V> {
 
     fun delete(key: K): Boolean
 
+    fun deleteAll(keys: Iterable<K>)
+
     @Throws(IllegalStateException::class)
     fun deleteOnlyIfExists(key: K)
 

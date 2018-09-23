@@ -72,6 +72,11 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
         return success
     }
 
+    override fun deleteAll(keys: Iterable<K>) {
+        delegate.deleteAll(keys)
+        cache -= keys
+    }
+
     override fun deleteOnlyIfExists(key: K) {
         delegate.deleteOnlyIfExists(key)
         cache -= key

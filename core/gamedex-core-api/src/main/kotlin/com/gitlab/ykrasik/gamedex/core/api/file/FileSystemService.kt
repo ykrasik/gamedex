@@ -43,4 +43,6 @@ interface FileSystemService {
     fun analyzeFolderName(rawName: String): FolderNameMetadata
     fun fromFileName(name: String): String
     fun toFileName(name: String): String
+
+    fun invalidate()
 }

@@ -113,6 +113,10 @@ class FileSystemServiceImpl @Inject constructor(
     override fun toFileName(name: String) = fileNameHandler.toFileName(name)
 
     // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
+
+    override fun invalidate() {
+        fileStructureStorage.deleteAll(fileStructureStorage.ids())
+    }
 }
 
 @BindingAnnotation

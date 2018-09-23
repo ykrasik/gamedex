@@ -93,6 +93,10 @@ class FileStorage<K, V>(
         return isFile
     }
 
+    override fun deleteAll(keys: Iterable<K>) {
+        ids().forEach { delete(it) }
+    }
+
     override fun deleteOnlyIfExists(key: K) = check(delete(key)) { "File doesn't exist: ${fileFor(key)}" }
 
     override fun ids() = streamFiles { stream -> stream.map { namingStrategy.toKey(it) }.toList() } ?: emptyList()
