@@ -77,6 +77,8 @@ object Theme {
         fun chart(size: Double = defaultIconSize) = FontAwesome.Glyph.BAR_CHART.toGraphic { size(size); color(Color.DARKBLUE) }
         fun book(size: Double = defaultIconSize) = FontAwesome.Glyph.BOOK.toGraphic { size(size); color(Color.BURLYWOOD) }
         fun filter(size: Double = defaultIconSize) = FontAwesome.Glyph.FILTER.toGraphic { size(size) }
+        fun sort(size: Double = defaultIconSize) = FontAwesome.Glyph.SORT.toGraphic { size(size) }
+        fun sliders(size: Double = defaultIconSize) = FontAwesome.Glyph.SLIDERS.toGraphic { size(size) }
         fun folder(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER.toGraphic { size(size) }
         fun folderOpen(size: Double = defaultIconSize) = FontAwesome.Glyph.FOLDER_OPEN.toGraphic { size(size) }
 

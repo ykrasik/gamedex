@@ -162,7 +162,7 @@ class InsetBuilder(region: Region) {
     var left: Number = region.padding.left
 }
 
-fun EventTarget.verticalSeparator(padding: Double? = 10.0, op: Separator.() -> Unit = {}) = separator(Orientation.VERTICAL, op).apply {
+fun EventTarget.verticalSeparator(padding: Number? = 10, op: Separator.() -> Unit = {}) = separator(Orientation.VERTICAL, op).apply {
     padding?.let {
         padding { right = it; left = it }
     }

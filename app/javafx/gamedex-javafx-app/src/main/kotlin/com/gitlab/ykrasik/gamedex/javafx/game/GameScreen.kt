@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
+import javafx.geometry.VPos
 import javafx.scene.control.ToolBar
 import tornadofx.*
 
@@ -64,12 +65,9 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     override fun ToolBar.constructToolbar() {
         platformButton()
         verticalSeparator()
-        sortButton()
-        verticalSeparator()
-        filterButton()
-        verticalSeparator()
         searchField(this@GameScreen, searchTextProperty)
         verticalSeparator()
+        sortFilterButton()
 
         spacer()
 
@@ -117,8 +115,24 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
         SortOrder.desc -> Theme.Icon.descending()
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover("Filter", Theme.Icon.filter(), closeOnClick = false) {
-        // FIXME: This is off-center
-        children += filterView.root
+    private fun EventTarget.sortFilterButton() = buttonWithPopover("", Theme.Icon.sliders(), closeOnClick = false, styleClass = null) {
+        gridpane {
+            paddingAll = 10.0
+            vgap = 10.0
+            hgap = 10.0
+            row {
+                label("Sort", Theme.Icon.sort()) { addClass(CommonStyle.boldText) }
+                sortButton()
+            }
+            row {
+                label("Filter", Theme.Icon.filter()) {
+                    addClass(CommonStyle.boldText)
+                    gridpaneConstraints {
+                        vAlignment = VPos.TOP
+                    }
+                }
+                children += filterView.root
+            }
+        }
     }
 }

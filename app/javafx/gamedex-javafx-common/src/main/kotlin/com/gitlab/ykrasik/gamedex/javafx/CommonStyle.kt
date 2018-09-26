@@ -60,6 +60,8 @@ class CommonStyle : Stylesheet() {
 
         val thinBorder by cssclass()
 
+        val boldText by cssclass()
+
         init {
             importStylesheetSafe(CommonStyle::class)
         }
@@ -165,6 +167,10 @@ class CommonStyle : Stylesheet() {
             borderColor = multi(box(Color.BLACK))
             borderRadius = multi(box(3.px))
             borderWidth = multi(box(0.5.px))
+        }
+
+        boldText {
+            fontWeight = FontWeight.BOLD
         }
 
         // TODO: Experiment with code in comments to see what can be done with css
