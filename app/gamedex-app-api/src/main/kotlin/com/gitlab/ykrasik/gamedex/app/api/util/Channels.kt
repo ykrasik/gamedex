@@ -141,7 +141,7 @@ fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContex
 
 fun <T> channel(): Channel<T> = Channel(capacity = 32)
 
-fun <T> conflatedChannel(): ConflatedChannel<T> = ConflatedChannel()
+fun <T> conflatedChannel(): ConflatedChannel<T> = Channel<T>(capacity = Channel.CONFLATED) as ConflatedChannel<T>
 
 // FIXME: Get rid of this.
 operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!

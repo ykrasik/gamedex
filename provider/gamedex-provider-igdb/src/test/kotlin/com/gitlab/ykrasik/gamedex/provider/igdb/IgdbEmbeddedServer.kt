@@ -122,7 +122,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis))
 
     private fun randomSearchResults(name: String): String = randomList(10) {
         IgdbClient.SearchResult(

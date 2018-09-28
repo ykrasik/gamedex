@@ -8,7 +8,7 @@ buildscript {
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
-            v = '1.2.70'
+            v = '1.2.71'
             majorV = '1.2'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -18,7 +18,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.26.1'
+            v = '0.30.0'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
             delegate

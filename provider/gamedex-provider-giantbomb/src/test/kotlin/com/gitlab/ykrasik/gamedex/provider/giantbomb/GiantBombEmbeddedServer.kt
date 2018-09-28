@@ -114,7 +114,7 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong(), TimeUnit.MILLISECONDS)
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis))
 
     private fun randomSearchResponse() = GiantBombClient.SearchResponse(
         statusCode = GiantBombClient.Status.ok,
