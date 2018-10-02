@@ -14,27 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library.module
+package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
-import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
-import com.gitlab.ykrasik.gamedex.core.library.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 02/10/2018
- * Time: 09:03
- */
-object LibraryModule : InternalCoreModule() {
-    override fun configure() {
-        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
+@Singleton
+class RedownloadGamePresenter @Inject constructor(
+    private val gameDownloadService: GameDownloadService,
+    private val taskRunner: TaskRunner
+) : Presenter<ViewCanRedownloadGame> {
+    override fun present(view: ViewCanRedownloadGame) = object : Presentation() {
+        init {
+            view.redownloadGameActions.forEach { redownloadGame(it) }
+        }
 
-        bindPresenter(DeleteLibraryPresenter::class)
-        bindPresenter(EditLibraryPresenter::class)
-        bindPresenter(LibrariesPresenter::class)
-        bindPresenter(ShowAddLibraryPresenter::class)
-        bindPresenter(ShowDeleteLibraryPresenter::class)
-        bindPresenter(ShowEditLibraryPresenter::class)
+        private suspend fun redownloadGame(game: Game) {
+            taskRunner.runTask(gameDownloadService.redownloadGame(game))
+        }
     }
 }

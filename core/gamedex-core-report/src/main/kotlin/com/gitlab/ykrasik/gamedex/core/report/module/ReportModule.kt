@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.report.module
 
-import com.gitlab.ykrasik.gamedex.app.api.report.*
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.report.ReportServiceImpl
@@ -34,13 +35,14 @@ import javax.inject.Singleton
 object ReportModule : InternalCoreModule() {
     override fun configure() {
         bind(ReportService::class.java).to(ReportServiceImpl::class.java)
-        bindPresenter<DeleteReportPresenter, ViewCanDeleteReport>()
-        bindPresenter<EditReportPresenter, EditReportView>()
-        bindPresenter<ExcludeGameFromReportPresenter, ViewCanExcludeGameFromReport>()
-        bindPresenter<ReportPresenter, ReportView>()
-        bindPresenter<ReportsPresenter, ViewWithReports>()
-        bindPresenter<ShowAddReportPresenter, ViewCanAddReport>()
-        bindPresenter<ShowEditReportPresenter, ViewCanEditReport>()
+
+        bindPresenter(DeleteReportPresenter::class)
+        bindPresenter(EditReportPresenter::class)
+        bindPresenter(ExcludeGameFromReportPresenter::class)
+        bindPresenter(ReportPresenter::class)
+        bindPresenter(ReportsPresenter::class)
+        bindPresenter(ShowAddReportPresenter::class)
+        bindPresenter(ShowEditReportPresenter::class)
     }
 
     @Provides

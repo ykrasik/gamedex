@@ -17,27 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.core.filter.MenuGameFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.filter.ReportGameFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.game.GamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.all.SearchGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.all.SelectPlatformPresenter
-import com.gitlab.ykrasik.gamedex.core.game.all.SortGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.delete.DeleteGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.delete.ShowDeleteGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.details.GameDetailsPresenter
-import com.gitlab.ykrasik.gamedex.core.game.details.ShowGameDetailsPreseneter
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGameChooseResultsPresenter
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverGamesWithoutProvidersPresenter
-import com.gitlab.ykrasik.gamedex.core.game.discover.DiscoverNewGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.discover.RediscoverGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.download.*
-import com.gitlab.ykrasik.gamedex.core.game.edit.EditGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.edit.ShowEditGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.rename.RenameMoveGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenter
+import com.gitlab.ykrasik.gamedex.core.filter.presenter.MenuGameFilterPresenter
+import com.gitlab.ykrasik.gamedex.core.filter.presenter.ReportGameFilterPresenter
 import com.gitlab.ykrasik.gamedex.core.general.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
@@ -54,32 +35,6 @@ import kotlin.reflect.KClass
  */
 @Singleton
 class ViewRegistryImpl @Inject constructor(
-    selectPlatform: SelectPlatformPresenter,
-
-    games: GamesPresenter,
-    searchGames: SearchGamesPresenter,
-    sortGames: SortGamesPresenter,
-
-    showGameDetails: ShowGameDetailsPreseneter,
-    gameDetails: GameDetailsPresenter,
-    redownloadGame: RedownloadGamePresenter,
-    rediscoverGame: RediscoverGamePresenter,
-    showEditGame: ShowEditGamePresenter,
-    editGame: EditGamePresenter,
-    showDeleteGame: ShowDeleteGamePresenter,
-    deleteGame: DeleteGamePresenter,
-    showRenameMoveGame: ShowRenameMoveGamePresenter,
-    renameMoveGame: RenameMoveGamePresenter,
-    showTagGame: ShowTagGamePresenter,
-    tagGame: TagGamePresenter,
-    redownloadCreatedBeforePeriod: GameRedownloadCreatedBeforePeriodPresenter,
-    redownloadUpdatedAfterPeriod: GameRedownloadUpdatedAfterPeriodPresenter,
-    redownloadGamesCreatedBefore: RedownloadGamesCreatedBeforePresenter,
-    redownloadGamesUpdatedAfter: RedownloadGamesUpdatedAfterPresenter,
-    discoverGameChooseResults: DiscoverGameChooseResultsPresenter,
-    discoverNewGames: DiscoverNewGamesPresenter,
-    discoverGamesWithoutProviders: DiscoverGamesWithoutProvidersPresenter,
-
     menuGameFilter: MenuGameFilterPresenter,
     reportGameFilter: ReportGameFilterPresenter,
 
@@ -110,32 +65,6 @@ class ViewRegistryImpl @Inject constructor(
     presenters: MutableMap<KClass<*>, Presenter<*>>
 ) : ViewRegistry {
     private val presenterClasses: Map<KClass<*>, Presenter<*>> = listOf(
-        presenter(selectPlatform),
-
-        presenter(games),
-        presenter(searchGames),
-        presenter(sortGames),
-
-        presenter(showGameDetails),
-        presenter(gameDetails),
-        presenter(redownloadGame),
-        presenter(rediscoverGame),
-        presenter(showEditGame),
-        presenter(editGame),
-        presenter(showDeleteGame),
-        presenter(deleteGame),
-        presenter(showRenameMoveGame),
-        presenter(renameMoveGame),
-        presenter(showTagGame),
-        presenter(tagGame),
-        presenter(redownloadCreatedBeforePeriod),
-        presenter(redownloadUpdatedAfterPeriod),
-        presenter(redownloadGamesCreatedBefore),
-        presenter(redownloadGamesUpdatedAfter),
-        presenter(discoverGameChooseResults),
-        presenter(discoverNewGames),
-        presenter(discoverGamesWithoutProviders),
-
         presenter(menuGameFilter),
         presenter(reportGameFilter),
 

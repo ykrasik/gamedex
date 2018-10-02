@@ -259,6 +259,13 @@ project("core:gamedex-core-persistence") {
     }
 }
 
+project("core:gamedex-core-game") {
+    dependencies {
+        fullDependency ":core:gamedex-core-common"
+        fullDependency ":core:gamedex-core-persistence"
+    }
+}
+
 project("core:gamedex-core-library") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
@@ -276,6 +283,7 @@ project("core:gamedex-core") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
         fullDependency ":core:gamedex-core-library"
+        fullDependency ":core:gamedex-core-game"
         fullDependency ":core:gamedex-core-report"
         compile project(":core:gamedex-core-persistence")
 

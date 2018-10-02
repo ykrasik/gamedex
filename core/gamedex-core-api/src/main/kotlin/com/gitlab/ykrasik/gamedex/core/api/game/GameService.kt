@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.Task
  * Date: 26/04/2018
  * Time: 19:50
  */
+// FIXME: move to gamedex-core-common once all non-core references are refactored to providers.
 interface GameService {
     val games: ListObservable<Game>
 

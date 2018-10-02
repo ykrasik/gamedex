@@ -28,8 +28,8 @@ import kotlin.reflect.KClass
  * Time: 00:36
  */
 abstract class InternalCoreModule : AbstractModule() {
-    protected inline fun <reified T : Presenter<V>, reified V> bindPresenter() {
+    protected inline fun <T : Presenter<V>, reified V> bindPresenter(klass: KClass<T>) {
         MapBinder.newMapBinder(binder(), object : TypeLiteral<KClass<*>>() {}, object : TypeLiteral<Presenter<*>>() {})
-            .addBinding(V::class).to(T::class.java)
+            .addBinding(V::class).to(klass.java)
     }
 }

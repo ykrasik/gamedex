@@ -14,27 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library.module
+package com.gitlab.ykrasik.gamedex.core.game.presenter.discover
 
-import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
-import com.gitlab.ykrasik.gamedex.core.library.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/10/2018
- * Time: 09:03
+ * Date: 29/04/2018
+ * Time: 14:25
  */
-object LibraryModule : InternalCoreModule() {
-    override fun configure() {
-        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
-
-        bindPresenter(DeleteLibraryPresenter::class)
-        bindPresenter(EditLibraryPresenter::class)
-        bindPresenter(LibrariesPresenter::class)
-        bindPresenter(ShowAddLibraryPresenter::class)
-        bindPresenter(ShowDeleteLibraryPresenter::class)
-        bindPresenter(ShowEditLibraryPresenter::class)
+@Singleton
+class DiscoverGameChooseResultsPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewCanChangeDiscoverGameChooseResults> {
+    override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : Presentation() {
+        init {
+            settingsService.game.bind({ discoverGameChooseResultsChannel }, view::discoverGameChooseResults, view.discoverGameChooseResultsChanges) {
+                copy(discoverGameChooseResults = it)
+            }
+        }
     }
 }

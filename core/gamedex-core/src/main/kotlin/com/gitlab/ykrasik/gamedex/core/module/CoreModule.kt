@@ -21,13 +21,11 @@ import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
-import com.gitlab.ykrasik.gamedex.core.game.GameConfig
-import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
+import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
@@ -62,11 +60,11 @@ object CoreModule : AbstractModule() {
         }
 
         install(LibraryModule)
+        install(GameModule)
         install(ReportModule)
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
-        bind(GameService::class.java).to(GameServiceImpl::class.java)
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
@@ -93,10 +91,6 @@ object CoreModule : AbstractModule() {
     @Singleton
     fun newDirectoryDetector(config: Config) =
         Class.forName(config.getString("gameDex.newDirectoryDetector.class")).newInstance() as NewDirectoryDetector
-
-    @Provides
-    @Singleton
-    fun gameConfig(config: Config): GameConfig = config.extract("gameDex.game")
 
     @Provides
     @Singleton

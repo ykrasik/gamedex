@@ -14,27 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library.module
+package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
-import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
-import com.gitlab.ykrasik.gamedex.core.library.presenter.*
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/10/2018
- * Time: 09:03
+ * Date: 08/06/2018
+ * Time: 09:38
  */
-object LibraryModule : InternalCoreModule() {
-    override fun configure() {
-        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
-
-        bindPresenter(DeleteLibraryPresenter::class)
-        bindPresenter(EditLibraryPresenter::class)
-        bindPresenter(LibrariesPresenter::class)
-        bindPresenter(ShowAddLibraryPresenter::class)
-        bindPresenter(ShowDeleteLibraryPresenter::class)
-        bindPresenter(ShowEditLibraryPresenter::class)
+@Singleton
+class ShowGameDetailsPreseneter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanShowGameDetails> {
+    override fun present(view: ViewCanShowGameDetails) = object : Presentation() {
+        init {
+            view.showGameDetailsActions.forEach { game ->
+                viewManager.showGameDetailsView {
+                    this.game = game
+                }
+            }
+        }
     }
 }
