@@ -22,7 +22,6 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
@@ -31,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameConfig
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
-import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
+import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.storage.*
@@ -62,11 +61,11 @@ object CoreModule : AbstractModule() {
             providers
         }
 
+        install(LibraryModule)
         install(ReportModule)
 
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
-        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
         bind(GameService::class.java).to(GameServiceImpl::class.java)
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 

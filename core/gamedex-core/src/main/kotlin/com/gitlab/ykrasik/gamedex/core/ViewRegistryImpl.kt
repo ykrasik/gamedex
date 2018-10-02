@@ -39,7 +39,6 @@ import com.gitlab.ykrasik.gamedex.core.game.rename.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.tag.ShowTagGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.tag.TagGamePresenter
 import com.gitlab.ykrasik.gamedex.core.general.*
-import com.gitlab.ykrasik.gamedex.core.library.*
 import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
 import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
@@ -55,13 +54,6 @@ import kotlin.reflect.KClass
  */
 @Singleton
 class ViewRegistryImpl @Inject constructor(
-    libraries: LibrariesPresenter,
-    showAddLibrary: ShowAddLibraryPresenter,
-    showEditLibrary: ShowEditLibraryPresenter,
-    editLibrary: EditLibraryPresenter,
-    showDeleteLibrary: ShowDeleteLibraryPresenter,
-    deleteLibrary: DeleteLibraryPresenter,
-
     selectPlatform: SelectPlatformPresenter,
 
     games: GamesPresenter,
@@ -118,13 +110,6 @@ class ViewRegistryImpl @Inject constructor(
     presenters: MutableMap<KClass<*>, Presenter<*>>
 ) : ViewRegistry {
     private val presenterClasses: Map<KClass<*>, Presenter<*>> = listOf(
-        presenter(libraries),
-        presenter(showAddLibrary),
-        presenter(showEditLibrary),
-        presenter(editLibrary),
-        presenter(showDeleteLibrary),
-        presenter(deleteLibrary),
-
         presenter(selectPlatform),
 
         presenter(games),

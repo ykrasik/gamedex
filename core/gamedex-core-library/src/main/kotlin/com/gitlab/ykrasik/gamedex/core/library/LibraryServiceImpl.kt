@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.quickTask
 import com.gitlab.ykrasik.gamedex.app.api.util.task
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import kotlinx.coroutines.experimental.Dispatchers
 import javax.inject.Inject

@@ -14,51 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library
+package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.library.LibraryService
-import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 13:30
+ * Date: 01/06/2018
+ * Time: 10:35
  */
 @Singleton
-class DeleteLibraryPresenter @Inject constructor(
-    private val libraryService: LibraryService,
-    private val gameService: GameService,
-    private val taskRunner: TaskRunner,
-    private val viewManager: ViewManager
-) : Presenter<DeleteLibraryView> {
-    override fun present(view: DeleteLibraryView) = object : Presentation() {
+class ShowEditLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditLibrary> {
+    override fun present(view: ViewCanEditLibrary) = object : Presentation() {
         init {
-            view.acceptActions.forEach { onAccept() }
-            view.cancelActions.forEach { onCancel() }
+            view.editLibraryActions.forEach { library ->
+                viewManager.showEditLibraryView {
+                    this.library = library
+                }
+            }
         }
-
-        override fun onShow() {
-            view.gamesToBeDeleted.setAll(gameService.games.filter { it.library.id == view.library.id })
-        }
-
-        private suspend fun onAccept() {
-            taskRunner.runTask(libraryService.delete(view.library))
-
-            close()
-        }
-
-        private fun onCancel() {
-            close()
-        }
-
-        private fun close() = viewManager.closeDeleteLibraryView(view)
     }
 }

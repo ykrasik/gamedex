@@ -14,29 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library
+package com.gitlab.ykrasik.gamedex.core.library.module
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.library.*
+import com.gitlab.ykrasik.gamedex.core.library.LibraryService
+import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
+import com.gitlab.ykrasik.gamedex.core.library.presenter.*
+import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 10:33
+ * Date: 02/10/2018
+ * Time: 09:03
  */
-@Singleton
-class ShowAddLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanAddLibrary> {
-    override fun present(view: ViewCanAddLibrary) = object : Presentation() {
-        init {
-            view.addLibraryActions.forEach {
-                viewManager.showEditLibraryView {
-                    library = null
-                }
-            }
-        }
+object LibraryModule : InternalCoreModule() {
+    override fun configure() {
+        bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
+        bindPresenter<DeleteLibraryPresenter, DeleteLibraryView>()
+        bindPresenter<EditLibraryPresenter, EditLibraryView>()
+        bindPresenter<LibrariesPresenter, ViewWithLibraries>()
+        bindPresenter<ShowAddLibraryPresenter, ViewCanAddLibrary>()
+        bindPresenter<ShowDeleteLibraryPresenter, ViewCanDeleteLibrary>()
+        bindPresenter<ShowEditLibraryPresenter, ViewCanEditLibrary>()
     }
 }

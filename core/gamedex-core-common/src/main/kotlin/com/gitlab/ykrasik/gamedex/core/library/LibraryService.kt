@@ -16,27 +16,37 @@
 
 package com.gitlab.ykrasik.gamedex.core.library
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryData
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 01/06/2018
- * Time: 10:44
+ * Date: 26/04/2018
+ * Time: 19:34
  */
-@Singleton
-class ShowDeleteLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanDeleteLibrary> {
-    override fun present(view: ViewCanDeleteLibrary) = object : Presentation() {
-        init {
-            view.deleteLibraryActions.forEach { library ->
-                viewManager.showDeleteLibraryView {
-                    this.library = library
-                }
-            }
-        }
-    }
+interface LibraryService {
+    val libraries: ListObservable<Library>
+
+    operator fun get(id: Int): Library
+    operator fun get(platform: Platform, name: String): Library
+
+    fun add(data: LibraryData): Task<Library>
+    fun addAll(data: List<LibraryData>): Task<List<Library>>
+
+    fun replace(library: Library, data: LibraryData): Task<Unit>
+
+    fun delete(library: Library): Task<Unit>
+    fun deleteAll(libraries: List<Library>): Task<Unit>
+
+    fun invalidate(): Task<Unit>
+
+    fun isAvailableNewName(platform: Platform, newName: String): Boolean
+    fun isAvailableUpdatedName(library: Library, updatedName: String): Boolean
+
+    fun isAvailableNewPath(newPath: File): Boolean
+    fun isAvailableUpdatedPath(library: Library, updatedPath: File): Boolean
 }

@@ -14,10 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library
+package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
+import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import javax.inject.Inject
@@ -26,14 +26,14 @@ import javax.inject.Singleton
 /**
  * User: ykrasik
  * Date: 01/06/2018
- * Time: 10:35
+ * Time: 10:44
  */
 @Singleton
-class ShowEditLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditLibrary> {
-    override fun present(view: ViewCanEditLibrary) = object : Presentation() {
+class ShowDeleteLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanDeleteLibrary> {
+    override fun present(view: ViewCanDeleteLibrary) = object : Presentation() {
         init {
-            view.editLibraryActions.forEach { library ->
-                viewManager.showEditLibraryView {
+            view.deleteLibraryActions.forEach { library ->
+                viewManager.showDeleteLibraryView {
                     this.library = library
                 }
             }
