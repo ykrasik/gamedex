@@ -118,11 +118,26 @@ inline fun Logger.error(marker: Marker, t: Throwable, crossinline msg: (Marker) 
     if (isErrorEnabled(marker)) error(marker, msg(marker), t)
 }
 
-inline fun <T> Logger.time(loadingMessage: String,
-                           doneMessage: (String, T) -> String = { time, _ -> time },
-                           f: () -> T): T {
-    info(loadingMessage)
+inline fun <T> Logger.logResult(
+    beforeMessage: String,
+    afterMessage: (T) -> String = { it.toString() },
+    log: Logger.(String) -> Unit = Logger::info,
+    f: () -> T
+): T {
+    log(beforeMessage)
+    val result = f()
+    log("$beforeMessage ${afterMessage(result)}")
+    return result
+}
+
+inline fun <T> Logger.time(
+    beforeMessage: String,
+    afterMessage: (String, T) -> String = { time, _ -> time },
+    log: Logger.(String) -> Unit = Logger::info,
+    f: () -> T
+): T {
+    log(beforeMessage)
     val (result, millisTaken) = millisTaken(f)
-    info("$loadingMessage Done: ${doneMessage(millisTaken.toHumanReadableDuration(), result)}")
+    log("$beforeMessage Done: ${afterMessage(millisTaken.toHumanReadableDuration(), result)}")
     return result
 }

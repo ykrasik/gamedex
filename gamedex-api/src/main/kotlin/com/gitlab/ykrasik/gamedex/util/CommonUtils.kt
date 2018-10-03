@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
-import com.google.common.io.Resources
 import java.awt.Desktop
 import java.math.BigInteger
 import java.net.URI
@@ -31,20 +30,20 @@ import java.util.function.Predicate
 typealias Extractor<T, R> = T.() -> R
 typealias Modifier<T, R> = T.(R) -> T
 
-fun Any.getResourceAsByteArray(path: String): ByteArray = Resources.toByteArray(Resources.getResource(javaClass, path))
+fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path).readBytes()
 
 val Int.kb: Int get() = this * 1024
 
 fun String.browseToUrl() = Desktop.getDesktop().browse(URI(this))
 
-inline fun <T> millisTaken(block: () -> T) : Pair<T, Long> {
+inline fun <T> millisTaken(block: () -> T): Pair<T, Long> {
     val start = System.currentTimeMillis()
     val result = block()
     val taken = System.currentTimeMillis() - start
     return result to taken
 }
 
-inline fun <T> nanosTaken(block: () -> T) : Pair<T, Long> {
+inline fun <T> nanosTaken(block: () -> T): Pair<T, Long> {
     val start = System.nanoTime()
     val result = block()
     val taken = System.nanoTime() - start

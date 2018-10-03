@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.util.isSuccess
 import com.gitlab.ykrasik.gamedex.util.listFromJson
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.trace
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,43 +35,49 @@ import javax.inject.Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> {
-        val response = getRequest("${config.endpoint}/", account,
+    open fun search(name: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
+        endpoint = "${config.endpoint}/",
+        account = account,
+        messagePrefix = "[$platform] Search '$name'",
+        params = mapOf(
             "search" to name,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
             "limit" to config.maxSearchResults.toString(),
             "fields" to searchFieldsStr
         )
-        log.trace { "[$platform] Search '$name': [${response.statusCode}] ${response.text}" }
-        return response.listFromJson()
-    }
+    ) { it.listFromJson() }
 
-    open fun fetch(url: String, account: IgdbUserAccount): DetailsResult {
-        val response = getRequest(url, account,
-            "fields" to fetchDetailsFieldsStr
-        )
-        log.trace { "Fetch '$url': [${response.statusCode}] ${response.text}" }
-
+    open fun fetch(apiUrl: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
+        endpoint = apiUrl,
+        account = account,
+        messagePrefix = "Fetch '$apiUrl'",
+        params = mapOf("fields" to fetchDetailsFieldsStr)
+    ) {
         // IGDB returns a list, even though we're fetching by id :/
-        return response.listFromJson<DetailsResult> { parseError(it) }.first()
+        val result = it.listFromJson<DetailsResult>()
+        return result.firstOrNull() ?: throw IllegalStateException("Fetch '$apiUrl': Not Found!")
     }
 
-    private fun getRequest(path: String, account: IgdbUserAccount, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = parameters.toMap(),
-        headers = mapOf(
-            "Accept" to "application/json",
-            "user-key" to account.apiKey
-        )
-    )
-
-    private fun parseError(raw: String): String {
-        return if (raw.startsWith("{")) {
-            val errors: List<Error> = raw.listFromJson()
-            return errors.first().error.first()
+    private inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, messagePrefix: String, params: Map<String, String>, transform: (String) -> T): T {
+        val response = khttp.get(endpoint, params = params, headers = mapOf("Accept" to "application/json", "user-key" to account.apiKey))
+        val text = response.text
+        val message = "$messagePrefix: [${response.statusCode}] $text"
+        log.trace(message)
+        return if (response.isSuccess) {
+            transform(text)
         } else {
-            raw
+            throw IllegalStateException(message)
         }
     }
+
+//    private fun parseError(raw: String): String {
+//        return if (raw.startsWith("{")) {
+//            val errors: List<Error> = raw.listFromJson()
+//            return errors.first().error.first()
+//        } else {
+//            raw
+//        }
+//    }
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 

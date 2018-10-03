@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.fromJson
+import com.gitlab.ykrasik.gamedex.util.isSuccess
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.trace
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,26 +39,36 @@ import javax.inject.Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform, account: GiantBombUserAccount): SearchResponse {
-        val response = getRequest(config.endpoint, account,
+    open fun search(name: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
+        endpoint = config.endpoint,
+        account = account,
+        messagePrefix = "Search [$platform] '$name'",
+        params = mapOf(
             "filter" to "name:$name,platforms:${platform.id}",
             "field_list" to searchFieldsStr
         )
-        log.trace { "[$platform] Search '$name': ${response.text}" }
-        return response.fromJson()
-    }
+    )
 
-    open fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse {
-        val response = getRequest(apiUrl, account, "field_list" to fetchDetailsFieldsStr)
-        log.trace { "Fetch '$apiUrl': ${response.text}" }
-        return response.fromJson()
-    }
+    open fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
+        endpoint = apiUrl,
+        account = account,
+        messagePrefix = "Fetch '$apiUrl'",
+        params = mapOf("field_list" to fetchDetailsFieldsStr)
+    )
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
-    private fun getRequest(path: String, account: GiantBombUserAccount, vararg parameters: Pair<String, String>) = khttp.get(path,
-        params = mapOf("api_key" to account.apiKey, "format" to "json", *parameters)
-    )
+    private inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, messagePrefix: String, params: Map<String, String>): T {
+        val response = khttp.get(endpoint, params = params + mapOf("api_key" to account.apiKey, "format" to "json"))
+        val text = response.text
+        val message = "$messagePrefix: [${response.statusCode}] $text"
+        log.trace(message)
+        return if (response.isSuccess) {
+            text.fromJson()
+        } else {
+            throw IllegalStateException(message)
+        }
+    }
 
     private companion object {
         val searchFields = listOf(
@@ -130,13 +140,13 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     )
 
     enum class Status(val statusCode: Int) {
-        ok(1),
-        invalidApiKey(100),
-        notFound(101),
-        badFormat(102),
-        jsonPNoCallback(103),
-        filterError(104),
-        videoOnlyForSubscribers(105);
+        OK(1),
+        InvalidApiKey(100),
+        NotFound(101),
+        BadFormat(102),
+        JsonPNoCallback(103),
+        FilterError(104),
+        VideoOnlyForSubscribers(105);
 
         override fun toString() = "$name($statusCode)"
 

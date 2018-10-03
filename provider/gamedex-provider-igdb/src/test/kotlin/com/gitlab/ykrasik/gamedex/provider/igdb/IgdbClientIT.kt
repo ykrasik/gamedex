@@ -27,7 +27,7 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldHave
 import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.matchers.substring
-import org.eclipse.jetty.http.HttpStatus
+import io.ktor.http.HttpStatusCode
 
 /**
  * User: ykrasik
@@ -57,12 +57,12 @@ class IgdbClientIT : ScopedWordSpec() {
             }
 
             "throw IllegalStateException on invalid http response status" test {
-                server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
+                server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<IllegalStateException> {
                     client.search(name, platform, account)
                 }
-                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
+                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
         }
 
@@ -80,13 +80,22 @@ class IgdbClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw IllegalStateException on invalid http response status" test {
-                server.aFetchRequest(id) willFailWith HttpStatus.BAD_REQUEST_400
+            "throw IllegalStateException on empty response" test {
+                server.aFetchRequest(id) willReturn emptyList()
 
                 val e = shouldThrow<IllegalStateException> {
                     client.fetch(detailUrl, account)
                 }
-                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
+                e.message!! shouldHave substring("Not Found!")
+            }
+
+            "throw IllegalStateException on invalid http response status" test {
+                server.aFetchRequest(id) willFailWith HttpStatusCode.BadRequest
+
+                val e = shouldThrow<IllegalStateException> {
+                    client.fetch(detailUrl, account)
+                }
+                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
         }
     }
@@ -137,18 +146,20 @@ class IgdbClientIT : ScopedWordSpec() {
 
         val account = IgdbUserAccount(apiKey = apiKey)
 
-        val client = IgdbClient(IgdbConfig(
-            endpoint = baseUrl,
-            baseImageUrl = baseImageUrl,
-            accountUrl = "",
-            maxSearchResults = maxSearchResults,
-            thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
-            posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-            screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-            defaultOrder = ProviderOrderPriorities.default,
-            platforms = mapOf(platform.name to platformId),
-            genres = emptyMap()
-        ))
+        val client = IgdbClient(
+            IgdbConfig(
+                endpoint = baseUrl,
+                baseImageUrl = baseImageUrl,
+                accountUrl = "",
+                maxSearchResults = maxSearchResults,
+                thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
+                posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+                screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+                defaultOrder = ProviderOrderPriorities.default,
+                platforms = mapOf(platform.name to platformId),
+                genres = emptyMap()
+            )
+        )
     }
 
     val searchFields = listOf(

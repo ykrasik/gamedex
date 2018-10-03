@@ -37,14 +37,16 @@ class IgdbProviderTest : ScopedWordSpec() {
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
-                search(name) shouldBe listOf(ProviderSearchResult(
-                    apiUrl = "$baseUrl/${searchResult.id}",
-                    name = name,
-                    releaseDate = releaseDate,
-                    criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
-                    userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
-                    thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
-                ))
+                search(name) shouldBe listOf(
+                    ProviderSearchResult(
+                        apiUrl = "$baseUrl/${searchResult.id}",
+                        name = name,
+                        releaseDate = releaseDate,
+                        criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
+                        userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
+                        thumbnailUrl = thumbnailUrl(searchResult.cover!!.cloudinaryId!!)
+                    )
+                )
             }
 
             "be able to return empty search results" test {
@@ -74,10 +76,12 @@ class IgdbProviderTest : ScopedWordSpec() {
                 val searchResult5 = searchResult("case Insensitive must additions ContAin possibly ALL WorDs stuff")
                 val searchResult6 = searchResult("words all contain must")
 
-                givenClientSearchReturns(listOf(
-                    searchResult1, searchResult2, searchResult3,
-                    searchResult4, searchResult5, searchResult6
-                ), name)
+                givenClientSearchReturns(
+                    listOf(
+                        searchResult1, searchResult2, searchResult3,
+                        searchResult4, searchResult5, searchResult6
+                    ), name
+                )
 
                 search(name) should have2SearchResultsThat { first, second ->
                     first.name shouldBe searchResult5.name
@@ -278,9 +282,11 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun posterUrl(imageId: String) = "$baseImageUrl/t_screenshot_huge/$imageId.jpg"
         fun screenshotUrl(imageId: String) = posterUrl(imageId)
 
-        fun searchResult(name: String = this.name,
-                         releaseDate: String = randomLocalDateString(),
-                         releaseDatePlatformId: Int = this.platformId) = IgdbClient.SearchResult(
+        fun searchResult(
+            name: String = this.name,
+            releaseDate: String = randomLocalDateString(),
+            releaseDatePlatformId: Int = this.platformId
+        ) = IgdbClient.SearchResult(
             id = randomInt(),
             name = name,
             aggregatedRating = randomScore().score,
@@ -291,8 +297,10 @@ class IgdbProviderTest : ScopedWordSpec() {
             cover = image()
         )
 
-        fun detailsResult(releaseDate: String = randomLocalDateString(),
-                          releaseDatePlatformId: Int = this.platformId) = IgdbClient.DetailsResult(
+        fun detailsResult(
+            releaseDate: String = randomLocalDateString(),
+            releaseDatePlatformId: Int = this.platformId
+        ) = IgdbClient.DetailsResult(
             url = randomWord(),
             name = name,
             summary = randomParagraph(),
@@ -327,18 +335,20 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform, account)
 
         private val client = mock<IgdbClient>()
-        val provider = IgdbProvider(IgdbConfig(
-            endpoint = baseUrl,
-            baseImageUrl = baseImageUrl,
-            accountUrl = "",
-            maxSearchResults = randomInt(),
-            thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
-            posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-            screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
-            defaultOrder = ProviderOrderPriorities.default,
-            platforms = mapOf(platform.name to platformId),
-            genres = mapOf(genreId.toString() to genre)
-        ), client)
+        val provider = IgdbProvider(
+            IgdbConfig(
+                endpoint = baseUrl,
+                baseImageUrl = baseImageUrl,
+                accountUrl = "",
+                maxSearchResults = randomInt(),
+                thumbnailImageType = IgdbProvider.IgdbImageType.thumb_2x,
+                posterImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+                screenshotImageType = IgdbProvider.IgdbImageType.screenshot_huge,
+                defaultOrder = ProviderOrderPriorities.default,
+                platforms = mapOf(platform.name to platformId),
+                genres = mapOf(genreId.toString() to genre)
+            ), client
+        )
 
         fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
             override fun test(value: List<ProviderSearchResult>): Result {

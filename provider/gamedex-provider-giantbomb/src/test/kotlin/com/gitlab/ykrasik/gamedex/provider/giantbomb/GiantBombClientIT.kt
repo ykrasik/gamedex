@@ -27,7 +27,7 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldHave
 import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.matchers.substring
-import org.eclipse.jetty.http.HttpStatus
+import io.ktor.http.HttpStatusCode
 
 /**
  * User: ykrasik
@@ -54,13 +54,13 @@ class GiantBombClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status" test {
-                server.anySearchRequest() willFailWith HttpStatus.BAD_REQUEST_400
+            "throw IllegalStateException on invalid http response status" test {
+                server.anySearchRequest() willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<IllegalStateException> {
                     client.search(name, platform, account)
                 }
-                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
+                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
         }
 
@@ -77,13 +77,13 @@ class GiantBombClientIT : ScopedWordSpec() {
                 )
             }
 
-            "throw GameDexException on invalid http response status" test {
-                server.aFetchRequest(detailPath) willFailWith HttpStatus.BAD_REQUEST_400
+            "throw IllegalStateException on invalid http response status" test {
+                server.aFetchRequest(detailPath) willFailWith HttpStatusCode.BadRequest
 
                 val e = shouldThrow<IllegalStateException> {
                     client.fetch(detailUrl, account)
                 }
-                e.message!! shouldHave substring(HttpStatus.BAD_REQUEST_400.toString())
+                e.message!! shouldHave substring(HttpStatusCode.BadRequest.value.toString())
             }
         }
     }
@@ -100,37 +100,43 @@ class GiantBombClientIT : ScopedWordSpec() {
         private fun randomImage() = GiantBombClient.Image(thumbUrl = randomUrl(), superUrl = randomUrl())
 
         val searchResponse = GiantBombClient.SearchResponse(
-            statusCode = GiantBombClient.Status.ok,
-            results = listOf(GiantBombClient.SearchResult(
-                apiDetailUrl = randomUrl(),
-                name = randomName(),
-                originalReleaseDate = randomLocalDate(),
-                image = randomImage()
-            ))
+            statusCode = GiantBombClient.Status.OK,
+            results = listOf(
+                GiantBombClient.SearchResult(
+                    apiDetailUrl = randomUrl(),
+                    name = randomName(),
+                    originalReleaseDate = randomLocalDate(),
+                    image = randomImage()
+                )
+            )
         )
 
         val detailsResponse = GiantBombClient.DetailsResponse(
-            statusCode = GiantBombClient.Status.ok,
-            results = listOf(GiantBombClient.DetailsResult(
-                siteDetailUrl = randomUrl(),
-                name = randomName(),
-                deck = randomParagraph(),
-                originalReleaseDate = randomLocalDate(),
-                image = randomImage(),
-                images = listOf(randomImage(), randomImage()),
-                genres = listOf(GiantBombClient.Genre(name = randomName()))
-            ))
+            statusCode = GiantBombClient.Status.OK,
+            results = listOf(
+                GiantBombClient.DetailsResult(
+                    siteDetailUrl = randomUrl(),
+                    name = randomName(),
+                    deck = randomParagraph(),
+                    originalReleaseDate = randomLocalDate(),
+                    image = randomImage(),
+                    images = listOf(randomImage(), randomImage()),
+                    genres = listOf(GiantBombClient.Genre(name = randomName()))
+                )
+            )
         )
 
         val account = GiantBombUserAccount(apiKey = apiKey)
 
-        val client = GiantBombClient(GiantBombConfig(
-            endpoint = baseUrl,
-            noImageFileName = "",
-            accountUrl = "",
-            defaultOrder = ProviderOrderPriorities.default,
-            platforms = mapOf(platform.name to platformId)
-        ))
+        val client = GiantBombClient(
+            GiantBombConfig(
+                endpoint = baseUrl,
+                noImageFileName = "",
+                accountUrl = "",
+                defaultOrder = ProviderOrderPriorities.default,
+                platforms = mapOf(platform.name to platformId)
+            )
+        )
     }
 
     val searchFields = listOf("api_detail_url", "name", "original_release_date", "image")

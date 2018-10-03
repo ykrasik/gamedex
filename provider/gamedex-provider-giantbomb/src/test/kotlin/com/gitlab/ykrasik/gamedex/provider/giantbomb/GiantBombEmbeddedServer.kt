@@ -51,8 +51,8 @@ class GiantBombMockServer(port: Int) : Closeable {
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
     abstract inner class BaseRequest {
-        infix fun willFailWith(status: Int) {
-            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status)))
+        infix fun willFailWith(status: HttpStatusCode) {
+            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status.value)))
         }
     }
 
@@ -110,14 +110,14 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         if (call.parameters["api_key"] == apiKey) {
             body()
         } else {
-            call.respond(HttpStatusCode.Unauthorized, GiantBombClient.SearchResponse(GiantBombClient.Status.invalidApiKey, emptyList()).toMap().toJsonStr())
+            call.respond(HttpStatusCode.Unauthorized, GiantBombClient.SearchResponse(GiantBombClient.Status.InvalidApiKey, emptyList()).toMap().toJsonStr())
         }
     }
 
-    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis))
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong())
 
     private fun randomSearchResponse() = GiantBombClient.SearchResponse(
-        statusCode = GiantBombClient.Status.ok,
+        statusCode = GiantBombClient.Status.OK,
         results = randomList(10) {
             GiantBombClient.SearchResult(
                 apiDetailUrl = apiDetailsUrl,
@@ -129,7 +129,7 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
     )
 
     private fun randomDetailResponse() = GiantBombClient.DetailsResponse(
-        statusCode = GiantBombClient.Status.ok,
+        statusCode = GiantBombClient.Status.OK,
         results = listOf(GiantBombClient.DetailsResult(
             siteDetailUrl = randomUrl(),
             name = randomName(),

@@ -51,8 +51,8 @@ class IgdbMockServer(port: Int) : Closeable {
     fun verify(requestPatternBuilder: RequestPatternBuilder) = wiremock.verify(requestPatternBuilder)
 
     abstract inner class BaseRequest {
-        infix fun willFailWith(status: Int) {
-            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status)))
+        infix fun willFailWith(status: HttpStatusCode) {
+            wiremock.givenThat(get(anyUrl()).willReturn(aResponse().withStatus(status.value)))
         }
     }
 
@@ -63,8 +63,10 @@ class IgdbMockServer(port: Int) : Closeable {
     }
 
     inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
-        infix fun willReturn(response: IgdbClient.DetailsResult) {
-            wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(listOf(response))))
+        infix fun willReturn(response: IgdbClient.DetailsResult) = willReturn(listOf(response))
+
+        infix fun willReturn(response: List<IgdbClient.DetailsResult>) {
+            wiremock.givenThat(get(urlPathEqualTo("/$gameId")).willReturn(aJsonResponse(response)))
         }
     }
 }
@@ -122,7 +124,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
         }
     }
 
-    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis))
+    private suspend fun delay(minMillis: Int, maxMillis: Int) = delay(randomInt(min = minMillis, max = maxMillis).toLong())
 
     private fun randomSearchResults(name: String): String = randomList(10) {
         IgdbClient.SearchResult(

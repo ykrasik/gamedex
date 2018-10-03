@@ -21,9 +21,13 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.util.logResult
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
+import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,20 +41,11 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private val log = logger()
 
     override fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
-        log.debug { "[$platform] Searching: '$name'..." }
-        val searchResults = client.search(name, platform, account as IgdbUserAccount)
-        val results = searchResults.toProviderSearchResults(name, platform)
-        log.debug { "[$platform] Searching: '$name': ${results.size} results." }
-        results.forEach { log.trace { it.toString() } }
+        val results = log.logResult("[$platform] Search '$name'...", { results -> "${results.size} results." }, Logger::debug) {
+            client.search(name, platform, account as IgdbUserAccount).toProviderSearchResults(name, platform)
+        }
+        results.forEach { log.trace(it.toString()) }
         return results
-    }
-
-    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData {
-        log.debug { "[$platform] Downloading: $apiUrl..." }
-        val fetchResult = client.fetch(apiUrl, account as IgdbUserAccount)
-        val gameData = fetchResult.toProviderData(apiUrl, platform)
-        log.debug { "[$platform] Result: $gameData." }
-        return gameData
     }
 
     private fun List<IgdbClient.SearchResult>.toProviderSearchResults(name: String, platform: Platform): List<ProviderSearchResult> {
@@ -73,6 +68,11 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         userScore = toScore(rating, ratingCount),
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
     )
+
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData =
+        log.logResult("[$platform] Download $apiUrl...", log = Logger::debug) {
+            client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(apiUrl, platform)
+        }
 
     private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
         header = ProviderHeader(

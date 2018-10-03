@@ -88,8 +88,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 }
             }
 
-            "throw GameDexException on invalid response status" test {
-                givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.badFormat, emptyList()))
+            "throw IllegalStateException on invalid response status" test {
+                givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                 shouldThrow<IllegalStateException> {
                     search()
@@ -170,8 +170,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 download().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
-            "throw GameDexException on invalid response status" test {
-                givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.badFormat, emptyList()))
+            "throw IllegalStateException on invalid response status" test {
+                givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                 shouldThrow<IllegalStateException> {
                     download()
@@ -207,14 +207,14 @@ class GiantBombProviderTest : ScopedWordSpec() {
         )
 
         fun givenClientSearchReturns(results: List<GiantBombClient.SearchResult>, name: String = this.name) =
-            givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.ok, results), name)
+            givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.OK, results), name)
 
         fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
             `when`(client.search(name, platform, account)).thenReturn(response)
         }
 
         fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
-            givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.ok, listOf(result)), apiUrl)
+            givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
 
         fun givenClientFetchReturns(response: GiantBombClient.DetailsResponse, apiUrl: String = apiDetailUrl) {
             `when`(client.fetch(apiUrl, account)).thenReturn(response)

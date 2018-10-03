@@ -21,10 +21,11 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
 import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
-import com.gitlab.ykrasik.gamedex.util.debug
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
+import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.nowTimestamp
+import org.slf4j.Logger
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,12 +39,11 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
     private val log = logger()
 
     override fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
-        log.debug { "[$platform] Searching: '$name'..." }
-        val response = client.search(name, platform, account as GiantBombUserAccount)
-        assertOk(response.statusCode)
-
-        val results = response.results.map { it.toProviderSearchResult() }
-        log.debug { "[$platform] Searching: '$name': ${results.size} results." }
+        val results = log.logResult("[$platform] Search '$name'...", { results -> "${results.size} results." }, Logger::debug) {
+            val response = client.search(name, platform, account as GiantBombUserAccount)
+            assertOk(response.statusCode)
+            response.results.map { it.toProviderSearchResult() }
+        }
         results.forEach { log.trace(it.toString()) }
         return results
     }
@@ -57,18 +57,15 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         apiUrl = apiDetailUrl
     )
 
-    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData {
-        log.debug { "[$platform] Downloading: $apiUrl..." }
-        val response = client.fetch(apiUrl, account as GiantBombUserAccount)
-        assertOk(response.statusCode)
-
-        // When result is found - GiantBomb returns a Json object.
-        // When result is not found, GiantBomb returns an empty Json array [].
-        // So 'results' can contain at most a single value.
-        val gameData = response.results.first().toProviderData(apiUrl)
-        log.debug { "[$platform] Result: $gameData." }
-        return gameData
-    }
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData =
+        log.logResult("[$platform] Download $apiUrl...", log = Logger::debug) {
+            val response = client.fetch(apiUrl, account as GiantBombUserAccount)
+            assertOk(response.statusCode)
+            // When result is found - GiantBomb returns a Json object.
+            // When result is not found, GiantBomb returns an empty Json array [].
+            // So 'results' can contain at most a single value.
+            response.results.first().toProviderData(apiUrl)
+        }
 
     private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
         header = ProviderHeader(
@@ -95,7 +92,7 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
     private fun String.filterEmptyImage(): String? = if (endsWith(config.noImageFileName)) null else this
 
     private fun assertOk(status: GiantBombClient.Status) {
-        if (status != GiantBombClient.Status.ok) {
+        if (status != GiantBombClient.Status.OK) {
             throw IllegalStateException("Invalid statusCode: $status")
         }
     }
