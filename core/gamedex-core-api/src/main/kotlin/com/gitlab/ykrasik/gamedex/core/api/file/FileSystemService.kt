@@ -30,6 +30,8 @@ import java.io.File
  */
 interface FileSystemService {
     fun structure(game: Game): FileStructure
+    fun allStructure(): Map<GameId, FileStructure>
+
     fun deleteStructure(gameId: GameId)
     fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 

@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.FXCollections
@@ -57,53 +58,61 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
     private val currentToggle get() = selection.selectedToggleProperty()
     private val currentScreen = currentToggle.map { it?.userData as? JavaFxReportView }
     private val currentReport = currentScreen.map { it?.report }
-    private val currentReportConfig = currentScreen.map { it?.reportConfig }
     private val currentlySelectedGame = currentScreen.flatMap {
         it?.selectedGameProperty ?: SimpleObjectProperty<Game>()
     }
 
-    private var isChangingSettings = false
-
     override val root = stackpane {
         this@ReportsScreen.content = vbox()
         maskerPane {
-            visibleWhen { currentReport.flatMap { it?.isCalculatingProperty ?: false.toProperty() } }
-            currentScreen.onChange {
-                progressProperty().cleanBind(currentReport.flatMap {
-                    it?.progressProperty ?: ProgressIndicator.INDETERMINATE_PROGRESS.toProperty()
-                })
-            }
+            val calculatingReportProperty = currentScreen.flatMap { it?.calculatingReportProperty ?: false.toProperty() }
+            val calculatingReportProgressProperty = currentScreen.flatMap { it?.calculatingReportProgressProperty ?: SimpleDoubleProperty(ProgressIndicator.INDETERMINATE_PROGRESS) }
+            visibleWhen { calculatingReportProperty }
+            progressProperty().bind(calculatingReportProgressProperty)
         }
     }
 
     init {
         viewRegistry.register(this)
 
+        var isRenderingReports = false
         reports.perform { reports ->
-            isChangingSettings = true
+            isRenderingReports = true
+
+            val prevReport = currentReport.value
 
             // TODO: Check for listener leaks.
-            cleanupClosedScreen(currentToggle.value)
+            cleanupClosedReportView(currentToggle.value)
             selection.toggles.clear()
 
             screens.setAll(reports.map { JavaFxReportView(it) })
 
-            isChangingSettings = false
+            isRenderingReports = false
 
-            // FIXME: listen to changes of any report & show it on change
+            if (prevReport != null) {
+                reports.find { it.id == prevReport.id }?.let { report ->
+                    // Re-select the previous report if it wasn't deleted.
+                    selection.selectToggle(selection.toggles.find { it.reportView.report.id == report.id })
+                }
+            }
         }
 
+        var ignoreNextToggleChange = false
         selection.selectedToggleProperty().addListener { _, oldToggle, newToggle ->
             if (oldToggle != null && newToggle == null) {
                 // This piece of code prevents a toggle from being 'unselected', as we always want one active.
                 // It will get called also when we are re-constructing the screens after a change to the settings,
                 // where it must allow the old toggle to be unselected (it is about to be dropped completely).
-                if (!isChangingSettings) {
+                if (!isRenderingReports) {
+                    ignoreNextToggleChange = true
                     selection.selectToggle(oldToggle)
+                    ignoreNextToggleChange = false
                 }
             } else {
-                cleanupClosedScreen(oldToggle)
-                prepareNewScreen(newToggle)
+                if (!ignoreNextToggleChange) {
+                    cleanupClosedReportView(oldToggle)
+                    prepareNewReportView(newToggle)
+                }
             }
         }
     }
@@ -122,11 +131,11 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
                                     isSelected = this == currentToggle.value
                                 }
                                 jfxButton(graphic = Theme.Icon.edit()) {
-                                    eventOnAction(editReportActions) { screen.reportConfig }
+                                    eventOnAction(editReportActions) { screen.report }
                                 }
                                 jfxButton(graphic = Theme.Icon.delete()) {
                                     addClass(CommonStyle.deleteButton)
-                                    eventOnAction(deleteReportActions) { screen.reportConfig }
+                                    eventOnAction(deleteReportActions) { screen.report }
                                 }
                             }
                         }
@@ -143,7 +152,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
         }.apply {
             addClass(CommonStyle.thinBorder)
             alignment = Pos.CENTER_LEFT
-            textProperty().bind(currentReportConfig.map { it?.name ?: "Select Report" })
+            textProperty().bind(currentReport.map { it?.name ?: "Select Report" })
         }
         verticalSeparator()
         searchField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
@@ -153,44 +162,40 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
         excludeButton {
             textProperty().bind(currentlySelectedGame.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
             enableWhen { currentlySelectedGame.isNotNull }
-            eventOnAction(excludeGameActions) { currentReportConfig.value!! to currentlySelectedGame.value }
+            eventOnAction(excludeGameActions) { currentReport.value!! to currentlySelectedGame.value }
         }
         verticalSeparator()
     }
 
-    // FIXME: Make changes to the current report re-display the report.
-    private fun upsertReport(f: () -> Report?) {
-        val newConfig = f() ?: return
-        // Select the newly upserted config.
-        val newToggle = selection.toggles.find { (it.userData as JavaFxReportView).reportConfig == newConfig }
-        selection.selectToggle(newToggle)
-    }
-
     override fun onDock() {
-        prepareNewScreen(currentToggle.value)
+        prepareNewReportView(currentToggle.value)
     }
 
     override fun onUndock() {
-        cleanupClosedScreen(currentToggle.value)
+        cleanupClosedReportView(currentToggle.value)
     }
 
     override fun confirmDelete(report: Report) =
     // TODO: Display a read-only view of the rules instead.
         areYouSureDialog("Delete report '${report.name}'?") { label("Rules: ${report.filter}") }
 
-    private fun cleanupClosedScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
-        searchTextProperty.unbindBidirectional(screen.searchProperty)
-        screen.onUndock()
+    private fun cleanupClosedReportView(toggle: Toggle?) = toggle?.reportView?.let { reportView ->
+        searchTextProperty.unbindBidirectional(reportView.searchProperty)
+        // TODO: reportView.callOnUndock() throws noSuchMethod. Wtf, kotlin?
+        reportView.onUndock()
+        reportView.onUndockListeners?.forEach { it.invoke(this) }
         content.clear()
     }
 
-    private fun prepareNewScreen(toggle: Toggle?) = toggle?.withScreen { screen ->
-        screen.onDock()
-        searchTextProperty.bindBidirectional(screen.searchProperty)
+    private fun prepareNewReportView(toggle: Toggle?) = toggle?.reportView?.let { reportView ->
+        // TODO: reportView.callOnDock() throws noSuchMethod. Wtf, kotlin?
+        reportView.onDock()
+        reportView.onDockListeners?.forEach { it.invoke(this) }
+        searchTextProperty.bindBidirectional(reportView.searchProperty)
         content.replaceChildren {
-            children += screen.root.apply { vgrow = Priority.ALWAYS }
+            children += reportView.root.apply { vgrow = Priority.ALWAYS }
         }
     }
 
-    private fun Toggle.withScreen(f: (JavaFxReportView) -> Unit) = f(userData as JavaFxReportView)
+    private val Toggle.reportView get() = userData as JavaFxReportView
 }

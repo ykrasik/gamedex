@@ -78,6 +78,8 @@ class FileSystemServiceImpl @Inject constructor(
         }
     }
 
+    override fun allStructure() = fileStructureStorage.getAll()
+
     override fun deleteStructure(gameId: GameId) {
         fileStructureStorage.delete(gameId)
     }

@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -32,8 +31,7 @@ class FilterContextImpl(
     private val fileSystemService: FileSystemService
 ) : Filter.Context {
     private val cache = mutableMapOf<String, Any>()
-    private val _additionalData = mutableMapOf<GameId, MutableSet<AdditionalData>>()
-    val additionalData: Map<GameId, Set<AdditionalData>> = _additionalData
+    override val additionalData = mutableMapOf<GameId, MutableSet<Filter.Context.AdditionalData>>()
 
     override fun size(game: Game) = fileSystemService.structure(game).size
 
@@ -46,10 +44,8 @@ class FilterContextImpl(
         values.forEach { addAdditionalInfo(game, rule, it) }
 
     override fun addAdditionalInfo(game: Game, rule: Filter.Rule, value: Any?) {
-        val gameAdditionalInfo = this._additionalData.getOrPut(game.id) { mutableSetOf() }
-        val additionalInfo = AdditionalData(rule::class, value)
+        val gameAdditionalInfo = additionalData.getOrPut(game.id) { mutableSetOf() }
+        val additionalInfo = Filter.Context.AdditionalData(rule::class, value)
         if (!gameAdditionalInfo.contains(additionalInfo)) gameAdditionalInfo += additionalInfo
     }
-
-    data class AdditionalData(val rule: KClass<out Filter.Rule>, val value: Any?)
 }

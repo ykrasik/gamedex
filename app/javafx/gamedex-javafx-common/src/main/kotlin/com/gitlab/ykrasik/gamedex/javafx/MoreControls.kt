@@ -374,7 +374,7 @@ inline fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.Arro
     return popover
 }
 
-fun ToggleGroup.disallowDeselection() {
+fun ToggleGroup.disallowDeselection() = apply {
     selectedToggleProperty().addListener { _, oldValue, newValue ->
         if (newValue == null) {
             selectToggle(oldValue)

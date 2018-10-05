@@ -14,39 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import javafx.scene.control.TableView
-import javafx.scene.layout.Priority
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.google.inject.ImplementedBy
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 25/06/2017
- * Time: 09:48
+ * Date: 03/10/2018
+ * Time: 22:53
  */
-class DuplicationFragment(duplication: Filter.Duplications.GameDuplication, gamesTable: TableView<Game>) : Fragment() {
-    private val gameService: GameService by di()
+@ImplementedBy(FilterContextFactoryImpl::class)
+interface FilterContextFactory {
+    fun create(games: List<Game>): Filter.Context
+}
 
-    override val root = form {
-        addClass(CommonStyle.centered)
-        fieldset {
-            inputGrow = Priority.ALWAYS
-            field {
-                val game = gameService[duplication.duplicatedGameId]
-                jfxButton(game.name) {
-                    addClass(CommonStyle.fillAvailableWidth)
-                    setOnAction {
-                        gamesTable.selectionModel.select(game)
-                        gamesTable.scrollTo(game)
-                    }
-                }
-            }
-        }
-    }
+@Singleton
+class FilterContextFactoryImpl @Inject constructor(
+    private val fileSystemService: FileSystemService
+) : FilterContextFactory{
+    override fun create(games: List<Game>): Filter.Context = FilterContextImpl(games, fileSystemService)
 }

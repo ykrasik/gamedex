@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
+import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.map
@@ -40,6 +40,7 @@ import javax.inject.Singleton
 class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val fileSystemService: FileSystemService,
+    private val filterContextFactory: FilterContextFactory,
     settingsService: SettingsService
 ) : Presenter<ViewWithGames> {
     private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
@@ -68,7 +69,7 @@ class GamesPresenter @Inject constructor(
     private val filterPredicate = settingsService.game.platformChannel.flatMap { platform ->
         settingsService.platforms[platform]!!.dataChannel.subscribe()
     }.map { settings ->
-        val context = FilterContextImpl(emptyList(), fileSystemService)
+        val context = filterContextFactory.create(emptyList())
         return@map { game: Game ->
             game.matchesSearchQuery(settings.search) &&
                 settings.filter.evaluate(game, context)

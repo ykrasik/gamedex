@@ -74,11 +74,13 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
     private fun TextFlow.match(text: String) = label(text) { addClass(Style.match) }
 
     private fun TextFlow.diff(text: String, type: Delta.TYPE) = label(text) {
-        addClass(Style.match, Style.diff, when (type) {
-            Delta.TYPE.CHANGE -> Style.change
-            Delta.TYPE.DELETE -> Style.delete
-            Delta.TYPE.INSERT -> Style.insert
-        })
+        addClass(
+            Style.match, Style.diff, when (type) {
+                Delta.TYPE.CHANGE -> Style.change
+                Delta.TYPE.DELETE -> Style.delete
+                Delta.TYPE.INSERT -> Style.insert
+            }
+        )
     }
 
     class Style : Stylesheet() {

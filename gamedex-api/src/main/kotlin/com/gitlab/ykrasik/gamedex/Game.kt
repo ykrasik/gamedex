@@ -144,6 +144,7 @@ data class Timestamp(
     fun updatedNow() = copy(updateDate = com.gitlab.ykrasik.gamedex.util.now)
 
     companion object {
+        val zero = Timestamp(DateTime(0), DateTime(0))
         val now get() = com.gitlab.ykrasik.gamedex.util.now.let { now -> Timestamp(now, now) }
     }
 }

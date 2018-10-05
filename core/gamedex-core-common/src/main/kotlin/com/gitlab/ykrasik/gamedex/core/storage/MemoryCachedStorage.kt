@@ -64,7 +64,7 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
         return value
     }
 
-    override fun getAll() = cache.toMap()
+    override fun getAll() = cache
 
     override fun delete(key: K): Boolean {
         val success = delegate.delete(key)

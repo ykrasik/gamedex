@@ -16,25 +16,28 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.report
 
+import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
-import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextImpl
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
-import javafx.collections.ObservableList
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.TableView
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -45,28 +48,31 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.name, Theme.Icon.chart()),
+class JavaFxReportView(override val report: Report) : PresentableView(report.name, Theme.Icon.chart()),
     ReportView, ViewCanShowGameDetails {
-    override val showGameDetailsActions = channel<Game>()
+    val calculatingReportProperty = SimpleBooleanProperty(false)
+    override var calculatingReport by calculatingReportProperty
 
-    private val reportController: ReportController by di()
-    private val fileSystemService: FileSystemService by di()
+    val calculatingReportProgressProperty = SimpleDoubleProperty(ProgressIndicator.INDETERMINATE_PROGRESS)
+    override var calculatingReportProgress by calculatingReportProgressProperty
+
+    private val resultProperty = SimpleObjectProperty<ReportResult>(ReportResult(emptyList(), emptyMap(), emptyMap()))
+    override var result by resultProperty
+
+    override val showGameDetailsActions = channel<Game>()
 
     private val gameContextMenu: GameContextMenu by inject()
     private val browser = YouTubeWebBrowser()
 
-    val report = reportController.generateReport(reportConfig)
-    private val games = report.resultsProperty.mapToList { it.keys.sortedBy { it.name } }
+    private val games = resultProperty.mapToList { it.games }
 
     // TODO: ViewCanSearchReport
     val searchProperty = SimpleStringProperty("")
 
-    private val gamesTable = gamesView(games)
+    private val gamesTable = gamesView()
 
     val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
-    private val selectedGame by selectedGameProperty
-
-    private val additionalInfoProperty = selectedGameProperty.map { report.results[it] }
+    private val additionalInfoProperty = selectedGameProperty.map { result.additionalData[it?.id] }
 
     init {
         viewRegistry.register(this)
@@ -119,7 +125,7 @@ class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.
         }
     }
 
-    private fun gamesView(games: ObservableList<Game>) = TableView(games).apply {
+    private fun gamesView() = TableView(games).apply {
         vgrow = Priority.ALWAYS
         fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
@@ -128,7 +134,7 @@ class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.
         customGraphicColumn("Path") { game ->
             pathButton(game.path) { mouseTransparentWhen { isNotSelected(game) } }
         }
-        customGraphicColumn("Size", { game -> fileSystemService.structure(game).size.toProperty() }) { size ->
+        customGraphicColumn("Size", { game -> (result.fileStructure[game.id] ?: FileStructure.NotAvailable).size.toProperty() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 
@@ -144,18 +150,18 @@ class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.
             }
         }
 
-        report.resultsProperty.onChange { resizeColumnsToFitContent() }
+        resultProperty.onChange { resizeColumnsToFitContent() }
 
         minWidthFitContent(indexColumn)
     }
 
-    private fun EventTarget.additionalInfoView() = tableview<FilterContextImpl.AdditionalData> {
+    private fun EventTarget.additionalInfoView() = tableview<Filter.Context.AdditionalData> {
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
 //        simpleColumn("Rule") { result -> result.rule.name }
         customGraphicColumn("Value") {
             val result = it.value
             when (result) {
-                is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGame).root
+                is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGameProperty.value).root
                 is Filter.Duplications.GameDuplication -> DuplicationFragment(result, gamesTable).root
                 else -> label(result.toDisplayString())
             }
@@ -171,7 +177,7 @@ class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.
 
         additionalInfoProperty.onChange { additionalInfo ->
             // The selected game may not appear in the report (can happen with programmatic selection).
-            items = additionalInfo?.observable()
+            items = additionalInfo?.toList()?.observable()
             resizeColumnsToFitContent()
         }
     }
@@ -184,11 +190,9 @@ class JavaFxReportView(val reportConfig: Report) : PresentableView(reportConfig.
 
     override fun onDock() {
         browser.stop()
-        report.start()
     }
 
     override fun onUndock() {
         browser.stop()
-        report.stop()
     }
 }

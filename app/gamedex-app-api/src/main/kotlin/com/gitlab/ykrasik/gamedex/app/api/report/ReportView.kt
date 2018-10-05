@@ -16,10 +16,26 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.report
 
+import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+
 /**
  * User: ykrasik
  * Date: 29/06/2018
  * Time: 10:29
  */
 interface ReportView {
+    val report: Report
+
+    var calculatingReport: Boolean
+    var calculatingReportProgress: Double
+    var result: ReportResult?
 }
+
+data class ReportResult(
+    val games: List<Game>,
+    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>,
+    val fileStructure: Map<GameId, FileStructure>
+)

@@ -83,23 +83,22 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     fun ViewModel.presentableStringProperty(channel: Channel<String>): Property<String> =
         presentableProperty(channel) { SimpleStringProperty("") }
 
-    inline fun <R> ViewModel.presentableStringProperty(channel: Channel<R>,
-                                                       crossinline factory: (String) -> R): Property<String> =
+    inline fun <R> ViewModel.presentableStringProperty(channel: Channel<R>, crossinline factory: (String) -> R): Property<String> =
         presentableProperty(channel, { SimpleStringProperty("") }, factory)
 
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<T>,
-                                                                                        crossinline propertyFactory: () -> O): O =
+    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<T>, crossinline propertyFactory: () -> O): O =
         presentableProperty(channel, propertyFactory) { it }
 
-    inline fun <reified T : Any, R, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<R>,
-                                                                                           crossinline propertyFactory: () -> O,
-                                                                                           crossinline valueFactory: (T) -> R): O =
-        bind<O, T, O> { propertyFactory() }.apply {
-            onChange {
-                channel.event(valueFactory(it!!))
-                commit()
-            }
+    inline fun <reified T : Any, R, reified O : Property<T>> ViewModel.presentableProperty(
+        channel: Channel<R>,
+        crossinline propertyFactory: () -> O,
+        crossinline valueFactory: (T) -> R
+    ): O = bind<O, T, O> { propertyFactory() }.apply {
+        onChange {
+            channel.event(valueFactory(it!!))
+            commit()
         }
+    }
 
     fun TextInputControl.validatorFrom(viewModel: ViewModel, errorValue: ObservableValue<String?>) {
         errorValue.onChange { viewModel.validate() }

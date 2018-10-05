@@ -17,11 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import javafx.animation.FadeTransition
-import javafx.application.Platform.runLater
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
@@ -55,13 +50,8 @@ val screenBounds: Rectangle2D = Screen.getPrimary().bounds
 
 fun javaFx(f: suspend CoroutineScope.() -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx, block = f)
 
-fun runLaterIfNecessary(f: () -> Unit) = if (javafx.application.Platform.isFxApplicationThread()) {
-    f()
-} else {
-    runLater(f)
-}
-
 private object StylesheetLock
+
 fun <T : Stylesheet> importStylesheetSafe(stylesheetType: KClass<T>) = synchronized(StylesheetLock) { importStylesheet(stylesheetType) }
 
 fun UIComponent.callOnDock() {
@@ -80,33 +70,10 @@ fun Image.toImageView(height: Number, width: Number): ImageView = toImageView {
     fitWidth = width.toDouble()
     isPreserveRatio = true
 }
+
 fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
-
-class ThreadAwareObjectProperty<T> : SimpleObjectProperty<T>() {
-    override fun fireValueChangedEvent() {
-        runLaterIfNecessary { super.fireValueChangedEvent() }
-    }
-}
-
-class ThreadAwareStringProperty(initialValue: String? = null) : SimpleStringProperty(initialValue) {
-    override fun fireValueChangedEvent() {
-        runLaterIfNecessary { super.fireValueChangedEvent() }
-    }
-}
-
-class ThreadAwareDoubleProperty(initialValue: Double = 0.0) : SimpleDoubleProperty(initialValue) {
-    override fun fireValueChangedEvent() {
-        runLaterIfNecessary { super.fireValueChangedEvent() }
-    }
-}
-
-class ThreadAwareBooleanProperty(initialValue: Boolean = false) : SimpleBooleanProperty(initialValue) {
-    override fun fireValueChangedEvent() {
-        runLaterIfNecessary { super.fireValueChangedEvent() }
-    }
-}
 
 fun Region.printSize(id: String) {
     printWidth(id)
@@ -124,12 +91,14 @@ fun Stage.printWidth(id: String) {
     printSize(id, "width", minWidthProperty(), maxWidthProperty(), null, widthProperty())
 }
 
-private fun printSize(id: String,
-                      sizeName: String,
-                      min: ObservableValue<Number>,
-                      max: ObservableValue<Number>,
-                      pref: ObservableValue<Number>?,
-                      actual: ObservableValue<Number>) {
+private fun printSize(
+    id: String,
+    sizeName: String,
+    min: ObservableValue<Number>,
+    max: ObservableValue<Number>,
+    pref: ObservableValue<Number>?,
+    actual: ObservableValue<Number>
+) {
     println("$id min-$sizeName = ${min.value}")
     println("$id max-$sizeName = ${max.value}")
     pref?.let { println("$id pref-$sizeName = ${it.value}") }
@@ -229,7 +198,7 @@ fun <T> TableView<T>.minWidthFitContent(indexColumn: TableColumn<T, Number>? = n
 
 fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse: Boolean = false): FadeTransition =
     fade(duration, if (reverse) 1.0 - target else target) {
-    setOnFinished {
-        fade(duration, if (reverse) 0.0 else 1.0)
+        setOnFinished {
+            fade(duration, if (reverse) 0.0 else 1.0)
+        }
     }
-}

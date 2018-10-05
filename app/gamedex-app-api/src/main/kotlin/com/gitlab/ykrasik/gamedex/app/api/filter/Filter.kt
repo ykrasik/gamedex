@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import com.gitlab.ykrasik.gamedex.util.today
 import difflib.DiffUtils
 import difflib.Patch
-import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import kotlin.reflect.KClass
 
@@ -257,7 +256,6 @@ sealed class Filter {
                 .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutTimestamp() to checkedGame } }
                 .toMultiMap()
 
-            // TODO: Does this belong here?
             // Only detect duplications in the same platform.
             val duplicateHeaders = headerToGames
                 .mapValues { (_, games) -> games.groupBy { it.platform }.filterValues { it.size > 1 }.flatMap { it.value } }
@@ -276,7 +274,7 @@ sealed class Filter {
             }.toMultiMap()
         }
 
-        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp(DateTime(0), DateTime(0)))
+        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp.zero)
 
         data class GameDuplication(
             val providerId: ProviderId,
@@ -330,6 +328,7 @@ sealed class Filter {
 
     interface Context {
         val games: List<Game>
+        val additionalData: Map<GameId, Set<AdditionalData>>
 
         fun size(game: Game): com.gitlab.ykrasik.gamedex.util.FileSize
         fun toFileName(name: String): String
@@ -338,5 +337,7 @@ sealed class Filter {
         fun addAdditionalInfo(game: Game, rule: Rule, value: Any?)
 
         fun <T> cache(key: String, defaultValue: () -> T): T
+
+        data class AdditionalData(val rule: KClass<out Filter.Rule>, val value: Any?)
     }
 }

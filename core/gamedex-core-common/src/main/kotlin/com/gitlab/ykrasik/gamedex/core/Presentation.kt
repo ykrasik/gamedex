@@ -66,8 +66,7 @@ abstract class Presentation : CoroutineScope {
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher,
-                                                f: suspend (T) -> Unit) {
+    protected fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher, f: suspend (T) -> Unit) {
         launch(context) {
             consumeEach {
                 try {
@@ -79,19 +78,16 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher,
-                                                                  crossinline f: (T) -> Unit) {
+    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher, crossinline f: (T) -> Unit) {
         f(poll()!!)
         forEach(context) { f(it) }
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher,
-                                                         f: suspend (T) -> Unit) =
+    protected fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher, f: suspend (T) -> Unit) =
         subscribe().forEach(context, f)
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher,
-                                                                           crossinline f: (T) -> Unit) =
+    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher, crossinline f: (T) -> Unit) =
         subscribe().forEachImmediately(context, f)
 
     protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
@@ -108,11 +104,13 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(channelAccessor: S.() -> BroadcastReceiveChannel<T>,
-                                                                              viewProperty: KMutableProperty0<T>,
-                                                                              changesChannel: ReceiveChannel<T>,
-                                                                              context: CoroutineContext = Dispatchers.Default,
-                                                                              crossinline f: (Data).(T) -> Data) {
+    protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
+        channelAccessor: S.() -> BroadcastReceiveChannel<T>,
+        viewProperty: KMutableProperty0<T>,
+        changesChannel: ReceiveChannel<T>,
+        context: CoroutineContext = Dispatchers.Default,
+        crossinline f: (Data).(T) -> Data
+    ) {
         val channel = channelAccessor(this)
         channel.reportChangesTo(viewProperty)
         changesChannel.forEach(context) { change ->
@@ -120,8 +118,7 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>,
-                                                                 context: CoroutineContext = uiDispatcher) {
+    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>, context: CoroutineContext = uiDispatcher) {
         viewProperty.set(peek()!!)
         forEach(context) { viewProperty.set(it) }
     }

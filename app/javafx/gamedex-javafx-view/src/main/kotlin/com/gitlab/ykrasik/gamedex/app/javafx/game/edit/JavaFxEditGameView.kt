@@ -198,17 +198,19 @@ class JavaFxEditGameView : PresentableView(), EditGameView {
         )
     }
 
-    private fun <T : Any> VBox.entry(type: GameDataType,
-                                     overrideViewModelProperty: ObjectProperty<GameDataOverrideViewModel<T>>,
-                                     providerDataExtractor: (GameData) -> T?,
-                                     gameDataExtractor: (Game) -> T?,
-                                     dataDisplay: (EventTarget, T) -> Any) {
+    private fun <T : Any> VBox.entry(
+        type: GameDataType,
+        overrideViewModelProperty: ObjectProperty<GameDataOverrideViewModel<T>>,
+        providerDataExtractor: (GameData) -> T?,
+        gameDataExtractor: (Game) -> T?,
+        dataDisplay: (EventTarget, T) -> Any
+    ) {
         jfxToggleNode(type.displayName, group = navigationToggle) {
             useMaxWidth = true
             tabPane.tab(type.displayName) {
                 this@jfxToggleNode.userData = this
                 userData = type
-                val toggleGroup = ToggleGroup().apply { disallowDeselection() }
+                val toggleGroup = ToggleGroup().disallowDeselection()
                 scrollpane(fitToWidth = false) {
                     vbox(spacing = 10.0) {
                         // Existing provider data
