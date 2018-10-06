@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import org.joda.time.LocalDate
@@ -41,15 +40,12 @@ import javax.inject.Singleton
 @Singleton
 class EditGamePresenter @Inject constructor(
     private val imageService: ImageService,
-    private val gameProviderService: GameProviderService,
     private val gameService: GameService,
     private val taskRunner: TaskRunner,
     private val viewManager: ViewManager
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : Presentation() {
         init {
-            view.providerLogos = gameProviderService.logos
-
             view.fetchThumbnailRequests.forEach { fetchThumbnail(it) }
 
             view.providerOverrideSelectionChanges.forEach { (type, providerId, selected) -> onProviderOverrideSelected(type, providerId, selected) }

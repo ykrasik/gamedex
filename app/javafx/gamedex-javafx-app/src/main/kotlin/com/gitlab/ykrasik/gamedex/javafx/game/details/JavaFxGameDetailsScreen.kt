@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseRes
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.gitlab.ykrasik.gamedex.javafx.view.YouTubeWebBrowser
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority

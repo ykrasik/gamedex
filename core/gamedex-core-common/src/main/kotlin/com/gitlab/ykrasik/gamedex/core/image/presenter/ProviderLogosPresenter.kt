@@ -14,44 +14,25 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.settings
+package com.gitlab.ykrasik.gamedex.core.image.presenter
 
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 20/06/2018
- * Time: 09:25
+ * Date: 05/10/2018
+ * Time: 21:22
  */
-interface ProviderOrderSettingsView {
-    var search: Order
-    val searchChanges: ReceiveChannel<Order>
-
-    var name: Order
-    val nameChanges: ReceiveChannel<Order>
-
-    var description: Order
-    val descriptionChanges: ReceiveChannel<Order>
-
-    var releaseDate: Order
-    val releaseDateChanges: ReceiveChannel<Order>
-
-    var criticScore: Order
-    val criticScoreChanges: ReceiveChannel<Order>
-
-    var userScore: Order
-    val userScoreChanges: ReceiveChannel<Order>
-
-    var thumbnail: Order
-    val thumbnailChanges: ReceiveChannel<Order>
-
-    var poster: Order
-    val posterChanges: ReceiveChannel<Order>
-
-    var screenshot: Order
-    val screenshotChanges: ReceiveChannel<Order>
+@Singleton
+class ProviderLogosPresenter @Inject constructor(private val gameProviderService: GameProviderService) : Presenter<ViewWithProviderLogos> {
+    override fun present(view: ViewWithProviderLogos) = object : Presentation() {
+        init {
+            view.providerLogos = gameProviderService.logos
+        }
+    }
 }
-
-typealias Order = Map<ProviderId, Int>
-val minOrder = -1

@@ -16,9 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
@@ -28,7 +26,6 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  */
 interface SettingsView {
     val providers: MutableList<GameProvider>
-    var providerLogos: Map<ProviderId, Image>
 
     val acceptActions: ReceiveChannel<Unit>
     val cancelActions: ReceiveChannel<Unit>

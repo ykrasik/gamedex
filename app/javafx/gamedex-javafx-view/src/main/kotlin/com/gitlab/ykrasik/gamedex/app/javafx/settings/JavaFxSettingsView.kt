@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
@@ -41,7 +42,7 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class JavaFxSettingsView : PresentableView("Settings"), SettingsView {
+class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithProviderLogos {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()

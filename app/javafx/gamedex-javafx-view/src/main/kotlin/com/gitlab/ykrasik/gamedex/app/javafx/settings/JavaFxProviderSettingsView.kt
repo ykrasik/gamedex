@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -38,7 +39,7 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView {
+class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)

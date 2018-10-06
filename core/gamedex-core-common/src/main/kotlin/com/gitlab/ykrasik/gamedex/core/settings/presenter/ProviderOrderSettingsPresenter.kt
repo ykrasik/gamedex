@@ -19,7 +19,6 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,14 +29,9 @@ import javax.inject.Singleton
  * Time: 09:26
  */
 @Singleton
-class ProviderOrderSettingsPresenter @Inject constructor(
-    private val gameProviderService: GameProviderService,
-    private val settingsService: SettingsService
-) : Presenter<ProviderOrderSettingsView> {
+class ProviderOrderSettingsPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : Presentation() {
         init {
-            view.providerLogos = gameProviderService.logos
-
             settingsService.providerOrder.bind({ searchChannel }, view::search, view.searchChanges) { copy(search = it) }
             settingsService.providerOrder.bind({ nameChannel }, view::name, view.nameChanges) { copy(name = it) }
             settingsService.providerOrder.bind({ descriptionChannel }, view::description, view.descriptionChanges) { copy(description = it) }

@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
@@ -47,7 +48,7 @@ import tornadofx.*
  */
 // TODO: Consider allowing to delete provider data.
 // TODO: Add a way to clear provider excludes.
-class JavaFxEditGameView : PresentableView(), EditGameView {
+class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogos {
     private val imageLoader: ImageLoader by di()
 
     private var tabPane: TabPane by singleAssign()

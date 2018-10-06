@@ -14,24 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.app.api.image
 
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
-import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import tornadofx.Fragment
-import tornadofx.stackpane
 
 /**
  * User: ykrasik
- * Date: 27/06/2017
- * Time: 21:01
+ * Date: 05/10/2018
+ * Time: 21:21
  */
-class ProviderLogoFragment(providerId: ProviderId) : Fragment() {
-    private val gameProviderService: GameProviderService by di()
-
-    override val root = stackpane {
-        children += gameProviderService.provider(providerId).logoImage.toImageView(height = 80.0, width = 160.0)
-    }
+interface ViewWithProviderLogos {
+    var providerLogos: Map<ProviderId, Image>
 }

@@ -60,8 +60,10 @@ fun <S, T> TableView<S>.simpleColumn(title: String, valueProvider: (S) -> T): Ta
     return column
 }
 
-inline fun <reified S> TableView<S>.customColumn(title: String,
-                                                 crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>): TableColumn<S, S> {
+inline fun <reified S> TableView<S>.customColumn(
+    title: String,
+    crossinline cellFactory: (TableColumn<S, S>) -> TableCell<S, S>
+): TableColumn<S, S> {
     val column = TableColumn<S, S>(title)
     addColumnInternal(column)
     column.cellValueFactory = Callback { SimpleObjectProperty(it.value) }
@@ -69,9 +71,11 @@ inline fun <reified S> TableView<S>.customColumn(title: String,
     return column
 }
 
-fun <S, T> TableView<S>.customColumn(title: String,
-                                     valueProvider: (S) -> ObservableValue<T>,
-                                     cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
+fun <S, T> TableView<S>.customColumn(
+    title: String,
+    valueProvider: (S) -> ObservableValue<T>,
+    cellFactory: (TableColumn<S, T>) -> TableCell<S, T>
+): TableColumn<S, T> {
     val column = TableColumn<S, T>(title)
     addColumnInternal(column)
     column.cellValueFactory = Callback { valueProvider(it.value) }
@@ -79,9 +83,11 @@ fun <S, T> TableView<S>.customColumn(title: String,
     return column
 }
 
-inline fun <reified S, T> TableView<S>.customColumn(title: String,
-                                                    prop: KProperty1<S, T>,
-                                                    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>): TableColumn<S, T> {
+inline fun <reified S, T> TableView<S>.customColumn(
+    title: String,
+    prop: KProperty1<S, T>,
+    crossinline cellFactory: (TableColumn<S, T>) -> TableCell<S, T>
+): TableColumn<S, T> {
     val column = TableColumn<S, T>(title)
     addColumnInternal(column)
     column.cellValueFactory = Callback { observable(it.value, prop) }
@@ -89,16 +95,17 @@ inline fun <reified S, T> TableView<S>.customColumn(title: String,
     return column
 }
 
-fun <S, T> TableView<S>.customGraphicColumn(title: String,
-                                            valueProvider: (S) -> ObservableValue<T>,
-                                            graphicFactory: (T) -> Node): TableColumn<S, T> =
-    customColumn(title, valueProvider) {
-        object : TableCell<S, T>() {
-            override fun updateItem(item: T?, empty: Boolean) {
-                graphic = item?.let { graphicFactory(it) }
-            }
+fun <S, T> TableView<S>.customGraphicColumn(
+    title: String,
+    valueProvider: (S) -> ObservableValue<T>,
+    graphicFactory: (T) -> Node
+): TableColumn<S, T> = customColumn(title, valueProvider) {
+    object : TableCell<S, T>() {
+        override fun updateItem(item: T?, empty: Boolean) {
+            graphic = item?.let { graphicFactory(it) }
         }
     }
+}
 
 inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinline graphicFactory: (S) -> Node): TableColumn<S, S> =
     customColumn(title) {
@@ -114,36 +121,37 @@ inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinli
     }
 
 // TODO: Can probably rewrite this using customGraphicColumn
-inline fun <reified S> TableView<S>.imageViewColumn(title: String,
-                                                    fitWidth: Double,
-                                                    fitHeight: Double,
-                                                    isPreserveRatio: Boolean = true,
-                                                    crossinline imageRetriever: (S) -> ObservableValue<Image>): TableColumn<S, S> =
-    customColumn(title) {
-        object : TableCell<S, S>() {
-            private val imageView = ImageView().apply {
-                fadeOnImageChange()
-                this@apply.fitHeight = fitHeight
-                this@apply.fitWidth = fitWidth
-                this@apply.isPreserveRatio = isPreserveRatio
-            }
+inline fun <reified S> TableView<S>.imageViewColumn(
+    title: String,
+    fitWidth: Double,
+    fitHeight: Double,
+    isPreserveRatio: Boolean = true,
+    crossinline imageRetriever: (S) -> ObservableValue<Image>
+): TableColumn<S, S> = customColumn(title) {
+    object : TableCell<S, S>() {
+        private val imageView = ImageView().apply {
+            fadeOnImageChange()
+            this@apply.fitHeight = fitHeight
+            this@apply.fitWidth = fitWidth
+            this@apply.isPreserveRatio = isPreserveRatio
+        }
 
-            init {
-                addClass(CommonStyle.centered)
-                graphic = imageView
-            }
+        init {
+            addClass(CommonStyle.centered)
+            graphic = imageView
+        }
 
-            override fun updateItem(item: S?, empty: Boolean) {
-                if (item != null) {
-                    val image = imageRetriever(item)
-                    imageView.imageProperty().cleanBind(image)
-                } else {
-                    imageView.imageProperty().unbind()
-                    imageView.image = null
-                }
+        override fun updateItem(item: S?, empty: Boolean) {
+            if (item != null) {
+                val image = imageRetriever(item)
+                imageView.imageProperty().cleanBind(image)
+            } else {
+                imageView.imageProperty().unbind()
+                imageView.image = null
             }
         }
     }
+}
 
 
 inline fun EventTarget.fixedRating(max: Int, isPartial: Boolean = true, op: Rating.() -> Unit = {}) = opcr(this, Rating(max), op).apply {
@@ -186,12 +194,14 @@ inline fun Node.jfxToggleNode(graphic: Node? = null, group: ToggleGroup? = getTo
     this.toggleGroup = group
 }, op)
 
-inline fun Node.jfxToggleNode(text: String? = null,
-                              graphic: Node? = null,
-                              value: Any? = null,
-                              group: ToggleGroup? = getToggleGroup(),
-                              labelStyleClasses: List<CssRule> = emptyList(),
-                              op: JFXToggleNode.() -> Unit = {}): JFXToggleNode {
+inline fun Node.jfxToggleNode(
+    text: String? = null,
+    graphic: Node? = null,
+    value: Any? = null,
+    group: ToggleGroup? = getToggleGroup(),
+    labelStyleClasses: List<CssRule> = emptyList(),
+    op: JFXToggleNode.() -> Unit = {}
+): JFXToggleNode {
     val actualText = if (value != null && text == null) value.toString() else text ?: ""
     val label = Label(actualText, graphic).apply {
         addClass(CommonStyle.jfxToggleNodeLabel)
@@ -212,89 +222,95 @@ inline fun EventTarget.jfxButton(text: String? = null, graphic: Node? = null, ty
     }, op)
 
 // TODO: Change style classes to lists.
-inline fun EventTarget.buttonWithPopover(text: String? = null,
-                                         graphic: Node? = null,
-                                         styleClass: CssRule? = CommonStyle.toolbarButton,
-                                         arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                         closeOnClick: Boolean = true,
-                                         op: VBox.(PopOver) -> Unit = {}) =
-    jfxButton(text = text, graphic = graphic) {
-        if (styleClass != null) addClass(styleClass)
-        val popover = popOver(arrowLocation, closeOnClick, op)
-        setOnAction { popover.toggle(this) }
-    }
+inline fun EventTarget.buttonWithPopover(
+    text: String? = null,
+    graphic: Node? = null,
+    styleClass: CssRule? = CommonStyle.toolbarButton,
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    closeOnClick: Boolean = true,
+    op: VBox.(PopOver) -> Unit = {}
+) = jfxButton(text = text, graphic = graphic) {
+    if (styleClass != null) addClass(styleClass)
+    val popover = popOver(arrowLocation, closeOnClick, op)
+    setOnAction { popover.toggle(this) }
+}
 
-inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(selectedItemProperty: Property<T>,
-                                                           arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                                           styleClass: CssRule? = null,
-                                                           itemStyleClass: CssRule? = null,
-                                                           noinline text: ((T) -> String)? = Any?::toString,
-                                                           noinline graphic: ((T) -> Node)? = null,
-                                                           menuOp: VBox.(T) -> Unit = {}) =
-    popoverComboMenu(
-        possibleItems = T::class.java.enumConstants.asList(),
-        selectedItemProperty = selectedItemProperty,
-        arrowLocation = arrowLocation,
-        styleClass = styleClass,
-        itemStyleClass = itemStyleClass,
-        text = text,
-        graphic = graphic,
-        menuOp = menuOp
-    )
+inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
+    selectedItemProperty: Property<T>,
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    styleClass: CssRule? = null,
+    itemStyleClass: CssRule? = null,
+    noinline text: ((T) -> String)? = Any?::toString,
+    noinline graphic: ((T) -> Node)? = null,
+    menuOp: VBox.(T) -> Unit = {}
+) = popoverComboMenu(
+    possibleItems = T::class.java.enumConstants.asList(),
+    selectedItemProperty = selectedItemProperty,
+    arrowLocation = arrowLocation,
+    styleClass = styleClass,
+    itemStyleClass = itemStyleClass,
+    text = text,
+    graphic = graphic,
+    menuOp = menuOp
+)
 
 // TODO: Change style classes to lists.
-inline fun <T> EventTarget.popoverComboMenu(possibleItems: List<T>,
-                                            selectedItemProperty: Property<T>,
-                                            arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                            styleClass: CssRule? = null,
-                                            itemStyleClass: CssRule? = null,
-                                            noinline text: ((T) -> String)? = Any?::toString,
-                                            noinline graphic: ((T) -> Node)? = null,
-                                            menuOp: VBox.(T) -> Unit = {}) =
-    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
-        possibleItems.forEach { item ->
-            jfxButton(text?.invoke(item), graphic?.invoke(item)) {
-                if (itemStyleClass != null) addClass(itemStyleClass)
-                addClass(CommonStyle.fillAvailableWidth)
-                setOnAction { selectedItemProperty.value = item }
-            }
-            menuOp(item)
+inline fun <T> EventTarget.popoverComboMenu(
+    possibleItems: List<T>,
+    selectedItemProperty: Property<T>,
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    styleClass: CssRule? = null,
+    itemStyleClass: CssRule? = null,
+    noinline text: ((T) -> String)? = Any?::toString,
+    noinline graphic: ((T) -> Node)? = null,
+    menuOp: VBox.(T) -> Unit = {}
+) = buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
+    possibleItems.forEach { item ->
+        jfxButton(text?.invoke(item), graphic?.invoke(item)) {
+            if (itemStyleClass != null) addClass(itemStyleClass)
+            addClass(CommonStyle.fillAvailableWidth)
+            setOnAction { selectedItemProperty.value = item }
         }
-    }.apply {
-        if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
-        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
+        menuOp(item)
     }
+}.apply {
+    if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
+    if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
+}
 
 // TODO: Change style classes to lists.
-inline fun <T> EventTarget.popoverComboMenu(possibleItems: ObservableList<T>,
-                                            selectedItemProperty: Property<T>,
-                                            arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                            styleClass: CssRule? = null,
-                                            itemStyleClass: CssRule? = null,
-                                            noinline text: ((T) -> String)? = null,
-                                            noinline graphic: ((T) -> Node)? = null,
-                                            crossinline menuOp: VBox.(T) -> Unit = {}) =
-    buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
-        possibleItems.perform { items ->
-            replaceChildren {
-                items.forEach { item ->
-                    jfxButton(text?.invoke(item), graphic?.invoke(item)) {
-                        if (itemStyleClass != null) addClass(itemStyleClass)
-                        addClass(CommonStyle.fillAvailableWidth)
-                        setOnAction { selectedItemProperty.value = item }
-                    }
-                    menuOp(item)
+inline fun <T> EventTarget.popoverComboMenu(
+    possibleItems: ObservableList<T>,
+    selectedItemProperty: Property<T>,
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    styleClass: CssRule? = null,
+    itemStyleClass: CssRule? = null,
+    noinline text: ((T) -> String)? = null,
+    noinline graphic: ((T) -> Node)? = null,
+    crossinline menuOp: VBox.(T) -> Unit = {}
+) = buttonWithPopover(arrowLocation = arrowLocation, styleClass = styleClass) {
+    possibleItems.perform { items ->
+        replaceChildren {
+            items.forEach { item ->
+                jfxButton(text?.invoke(item), graphic?.invoke(item)) {
+                    if (itemStyleClass != null) addClass(itemStyleClass)
+                    addClass(CommonStyle.fillAvailableWidth)
+                    setOnAction { selectedItemProperty.value = item }
                 }
+                menuOp(item)
             }
         }
-    }.apply {
-        if (text != null) textProperty().bind(selectedItemProperty.map { if (it != null) text(it) else null })
-        if (graphic != null) graphicProperty().bind(selectedItemProperty.map { if (it != null) graphic(it) else null })
     }
+}.apply {
+    if (text != null) textProperty().bind(selectedItemProperty.map { if (it != null) text(it) else null })
+    if (graphic != null) graphicProperty().bind(selectedItemProperty.map { if (it != null) graphic(it) else null })
+}
 
-inline fun popOver(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                   closeOnClick: Boolean = true,
-                   op: VBox.(PopOver) -> Unit = {}): PopOver = PopOver().apply {
+inline fun popOver(
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    closeOnClick: Boolean = true,
+    op: VBox.(PopOver) -> Unit = {}
+): PopOver = PopOver().apply {
     val popover = this
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
@@ -343,18 +359,22 @@ inline fun View.skipFirstTime(op: () -> Unit) {
     }
 }
 
-inline fun Node.popoverContextMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                                   closeOnClick: Boolean = true,
-                                   op: VBox.(PopOver) -> Unit = {}): PopOver {
+inline fun Node.popoverContextMenu(
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    closeOnClick: Boolean = true,
+    op: VBox.(PopOver) -> Unit = {}
+): PopOver {
     val popover = popOver(arrowLocation, closeOnClick, op).apply { isAutoFix = false; isAutoHide = true }
     addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
     setOnContextMenuRequested { e -> popover.show(this@popoverContextMenu, e.screenX, e.screenY) }
     return popover
 }
 
-inline fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-                             closeOnClick: Boolean = true,
-                             op: VBox.() -> Unit = {}): PopOver {
+inline fun Node.dropDownMenu(
+    arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
+    closeOnClick: Boolean = true,
+    op: VBox.() -> Unit = {}
+): PopOver {
     var popoverHack: PopOver? = null
     val popover = popOver(arrowLocation, closeOnClick) {
         addEventHandler(MouseEvent.MOUSE_EXITED) { popoverHack!!.hide() }
@@ -367,7 +387,8 @@ inline fun Node.dropDownMenu(arrowLocation: PopOver.ArrowLocation = PopOver.Arro
     }
     setOnMouseExited {
         if (!(it.screenX >= popover.x && it.screenX <= popover.x + popover.width &&
-                it.screenY >= popover.y && it.screenY <= popover.y + popover.height)) {
+                it.screenY >= popover.y && it.screenY <= popover.y + popover.height)
+        ) {
             popover.hide()
         }
     }
@@ -444,11 +465,13 @@ inline fun EventTarget.clearableTextfield(textProperty: StringProperty, op: Cust
     op()
 }
 
-inline fun EventTarget.percentSlider(property: Property<Number>,
-                                     min: Number? = null,
-                                     max: Number? = null,
-                                     text: String? = null,
-                                     crossinline op: Slider.() -> Unit = {}): Slider {
+inline fun EventTarget.percentSlider(
+    property: Property<Number>,
+    min: Number? = null,
+    max: Number? = null,
+    text: String? = null,
+    crossinline op: Slider.() -> Unit = {}
+): Slider {
     lateinit var slider: Slider
     hbox(spacing = 5.0, alignment = Pos.CENTER_LEFT) {
         val label = if (text != null) label(text) else null

@@ -16,9 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
@@ -27,9 +25,6 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 09:44
  */
 interface ProviderSettingsView {
-    // TODO: Consider just allowing the view to receive this data through a CommonData object
-    var providerLogos: Map<ProviderId, Image>
-
     val provider: GameProvider
 
     var state: ProviderAccountState

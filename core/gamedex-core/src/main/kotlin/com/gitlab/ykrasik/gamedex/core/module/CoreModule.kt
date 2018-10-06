@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
+import com.gitlab.ykrasik.gamedex.core.image.presenter.ProviderLogosPresenter
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
@@ -35,7 +36,6 @@ import com.gitlab.ykrasik.gamedex.core.storage.*
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.*
-import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
@@ -48,7 +48,7 @@ import javax.inject.Singleton
  * Date: 27/03/2018
  * Time: 21:55
  */
-object CoreModule : AbstractModule() {
+object CoreModule : InternalCoreModule() {
     private val log = logger("Core")
 
     override fun configure() {
@@ -72,6 +72,7 @@ object CoreModule : AbstractModule() {
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
 
+        bindPresenter(ProviderLogosPresenter::class)
     }
 
     @Provides

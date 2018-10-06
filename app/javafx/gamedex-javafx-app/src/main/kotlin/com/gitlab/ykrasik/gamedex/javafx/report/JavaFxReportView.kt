@@ -20,16 +20,20 @@ import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
-import com.gitlab.ykrasik.gamedex.javafx.game.details.YouTubeWebBrowser
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.YouTubeWebBrowser
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -49,7 +53,9 @@ import tornadofx.*
  * Time: 09:48
  */
 class JavaFxReportView(override val report: Report) : PresentableView(report.name, Theme.Icon.chart()),
-    ReportView, ViewCanShowGameDetails {
+    ReportView, ViewCanShowGameDetails, ViewWithProviderLogos {
+    override var providerLogos = emptyMap<ProviderId, Image>()
+
     val calculatingReportProperty = SimpleBooleanProperty(false)
     override var calculatingReport by calculatingReportProperty
 
@@ -169,8 +175,8 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
         customGraphicColumn("Extra") {
             val result = it.value
             when (result) {
-                is Filter.NameDiff.GameNameFolderDiff -> ProviderLogoFragment(result.providerId).root
-                is Filter.Duplications.GameDuplication -> ProviderLogoFragment(result.providerId).root
+                is Filter.NameDiff.GameNameFolderDiff -> providerLogos[result.providerId]!!.image.toImageView(height = 80.0, width = 160.0)
+                is Filter.Duplications.GameDuplication -> providerLogos[result.providerId]!!.image.toImageView(height = 80.0, width = 160.0)
                 else -> label()
             }
         }

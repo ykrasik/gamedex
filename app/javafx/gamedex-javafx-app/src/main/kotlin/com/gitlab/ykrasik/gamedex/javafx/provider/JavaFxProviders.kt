@@ -26,6 +26,6 @@ import javafx.scene.image.Image
  * Date: 25/03/2018
  * Time: 21:43
  */
-// TODO: Make this a JavaFxGameProviderRepository?
+// FIXME: Delete when possible.
 private val providerImages = mutableMapOf<ProviderId, Image>()
 val GameProvider.logoImage get() = providerImages.getOrPut(id) { logo.toImage() }

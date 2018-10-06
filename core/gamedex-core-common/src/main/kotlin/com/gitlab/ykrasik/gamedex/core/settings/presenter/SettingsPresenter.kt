@@ -40,7 +40,6 @@ class SettingsPresenter @Inject constructor(
     override fun present(view: SettingsView) = object : Presentation() {
         init {
             view.providers.setAll(gameProviderService.allProviders)
-            view.providerLogos = gameProviderService.logos
 
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
