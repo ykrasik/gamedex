@@ -14,20 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.browser
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 20:09
+ * Date: 06/10/2018
+ * Time: 12:14
  */
-// TODO: Break this down into viewWithPoster?
-interface GameDetailsView {
-    var game: Game
+@Singleton
+class BrowserPresenter @Inject constructor() : Presenter<ViewWithBrowser> {
+    override fun present(view: ViewWithBrowser) = object : Presentation() {
+        init {
+            view.gameChanges.forEach { game ->
+                if (showing && game != null) {
+                    browseToGame(game)
+                }
+            }
+        }
 
-    var poster: Deferred<Image>?
+        override fun onShow() {
+            browseToGame(view.game)
+        }
+
+        override fun onHide() {
+            browseToGame(null)
+        }
+
+        private fun browseToGame(game: Game?) {
+            val url = game?.let {
+                val search = URLEncoder.encode("${it.name} ${it.platform} gameplay", "utf-8")
+                "https://www.youtube.com/results?search_query=$search"
+            }
+            view.browseTo(url)
+        }
+    }
 }

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -25,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseRes
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.javafx.view.YouTubeWebBrowser
+import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.control.ToolBar
 import javafx.scene.layout.Priority
@@ -39,12 +40,13 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame,
-    GameDetailsView, ViewCanRediscoverGame, ViewCanRedownloadGame {
+    GameDetailsView, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewWithBrowser {
     private val imageLoader: ImageLoader by di()
 
-    private val browser = YouTubeWebBrowser()
+    private val browser = WebBrowser()
 
-    private val gameProperty = SimpleObjectProperty<Game>()
+    override val gameChanges = channel<Game?>()
+    private val gameProperty = SimpleObjectProperty<Game>().eventOnChange(gameChanges)
     override var game by gameProperty
 
     private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
@@ -121,7 +123,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
             stackpane {
                 gameProperty.onChange { game ->
                     replaceChildren {
-                        children += GameDetailsFragment(game!!, evenIfEmpty = true).root
+                        addComponent(GameDetailsFragment(game!!, evenIfEmpty = true))
                     }
                 }
             }
@@ -129,17 +131,13 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
             separator { paddingTop = 10.0 }
 
             // Bottom
-            children += browser.root.apply { vgrow = Priority.ALWAYS }
+            addComponent(browser)
         }
     }
 
-    override fun displayWebPage(url: String) = browser.load(url)
-
     private fun editGame(initialTab: GameDataType) = editGameActions.event(game to initialTab)
 
-    override fun onUndock() {
-        browser.stop()
-    }
+    override fun browseTo(url: String?) = browser.load(url)
 
     companion object {
         private val maxPosterWidthPercent = 0.44

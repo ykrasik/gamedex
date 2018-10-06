@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
@@ -27,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
-import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -77,15 +75,11 @@ class GameDetailsPresenter @Inject constructor(
 
         override fun onShow() {
             view.game.let { game ->
-                view.displayWebPage(youTubeSearchUrl(game))
                 view.poster = game.posterUrl?.let { posterUrl ->
                     imageService.fetchImage(posterUrl, persistIfAbsent = false)
                 }
             }
         }
-
-        private fun youTubeSearchUrl(game: Game) =
-            "https://www.youtube.com/results?search_query=${URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")}"
 
         private fun close() {
             viewManager.closeGameDetailsView(view)

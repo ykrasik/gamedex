@@ -14,20 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.app.api.browser
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.channels.Channel
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 20:09
+ * Date: 06/10/2018
+ * Time: 12:13
  */
-// TODO: Break this down into viewWithPoster?
-interface GameDetailsView {
-    var game: Game
+interface ViewWithBrowser {
+    val game: Game?
+    val gameChanges: Channel<Game?>
 
-    var poster: Deferred<Image>?
+    fun browseTo(url: String?)
 }

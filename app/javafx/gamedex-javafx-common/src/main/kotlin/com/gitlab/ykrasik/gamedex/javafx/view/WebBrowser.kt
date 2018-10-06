@@ -16,28 +16,28 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.javafx.Theme
 import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
 import javafx.scene.web.WebView
 import tornadofx.*
-import java.net.URLEncoder
 
 /**
  * User: ykrasik
  * Date: 09/06/2017
  * Time: 22:29
  */
-class YouTubeWebBrowser : Fragment() {
+class WebBrowser : Fragment() {
     private var webView: WebView by singleAssign()
 
     private val standalone by lazy { StandaloneBrowserFragment() }
     private lateinit var prevParent: Pane
 
     override val root = borderpane {
+        vgrow = Priority.ALWAYS
         center {
             webView = webview()
         }
@@ -61,20 +61,9 @@ class YouTubeWebBrowser : Fragment() {
         }
     }
 
-    // TODO: Remove, this is presenter logic.
-    fun searchYoutube(game: Game) {
-        val search = URLEncoder.encode("${game.name} ${game.platform} gameplay", "utf-8")
-        val url = "https://www.youtube.com/results?search_query=$search"
-        load(url)
-    }
-
-    fun load(url: String) = webView.engine.load(url)
-
     // TODO: Find a way to clear browsing history on stop.
     // TODO: Don't stop if in standalone mode.
-    fun stop() {
-        webView.engine.load(null)
-    }
+    fun load(url: String?) = webView.engine.load(url)
 
     private fun toggleStandalone() {
         if (standalone.isDocked) {
@@ -113,7 +102,7 @@ class YouTubeWebBrowser : Fragment() {
 
         override fun onDock() {
             modalStage!!.isMaximized = true
-            root.children += this@YouTubeWebBrowser.root
+            root.children += this@WebBrowser.root
         }
     }
 }

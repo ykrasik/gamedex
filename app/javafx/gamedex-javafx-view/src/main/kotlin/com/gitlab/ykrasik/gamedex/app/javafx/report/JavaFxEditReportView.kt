@@ -105,7 +105,7 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
                 hbox {
                     vbox(spacing = 10.0) {
                         header("Rules")
-                        children += filterView.root
+                        addComponent(filterView)
                     }
                     verticalSeparator { removeWhen { Bindings.isEmpty(excludedGames) } }
                     vbox(spacing = 10.0) {

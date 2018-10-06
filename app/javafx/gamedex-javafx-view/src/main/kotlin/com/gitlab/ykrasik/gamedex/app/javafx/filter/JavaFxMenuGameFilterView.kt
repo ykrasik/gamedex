@@ -237,7 +237,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
 
     private fun HBox.renderFileSizeFilter(filter: Filter.FileSize) = filter.toProperty().apply {
         val fragment = FileSizeRuleFragment(this)
-        children += fragment.root
+        addComponent(fragment)
         isValid.bind(fragment.isValid)  // TODO: Handle more than 1 possibly invalid rules.
     }
 

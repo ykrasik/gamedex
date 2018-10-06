@@ -202,3 +202,11 @@ fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse:
             fade(duration, if (reverse) 0.0 else 1.0)
         }
     }
+
+fun Pane.addComponent(component: UIComponent) {
+    children += component.root
+}
+
+fun ToolBar.addComponent(component: UIComponent) {
+    items += component.root
+}

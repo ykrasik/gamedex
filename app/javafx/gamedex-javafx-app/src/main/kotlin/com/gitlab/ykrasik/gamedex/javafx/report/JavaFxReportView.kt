@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
@@ -32,7 +33,7 @@ import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.view.YouTubeWebBrowser
+import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
@@ -53,7 +54,7 @@ import tornadofx.*
  * Time: 09:48
  */
 class JavaFxReportView(override val report: Report) : PresentableView(report.name, Theme.Icon.chart()),
-    ReportView, ViewCanShowGameDetails, ViewWithProviderLogos {
+    ReportView, ViewCanShowGameDetails, ViewWithProviderLogos, ViewWithBrowser {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     val calculatingReportProperty = SimpleBooleanProperty(false)
@@ -68,7 +69,7 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
     override val showGameDetailsActions = channel<Game>()
 
     private val gameContextMenu: GameContextMenu by inject()
-    private val browser = YouTubeWebBrowser()
+    private val browser = WebBrowser()
 
     private val games = resultProperty.mapToList { it.games }
 
@@ -77,7 +78,10 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
 
     private val gamesTable = gamesView()
 
-    val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
+    override val gameChanges = channel<Game?>()
+    val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty().eventOnChange(gameChanges)
+    override val game by selectedGameProperty
+
     private val additionalInfoProperty = selectedGameProperty.map { result.additionalData[it?.id] }
 
     init {
@@ -85,6 +89,7 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
     }
 
     override val root = hbox {
+        vgrow = Priority.ALWAYS
         useMaxSize = true
 
         // Left
@@ -115,7 +120,7 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
                 selectedGameProperty.perform { game ->
                     if (game != null) {
                         replaceChildren {
-                            children += GameDetailsFragment(game).root
+                            addComponent(GameDetailsFragment(game))
                         }
                     }
                 }
@@ -124,10 +129,7 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
             separator()
 
             // Bottom
-            children += browser.root.apply { vgrow = Priority.ALWAYS }
-            selectedGameProperty.perform { game ->
-                if (game != null) browser.searchYoutube(game)
-            }
+            addComponent(browser)
         }
     }
 
@@ -194,11 +196,5 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
         op(this)
     }
 
-    override fun onDock() {
-        browser.stop()
-    }
-
-    override fun onUndock() {
-        browser.stop()
-    }
+    override fun browseTo(url: String?) = browser.load(url)
 }

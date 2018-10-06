@@ -31,7 +31,6 @@ import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Toggle
 import javafx.scene.control.ToggleGroup
 import javafx.scene.control.ToolBar
-import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import tornadofx.*
 
@@ -193,7 +192,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
         reportView.onDockListeners?.forEach { it.invoke(this) }
         searchTextProperty.bindBidirectional(reportView.searchProperty)
         content.replaceChildren {
-            children += reportView.root.apply { vgrow = Priority.ALWAYS }
+            addComponent(reportView)
         }
     }
 

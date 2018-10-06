@@ -72,9 +72,9 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
         spacer()
 
         verticalSeparator()
-        items += discoverGamesView.root
+        addComponent(discoverGamesView)
         verticalSeparator()
-        items += downloadView.root
+        addComponent(downloadView)
         verticalSeparator()
     }
 
@@ -131,7 +131,7 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
                         vAlignment = VPos.TOP
                     }
                 }
-                children += filterView.root
+                addComponent(filterView)
             }
         }
     }
