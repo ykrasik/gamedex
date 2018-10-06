@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
-import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.map
 import javax.inject.Inject

@@ -26,10 +26,10 @@ import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.core.game.matchesSearchQuery
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
@@ -53,9 +53,22 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 09:48
  */
-class JavaFxReportView(override val report: Report) : PresentableView(report.name, Theme.Icon.chart()),
-    ReportView, ViewCanShowGameDetails, ViewWithProviderLogos, ViewWithBrowser {
+class JavaFxReportView :
+    PresentableView(icon = Theme.Icon.chart()),
+    ReportView,
+    ViewCanShowGameDetails,
+    ViewWithProviderLogos,
+    ViewWithBrowser,
+    ViewCanSearchReports {
+
+    private val gameContextMenu: GameContextMenu by inject()
+    private val browser = WebBrowser()
+
     override var providerLogos = emptyMap<ProviderId, Image>()
+
+    override val reportChanges = channel<Report?>()
+    val reportProperty = SimpleObjectProperty<Report>().eventOnChange(reportChanges)
+    override var report by reportProperty
 
     val calculatingReportProperty = SimpleBooleanProperty(false)
     override var calculatingReport by calculatingReportProperty
@@ -68,24 +81,33 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
 
     override val showGameDetailsActions = channel<Game>()
 
-    private val gameContextMenu: GameContextMenu by inject()
-    private val browser = WebBrowser()
-
     private val games = resultProperty.mapToList { it.games }
 
-    // TODO: ViewCanSearchReport
-    val searchProperty = SimpleStringProperty("")
+    override val searchTextChanges = channel<String>()
+    val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
+    override var searchText by searchTextProperty
+
+    private val matchingGameProperty = SimpleObjectProperty<Game?>(null)
+    override var matchingGame by matchingGameProperty
 
     private val gamesTable = gamesView()
 
     override val gameChanges = channel<Game?>()
-    val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty().eventOnChange(gameChanges)
+    val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty().eventOnNullableChange(gameChanges)
     override val game by selectedGameProperty
 
     private val additionalInfoProperty = selectedGameProperty.map { result.additionalData[it?.id] }
 
     init {
+        titleProperty.bind(reportProperty.map { it?.name })
         viewRegistry.register(this)
+
+        matchingGameProperty.onChange { match ->
+            if (match != null) {
+                gamesTable.selectionModel.select(match)
+                gamesTable.scrollTo(match)
+            }
+        }
     }
 
     override val root = hbox {
@@ -148,15 +170,6 @@ class JavaFxReportView(override val report: Report) : PresentableView(report.nam
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
         onUserSelect { showGameDetailsActions.event(it) }
-
-        searchProperty.onChange { query ->
-            if (query.isNullOrEmpty()) return@onChange
-            val match = items.firstOrNull { it.matchesSearchQuery(query!!) }
-            if (match != null) {
-                selectionModel.select(match)
-                scrollTo(match)
-            }
-        }
 
         resultProperty.onChange { resizeColumnsToFitContent() }
 

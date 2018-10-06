@@ -14,30 +14,30 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import kotlinx.coroutines.experimental.channels.Channel
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/06/2018
- * Time: 10:29
+ * Date: 07/10/2018
+ * Time: 09:52
  */
-interface ReportView {
-    val report: Report?
-    val reportChanges: Channel<Report?>
+@Singleton
+class SearchReportsPresenter @Inject constructor() : Presenter<ViewCanSearchReports> {
+    override fun present(view: ViewCanSearchReports) = object : Presentation() {
+        init {
+            view.searchTextChanges.forEach { onSearchTextChanged(it) }
+        }
 
-    var calculatingReport: Boolean
-    var calculatingReportProgress: Double
-    var result: ReportResult?
+        private fun onSearchTextChanged(searchText: String) {
+            if (searchText.isEmpty()) return
+            view.matchingGame = view.result.games.firstOrNull { it.matchesSearchQuery(searchText) }
+        }
+    }
 }
-
-data class ReportResult(
-    val games: List<Game>,
-    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>,
-    val fileStructure: Map<GameId, FileStructure>
-)

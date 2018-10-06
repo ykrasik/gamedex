@@ -34,7 +34,7 @@ class BrowserPresenter @Inject constructor() : Presenter<ViewWithBrowser> {
     override fun present(view: ViewWithBrowser) = object : Presentation() {
         init {
             view.gameChanges.forEach { game ->
-                if (showing && game != null) {
+                if (showing) {
                     browseToGame(game)
                 }
             }

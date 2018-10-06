@@ -203,8 +203,9 @@ fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse:
         }
     }
 
-fun Pane.addComponent(component: UIComponent) {
+inline fun <T : UIComponent> Pane.addComponent(component: T, f: T.() -> Unit = {}) {
     children += component.root
+    f(component)
 }
 
 fun ToolBar.addComponent(component: UIComponent) {

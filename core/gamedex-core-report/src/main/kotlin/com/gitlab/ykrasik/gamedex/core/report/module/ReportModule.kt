@@ -41,6 +41,7 @@ object ReportModule : InternalCoreModule() {
         bindPresenter(ExcludeGameFromReportPresenter::class)
         bindPresenter(ReportPresenter::class)
         bindPresenter(ReportsPresenter::class)
+        bindPresenter(SearchReportsPresenter::class)
         bindPresenter(ShowAddReportPresenter::class)
         bindPresenter(ShowEditReportPresenter::class)
     }

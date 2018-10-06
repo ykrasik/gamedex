@@ -14,30 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.report
+package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import kotlinx.coroutines.experimental.channels.Channel
 
 /**
  * User: ykrasik
- * Date: 29/06/2018
- * Time: 10:29
+ * Date: 17/06/2017
+ * Time: 14:51
  */
-interface ReportView {
-    val report: Report?
-    val reportChanges: Channel<Report?>
-
-    var calculatingReport: Boolean
-    var calculatingReportProgress: Double
-    var result: ReportResult?
-}
-
-data class ReportResult(
-    val games: List<Game>,
-    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>,
-    val fileStructure: Map<GameId, FileStructure>
-)
+fun Game.matchesSearchQuery(query: String) =
+    query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }

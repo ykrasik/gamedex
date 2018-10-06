@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.util
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.selects.whileSelect
 import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.reflect.KProperty
 
@@ -145,6 +146,7 @@ fun <T> conflatedChannel(): ConflatedChannel<T> = Channel<T>(capacity = Channel.
 
 // FIXME: Get rid of this.
 operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
+
 operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
     offer(value)
 }
@@ -219,5 +221,40 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Dispa
         val keep = it != last
         last = it
         keep
+    }
+}
+
+fun <T> ReceiveChannel<T>.bufferUntilTimeout(millis: Long = 200): ReceiveChannel<List<T>> = channel<List<T>>().also { channel ->
+    GlobalScope.launch {
+        var buffer = emptyList<T>()
+        whileSelect {
+            onTimeout(millis) {
+                channel.offer(buffer)
+                buffer = emptyList()
+                buffer += receive()
+                true
+            }
+            onReceive {
+                buffer += it
+                true
+            }
+        }
+    }
+}
+
+fun <T> ReceiveChannel<T>.debounce(millis: Long = 200): ReceiveChannel<T> = Channel<T>(Channel.CONFLATED).also { channel ->
+    GlobalScope.launch {
+        var value = receive()
+        whileSelect {
+            onTimeout(millis) {
+                channel.offer(value)
+                value = receive()
+                true
+            }
+            onReceive {
+                value = it
+                true
+            }
+        }
     }
 }

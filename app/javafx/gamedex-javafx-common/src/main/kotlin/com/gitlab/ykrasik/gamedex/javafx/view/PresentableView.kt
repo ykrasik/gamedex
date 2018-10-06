@@ -64,6 +64,12 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
         }
     }
 
+    fun <T, O : ObservableValue<T>> O.eventOnNullableChange(channel: Channel<T?>): O = eventOnNullableChange(channel) { it }
+
+    inline fun <T, R, O : ObservableValue<out T>> O.eventOnNullableChange(channel: Channel<R?>, crossinline factory: (T?) -> R?): O = apply {
+        onChange { channel.event(factory(it)) }
+    }
+
     fun <T, O : ObservableValue<T>> O.eventOnChange(channel: Channel<T>): O = eventOnChange(channel) { it }
 
     inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: Channel<R>, crossinline factory: (T) -> R): O = apply {

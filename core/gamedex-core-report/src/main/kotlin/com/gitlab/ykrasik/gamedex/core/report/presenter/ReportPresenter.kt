@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.core.Presentation
@@ -46,18 +47,25 @@ class ReportPresenter @Inject constructor(
     override fun present(view: ReportView) = object : Presentation() {
         private var subscription: ReceiveChannel<*>? = null
 
-        override fun onShow() {
-            subscription?.cancel()
-            subscription = gameService.games.itemsChannel.subscribe(uiDispatcher) { games ->
-                view.calculatingReport = true
-                view.result = withContext(Dispatchers.Default) {
-                    calculate(games)
+        init {
+            view.reportChanges.forEach { report ->
+                subscription?.cancel()
+                if (showing) {
+                    subscription = gameService.games.itemsChannel.subscribe(uiDispatcher) { games ->
+                        view.calculatingReport = true
+                        val let = report?.let { report ->
+                            withContext(Dispatchers.Default) {
+                                calculate(games, report)
+                            }
+                        }
+                        view.result = let
+                        view.calculatingReport = false
+                    }
                 }
-                view.calculatingReport = false
             }
         }
 
-        private suspend fun calculate(games: List<Game>): ReportResult {
+        private suspend fun calculate(games: List<Game>, report: Report): ReportResult {
             val context = filterContextFactory.create(games)
             withContext(uiDispatcher) {
                 view.calculatingReportProgress = 0.0
@@ -66,7 +74,7 @@ class ReportPresenter @Inject constructor(
             val chunkSize = 50
             val matchingGames = games.chunked(chunkSize).flatMapIndexed { i, chunk ->
                 val result = chunk.filter { game ->
-                    !view.report.excludedGames.contains(game.id) && view.report.filter.evaluate(game, context)
+                    !report.excludedGames.contains(game.id) && report.filter.evaluate(game, context)
                 }
                 withContext(uiDispatcher) {
                     view.calculatingReportProgress = (i * chunkSize + chunk.size.toDouble()) / games.size

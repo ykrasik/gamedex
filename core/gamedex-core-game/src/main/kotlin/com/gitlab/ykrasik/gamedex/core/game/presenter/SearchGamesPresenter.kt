@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
+import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -29,13 +30,11 @@ import javax.inject.Singleton
  * Time: 10:24
  */
 @Singleton
-class SearchGamesPresenter @Inject constructor(
-    private val settingsService: SettingsService
-) : Presenter<ViewCanSearchGames> {
+class SearchGamesPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanSearchGames> {
     override fun present(view: ViewCanSearchGames) = object : Presentation() {
         init {
             view.searchText = settingsService.currentPlatformSettings.search
-            view.searchTextChanges.forEach { onSearchTextChanged(it) }    // TODO: Debounce
+            view.searchTextChanges.debounce().forEach { onSearchTextChanged(it) }
         }
 
         private fun onSearchTextChanged(searchText: String) {

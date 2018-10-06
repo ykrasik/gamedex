@@ -14,14 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game
+package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 17/06/2017
- * Time: 14:51
+ * Date: 07/10/2018
+ * Time: 09:51
  */
-fun Game.matchesSearchQuery(query: String) =
-    query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
+interface ViewCanSearchReports {
+    val result: ReportResult
+
+    var searchText: String
+    val searchTextChanges: ReceiveChannel<String>
+    var matchingGame: Game?
+}
