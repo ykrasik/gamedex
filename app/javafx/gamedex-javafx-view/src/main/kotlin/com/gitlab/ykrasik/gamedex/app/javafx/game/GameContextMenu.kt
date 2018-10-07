@@ -21,11 +21,13 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.dropDownMenu
+import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
-import javafx.scene.input.MouseEvent
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
 import tornadofx.addClass
@@ -38,7 +40,8 @@ import tornadofx.vbox
  * Date: 10/06/2017
  * Time: 21:20
  */
-class GameContextMenu : PresentableView(), ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
+// TODO: Allow adding extra buttons, like for report screen.
+class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
     ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRedownloadGame, ViewCanRediscoverGame {
     override val showGameDetailsActions = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
@@ -48,8 +51,6 @@ class GameContextMenu : PresentableView(), ViewCanShowGameDetails, ViewCanEditGa
     override val redownloadGameActions = channel<Game>()
     override val rediscoverGameActions = channel<Game>()
 
-    private lateinit var game: Game
-
     init {
         viewRegistry.register(this)
     }
@@ -57,47 +58,35 @@ class GameContextMenu : PresentableView(), ViewCanShowGameDetails, ViewCanEditGa
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
         val size = 20.0
-        item("View", Theme.Icon.view(size)) { eventOnAction(showGameDetailsActions) { game } }
+        item("View", Theme.Icon.view(size)) { eventOnAction(showGameDetailsActions) { data } }
         separator()
         item("Edit", Theme.Icon.edit(size)) { setOnAction { editGame(GameDataType.name_) } }
         item("Change Thumbnail", Theme.Icon.thumbnail(size)) { setOnAction { editGame(GameDataType.thumbnail) } }
         separator()
-        item("Tag", Theme.Icon.tag(size)) { eventOnAction(tagGameActions) { game } }
+        item("Tag", Theme.Icon.tag(size)) { eventOnAction(tagGameActions) { data } }
         separator()
         item("Re-Download", Theme.Icon.download(size)) {
             enableWhen { enabledProperty }
-            eventOnAction(redownloadGameActions) { game }
+            eventOnAction(redownloadGameActions) { data }
         }
         item("Re-Discover", Theme.Icon.search(size)) {
             enableWhen { enabledProperty }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            eventOnAction(rediscoverGameActions) { game }
+            eventOnAction(rediscoverGameActions) { data }
         }
         separator()
         item("Rename/Move Folder", Theme.Icon.folder(size)) {
-            eventOnAction(renameMoveGameActions) { game to null }
+            eventOnAction(renameMoveGameActions) { data to null }
         }
         separator()
-        item("Delete", Theme.Icon.delete(size)) { eventOnAction(deleteGameActions) { game } }
+        item("Delete", Theme.Icon.delete(size)) { eventOnAction(deleteGameActions) { data } }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {
         addClass(CommonStyle.fillAvailableWidth)
     }
 
-    private val popover = popOver { children += root }.apply { isAutoFix = false }
-
-    private fun editGame(initialScreen: GameDataType) = editGameActions.event(game to initialScreen)
-
-    // TODO: Allow adding extra buttons, like for report screen.
-    fun install(node: Node, game: () -> Game) {
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
-        node.setOnContextMenuRequested { e ->
-            this.game = game()
-            popover.replaceContent(root)
-            popover.show(node, e.screenX, e.screenY)
-        }
-    }
+    private fun editGame(initialScreen: GameDataType) = editGameActions.event(data to initialScreen)
 }

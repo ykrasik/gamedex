@@ -14,39 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import javafx.beans.property.ObjectProperty
-import javafx.scene.layout.Priority
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.javafx.popOver
+import javafx.scene.Node
+import javafx.scene.input.MouseEvent
 
 /**
  * User: ykrasik
- * Date: 25/06/2017
- * Time: 09:48
+ * Date: 07/10/2018
+ * Time: 10:29
  */
-class DuplicationFragment(
-    duplication: Filter.Duplications.GameDuplication,
-    games: List<Game>,
-    matchingGameProperty: ObjectProperty<Game?>
-) : Fragment() {
-    override val root = form {
-        addClass(CommonStyle.centered)
-        fieldset {
-            inputGrow = Priority.ALWAYS
-            field {
-                val game = games.find { it.id == duplication.duplicatedGameId }!!
-                jfxButton(game.name) {
-                    addClass(CommonStyle.fillAvailableWidth)
-                    setOnAction {
-                        matchingGameProperty.set(game)
-                    }
-                }
-            }
+abstract class InstallableContextMenu<T : Any> : PresentableView() {
+    protected lateinit var data: T
+
+    private val popover by lazy {
+        popOver { children += root }.apply { isAutoFix = false }
+    }
+
+    fun install(node: Node, data: () -> T) {
+        node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+        node.setOnContextMenuRequested { e ->
+            this.data = data()
+            popover.show(node, e.screenX, e.screenY)
         }
     }
 }

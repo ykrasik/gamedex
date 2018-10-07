@@ -20,8 +20,11 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import difflib.Chunk
 import difflib.Delta
 import javafx.event.EventTarget
@@ -35,12 +38,8 @@ import tornadofx.*
  * Date: 24/06/2017
  * Time: 18:52
  */
-class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : PresentableView(), ViewCanRenameMoveGame {
-    override val renameMoveGameActions = channel<Pair<Game, String?>>()
-
-    init {
-        viewRegistry.register(this)
-    }
+class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) : Fragment() {
+    private val contextMenu: DiffResultContextMenu by inject()
 
     override val root = form {
         addClass(CommonStyle.centered)
@@ -49,12 +48,7 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
             field("Actual") { render(diff.actualName, diff.patch.deltas) { it.original } }
         }
 
-        popoverContextMenu {
-            jfxButton("Rename to Expected", Theme.Icon.folder()) {
-                eventOnAction(renameMoveGameActions) { game to diff.expectedName }
-            }
-            // TODO: Add a 'search only this provider' option
-        }
+        contextMenu.install(this) { game to diff }
     }
 
     private fun EventTarget.render(source: String, deltas: List<Delta<Char>>, chunkExtractor: (Delta<Char>) -> Chunk<Char>) = textflow {
@@ -114,5 +108,20 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
                 backgroundColor = multi(Color.INDIANRED)
             }
         }
+    }
+}
+
+class DiffResultContextMenu : InstallableContextMenu<Pair<Game, Filter.NameDiff.GameNameFolderDiff>>(), ViewCanRenameMoveGame {
+    override val renameMoveGameActions = channel<Pair<Game, String?>>()
+
+    init {
+        viewRegistry.register(this)
+    }
+
+    override val root = vbox {
+        jfxButton("Rename to Expected", Theme.Icon.folder()) {
+            eventOnAction(renameMoveGameActions) { data.first to data.second.expectedName }
+        }
+        // TODO: Add a 'search only this provider' option
     }
 }

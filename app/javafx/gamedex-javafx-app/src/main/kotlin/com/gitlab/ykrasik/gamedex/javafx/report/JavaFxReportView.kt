@@ -183,7 +183,7 @@ class JavaFxReportView :
             val result = it.value
             when (result) {
                 is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGameProperty.value).root
-                is Filter.Duplications.GameDuplication -> DuplicationFragment(result, gamesTable).root
+                is Filter.Duplications.GameDuplication -> DuplicationFragment(result, gamesTable.items, matchingGameProperty).root
                 else -> label(result.toDisplayString())
             }
         }
