@@ -25,7 +25,6 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.launch
-import kotlin.coroutines.experimental.CoroutineContext
 import kotlin.reflect.KMutableProperty0
 
 /**
@@ -39,7 +38,7 @@ interface Presenter<in V> {
 
 abstract class Presentation : CoroutineScope {
     private val job = Job()
-    override val coroutineContext = Dispatchers.Default + job
+    override val coroutineContext = Dispatchers.Main + job
 
     private var _showing = false
     protected val showing get() = _showing
@@ -66,8 +65,8 @@ abstract class Presentation : CoroutineScope {
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> ReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher, f: suspend (T) -> Unit) {
-        launch(context) {
+    protected fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit) {
+        launch {
             consumeEach {
                 try {
                     f(it)
@@ -78,17 +77,15 @@ abstract class Presentation : CoroutineScope {
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher, crossinline f: (T) -> Unit) {
+    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) {
         f(poll()!!)
-        forEach(context) { f(it) }
+        forEach { f(it) }
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> BroadcastReceiveChannel<T>.forEach(context: CoroutineContext = uiDispatcher, f: suspend (T) -> Unit) =
-        subscribe().forEach(context, f)
+    protected fun <T> BroadcastReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(context: CoroutineContext = uiDispatcher, crossinline f: (T) -> Unit) =
-        subscribe().forEachImmediately(context, f)
+    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
 
     protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
         list.setAll(this)
@@ -108,18 +105,17 @@ abstract class Presentation : CoroutineScope {
         channelAccessor: S.() -> BroadcastReceiveChannel<T>,
         viewProperty: KMutableProperty0<T>,
         changesChannel: ReceiveChannel<T>,
-        context: CoroutineContext = Dispatchers.Default,
         crossinline f: (Data).(T) -> Data
     ) {
         val channel = channelAccessor(this)
         channel.reportChangesTo(viewProperty)
-        changesChannel.forEach(context) { change ->
+        changesChannel.forEach { change ->
             this.modify { f(change) }
         }
     }
 
-    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>, context: CoroutineContext = uiDispatcher) {
+    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>) {
         viewProperty.set(peek()!!)
-        forEach(context) { viewProperty.set(it) }
+        forEach { viewProperty.set(it) }
     }
 }

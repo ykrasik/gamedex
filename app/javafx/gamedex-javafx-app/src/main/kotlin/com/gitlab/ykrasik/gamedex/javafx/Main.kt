@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.core.uiDispatcher
 import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.App
 import tornadofx.launch
 
@@ -30,12 +27,9 @@ import tornadofx.launch
  */
 class Main : App(JavaFxPreloaderView::class) {
     companion object {
-        var startTime = System.currentTimeMillis()
+        val startTime = System.currentTimeMillis()
 
         @JvmStatic
-        fun main(args: Array<String>) {
-            uiDispatcher = Dispatchers.JavaFx
-            launch<Main>(args)
-        }
+        fun main(args: Array<String>) = launch<Main>(args)
     }
 }

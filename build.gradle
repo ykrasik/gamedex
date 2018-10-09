@@ -18,7 +18,7 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '0.30.0'
+            v = '0.30.2'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
             delegate

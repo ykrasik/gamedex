@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
-import com.gitlab.ykrasik.gamedex.core.uiDispatcher
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -33,7 +32,6 @@ import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
@@ -53,13 +51,13 @@ class PreloaderImpl : Preloader {
             SLF4JBridgeHandler.install()
             GamedexLogAppender.init()
 
-            withContext(uiDispatcher) {
+            withContext(Dispatchers.Main) {
                 view.progress = 0.0
                 view.message = "Loading..."
             }
 
             // While loading, display all log messages in the task
-            val subscription = GamedexLog.entries.itemsChannel.subscribe(uiDispatcher) {
+            val subscription = GamedexLog.entries.itemsChannel.subscribe(Dispatchers.Main) {
                 it.lastOrNull()?.let {
                     if (it.level.ordinal >= LogLevel.Info.ordinal) {
                         view.message = it.message
@@ -76,7 +74,7 @@ class PreloaderImpl : Preloader {
                     bindListener(Matchers.any(), object : ProvisionListener {
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                             componentCount++
-                            launch(uiDispatcher) {
+                            launch(Dispatchers.Main) {
                                 try {
                                     view.progress = componentCount.toDouble() / preloaderSettings.diComponents
                                 } catch (_: ClosedSendChannelException) {
@@ -97,7 +95,7 @@ class PreloaderImpl : Preloader {
             // Save the total amount of DI components detected into a file, so next loading screen will be more accurate.
             preloaderSettings.modify { copy(diComponents = componentCount) }
 
-            withContext(uiDispatcher) {
+            withContext(Dispatchers.Main) {
                 view.message = "Done loading."
             }
 

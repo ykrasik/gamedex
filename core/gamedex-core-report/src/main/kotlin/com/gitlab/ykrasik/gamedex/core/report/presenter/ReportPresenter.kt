@@ -25,7 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
-import com.gitlab.ykrasik.gamedex.core.uiDispatcher
 import com.gitlab.ykrasik.gamedex.util.flatMapIndexed
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -51,7 +50,7 @@ class ReportPresenter @Inject constructor(
             view.reportChanges.forEach { report ->
                 subscription?.cancel()
                 if (showing) {
-                    subscription = gameService.games.itemsChannel.subscribe(uiDispatcher) { games ->
+                    subscription = gameService.games.itemsChannel.subscribe(Dispatchers.Main) { games ->
                         view.calculatingReport = true
                         val let = report?.let { report ->
                             withContext(Dispatchers.Default) {
@@ -67,7 +66,7 @@ class ReportPresenter @Inject constructor(
 
         private suspend fun calculate(games: List<Game>, report: Report): ReportResult {
             val context = filterContextFactory.create(games)
-            withContext(uiDispatcher) {
+            withContext(Dispatchers.Main) {
                 view.calculatingReportProgress = 0.0
             }
             // Report progress every 'chunkSize' games.
@@ -76,7 +75,7 @@ class ReportPresenter @Inject constructor(
                 val result = chunk.filter { game ->
                     !report.excludedGames.contains(game.id) && report.filter.evaluate(game, context)
                 }
-                withContext(uiDispatcher) {
+                withContext(Dispatchers.Main) {
                     view.calculatingReportProgress = (i * chunkSize + chunk.size.toDouble()) / games.size
                 }
                 result

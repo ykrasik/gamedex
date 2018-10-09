@@ -35,7 +35,9 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.nowTimestamp
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -190,7 +192,9 @@ class GameProviderServiceImpl @Inject constructor(
             val chooseSearchResultData = SearchChooser.Data(
                 searchedName, path, platform, provider.id, results = results, filteredResults = filteredResults
             )
-            return chooser.choose(chooseSearchResultData)
+            return withContext(Dispatchers.Main) {
+                chooser.choose(chooseSearchResultData)
+            }
         }
 
         private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, timestamp = nowTimestamp)
