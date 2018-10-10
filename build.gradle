@@ -238,16 +238,9 @@ project("app:gamedex-app-api") {
     }
 }
 
-// FIXME: Remove when all views have presenters
-project("core:gamedex-core-api") {
-    dependencies {
-        fullDependency ":app:gamedex-app-api"
-    }
-}
-
 project("core:gamedex-core-common") {
     dependencies {
-        fullDependency ":core:gamedex-core-api"
+        fullDependency ":app:gamedex-app-api"
     }
 }
 

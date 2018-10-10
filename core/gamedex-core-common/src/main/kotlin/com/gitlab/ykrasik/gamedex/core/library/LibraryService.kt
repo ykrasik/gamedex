@@ -42,6 +42,7 @@ interface LibraryService {
     fun delete(library: Library): Task<Unit>
     fun deleteAll(libraries: List<Library>): Task<Unit>
 
+    // FIXME: This would look better when handled by an eventBus
     fun invalidate(): Task<Unit>
 
     fun isAvailableNewName(platform: Platform, newName: String): Boolean

@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton

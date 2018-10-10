@@ -2,7 +2,6 @@ rootProject.name = 'gamedex'
 
 include "gamedex-api"
 
-include "core:gamedex-core-api"     // TODO: Delete this
 include "core:gamedex-core-common"
 include "core:gamedex-core-persistence"
 include "core:gamedex-core-game"

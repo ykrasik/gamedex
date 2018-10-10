@@ -20,10 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.util.*
-import com.gitlab.ykrasik.gamedex.core.api.game.AddGameRequest
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import kotlinx.coroutines.experimental.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +32,7 @@ import javax.inject.Singleton
  * Time: 19:51
  */
 @Singleton
-internal class GameServiceImpl @Inject constructor(
+class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     libraryService: LibraryService,

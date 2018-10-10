@@ -14,38 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.api.game
+package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FolderNameMetadata
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.util.FileSize
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 26/04/2018
- * Time: 19:50
+ * Date: 01/04/2018
+ * Time: 14:04
  */
-// FIXME: move to gamedex-core-common once all non-core references are refactored to providers.
-interface GameService {
-    val games: ListObservable<Game>
+interface FileSystemService {
+    fun structure(game: Game): FileStructure
+    fun allStructure(): Map<GameId, FileStructure>
 
-    operator fun get(id: GameId): Game
+    fun deleteStructure(gameId: GameId)
+    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 
-    fun add(request: AddGameRequest): Task<Game>
-    fun addAll(requests: List<AddGameRequest>): Task<List<Game>>
+    // TODO: Make this a channel?
+    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
 
-    fun replace(source: Game, target: RawGame): Task<Game>
+    suspend fun move(from: File, to: File)
+    suspend fun delete(file: File)
 
-    fun delete(game: Game): Task<Unit>
-    fun deleteAll(games: List<Game>): Task<Unit>
+    // TODO: Find better names.
+    fun analyzeFolderName(rawName: String): FolderNameMetadata
+    fun fromFileName(name: String): String
+    fun toFileName(name: String): String
 
-    fun deleteAllUserData(): Task<Unit>
-
-    fun invalidate(): Task<Unit>
+    fun invalidate()
 }
-
-data class AddGameRequest(
-    val metadata: Metadata,
-    val providerData: List<ProviderData>,
-    val userData: UserData?
-)

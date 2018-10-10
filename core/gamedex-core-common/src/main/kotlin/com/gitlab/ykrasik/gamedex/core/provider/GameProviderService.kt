@@ -17,22 +17,19 @@
 package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.sortingWith
-import com.gitlab.ykrasik.gamedex.app.api.util.task
-import com.gitlab.ykrasik.gamedex.core.api.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.api.provider.EnabledGameProvider
-import com.gitlab.ykrasik.gamedex.core.api.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.api.provider.SearchResults
+import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
+import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import kotlinx.coroutines.experimental.Dispatchers
@@ -47,6 +44,24 @@ import javax.inject.Singleton
  * Date: 13/10/2016
  * Time: 13:29
  */
+// TODO: Make it stream results back?
+interface GameProviderService {
+    val allProviders: List<GameProvider>
+    val enabledProviders: ListObservable<EnabledGameProvider>
+
+    fun checkAtLeastOneProviderEnabled()
+
+    fun provider(id: ProviderId): GameProvider
+    fun isEnabled(id: ProviderId): Boolean
+
+    val logos: Map<ProviderId, Image>
+
+    // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
+    fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>
+
+    fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>): Task<List<ProviderData>>
+}
+
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     repo: GameProviderRepository,
@@ -217,6 +232,20 @@ class GameProviderServiceImpl @Inject constructor(
     }
 
     private class CancelSearchException : RuntimeException()
+}
+
+class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
+    fun search(name: String, platform: Platform): List<ProviderSearchResult> = provider.search(name, platform, account)
+    fun download(apiUrl: String, platform: Platform): ProviderData = provider.download(apiUrl, platform, account)
+
+    override fun toString() = provider.toString()
+}
+
+data class SearchResults(
+    val providerData: List<ProviderData>,
+    val excludedProviders: List<ProviderId>
+) {
+    fun isEmpty(): Boolean = providerData.isEmpty() && excludedProviders.isEmpty()
 }
 
 // FIXME: Get rid of this... use viewManager.

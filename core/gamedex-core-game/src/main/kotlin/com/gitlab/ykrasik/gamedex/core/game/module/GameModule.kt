@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.module
 
-import com.gitlab.ykrasik.gamedex.core.api.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.GameConfig
+import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
 import com.gitlab.ykrasik.gamedex.core.game.presenter.GamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.SearchGamesPresenter
