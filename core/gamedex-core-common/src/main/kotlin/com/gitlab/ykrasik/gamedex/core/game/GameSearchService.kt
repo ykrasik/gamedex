@@ -14,34 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report.presenter
+package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 07/10/2018
- * Time: 09:52
+ * Date: 10/10/2018
+ * Time: 22:04
  */
-@Singleton
-class SearchReportsPresenter @Inject constructor() : Presenter<ViewCanSearchReports> {
-    override fun present(view: ViewCanSearchReports) = object : Presentation() {
-        init {
-            view.searchTextChanges.forEach { onSearchTextChanged(it) }
-        }
-
-        private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isEmpty()) return
-            view.matchingGame = view.result.games.firstOrNull { it.matchesSearchQuery(searchText) }
-        }
-    }
-
-    // TODO: Do I need the better search capabilities of searchService?
-    private fun Game.matchesSearchQuery(query: String) =
-        query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
+interface GameSearchService {
+    fun search(query: String): List<Game>
 }

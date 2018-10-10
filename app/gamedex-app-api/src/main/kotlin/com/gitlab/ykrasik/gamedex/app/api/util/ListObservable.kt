@@ -106,13 +106,15 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
     }
 
     operator fun set(index: Int, t: T) {
+        val prev = _list[index]
         _list = _list.mapIndexed { i, item -> if (i == index) t else item }
-        notifyChange(ListItemSetEvent(t, index))
+        notifyChange(ListItemSetEvent(item = t, prevItem = prev, index = index))
     }
 
     fun setAll(items: List<T>) {
+        val prevItems = _list
         _list = items
-        notifyChange(ListItemsSetEvent(items))
+        notifyChange(ListItemsSetEvent(items = items, prevItems = prevItems))
     }
 
     private fun notifyChange(event: ListChangeEvent<T>) {
@@ -153,8 +155,8 @@ data class ListItemAddedEvent<out T>(val item: T) : ListChangeEvent<T>(ListChang
 data class ListItemsAddedEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Add)
 data class ListItemRemovedEvent<out T>(val index: Int, val item: T) : ListChangeEvent<T>(ListChangeType.Remove)
 data class ListItemsRemovedEvent<out T>(val indices: List<Int>, val items: List<T>) : ListChangeEvent<T>(ListChangeType.Remove)
-data class ListItemSetEvent<out T>(val item: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
-data class ListItemsSetEvent<out T>(val items: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
+data class ListItemSetEvent<out T>(val item: T, val prevItem: T, val index: Int) : ListChangeEvent<T>(ListChangeType.Set)
+data class ListItemsSetEvent<out T>(val items: List<T>, val prevItems: List<T>) : ListChangeEvent<T>(ListChangeType.Set)
 
 inline fun <T, R> ListObservable<T>.mapping(context: CoroutineContext = Dispatchers.Default, crossinline f: (T) -> R): ListObservable<R> {
     val list = ListObservableImpl(this.map(f))

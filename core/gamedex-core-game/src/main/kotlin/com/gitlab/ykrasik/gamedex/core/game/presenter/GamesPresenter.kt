@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
-import com.gitlab.ykrasik.gamedex.core.matchesSearchQuery
+import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.map
 import javax.inject.Inject
@@ -41,6 +41,7 @@ class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
     private val fileSystemService: FileSystemService,
     private val filterContextFactory: FilterContextFactory,
+    private val gameSearchService: GameSearchService,
     settingsService: SettingsService
 ) : Presenter<ViewWithGames> {
     private val nameComparator = Comparator<Game> { o1, o2 -> o1.name.compareTo(o2.name, ignoreCase = true) }
@@ -70,9 +71,10 @@ class GamesPresenter @Inject constructor(
         settingsService.platforms[platform]!!.dataChannel.subscribe()
     }.map { settings ->
         val context = filterContextFactory.create(emptyList())
+        // TODO: This will not handle cases where re-downloading (or re-discovering) a game made the game have a different name that no longer matches the search.
+        val matches = gameSearchService.search(settings.search).map { it.id }
         return@map { game: Game ->
-            game.matchesSearchQuery(settings.search) &&
-                settings.filter.evaluate(game, context)
+            (settings.search.isBlank() || matches.contains(game.id)) && settings.filter.evaluate(game, context)
         }
     }
 

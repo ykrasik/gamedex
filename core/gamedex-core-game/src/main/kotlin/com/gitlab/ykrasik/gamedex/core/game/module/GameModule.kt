@@ -16,9 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.module
 
-import com.gitlab.ykrasik.gamedex.core.game.GameConfig
-import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.game.GameServiceImpl
+import com.gitlab.ykrasik.gamedex.core.game.*
 import com.gitlab.ykrasik.gamedex.core.game.presenter.GamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.SearchGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenter
@@ -52,6 +50,7 @@ import javax.inject.Singleton
 object GameModule : InternalCoreModule() {
     override fun configure() {
         bind(GameService::class.java).to(GameServiceImpl::class.java)
+        bind(GameSearchService::class.java).to(GameSearchServiceImpl::class.java)
 
         bindPresenter(GamesPresenter::class)
         bindPresenter(SearchGamesPresenter::class)
