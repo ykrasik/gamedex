@@ -53,14 +53,15 @@ fun browse(path: File) = Desktop.getDesktop().open(path)
 // FIXME: Make this an inline class when they are available.
 @JsonIgnoreProperties("humanReadable")
 data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
-    val humanReadable: String get() {
-        val unit = 1024
-        if (bytes < unit) return "$bytes B"
+    val humanReadable: String
+        get() {
+            val unit = 1024
+            if (bytes < unit) return "$bytes B"
 
-        val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
-        val pre = ("KMGTPE")[exp - 1]
-        return String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
-    }
+            val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
+            val pre = ("KMGTPE")[exp - 1]
+            return String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
+        }
 
     operator fun plus(other: FileSize): FileSize = FileSize(bytes + other.bytes)
     operator fun minus(other: FileSize): FileSize = FileSize(bytes - other.bytes)

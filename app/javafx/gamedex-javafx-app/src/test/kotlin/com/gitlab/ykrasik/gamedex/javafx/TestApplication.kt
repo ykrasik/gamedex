@@ -50,7 +50,7 @@ object TestApplication {
         System.setProperty("gameDex.provider.giantBomb.endpoint", giantBombServer.endpointUrl)
         System.setProperty("gameDex.provider.igdb.endpoint", igdbServer.endpointUrl)
         System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
-        System.setProperty("gameDex.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
+        System.setProperty("gameDex.file.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
 
         // Pre-Load test images
         randomImage()

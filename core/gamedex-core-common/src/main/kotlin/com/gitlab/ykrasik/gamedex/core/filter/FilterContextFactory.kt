@@ -36,6 +36,6 @@ interface FilterContextFactory {
 @Singleton
 class FilterContextFactoryImpl @Inject constructor(
     private val fileSystemService: FileSystemService
-) : FilterContextFactory{
+) : FilterContextFactory {
     override fun create(games: List<Game>): Filter.Context = FilterContextImpl(games, fileSystemService)
 }

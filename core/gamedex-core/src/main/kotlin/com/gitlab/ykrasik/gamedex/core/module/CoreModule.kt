@@ -16,34 +16,30 @@
 
 package com.gitlab.ykrasik.gamedex.core.module
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
-import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
-import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
-import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowseFilePresenter
+import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
+import com.gitlab.ykrasik.gamedex.core.filter.presenter.MenuGameFilterPresenter
+import com.gitlab.ykrasik.gamedex.core.filter.presenter.ReportGameFilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
-import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
-import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
-import com.gitlab.ykrasik.gamedex.core.image.presenter.ProviderLogosPresenter
+import com.gitlab.ykrasik.gamedex.core.general.module.GeneralModule
+import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
+import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
-import com.gitlab.ykrasik.gamedex.core.storage.*
+import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
+import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
-import com.gitlab.ykrasik.gamedex.core.web.BrowseUrlPresenter
-import com.gitlab.ykrasik.gamedex.core.web.BrowserPresenter
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import io.github.config4k.extract
 import javax.inject.Singleton
 
 /**
@@ -52,33 +48,51 @@ import javax.inject.Singleton
  * Time: 21:55
  */
 object CoreModule : InternalCoreModule() {
-    private val log = logger("Core")
-
     override fun configure() {
+        installModules()
+        bindPresenters()
+
+        bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
+
+        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
+
+        bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
+        bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
+    }
+
+    private fun installModules() {
+        install(FileModule)
+        install(GameModule)
+        install(GeneralModule)
+        install(ImageModule)
+        install(LibraryModule)
+        install(LogModule)
+        install(ReportModule)
+
         // Install all providers detected by classpath scan
         log.time("Detecting providers...", { time, providers -> "${providers.size} providers in $time" }) {
             val providers = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
             providers.forEach { install(it.kotlin.objectInstance!!) }
             providers
         }
+    }
 
-        install(LibraryModule)
-        install(GameModule)
-        install(ReportModule)
+    private fun bindPresenters() {
+        bindPresenter(MenuGameFilterPresenter::class)
+        bindPresenter(ReportGameFilterPresenter::class)
 
-        bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
-
-        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
-
-        bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
-
-        bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
-        bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
-
-        bindPresenter(ProviderLogosPresenter::class)
-        bindPresenter(BrowserPresenter::class)
-        bindPresenter(BrowseUrlPresenter::class)
-        bindPresenter(BrowseFilePresenter::class)
+        bindPresenter(ShowSettingsPresenter::class)
+        bindPresenter(SettingsPresenter::class)
+        bindPresenter(ChangeGameCellDisplaySettingsPresenter::class)
+        bindPresenter(GameCellDisplaySettingsPresenter::class)
+        bindPresenter(ChangeGameNameOverlayDisplaySettingsPresenter::class)
+        bindPresenter(GameNameOverlayDisplaySettingsPresenter::class)
+        bindPresenter(ChangeGameMetaTagOverlayDisplaySettingsPresenter::class)
+        bindPresenter(GameMetaTagOverlayDisplaySettingsPresenter::class)
+        bindPresenter(ChangeGameVersionOverlayDisplaySettingsPresenter::class)
+        bindPresenter(GameVersionOverlayDisplaySettingsPresenter::class)
+        bindPresenter(ProviderOrderSettingsPresenter::class)
+        bindPresenter(ProviderSettingsPresenter::class)
     }
 
     @Provides
@@ -93,28 +107,4 @@ object CoreModule : InternalCoreModule() {
             current.withFallback(ConfigFactory.parseURL(url))
         }
     }
-
-    @Provides
-    @Singleton
-    fun newDirectoryDetector(config: Config) =
-        Class.forName(config.getString("gameDex.newDirectoryDetector.class")).newInstance() as NewDirectoryDetector
-
-    @Provides
-    @Singleton
-    fun imageConfig(config: Config): ImageConfig = config.extract("gameDex.image")
-
-    @Provides
-    @Singleton
-    @FileStructureStorage
-    fun fileStructureStorage(): Storage<GameId, FileStructure> = log.time("Reading file system cache...") {
-        FileStorage.json<FileStructure>("cache/file_structure").intId().memoryCached()
-    }
-
-    @Provides
-    @Singleton
-    @ImageStorage
-    fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/images").stringId(
-        keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
-        reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
-    )
 }

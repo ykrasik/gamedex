@@ -14,27 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.log.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogTail
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
- */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
-
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+@Singleton
+class LogTailPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogTail> {
+    override fun present(view: ViewCanChangeLogTail) = object : Presentation() {
+        init {
+            settingsService.general.bind({ logTailChannel }, view::logTail, view.logTailChanges) { copy(logTail = it) }
+        }
+    }
 }

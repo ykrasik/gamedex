@@ -14,27 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.general.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
+ * Date: 06/05/2018
+ * Time: 13:15
  */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+@Singleton
+class ClearUserDataPresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<ClearUserDataView> {
+    override fun present(view: ClearUserDataView) = object : Presentation() {
+        init {
+            view.clearUserDataActions.forEach { clearUserData() }
+        }
 
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+        private suspend fun clearUserData() {
+            if (view.confirmClearUserData()) {
+                taskRunner.runTask(databaseActionsService.deleteAllUserData())
+            }
+        }
+    }
 }

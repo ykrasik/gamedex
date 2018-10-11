@@ -20,6 +20,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.selects.whileSelect
 import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.experimental.EmptyCoroutineContext
 import kotlin.reflect.KProperty
 
 /**
@@ -30,7 +31,7 @@ import kotlin.reflect.KProperty
 interface BroadcastReceiveChannel<out T> {
     fun subscribe(): ReceiveChannel<T>
 
-    fun subscribe(context: CoroutineContext = Dispatchers.Default, f: suspend (T) -> Unit): ReceiveChannel<T>
+    fun subscribe(context: CoroutineContext = EmptyCoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T>
 
     fun peek(): T? = subscribe().let { subscription ->
         subscription.poll().apply { subscription.cancel() }
@@ -38,9 +39,9 @@ interface BroadcastReceiveChannel<out T> {
 
     operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
 
-    fun <R> map(context: CoroutineContext = Dispatchers.Default, transform: suspend (T) -> R): BroadcastReceiveChannel<R>
+    fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R>
 
-    fun <R> flatMap(context: CoroutineContext = Dispatchers.Default, transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R>
+    fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R>
 }
 
 class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>, CoroutineScope {
@@ -69,21 +70,21 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>,
         job.cancel()
     }
 
-    override fun <R> map(context: CoroutineContext, transform: suspend (T) -> R): BroadcastEventChannel<R> {
+    override fun <R> map(transform: suspend (T) -> R): BroadcastEventChannel<R> {
         val channel = BroadcastEventChannel.conflated<R>()
-        subscribe(context) {
+        subscribe {
             channel.send(transform(it))
         }
         return channel
     }
 
-    override fun <R> flatMap(context: CoroutineContext, transform: suspend (T) -> ReceiveChannel<R>): BroadcastEventChannel<R> {
+    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastEventChannel<R> {
         val channel = BroadcastEventChannel.conflated<R>()
         var flatMapped: ReceiveChannel<R>? = null
-        subscribe(context) {
+        subscribe {
             flatMapped?.cancel()
             flatMapped = transform(it)
-            launch(context) {
+            launch {
                 flatMapped!!.consumeEach {
                     channel.send(it)
                 }
@@ -92,9 +93,9 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>,
         return channel
     }
 
-    inline fun filter(context: CoroutineContext = Dispatchers.Default, crossinline filter: suspend (T) -> Boolean): BroadcastEventChannel<T> {
+    inline fun filter(crossinline filter: suspend (T) -> Boolean): BroadcastEventChannel<T> {
         val channel = BroadcastEventChannel.conflated<T>()
-        subscribe(context) {
+        subscribe {
             if (filter(it)) {
                 channel.send(it)
             }
@@ -102,19 +103,19 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>,
         return channel
     }
 
-    fun distinctUntilChanged(context: CoroutineContext = Dispatchers.Default): BroadcastEventChannel<T> {
+    fun distinctUntilChanged(): BroadcastEventChannel<T> {
         var last: T? = null
-        return filter(context) {
+        return filter {
             val keep = it != last
             last = it
             keep
         }
     }
 
-    fun drop(amount: Int, context: CoroutineContext = Dispatchers.Default): BroadcastEventChannel<T> {
+    fun drop(amount: Int): BroadcastEventChannel<T> {
         val channel = BroadcastEventChannel.conflated<T>()
         var dropped = 0
-        subscribe(context) {
+        subscribe {
             dropped += 1
             if (dropped > amount) {
                 channel.send(it)

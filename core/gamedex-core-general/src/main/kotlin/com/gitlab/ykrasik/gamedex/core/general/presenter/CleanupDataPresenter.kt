@@ -14,25 +14,39 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.module
+package com.gitlab.ykrasik.gamedex.core.general.presenter
 
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDataView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.util.logger
-import com.google.inject.AbstractModule
-import com.google.inject.TypeLiteral
-import com.google.inject.multibindings.MapBinder
-import kotlin.reflect.KClass
+import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 19/09/2018
- * Time: 00:36
+ * Date: 06/05/2018
+ * Time: 13:17
  */
-abstract class InternalCoreModule : AbstractModule() {
-    protected val log = logger("Core")
+@Singleton
+class CleanupDataPresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<CleanupDataView> {
+    override fun present(view: CleanupDataView) = object : Presentation() {
+        init {
+            view.cleanupDataActions.forEach { cleanupData() }
+        }
 
-    protected inline fun <T : Presenter<V>, reified V> bindPresenter(klass: KClass<T>) {
-        MapBinder.newMapBinder(binder(), object : TypeLiteral<KClass<*>>() {}, object : TypeLiteral<Presenter<*>>() {})
-            .addBinding(V::class).to(klass.java)
+        private suspend fun cleanupData() {
+            val staleData = taskRunner.runTask(databaseActionsService.detectStaleData())
+            if (staleData.isEmpty) return
+
+            if (view.confirmDeleteStaleData(staleData)) {
+                // TODO: Create backup before deleting
+                taskRunner.runTask(databaseActionsService.deleteStaleData(staleData))
+            }
+        }
     }
 }

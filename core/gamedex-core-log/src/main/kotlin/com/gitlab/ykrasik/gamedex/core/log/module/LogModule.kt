@@ -14,27 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.log.module
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.core.log.presenter.LogEntriesPresenter
+import com.gitlab.ykrasik.gamedex.core.log.presenter.LogLevelPresenter
+import com.gitlab.ykrasik.gamedex.core.log.presenter.LogTailPresenter
+import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
+ * Date: 12/10/2018
+ * Time: 10:40
  */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
-
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+object LogModule : InternalCoreModule() {
+    override fun configure() {
+        bindPresenter(LogEntriesPresenter::class)
+        bindPresenter(LogLevelPresenter::class)
+        bindPresenter(LogTailPresenter::class)
+    }
 }

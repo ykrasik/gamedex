@@ -13,7 +13,6 @@ buildscript {
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
             gradle = [group: 'org.jetbrains.kotlin', name: 'kotlin-gradle-plugin', version: v]
-//            dokka = [group: 'org.jetbrains.dokka', name: 'dokka-gradle-plugin', version: '0.9.15']
             delegate
         }
 
@@ -97,7 +96,6 @@ buildscript {
 
     dependencies {
         classpath ktlin.gradle
-//        classpath ktlin.dokka
         classpath gradleJavaFx
         classpath gradleVersions
         classpath gradleLicense
@@ -127,7 +125,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'kotlin'
-//    apply plugin: 'org.jetbrains.dokka'
     apply gradleFile('test.gradle')
     apply gradleFile('license.gradle')
 
@@ -145,12 +142,6 @@ subprojects {
         testCompile mockito.core
         testCompile mockito.kotlin
     }
-
-//    dokka {
-//        outputFormat = 'javadoc'
-//        outputDirectory = "$buildDir/javadoc"
-//        processConfigurations = ['compile']
-//    }
 
     compileKotlin {
         kotlinOptions.jvmTarget = '1.8'
@@ -245,11 +236,9 @@ project("core:gamedex-core-common") {
     }
 }
 
-project("core:gamedex-core-persistence") {
+project("core:gamedex-core-file") {
     dependencies {
-        fullDependency ":gamedex-api"
-        compile h2
-        compile exposed
+        fullDependency ":core:gamedex-core-common"
     }
 }
 
@@ -262,10 +251,39 @@ project("core:gamedex-core-game") {
     }
 }
 
+project("core:gamedex-core-general") {
+    dependencies {
+        fullDependency ":core:gamedex-core-common"
+        fullDependency ":core:gamedex-core-persistence"
+    }
+}
+
+project("core:gamedex-core-image") {
+    dependencies {
+        fullDependency ":core:gamedex-core-common"
+    }
+}
+
 project("core:gamedex-core-library") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
         fullDependency ":core:gamedex-core-persistence"
+    }
+}
+
+project("core:gamedex-core-log") {
+    dependencies {
+        fullDependency ":core:gamedex-core-common"
+
+        compile logback
+    }
+}
+
+project("core:gamedex-core-persistence") {
+    dependencies {
+        fullDependency ":gamedex-api"
+        compile h2
+        compile exposed
     }
 }
 
@@ -278,13 +296,16 @@ project("core:gamedex-core-report") {
 project("core:gamedex-core") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
-        fullDependency ":core:gamedex-core-library"
+        fullDependency ":core:gamedex-core-file"
+        fullDependency ":core:gamedex-core-image"
         fullDependency ":core:gamedex-core-game"
+        fullDependency ":core:gamedex-core-general"
+        fullDependency ":core:gamedex-core-library"
+        fullDependency ":core:gamedex-core-log"
+        fullDependency ":core:gamedex-core-persistence"
         fullDependency ":core:gamedex-core-report"
-        compile project(":core:gamedex-core-persistence")
 
         compile slf4j.julBridge
-        compile logback
 
         compile reflections
     }
@@ -321,3 +342,16 @@ def gradleFile(String fileName) { [from: file("gradle/$fileName")] }
 
 // Easier to remember alias
 task versions(dependsOn: dependencyUpdates)
+
+dependencyUpdates.resolutionStrategy {
+    componentSelection { rules ->
+        rules.all { ComponentSelection selection ->
+            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview'].any { qualifier ->
+                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+            }
+            if (rejected) {
+                selection.reject('Release candidate')
+            }
+        }
+    }
+}

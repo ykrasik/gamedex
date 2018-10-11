@@ -14,27 +14,46 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.general.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
+ * Date: 06/10/2018
+ * Time: 12:14
  */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+@Singleton
+class BrowserPresenter @Inject constructor() : Presenter<ViewWithBrowser> {
+    override fun present(view: ViewWithBrowser) = object : Presentation() {
+        init {
+            view.gameChanges.forEach { game ->
+                if (showing) {
+                    browseToGame(game)
+                }
+            }
+        }
 
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
+        override fun onShow() {
+            browseToGame(view.game)
+        }
 
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
+        override fun onHide() {
+            browseToGame(null)
+        }
 
-    fun deleteImages(imageUrls: List<String>)
+        private fun browseToGame(game: Game?) {
+            val url = game?.let {
+                val search = URLEncoder.encode("${it.name} ${it.platform} gameplay", "utf-8")
+                "https://www.youtube.com/results?search_query=$search"
+            }
+            view.browseTo(url)
+        }
+    }
 }

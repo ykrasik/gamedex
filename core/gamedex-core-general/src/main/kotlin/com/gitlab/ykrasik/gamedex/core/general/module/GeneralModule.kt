@@ -14,27 +14,25 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.general.module
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.core.general.presenter.*
+import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
+ * Date: 12/10/2018
+ * Time: 10:31
  */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+object GeneralModule : InternalCoreModule() {
+    override fun configure() {
+        bindPresenter(ExportDatabasePresenter::class)
+        bindPresenter(ImportDatabasePresenter::class)
+        bindPresenter(ClearUserDataPresenter::class)
+        bindPresenter(CleanupCachePresenter::class)
+        bindPresenter(CleanupDataPresenter::class)
 
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+        bindPresenter(BrowserPresenter::class)
+        bindPresenter(BrowseUrlPresenter::class)
+    }
 }

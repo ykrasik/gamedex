@@ -2,12 +2,16 @@ rootProject.name = 'gamedex'
 
 include "gamedex-api"
 
-include "core:gamedex-core-common"
-include "core:gamedex-core-persistence"
-include "core:gamedex-core-game"
-include "core:gamedex-core-library"
-include "core:gamedex-core-report"
 include "core:gamedex-core"
+include "core:gamedex-core-common"
+include "core:gamedex-core-file"
+include "core:gamedex-core-game"
+include "core:gamedex-core-general"
+include "core:gamedex-core-image"
+include "core:gamedex-core-library"
+include "core:gamedex-core-log"
+include "core:gamedex-core-persistence"
+include "core:gamedex-core-report"
 
 include "provider:gamedex-provider-giantbomb"
 include "provider:gamedex-provider-igdb"

@@ -14,27 +14,38 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.general.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.general.CleanupCacheView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
+ * Date: 22/09/2018
+ * Time: 14:35
  */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+@Singleton
+class CleanupCachePresenter @Inject constructor(
+    private val databaseActionsService: DatabaseActionsService,
+    private val taskRunner: TaskRunner
+) : Presenter<CleanupCacheView> {
+    override fun present(view: CleanupCacheView) = object : Presentation() {
+        init {
+            view.cleanupCacheActions.forEach { cleanupCache() }
+        }
 
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
+        private suspend fun cleanupCache() {
+            val staleCache = taskRunner.runTask(databaseActionsService.detectStaleCache())
+            if (staleCache.isEmpty) return
 
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+            if (view.confirmDeleteStaleCache(staleCache)) {
+                taskRunner.runTask(databaseActionsService.deleteStaleCache(staleCache))
+            }
+        }
+    }
 }

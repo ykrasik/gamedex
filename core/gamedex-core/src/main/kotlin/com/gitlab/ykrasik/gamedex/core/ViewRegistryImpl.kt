@@ -17,13 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.core.filter.presenter.MenuGameFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.filter.presenter.ReportGameFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.general.*
-import com.gitlab.ykrasik.gamedex.core.log.LogEntriesPresenter
-import com.gitlab.ykrasik.gamedex.core.log.LogLevelPresenter
-import com.gitlab.ykrasik.gamedex.core.log.LogTailPresenter
-import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -34,68 +27,9 @@ import kotlin.reflect.KClass
  * Time: 17:33
  */
 @Singleton
-class ViewRegistryImpl @Inject constructor(
-    menuGameFilter: MenuGameFilterPresenter,
-    reportGameFilter: ReportGameFilterPresenter,
-
-    showSettings: ShowSettingsPresenter,
-    settings: SettingsPresenter,
-
-    exportDatabase: ExportDatabasePresenter,
-    importDatabase: ImportDatabasePresenter,
-    clearUserData: ClearUserDataPresenter,
-    cleanupCache: CleanupCachePresenter,
-    cleanupData: CleanupDataPresenter,
-
-    changeGameCellDisplaySettings: ChangeGameCellDisplaySettingsPresenter,
-    gameCellDisplaySettings: GameCellDisplaySettingsPresenter,
-    changeGameNameOverlayDisplaySettings: ChangeGameNameOverlayDisplaySettingsPresenter,
-    gameNameOverlayDisplaySettings: GameNameOverlayDisplaySettingsPresenter,
-    changeGameMetaTagOverlayDisplaySettings: ChangeGameMetaTagOverlayDisplaySettingsPresenter,
-    gameMetaTagOverlayDisplaySettings: GameMetaTagOverlayDisplaySettingsPresenter,
-    changeGameVersionOverlayDisplaySettings: ChangeGameVersionOverlayDisplaySettingsPresenter,
-    gameVersionOverlayDisplaySettings: GameVersionOverlayDisplaySettingsPresenter,
-    providerOrderSettings: ProviderOrderSettingsPresenter,
-    providerSettings: ProviderSettingsPresenter,
-
-    logEntries: LogEntriesPresenter,
-    logLevel: LogLevelPresenter,
-    logTail: LogTailPresenter,
-
-    presenters: MutableMap<KClass<*>, Presenter<*>>
-) : ViewRegistry {
-    private val presenterClasses: Map<KClass<*>, Presenter<*>> = listOf(
-        presenter(menuGameFilter),
-        presenter(reportGameFilter),
-
-        presenter(showSettings),
-        presenter(settings),
-
-        presenter(exportDatabase),
-        presenter(importDatabase),
-        presenter(clearUserData),
-        presenter(cleanupCache),
-        presenter(cleanupData),
-
-        presenter(changeGameCellDisplaySettings),
-        presenter(gameCellDisplaySettings),
-        presenter(changeGameNameOverlayDisplaySettings),
-        presenter(gameNameOverlayDisplaySettings),
-        presenter(changeGameMetaTagOverlayDisplaySettings),
-        presenter(gameMetaTagOverlayDisplaySettings),
-        presenter(changeGameVersionOverlayDisplaySettings),
-        presenter(gameVersionOverlayDisplaySettings),
-        presenter(providerOrderSettings),
-        presenter(providerSettings),
-
-        presenter(logEntries),
-        presenter(logLevel),
-        presenter(logTail)
-    ).toMap() + presenters
-
+class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<*>, Presenter<*>>) : ViewRegistry {
+    private val presenters: Map<KClass<*>, Presenter<*>> = initialPresenters
     private val activePresentations = mutableMapOf<Any, List<Presentation>>()
-
-    private inline fun <reified V : Any> presenter(presenter: Presenter<V>) = V::class to presenter
 
     override fun register(view: Any) {
         check(activePresentations.put(view, presentView(view)) == null) { "View already registered: $view" }
@@ -106,7 +40,7 @@ class ViewRegistryImpl @Inject constructor(
         fun <T : Any> Presenter<*>.doPresent() = (this as Presenter<T>).present(view as T)
 
         return view.javaClass.interfaces.map { iface ->
-            presenterClasses[iface.kotlin]!!.doPresent<Any>()
+            presenters[iface.kotlin]!!.doPresent<Any>()
         }
     }
 

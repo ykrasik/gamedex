@@ -14,27 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.image
+package com.gitlab.ykrasik.gamedex.core.log.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.experimental.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogLevel
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 05/04/2018
- * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
- */
-interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
-
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
-
-    fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
-
-    fun deleteImages(imageUrls: List<String>)
+@Singleton
+class LogLevelPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogLevel> {
+    override fun present(view: ViewCanChangeLogLevel) = object : Presentation() {
+        init {
+            settingsService.general.bind({ logFilterLevelChannel }, view::level, view.levelChanges) { copy(logFilterLevel = it) }
+        }
+    }
 }
