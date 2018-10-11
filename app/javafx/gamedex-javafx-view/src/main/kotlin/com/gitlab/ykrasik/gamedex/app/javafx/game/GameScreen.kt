@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxMenuGameFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.wall.GameWallView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty

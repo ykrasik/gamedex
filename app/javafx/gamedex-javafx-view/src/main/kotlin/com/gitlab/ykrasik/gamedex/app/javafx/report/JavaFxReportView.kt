@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
@@ -29,9 +29,9 @@ import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId

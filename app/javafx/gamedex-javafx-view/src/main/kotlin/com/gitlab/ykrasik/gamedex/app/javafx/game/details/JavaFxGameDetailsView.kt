@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.details
+package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game

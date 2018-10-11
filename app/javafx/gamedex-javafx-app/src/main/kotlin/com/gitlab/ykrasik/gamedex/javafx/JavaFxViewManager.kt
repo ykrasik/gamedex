@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
@@ -30,7 +31,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxViewGameScreen
 import tornadofx.View
 import tornadofx.vbox
 import javax.inject.Singleton

@@ -18,11 +18,11 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.game.GameScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
-import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxViewGameScreen
-import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView

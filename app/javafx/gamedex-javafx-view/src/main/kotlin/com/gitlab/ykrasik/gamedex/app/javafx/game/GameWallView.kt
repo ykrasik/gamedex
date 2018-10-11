@@ -14,19 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.wall
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import javafx.beans.property.SimpleObjectProperty

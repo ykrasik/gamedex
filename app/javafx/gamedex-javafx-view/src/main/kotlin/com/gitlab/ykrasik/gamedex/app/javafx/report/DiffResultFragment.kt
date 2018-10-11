@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.report
+package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter

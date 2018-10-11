@@ -14,7 +14,7 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.wall
+package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.CellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
