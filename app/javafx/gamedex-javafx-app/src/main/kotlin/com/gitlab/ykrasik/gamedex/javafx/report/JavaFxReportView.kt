@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.javafx.report
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
@@ -28,10 +27,11 @@ import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -98,6 +98,8 @@ class JavaFxReportView :
 
     private val additionalInfoProperty = selectedGameProperty.map { result.additionalData[it?.id] }
 
+    private val gameDetailsView = JavaFxGameDetailsView()
+
     init {
         titleProperty.bind(reportProperty.map { it?.name })
         viewRegistry.register(this)
@@ -137,15 +139,11 @@ class JavaFxReportView :
             hgrow = Priority.ALWAYS
 
             // Top
-            stackpane {
-                paddingAll = 5.0
-                selectedGameProperty.perform { game ->
-                    if (game != null) {
-                        replaceChildren {
-                            addComponent(GameDetailsFragment(game))
-                        }
-                    }
-                }
+            addComponent(gameDetailsView) {
+                root.paddingAll = 5.0
+            }
+            selectedGameProperty.perform { game ->
+                game?.let { gameDetailsView.game = it }
             }
 
             separator()

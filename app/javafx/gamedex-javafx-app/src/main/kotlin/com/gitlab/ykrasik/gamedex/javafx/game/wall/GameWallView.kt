@@ -25,21 +25,16 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.game.details.GameDetailsFragment
-import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toPredicate
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
-import javafx.stage.Screen
 import javafx.util.Callback
 import org.controlsfx.control.GridCell
 import org.controlsfx.control.GridView
-import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -71,7 +66,13 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     private val gameContextMenu: GameContextMenu by inject()
 
-    private val popOver = popOver(closeOnClick = false)
+    private val gameDetailsView = JavaFxGameDetailsView(withDescription = false)
+
+    private val popOver = popOver(closeOnClick = false).apply {
+        gameDetailsView.root.addClass(Style.quickDetails)
+        contentNode = gameDetailsView.root
+    }
+
     private var popOverShowing = false
 
     init {
@@ -95,59 +96,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             it.onChange { setCellFactory(GameWallCellFactory()) }
         }
 
-        setCellFactory {
-            val cell = GameWallCell()
-            cell.setOnMouseClicked { e ->
-                popOver.setOnHidden {
-                    cell.markSelected(false)
-                }
-                when (e.clickCount) {
-                    1 -> with(popOver) {
-                        if (popOverShowing) {
-                            popOverShowing = false
-                            hide()
-                        } else if (e.button == MouseButton.PRIMARY) {
-                            arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false).root.apply {
-                                addClass(Style.quickDetails)
-                            }
-                            cell.markSelected(true)
-                            show(cell)
-                            popOverShowing = true
-                        }
-                    }
-                    2 -> {
-                        popOver.hide()
-                        popOverShowing = false
-                        if (e.button == MouseButton.PRIMARY) {
-                            showGameDetailsActions.event(cell.item)
-                        }
-                    }
-                }
-            }
-            gameContextMenu.install(cell) { cell.item!! }
-            cell
-        }
-    }
-
-    private fun determineArrowLocation(x: Double, y: Double): PopOver.ArrowLocation {
-        val screenBounds = Screen.getPrimary().bounds
-        val maxX = screenBounds.maxX
-        val maxY = screenBounds.maxY
-
-        var arrowLocation = PopOver.ArrowLocation.TOP_LEFT
-        if (x > maxX / 2) {
-            arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
-        }
-        if (y > maxY / 2) {
-            arrowLocation = if (arrowLocation == PopOver.ArrowLocation.TOP_LEFT) {
-                PopOver.ArrowLocation.BOTTOM_LEFT
-            } else {
-                PopOver.ArrowLocation.BOTTOM_RIGHT
-            }
-        }
-
-        return arrowLocation
+        setCellFactory(GameWallCellFactory())
     }
 
     private inner class GameWallCellFactory : Callback<GridView<Game>, GridCell<Game>> {
@@ -163,10 +112,8 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                             popOverShowing = false
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
-                            arrowLocation = determineArrowLocation(e.screenX, e.screenY)
-                            contentNode = GameDetailsFragment(cell.item!!, withDescription = false).root.apply {
-                                addClass(Style.quickDetails)
-                            }
+                            determineArrowLocation(e.screenX, e.screenY)
+                            gameDetailsView.game = cell.item
                             cell.markSelected(true)
                             show(cell)
                             popOverShowing = true

@@ -52,23 +52,20 @@ class ReportPresenter @Inject constructor(
                 if (showing) {
                     subscription = gameService.games.itemsChannel.subscribe(Dispatchers.Main) { games ->
                         view.calculatingReport = true
-                        val let = report?.let { report ->
-                            withContext(Dispatchers.Default) {
-                                calculate(games, report)
-                            }
+                        view.result = report?.let { report ->
+                            calculate(games, report)
                         }
-                        view.result = let
                         view.calculatingReport = false
                     }
                 }
             }
         }
 
-        private suspend fun calculate(games: List<Game>, report: Report): ReportResult {
-            val context = filterContextFactory.create(games)
+        private suspend fun calculate(games: List<Game>, report: Report): ReportResult = withContext(Dispatchers.Default) {
             withContext(Dispatchers.Main) {
                 view.calculatingReportProgress = 0.0
             }
+            val context = filterContextFactory.create(games)
             // Report progress every 'chunkSize' games.
             val chunkSize = 50
             val matchingGames = games.chunked(chunkSize).flatMapIndexed { i, chunk ->
@@ -80,7 +77,7 @@ class ReportPresenter @Inject constructor(
                 }
                 result
             }
-            return ReportResult(
+            ReportResult(
                 games = matchingGames.sortedBy { it.name },
                 additionalData = context.additionalData,
                 fileStructure = fileSystemService.allStructure()

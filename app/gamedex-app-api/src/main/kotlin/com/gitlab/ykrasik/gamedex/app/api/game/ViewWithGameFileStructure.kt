@@ -14,19 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.browser
+package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/10/2018
- * Time: 12:13
+ * Date: 11/10/2018
+ * Time: 09:11
  */
-interface ViewWithBrowser {
-    val game: Game?
-    val gameChanges: Channel<Game?>
+interface ViewWithGameFileStructure {
+    val game: Game
+    val gameChanges: ReceiveChannel<Game>  // FIXME: This solution is meh, a better one would be to send an onShow to the presenter.
 
-    fun browseTo(url: String?)
+    var fileStructure: FileStructure
 }

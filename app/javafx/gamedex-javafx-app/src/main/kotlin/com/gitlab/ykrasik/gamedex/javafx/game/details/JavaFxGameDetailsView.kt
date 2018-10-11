@@ -16,14 +16,21 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.game.details
 
+import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameFileStructure
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
-import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
+import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.scene.control.Label
@@ -32,34 +39,60 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import org.joda.time.DateTimeZone
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
  * Date: 01/05/2017
  * Time: 19:42
  */
-class GameDetailsFragment(
-    private val game: Game,
+class JavaFxGameDetailsView(
     private val withDescription: Boolean = true,
     private val evenIfEmpty: Boolean = false
-) : Fragment() {
-    private val gameProviderService: GameProviderService by di()
-    private val fileSystemService: FileSystemService by di()
+) : PresentableView(), ViewWithProviderLogos, ViewWithGameFileStructure, ViewCanBrowseFile, ViewCanBrowseUrl {
+    override val gameChanges = channel<Game>()
+    private val gameProperty = SimpleObjectProperty<Game>().eventOnChange(gameChanges)
+    override var game by gameProperty
 
-    override val root = gridpane {
-        hgap = 5.0
-        vgap = 8.0
+    override var providerLogos = emptyMap<ProviderId, Image>()
 
-        name()
-        path()
-        description()
-        releaseDate()
-        criticScore()
-        userScore()
-        genres()
-        tags()
-        urls()
-        timestamp()
+    private val fileStructureProperty = SimpleObjectProperty<FileStructure>()
+    override var fileStructure by fileStructureProperty
+
+    private val fileStructurePlaceholder = label {
+        minWidth = 60.0
+        fileStructureProperty.onChange {
+            text = it!!.size.humanReadable
+        }
+    }
+
+    override val browseToFileActions = channel<File>()
+    override val browseToUrlActions = channel<String>()
+
+    init {
+        viewRegistry.register(this)
+    }
+
+    override val root = stackpane {
+        gameProperty.onChange {
+            replaceChildren {
+                gridpane {
+                    hgap = 5.0
+                    vgap = 8.0
+
+                    name()
+                    path()
+                    if (withDescription) description()
+                    releaseDate()
+                    criticScore()
+                    userScore()
+                    genres()
+                    tags()
+                    urls()
+                    timestamp()
+                }
+            }
+        }
     }
 
     private fun GridPane.name() = row {
@@ -68,19 +101,20 @@ class GameDetailsFragment(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        label {
-            minWidth = 60.0
-            text = fileSystemService.structure(game).size.humanReadable
-        }
+        children += fileStructurePlaceholder
     }
 
     private fun GridPane.path() = row {
         detailsHeader("Path")
-        pathButton(game.path) { addClass(CommonStyle.hoverable, Style.detailsContent) }
+        jfxButton(game.path.toString()) {
+            addClass(CommonStyle.hoverable, Style.detailsContent)
+            isFocusTraversable = false
+            eventOnAction(browseToFileActions) { game.path }
+        }
     }
 
     private fun GridPane.description() = game.description.let { description ->
-        if (withDescription && (description != null || evenIfEmpty)) row {
+        if (description != null || evenIfEmpty) row {
             detailsHeader("Description")
             detailsContent(description.toDisplayString()) {
                 isWrapText = true
@@ -138,8 +172,8 @@ class GameDetailsFragment(
                     vgap = 3.0
                     providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
                         row {
-                            children += gameProviderService.provider(header.id).logoImage.toImageView(height = 30.0, width = 70.0)
-                            hyperlink(gameData.siteUrl) { setOnAction { gameData.siteUrl.browseToUrl() } }
+                            children += providerLogos[header.id]!!.image.toImageView(height = 30.0, width = 70.0)
+                            hyperlink(gameData.siteUrl) { eventOnAction(browseToUrlActions) { gameData.siteUrl } }
                         }
                     }
                 }

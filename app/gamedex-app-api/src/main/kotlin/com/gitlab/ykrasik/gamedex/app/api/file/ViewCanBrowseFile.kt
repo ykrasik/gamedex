@@ -14,20 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.app.api.file
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import java.io.File
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 20:09
+ * Date: 12/10/2018
+ * Time: 09:27
  */
-// TODO: Break this down into viewWithPoster?
-interface GameDetailsView {
-    var game: Game
-
-    var poster: Deferred<Image>?
+interface ViewCanBrowseFile {
+    val browseToFileActions: ReceiveChannel<File>
 }

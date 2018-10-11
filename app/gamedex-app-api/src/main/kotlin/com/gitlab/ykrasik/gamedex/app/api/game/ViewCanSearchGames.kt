@@ -26,4 +26,6 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
 interface ViewCanSearchGames {
     var searchText: String
     val searchTextChanges: ReceiveChannel<String>
+
+    // TODO: Add auto-complete suggestions.
 }

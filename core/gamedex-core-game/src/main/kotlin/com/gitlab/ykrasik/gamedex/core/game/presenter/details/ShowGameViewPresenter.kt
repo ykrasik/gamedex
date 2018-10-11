@@ -14,30 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.view
+package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
-import com.gitlab.ykrasik.gamedex.javafx.determineArrowLocation
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import javafx.scene.Node
-import javafx.scene.input.MouseEvent
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 07/10/2018
- * Time: 10:29
+ * Date: 08/06/2018
+ * Time: 09:38
  */
-abstract class InstallableContextMenu<T : Any> : PresentableView() {
-    protected lateinit var data: T
-
-    private val popover by lazy {
-        popOver { children += root }.apply { isAutoFix = false }
-    }
-
-    fun install(node: Node, data: () -> T) {
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
-        node.setOnContextMenuRequested { e ->
-            this.data = data()
-            popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
+@Singleton
+class ShowGameViewPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanShowGameDetails> {
+    override fun present(view: ViewCanShowGameDetails) = object : Presentation() {
+        init {
+            view.showGameDetailsActions.forEach { game ->
+                viewManager.showGameView {
+                    this.game = game
+                }
+            }
         }
     }
 }

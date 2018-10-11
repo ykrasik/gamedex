@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -39,8 +39,8 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDeleteGame, ViewCanTagGame,
-    GameDetailsView, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewWithBrowser {
+class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, ViewCanDeleteGame,
+    ViewCanTagGame, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewWithBrowser {
     private val imageLoader: ImageLoader by di()
 
     private val browser = WebBrowser()
@@ -57,6 +57,8 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
     override val tagGameActions = channel<Game>()
     override val redownloadGameActions = channel<Game>()
     override val rediscoverGameActions = channel<Game>()
+
+    private val gameDetailsView = JavaFxGameDetailsView(evenIfEmpty = true)
 
     init {
         viewRegistry.register(this)
@@ -120,12 +122,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(), ViewCanEditGame, ViewCanDel
             hgrow = Priority.ALWAYS
 
             // Top
-            stackpane {
-                gameProperty.onChange { game ->
-                    replaceChildren {
-                        addComponent(GameDetailsFragment(game!!, evenIfEmpty = true))
-                    }
-                }
+            addComponent(gameDetailsView)
+            gameProperty.onChange {
+                gameDetailsView.game = it
             }
 
             separator { paddingTop = 10.0 }

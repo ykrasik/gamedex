@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.SortGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.DeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.ShowDeleteGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameDetailsPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameDetailsPreseneter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameViewPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameViewPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGameChooseResultsPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGamesWithoutProvidersPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverNewGamesPresenter
@@ -32,6 +32,7 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.RediscoverGamePre
 import com.gitlab.ykrasik.gamedex.core.game.presenter.download.*
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.file.FileStructurePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.RenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.tag.ShowTagGamePresenter
@@ -60,8 +61,8 @@ object GameModule : InternalCoreModule() {
         bindPresenter(DeleteGamePresenter::class)
         bindPresenter(ShowDeleteGamePresenter::class)
 
-        bindPresenter(GameDetailsPresenter::class)
-        bindPresenter(ShowGameDetailsPreseneter::class)
+        bindPresenter(GameViewPresenter::class)
+        bindPresenter(ShowGameViewPresenter::class)
 
         bindPresenter(DiscoverGameChooseResultsPresenter::class)
         bindPresenter(DiscoverGamesWithoutProvidersPresenter::class)
@@ -76,6 +77,8 @@ object GameModule : InternalCoreModule() {
 
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)
+
+        bindPresenter(FileStructurePresenter::class)
 
         bindPresenter(RenameMoveGamePresenter::class)
         bindPresenter(ShowRenameMoveGamePresenter::class)

@@ -14,14 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core
+package com.gitlab.ykrasik.gamedex.core.web
 
-import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 17/06/2017
- * Time: 14:51
+ * Date: 12/10/2018
+ * Time: 09:48
  */
-fun Game.matchesSearchQuery(query: String) =
-    query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
+@Singleton
+class BrowseUrlPresenter @Inject constructor() : Presenter<ViewCanBrowseUrl> {
+    override fun present(view: ViewCanBrowseUrl) = object : Presentation() {
+        init {
+            view.browseToUrlActions.forEach {
+                it.browseToUrl()
+            }
+        }
+    }
+}

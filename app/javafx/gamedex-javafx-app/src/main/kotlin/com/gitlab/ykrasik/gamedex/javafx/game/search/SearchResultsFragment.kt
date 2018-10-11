@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.*
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
-import javafx.stage.Screen
 import tornadofx.*
 import java.util.*
 
@@ -38,7 +37,7 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
     private var choice: SearchChooser.Choice = SearchChooser.Choice.Cancel
 
     override val root = borderpane {
-        with(Screen.getPrimary().bounds) {
+        with(screenBounds) {
             prefHeight = height * 3 / 4
             prefWidth = width * 2 / 3
         }

@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
-import com.gitlab.ykrasik.gamedex.core.browser.BrowserPresenter
 import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
 import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
+import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowseFilePresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
@@ -35,6 +35,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.storage.*
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
+import com.gitlab.ykrasik.gamedex.core.web.BrowseUrlPresenter
+import com.gitlab.ykrasik.gamedex.core.web.BrowserPresenter
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.Provides
@@ -75,6 +77,8 @@ object CoreModule : InternalCoreModule() {
 
         bindPresenter(ProviderLogosPresenter::class)
         bindPresenter(BrowserPresenter::class)
+        bindPresenter(BrowseUrlPresenter::class)
+        bindPresenter(BrowseFilePresenter::class)
     }
 
     @Provides
@@ -109,9 +113,8 @@ object CoreModule : InternalCoreModule() {
     @Provides
     @Singleton
     @ImageStorage
-    fun imageStorage(): Storage<String, ByteArray> =
-        FileStorage.binary("cache/images").stringId(
-            keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
-            reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
-        )
+    fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/images").stringId(
+        keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
+        reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
+    )
 }

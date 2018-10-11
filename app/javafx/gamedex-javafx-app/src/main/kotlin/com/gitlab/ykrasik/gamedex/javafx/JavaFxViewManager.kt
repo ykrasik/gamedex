@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxViewGameScreen
 import tornadofx.View
 import tornadofx.vbox
 import javax.inject.Singleton
@@ -46,9 +46,9 @@ class JavaFxViewManager : View(), ViewManager {
 
     private val mainView: MainView by inject()
 
-    override val gameDetailsView: JavaFxGameDetailsScreen by inject()
-    override fun showGameDetailsView(view: GameDetailsView) = mainView.showGameDetails()
-    override fun closeGameDetailsView(view: GameDetailsView) = mainView.showPreviousScreen()
+    override val gameView: JavaFxViewGameScreen by inject()
+    override fun showGameView(view: GameView) = mainView.showGameDetails()
+    override fun closeGameView(view: GameView) = mainView.showPreviousScreen()
 
     override val editLibraryView: JavaFxEditLibraryView by inject()
     override fun showEditLibraryView(view: EditLibraryView) = view.openModal()

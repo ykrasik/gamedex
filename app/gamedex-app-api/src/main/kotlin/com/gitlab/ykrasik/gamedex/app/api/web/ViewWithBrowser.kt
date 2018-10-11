@@ -14,30 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.view
+package com.gitlab.ykrasik.gamedex.app.api.web
 
-import com.gitlab.ykrasik.gamedex.javafx.determineArrowLocation
-import com.gitlab.ykrasik.gamedex.javafx.popOver
-import javafx.scene.Node
-import javafx.scene.input.MouseEvent
+import com.gitlab.ykrasik.gamedex.Game
+import kotlinx.coroutines.experimental.channels.Channel
 
 /**
  * User: ykrasik
- * Date: 07/10/2018
- * Time: 10:29
+ * Date: 06/10/2018
+ * Time: 12:13
  */
-abstract class InstallableContextMenu<T : Any> : PresentableView() {
-    protected lateinit var data: T
+interface ViewWithBrowser {
+    val game: Game?
+    val gameChanges: Channel<Game?>
 
-    private val popover by lazy {
-        popOver { children += root }.apply { isAutoFix = false }
-    }
-
-    fun install(node: Node, data: () -> T) {
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
-        node.setOnContextMenuRequested { e ->
-            this.data = data()
-            popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
-        }
-    }
+    fun browseTo(url: String?)
 }

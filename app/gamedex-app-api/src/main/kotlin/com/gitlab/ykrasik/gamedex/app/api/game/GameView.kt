@@ -14,29 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.details
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
-import com.gitlab.ykrasik.gamedex.core.Presentation
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import kotlinx.coroutines.experimental.Deferred
 
 /**
  * User: ykrasik
- * Date: 08/06/2018
- * Time: 09:38
+ * Date: 29/04/2018
+ * Time: 20:09
  */
-@Singleton
-class ShowGameDetailsPreseneter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanShowGameDetails> {
-    override fun present(view: ViewCanShowGameDetails) = object : Presentation() {
-        init {
-            view.showGameDetailsActions.forEach { game ->
-                viewManager.showGameDetailsView {
-                    this.game = game
-                }
-            }
-        }
-    }
+interface GameView {
+    var game: Game
+
+    var poster: Deferred<Image>?
 }

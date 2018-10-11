@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.javafx.game.GameScreen
-import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxGameDetailsScreen
+import com.gitlab.ykrasik.gamedex.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.javafx.report.ReportsScreen
 import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -49,7 +49,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private val libraryScreen: JavaFxLibraryScreen by inject()
     private val logScreen: JavaFxLogScreen by inject()
 
-    private val gameDetailsScreen: JavaFxGameDetailsScreen by inject()
+    private val viewGameScreen: JavaFxViewGameScreen by inject()
 
     private val taskRunner: JavaFxTaskRunner by di()
 
@@ -60,7 +60,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
     private lateinit var previousScreen: Tab
 
-    private val nonNavigableScreens = setOf(gameDetailsScreen)
+    private val nonNavigableScreens = setOf(viewGameScreen)
 
     private val toolbars = mutableMapOf<PresentableScreen, ToolBar>()
 
@@ -88,7 +88,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
                     screenTab(reportsScreen)
                     screenTab(libraryScreen)
                     screenTab(logScreen)
-                    screenTab(gameDetailsScreen)
+                    screenTab(viewGameScreen)
 
                     selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
                         cleanupClosedTab(oldValue)

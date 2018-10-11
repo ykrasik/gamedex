@@ -315,6 +315,7 @@ inline fun popOver(
     this.arrowLocation = arrowLocation
     isAnimated = false  // A ton of exceptions start getting thrown if closing a window with an open popover without this.
     isDetachable = false
+    isAutoFix = true
 
     val scrollpane = ScrollPane().apply {
         maxHeight = screenBounds.height * 3 / 4
@@ -330,6 +331,36 @@ inline fun popOver(
         }
     }
     contentNode = scrollpane
+}
+
+fun PopOver.determineArrowLocation(x: Double, y: Double) = apply {
+    val leftBound = screenBounds.maxX / 3
+    val rightBound = leftBound * 2
+    val topBound = screenBounds.maxY / 3
+    val bottomBound = topBound * 2
+
+    val isLeft = x < leftBound
+    val isRight = x > rightBound
+    val isTop = y < topBound
+    val isBottom = y > bottomBound
+
+    arrowLocation = when {
+        isLeft -> when {
+            isTop -> PopOver.ArrowLocation.TOP_LEFT
+            isBottom -> PopOver.ArrowLocation.BOTTOM_LEFT
+            else -> PopOver.ArrowLocation.LEFT_CENTER
+        }
+        isRight -> when {
+            isTop -> PopOver.ArrowLocation.TOP_RIGHT
+            isBottom -> PopOver.ArrowLocation.BOTTOM_RIGHT
+            else -> PopOver.ArrowLocation.RIGHT_CENTER
+        }
+        else -> when {
+            isTop -> PopOver.ArrowLocation.TOP_CENTER
+            isBottom -> PopOver.ArrowLocation.BOTTOM_CENTER
+            else -> PopOver.ArrowLocation.TOP_LEFT
+        }
+    }
 }
 
 fun PopOver.replaceContent(content: Node) {

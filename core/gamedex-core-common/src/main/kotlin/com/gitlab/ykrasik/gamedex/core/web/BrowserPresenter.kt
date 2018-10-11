@@ -14,10 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.browser
+package com.gitlab.ykrasik.gamedex.core.web
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.browser.ViewWithBrowser
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import java.net.URLEncoder

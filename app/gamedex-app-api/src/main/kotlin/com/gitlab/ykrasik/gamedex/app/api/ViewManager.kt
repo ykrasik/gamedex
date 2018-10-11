@@ -35,10 +35,10 @@ interface ViewManager {
     fun showEditLibraryView(f: EditLibraryView.() -> Unit) = mutateAndShow(editLibraryView, f, this::showEditLibraryView)
     fun closeEditLibraryView(view: EditLibraryView)
 
-    val gameDetailsView: GameDetailsView
-    fun showGameDetailsView(view: GameDetailsView)
-    fun showGameDetailsView(f: GameDetailsView.() -> Unit) = mutateAndShow(gameDetailsView, f, this::showGameDetailsView)
-    fun closeGameDetailsView(view: GameDetailsView)
+    val gameView: GameView
+    fun showGameView(view: GameView)
+    fun showGameView(f: GameView.() -> Unit) = mutateAndShow(gameView, f, this::showGameView)
+    fun closeGameView(view: GameView)
 
     val deleteLibraryView: DeleteLibraryView
     fun showDeleteLibraryView(view: DeleteLibraryView)
