@@ -40,8 +40,7 @@ interface GameService {
 
     fun deleteAllUserData(): Task<Unit>
 
-    // FIXME: This would look better when handled by an eventBus
-    fun invalidate(): Task<Unit>
+    fun invalidate()
 }
 
 data class AddGameRequest(

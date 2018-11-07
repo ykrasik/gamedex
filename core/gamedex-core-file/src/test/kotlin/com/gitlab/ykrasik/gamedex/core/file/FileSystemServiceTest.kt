@@ -26,7 +26,7 @@ import io.kotlintest.mock.mock
  * Time: 20:56
  */
 class FileSystemServiceTest : ScopedWordSpec() {
-    val fileSystemService = FileSystemServiceImpl(mock(), FileNameHandler(), mock())
+    val fileSystemService = FileSystemServiceImpl(mock(), mock())
 
     init {
         "analyzeFileName" should {
@@ -158,25 +158,23 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     analyze(" One  Two [1.2.3]   [Four]  Three  Five").gameName shouldBe "One Two Three Five"
                     analyze("  [asd] One  Two Three  4 [1.2.3]  ").gameName shouldBe "One Two Three 4"
                 }
-            }
-        }
 
-        "fromFileName" should {
-            "replace all instances of ' - ' with ': ' and collapse spaces in game name" {
-                fromFileName("Test - Game") shouldBe "Test: Game"
-                fromFileName("Test - Game - More") shouldBe "Test: Game: More"
-                fromFileName("Test  -  Game") shouldBe "Test: Game"
-                fromFileName("Test  -  Game  -  More [asd]") shouldBe "Test: Game: More [asd]"
-                fromFileName("Test  -  Game  - [asd] More") shouldBe "Test: Game: [asd] More"
-                fromFileName("Test  - [1.2.3] Game  -  More ") shouldBe "Test: [1.2.3] Game: More"
-                fromFileName("[1.2.3]  Test  -  Game  -  More  [asd]") shouldBe "[1.2.3] Test: Game: More [asd]"
-            }
+                "replace all instances of ' - ' with ': ' and collapse spaces in game name" {
+                    analyze("Test - Game").gameName shouldBe "Test: Game"
+                    analyze("Test - Game - More").gameName shouldBe "Test: Game: More"
+                    analyze("Test  -  Game").gameName shouldBe "Test: Game"
+                    analyze("Test  -  Game  -  More [asd]").gameName shouldBe "Test: Game: More"
+                    analyze("Test  -  Game  - [asd] More").gameName shouldBe "Test: Game: More"
+                    analyze("Test  - [1.2.3] Game  -  More ").gameName shouldBe "Test: Game: More"
+                    analyze("[1.2.3]  Test  -  Game  -  More  [asd]").gameName shouldBe "Test: Game: More"
+                }
 
-            "only replace exact matches of ' - ' with ': '" {
-                fromFileName("Test-Game") shouldBe "Test-Game"
-                fromFileName("Test- Game") shouldBe "Test- Game"
-                fromFileName("Test -Game") shouldBe "Test -Game"
-                fromFileName("Test -- Game") shouldBe "Test -- Game"
+                "only replace exact matches of ' - ' with ': '" {
+                    analyze("Test-Game").gameName shouldBe "Test-Game"
+                    analyze("Test- Game").gameName shouldBe "Test- Game"
+                    analyze("Test -Game").gameName shouldBe "Test -Game"
+                    analyze("Test -- Game").gameName shouldBe "Test -- Game"
+                }
             }
         }
     }
@@ -185,5 +183,4 @@ class FileSystemServiceTest : ScopedWordSpec() {
         analyze("[2] Some Name [Some MetaTag] [$version] More Text").version shouldBe version
 
     fun analyze(name: String) = fileSystemService.analyzeFolderName(name)
-    fun fromFileName(name: String) = fileSystemService.fromFileName(name)
 }

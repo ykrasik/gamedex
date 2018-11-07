@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
+import kotlin.reflect.full.allSuperclasses
 
 /**
  * User: ykrasik
@@ -35,12 +36,10 @@ class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<
         check(activePresentations.put(view, presentView(view)) == null) { "View already registered: $view" }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun presentView(view: Any): List<Presentation> {
-        @Suppress("UNCHECKED_CAST")
-        fun <T : Any> Presenter<*>.doPresent() = (this as Presenter<T>).present(view as T)
-
-        return view.javaClass.interfaces.map { iface ->
-            presenters[iface.kotlin]!!.doPresent<Any>()
+        return view.javaClass.kotlin.allSuperclasses.mapNotNull { clazz ->
+            (presenters[clazz] as? Presenter<Any>)?.present(view)
         }
     }
 

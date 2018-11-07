@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 
 /**
  * User: ykrasik
@@ -30,6 +31,9 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
  * A required implementation by the view layer that allows showing & hiding views.
  */
 interface ViewManager {
+    fun showTaskView(): TaskView
+    fun closeTaskView(view: TaskView)
+
     val editLibraryView: EditLibraryView
     fun showEditLibraryView(view: EditLibraryView)
     fun showEditLibraryView(f: EditLibraryView.() -> Unit) = mutateAndShow(editLibraryView, f, this::showEditLibraryView)
@@ -69,12 +73,12 @@ interface ViewManager {
     fun showEditReportView(view: EditReportView)
     fun showEditReportView(f: EditReportView.() -> Unit) = mutateAndShow(editReportView, f, this::showEditReportView)
     fun closeEditReportView(view: EditReportView)
-    
+
     val settingsView: SettingsView
     fun showSettingsView(view: SettingsView)
     fun showSettingsView(f: SettingsView.() -> Unit) = mutateAndShow(settingsView, f, this::showSettingsView)
     fun closeSettingsView(view: SettingsView)
-    
+
     private inline fun <V> mutateAndShow(view: V, mutator: (V) -> Unit, show: (V) -> Unit) {
         mutator(view)
         show(view)

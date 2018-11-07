@@ -52,7 +52,7 @@ class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
         GamedexLog += LogEntry(
             level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
             timestamp = DateTime(e.timeStamp),
-            loggerName = e.loggerName,
+            loggerName = e.loggerName.substringAfterLast('.'),
             message = e.message,
             throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
         )

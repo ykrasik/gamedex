@@ -31,7 +31,6 @@ import javafx.scene.Node
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
 import tornadofx.addClass
-import tornadofx.enableWhen
 import tornadofx.separator
 import tornadofx.vbox
 
@@ -66,11 +65,9 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
         item("Tag", Theme.Icon.tag(size)) { eventOnAction(tagGameActions) { data } }
         separator()
         item("Re-Download", Theme.Icon.download(size)) {
-            enableWhen { enabledProperty }
             eventOnAction(redownloadGameActions) { data }
         }
         item("Re-Discover", Theme.Icon.search(size)) {
-            enableWhen { enabledProperty }
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }

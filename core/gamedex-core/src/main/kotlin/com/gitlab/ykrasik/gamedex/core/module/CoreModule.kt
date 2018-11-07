@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.EventBusImpl
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.MenuGameFilterPresenter
@@ -33,6 +35,10 @@ import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
+import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
+import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithTaskPresenter
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.time
@@ -52,6 +58,8 @@ object CoreModule : InternalCoreModule() {
         installModules()
         bindPresenters()
 
+        bind(TaskService::class.java).to(TaskServiceImpl::class.java)
+        bind(EventBus::class.java).to(EventBusImpl::class.java)
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
 
         bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
@@ -78,6 +86,9 @@ object CoreModule : InternalCoreModule() {
     }
 
     private fun bindPresenters() {
+        bindPresenter(TaskPresenter::class)
+        bindPresenter(ViewWithTaskPresenter::class)
+
         bindPresenter(MenuGameFilterPresenter::class)
         bindPresenter(ReportGameFilterPresenter::class)
 

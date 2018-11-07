@@ -21,11 +21,11 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +39,7 @@ import javax.inject.Singleton
 class EditReportPresenter @Inject constructor(
     private val reportService: ReportService,
     private val gameService: GameService,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<EditReportView> {
     override fun present(view: EditReportView) = object : Presentation() {
@@ -88,7 +88,7 @@ class EditReportPresenter @Inject constructor(
                 filter = view.filter,
                 excludedGames = view.excludedGames.map { it.id }
             )
-            taskRunner.runTask(
+            taskService.execute(
                 if (view.report != null) {
                     reportService.update(view.report!!, newReportData)
                 } else {

@@ -23,9 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.IO
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,7 +32,7 @@ import javax.inject.Singleton
  * Time: 16:22
  */
 @Singleton
-internal class ReportSettingsRepository @Inject constructor(private val storage: Storage<ReportId, ReportData>) {
+class ReportSettingsRepository @Inject constructor(private val storage: Storage<ReportId, ReportData>) {
     private val log = logger()
 
     val reports = ListObservableImpl(fetchReports())
@@ -65,7 +62,7 @@ internal class ReportSettingsRepository @Inject constructor(private val storage:
         reports -= report
     }
 
-    suspend fun invalidate() = withContext(Dispatchers.IO) {
+    fun invalidate() {
         // Re-fetch all reports from storage
         reports.setAll(fetchReports())
     }

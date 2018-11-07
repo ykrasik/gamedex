@@ -167,7 +167,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
             fragment.preserveRatio = when (cellDisplaySettings.imageDisplayType) {
                 ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
-                else -> throw RuntimeException()
+                else -> kotlin.error("Invalid ImageDisplayType: ${cellDisplaySettings.imageDisplayType}")
             }
 
             super.resize(width, height)

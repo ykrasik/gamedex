@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,7 +38,7 @@ import javax.inject.Singleton
 class TagGamePresenter @Inject constructor(
     private val gameService: GameService,
     private val commonData: CommonData,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : Presentation() {
@@ -105,7 +105,7 @@ class TagGamePresenter @Inject constructor(
         private suspend fun onAccept() {
             val newRawGame = view.game.rawGame.withTags(view.checkedTags)
             if (newRawGame.userData != view.game.rawGame.userData) {
-                taskRunner.runTask(gameService.replace(view.game, newRawGame))
+                taskService.execute(gameService.replace(view.game, newRawGame))
             }
 
             close()

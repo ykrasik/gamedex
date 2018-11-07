@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.game.GameDiscoveryService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class DiscoverNewGamesPresenter @Inject constructor(
     private val gameDiscoveryService: GameDiscoveryService,
-    private val taskRunner: TaskRunner
+    private val taskService: TaskService
 ) : Presenter<ViewCanDiscoverNewGames> {
     override fun present(view: ViewCanDiscoverNewGames) = object : Presentation() {
         init {
@@ -40,7 +40,7 @@ class DiscoverNewGamesPresenter @Inject constructor(
         }
 
         private suspend fun discoverNewGames() {
-            taskRunner.runTask(gameDiscoveryService.discoverNewGames())
+            taskService.execute(gameDiscoveryService.discoverNewGames())
         }
     }
 }

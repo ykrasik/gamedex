@@ -60,36 +60,34 @@ class GameDownloadServiceImpl @Inject constructor(
     override fun redownloadGame(game: Game) = task("Re-Downloading '${game.name}'...") {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
-        doneMessageOrCancelled("Done: Re-Downloaded '${game.name}'.")
+        successMessage = { "Done: Re-Downloaded '${game.name}'." }
         downloadGame(game, game.providerHeaders)
     }
 
-    private fun redownloadGames(title: String, shouldRedownload: (ProviderHeader) -> Boolean) = task(title) {
+    private fun redownloadGames(title: String, shouldRedownload: (ProviderHeader) -> Boolean) = task(title, isCancellable = true) {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
-        val masterTask = this
-        message1 = title
         var redownloaded = 0
-        doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Downloaded $redownloaded / $totalWork Games." }
+        successOrCancelledMessage { success ->
+            "${if (success) "Done" else "Cancelled"}: Re-Downloaded $redownloaded / $totalItems Games."
+        }
 
-        runSubTask {
-            // Operate on a copy of the games to avoid concurrent modifications.
-            gameService.games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
-                val providersToDownload = game.providerHeaders.filter(shouldRedownload)
-                if (providersToDownload.isNotEmpty()) {
-                    downloadGame(game, providersToDownload)
-                    redownloaded += 1
-                }
+        // Operate on a copy of the games to avoid concurrent modifications.
+        gameService.games.sortedBy { it.name }.forEachWithProgress { game ->
+            val providersToDownload = game.providerHeaders.filter(shouldRedownload)
+            if (providersToDownload.isNotEmpty()) {
+                downloadGame(game, providersToDownload)
+                redownloaded += 1
             }
         }
     }
 
     private suspend fun Task<*>.downloadGame(game: Game, requestedProviders: List<ProviderHeader>): Game {
         val providersToDownload = requestedProviders.filter { gameProviderService.isEnabled(it.id) }
-        val downloadedProviderData = runMainTask(gameProviderService.download(game.name, game.platform, game.path, providersToDownload))
+        val downloadedProviderData = executeSubTask(gameProviderService.download(game.name, game.platform, providersToDownload))
         // Replace existing data with new data, pass-through any data that wasn't replaced.
         val newProviderData = game.rawGame.providerData.filterNot { d -> providersToDownload.any { it.id == d.header.id } } + downloadedProviderData
         val newRawGame = game.rawGame.copy(providerData = newProviderData)
-        return runMainTask(gameService.replace(game, newRawGame))
+        return executeSubTask(gameService.replace(game, newRawGame))
     }
 }

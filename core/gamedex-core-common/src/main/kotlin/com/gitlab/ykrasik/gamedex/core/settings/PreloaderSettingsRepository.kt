@@ -28,7 +28,7 @@ class PreloaderSettingsRepository(factory: SettingsStorageFactory) : SettingsRep
 
     override val storage = factory("preloader", Data::class) {
         Data(
-            diComponents = 97
+            diComponents = 112
         )
     }
 

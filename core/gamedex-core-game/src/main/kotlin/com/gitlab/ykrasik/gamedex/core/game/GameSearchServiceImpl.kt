@@ -47,7 +47,7 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
         .build()
 
     init {
-        log.time("Building search index for ${gameService.games.size} games...") {
+        log.time("Building search index...") {
             engine.addAll(gameService.games.map { IndexableGame(it) })
         }
         gameService.games.changesChannel.subscribe { event ->
@@ -61,7 +61,9 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
                     addGame(event.item)
                 }
                 is ListItemsSetEvent -> {
-                    removeGames(event.prevItems)
+                    if (event.prevItems.isNotEmpty()) {
+                        removeGames(event.prevItems)
+                    }
                     addGames(event.items)
                 }
             }

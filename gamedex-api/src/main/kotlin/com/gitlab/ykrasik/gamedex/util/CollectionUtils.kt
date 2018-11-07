@@ -54,3 +54,24 @@ inline fun <K, V, K2, V2> Map<K, V>.mapNotNullToMap(crossinline f: (K, V) -> Pai
     }
     return map
 }
+
+fun <T> List<T>.replace(source: T, target: T): List<T> {
+    var replaced = false
+    return map { elem ->
+        if (!replaced && elem == source) {
+            replaced = true
+            target
+        } else {
+            elem
+        }
+    }
+}
+
+inline fun <T> List<T>.replaceWhere(target: T, predicate: (T) -> Boolean): List<T> =
+    map { elem -> if (predicate(elem)) target else elem }
+
+fun <T> List<T>.replaceIndex(index: Int, value: T): List<T> =
+    mapIndexed { i, elem -> if (index == i) value else elem }
+
+fun <T> List<T>.modify(index: Int, modifier: (T) -> T): List<T> =
+    mapIndexed { i, elem -> if (index == i) modifier(elem) else elem }

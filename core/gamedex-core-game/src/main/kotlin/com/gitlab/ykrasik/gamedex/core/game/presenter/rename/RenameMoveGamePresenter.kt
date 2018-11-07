@@ -18,12 +18,12 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.rename
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
 import kotlinx.coroutines.experimental.Dispatchers
@@ -43,7 +43,7 @@ class RenameMoveGamePresenter @Inject constructor(
     private val commonData: CommonData,
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<RenameMoveGameView> {
     override fun present(view: RenameMoveGameView) = object : Presentation() {
@@ -130,7 +130,7 @@ class RenameMoveGamePresenter @Inject constructor(
 
                 fileSystemService.move(from = game.path, to = fullPath)
 
-                taskRunner.runTask(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
+                taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
             }
 
             close()

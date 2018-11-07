@@ -14,37 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.core
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 20/10/2018
+ * Time: 09:07
  */
-interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
+interface EventBus {
+    fun <E : CoreEvent> on(event: KClass<E>, handler: suspend (E) -> Unit): EventSubscription
+    fun <E : CoreEvent> send(event: E)
 
-    fun deleteStructure(gameId: GameId)
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderNameMetadata
-    fun toFileName(name: String): String
-
-    fun invalidate()
+    suspend fun <E : CoreEvent> awaitEvent(event: KClass<E>, predicate: (E) -> Boolean = { true }): E
 }
+
+interface EventSubscription {
+    fun cancel()
+}
+
+interface CoreEvent

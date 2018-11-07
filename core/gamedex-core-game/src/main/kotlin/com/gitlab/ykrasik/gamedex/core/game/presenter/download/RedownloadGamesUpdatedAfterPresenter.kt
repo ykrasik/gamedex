@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesUpdatedAfter
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,12 +32,12 @@ import javax.inject.Singleton
 @Singleton
 class RedownloadGamesUpdatedAfterPresenter @Inject constructor(
     private val gameDownloadService: GameDownloadService,
-    private val taskRunner: TaskRunner
+    private val taskService: TaskService
 ) : Presenter<ViewCanRedownloadGamesUpdatedAfter> {
     override fun present(view: ViewCanRedownloadGamesUpdatedAfter) = object : Presentation() {
         init {
             view.redownloadGamesUpdatedAfterActions.forEach {
-                taskRunner.runTask(gameDownloadService.redownloadGamesUpdatedAfterPeriod())
+                taskService.execute(gameDownloadService.redownloadGamesUpdatedAfterPeriod())
             }
         }
     }

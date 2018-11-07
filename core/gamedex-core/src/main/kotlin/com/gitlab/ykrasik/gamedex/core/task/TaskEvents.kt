@@ -14,37 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.core.task
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import kotlinx.coroutines.experimental.Deferred
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 02/11/2018
+ * Time: 14:54
  */
-interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
-
-    fun deleteStructure(gameId: GameId)
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderNameMetadata
-    fun toFileName(name: String): String
-
-    fun invalidate()
-}
+data class TaskStartedEvent<T>(val task: Task<T>) : CoreEvent
+data class TaskFinishedEvent<T>(val task: Task<T>, val result: Deferred<T>) : CoreEvent

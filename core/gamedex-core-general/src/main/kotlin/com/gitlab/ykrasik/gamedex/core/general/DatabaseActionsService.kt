@@ -16,30 +16,23 @@
 
 package com.gitlab.ykrasik.gamedex.core.general
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleCache
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.nonCancellableTask
 import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
-import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
-import com.gitlab.ykrasik.gamedex.util.toDateTime
-import com.gitlab.ykrasik.gamedex.util.toFile
 import com.google.inject.ImplementedBy
 import java.io.File
 import javax.inject.Inject
@@ -78,48 +71,38 @@ class DatabaseActionsServiceImpl @Inject constructor(
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
         .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
 
-    override fun importDatabase(file: File) = nonCancellableTask("Importing Database...") {
-        message1 = "Reading $file..."
+    override fun importDatabase(file: File) = task("Importing Database...") {
+        message = "Reading $file..."
         val portableDb: PortableDb = objectMapper.readValue(file, PortableDb::class.java)
 
-        message1 = "Deleting existing database..."
+        message = "Deleting existing database..."
         persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
-        runMainTask(gameService.invalidate())
-        runMainTask(libraryService.invalidate())
-
-        val libraries: Map<Int, Library> = runMainTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
-            .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
-
-        runMainTask(gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }))
-
-        // Invalidate FileSystemService cache
-        // TODO: Probably a cleaner way of doing this is to send an event on an eventBus.
+        gameService.invalidate()
+        libraryService.invalidate()
         fileSystemService.invalidate()
 
-        doneMessage { "Imported ${portableDb.libraries.size} Libraries & ${portableDb.games.size} Games." }
+        message = "Importing database..."
+        val libraries: Map<Int, Library> = executeSubTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
+            .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
+
+        executeSubTask(gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }))
+
+        successMessage = { "Database imported: ${portableDb.libraries.size} Libraries, ${portableDb.games.size} Games." }
     }
 
-    override fun exportDatabase(file: File) = nonCancellableTask("Exporting Database...") {
-        message1 = "Exporting Libraries:"
-        message2 = libraryService.libraries.size.toString()
+    override fun exportDatabase(file: File) = task("Exporting Database...") {
         val libraries = libraryService.libraries.mapWithProgress { it.toPortable() }
-
-        message1 = "Exporting Games:"
-        message2 = gameService.games.size.toString()
         val games = gameService.games.sortedBy { it.name }.mapWithProgress { it.toPortable() }
 
-        message1 = "Writing $file..."
-        message2 = ""
+        message = "Writing $file..."
         file.create()
         val portableDb = PortableDb(libraries, games)
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, portableDb)
 
-        doneMessage { "Exported ${libraryService.libraries.size} Libraries & ${gameService.games.size} Games." }
+        successMessage = { "Database exported: ${file.absolutePath}" }
     }
 
-    override fun detectStaleCache() = nonCancellableTask("Detecting stale cache...") {
-        message1 = "Detecting stale cache..."
-
+    override fun detectStaleCache() = task("Detecting stale cache...") {
         val images = run {
             val usedImages = gameService.games.flatMapWithProgress { game ->
                 game.imageUrls.screenshotUrls + listOfNotNull(game.imageUrls.thumbnailUrl, game.imageUrls.posterUrl)
@@ -130,58 +113,56 @@ class DatabaseActionsServiceImpl @Inject constructor(
         val fileStructure = fileSystemService.getFileStructureSizeTakenExcept(gameService.games)
 
         StaleCache(images, fileStructure).apply {
-            doneMessage { if (isEmpty) "No stale cache detected." else "Stale Cache:\n${toFormattedString()}" }
+            successMessage = { if (isEmpty) "No stale cache detected." else "Stale Cache:\n${toFormattedString()}" }
         }
     }
 
-    override fun deleteStaleCache(staleCache: StaleCache) = nonCancellableTask("Deleting Stale Cache...") {
-        totalWork = 2
+    override fun deleteStaleCache(staleCache: StaleCache) = task("Deleting Stale Cache...") {
+        totalItems = 2
 
         staleCache.images.toList().emptyToNull()?.let { images ->
-            message1 = "Deleting stale images..."
+            message = "Deleting stale images..."
             imageService.deleteImages(images.map { it.first })
         }
         incProgress()
 
         staleCache.fileStructure.toList().emptyToNull()?.let { fileStructure ->
-            message1 = "Deleting stale file structure..."
+            message = "Deleting stale file structure..."
             fileStructure.forEach { fileSystemService.deleteStructure(it.first) }
         }
         incProgress()
 
-        doneMessage { "Deleted Stale Cache:\n${staleCache.toFormattedString()}" }
+        successMessage = { "Deleted Stale Cache:\n${staleCache.toFormattedString()}" }
     }
 
-    override fun detectStaleData() = nonCancellableTask("Detecting stale data...") {
-        message1 = "Detecting stale data..."
-
+    override fun detectStaleData() = task("Detecting stale data...") {
         val libraries = libraryService.libraries.filterWithProgress { !it.path.isDirectory }
         val games = gameService.games.filterWithProgress { !it.path.isDirectory }
 
-        val staleCache = runMainTask(detectStaleCache())
+        val staleCache = executeSubTask(detectStaleCache())
 
         StaleData(libraries, games, staleCache).apply {
-            doneMessage { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
+            successMessage = { if (isEmpty) "No stale data detected." else "Stale Data:\n${toFormattedString()}" }
         }
     }
 
-    override fun deleteStaleData(staleData: StaleData) = nonCancellableTask("Deleting Stale Data...") {
-        totalWork = 3
+    override fun deleteStaleData(staleData: StaleData) = task("Deleting Stale Data...") {
+        totalItems = 3
 
         staleData.games.emptyToNull()?.let { games ->
-            runMainTask(gameService.deleteAll(games))
+            executeSubTask(gameService.deleteAll(games))
         }
         incProgress()
 
         staleData.libraries.emptyToNull()?.let { libraries ->
-            runMainTask(libraryService.deleteAll(libraries))
+            executeSubTask(libraryService.deleteAll(libraries))
         }
         incProgress()
 
-        runMainTask(deleteStaleCache(staleData.staleCache))
+        executeSubTask(deleteStaleCache(staleData.staleCache))
         incProgress()
 
-        doneMessage { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
+        successMessage = { "Deleted Stale Data:\n${staleData.toFormattedString()}" }
     }
 
     private fun StaleCache.toFormattedString() =
@@ -197,201 +178,5 @@ class DatabaseActionsServiceImpl @Inject constructor(
             .joinToString("\n") { "${it.first.size} ${it.second}" } +
             staleCache.toFormattedString()
 
-    override fun deleteAllUserData() = task("Deleting all game user data...") {
-        message1 = "Deleting all game user data..."
-        doneMessage { "All game user data deleted." }
-        runMainTask(gameService.deleteAllUserData())
-    }
-}
-
-private data class PortableDb(
-    val libraries: List<PortableLibrary>,
-    val games: List<PortableGame>
-) {
-    fun findLib(path: File, platform: Platform) = libraries.find { it.path == path.path && it.platform == platform.name }!!
-}
-
-private data class PortableLibrary(
-    val id: Int,
-    val path: String,
-    val platform: String,
-    val name: String
-) {
-    fun toLibraryData() = LibraryData(
-        name = name,
-        path = path.toFile(),
-        platform = Platform.valueOf(platform)
-    )
-}
-
-private fun Library.toPortable() = PortableLibrary(
-    id = id,
-    path = path.toString(),
-    platform = platform.name,
-    name = name
-)
-
-private data class PortableGame(
-    val libraryId: Int,
-    val path: String,
-    val createDate: Long,
-    val updateDate: Long,
-    val providerData: List<PortableProviderData>,
-    val userData: PortableUserData?
-) {
-    fun toGameRequest(libraries: Map<Int, Library>) = AddGameRequest(
-        metadata = Metadata(
-            libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
-            path = path,
-            timestamp = Timestamp(
-                createDate = createDate.toDateTime(),
-                updateDate = updateDate.toDateTime()
-            )
-        ),
-        providerData = providerData.map { it.toProviderData() },
-        userData = userData?.toUserData()
-    )
-}
-
-private fun Game.toPortable() = PortableGame(
-    libraryId = library.id,
-    path = rawGame.metadata.path,
-    createDate = createDate.millis,
-    updateDate = updateDate.millis,
-    providerData = rawGame.providerData.map { it.toPortable() },
-    userData = userData?.toPortable()
-)
-
-private data class PortableProviderData(
-    val providerId: ProviderId,
-    val apiUrl: String,
-    val createDate: Long,
-    val updateDate: Long,
-    val siteUrl: String,
-    val name: String,
-    val description: String?,
-    val releaseDate: String?,
-    val criticScore: Double?,
-    val numCriticReviews: Int?,
-    val userScore: Double?,
-    val numUserReviews: Int?,
-    val genres: List<String>,
-    val thumbnailUrl: String?,
-    val posterUrl: String?,
-    val screenshotUrls: List<String>
-) {
-    fun toProviderData() = ProviderData(
-        header = ProviderHeader(
-            id = providerId,
-            apiUrl = apiUrl,
-            timestamp = Timestamp(
-                createDate = createDate.toDateTime(),
-                updateDate = updateDate.toDateTime()
-            )
-        ),
-        gameData = GameData(
-            siteUrl = siteUrl,
-            name = name,
-            description = description,
-            releaseDate = releaseDate,
-            criticScore = toScore(criticScore, numCriticReviews),
-            userScore = toScore(userScore, numUserReviews),
-            genres = genres,
-            imageUrls = ImageUrls(
-                thumbnailUrl = thumbnailUrl,
-                posterUrl = posterUrl,
-                screenshotUrls = screenshotUrls
-            )
-        )
-    )
-
-    private fun toScore(score: Double?, numReviews: Int?) = score?.let { Score(it, numReviews!!) }
-}
-
-private fun ProviderData.toPortable() = PortableProviderData(
-    providerId = header.id,
-    apiUrl = header.apiUrl,
-    createDate = header.createDate.millis,
-    updateDate = header.updateDate.millis,
-    siteUrl = gameData.siteUrl,
-    name = gameData.name,
-    description = gameData.description,
-    releaseDate = gameData.releaseDate,
-    criticScore = gameData.criticScore?.score,
-    numCriticReviews = gameData.criticScore?.numReviews,
-    userScore = gameData.userScore?.score,
-    numUserReviews = gameData.userScore?.numReviews,
-    genres = gameData.genres,
-    thumbnailUrl = gameData.imageUrls.thumbnailUrl,
-    posterUrl = gameData.imageUrls.posterUrl,
-    screenshotUrls = gameData.imageUrls.screenshotUrls
-)
-
-private data class PortableUserData(
-    val nameOverride: PortableGameDataOverride?,
-    val descriptionOverride: PortableGameDataOverride?,
-    val releaseDateOverride: PortableGameDataOverride?,
-    val criticScoreOverride: PortableGameDataOverride?,
-    val userScoreOverride: PortableGameDataOverride?,
-    val genresOverride: PortableGameDataOverride?,
-    val thumbnailOverride: PortableGameDataOverride?,
-    val posterOverride: PortableGameDataOverride?,
-    val screenshotsOverride: PortableGameDataOverride?,
-    val tags: List<String>,
-    val excludedProviders: List<ProviderId>
-) {
-    fun toUserData(): UserData {
-        val overrides = mutableMapOf<GameDataType, GameDataOverride>()
-        nameOverride?.toOverride()?.let { overrides += GameDataType.name_ to it }
-        descriptionOverride?.toOverride()?.let { overrides += GameDataType.description to it }
-        releaseDateOverride?.toOverride()?.let { overrides += GameDataType.releaseDate to it }
-        criticScoreOverride?.toOverride()?.let { overrides += GameDataType.criticScore to it }
-        userScoreOverride?.toOverride()?.let { overrides += GameDataType.userScore to it }
-        genresOverride?.toOverride()?.let { overrides += GameDataType.genres to it }
-        thumbnailOverride?.toOverride()?.let { overrides += GameDataType.thumbnail to it }
-        posterOverride?.toOverride()?.let { overrides += GameDataType.poster to it }
-        screenshotsOverride?.toOverride()?.let { overrides += GameDataType.screenshots to it }
-
-        return UserData(
-            overrides = overrides,
-            tags = tags,
-            excludedProviders = excludedProviders
-        )
-    }
-}
-
-private fun UserData.toPortable() = PortableUserData(
-    nameOverride = overrides[GameDataType.name_]?.toPortable(),
-    descriptionOverride = overrides[GameDataType.description]?.toPortable(),
-    releaseDateOverride = overrides[GameDataType.releaseDate]?.toPortable(),
-    criticScoreOverride = overrides[GameDataType.criticScore]?.toPortable(),
-    userScoreOverride = overrides[GameDataType.userScore]?.toPortable(),
-    genresOverride = overrides[GameDataType.genres]?.toPortable(),
-    thumbnailOverride = overrides[GameDataType.thumbnail]?.toPortable(),
-    posterOverride = overrides[GameDataType.poster]?.toPortable(),
-    screenshotsOverride = overrides[GameDataType.screenshots]?.toPortable(),
-    tags = tags,
-    excludedProviders = excludedProviders
-)
-
-private fun GameDataOverride.toPortable() = when (this) {
-    is GameDataOverride.Provider -> PortableGameDataOverride.Provider(provider)
-    is GameDataOverride.Custom -> PortableGameDataOverride.Custom(value)
-}
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    JsonSubTypes.Type(value = PortableGameDataOverride.Provider::class, name = "provider"),
-    JsonSubTypes.Type(value = PortableGameDataOverride.Custom::class, name = "custom")
-)
-private sealed class PortableGameDataOverride {
-    abstract fun toOverride(): GameDataOverride
-
-    data class Provider(val provider: ProviderId) : PortableGameDataOverride() {
-        override fun toOverride() = GameDataOverride.Provider(provider)
-    }
-
-    data class Custom(val data: Any) : PortableGameDataOverride() {
-        override fun toOverride() = GameDataOverride.Custom(data)
-    }
+    override fun deleteAllUserData() = gameService.deleteAllUserData()
 }

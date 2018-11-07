@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
@@ -45,6 +46,15 @@ class JavaFxViewManager : View(), ViewManager {
     override val root = vbox()  // Unused.
 
     private val mainView: MainView by inject()
+
+    override fun showTaskView(): TaskView {
+        // Nothing to show, the taskView is always shown (actually, everything else is shown INSIDE the task view)
+        return mainView
+    }
+
+    override fun closeTaskView(view: TaskView) {
+        // Nothing to do here, the taskView is never hidden.
+    }
 
     override val gameView: JavaFxViewGameScreen by inject()
     override fun showGameView(view: GameView) = mainView.showGameDetails()

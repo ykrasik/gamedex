@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
@@ -29,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.scene.Node
 import javafx.scene.control.Tab
@@ -42,7 +44,7 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithProviderLogos {
+class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithProviderLogos, ViewWithRunningTask {
     private val generalSettingsView: JavaFxGeneralSettingsView by inject()
     private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
@@ -53,6 +55,9 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
     override val acceptActions = channel<Unit>()
     override val resetDefaultsActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
+
+    private val runningTaskProperty = SimpleBooleanProperty(false)
+    override var runningTask by runningTaskProperty
 
     private var tabPane: TabPane by singleAssign()
 
@@ -65,6 +70,20 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
 
     init {
         viewRegistry.register(this)
+
+        var prevOpacity = 1.0
+        runningTaskProperty.onChange { isRunningTask ->
+            val showing = modalStage?.isShowing ?: false
+            if (showing) {
+                // Make the settings window invisible while running any task.
+                if (isRunningTask) {
+                    prevOpacity = windowOpacity.value
+                    windowOpacity.value = 0.0
+                } else {
+                    windowOpacity.value = prevOpacity
+                }
+            }
+        }
     }
 
     override val root = borderpane {

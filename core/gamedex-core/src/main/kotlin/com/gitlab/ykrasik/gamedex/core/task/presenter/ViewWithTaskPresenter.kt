@@ -14,37 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.core.task.presenter
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presentation
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
+import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 29/10/2018
+ * Time: 12:27
  */
-interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
-
-    fun deleteStructure(gameId: GameId)
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderNameMetadata
-    fun toFileName(name: String): String
-
-    fun invalidate()
+@Singleton
+class ViewWithTaskPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<ViewWithRunningTask> {
+    override fun present(view: ViewWithRunningTask) = object : Presentation() {
+        init {
+            eventBus.forEach<TaskStartedEvent<*>> { view.runningTask = true }
+            eventBus.forEach<TaskFinishedEvent<*>> { view.runningTask = false }
+        }
+    }
 }

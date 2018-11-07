@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
-import com.gitlab.ykrasik.gamedex.app.api.util.quickTask
+import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +31,7 @@ import javax.inject.Singleton
  * Time: 19:24
  */
 @Singleton
-internal class ReportServiceImpl @Inject constructor(private val repo: ReportSettingsRepository) : ReportService {
+class ReportServiceImpl @Inject constructor(private val repo: ReportSettingsRepository) : ReportService {
     private val log = logger()
 
     override val reports = repo.reports
@@ -45,27 +45,23 @@ internal class ReportServiceImpl @Inject constructor(private val repo: ReportSet
 
     override fun get(id: ReportId) = reports.find { it.id == id } ?: throw IllegalArgumentException("Report($id) doesn't exist!")
 
-    override fun add(data: ReportData) = quickTask("Adding Report '${data.name}'...") {
-        message1 = "Adding Report '${data.name}'..."
-        doneMessage { "Added Report: '${data.name}'." }
+    override fun add(data: ReportData) = task("Adding Report '${data.name}'...") {
+        successMessage = { "Added Report: '${data.name}'." }
         repo.add(data)
     }
 
-    override fun update(report: Report, data: ReportData) = quickTask("Updating Report '${report.name}'...") {
-        message1 = "Updating Report '${report.name}'..."
-        doneMessage { "Updated Report: '${report.name}'." }
-        repo.update(report, data)
+    override fun update(report: Report, data: ReportData) = task("Updating Report '${report.name}'...") {
+        val updatedReport = repo.update(report, data)
+        successMessage = { "Updated Report: '${updatedReport.name}'." }
+        updatedReport
     }
 
-    override fun delete(report: Report) = quickTask("Deleting Report '${report.name}'...") {
-        message1 = "Deleting Report '${report.name}'..."
-        doneMessage { "Deleted Report: '${report.name}'." }
+    override fun delete(report: Report) = task("Deleting Report '${report.name}'...") {
+        successMessage = { "Deleted Report: '${report.name}'." }
         repo.delete(report)
     }
 
-    fun invalidate() = quickTask {
-        repo.invalidate()
-    }
+    fun invalidate() = repo.invalidate()
 
     private companion object {
         val noCriticScore = Filter.CriticScore(Filter.ScoreRule.NoScore)

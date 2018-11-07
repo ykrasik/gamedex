@@ -21,11 +21,11 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import org.joda.time.LocalDate
 import java.net.URL
@@ -41,7 +41,7 @@ import javax.inject.Singleton
 class EditGamePresenter @Inject constructor(
     private val imageService: ImageService,
     private val gameService: GameService,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<EditGameView> {
     override fun present(view: EditGameView) = object : Presentation() {
@@ -212,7 +212,7 @@ class EditGamePresenter @Inject constructor(
         private suspend fun writeOverrides(overrides: Map<GameDataType, GameDataOverride>) {
             val newRawGame = view.game.rawGame.withDataOverrides(overrides)
             if (newRawGame.userData != view.game.rawGame.userData) {
-                taskRunner.runTask(gameService.replace(view.game, newRawGame))
+                taskService.execute(gameService.replace(view.game, newRawGame))
             }
         }
 

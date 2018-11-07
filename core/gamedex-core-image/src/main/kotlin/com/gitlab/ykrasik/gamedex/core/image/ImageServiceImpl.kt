@@ -36,8 +36,7 @@ class ImageServiceImpl @Inject constructor(
     private val imageFactory: ImageFactory,
     config: ImageConfig
 ) : ImageService, CoroutineScope {
-    private val job = Job()
-    override val coroutineContext = Dispatchers.IO + job
+    override val coroutineContext = Dispatchers.IO
 
     private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
     private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)

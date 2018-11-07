@@ -69,8 +69,6 @@ class JavaFxGameDownloadView : PresentableView(),
             periodButton("Games Created Before", createdBeforePeriodViewModel, redownloadGamesCreatedBeforeActions, popover)
             periodButton("Games Updated After", updatedAfterPeriodViewModel, redownloadGamesUpdatedAfterActions, popover)
         }
-    }.apply {
-        enableWhen { enabledProperty }
     }
 
     private fun GridPane.periodButton(label: String, viewModel: PeriodViewModel, actions: Channel<Unit>, popOver: PopOver) {

@@ -34,8 +34,17 @@ abstract class InstallableContextMenu<T : Any> : PresentableView() {
     }
 
     fun install(node: Node, data: () -> T) {
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+//        var contextMenuRequested = false
+        node.addEventHandler(MouseEvent.MOUSE_CLICKED) {
+//            if (contextMenuRequested) {
+                // On mac, the 'setOnContextMenuRequested' click propagates to this event handler.
+//                contextMenuRequested = false
+//            } else {
+                popover.hide()
+//            }
+        }
         node.setOnContextMenuRequested { e ->
+//            contextMenuRequested = true
             this.data = data()
             popover.determineArrowLocation(e.screenX, e.screenY).show(node, e.screenX, e.screenY)
         }

@@ -14,37 +14,35 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.core.task
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 29/10/2018
+ * Time: 22:55
  */
-interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
+@Singleton
+class TaskServiceImpl @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : TaskService {
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T> execute(task: Task<T>): T = withTaskView {
+        eventBus.send(TaskStartedEvent(task))
+        val event = eventBus.awaitEvent(TaskFinishedEvent::class) { it.task == task }
+        return event.result.await() as T
+    }
 
-    fun deleteStructure(gameId: GameId)
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderNameMetadata
-    fun toFileName(name: String): String
-
-    fun invalidate()
+    private inline fun <T> withTaskView(f: () -> T): T {
+        val view = viewManager.showTaskView()
+        val result = f()
+        viewManager.closeTaskView(view)
+        return result
+    }
 }

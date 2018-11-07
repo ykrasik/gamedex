@@ -44,22 +44,23 @@ interface BroadcastReceiveChannel<out T> {
     fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R>
 }
 
-class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>, CoroutineScope {
-    private val job = Job()
-    override val coroutineContext = Dispatchers.Default + job
+class BroadcastEventChannel<T>(
+    capacity: Int = 32,
+    override val coroutineContext: CoroutineContext = Dispatchers.Default + Job()
+) : BroadcastReceiveChannel<T>, CoroutineScope {
 
     private val channel = BroadcastChannel<T>(capacity)
 
     override fun subscribe() = channel.openSubscription()
 
     override fun subscribe(context: CoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T> {
-        val subscription = subscribe()
+        val channel = subscribe()
         launch(context) {
-            subscription.consumeEach {
+            channel.consumeEach {
                 f(it)
             }
         }
-        return subscription
+        return channel
     }
 
     suspend fun send(element: T) = channel.send(element)
@@ -67,7 +68,7 @@ class BroadcastEventChannel<T>(capacity: Int = 32) : BroadcastReceiveChannel<T>,
 
     fun close() {
         channel.close()
-        job.cancel()
+        coroutineContext.cancel()
     }
 
     override fun <R> map(transform: suspend (T) -> R): BroadcastEventChannel<R> {

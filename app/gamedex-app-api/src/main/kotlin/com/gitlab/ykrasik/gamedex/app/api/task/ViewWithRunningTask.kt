@@ -16,16 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.task
 
-import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ReadOnlyTask
-
 /**
  * User: ykrasik
- * Date: 05/04/2018
- * Time: 10:55
+ * Date: 29/10/2018
+ * Time: 11:53
  */
-interface TaskRunner {
-    suspend fun <T> runTask(task: ReadOnlyTask<T>): T
-
-    val currentlyRunningTaskChannel: BroadcastEventChannel<ReadOnlyTask<*>?>
+interface ViewWithRunningTask {
+    var runningTask: Boolean
 }

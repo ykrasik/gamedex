@@ -29,6 +29,7 @@ import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,7 +42,6 @@ import javax.inject.Singleton
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
     private val newDirectoryDetector: NewDirectoryDetector,
-    private val fileNameHandler: FileNameHandler,
     @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>
 ) : FileSystemService {
     override fun structure(game: Game): FileStructure {
@@ -59,11 +59,13 @@ class FileSystemServiceImpl @Inject constructor(
         return structure ?: FileStructure.NotAvailable
     }
 
+    override fun structure(file: File) = calcStructure(file) ?: throw IOException("File doesn't exist: $file")
+
     private fun calcStructure(file: File): FileStructure? {
         if (!file.exists()) return null
 
         return if (file.isDirectory) {
-            val children = file.listFiles().map { calcStructure(it)!! }
+            val children = file.listFiles().asSequence().filter { !it.isHidden }.map { calcStructure(it)!! }.toList()
             FileStructure(
                 name = file.name,
                 size = children.fold(FileSize.Empty) { acc, f -> acc + f.size },
@@ -99,10 +101,11 @@ class FileSystemServiceImpl @Inject constructor(
 
     override suspend fun move(from: File, to: File) = withContext(Dispatchers.IO) {
         to.parentFile.mkdirs()
+
+        // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
+        // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
+        // and throws an exception if it fails.
         if (!from.renameTo(to)) {
-            // File.renameTo is case sensitive, but can fail (doesn't cover all move variants).
-            // If it does, retry with Files.move, which is platform-independent (but also case insensitive)
-            // and throws an exception if it fails.
             Files.move(from.toPath(), to.toPath())
         }
     }
@@ -111,10 +114,9 @@ class FileSystemServiceImpl @Inject constructor(
         file.deleteWithChildren()
     }
 
-    override fun analyzeFolderName(rawName: String) = fileNameHandler.analyze(rawName)
+    override fun analyzeFolderName(rawName: String) = FileNameHandler.analyze(rawName)
 
-    override fun fromFileName(name: String) = fileNameHandler.fromFileName(name)
-    override fun toFileName(name: String) = fileNameHandler.toFileName(name)
+    override fun toFileName(name: String) = FileNameHandler.toFileName(name)
 
     // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
 

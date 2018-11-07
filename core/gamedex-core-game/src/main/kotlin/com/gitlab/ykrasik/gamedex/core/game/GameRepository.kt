@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.util.time
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -85,7 +84,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
         games.setAll(games.map { it.copy(userData = null) })
     }
 
-    suspend fun invalidate() = withContext(Dispatchers.IO) {
+    fun invalidate() {
         // Re-fetch all games from persistence
         games.setAll(fetchGames())
     }

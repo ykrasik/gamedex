@@ -17,16 +17,12 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import javafx.beans.property.Property
-import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
-import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.javafx.JavaFx
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
 
@@ -36,21 +32,13 @@ import tornadofx.*
  * Time: 07:13
  */
 abstract class PresentableView(title: String? = null, icon: Glyph? = null) : View(title, icon) {
-    private val taskRunner: TaskRunner by di()
     protected val viewRegistry: ViewRegistry by di()
-
-    // TODO: It seems like this is already covered by masking the top-most view.
-    val enabledProperty = SimpleBooleanProperty(false)
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
     // This is just how TornadoFx works.
     protected var skipFirstDock = false
 
     init {
-        taskRunner.currentlyRunningTaskChannel.subscribe(Dispatchers.JavaFx) {
-            enabledProperty.value = it == null
-        }
-
         whenDocked {
             if (!skipFirstDock) {
                 viewRegistry.onShow(this)

@@ -19,12 +19,9 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.util.setAll
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
 import kotlin.reflect.KMutableProperty0
 
 /**
@@ -37,9 +34,7 @@ interface Presenter<in V> {
 }
 
 abstract class Presentation : CoroutineScope {
-    private val job = Job()
-    override val coroutineContext = Dispatchers.Main + job
-
+    override val coroutineContext = Dispatchers.Main + Job()
     private var _showing = false
     protected val showing get() = _showing
 
@@ -61,25 +56,23 @@ abstract class Presentation : CoroutineScope {
 
     fun destroy() {
         if (_showing) hide()
-        job.cancel()
+        coroutineContext.cancel()
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit) {
-        launch {
-            consumeEach {
-                try {
-                    f(it)
-                } catch (e: Exception) {
-                    Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
-                }
+    protected fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
+        consumeEach {
+            try {
+                f(it)
+            } catch (e: Exception) {
+                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e)
             }
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) {
+    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit): Job {
         f(poll()!!)
-        forEach { f(it) }
+        return forEach { f(it) }
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
@@ -118,4 +111,11 @@ abstract class Presentation : CoroutineScope {
         viewProperty.set(peek()!!)
         forEach { viewProperty.set(it) }
     }
+
+    protected inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
+        on(E::class) { event ->
+            withContext(Dispatchers.Main) {
+                handler(event)
+            }
+        }
 }

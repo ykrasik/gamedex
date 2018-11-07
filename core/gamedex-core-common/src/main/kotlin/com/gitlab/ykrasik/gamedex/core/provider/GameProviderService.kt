@@ -33,6 +33,7 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.withContext
 import java.io.File
@@ -59,7 +60,7 @@ interface GameProviderService {
     // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
     fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>
 
-    fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>): Task<List<ProviderData>>
+    fun download(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
 }
 
 @Singleton
@@ -126,7 +127,7 @@ class GameProviderServiceImpl @Inject constructor(
         private val path: File,
         private val excludedProviders: List<ProviderId>
     ) {
-        private var searchedName = fileSystemService.fromFileName(fileSystemService.analyzeFolderName(name).gameName)
+        private var searchedName = fileSystemService.analyzeFolderName(name).gameName
         private var canAutoContinue = chooseResults != DiscoverGameChooseResults.alwaysChoose
         private val previouslyDiscardedResults = mutableSetOf<ProviderSearchResult>()
         private val newlyExcludedProviders = mutableListOf<ProviderId>()
@@ -141,7 +142,7 @@ class GameProviderServiceImpl @Inject constructor(
                 search(it)
             }
             val name = userExactMatch ?: searchedName
-            val providerData = runMainTask(download(name, platform, path, results))
+            val providerData = executeSubTask(download(name, platform, results))
             return SearchResults(providerData, newlyExcludedProviders)
         }
 
@@ -149,9 +150,9 @@ class GameProviderServiceImpl @Inject constructor(
             provider.supports(platform) && !excludedProviders.contains(provider.id)
 
         private suspend fun search(provider: EnabledGameProvider): ProviderHeader? {
-            task.message1 = "[${provider.id}] Searching: '$searchedName'..."
+            task.message = "[${provider.id}] Searching: '$searchedName'..."
             val results = provider.search(searchedName, platform)
-            task.message2 = "${results.size} results."
+            task.message = "[${provider.id}] Searching: '$searchedName'... {results.size} results."
 
             fun findExactMatch(target: String): ProviderSearchResult? = results.find { it.name.equals(target, ignoreCase = true) }
 
@@ -215,18 +216,17 @@ class GameProviderServiceImpl @Inject constructor(
         private fun ProviderSearchResult.toHeader(provider: GameProvider) = ProviderHeader(provider.id, apiUrl, timestamp = nowTimestamp)
     }
 
-    override fun download(name: String, platform: Platform, path: File, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
-        totalWork = headers.size
-        message1 = "Downloading '$name'..."
+    override fun download(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
+        totalItems = headers.size
         headers.map { header ->
-            async {
-                enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform).let { providerData ->
-                    incProgress()
+            // TODO: Link to task scope.
+            GlobalScope.async {
+                val providerData = enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
+                incProgress()
 
-                    // FIXME: Maybe this logic belongs to the calling class.
-                    // Retain the original header's createDate.
-                    providerData.withCreateDate(header.createDate)
-                }
+                // FIXME: Maybe this logic belongs to the calling class.
+                // Retain the original header's createDate.
+                providerData.withCreateDate(header.createDate)
             }
         }.map { it.await() }
     }

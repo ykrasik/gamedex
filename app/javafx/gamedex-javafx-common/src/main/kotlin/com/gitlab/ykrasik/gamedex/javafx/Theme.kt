@@ -122,8 +122,8 @@ inline fun EventTarget.acceptButton(size: Double = defaultIconSize, crossinline 
         op()
     }
 
-inline fun EventTarget.cancelButton(size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(graphic = Theme.Icon.cancel(size)) {
+inline fun EventTarget.cancelButton(text: String? = null, size: Double = defaultIconSize, crossinline op: JFXButton.() -> Unit = {}) =
+    toolbarButton(text, graphic = Theme.Icon.cancel(size)) {
         addClass(CommonStyle.cancelButton)
         isCancelButton = true
         tooltip("Cancel")

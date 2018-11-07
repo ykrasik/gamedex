@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
-import javafx.scene.text.Font
+import kfoenix.jfxprogressbar
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.javafx.JavaFx
 import tornadofx.*
@@ -63,14 +63,21 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                         widthProperty().bind(logo.widthProperty())
                     }
                 }
-                progressbar(progressProperty) { useMaxWidth = true }
+                jfxprogressbar {
+                    progressProperty().bind(progressProperty)
+                    useMaxWidth = true
+                }
                 hbox {
                     label(messageProperty) {
-                        font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
+                        style {
+                            fontSize = 28.px
+                        }
                     }
                     spacer()
                     label(progressProperty.asPercent()) {
-                        font = Font(28.0)   // TODO: Settings this through CSS doesn't work...
+                        style {
+                            fontSize = 28.px
+                        }
                     }
                 }
             }
@@ -89,7 +96,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             withContext(Dispatchers.JavaFx) {
                 message = "Loading user interface..."
                 delay(5)       // Delay to allow the 'done' message to display.
-                replaceWith(find(MainView::class), ViewTransition.Fade(2.seconds))
+                replaceWith(find(MainView::class), ViewTransition.Fade(1.5.seconds))
             }
         }
     }

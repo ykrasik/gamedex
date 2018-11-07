@@ -122,6 +122,7 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
         }
     }
 
+    // Conflate all changes that may occur while executing f() and report a single 'SetList' event.
     override suspend fun <R> buffered(f: suspend () -> R): R {
         buffer = true
         return try {

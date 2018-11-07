@@ -25,7 +25,7 @@ import tornadofx.launch
  * Date: 08/10/2016
  * Time: 21:40
  */
-class Main : App(JavaFxPreloaderView::class) {
+class Main : App(JavaFxPreloaderView::class, JFXStyle::class) {
     companion object {
         val startTime = System.currentTimeMillis()
 

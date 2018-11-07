@@ -55,7 +55,11 @@ buildscript {
         exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.10.5']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14']
-        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.6']
+        jFoenix = [:].with {
+            core = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.6']
+            kotlin = [group: 'com.github.bkenn', name: 'kfoenix', version: '0.1.3']
+            delegate
+        }
         tornadoFx = [:].with {
             core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.17']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
@@ -317,7 +321,8 @@ project("app:javafx:gamedex-javafx-common") {
         compile project(":core:gamedex-core")   // FIXME: Remove when all views have presenters
 
         compile controlsFx
-        compile jFoenix
+        compile jFoenix.core
+        compile jFoenix.kotlin
         compile tornadoFx.core
         compile tornadoFx.controls
 

@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.now
 import org.joda.time.DateTimeZone
 import java.nio.file.Paths
@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @Singleton
 class ExportDatabasePresenter @Inject constructor(
     private val databaseActionsService: DatabaseActionsService,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val settingsService: SettingsService
 ) : Presenter<ExportDatabaseView> {
 
@@ -55,7 +55,7 @@ class ExportDatabasePresenter @Inject constructor(
                 "db_${timestamp.toString("HH_mm_ss")}.json"
             ).toFile()
 
-            taskRunner.runTask(databaseActionsService.exportDatabase(timestamptedPath))
+            taskService.execute(databaseActionsService.exportDatabase(timestamptedPath))
             view.browseDirectory(timestamptedPath.parentFile)
         }
     }

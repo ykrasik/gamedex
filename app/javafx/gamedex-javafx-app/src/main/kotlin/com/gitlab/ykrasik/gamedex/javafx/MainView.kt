@@ -17,23 +17,30 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
+import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
-import com.gitlab.ykrasik.gamedex.javafx.task.JavaFxTaskRunner
+import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
+import javafx.beans.property.*
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
+import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToolBar
+import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
+import kfoenix.jfxprogressbar
+import kotlinx.coroutines.experimental.Job
 import tornadofx.*
 
 /**
@@ -41,9 +48,7 @@ import tornadofx.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanShowSettings {
-    private val logger = logger()
-
+class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
     private val gameScreen: GameScreen by inject()
     private val reportsScreen: ReportsScreen by inject()
     private val libraryScreen: JavaFxLibraryScreen by inject()
@@ -51,28 +56,39 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
     private val viewGameScreen: JavaFxViewGameScreen by inject()
 
-    private val taskRunner: JavaFxTaskRunner by di()
-
-    override val showSettingsActions = channel<Unit>()
-
     private var tabPane: TabPane by singleAssign()
     private var toolbar: ToolBar by singleAssign()
 
     private lateinit var previousScreen: Tab
 
-    private val nonNavigableScreens = setOf(viewGameScreen)
+    private val fakeScreens = setOf(viewGameScreen)
 
     private val toolbars = mutableMapOf<PresentableScreen, ToolBar>()
+
+    private val jobProperty = SimpleObjectProperty<Job?>(null)
+    override var job by jobProperty
+
+    private val isCancellableProperty = SimpleBooleanProperty(false)
+    override var isCancellable by isCancellableProperty
+
+    override val cancelTaskActions = channel<Unit>()
+
+    override val taskProgress = JavaFxTaskProgress()
+    override val subTaskProgress = JavaFxTaskProgress()
+
+    private val isRunningSubTaskProperty = SimpleBooleanProperty(false)
+    override var isRunningSubTask by isRunningSubTaskProperty
+
+    override val showSettingsActions = channel<Unit>()
 
     init {
         viewRegistry.register(this)
     }
 
-    override val root = taskRunner.init {
+    override val root = stackpane {
         borderpane {
             top {
                 toolbar = toolbar {
-                    enableWhen { enabledProperty }
                     items.onChange {
                         fade(0.6.seconds, 1.0, play = true) {
                             fromValue = 0.0
@@ -85,14 +101,35 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
                     addClass(CommonStyle.hiddenTabPaneHeader)
 
                     previousScreen = screenTab(gameScreen)
+                    screenTab(viewGameScreen)
                     screenTab(reportsScreen)
                     screenTab(libraryScreen)
                     screenTab(logScreen)
-                    screenTab(viewGameScreen)
 
                     selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
                         cleanupClosedTab(oldValue)
                         prepareNewTab(newValue)
+                    }
+                }
+            }
+        }
+        maskerPane {
+            visibleWhen { jobProperty.isNotNull }
+            progressNode = vbox(spacing = 5) {
+                progressDisplay(taskProgress, isMain = true)
+
+                region { minHeight = 20.0 }
+
+                progressDisplay(subTaskProgress, isMain = false) {
+                    showWhen { isRunningSubTaskProperty }
+                }
+
+                hbox {
+                    showWhen { isCancellableProperty }
+                    spacer()
+                    cancelButton("Cancel") {
+                        addClass(Style.progressText)
+                        eventOnAction(cancelTaskActions)
                     }
                 }
             }
@@ -107,7 +144,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private val mainNavigationButton = buttonWithPopover(graphic = Theme.Icon.bars()) {
         tabPane.tabs.forEach { tab ->
             val screen = tab.userData as PresentableScreen
-            if (screen !in nonNavigableScreens) {
+            if (screen !in fakeScreens) {
                 navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
             }
         }
@@ -134,8 +171,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private fun cleanupClosedTab(tab: Tab) {
         previousScreen = tab
         val screen = tab.userData as PresentableScreen
-        screen.onUndock()
-        screen.onUndockListeners?.forEach { it.invoke(screen) }
+        screen.callOnUndock()
     }
 
     private fun prepareNewTab(tab: Tab) {
@@ -149,7 +185,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
         toolbar.replaceChildren {
             items += toolbars.getOrPut(screen) {
                 ToolBar().apply {
-                    if (screen !in nonNavigableScreens) {
+                    if (screen !in fakeScreens) {
                         items += mainNavigationButton
                     } else {
                         backButton { setOnAction { showPreviousScreen() } }
@@ -168,14 +204,123 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     }
 
     // TODO: Try to move this responsibility to the viewManager.
-    fun showGameDetails() {
-        tabPane.selectionModel.selectLast()
-    }
+    fun showGameDetails() = selectScreen(viewGameScreen)
+
+    private fun selectScreen(screen: PresentableScreen) =
+        tabPane.selectionModel.select(tabPane.tabs.find { it.userData == screen })
 
     fun showPreviousScreen() = tabPane.selectionModel.select(previousScreen)
 
     override fun onDock() {
         val applicationStartTime = System.currentTimeMillis() - Main.startTime
-        logger.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
+        log.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
+    }
+
+    override fun taskSuccess(message: String) {
+//        javaFx {
+        // This is OMFG. Showing the notification as part of the regular flow (not in a new coroutine)
+        // causes an issue with modal windows not reporting that they are being hidden.
+//            delay(1)
+        Notification()
+            .owner(currentStage!!)
+            .text(message)
+            .information()
+            .automaticallyHideAfter(3.seconds)
+            .hideCloseButton()
+            .position(Pos.BOTTOM_RIGHT)
+            .show()
+//        }
+    }
+
+    override fun taskCancelled(message: String) = taskSuccess(message)
+
+    private inline fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean, crossinline f: VBox.() -> Unit = {}) = vbox(spacing = 5) {
+        hbox {
+            val textStyle = if (isMain) Style.mainTaskText else Style.subTaskText
+            label(taskProgress.messageProperty) {
+                addClass(Style.progressText, textStyle)
+            }
+            spacer()
+            label(taskProgress.progressProperty.asPercent()) {
+                visibleWhen { taskProgress.progressProperty.isNotEqualTo(-1) }
+                addClass(Style.progressText, textStyle)
+            }
+        }
+        jfxprogressbar {
+            progressProperty().bind(taskProgress.progressProperty)
+            useMaxWidth = true
+            addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
+        }
+        f()
+    }
+
+    class JavaFxTaskProgress : TaskProgress {
+        val titleProperty = SimpleStringProperty("")
+        override var title by titleProperty
+
+        val messageProperty = SimpleStringProperty("")
+        override var message by messageProperty
+
+        val processedItemsProperty = SimpleIntegerProperty(0)
+        override var processedItems by processedItemsProperty
+
+        val totalItemsProperty = SimpleIntegerProperty(0)
+        override var totalItems by totalItemsProperty
+
+//        val processedItemsCount = processedItemsProperty.combineLatest(totalItemsProperty).stringBinding {
+//            val (processedItems, totalItems) = it!!
+//            if (totalItems.toInt() > 1) {
+//                "$processedItems / $totalItems"
+//            } else {
+//                ""
+//            }
+//        }
+
+        val progressProperty = SimpleDoubleProperty(ProgressIndicator.INDETERMINATE_PROGRESS)
+        override var progress by progressProperty
+    }
+
+    class Style : Stylesheet() {
+        companion object {
+            val mainTaskProgress by cssclass()
+            val mainTaskText by cssclass()
+            val subTaskProgress by cssclass()
+            val subTaskText by cssclass()
+
+            val progressText by cssclass()
+
+            init {
+                importStylesheetSafe(Style::class)
+            }
+        }
+
+        init {
+            mainTaskProgress {
+            }
+
+            mainTaskText {
+                fontSize = 24.px
+            }
+
+            subTaskProgress {
+                bar {
+                    backgroundColor = multi(Color.FORESTGREEN)
+                }
+//                percentage {
+//                    fill = Color.CADETBLUE
+//                }
+//                arc {
+//                    stroke = Color.CORNFLOWERBLUE
+//                }
+            }
+
+            subTaskText {
+                fontSize = 16.px
+            }
+
+            progressText {
+                textFill = Color.WHITE
+            }
+        }
     }
 }

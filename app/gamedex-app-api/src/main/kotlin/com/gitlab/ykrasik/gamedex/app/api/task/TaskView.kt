@@ -14,37 +14,37 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.app.api.task
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import java.io.File
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 29/10/2018
+ * Time: 22:49
+ *
+ * Supports displaying a single running task, with an optional single sub-task.
  */
-interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
+interface TaskView {
+    var job: Job?
 
-    fun deleteStructure(gameId: GameId)
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
+    var isCancellable: Boolean
+    val cancelTaskActions: ReceiveChannel<Unit>
 
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
+    val taskProgress: TaskProgress
+    val subTaskProgress: TaskProgress
+    var isRunningSubTask: Boolean
 
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
+    fun taskSuccess(message: String)
+    fun taskCancelled(message: String)
+}
 
-    // TODO: Find better names.
-    fun analyzeFolderName(rawName: String): FolderNameMetadata
-    fun toFileName(name: String): String
+interface TaskProgress {
+    var title: String
+    var message: String
 
-    fun invalidate()
+    var processedItems: Int
+    var totalItems: Int
+    var progress: Double
 }

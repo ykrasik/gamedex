@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDataView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class CleanupDataPresenter @Inject constructor(
     private val databaseActionsService: DatabaseActionsService,
-    private val taskRunner: TaskRunner
+    private val taskService: TaskService
 ) : Presenter<CleanupDataView> {
     override fun present(view: CleanupDataView) = object : Presentation() {
         init {
@@ -40,12 +40,12 @@ class CleanupDataPresenter @Inject constructor(
         }
 
         private suspend fun cleanupData() {
-            val staleData = taskRunner.runTask(databaseActionsService.detectStaleData())
+            val staleData = taskService.execute(databaseActionsService.detectStaleData())
             if (staleData.isEmpty) return
 
             if (view.confirmDeleteStaleData(staleData)) {
                 // TODO: Create backup before deleting
-                taskRunner.runTask(databaseActionsService.deleteStaleData(staleData))
+                taskService.execute(databaseActionsService.deleteStaleData(staleData))
             }
         }
     }

@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -37,7 +37,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class EditLibraryPresenter @Inject constructor(
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val libraryService: LibraryService,
     private val viewManager: ViewManager,
     private val settingsService: SettingsService
@@ -126,7 +126,7 @@ class EditLibraryPresenter @Inject constructor(
                 libraryService.replace(view.library!!, libraryData)
             }
 
-            taskRunner.runTask(task)
+            taskService.execute(task)
 
             close()
         }

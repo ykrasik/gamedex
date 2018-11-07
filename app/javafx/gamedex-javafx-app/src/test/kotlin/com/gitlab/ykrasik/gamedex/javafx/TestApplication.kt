@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
 import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.toFile
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.experimental.asCoroutineDispatcher
 import kotlinx.coroutines.experimental.async
@@ -72,15 +71,15 @@ object TestApplication {
         if (numGames == null) return
 
         val start = System.currentTimeMillis()
-        val basePath = "E:\\Work\\gamedex"
+        val basePath = File(".").absoluteFile.normalize()
         val libraries = listOf(
             Platform.pc to "app",
             Platform.android to "build",
             Platform.mac to "conf",
             Platform.excluded to "core",
-            Platform.pc to "db"
+            Platform.pc to "provider"
         ).map { (platform, name) ->
-            persistenceService.insertLibrary(LibraryData(name, "$basePath\\$name".toFile(), platform))
+            persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), platform))
         }.filter { it.platform != Platform.excluded }
 
         val executor = Executors.newFixedThreadPool(10)

@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import kotlinx.coroutines.experimental.Dispatchers
+import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,31 +39,33 @@ class GameServiceImpl @Inject constructor(
     gameProviderService: GameProviderService
 ) : GameService {
     init {
-        libraryService.libraries.changesChannel.subscribe(Dispatchers.Default) {
+        libraryService.libraries.changesChannel.subscribe {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (it.type) {
                 ListChangeType.Remove -> repo.invalidate()
                 ListChangeType.Set -> rebuildGames()
             }
         }
-        gameProviderService.enabledProviders.changesChannel.subscribe(Dispatchers.Default) {
+        gameProviderService.enabledProviders.changesChannel.subscribe {
             rebuildGames()
         }
     }
 
     override val games = repo.games.mapping { it.toGame() }
 
-    override fun add(request: AddGameRequest) = quickTask("Adding Game '${request.metadata.path}'...") {
-        message1 = "Adding Game '${request.metadata.path}'..."
-        doneMessage { "Added Game: '${request.metadata.path}'." }
-        repo.add(request).toGame()
+    override fun add(request: AddGameRequest): Task<Game> {
+        val nameBestEffort = request.providerData.firstOrNull()?.gameData?.name ?: request.metadata.path.toFile().name
+        return task("Adding Game '$nameBestEffort'...") {
+            val game = repo.add(request).toGame()
+            successMessage = { "Added Game: '${game.name}'." }
+            game
+        }
     }
 
     override fun addAll(requests: List<AddGameRequest>) = task("Adding ${requests.size} Games...") {
-        message1 = "Adding ${requests.size} Games..."
-        doneMessage { "Added $processed/$totalWork Games." }
+        successMessage = { "Added $processedItems/$totalItems Games." }
 
-        totalWork = requests.size
+        totalItems = requests.size
         repo.games.buffered {
             requests.chunked(50).flatMap { requests ->
                 repo.addAll(requests) { incProgress() }.map { it.toGame() }
@@ -71,25 +73,23 @@ class GameServiceImpl @Inject constructor(
         }
     }
 
-    override fun replace(source: Game, target: RawGame) = quickTask("Updating Game '${source.name}'...") {
-        message1 = "Updating Game '${source.name}'..."
-        doneMessage { "Updated Game: '${source.name}'." }
+    override fun replace(source: Game, target: RawGame) = task("Updating Game '${source.name}'...") {
         val updatedTarget = target.withMetadata { it.updatedNow() }
         repo.replace(source.rawGame, updatedTarget)
-        updatedTarget.toGame()
+        val updatedGame = updatedTarget.toGame()
+        successMessage = { "Updated Game: '${updatedGame.name}'." }
+        updatedGame
     }
 
-    override fun delete(game: Game) = quickTask("Deleting Game '${game.name}'...") {
-        message1 = "Deleting Game '${game.name}'..."
-        doneMessage { "Deleted Game: '${game.name}'." }
+    override fun delete(game: Game) = task("Deleting Game '${game.name}'...") {
+        successMessage = { "Deleted Game: '${game.name}'." }
         repo.delete(game.rawGame)
     }
 
-    override fun deleteAll(games: List<Game>) = quickTask("Deleting ${games.size} Games...") {
-        message1 = "Deleting ${games.size} Games..."
-        doneMessage { "Deleted $processed/$totalWork Games." }
+    override fun deleteAll(games: List<Game>) = task("Deleting ${games.size} Games...") {
+        successMessage = { "Deleted $processedItems/$totalItems Games." }
 
-        totalWork = games.size
+        totalItems = games.size
         repo.games.buffered {
             games.chunked(200).forEach { chunk ->
                 repo.deleteAll(chunk.map { it.rawGame })
@@ -98,15 +98,12 @@ class GameServiceImpl @Inject constructor(
         }
     }
 
-    override fun deleteAllUserData() = quickTask("Deleting all user data...") {
-        message1 = "Deleting all user data..."
-        doneMessage { "Deleted all user data." }
+    override fun deleteAllUserData() = task("Deleting all user data...") {
+        successMessage = { "Deleted all user data." }
         repo.deleteAllUserData()
     }
 
-    override fun invalidate() = quickTask {
-        repo.invalidate()
-    }
+    override fun invalidate() = repo.invalidate()
 
     // ugly cast, whatever.
     private fun rebuildGames() = (games as ListObservableImpl<Game>).setAll(games.map { it.rawGame.toGame() })

@@ -48,16 +48,15 @@ class GameDiscoveryServiceImpl @Inject constructor(
     private val fileSystemService: FileSystemService,
     private val gameProviderService: GameProviderService
 ) : GameDiscoveryService {
-    override fun discoverNewGames() = task("Discovering New Games...") {
+    override fun discoverNewGames() = task("Discovering New Games...", isCancellable = true) {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
-        val masterTask = this
-        message1 = "Detecting new directories..."
+        message = "Detecting new directories..."
         val newDirectories = detectNewDirectories()
-        message2 = "${newDirectories.size} new games."
+        message = "Detecting new directories... ${newDirectories.size} new games."
 
         var added = 0
-        doneMessage { success ->
+        successOrCancelledMessage { success ->
             if (newDirectories.isEmpty()) {
                 "No new games detected."
             } else {
@@ -65,14 +64,11 @@ class GameDiscoveryServiceImpl @Inject constructor(
             }
         }
 
-        // TODO: This reports scan progress to the masterTask and discovery in subTask. Find a better way of doing this.
-        runSubTask {
-            newDirectories.forEachWithProgress(masterTask) { (library, directory) ->
-                val addGameRequest = processDirectory(directory, library)
-                if (addGameRequest != null) {
-                    runMainTask(gameService.add(addGameRequest))
-                    added += 1
-                }
+        newDirectories.forEachWithProgress { (library, directory) ->
+            val addGameRequest = processDirectory(directory, library)
+            if (addGameRequest != null) {
+                executeSubTask(gameService.add(addGameRequest))
+                added += 1
             }
         }
     }
@@ -87,7 +83,7 @@ class GameDiscoveryServiceImpl @Inject constructor(
     }
 
     private suspend fun Task<*>.processDirectory(directory: File, library: Library): AddGameRequest? {
-        val results = runMainTask(gameProviderService.search(directory.name, library.platform, directory, excludedProviders = emptyList()))
+        val results = executeSubTask(gameProviderService.search(directory.name, library.platform, directory, excludedProviders = emptyList()))
             ?: return null
         return AddGameRequest(
             metadata = Metadata(
@@ -118,19 +114,17 @@ class GameDiscoveryServiceImpl @Inject constructor(
     private fun rediscoverGames(games: List<Game>) = task("Re-Discovering ${games.size} Games...") {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
-        val masterTask = this
-        message1 = "Re-Discovering ${games.size} Games..."
+        message = "Re-Discovering ${games.size} Games..."
         var processed = 0
-        doneMessage { success -> "${if (success) "Done" else "Cancelled"}: Re-Discovered $processed / $totalWork Games." }
+        successOrCancelledMessage { success ->
+            "${if (success) "Done" else "Cancelled"}: Re-Discovered $processed / $totalItems Games."
+        }
 
-        // TODO: This reports scan progress to the masterTask and discovery in subTask. Find a better way of doing this.
-        runSubTask {
-            // Operate on a copy of the games to avoid concurrent modifications
-            games.sortedBy { it.name }.forEachWithProgress(masterTask) { game ->
-                val excludedProviders = game.existingProviders + game.excludedProviders
-                if (rediscoverGame(game, excludedProviders) != null) {
-                    processed += 1
-                }
+        // Operate on a copy of the games to avoid concurrent modifications
+        games.sortedBy { it.name }.forEachWithProgress { game ->
+            val excludedProviders = game.existingProviders + game.excludedProviders
+            if (rediscoverGame(game, excludedProviders) != null) {
+                processed += 1
             }
         }
     }
@@ -138,12 +132,12 @@ class GameDiscoveryServiceImpl @Inject constructor(
     override fun rediscoverGame(game: Game) = task("Re-Discovering '${game.name}'...") {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
-        doneMessageOrCancelled("Done: Re-Discovered '${game.name}'.")
+        successMessage = { "Done: Re-Discovered '${game.name}'." }
         rediscoverGame(game, excludedProviders = emptyList())
     }
 
     private suspend fun Task<*>.rediscoverGame(game: Game, excludedProviders: List<ProviderId>): Game? {
-        val results = runMainTask(gameProviderService.search(game.name, game.platform, game.path, excludedProviders))
+        val results = executeSubTask(gameProviderService.search(game.name, game.platform, game.path, excludedProviders))
         if (results?.isEmpty() != false) return null
 
         val newProviderData = if (excludedProviders.isEmpty()) {
@@ -169,6 +163,6 @@ class GameDiscoveryServiceImpl @Inject constructor(
 
     private suspend fun Task<*>.updateGame(game: Game, newProviderData: List<ProviderData>, newUserData: UserData?): Game {
         val newRawGame = game.rawGame.copy(providerData = newProviderData, userData = newUserData)
-        return runMainTask(gameService.replace(game, newRawGame))
+        return executeSubTask(gameService.replace(game, newRawGame))
     }
 }

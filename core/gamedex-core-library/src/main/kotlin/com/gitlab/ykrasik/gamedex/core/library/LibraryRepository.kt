@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.async
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,7 +34,7 @@ import javax.inject.Singleton
  * Time: 19:57
  */
 @Singleton
-internal class LibraryRepository @Inject constructor(private val persistenceService: PersistenceService) {
+class LibraryRepository @Inject constructor(private val persistenceService: PersistenceService) {
     private val log = logger()
 
     val libraries = ListObservableImpl(fetchLibraries())
@@ -64,10 +63,11 @@ internal class LibraryRepository @Inject constructor(private val persistenceServ
         return libraries
     }
 
-    fun update(library: Library, data: LibraryData) {
+    fun update(library: Library, data: LibraryData): Library {
         val updatedLibrary = library.copy(data = data)
         library.verifySuccess { persistenceService.updateLibrary(updatedLibrary) }
         libraries.replace(library, updatedLibrary)
+        return updatedLibrary
     }
 
     fun delete(library: Library) {

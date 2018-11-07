@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanExcludeGameFromReport
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,12 +32,12 @@ import javax.inject.Singleton
 @Singleton
 class ExcludeGameFromReportPresenter @Inject constructor(
     private val reportService: ReportService,
-    private val taskRunner: TaskRunner
+    private val taskService: TaskService
 ) : Presenter<ViewCanExcludeGameFromReport> {
     override fun present(view: ViewCanExcludeGameFromReport) = object : Presentation() {
         init {
             view.excludeGameActions.forEach { (report, game) ->
-                taskRunner.runTask(
+                taskService.execute(
                     reportService.update(report, report.data.copy(excludedGames = report.data.excludedGames + game.id))
                 )
             }

@@ -17,10 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupCacheView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @Singleton
 class CleanupCachePresenter @Inject constructor(
     private val databaseActionsService: DatabaseActionsService,
-    private val taskRunner: TaskRunner
+    private val taskService: TaskService
 ) : Presenter<CleanupCacheView> {
     override fun present(view: CleanupCacheView) = object : Presentation() {
         init {
@@ -40,11 +40,11 @@ class CleanupCachePresenter @Inject constructor(
         }
 
         private suspend fun cleanupCache() {
-            val staleCache = taskRunner.runTask(databaseActionsService.detectStaleCache())
+            val staleCache = taskService.execute(databaseActionsService.detectStaleCache())
             if (staleCache.isEmpty) return
 
             if (view.confirmDeleteStaleCache(staleCache)) {
-                taskRunner.runTask(databaseActionsService.deleteStaleCache(staleCache))
+                taskService.execute(databaseActionsService.deleteStaleCache(staleCache))
             }
         }
     }

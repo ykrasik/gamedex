@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.geometry.Pos
 import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver
-import tornadofx.enableWhen
 import tornadofx.separator
 import tornadofx.tooltip
 import tornadofx.useMaxWidth
@@ -45,7 +44,6 @@ class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, View
     }
 
     override val root = searchButton("Discover") {
-        enableWhen { enabledProperty }
         // TODO: This is pretty ugly.
         val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
             discoverGameChooseResultsMenu()

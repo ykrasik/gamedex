@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class ImportDatabasePresenter @Inject constructor(
     private val databaseActionsService: DatabaseActionsService,
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val settingsService: SettingsService
 ) : Presenter<ImportDatabaseView> {
     override fun present(view: ImportDatabaseView) = object : Presentation() {
@@ -48,7 +48,7 @@ class ImportDatabasePresenter @Inject constructor(
                 settingsService.platforms.forEach { _, settings ->
                     settings.resetDefaults()
                 }
-                taskRunner.runTask(databaseActionsService.importDatabase(file))
+                taskService.execute(databaseActionsService.importDatabase(file))
             }
         }
     }

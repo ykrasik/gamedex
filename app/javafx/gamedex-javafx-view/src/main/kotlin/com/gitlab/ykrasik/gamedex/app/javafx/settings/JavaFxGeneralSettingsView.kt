@@ -51,7 +51,6 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
 
     override val root = vbox {
         group("Database") {
-            enableWhen { enabledProperty }
             row {
                 jfxButton("Export Database", Theme.Icon.upload()) {
                     addClass(CommonStyle.thinBorder, Style.exportButton)

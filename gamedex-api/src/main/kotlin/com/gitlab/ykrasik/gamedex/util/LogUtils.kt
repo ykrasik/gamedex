@@ -120,7 +120,7 @@ inline fun Logger.error(marker: Marker, t: Throwable, crossinline msg: (Marker) 
 
 inline fun <T> Logger.logResult(
     beforeMessage: String,
-    afterMessage: (T) -> String = { it.toString() },
+    afterMessage: (T) -> String = { "Done: ${it.toString()}" },
     log: Logger.(String) -> Unit = Logger::info,
     f: () -> T
 ): T {

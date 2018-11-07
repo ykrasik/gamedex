@@ -83,10 +83,12 @@ class GameFactory @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> RawGame.firstBy(defaultOrder: Order,
-                                    override: GameDataOverride?,
-                                    converter: (Any) -> T = { it as T },
-                                    extractor: (ProviderData) -> T?): T? =
+    private fun <T> RawGame.firstBy(
+        defaultOrder: Order,
+        override: GameDataOverride?,
+        converter: (Any) -> T = { it as T },
+        extractor: (ProviderData) -> T?
+    ): T? =
         when (override) {
             is GameDataOverride.Custom -> converter(override.value)
             else -> {

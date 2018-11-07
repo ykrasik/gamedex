@@ -18,11 +18,11 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.delete
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.task.TaskRunner
 import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DeleteGamePresenter @Inject constructor(
-    private val taskRunner: TaskRunner,
+    private val taskService: TaskService,
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
     private val viewManager: ViewManager
@@ -53,7 +53,7 @@ class DeleteGamePresenter @Inject constructor(
                 fileSystemService.delete(view.game.path)
             }
 
-            taskRunner.runTask(gameService.delete(view.game))
+            taskService.execute(gameService.delete(view.game))
 
             close()
         }
