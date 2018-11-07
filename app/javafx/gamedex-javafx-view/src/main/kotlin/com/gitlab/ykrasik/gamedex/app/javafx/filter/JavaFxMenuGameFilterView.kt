@@ -79,7 +79,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
     }
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     private fun EventTarget.render(filter: Filter, parentFilter: Filter) {

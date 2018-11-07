@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class DiscoverGameChooseResultsPresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<ViewCanChangeDiscoverGameChooseResults> {
-    override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : Presentation() {
+    override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : ViewSession() {
         init {
             settingsService.game.bind({ discoverGameChooseResultsChannel }, view::discoverGameChooseResults, view.discoverGameChooseResultsChanges) {
                 copy(discoverGameChooseResults = it)

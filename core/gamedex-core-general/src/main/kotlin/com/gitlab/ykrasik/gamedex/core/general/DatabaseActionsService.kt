@@ -24,13 +24,13 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleCache
 import com.gitlab.ykrasik.gamedex.app.api.general.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-import com.gitlab.ykrasik.gamedex.app.api.util.task
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
+import com.gitlab.ykrasik.gamedex.core.task.Task
+import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
 import com.google.inject.ImplementedBy

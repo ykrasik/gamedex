@@ -19,9 +19,13 @@ package com.gitlab.ykrasik.gamedex.core.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.task.Task
+import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton

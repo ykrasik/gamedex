@@ -61,7 +61,7 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     private val gameDetailsView = JavaFxGameDetailsView(evenIfEmpty = true)
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override fun ToolBar.constructToolbar() {

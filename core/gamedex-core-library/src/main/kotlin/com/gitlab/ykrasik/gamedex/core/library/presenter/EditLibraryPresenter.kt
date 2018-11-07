@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -42,7 +42,7 @@ class EditLibraryPresenter @Inject constructor(
     private val viewManager: ViewManager,
     private val settingsService: SettingsService
 ) : Presenter<EditLibraryView> {
-    override fun present(view: EditLibraryView) = object : Presentation() {
+    override fun present(view: EditLibraryView) = object : ViewSession() {
         init {
             view.nameChanges.forEach { onNameChanged() }
             view.pathChanges.forEach { onPathChanged() }

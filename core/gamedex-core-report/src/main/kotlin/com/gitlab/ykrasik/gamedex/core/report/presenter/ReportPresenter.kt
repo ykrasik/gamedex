@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -43,7 +43,7 @@ class ReportPresenter @Inject constructor(
     private val fileSystemService: FileSystemService,
     private val filterContextFactory: FilterContextFactory
 ) : Presenter<ReportView> {
-    override fun present(view: ReportView) = object : Presentation() {
+    override fun present(view: ReportView) = object : ViewSession() {
         private var subscription: ReceiveChannel<*>? = null
 
         init {

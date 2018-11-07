@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import javax.inject.Inject
 import javax.inject.Singleton

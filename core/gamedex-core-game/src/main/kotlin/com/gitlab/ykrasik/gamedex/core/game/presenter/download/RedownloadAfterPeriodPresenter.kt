@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 import com.gitlab.ykrasik.gamedex.app.api.game.CreatedBeforePeriodView
 import com.gitlab.ykrasik.gamedex.app.api.game.UpdatedAfterPeriodView
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.GameSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -44,7 +44,7 @@ abstract class AbstractRedownloadAfterPeriodPresenter<V>(private val settingsSer
         .appendMinutes().appendSuffix("m").appendSeparator(" ")
         .appendSeconds().appendSuffix("s").toFormatter()
 
-    override fun present(view: V) = object : Presentation() {
+    override fun present(view: V) = object : ViewSession() {
         init {
             periodChannel(settingsService.game).forEach {
                 val sb = StringBuffer()

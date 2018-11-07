@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesCreatedBefore
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class RedownloadGamesCreatedBeforePresenter @Inject constructor(
     private val gameDownloadService: GameDownloadService,
     private val taskService: TaskService
 ) : Presenter<ViewCanRedownloadGamesCreatedBefore> {
-    override fun present(view: ViewCanRedownloadGamesCreatedBefore) = object : Presentation() {
+    override fun present(view: ViewCanRedownloadGamesCreatedBefore) = object : ViewSession() {
         init {
             view.redownloadGamesCreatedBeforeActions.forEach {
                 taskService.execute(gameDownloadService.redownloadGamesCreatedBeforePeriod())

@@ -57,7 +57,7 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     override var sort by sortProperty
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     // FIXME: Change search -> sync, refresh maybe to download?

@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.rename
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowRenameMoveGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanRenameMoveGame> {
-    override fun present(view: ViewCanRenameMoveGame) = object : Presentation() {
+    override fun present(view: ViewCanRenameMoveGame) = object : ViewSession() {
         init {
             view.renameMoveGameActions.forEach { (game, initialName) ->
                 viewManager.showRenameMoveGameView {

@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameCellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameCellDisplaySettings
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,7 +33,7 @@ import javax.inject.Singleton
 class ChangeGameCellDisplaySettingsPresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<ViewCanChangeGameCellDisplaySettings> {
-    override fun present(view: ViewCanChangeGameCellDisplaySettings) = object : Presentation() {
+    override fun present(view: ViewCanChangeGameCellDisplaySettings) = object : ViewSession() {
         init {
             with(view.mutableCellDisplaySettings) {
                 settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, ::imageDisplayType, imageDisplayTypeChanges) { copy(imageDisplayType = it) }
@@ -51,7 +51,7 @@ class ChangeGameCellDisplaySettingsPresenter @Inject constructor(
 class GameCellDisplaySettingsPresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<ViewWithGameCellDisplaySettings> {
-    override fun present(view: ViewWithGameCellDisplaySettings) = object : Presentation() {
+    override fun present(view: ViewWithGameCellDisplaySettings) = object : ViewSession() {
         init {
             val settings = settingsService.cellDisplay
             with(view.cellDisplaySettings) {

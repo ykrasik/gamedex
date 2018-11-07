@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -41,7 +41,7 @@ class TagGamePresenter @Inject constructor(
     private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<TagGameView> {
-    override fun present(view: TagGameView) = object : Presentation() {
+    override fun present(view: TagGameView) = object : ViewSession() {
         private var ignoreNextUncheckAll = false
 
         init {

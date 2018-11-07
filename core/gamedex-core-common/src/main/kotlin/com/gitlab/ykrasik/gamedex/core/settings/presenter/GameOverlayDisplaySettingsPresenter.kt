@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.GameOverlayDisplaySettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  * Time: 18:59
  */
 abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
-    override fun present(view: V) = object : Presentation() {
+    override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
                 repo.bind({ enabledChannel }, ::enabled, enabledChanges) { copy(enabled = it) }
@@ -73,7 +73,7 @@ class ChangeGameVersionOverlayDisplaySettingsPresenter @Inject constructor(priva
 }
 
 abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
-    override fun present(view: V) = object : Presentation() {
+    override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
                 repo.enabledChannel.reportChangesTo(::enabled)

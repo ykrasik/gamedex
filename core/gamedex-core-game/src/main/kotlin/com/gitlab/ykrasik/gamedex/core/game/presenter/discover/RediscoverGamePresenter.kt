@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.discover
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRediscoverGame
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameDiscoveryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -35,7 +35,7 @@ class RediscoverGamePresenter @Inject constructor(
     private val gameDiscoveryService: GameDiscoveryService,
     private val taskService: TaskService
 ) : Presenter<ViewCanRediscoverGame> {
-    override fun present(view: ViewCanRediscoverGame) = object : Presentation() {
+    override fun present(view: ViewCanRediscoverGame) = object : ViewSession() {
         init {
             view.rediscoverGameActions.forEach { rediscoverGame(it) }
         }

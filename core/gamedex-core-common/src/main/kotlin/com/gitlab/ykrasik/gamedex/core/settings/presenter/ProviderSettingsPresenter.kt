@@ -19,14 +19,13 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,7 +39,7 @@ import javax.inject.Singleton
 class ProviderSettingsPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ProviderSettingsView> {
     private val log = logger()
 
-    override fun present(view: ProviderSettingsView) = object : Presentation() {
+    override fun present(view: ProviderSettingsView) = object : ViewSession() {
         init {
             // This will not update if settings are reset to default - by design.
             view.currentAccount = settingsService.providers[view.provider.id]!!.account

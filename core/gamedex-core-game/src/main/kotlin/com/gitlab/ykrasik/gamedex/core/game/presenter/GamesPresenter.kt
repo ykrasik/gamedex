@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
@@ -78,7 +78,7 @@ class GamesPresenter @Inject constructor(
         }
     }
 
-    override fun present(view: ViewWithGames) = object : Presentation() {
+    override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
             commonData.platformGames.bindTo(view.games)
             sortComparatorChannel.forEach { view.sort = it }

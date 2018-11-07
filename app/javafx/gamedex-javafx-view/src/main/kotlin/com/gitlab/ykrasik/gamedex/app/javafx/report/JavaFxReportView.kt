@@ -102,7 +102,7 @@ class JavaFxReportView :
 
     init {
         titleProperty.bind(reportProperty.map { it?.name })
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
 
         matchingGameProperty.onChange { match ->
             if (match != null) {

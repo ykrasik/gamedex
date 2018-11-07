@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProviderLogosPresenter @Inject constructor(private val gameProviderService: GameProviderService) : Presenter<ViewWithProviderLogos> {
-    override fun present(view: ViewWithProviderLogos) = object : Presentation() {
+    override fun present(view: ViewWithProviderLogos) = object : ViewSession() {
         init {
             view.providerLogos = gameProviderService.logos
         }

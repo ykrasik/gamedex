@@ -30,10 +30,10 @@ import kotlin.reflect.KMutableProperty0
  * Time: 08:17
  */
 interface Presenter<in V> {
-    fun present(view: V): Presentation
+    fun present(view: V): ViewSession
 }
 
-abstract class Presentation : CoroutineScope {
+abstract class ViewSession : CoroutineScope {
     override val coroutineContext = Dispatchers.Main + Job()
     private var _showing = false
     protected val showing get() = _showing

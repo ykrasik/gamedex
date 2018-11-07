@@ -18,10 +18,10 @@ package com.gitlab.ykrasik.gamedex.core.task.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -41,7 +41,7 @@ import javax.inject.Singleton
 class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<TaskView> {
     private val log = logger()
 
-    override fun present(view: TaskView) = object : Presentation() {
+    override fun present(view: TaskView) = object : ViewSession() {
         init {
             eventBus.forEach<TaskStartedEvent<*>> { execute(it.task) }
             view.cancelTaskActions.forEach { cancelTask() }

@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverGamesWithoutProviders
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameDiscoveryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class DiscoverGamesWithoutProvidersPresenter @Inject constructor(
     private val gameDiscoveryService: GameDiscoveryService,
     private val taskService: TaskService
 ) : Presenter<ViewCanDiscoverGamesWithoutProviders> {
-    override fun present(view: ViewCanDiscoverGamesWithoutProviders) = object : Presentation() {
+    override fun present(view: ViewCanDiscoverGamesWithoutProviders) = object : ViewSession() {
         init {
             view.discoverGamesWithoutProvidersActions.forEach { discoverGamesWithoutProviders() }
         }

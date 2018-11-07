@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeGameSort
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class SortGamesPresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<ViewCanChangeGameSort> {
-    override fun present(view: ViewCanChangeGameSort) = object : Presentation() {
+    override fun present(view: ViewCanChangeGameSort) = object : ViewSession() {
         init {
             settingsService.game.bind({ sortChannel }, view::sort, view.sortChanges) { copy(sort = it) }
         }

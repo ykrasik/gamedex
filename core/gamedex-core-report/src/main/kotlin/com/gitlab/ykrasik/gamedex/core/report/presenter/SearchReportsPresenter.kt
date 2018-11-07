@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SearchReportsPresenter @Inject constructor() : Presenter<ViewCanSearchReports> {
-    override fun present(view: ViewCanSearchReports) = object : Presentation() {
+    override fun present(view: ViewCanSearchReports) = object : ViewSession() {
         init {
             view.searchTextChanges.forEach { onSearchTextChanged(it) }
         }

@@ -69,7 +69,7 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
     private val tabProperty = "tab"
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
 
         var prevOpacity = 1.0
         runningTaskProperty.onChange { isRunningTask ->

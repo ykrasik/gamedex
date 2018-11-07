@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsSetEvent
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import javax.inject.Inject
@@ -40,7 +40,7 @@ class GameViewPresenter @Inject constructor(
     private val imageService: ImageService,
     private val viewManager: ViewManager
 ) : Presenter<GameView> {
-    override fun present(view: GameView) = object : Presentation() {
+    override fun present(view: GameView) = object : ViewSession() {
         init {
             gameService.games.changesChannel.forEach { event ->
                 if (!showing) return@forEach

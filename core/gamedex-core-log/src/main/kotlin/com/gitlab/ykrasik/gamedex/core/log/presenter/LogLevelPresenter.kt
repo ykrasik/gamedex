@@ -17,15 +17,15 @@
 package com.gitlab.ykrasik.gamedex.core.log.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogLevel
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class LogLevelPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogLevel> {
-    override fun present(view: ViewCanChangeLogLevel) = object : Presentation() {
+    override fun present(view: ViewCanChangeLogLevel) = object : ViewSession() {
         init {
             settingsService.general.bind({ logFilterLevelChannel }, view::level, view.levelChanges) { copy(logFilterLevel = it) }
         }

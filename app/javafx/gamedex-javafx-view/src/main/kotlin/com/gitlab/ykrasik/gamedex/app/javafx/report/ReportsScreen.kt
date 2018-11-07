@@ -61,7 +61,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
     }
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
 
         selection.selectedToggleProperty().addListener { _, oldToggle, newToggle ->
             if (oldToggle != null && newToggle == null) {

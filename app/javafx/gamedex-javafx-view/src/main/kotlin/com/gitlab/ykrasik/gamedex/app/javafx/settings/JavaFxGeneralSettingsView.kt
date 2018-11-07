@@ -46,7 +46,7 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
     override val cleanupDataActions = channel<Unit>()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = vbox {

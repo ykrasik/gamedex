@@ -82,7 +82,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
     override val showSettingsActions = channel<Unit>()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = stackpane {

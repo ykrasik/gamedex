@@ -59,7 +59,7 @@ class JavaFxGameDownloadView : PresentableView(),
     override val redownloadGamesUpdatedAfterActions = channel<Unit>()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = buttonWithPopover("Re-Download", graphic = Theme.Icon.download(), arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->

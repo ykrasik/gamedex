@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.ClearUserDataView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class ClearUserDataPresenter @Inject constructor(
     private val gameService: GameService,
     private val taskService: TaskService
 ) : Presenter<ClearUserDataView> {
-    override fun present(view: ClearUserDataView) = object : Presentation() {
+    override fun present(view: ClearUserDataView) = object : ViewSession() {
         init {
             view.clearUserDataActions.forEach { clearUserData() }
         }

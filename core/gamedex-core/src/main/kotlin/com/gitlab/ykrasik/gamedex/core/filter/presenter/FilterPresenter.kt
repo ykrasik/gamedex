@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.MenuGameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.game.ReportGameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -78,7 +78,7 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
 
     private fun createRule(klass: KClass<out Filter>): Filter = (rules[klass] ?: operators[klass])!!()
 
-    override fun present(view: V) = object : Presentation() {
+    override fun present(view: V) = object : ViewSession() {
         init {
             genres.bindTo(view.possibleGenres)
             genres.changesChannel.forEach { setPossibleRules() }

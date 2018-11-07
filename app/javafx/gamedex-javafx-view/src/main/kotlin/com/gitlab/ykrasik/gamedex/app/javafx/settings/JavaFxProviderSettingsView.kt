@@ -64,7 +64,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
     private var accountLabelFlashContainer: StackPane by singleAssign()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = vbox {

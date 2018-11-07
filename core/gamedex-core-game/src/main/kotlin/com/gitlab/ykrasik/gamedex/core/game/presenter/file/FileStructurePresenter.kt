@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.file
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameFileStructure
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class FileStructurePresenter @Inject constructor(private val fileSystemService: FileSystemService) : Presenter<ViewWithGameFileStructure> {
-    override fun present(view: ViewWithGameFileStructure) = object : Presentation() {
+    override fun present(view: ViewWithGameFileStructure) = object : ViewSession() {
         init {
             view.gameChanges.forEach {
                 view.fileStructure = fileSystemService.structure(it)

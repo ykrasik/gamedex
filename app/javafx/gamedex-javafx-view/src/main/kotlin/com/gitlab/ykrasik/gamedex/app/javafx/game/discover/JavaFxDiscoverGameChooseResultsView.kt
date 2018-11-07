@@ -38,7 +38,7 @@ private class JavaFxDiscoverGameChooseResultsView : PresentableView(), ViewCanCh
     override var discoverGameChooseResults by discoverGameChooseResultsProperty
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = vbox(spacing = 5.0) {

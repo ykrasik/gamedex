@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.task.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
 import javax.inject.Inject
@@ -32,7 +32,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ViewWithTaskPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<ViewWithRunningTask> {
-    override fun present(view: ViewWithRunningTask) = object : Presentation() {
+    override fun present(view: ViewWithRunningTask) = object : ViewSession() {
         init {
             eventBus.forEach<TaskStartedEvent<*>> { view.runningTask = true }
             eventBus.forEach<TaskFinishedEvent<*>> { view.runningTask = false }

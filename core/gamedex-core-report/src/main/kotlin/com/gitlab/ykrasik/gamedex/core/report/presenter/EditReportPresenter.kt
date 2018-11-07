@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -42,7 +42,7 @@ class EditReportPresenter @Inject constructor(
     private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<EditReportView> {
-    override fun present(view: EditReportView) = object : Presentation() {
+    override fun present(view: EditReportView) = object : ViewSession() {
         init {
             view.nameChanges.forEach { onNameChanged() }
             view.filterChanges.forEach { onFilterChanged() }

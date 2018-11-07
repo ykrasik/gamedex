@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +31,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class BrowserPresenter @Inject constructor() : Presenter<ViewWithBrowser> {
-    override fun present(view: ViewWithBrowser) = object : Presentation() {
+    override fun present(view: ViewWithBrowser) = object : ViewSession() {
         init {
             view.gameChanges.forEach { game ->
                 if (showing) {

@@ -115,7 +115,7 @@ class DiffResultContextMenu : InstallableContextMenu<Pair<Game, Filter.NameDiff.
     override val renameMoveGameActions = channel<Pair<Game, String?>>()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = vbox {

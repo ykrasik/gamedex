@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSelectPlatform
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,7 +34,7 @@ class SelectPlatformPresenter @Inject constructor(
     private val settingsService: SettingsService,
     private val commonData: CommonData
 ) : Presenter<ViewCanSelectPlatform> {
-    override fun present(view: ViewCanSelectPlatform) = object : Presentation() {
+    override fun present(view: ViewCanSelectPlatform) = object : ViewSession() {
         init {
             commonData.platformsWithLibraries.bindTo(view.availablePlatforms)
             settingsService.game.bind({ platformChannel }, view::currentPlatform, view.currentPlatformChanges) {

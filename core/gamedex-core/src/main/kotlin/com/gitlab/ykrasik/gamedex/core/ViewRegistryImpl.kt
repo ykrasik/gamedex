@@ -30,34 +30,34 @@ import kotlin.reflect.full.allSuperclasses
 @Singleton
 class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<*>, Presenter<*>>) : ViewRegistry {
     private val presenters: Map<KClass<*>, Presenter<*>> = initialPresenters
-    private val activePresentations = mutableMapOf<Any, List<Presentation>>()
+    private val sessions = mutableMapOf<Any, List<ViewSession>>()
 
-    override fun register(view: Any) {
-        check(activePresentations.put(view, presentView(view)) == null) { "View already registered: $view" }
+    override fun onCreate(view: Any) {
+        check(sessions.put(view, presentView(view)) == null) { "View already registered: $view" }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun presentView(view: Any): List<Presentation> {
+    private fun presentView(view: Any): List<ViewSession> {
         return view.javaClass.kotlin.allSuperclasses.mapNotNull { clazz ->
             (presenters[clazz] as? Presenter<Any>)?.present(view)
         }
     }
 
-    override fun unregister(view: Any) {
-        val presentersToDestroy = checkNotNull(activePresentations.remove(view)) { "View not registered: $view" }
+    override fun onDestroy(view: Any) {
+        val presentersToDestroy = checkNotNull(sessions.remove(view)) { "View not registered: $view" }
         presentersToDestroy.forEach { it.destroy() }
     }
 
     override fun onShow(view: Any) {
         println("$view: Showing")
         // TODO: Eventually, make it activePresentations[view]!!
-        activePresentations[view]?.forEach { it.show() }
+        sessions[view]?.forEach { it.show() }
     }
 
     override fun onHide(view: Any) {
         println("$view: Hidden")
         // TODO: Eventually, make it activePresentations[view]!!
-        activePresentations[view]?.forEach { it.hide() }
+        sessions[view]?.forEach { it.hide() }
     }
 
 //    init {

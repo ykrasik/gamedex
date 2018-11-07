@@ -42,7 +42,7 @@ class JavaFxGameDisplaySettingsView : PresentableTabView("Game Display", Theme.I
     override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = scrollpane {

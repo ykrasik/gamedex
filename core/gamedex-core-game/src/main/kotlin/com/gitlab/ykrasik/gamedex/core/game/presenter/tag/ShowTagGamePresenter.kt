@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.tag
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowTagGamePresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanTagGame> {
-    override fun present(view: ViewCanTagGame) = object : Presentation() {
+    override fun present(view: ViewCanTagGame) = object : ViewSession() {
         init {
             view.tagGameActions.forEach { game ->
                 viewManager.showTagGameView {

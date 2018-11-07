@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.rename
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.core.CommonData
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -46,7 +46,7 @@ class RenameMoveGamePresenter @Inject constructor(
     private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<RenameMoveGameView> {
-    override fun present(view: RenameMoveGameView) = object : Presentation() {
+    override fun present(view: RenameMoveGameView) = object : ViewSession() {
         private val log = logger()
 
         init {

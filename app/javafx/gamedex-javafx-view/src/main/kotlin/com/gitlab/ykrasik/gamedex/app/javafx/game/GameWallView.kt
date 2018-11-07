@@ -77,7 +77,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     init {
         games.sortedItems.comparatorProperty().bind(sortProperty)
         games.filteredItems.predicateProperty().bind(filterPredicateProperty)
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = GridView(games).apply {

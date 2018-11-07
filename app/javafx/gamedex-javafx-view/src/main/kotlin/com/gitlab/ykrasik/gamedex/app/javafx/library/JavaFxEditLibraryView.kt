@@ -63,7 +63,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = borderpane {

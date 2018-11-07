@@ -24,8 +24,8 @@ package com.gitlab.ykrasik.gamedex.app.api
  * Provided to the view layer to allow views to register themselves.
  */
 interface ViewRegistry {
-    fun register(view: Any)
-    fun unregister(view: Any)
+    fun onCreate(view: Any)
+    fun onDestroy(view: Any)
 
     fun onShow(view: Any)
     fun onHide(view: Any)

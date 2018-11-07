@@ -16,8 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.task
 
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
-
 /**
  * User: ykrasik
  * Date: 31/10/2018

@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.file.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.util.browse
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class BrowseFilePresenter @Inject constructor() : Presenter<ViewCanBrowseFile> {
-    override fun present(view: ViewCanBrowseFile) = object : Presentation() {
+    override fun present(view: ViewCanBrowseFile) = object : ViewSession() {
         init {
             view.browseToFileActions.forEach { browse(it) }
         }

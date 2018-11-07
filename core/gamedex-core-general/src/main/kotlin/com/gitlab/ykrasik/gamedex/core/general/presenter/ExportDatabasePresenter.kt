@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.ExportDatabaseView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -40,7 +40,7 @@ class ExportDatabasePresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<ExportDatabaseView> {
 
-    override fun present(view: ExportDatabaseView) = object : Presentation() {
+    override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {
             view.exportDatabaseActions.forEach { exportDatabase() }
         }

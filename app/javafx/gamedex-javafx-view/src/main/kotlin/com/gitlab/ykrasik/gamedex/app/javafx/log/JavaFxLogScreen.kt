@@ -54,7 +54,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
 //        })
 
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override fun ToolBar.constructToolbar() {

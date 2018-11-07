@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.task
 
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
 import kotlinx.coroutines.experimental.Deferred
 

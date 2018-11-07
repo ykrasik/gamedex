@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewWithReports
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class ReportsPresenter @Inject constructor(
     private val reportService: ReportService
 ) : Presenter<ViewWithReports> {
-    override fun present(view: ViewWithReports) = object : Presentation() {
+    override fun present(view: ViewWithReports) = object : ViewSession() {
         init {
             reportService.reports.bindTo(view.reports)
         }

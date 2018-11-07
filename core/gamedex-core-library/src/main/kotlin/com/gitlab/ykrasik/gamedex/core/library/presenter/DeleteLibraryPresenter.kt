@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -39,7 +39,7 @@ class DeleteLibraryPresenter @Inject constructor(
     private val taskService: TaskService,
     private val viewManager: ViewManager
 ) : Presenter<DeleteLibraryView> {
-    override fun present(view: DeleteLibraryView) = object : Presentation() {
+    override fun present(view: DeleteLibraryView) = object : ViewSession() {
         init {
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }

@@ -46,7 +46,7 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
     private val selectedLibrary: Library get() = root.selectedItem!!
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override fun ToolBar.constructToolbar() {

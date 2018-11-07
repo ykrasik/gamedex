@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.app.api.util.Task
+import com.gitlab.ykrasik.gamedex.core.task.Task
 
 /**
  * User: ykrasik

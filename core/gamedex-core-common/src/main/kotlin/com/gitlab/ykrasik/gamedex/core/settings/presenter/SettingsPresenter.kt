@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -37,7 +37,7 @@ class SettingsPresenter @Inject constructor(
     private val gameProviderService: GameProviderService,
     private val viewManager: ViewManager
 ) : Presenter<SettingsView> {
-    override fun present(view: SettingsView) = object : Presentation() {
+    override fun present(view: SettingsView) = object : ViewSession() {
         init {
             view.providers.setAll(gameProviderService.allProviders)
 

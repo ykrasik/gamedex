@@ -109,7 +109,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
 
     init {
         titleProperty.bind(gameProperty.stringBinding { it?.name })
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = borderpane {

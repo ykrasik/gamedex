@@ -70,7 +70,7 @@ class JavaFxGameDetailsView(
     override val browseToUrlActions = channel<String>()
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = stackpane {

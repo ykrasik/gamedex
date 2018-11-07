@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.task
+import com.gitlab.ykrasik.gamedex.core.task.task
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

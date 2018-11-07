@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanExcludeGameFromReport
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class ExcludeGameFromReportPresenter @Inject constructor(
     private val reportService: ReportService,
     private val taskService: TaskService
 ) : Presenter<ViewCanExcludeGameFromReport> {
-    override fun present(view: ViewCanExcludeGameFromReport) = object : Presentation() {
+    override fun present(view: ViewCanExcludeGameFromReport) = object : ViewSession() {
         init {
             view.excludeGameActions.forEach { (report, game) ->
                 taskService.execute(

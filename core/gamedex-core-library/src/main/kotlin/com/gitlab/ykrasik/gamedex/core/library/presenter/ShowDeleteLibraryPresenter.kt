@@ -18,8 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +30,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowDeleteLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanDeleteLibrary> {
-    override fun present(view: ViewCanDeleteLibrary) = object : Presentation() {
+    override fun present(view: ViewCanDeleteLibrary) = object : ViewSession() {
         init {
             view.deleteLibraryActions.forEach { library ->
                 viewManager.showDeleteLibraryView {

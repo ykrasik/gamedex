@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.CleanupDataView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class CleanupDataPresenter @Inject constructor(
     private val databaseActionsService: DatabaseActionsService,
     private val taskService: TaskService
 ) : Presenter<CleanupDataView> {
-    override fun present(view: CleanupDataView) = object : Presentation() {
+    override fun present(view: CleanupDataView) = object : ViewSession() {
         init {
             view.cleanupDataActions.forEach { cleanupData() }
         }

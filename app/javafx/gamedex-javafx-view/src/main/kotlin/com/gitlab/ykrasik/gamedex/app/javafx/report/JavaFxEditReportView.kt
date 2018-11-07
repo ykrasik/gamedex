@@ -70,7 +70,7 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
         titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report '${it.name}'" })
         excludedGames.onChange { currentStage?.sizeToScene() }
         filterView.filterProperty.onChange { currentStage?.sizeToScene() }
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = borderpane {

@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.general.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.general.ImportDatabaseView
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.general.DatabaseActionsService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -36,7 +36,7 @@ class ImportDatabasePresenter @Inject constructor(
     private val taskService: TaskService,
     private val settingsService: SettingsService
 ) : Presenter<ImportDatabaseView> {
-    override fun present(view: ImportDatabaseView) = object : Presentation() {
+    override fun present(view: ImportDatabaseView) = object : ViewSession() {
         init {
             view.importDatabaseActions.forEach { importDatabase() }
         }

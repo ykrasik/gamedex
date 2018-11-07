@@ -81,7 +81,7 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Theme.Icon.s
     override var screenshot by screenshotProperty
 
     init {
-        viewRegistry.register(this)
+        viewRegistry.onCreate(this)
     }
 
     override val root = form {

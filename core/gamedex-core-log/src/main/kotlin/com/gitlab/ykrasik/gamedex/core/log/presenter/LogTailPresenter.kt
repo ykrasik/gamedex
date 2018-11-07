@@ -17,15 +17,15 @@
 package com.gitlab.ykrasik.gamedex.core.log.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewCanChangeLogTail
-import com.gitlab.ykrasik.gamedex.core.Presentation
 import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class LogTailPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogTail> {
-    override fun present(view: ViewCanChangeLogTail) = object : Presentation() {
+    override fun present(view: ViewCanChangeLogTail) = object : ViewSession() {
         init {
             settingsService.general.bind({ logTailChannel }, view::logTail, view.logTailChanges) { copy(logTail = it) }
         }
