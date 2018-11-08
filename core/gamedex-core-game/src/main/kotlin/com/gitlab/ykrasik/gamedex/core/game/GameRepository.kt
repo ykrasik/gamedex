@@ -38,10 +38,9 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
 
     val games = ListObservableImpl(fetchGames())
 
-    private fun fetchGames(): List<RawGame> =
-        log.time("Fetching games...", { time, games -> "${games.size} games in $time" }) {
-            persistenceService.fetchGames()
-        }
+    private fun fetchGames(): List<RawGame> = log.time("Fetching games...", { time, games -> "${games.size} games in $time" }) {
+        persistenceService.fetchGames()
+    }
 
     fun add(request: AddGameRequest): RawGame {
         val game = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)

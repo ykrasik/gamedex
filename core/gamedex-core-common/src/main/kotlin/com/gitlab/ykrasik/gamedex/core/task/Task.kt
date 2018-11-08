@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.task
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import kotlinx.coroutines.experimental.isActive
@@ -29,7 +30,12 @@ import kotlin.properties.Delegates
  * Date: 31/03/2018
  * Time: 19:35
  */
-class Task<out T>(val title: String, val isCancellable: Boolean, private val run: suspend Task<*>.() -> T) {
+class Task<out T>(
+    val title: String,
+    val isCancellable: Boolean,
+    initialImage: Image?,
+    private val run: suspend Task<*>.() -> T
+) {
     private val _messageChannel = BroadcastEventChannel<String>()
     val messageChannel: BroadcastReceiveChannel<String> = _messageChannel
     var message by Delegates.observable("") { _, _, value -> _messageChannel.offer(value) }
@@ -57,6 +63,10 @@ class Task<out T>(val title: String, val isCancellable: Boolean, private val run
     val totalItemsChannel: BroadcastReceiveChannel<Int> = _totalItemsChannel
     var totalItems by Delegates.observable(0) { _, _, value -> _totalItemsChannel.offer(value) }
 
+    private val _imageChannel = BroadcastEventChannel<Image?>()
+    val imageChannel: BroadcastReceiveChannel<Image?> = _imageChannel
+    var image by Delegates.observable(initialImage) { _, _, value -> _imageChannel.offer(value) }
+
     private val _subTaskChannel = BroadcastEventChannel<Task<*>?>()
     val subTaskChannel: BroadcastReceiveChannel<Task<*>?> = _subTaskChannel
 
@@ -79,6 +89,7 @@ class Task<out T>(val title: String, val isCancellable: Boolean, private val run
                 _messageChannel,
                 _processedItemsChannel,
                 _totalItemsChannel,
+                _imageChannel,
                 _subTaskChannel
             ).forEach { it.close() }
         }
@@ -90,6 +101,16 @@ class Task<out T>(val title: String, val isCancellable: Boolean, private val run
             task.execute()
         } finally {
             _subTaskChannel.send(null)
+        }
+    }
+
+    inline fun <R> withImage(image: Image, f: () -> R): R {
+        val prevImage = this.image
+        this.image = image
+        return try {
+            f()
+        } finally {
+            this.image = prevImage
         }
     }
 
@@ -119,5 +140,9 @@ class Task<out T>(val title: String, val isCancellable: Boolean, private val run
     }
 }
 
-fun <T> task(title: String = "", isCancellable: Boolean = false, run: suspend Task<*>.() -> T): Task<T> =
-    Task(title, isCancellable, run)
+fun <T> task(
+    title: String = "",
+    isCancellable: Boolean = false,
+    initialImage: Image? = null,
+    run: suspend Task<*>.() -> T
+): Task<T> = Task(title, isCancellable, initialImage, run)

@@ -56,13 +56,13 @@ class JavaFxViewManager : View(), ViewManager {
         // Nothing to do here, the taskView is never hidden.
     }
 
-    override val gameView: JavaFxViewGameScreen by inject()
-    override fun showGameView(view: GameView) = mainView.showGameDetails()
-    override fun closeGameView(view: GameView) = mainView.showPreviousScreen()
-
     override val editLibraryView: JavaFxEditLibraryView by inject()
     override fun showEditLibraryView(view: EditLibraryView) = view.openModal()
     override fun closeEditLibraryView(view: EditLibraryView) = view.close()
+
+    override val gameView: JavaFxViewGameScreen by inject()
+    override fun showGameView(view: GameView) = mainView.showGameDetails()
+    override fun closeGameView(view: GameView) = mainView.showPreviousScreen()
 
     override val deleteLibraryView: JavaFxDeleteLibraryView by inject()
     override fun showDeleteLibraryView(view: DeleteLibraryView) = view.openModal()

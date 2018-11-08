@@ -31,8 +31,6 @@ interface ReportView {
     val report: Report?
     val reportChanges: Channel<Report?>
 
-    var calculatingReport: Boolean
-    var calculatingReportProgress: Double
     var result: ReportResult?
 }
 

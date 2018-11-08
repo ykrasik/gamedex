@@ -32,7 +32,6 @@ import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.channels.ClosedSendChannelException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -59,7 +58,7 @@ class PreloaderImpl : Preloader {
             // While loading, display all log messages in the task
             val subscription = GamedexLog.entries.itemsChannel.subscribe(Dispatchers.Main) {
                 it.lastOrNull()?.let {
-                    if (it.level.ordinal >= LogLevel.Info.ordinal) {
+                    if (it.level.canLog(LogLevel.Info)) {
                         view.message = it.message
                     }
                 }
@@ -75,14 +74,7 @@ class PreloaderImpl : Preloader {
                         override fun <T : Any?> onProvision(provision: ProvisionListener.ProvisionInvocation<T>?) {
                             componentCount++
                             launch(Dispatchers.Main) {
-                                try {
-                                    view.progress = componentCount.toDouble() / preloaderSettings.diComponents
-                                } catch (_: ClosedSendChannelException) {
-                                    // This happens when we don't pre-load all required classes during this stage
-                                    // Some classes get lazily loaded, which will trigger this exception.
-                                    println("Lazy loading: ${provision!!.binding.key}")  // TODO: Temp
-                                    // FIXME: Make sure everything is pre-loaded!
-                                }
+                                view.progress = componentCount.toDouble() / preloaderSettings.diComponents
                             }
                         }
                     })

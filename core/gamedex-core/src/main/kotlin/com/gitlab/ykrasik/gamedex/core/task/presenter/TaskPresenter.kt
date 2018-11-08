@@ -48,7 +48,12 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
         }
 
         private suspend fun <T> execute(task: Task<T>) {
-            check(view.job == null) { "Already running a job: ${view.job}" }
+            if (view.job != null) {
+                log.warn("Trying to execute a task(${task.title}) when one is already executing(${view.taskProgress.title})")
+                eventBus.awaitEvent(TaskFinishedEvent::class)
+                log.warn("Previous task(${view.taskProgress.title}) finished, executing new task(${task.title})")
+            }
+            check(view.job == null) { "Already running a job: ${view.taskProgress.title}" }
 
             view.isCancellable = task.isCancellable
             view.isRunningSubTask = false
@@ -79,20 +84,23 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                 val millisTaken = System.currentTimeMillis() - start
                 if (success) {
                     view.taskProgress.progress = 1.0
+                    view.subTaskProgress.progress = 1.0
                 }
                 view.job = null
                 view.isCancellable = false
                 view.isRunningSubTask = false
+                view.taskProgress.image = null
+                view.subTaskProgress.image = null
                 when {
                     success -> {
                         val successMessage = task.successMessage?.invoke()
                         successMessage?.let(view::taskSuccess)
-                        log.info("${successMessage ?: "Done"} [${millisTaken.toHumanReadableDuration()}]")
+                        log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.toHumanReadableDuration()}]")
                     }
                     cancelled -> {
                         val cancelMessage = task.cancelMessage?.invoke()
                         cancelMessage?.let(view::taskCancelled)
-                        log.info("${cancelMessage ?: "Cancelled"} [${millisTaken.toHumanReadableDuration()}]")
+                        log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.toHumanReadableDuration()}]")
                     }
                 }
             }
@@ -118,6 +126,9 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
             }
 
             taskProgress.progress = -1.0
+
+            taskProgress.image = task.image
+            task.imageChannel.forEach { taskProgress.image = it }
         }
 
         private fun message(msg: String, taskProgress: TaskProgress) {
@@ -127,7 +138,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
         private fun cancelTask() {
             val job = checkNotNull(view.job) { "Cannot cancel, not running any job!" }
-            check(view.isCancellable) { "Cannot cancel, current job is non-cancellable: ${view.job}"}
+            check(view.isCancellable) { "Cannot cancel, current job is non-cancellable: ${view.job}" }
             job.cancel()
         }
     }

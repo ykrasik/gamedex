@@ -16,17 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import com.gitlab.ykrasik.gamedex.util.logger
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +35,11 @@ import javax.inject.Singleton
  * Time: 19:47
  */
 @Singleton
-class ProviderSettingsPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ProviderSettingsView> {
+class ProviderSettingsPresenter @Inject constructor(
+    private val settingsService: SettingsService,
+    private val gameProviderService: GameProviderService,
+    private val taskService: TaskService
+) : Presenter<ProviderSettingsView> {
     private val log = logger()
 
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
@@ -51,7 +54,6 @@ class ProviderSettingsPresenter @Inject constructor(private val settingsService:
                 view.currentAccount.isNotEmpty() -> ProviderAccountState.Valid
                 else -> ProviderAccountState.Empty
             }
-            view.isCheckingAccount = false
 
             // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
             view.enabledChanges.forEach { onEnabledChanged(it) }
@@ -85,24 +87,14 @@ class ProviderSettingsPresenter @Inject constructor(private val settingsService:
         }
 
         private suspend fun verifyAccount() {
-            val provider = view.provider
-            if (provider.accountFeature == null) return
-
-            view.isCheckingAccount = true
-            try {
-                val newAccount = provider.accountFeature!!.createAccount(view.currentAccount)
-                log.info("[${provider.id}] Validating: $newAccount")
-                withContext(Dispatchers.IO) {
-                    provider.search("TestSearchToVerifyAccount", Platform.pc, newAccount)
-                }
-                log.info("[${provider.id}] Valid!")
+            val valid = taskService.execute(gameProviderService.verifyAccount(view.provider.id, view.currentAccount))
+            if (valid) {
+                log.info("[${view.provider.id}] Valid!")
                 view.state = ProviderAccountState.Valid
                 view.lastVerifiedAccount = view.currentAccount
-            } catch (e: Exception) {
-                log.warn("[${provider.id}] Invalid!", e)
+            } else {
+                log.info("[${view.provider.id}] Invalid!")
                 view.state = ProviderAccountState.Invalid
-            } finally {
-                view.isCheckingAccount = false
             }
         }
 

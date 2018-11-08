@@ -85,7 +85,7 @@ class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
         routing {
             get("/") {
                 authorized {
-                    delay(50, 200)
+                    delay(50, 1000)
                     call.respondText(randomSearchResponse().toMap().toJsonStr(), ContentType.Application.Json)
                 }
             }

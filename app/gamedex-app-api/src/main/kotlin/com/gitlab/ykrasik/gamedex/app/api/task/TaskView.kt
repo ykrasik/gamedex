@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.task
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
@@ -42,6 +43,7 @@ interface TaskView {
 
 interface TaskProgress {
     var title: String
+    var image: Image?
     var message: String
 
     var processedItems: Int

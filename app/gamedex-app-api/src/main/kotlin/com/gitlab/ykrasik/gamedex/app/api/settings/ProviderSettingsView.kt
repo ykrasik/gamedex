@@ -29,7 +29,6 @@ interface ProviderSettingsView {
 
     var state: ProviderAccountState
 
-    var isCheckingAccount: Boolean
     var lastVerifiedAccount: Map<String, String>
 
     var currentAccount: Map<String, String>

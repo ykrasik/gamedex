@@ -61,6 +61,8 @@ interface GameProviderService {
 
     val logos: Map<ProviderId, Image>
 
+    fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Boolean>
+
     // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
     fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>
 
@@ -115,6 +117,20 @@ class GameProviderServiceImpl @Inject constructor(
         check(enabledProviders.isNotEmpty()) {
             "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
         }
+
+    override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Boolean> {
+        val provider = allProviders.find { it.id == providerId }!!
+        val accountFeature = checkNotNull(provider.accountFeature) { "Provider $providerId does not require an account!" }
+        return task("Verifying $providerId account...", initialImage = logos[providerId]!!) {
+            try {
+                val providerAccount = accountFeature.createAccount(account)
+                provider.search("TestSearchToVerifyAccount", Platform.pc, providerAccount)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
 
     override fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>) = task {
         try {

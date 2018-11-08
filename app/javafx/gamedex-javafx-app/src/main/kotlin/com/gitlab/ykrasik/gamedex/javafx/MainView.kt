@@ -16,12 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskProgress
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
@@ -33,11 +35,7 @@ import javafx.beans.property.*
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.ProgressIndicator
-import javafx.scene.control.Tab
-import javafx.scene.control.TabPane
-import javafx.scene.control.ToolBar
-import javafx.scene.layout.VBox
+import javafx.scene.control.*
 import javafx.scene.paint.Color
 import kfoenix.jfxprogressbar
 import kotlinx.coroutines.experimental.Job
@@ -118,10 +116,11 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
             progressNode = vbox(spacing = 5) {
                 progressDisplay(taskProgress, isMain = true)
 
-                region { minHeight = 20.0 }
-
-                progressDisplay(subTaskProgress, isMain = false) {
+                vbox {
                     showWhen { isRunningSubTaskProperty }
+
+                    region { minHeight = 20.0 }
+                    progressDisplay(subTaskProgress, isMain = false)
                 }
 
                 hbox {
@@ -199,11 +198,11 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
     private fun EventTarget.navigationButton(text: String, icon: Node, action: () -> Unit) = jfxButton(text, icon) {
         useMaxWidth = true
-        alignment = Pos.CENTER_LEFT
+        alignment = Pos.CENTER
+        contentDisplay = ContentDisplay.TOP
         setOnAction { action() }
     }
 
-    // TODO: Try to move this responsibility to the viewManager.
     fun showGameDetails() = selectScreen(viewGameScreen)
 
     private fun selectScreen(screen: PresentableScreen) =
@@ -234,7 +233,8 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
     override fun taskCancelled(message: String) = taskSuccess(message)
 
-    private inline fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean, crossinline f: VBox.() -> Unit = {}) = vbox(spacing = 5) {
+    private fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean) = vbox(spacing = 5) {
+        alignment = Pos.CENTER
         hbox {
             val textStyle = if (isMain) Style.mainTaskText else Style.subTaskText
             label(taskProgress.messageProperty) {
@@ -251,12 +251,20 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
             useMaxWidth = true
             addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
         }
-        f()
+        imageview(taskProgress.javaFxImageProperty) {
+            fitHeight = 120.0
+            isPreserveRatio = true
+            showWhen { taskProgress.javaFxImageProperty.isNotNull }
+        }
     }
 
     class JavaFxTaskProgress : TaskProgress {
         val titleProperty = SimpleStringProperty("")
         override var title by titleProperty
+
+        val imageProperty = SimpleObjectProperty<Image?>(null)
+        val javaFxImageProperty = imageProperty.map { it?.image }
+        override var image by imageProperty
 
         val messageProperty = SimpleStringProperty("")
         override var message by messageProperty

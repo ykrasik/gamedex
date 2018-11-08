@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.toFile
@@ -40,8 +40,10 @@ class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
     libraryService: LibraryService,
-    gameProviderService: GameProviderService
+    settingsService: SettingsService
 ) : GameService {
+    override val games = repo.games.mapping { it.toGame() }
+
     init {
         libraryService.libraries.changesChannel.subscribe {
             @Suppress("NON_EXHAUSTIVE_WHEN")
@@ -50,12 +52,11 @@ class GameServiceImpl @Inject constructor(
                 ListChangeType.Set -> rebuildGames()
             }
         }
-        gameProviderService.enabledProviders.changesChannel.subscribe {
+        settingsService.providerOrder.dataChannel.subscribe {
+            // This gets called immediately when the object is created, in effect twice.
             rebuildGames()
         }
     }
-
-    override val games = repo.games.mapping { it.toGame() }
 
     override fun add(request: AddGameRequest): Task<Game> {
         val nameBestEffort = request.providerData.firstOrNull()?.gameData?.name ?: request.metadata.path.toFile().name

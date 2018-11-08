@@ -144,15 +144,6 @@ fun <T> ReceiveChannel<T>.bind(channel: SendChannel<T>, context: CoroutineContex
 
 fun <T> channel(): Channel<T> = Channel(capacity = 32)
 
-fun <T> conflatedChannel(): ConflatedChannel<T> = Channel<T>(capacity = Channel.CONFLATED) as ConflatedChannel<T>
-
-// FIXME: Get rid of this.
-operator fun <T> ConflatedChannel<T>.getValue(thisRef: Any, property: KProperty<*>) = poll()!!
-
-operator fun <T> ConflatedChannel<T>.setValue(thisRef: Any, property: KProperty<*>, value: T) {
-    offer(value)
-}
-
 fun <A, B> ReceiveChannel<A>.combineLatest(
     other: ReceiveChannel<B>,
     context: CoroutineContext = Dispatchers.Default

@@ -45,8 +45,6 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
     private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)
     override var state by stateProperty
 
-    private val checkingAccountProperty = SimpleBooleanProperty(false)
-    override var isCheckingAccount by checkingAccountProperty
     override var lastVerifiedAccount = emptyMap<String, String>()
 
     override val currentAccountChanges = channel<Map<String, String>>()
@@ -80,52 +78,49 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
             }
         }
         separator()
-        stackpane {
-            form {
-                fieldset {
-                    field("Enable") {
-                        hbox {
-                            alignment = Pos.BASELINE_CENTER
-                            jfxToggleButton(providerEnabledProperty)
-                            spacer()
-                            stackpane {
-                                visibleWhen { stateProperty.isNotEqualTo(ProviderAccountState.NotRequired) }
-                                label {
-                                    addClass(Style.accountLabel)
-                                    textProperty().bind(stateProperty.map { it!!.text })
-                                    graphicProperty().bind(stateProperty.map { it!!.graphic })
-                                    textFillProperty().bind(stateProperty.map { it!!.color })
-                                }
-                                accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
+        form {
+            fieldset {
+                field("Enable") {
+                    hbox {
+                        alignment = Pos.BASELINE_CENTER
+                        jfxToggleButton(providerEnabledProperty)
+                        spacer()
+                        stackpane {
+                            visibleWhen { stateProperty.isNotEqualTo(ProviderAccountState.NotRequired) }
+                            label {
+                                addClass(Style.accountLabel)
+                                textProperty().bind(stateProperty.map { it!!.text })
+                                graphicProperty().bind(stateProperty.map { it!!.graphic })
+                                textFillProperty().bind(stateProperty.map { it!!.color })
                             }
-                        }
-                    }
-                }
-                val accountFeature = provider.accountFeature
-                if (accountFeature != null) {
-                    fieldset("Account") {
-                        accountField(accountFeature.field1)
-                        accountField(accountFeature.field2)
-                        accountField(accountFeature.field3)
-                        accountField(accountFeature.field4)
-                        hbox {
-                            spacer()
-                            jfxButton("Verify Account") {
-                                addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
-                                disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
-                                isDefaultButton = true
-                                eventOnAction(verifyAccountRequests)
-                            }
-                        }
-                        field("Create") {
-                            hyperlink(accountFeature.accountUrl) {
-                                eventOnAction(accountUrlClicks)
-                            }
+                            accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
                         }
                     }
                 }
             }
-            maskerPane(checkingAccountProperty)
+            val accountFeature = provider.accountFeature
+            if (accountFeature != null) {
+                fieldset("Account") {
+                    accountField(accountFeature.field1)
+                    accountField(accountFeature.field2)
+                    accountField(accountFeature.field3)
+                    accountField(accountFeature.field4)
+                    hbox {
+                        spacer()
+                        jfxButton("Verify Account") {
+                            addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
+                            disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
+                            isDefaultButton = true
+                            eventOnAction(verifyAccountRequests)
+                        }
+                    }
+                    field("Create") {
+                        hyperlink(accountFeature.accountUrl) {
+                            eventOnAction(accountUrlClicks)
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -20,15 +20,15 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.flatMapIndexed
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,52 +41,52 @@ import javax.inject.Singleton
 class ReportPresenter @Inject constructor(
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
-    private val filterContextFactory: FilterContextFactory
+    private val filterContextFactory: FilterContextFactory,
+    private val taskService: TaskService
 ) : Presenter<ReportView> {
     override fun present(view: ReportView) = object : ViewSession() {
-        private var subscription: ReceiveChannel<*>? = null
+        private val reportDirtyChannel = BroadcastEventChannel.conflated(false)
+        private var reportDirty by reportDirtyChannel
 
         init {
-            view.reportChanges.forEach { report ->
-                subscription?.cancel()
-                if (showing) {
-                    subscription = gameService.games.itemsChannel.subscribe(Dispatchers.Main) { games ->
-                        view.calculatingReport = true
-                        view.result = report?.let { report ->
-                            calculate(games, report)
-                        }
-                        view.calculatingReport = false
+            view.reportChanges.forEach { reportDirty = true }
+            gameService.games.itemsChannel.forEach { reportDirty = true }
+
+            reportDirtyChannel.forEach { isReportDirty ->
+                if (isReportDirty && showing) {
+                    view.report?.let { report ->
+                        calculate(gameService.games, report)
+                        reportDirty = false
                     }
                 }
             }
         }
 
-        private suspend fun calculate(games: List<Game>, report: Report): ReportResult = withContext(Dispatchers.Default) {
-            withContext(Dispatchers.Main) {
-                view.calculatingReportProgress = 0.0
-            }
-            val context = filterContextFactory.create(games)
-            // Report progress every 'chunkSize' games.
-            val chunkSize = 50
-            val matchingGames = games.chunked(chunkSize).flatMapIndexed { i, chunk ->
-                val result = chunk.filter { game ->
-                    !report.excludedGames.contains(game.id) && report.filter.evaluate(game, context)
-                }
-                withContext(Dispatchers.Main) {
-                    view.calculatingReportProgress = (i * chunkSize + chunk.size.toDouble()) / games.size
-                }
-                result
-            }
-            ReportResult(
-                games = matchingGames.sortedBy { it.name },
-                additionalData = context.additionalData,
-                fileStructure = fileSystemService.allStructure()
-            )
+        override fun onShow() {
+            // Send the existing 'reportDirty' value to the channel again, to cause the consumer to re-run
+            reportDirty = reportDirty
         }
 
-        override fun onHide() {
-            subscription?.cancel()
-            subscription = null
+        private suspend fun calculate(games: List<Game>, report: Report) {
+            view.result = taskService.execute(task("Calculating '${report.name}' report...") {
+                val context = filterContextFactory.create(games)
+
+                totalItems = games.size
+                // Report progress every 'chunkSize' games.
+                val chunkSize = 50
+                val matchingGames = games.chunked(chunkSize).flatMapIndexed { i, chunk ->
+                    val result = chunk.filter { game ->
+                        !report.excludedGames.contains(game.id) && report.filter.evaluate(game, context)
+                    }
+                    processedItems = i * chunkSize + chunk.size
+                    result
+                }
+                ReportResult(
+                    games = matchingGames.sortedBy { it.name },
+                    additionalData = context.additionalData,
+                    fileStructure = fileSystemService.allStructure()
+                )
+            })
         }
     }
 }

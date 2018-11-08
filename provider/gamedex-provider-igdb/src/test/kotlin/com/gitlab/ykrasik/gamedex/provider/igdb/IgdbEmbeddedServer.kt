@@ -92,7 +92,7 @@ class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
                         handle {
                             authorized {
                                 val name = call.parameters["search"]!!
-                                delay(50, 300)
+                                delay(50, 1000)
                                 call.respondText(randomSearchResults(name), ContentType.Application.Json)
                             }
                         }
