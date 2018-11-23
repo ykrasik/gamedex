@@ -56,10 +56,12 @@ object TestApplication {
 
         giantBombServer.start().use {
             igdbServer.start().use {
-                generateDb(
-                    numGames = 5000
-//                    numGames = null
-                )
+                if (System.getProperty("gameDex.persistence.noGenerateDb") == null) {
+                    generateDb(
+                        numGames = 5000
+//                        numGames = null
+                    )
+                }
 
                 Main.main(args)
             }

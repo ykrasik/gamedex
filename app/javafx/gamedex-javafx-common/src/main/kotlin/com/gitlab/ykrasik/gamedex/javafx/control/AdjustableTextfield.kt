@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.mapBidirectionalString
-import com.jfoenix.controls.JFXButton
+import com.gitlab.ykrasik.gamedex.javafx.minusButton
+import com.gitlab.ykrasik.gamedex.javafx.plusButton
 import javafx.beans.property.Property
 import javafx.beans.property.StringProperty
 import javafx.event.EventTarget
@@ -57,13 +56,13 @@ inline fun <reified T : Number> EventTarget.adjustableTextField(property: Proper
     }
 
     if (withButtons) {
-        jfxButton(graphic = Theme.Icon.plus(20.0), type = JFXButton.ButtonType.RAISED) {
+        plusButton {
             val canUse = property.booleanBinding { it!!.toDouble() + 1 <= max.toDouble() }
             enableWhen { viewModel.valid.and(canUse) }
             setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
         }
 
-        jfxButton(graphic = Theme.Icon.minus(20.0), type = JFXButton.ButtonType.RAISED) {
+        minusButton {
             val canUse = property.booleanBinding { it!!.toDouble() - 1 >= min.toDouble() }
             enableWhen { viewModel.valid.and(canUse) }
             setOnAction { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }

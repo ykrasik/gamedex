@@ -70,9 +70,11 @@ fun <T> Property<T>.mapBidirectionalInt(extractor: Extractor<T, Int>, reverseExt
 fun <T> Property<T>.mapBidirectionalDouble(extractor: Extractor<T, Double>, reverseExtractor: Extractor<Double, T>): DoubleProperty =
     mapBidirectional(extractor, reverseExtractor) { SimpleDoubleProperty(it) }
 
-private fun <T, R, P : Property<in R>> Property<T>.mapBidirectional(extractor: Extractor<T, R>,
-                                                                    reverseExtractor: Extractor<R, T>,
-                                                                    factory: (R) -> P): P {
+private fun <T, R, P : Property<in R>> Property<T>.mapBidirectional(
+    extractor: Extractor<T, R>,
+    reverseExtractor: Extractor<R, T>,
+    factory: (R) -> P
+): P {
     val origin = this
     val mapped = factory(extractor(this.value))
 
@@ -114,4 +116,11 @@ fun <T, R> ObservableValue<T>.mapToList(f: (T) -> List<R>): ObservableList<R> {
     val list = FXCollections.observableArrayList(doMap())
     this.onChange { list.setAll(doMap()) }
     return list
+}
+
+fun <T, R> ObservableValue<T>.combineLatest(other: ObservableValue<R>): ObjectProperty<Pair<T, R>> {
+    val property = SimpleObjectProperty(this.value to other.value)
+    this.onChange { property.value = it to other.value }
+    other.onChange { property.value = this.value to it }
+    return property
 }

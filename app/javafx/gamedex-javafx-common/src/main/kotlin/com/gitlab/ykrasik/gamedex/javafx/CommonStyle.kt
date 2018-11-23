@@ -43,14 +43,13 @@ class CommonStyle : Stylesheet() {
 
         val card by cssclass()
 
-        val acceptButton by cssclass()
-        val cancelButton by cssclass()
-        val deleteButton by cssclass()
-        val excludeButton by cssclass()
+        val toolbarButton by cssclass()
+        val confirmButton by cssclass()
+        val warningButton by cssclass()
+        val dangerButton by cssclass()
+        val infoButton by cssclass()
 
         val extraMenu by cssclass()
-
-        val toolbarButton by cssclass()
 
         val popoverMenu by cssclass()
 
@@ -59,8 +58,6 @@ class CommonStyle : Stylesheet() {
         val headerLabel by cssclass()
 
         val thinBorder by cssclass()
-
-        val boldText by cssclass()
 
         init {
             importStylesheetSafe(CommonStyle::class)
@@ -82,7 +79,7 @@ class CommonStyle : Stylesheet() {
         }
 
         centered {
-            alignment = Pos.TOP_CENTER
+            alignment = Pos.CENTER
         }
 
         hoverable {
@@ -94,7 +91,6 @@ class CommonStyle : Stylesheet() {
         }
 
         jfxHoverable {
-            backgroundColor = multi(Color.TRANSPARENT)
             and(hover) {
                 backgroundColor = multi(Color.LIGHTBLUE)
             }
@@ -112,27 +108,32 @@ class CommonStyle : Stylesheet() {
             backgroundRadius = multi(box(10.px))
         }
 
-        acceptButton {
+        toolbarButton {
+            minWidth = 100.px
+            prefHeight = 40.px
+        }
+
+        confirmButton {
             and(hover) {
                 backgroundColor = multi(Color.LIMEGREEN)
             }
         }
 
-        cancelButton {
+        warningButton {
+            and(hover) {
+                backgroundColor = multi(Color.DARKORANGE)
+            }
+        }
+
+        dangerButton {
             and(hover) {
                 backgroundColor = multi(Color.INDIANRED)
             }
         }
 
-        deleteButton {
+        infoButton {
             and(hover) {
-                backgroundColor = multi(Color.RED)
-            }
-        }
-
-        excludeButton {
-            and(hover) {
-                backgroundColor = multi(Color.ORANGE)
+                backgroundColor = multi(Color.CORNFLOWERBLUE)
             }
         }
 
@@ -141,11 +142,6 @@ class CommonStyle : Stylesheet() {
             contentDisplay = ContentDisplay.RIGHT
             alignment = Pos.CENTER_RIGHT
             graphicTextGap = 6.px
-        }
-
-        toolbarButton {
-            minWidth = 100.px
-            prefHeight = 40.px
         }
 
         popoverMenu {
@@ -159,7 +155,7 @@ class CommonStyle : Stylesheet() {
         }
 
         headerLabel {
-            fontSize = 16.px
+            fontSize = 18.px
             fontWeight = FontWeight.BOLD
         }
 
@@ -167,10 +163,6 @@ class CommonStyle : Stylesheet() {
             borderColor = multi(box(Color.BLACK))
             borderRadius = multi(box(3.px))
             borderWidth = multi(box(0.5.px))
-        }
-
-        boldText {
-            fontWeight = FontWeight.BOLD
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

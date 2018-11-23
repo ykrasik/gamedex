@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
-import com.gitlab.ykrasik.gamedex.javafx.notification.Notification
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -36,7 +35,10 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.*
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
+import javafx.scene.text.FontWeight
 import kfoenix.jfxprogressbar
 import kotlinx.coroutines.experimental.Job
 import tornadofx.*
@@ -61,7 +63,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
     private val fakeScreens = setOf(viewGameScreen)
 
-    private val toolbars = mutableMapOf<PresentableScreen, ToolBar>()
+    private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
     private val jobProperty = SimpleObjectProperty<Job?>(null)
     override var job by jobProperty
@@ -140,7 +142,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
         graphic = screen.icon
     }
 
-    private val mainNavigationButton = buttonWithPopover(graphic = Theme.Icon.bars()) {
+    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
         tabPane.tabs.forEach { tab ->
             val screen = tab.userData as PresentableScreen
             if (screen !in fakeScreens) {
@@ -148,18 +150,20 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
             }
         }
 
-        separator()
+        verticalGap(size = 30)
 
-        navigationButton("Settings", Theme.Icon.settings()) { }.apply {
+        navigationButton("Settings", Icons.settings) { }.apply {
             eventOnAction(showSettingsActions)
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
         }
 
-        separator()
+        verticalGap(size = 30)
 
-        navigationButton("Quit", Theme.Icon.quit()) { System.exit(0) }
+        navigationButton("Quit", Icons.quit) { System.exit(0) }
     }.apply {
+        addClass(Style.navigationButton)
+        alignment = Pos.CENTER_LEFT
         textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 
@@ -182,17 +186,21 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
     private fun PresentableScreen.populateToolbar() {
         val screen = this
         toolbar.replaceChildren {
+            if (screen !in fakeScreens) {
+                add(mainNavigationButton)
+            } else {
+                backButton { setOnAction { showPreviousScreen() } }
+            }
+            gap()
             items += toolbars.getOrPut(screen) {
-                ToolBar().apply {
-                    if (screen !in fakeScreens) {
-                        items += mainNavigationButton
-                    } else {
-                        backButton { setOnAction { showPreviousScreen() } }
-                    }
-                    verticalSeparator()
-                    this.constructToolbar()
+                HBox().apply {
+                    spacing = 10.0
+                    useMaxWidth = true
+                    hgrow = Priority.ALWAYS
+                    alignment = Pos.CENTER_LEFT
+                    constructToolbar()
                 }
-            }.items
+            }
         }
     }
 
@@ -220,14 +228,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
         // This is OMFG. Showing the notification as part of the regular flow (not in a new coroutine)
         // causes an issue with modal windows not reporting that they are being hidden.
 //            delay(1)
-        Notification()
-            .owner(currentStage!!)
-            .text(message)
-            .information()
-            .automaticallyHideAfter(3.seconds)
-            .hideCloseButton()
-            .position(Pos.BOTTOM_RIGHT)
-            .show()
+        notification(message).info.show()
 //        }
     }
 
@@ -290,6 +291,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
     class Style : Stylesheet() {
         companion object {
+            val navigationButton by cssclass()
             val mainTaskProgress by cssclass()
             val mainTaskText by cssclass()
             val subTaskProgress by cssclass()
@@ -303,6 +305,9 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
         }
 
         init {
+            navigationButton {
+                fontWeight = FontWeight.BOLD
+            }
             mainTaskProgress {
             }
 

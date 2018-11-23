@@ -72,26 +72,24 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         top {
             toolbar {
                 acceptButton { eventOnAction(acceptActions) }
-                verticalSeparator()
                 spacer()
-                verticalSeparator()
                 cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {
             vbox(spacing = 10) {
-                addClass(Style.tagContent)
+                paddingAll = 10
                 gridpane {
                     hgap = 5.0
                     row {
                         jfxToggleButton(toggleAllProperty, "Toggle All") {
                             tooltip("Toggle all")
                         }
-                        verticalSeparator()
+                        spacer()
                         addTagButton()
                     }
                 }
-                separator()
+                verticalGap()
                 existingTags()
             }
         }
@@ -108,7 +106,7 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
             }
         }
 
-        jfxButton(graphic = Theme.Icon.plus(20.0)) {
+        plusButton {
             disableWhen { nameValidationErrorProperty.isNotNull }
             defaultButtonProperty().bind(newTagName.focusedProperty())
             eventOnAction(addNewTagActions)
@@ -133,7 +131,6 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     class Style : Stylesheet() {
         companion object {
             val tagWindow by cssclass()
-            val tagContent by cssclass()
             val newTagTextField by cssid()
             val tagDisplay by cssclass()
 
@@ -146,10 +143,6 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
             tagWindow {
                 minWidth = 600.px
                 minHeight = 600.px
-            }
-
-            tagContent {
-                padding = box(20.px)
             }
 
             newTagTextField {

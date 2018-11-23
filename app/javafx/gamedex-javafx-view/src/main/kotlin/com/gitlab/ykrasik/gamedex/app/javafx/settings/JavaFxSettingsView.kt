@@ -18,13 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
-import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
+import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -36,7 +34,6 @@ import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.Toggle
-import javafx.scene.text.FontWeight
 import tornadofx.*
 
 /**
@@ -44,10 +41,14 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithProviderLogos, ViewWithRunningTask {
-    private val generalSettingsView: JavaFxGeneralSettingsView by inject()
-    private val gameDisplaySettingsView: JavaFxGameDisplaySettingsView by inject()
-    private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
+class JavaFxSettingsView : PresentableView("Settings"),
+    SettingsView,
+    ViewWithProviderLogos,
+    ViewWithRunningTask,
+    ViewCanChangeGameWallDisplaySettings,
+    ViewCanChangeNameOverlayDisplaySettings,
+    ViewCanChangeMetaTagOverlayDisplaySettings,
+    ViewCanChangeVersionOverlayDisplaySettings {
 
     override val providers = mutableListOf<GameProvider>()
     override var providerLogos = emptyMap<ProviderId, Image>()
@@ -58,6 +59,11 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
 
     private val runningTaskProperty = SimpleBooleanProperty(false)
     override var runningTask by runningTaskProperty
+
+    override val mutableGameWallDisplaySettings = JavaFxGameWallDisplaySettings()
+    override val mutableNameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+    override val mutableMetaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
+    override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
     private var tabPane: TabPane by singleAssign()
 
@@ -86,22 +92,26 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
         }
     }
 
+    private val databaseSettingsView: JavaFxDatabaseSettingsView by inject()
+    private val wallDisplaySettingsView = JavaFxWallDisplaySettingsView(mutableGameWallDisplaySettings)
+    private val nameDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableNameOverlayDisplaySettings, "Name")
+    private val metaTagDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableMetaTagOverlayDisplaySettings, "MetaTag")
+    private val versionDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableVersionOverlayDisplaySettings, "Version")
+    private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
+
     override val root = borderpane {
-        prefHeight = screenBounds.height * 3 / 4
+        prefHeight = screenBounds.height / 2
+        prefWidth = 800.0
         top {
             toolbar {
                 acceptButton { eventOnAction(acceptActions) }
-                verticalSeparator()
                 spacer()
-                verticalSeparator()
                 percentSlider(windowOpacity, min = 0.2, max = 1, text = "Opacity") {
-                    tooltip("Hold 'ctrl' to hide temporarily.")
+                    tooltip("Hold 'alt' to hide temporarily.")
                 }
-                verticalSeparator()
                 spacer()
-                verticalSeparator()
-                resetToDefaultButton("Reset to Defaults") { eventOnAction(resetDefaultsActions) }
-                verticalSeparator()
+                resetToDefaultButton { eventOnAction(resetDefaultsActions) }
+                gap()
                 cancelButton { eventOnAction(cancelActions) }
             }
         }
@@ -126,47 +136,39 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
                                 tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
-                        entry(generalSettingsView).apply { isSelected = true }
-                        entry(gameDisplaySettingsView)
+                        header("General")
+                        entry(databaseSettingsView).apply { isSelected = true }
+                        verticalGap(size = 20)
+
+                        header("Game Display")
+                        entry(wallDisplaySettingsView)
+                        entry(nameDisplaySettingsView)
+                        entry(metaTagDisplaySettingsView)
+                        entry(versionDisplaySettingsView)
+                        verticalGap(size = 20)
+
+                        header("Providers")
                         entry(providerOrderView)
-                        separator {
-                            paddingTop = 10.0
-                            paddingBottom = 10.0
-                        }
-                        label("Providers") { addClass(Style.navigationLabel) }
                         providers.forEach { provider ->
                             val view = JavaFxProviderSettingsView(provider)
                             val tab = tabPane.tab(view)
-                            jfxToggleNode(provider.id) {
+                            jfxToggleNode(provider.id, graphic = providerLogos[provider.id]!!.image.toImageView(height = 36, width = 36)) {
+                                addClass(CommonStyle.toolbarButton)
                                 useMaxWidth = true
-                                graphic = hbox {
-                                    addClass(CommonStyle.jfxToggleNodeLabel)
-                                    useMaxWidth = true
-                                    imageview(providerLogos[provider.id]!!.image) {
-                                        fitHeight = 28.0
-                                        isPreserveRatio = true
-                                    }
-                                    spacer {
-                                        paddingLeft = 5.0
-                                        paddingRight = 5.0
-                                    }
-                                    label(provider.id)
-                                }
                                 properties += viewProperty to view
                                 properties += tabProperty to tab
                             }
                         }
-                        separator()
                     }
                 }
-                verticalSeparator(padding = 0.0)
+                gap()
             }
         }
 
         var hidden = false
         var prevOpacity = 1.0
         setOnKeyPressed { e ->
-            if (e.isControlDown) {
+            if (e.isAltDown) {
                 prevOpacity = windowOpacity.value
                 windowOpacity.value = 0.0
                 hidden = true
@@ -180,7 +182,7 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
         }
     }
 
-    private fun Node.entry(component: PresentableTabView, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
+    private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
         useMaxWidth = true
         properties += viewProperty to component
         properties += tabProperty to tabPane.tab(component)
@@ -192,21 +194,4 @@ class JavaFxSettingsView : PresentableView("Settings"), SettingsView, ViewWithPr
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")
-
-    class Style : Stylesheet() {
-        companion object {
-            val navigationLabel by cssclass()
-
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-            navigationLabel {
-                fontSize = 14.px
-                fontWeight = FontWeight.BOLD
-            }
-        }
-    }
 }

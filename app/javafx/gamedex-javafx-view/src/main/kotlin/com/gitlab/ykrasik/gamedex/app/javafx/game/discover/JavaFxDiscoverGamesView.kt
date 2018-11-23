@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverGamesWithoutProvid
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.popOver
-import com.gitlab.ykrasik.gamedex.javafx.searchButton
+import com.gitlab.ykrasik.gamedex.javafx.syncButton
 import com.gitlab.ykrasik.gamedex.javafx.toggle
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.geometry.Pos
@@ -43,14 +43,14 @@ class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, View
         viewRegistry.onCreate(this)
     }
 
-    override val root = searchButton("Discover") {
+    override val root = syncButton("Discover") {
         // TODO: This is pretty ugly.
         val leftPopover = popOver(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
             discoverGameChooseResultsMenu()
         }
         val downPopover = popOver {
             addEventFilter(MouseEvent.MOUSE_CLICKED) { leftPopover.hide() }
-            searchButton("New Games") {
+            syncButton("New Games") {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Search all libraries for new games")
@@ -58,7 +58,7 @@ class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, View
             }
             separator()
             // TODO: Why did I put this here? What's the relation between refreshLibrary & this?
-            searchButton("Games Without All Providers") {
+            syncButton("Games Without All Providers") {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 tooltip("Re-Discover all games that don't yet have all available providers")

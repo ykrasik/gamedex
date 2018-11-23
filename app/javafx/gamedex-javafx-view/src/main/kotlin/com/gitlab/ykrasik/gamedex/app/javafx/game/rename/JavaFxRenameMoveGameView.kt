@@ -86,17 +86,19 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
         }
         center {
             form {
-                paddingAll = 20.0
-                fieldset {
-                    field("From") {
+                paddingAll = 10.0
+                fieldset("From") {
+                    field {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it?.path?.toString() })
                             eventOnAction(browseToGameActions)
                         }
                     }
-                    separator()
-                    field("To") {
+                }
+                fieldset("To") {
+                    field {
                         gridpane {
+                            hgap = 5.0
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
                             popoverComboMenu(
                                 possibleItems = possibleLibraries,
@@ -106,21 +108,17 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                                 gridpaneConstraints { columnRowIndex(0, 1); hAlignment = HPos.LEFT }
                             }
 
-                            verticalSeparator { gridpaneConstraints { columnRowIndex(1, 0); rowSpan = 2 } }
-
-                            header("Path") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
+                            header("Path") { gridpaneConstraints { columnRowIndex(1, 0); hAlignment = HPos.CENTER } }
                             jfxButton {
-                                gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT }
+                                gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
                                 textProperty().bind(viewModel.pathProperty.map { if (it!!.isEmpty()) File.separator else it })
                                 eventOnAction(selectDirectoryActions)
                             }
 
-                            verticalSeparator { gridpaneConstraints { columnRowIndex(3, 0); rowSpan = 2 } }
-
-                            header("Name") { gridpaneConstraints { columnRowIndex(4, 0); hAlignment = HPos.CENTER } }
+                            header("Name") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
                             textfield(viewModel.nameProperty) {
-                                gridpaneConstraints { columnRowIndex(4, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
+                                gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
                                 validatorFrom(viewModel, nameValidationErrorProperty)
                             }
                         }

@@ -27,8 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
-import javafx.geometry.VPos
-import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import tornadofx.*
 
 /**
@@ -36,7 +35,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort {
+class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort {
     private val gameWallView: GameWallView by inject()
     private val filterView: JavaFxMenuGameFilterView by inject()
     private val discoverGamesView: JavaFxDiscoverGamesView by inject()
@@ -52,29 +51,33 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
     private val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
     override var searchText by searchTextProperty
 
-    override val sortChanges = channel<Sort>()
-    private val sortProperty = SimpleObjectProperty<Sort>().eventOnChange(sortChanges)
-    override var sort by sortProperty
+    override val sortByChanges = channel<SortBy>()
+    private val sortByProperty = SimpleObjectProperty<SortBy>(SortBy.name_).eventOnChange(sortByChanges)
+    override var sortBy by sortByProperty
+
+    override val sortOrderChanges = channel<SortOrder>()
+    private val sortOrderProperty = SimpleObjectProperty<SortOrder>(SortOrder.asc).eventOnChange(sortOrderChanges)
+    override var sortOrder by sortOrderProperty
 
     init {
         viewRegistry.onCreate(this)
     }
 
     // FIXME: Change search -> sync, refresh maybe to download?
-    override fun ToolBar.constructToolbar() {
+    override fun HBox.constructToolbar() {
         platformButton()
-        verticalSeparator()
+
+        gap()
+        
+        filterButton()
+        sortButton()
         searchField(this@GameScreen, searchTextProperty)
-        verticalSeparator()
-        sortFilterButton()
 
         spacer()
 
-        verticalSeparator()
         addComponent(discoverGamesView)
-        verticalSeparator()
+        gap()
         addComponent(downloadView)
-        verticalSeparator()
     }
 
     override val root = gameWallView.root
@@ -84,54 +87,38 @@ class GameScreen : PresentableScreen("Games", Theme.Icon.games()), ViewCanSelect
         selectedItemProperty = currentPlatformProperty,
         styleClass = CommonStyle.toolbarButton,
         text = Platform::displayName,
-        graphic = { it.toLogo(26.0) }
+        graphic = { it.logo }
     ).apply {
         textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: $it" })
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
-    private fun EventTarget.sortButton() {
-        val possibleItems = sortProperty.mapToList { sort ->
-            SortBy.values().map { sortBy ->
-                Sort(
-                    sortBy = sortBy,
-                    order = if (sortBy == sort!!.sortBy) sort.order.toggle() else SortOrder.desc
-                )
-            }
-        }
-
-        popoverComboMenu(
-            possibleItems = possibleItems,
-            selectedItemProperty = sortProperty,
-            styleClass = CommonStyle.toolbarButton,
-            text = { it.sortBy.displayName },
-            graphic = { it.order.toGraphic() }
-        )
-    }
-
-    private fun SortOrder.toGraphic() = when (this) {
-        SortOrder.asc -> Theme.Icon.ascending()
-        SortOrder.desc -> Theme.Icon.descending()
-    }
-
-    private fun EventTarget.sortFilterButton() = buttonWithPopover("", Theme.Icon.sliders(), closeOnClick = false, styleClass = null) {
-        gridpane {
-            paddingAll = 10.0
-            vgap = 10.0
-            hgap = 10.0
-            row {
-                label("Sort", Theme.Icon.sort()) { addClass(CommonStyle.boldText) }
-                sortButton()
-            }
-            row {
-                label("Filter", Theme.Icon.filter()) {
-                    addClass(CommonStyle.boldText)
-                    gridpaneConstraints {
-                        vAlignment = VPos.TOP
-                    }
+    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnClick = false, styleClass = null) {
+        hbox(spacing = 5) {
+            paddingAll = 5
+            popoverComboMenu(
+                possibleItems = SortBy.values().toList().observable(),
+                selectedItemProperty = sortByProperty,
+                styleClass = CommonStyle.toolbarButton,
+                text = { it.displayName }
+            )
+            jfxButton {
+                graphicProperty().bind(sortOrderProperty.objectBinding { if (it == SortOrder.asc) Icons.ascending else Icons.descending })
+                tooltip {
+                    textProperty().bind(sortOrderProperty.stringBinding { it!!.displayName })
                 }
-                addComponent(filterView)
+                setOnAction {
+                    sortOrder = sortOrder.toggle()
+                }
             }
         }
+    }.apply {
+        tooltip("Sort")
+    }
+
+    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnClick = false, styleClass = null) {
+        addComponent(filterView)
+    }.apply {
+        tooltip("Filter")
     }
 }

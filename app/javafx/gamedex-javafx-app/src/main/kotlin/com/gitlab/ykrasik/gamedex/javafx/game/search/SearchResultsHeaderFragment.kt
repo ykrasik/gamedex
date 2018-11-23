@@ -50,7 +50,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
         stackpane {
             gridpaneConstraints { columnRowIndex(3, 0); columnSpan = 2; vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
             alignment = Pos.TOP_RIGHT
-            children += data.platform.toLogo(46.0)
+            children += data.platform.logo.size(46)
         }
         children += gameProviderService.provider(data.providerId).logoImage.toImageView(height = 80.0, width = 160.0).apply {
             gridpaneConstraints { columnRowIndex(5, 0); vAlignment = VPos.TOP; hAlignment = HPos.RIGHT }
@@ -80,7 +80,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
                 gridpaneConstraints { columnRowIndex(3, 1); vAlignment = VPos.BOTTOM; hAlignment = HPos.RIGHT }
                 setId(Style.showFilterToggle)
                 graphicProperty().bind(showingFilteredProperty.map {
-                    if (it!!) Theme.Icon.minus() else Theme.Icon.plus()
+                    if (it!!) Icons.minus else Icons.plus
                 })
                 tooltip {
                     textProperty().bind(showingFilteredProperty.map {

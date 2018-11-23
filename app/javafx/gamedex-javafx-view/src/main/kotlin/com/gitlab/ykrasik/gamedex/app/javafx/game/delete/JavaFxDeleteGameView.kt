@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialogContainer
+import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialogContainer
 import com.gitlab.ykrasik.gamedex.javafx.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleBooleanProperty

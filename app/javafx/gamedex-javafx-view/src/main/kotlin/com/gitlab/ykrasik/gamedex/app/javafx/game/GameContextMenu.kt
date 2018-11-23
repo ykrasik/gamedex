@@ -21,17 +21,13 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.dropDownMenu
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.jfoenix.controls.JFXButton
 import javafx.scene.Node
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
 import tornadofx.addClass
-import tornadofx.separator
 import tornadofx.vbox
 
 /**
@@ -56,29 +52,30 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
 
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
-        val size = 20.0
-        item("View", Theme.Icon.view(size)) { eventOnAction(showGameDetailsActions) { data } }
-        separator()
-        item("Edit", Theme.Icon.edit(size)) { setOnAction { editGame(GameDataType.name_) } }
-        item("Change Thumbnail", Theme.Icon.thumbnail(size)) { setOnAction { editGame(GameDataType.thumbnail) } }
-        separator()
-        item("Tag", Theme.Icon.tag(size)) { eventOnAction(tagGameActions) { data } }
-        separator()
-        item("Re-Download", Theme.Icon.download(size)) {
+        item("View", Icons.view) { eventOnAction(showGameDetailsActions) { data } }
+        verticalGap()
+        item("Edit", Icons.edit) { setOnAction { editGame(GameDataType.name_) } }
+        item("Change Thumbnail", Icons.thumbnail) { setOnAction { editGame(GameDataType.thumbnail) } }
+        verticalGap()
+        item("Tag", Icons.tag) { eventOnAction(tagGameActions) { data } }
+        verticalGap()
+        item("Re-Download", Icons.download) {
             eventOnAction(redownloadGameActions) { data }
         }
-        item("Re-Discover", Theme.Icon.search(size)) {
+        item("Re-Sync", Icons.sync) {
             dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
             eventOnAction(rediscoverGameActions) { data }
         }
-        separator()
-        item("Rename/Move Folder", Theme.Icon.folder(size)) {
+        verticalGap()
+        item("Rename/Move Folder", Icons.folderEdit) {
             eventOnAction(renameMoveGameActions) { data to null }
         }
-        separator()
-        item("Delete", Theme.Icon.delete(size)) { eventOnAction(deleteGameActions) { data } }
+        item("Delete", Icons.delete) {
+            addClass(CommonStyle.dangerButton)
+            eventOnAction(deleteGameActions) { data }
+        }
     }
 
     private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {

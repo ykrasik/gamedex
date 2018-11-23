@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.geometry.Pos
-import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import tornadofx.*
 
 /**
@@ -35,7 +35,7 @@ import tornadofx.*
  */
 // TODO: This screen needs some work
 // TODO: Show total amount of games and total game size.
-class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
+class JavaFxLibraryScreen : PresentableScreen("Libraries", Icons.hdd),
     ViewWithLibraries, ViewCanAddLibrary, ViewCanEditLibrary, ViewCanDeleteLibrary {
 
     override val libraries = mutableListOf<Library>().observable()
@@ -49,7 +49,7 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Theme.Icon.hdd()),
         viewRegistry.onCreate(this)
     }
 
-    override fun ToolBar.constructToolbar() {
+    override fun HBox.constructToolbar() {
         spacer()
         verticalSeparator()
         addButton { setOnAction { addLibrary() } }

@@ -30,17 +30,18 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Cursor
 import javafx.scene.Node
+import javafx.scene.Parent
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
+import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Rectangle
 import javafx.util.Callback
-import javafx.util.Duration
 import org.controlsfx.control.MaskerPane
 import org.controlsfx.control.PopOver
 import org.controlsfx.control.Rating
@@ -406,12 +407,10 @@ inline fun Node.dropDownMenu(
     closeOnClick: Boolean = true,
     op: VBox.() -> Unit = {}
 ): PopOver {
-    var popoverHack: PopOver? = null
-    val popover = popOver(arrowLocation, closeOnClick) {
-        addEventHandler(MouseEvent.MOUSE_EXITED) { popoverHack!!.hide() }
+    val popover = popOver(arrowLocation, closeOnClick) { popover ->
+        addEventHandler(MouseEvent.MOUSE_EXITED) { popover.hide() }
         op(this)
     }
-    popoverHack = popover
 
     addEventHandler(MouseEvent.MOUSE_ENTERED) {
         if (!popover.isShowing) popover.show(this@dropDownMenu)
@@ -440,9 +439,9 @@ fun EventTarget.imageview(image: ObservableValue<Image>, op: ImageView.() -> Uni
 
 inline fun EventTarget.jfxTabPane(op: JFXTabPane.() -> Unit = {}): JFXTabPane = opcr(this, JFXTabPane(), op)
 
-fun EventTarget.searchField(component: UIComponent, textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = clearableTextfield(textProperty) {
+inline fun EventTarget.searchField(component: UIComponent, textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = clearableTextfield(textProperty) {
     promptText = "Search"
-    left = Theme.Icon.search(18.0)
+    left = Icons.search
     tooltip("Ctrl+f")
     component.shortcut("ctrl+f") { requestFocus() }
     op()
@@ -453,14 +452,13 @@ inline fun EventTarget.clearableTextfield(textProperty: StringProperty, op: Cust
     alignment = Pos.CENTER_LEFT
     textProperty.bindBidirectional(textProperty())
 
-    val clearButton = jfxButton(graphic = Theme.Icon.clear(size = 14.0)) {
+    val clearButton = jfxButton(graphic = Icons.clear.size(18)) {
         isCancelButton = true
         opacity = 0.0
         cursor = Cursor.DEFAULT
-        managedProperty().bind(editableProperty())
-        visibleProperty().bind(editableProperty())
+        managedWhen { editableProperty() }
+        visibleWhen { editableProperty() }
         setOnAction {
-            requestFocus()
             clear()
         }
     }
@@ -470,10 +468,10 @@ inline fun EventTarget.clearableTextfield(textProperty: StringProperty, op: Cust
             top = 4
             bottom = 3
         }
-        addChildIfPossible(clearButton)
+        add(clearButton)
     }
 
-    val fader = FadeTransition(Duration.millis(350.0), clearButton)
+    val fader = FadeTransition(350.millis, clearButton)
     fader.cycleCount = 1
 
     val setButtonVisible = { visible: Boolean ->
@@ -518,3 +516,14 @@ inline fun EventTarget.percentSlider(
 }
 
 fun ObservableValue<Number>.asPercent() = stringBinding { "${Math.min(((it ?: 0).toDouble() * 100).toInt(), 100)}%" }
+
+inline fun Node.tooltip(text: ObservableValue<String>, crossinline op: Tooltip.() -> Unit = {}) = tooltip {
+    textProperty().bind(text)
+    op(this)
+}
+
+inline fun Parent.gap(size: Number = 20, f: Region.() -> Unit = {}) =
+    region { minWidth = size.toDouble() }.also(f)
+
+inline fun Parent.verticalGap(size: Number = 10, f: Region.() -> Unit = {}) =
+    region { minHeight = size.toDouble() }.also(f)

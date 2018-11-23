@@ -28,7 +28,7 @@ import kotlin.reflect.KProperty
  * Date: 02/04/2018
  * Time: 11:15
  */
-interface BroadcastReceiveChannel<out T> {
+interface BroadcastReceiveChannel<T> {
     fun subscribe(): ReceiveChannel<T>
 
     fun subscribe(context: CoroutineContext = EmptyCoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T>
@@ -42,10 +42,18 @@ interface BroadcastReceiveChannel<out T> {
     fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R>
 
     fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R>
+
+    fun <R> combineLatest(other: BroadcastReceiveChannel<R>): BroadcastReceiveChannel<Pair<T, R>>
+
+    fun filter(filter: suspend (T) -> Boolean): BroadcastReceiveChannel<T>
+
+    fun distinctUntilChanged(): BroadcastReceiveChannel<T>
+
+    fun drop(amount: Int): BroadcastReceiveChannel<T>
 }
 
 class BroadcastEventChannel<T>(
-    capacity: Int = 32,
+    private val capacity: Int = 32,
     override val coroutineContext: CoroutineContext = Dispatchers.Default + Job()
 ) : BroadcastReceiveChannel<T>, CoroutineScope {
 
@@ -71,16 +79,18 @@ class BroadcastEventChannel<T>(
         coroutineContext.cancel()
     }
 
-    override fun <R> map(transform: suspend (T) -> R): BroadcastEventChannel<R> {
-        val channel = BroadcastEventChannel.conflated<R>()
+    private fun <R> newChannel() = BroadcastEventChannel<R>(capacity, coroutineContext)
+
+    override fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R> {
+        val channel = newChannel<R>()
         subscribe {
             channel.send(transform(it))
         }
         return channel
     }
 
-    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastEventChannel<R> {
-        val channel = BroadcastEventChannel.conflated<R>()
+    override fun <R> flatMap(transform: suspend (T) -> ReceiveChannel<R>): BroadcastReceiveChannel<R> {
+        val channel = newChannel<R>()
         var flatMapped: ReceiveChannel<R>? = null
         subscribe {
             flatMapped?.cancel()
@@ -94,8 +104,31 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    inline fun filter(crossinline filter: suspend (T) -> Boolean): BroadcastEventChannel<T> {
-        val channel = BroadcastEventChannel.conflated<T>()
+    override fun <R> combineLatest(other: BroadcastReceiveChannel<R>): BroadcastReceiveChannel<Pair<T, R>> {
+        val channel = BroadcastEventChannel.conflated<Pair<T, R>>()
+
+        var latestA: T? = null
+        var latestB: R? = null
+
+        this.subscribe { a ->
+            latestA = a
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+
+        other.subscribe { b ->
+            latestB = b
+            if (latestA != null && latestB != null) {
+                channel.send(latestA!! to latestB!!)
+            }
+        }
+
+        return channel
+    }
+
+    override fun filter(filter: suspend (T) -> Boolean): BroadcastReceiveChannel<T> {
+        val channel = newChannel<T>()
         subscribe {
             if (filter(it)) {
                 channel.send(it)
@@ -104,7 +137,7 @@ class BroadcastEventChannel<T>(
         return channel
     }
 
-    fun distinctUntilChanged(): BroadcastEventChannel<T> {
+    override fun distinctUntilChanged(): BroadcastReceiveChannel<T> {
         var last: T? = null
         return filter {
             val keep = it != last
@@ -113,8 +146,8 @@ class BroadcastEventChannel<T>(
         }
     }
 
-    fun drop(amount: Int): BroadcastEventChannel<T> {
-        val channel = BroadcastEventChannel.conflated<T>()
+    override fun drop(amount: Int): BroadcastReceiveChannel<T> {
+        val channel = newChannel<T>()
         var dropped = 0
         subscribe {
             dropped += 1
@@ -151,38 +184,6 @@ fun <A, B> ReceiveChannel<A>.combineLatest(
     val channel = Channel<Pair<A, B>>(capacity = 0)
     val sourceA: ReceiveChannel<A> = this@combineLatest
     val sourceB: ReceiveChannel<B> = other
-
-    var latestA: A? = null
-    var latestB: B? = null
-
-    GlobalScope.launch(context) {
-        sourceA.consumeEach { a ->
-            latestA = a
-            if (latestA != null && latestB != null) {
-                channel.send(latestA!! to latestB!!)
-            }
-        }
-    }
-
-    GlobalScope.launch(context) {
-        sourceB.consumeEach { b ->
-            latestB = b
-            if (latestA != null && latestB != null) {
-                channel.send(latestA!! to latestB!!)
-            }
-        }
-    }
-
-    return channel
-}
-
-fun <A, B> BroadcastReceiveChannel<A>.combineLatest(
-    other: BroadcastReceiveChannel<B>,
-    context: CoroutineContext = Dispatchers.Default
-): BroadcastEventChannel<Pair<A, B>> {
-    val channel = BroadcastEventChannel.conflated<Pair<A, B>>()
-    val sourceA: ReceiveChannel<A> = this@combineLatest.subscribe()
-    val sourceB: ReceiveChannel<B> = other.subscribe()
 
     var latestA: A? = null
     var latestB: B? = null

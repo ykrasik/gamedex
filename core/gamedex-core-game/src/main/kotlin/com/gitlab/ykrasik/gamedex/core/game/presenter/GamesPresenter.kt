@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import kotlinx.coroutines.experimental.channels.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,8 +47,8 @@ class GamesPresenter @Inject constructor(
     private val criticScoreComparator = compareBy(Game::criticScore)
     private val userScoreComparator = compareBy(Game::userScore)
 
-    private val sortComparatorChannel = settingsService.game.sortChannel.subscribe().map { sort ->
-        val comparator = when (sort.sortBy) {
+    private val sortComparatorChannel = settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).map { (sortBy, sortOrder) ->
+        val comparator = when (sortBy) {
             SortBy.name_ -> nameComparator
             SortBy.criticScore -> criticScoreComparator.then(nameComparator)
             SortBy.userScore -> userScoreComparator.then(nameComparator)
@@ -60,7 +59,7 @@ class GamesPresenter @Inject constructor(
             SortBy.createDate -> compareBy(Game::createDate)
             SortBy.updateDate -> compareBy(Game::updateDate)
         }
-        if (sort.order == SortOrder.asc) {
+        if (sortOrder == SortOrder.asc) {
             comparator
         } else {
             comparator.reversed()

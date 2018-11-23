@@ -77,7 +77,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
                 image = providerLogos[provider.id]!!.image
             }
         }
-        separator()
+        verticalGap(size = 40)
         form {
             fieldset {
                 field("Enable") {
@@ -107,8 +107,8 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
                     accountField(accountFeature.field4)
                     hbox {
                         spacer()
-                        jfxButton("Verify Account") {
-                            addClass(CommonStyle.toolbarButton, CommonStyle.acceptButton, CommonStyle.thinBorder)
+                        confirmButton("Verify Account") {
+                            addClass(CommonStyle.thinBorder)
                             disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
                             isDefaultButton = true
                             eventOnAction(verifyAccountRequests)
@@ -151,9 +151,9 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
 
     private val ProviderAccountState.graphic
         get() = when (this) {
-            ProviderAccountState.Valid -> Theme.Icon.accept()
-            ProviderAccountState.Invalid -> Theme.Icon.cancel()
-            ProviderAccountState.Empty, ProviderAccountState.Unverified -> Theme.Icon.exclamationTriangle().apply { color(Color.ORANGE) }
+            ProviderAccountState.Valid -> Icons.valid
+            ProviderAccountState.Invalid -> Icons.invalid
+            ProviderAccountState.Empty, ProviderAccountState.Unverified -> Icons.unverified
             ProviderAccountState.NotRequired -> null
         }
 

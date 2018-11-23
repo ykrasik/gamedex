@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.app.api.game.Sort
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
 import org.joda.time.Period
@@ -32,7 +31,8 @@ import org.joda.time.PeriodType
 class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsRepository<GameSettingsRepository.Data>() {
     data class Data(
         val platform: Platform,
-        val sort: Sort,
+        val sortBy: SortBy,
+        val sortOrder: SortOrder,
         val discoverGameChooseResults: DiscoverGameChooseResults,
         val redownloadCreatedBeforePeriod: Period,
         val redownloadUpdatedAfterPeriod: Period
@@ -41,10 +41,8 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     override val storage = factory("game", Data::class) {
         Data(
             platform = Platform.pc,
-            sort = Sort(
-                sortBy = SortBy.criticScore,
-                order = SortOrder.desc
-            ),
+            sortBy = SortBy.criticScore,
+            sortOrder = SortOrder.desc,
             discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
             redownloadCreatedBeforePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime()),
             redownloadUpdatedAfterPeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
@@ -54,8 +52,11 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     val platformChannel = storage.channel(Data::platform)
     val platform by platformChannel
 
-    val sortChannel = storage.channel(Data::sort)
-    val sort by sortChannel
+    val sortByChannel = storage.channel(Data::sortBy)
+    val sortBy by sortByChannel
+
+    val sortOrderChannel = storage.channel(Data::sortOrder)
+    val sortOrder by sortOrderChannel
 
     val discoverGameChooseResultsChannel = storage.channel(Data::discoverGameChooseResults)
     val discoverGameChooseResults by discoverGameChooseResultsChannel

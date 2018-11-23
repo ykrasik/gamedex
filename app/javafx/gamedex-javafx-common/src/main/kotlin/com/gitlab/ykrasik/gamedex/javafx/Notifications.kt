@@ -16,19 +16,26 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableValue
-import kotlinx.coroutines.experimental.Deferred
+import javafx.geometry.Pos
+import javafx.scene.paint.Color
+import org.controlsfx.control.Notifications
+import tornadofx.UIComponent
+import tornadofx.seconds
 
 /**
  * User: ykrasik
- * Date: 14/04/2018
- * Time: 17:35
+ * Date: 21/11/2018
+ * Time: 08:46
  */
-fun <T> Deferred<T>.toObservableValue(): ObservableValue<T> {
-    val p = SimpleObjectProperty<T>()
-    javaFx {
-        p.value = await()
-    }
-    return p
-}
+fun UIComponent.notification(text: String): Notifications =
+    Notifications.create()
+        .owner(currentStage!!)
+        .text(text)
+        .darkStyle()
+        .hideAfter(4.seconds)
+        .hideCloseButton()
+        .position(Pos.BOTTOM_RIGHT)
+
+val Notifications.info get() = graphic(Icons.information.size(50).color(Color.WHITE))
+val Notifications.warn get() = graphic(Icons.warning.size(50))
+val Notifications.error get() = graphic(Icons.error.size(50))

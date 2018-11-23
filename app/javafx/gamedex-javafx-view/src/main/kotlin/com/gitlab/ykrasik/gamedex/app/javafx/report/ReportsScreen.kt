@@ -30,7 +30,6 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -41,7 +40,7 @@ import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.Toggle
 import javafx.scene.control.ToggleGroup
-import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import tornadofx.*
@@ -52,7 +51,7 @@ import java.io.File
  * Date: 10/06/2017
  * Time: 16:25
  */
-class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
+class ReportsScreen : PresentableScreen("Reports", Icons.chart),
     ViewWithReports,
     ReportView,
     ViewCanAddReport,
@@ -157,7 +156,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
             }
         }
 
-        verticalSeparator(padding = 4.0)
+        gap()
 
         // Right
         vbox {
@@ -171,7 +170,7 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
                 game?.let { gameDetailsView.game = it }
             }
 
-            separator()
+            verticalGap(size = 30)
 
             // Bottom
             addComponent(browser)
@@ -213,7 +212,16 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
             val result = it.value
             when (result) {
                 is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGameProperty.value).root
-                is Filter.Duplications.GameDuplication -> DuplicationFragment(result, gamesTable.items, matchingGameProperty).root
+                is Filter.Duplications.GameDuplication -> {
+                    jfxButton {
+                        useMaxSize = true
+                        val game = games.find { it.id == result.duplicatedGameId }!!
+                        text = game.name
+                        setOnAction {
+                            matchingGameProperty.set(game)
+                        }
+                    }
+                }
                 else -> label(result.toDisplayString())
             }
         }
@@ -241,8 +249,8 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
 
     override fun browseTo(url: String?) = browser.load(url)
 
-    override fun ToolBar.constructToolbar() {
-        buttonWithPopover("None", graphic = Theme.Icon.chart()) {
+    override fun HBox.constructToolbar() {
+        buttonWithPopover(graphic = Icons.chart) {
             reports.perform { reports ->
                 val prevReport = currentReport.value
 
@@ -254,22 +262,24 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
                         hgap = 5.0
                         reports.forEach { report ->
                             row {
-                                jfxToggleNode(report.name, Theme.Icon.chart(), group = selection) {
+                                jfxToggleNode(report.name, Icons.chart, group = selection) {
                                     useMaxWidth = true
                                     userData = report
                                     isSelected = this == currentToggle.value
                                 }
-                                jfxButton(graphic = Theme.Icon.edit()) {
+                                editButton {
+                                    removeClass(CommonStyle.toolbarButton)
                                     eventOnAction(editReportActions) { report }
                                 }
-                                jfxButton(graphic = Theme.Icon.delete()) {
-                                    addClass(CommonStyle.deleteButton)
+                                deleteButton {
+                                    removeClass(CommonStyle.toolbarButton)
+                                    addClass(CommonStyle.dangerButton)
                                     eventOnAction(deleteReportActions) { report }
                                 }
                             }
                         }
                     }
-                    separator()
+                    verticalGap()
                     addButton {
                         useMaxWidth = true
                         alignment = Pos.CENTER
@@ -290,17 +300,16 @@ class ReportsScreen : PresentableScreen("Reports", Theme.Icon.chart()),
             alignment = Pos.CENTER_LEFT
             textProperty().bind(currentReport.map { it?.name ?: "Select Report" })
         }
-        verticalSeparator()
+        gap()
         searchField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
-        verticalSeparator()
+
         spacer()
-        verticalSeparator()
+        
         excludeButton {
             textProperty().bind(selectedGameProperty.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
             enableWhen { selectedGameProperty.isNotNull }
             eventOnAction(excludeGameActions) { currentReport.value!! to selectedGameProperty.value }
         }
-        verticalSeparator()
     }
 
     override fun confirmDelete(report: Report) =

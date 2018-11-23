@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameCellDisplaySettings
-import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanChangeGameWallDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.api.settings.ViewWithGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -30,12 +30,12 @@ import javax.inject.Singleton
  * Time: 12:30
  */
 @Singleton
-class ChangeGameCellDisplaySettingsPresenter @Inject constructor(
+class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
     private val settingsService: SettingsService
-) : Presenter<ViewCanChangeGameCellDisplaySettings> {
-    override fun present(view: ViewCanChangeGameCellDisplaySettings) = object : ViewSession() {
+) : Presenter<ViewCanChangeGameWallDisplaySettings> {
+    override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
-            with(view.mutableCellDisplaySettings) {
+            with(view.mutableGameWallDisplaySettings) {
                 settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, ::imageDisplayType, imageDisplayTypeChanges) { copy(imageDisplayType = it) }
                 settingsService.cellDisplay.bind({ showBorderChannel }, ::showBorder, showBorderChanges) { copy(showBorder = it) }
                 settingsService.cellDisplay.bind({ widthChannel }, ::width, widthChanges) { copy(width = it) }
@@ -48,13 +48,13 @@ class ChangeGameCellDisplaySettingsPresenter @Inject constructor(
 }
 
 @Singleton
-class GameCellDisplaySettingsPresenter @Inject constructor(
+class GameWallDisplaySettingsPresenter @Inject constructor(
     private val settingsService: SettingsService
-) : Presenter<ViewWithGameCellDisplaySettings> {
-    override fun present(view: ViewWithGameCellDisplaySettings) = object : ViewSession() {
+) : Presenter<ViewWithGameWallDisplaySettings> {
+    override fun present(view: ViewWithGameWallDisplaySettings) = object : ViewSession() {
         init {
             val settings = settingsService.cellDisplay
-            with(view.cellDisplaySettings) {
+            with(view.gameWallDisplaySettings) {
                 settings.imageDisplayTypeChannel.reportChangesTo(::imageDisplayType)
                 settings.showBorderChannel.reportChangesTo(::showBorder)
                 settings.widthChannel.reportChangesTo(::width)

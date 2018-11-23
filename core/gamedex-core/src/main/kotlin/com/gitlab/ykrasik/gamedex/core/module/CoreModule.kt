@@ -94,8 +94,8 @@ object CoreModule : InternalCoreModule() {
 
         bindPresenter(ShowSettingsPresenter::class)
         bindPresenter(SettingsPresenter::class)
-        bindPresenter(ChangeGameCellDisplaySettingsPresenter::class)
-        bindPresenter(GameCellDisplaySettingsPresenter::class)
+        bindPresenter(ChangeGameWallDisplaySettingsPresenter::class)
+        bindPresenter(GameWallDisplaySettingsPresenter::class)
         bindPresenter(ChangeGameNameOverlayDisplaySettingsPresenter::class)
         bindPresenter(GameNameOverlayDisplaySettingsPresenter::class)
         bindPresenter(ChangeGameMetaTagOverlayDisplaySettingsPresenter::class)

@@ -82,9 +82,7 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
                     enableWhen { isValid }
                     eventOnAction(acceptActions)
                 }
-                verticalSeparator()
                 spacer()
-                verticalSeparator()
                 cancelButton { eventOnAction(cancelActions) }
             }
         }
@@ -100,14 +98,14 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
                     }
                 }
 
-                separator()
+                verticalGap()
 
                 hbox {
                     vbox(spacing = 10.0) {
                         header("Rules")
                         addComponent(filterView)
                     }
-                    verticalSeparator { removeWhen { Bindings.isEmpty(excludedGames) } }
+                    gap { removeWhen { Bindings.isEmpty(excludedGames) } }
                     vbox(spacing = 10.0) {
                         removeWhen { Bindings.isEmpty(excludedGames) }
                         hgrow = Priority.ALWAYS
@@ -125,10 +123,10 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
             allowDeselection(onClickAgain = true)
 
             makeIndexColumn().apply { addClass(CommonStyle.centered) }
-            readonlyColumn("Game", Game::name)
-            readonlyColumn("Path", Game::path) { remainingWidth() }
+            readonlyColumn("Game", Game::name).apply { addClass(CommonStyle.centered) }
+            readonlyColumn("Path", Game::path) { addClass(CommonStyle.centered); remainingWidth() }
             customGraphicColumn("") { game ->
-                jfxButton(graphic = Theme.Icon.minus(12.0)) { eventOnAction(unexcludeGameActions) { game } }
+                minusButton { eventOnAction(unexcludeGameActions) { game } }
             }
 
             excludedGames.perform { resizeColumnsToFitContent() }

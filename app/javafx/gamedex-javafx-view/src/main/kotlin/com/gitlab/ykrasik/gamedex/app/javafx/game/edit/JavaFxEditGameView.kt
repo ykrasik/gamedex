@@ -32,11 +32,11 @@ import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.control.ToggleGroup
 import javafx.scene.layout.VBox
-import javafx.scene.text.FontWeight
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.Deferred
 import tornadofx.*
@@ -118,39 +118,34 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         top {
             toolbar {
                 acceptButton { eventOnAction(acceptActions) }
-                verticalSeparator()
                 spacer()
-                verticalSeparator()
                 resetToDefaultButton { eventOnAction(clearActions) }
-                verticalSeparator()
+                gap()
                 cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {
             tabPane = jfxTabPane {
                 addClass(CommonStyle.hiddenTabPaneHeader)
-                paddingRight = 10.0
+                paddingAll = 5.0
                 initialScreenProperty.onChange { type ->
                     navigationToggle.selectToggle(navigationToggle.toggles.find { (it.userData as Tab).userData as GameDataType == type })
                 }
             }
         }
         left {
-            hbox(spacing = 5.0) {
-                paddingAll = 5.0
-                mainContent()
-                verticalSeparator(padding = 0.0)
-            }
+            mainContent()
         }
     }
 
-    private fun EventTarget.mainContent() = vbox(spacing = 5.0) {
-        label("Attributes") { addClass(Style.navigationLabel) }
-        separator()
+    private fun EventTarget.mainContent() = vbox(spacing = 5) {
+        paddingAll = 5.0
+        header("Properties")
 
         entry(
             GameDataType.name_,
             nameOverrideProperty,
+            icon = Icons.text,
             providerDataExtractor = GameData::name,
             gameDataExtractor = Game::name,
             dataDisplay = ::displayText
@@ -158,6 +153,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.description,
             descriptionOverrideProperty,
+            icon = Icons.textbox,
             providerDataExtractor = GameData::description,
             gameDataExtractor = Game::description,
             dataDisplay = displayWrappedText(maxWidth = screenBounds.width / 2)
@@ -165,6 +161,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.releaseDate,
             releaseDateOverrideProperty,
+            icon = Icons.calendar,
             providerDataExtractor = GameData::releaseDate,
             gameDataExtractor = Game::releaseDate,
             dataDisplay = ::displayText
@@ -172,6 +169,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.criticScore,
             criticScoreOverrideProperty,
+            icon = Icons.starFull,
             providerDataExtractor = GameData::criticScore,
             gameDataExtractor = Game::criticScore,
             dataDisplay = ::displayScore
@@ -179,6 +177,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.userScore,
             userScoreOverrideProperty,
+            icon = Icons.starEmpty,
             providerDataExtractor = GameData::userScore,
             gameDataExtractor = Game::userScore,
             dataDisplay = ::displayScore
@@ -186,6 +185,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.thumbnail,
             thumbnailUrlOverrideProperty,
+            icon = Icons.thumbnail,
             providerDataExtractor = GameData::thumbnailUrl,
             gameDataExtractor = Game::thumbnailUrl,
             dataDisplay = ::imageDisplay
@@ -193,6 +193,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.poster,
             posterUrlOverrideProperty,
+            icon = Icons.poster,
             providerDataExtractor = GameData::posterUrl,
             gameDataExtractor = Game::posterUrl,
             dataDisplay = ::imageDisplay
@@ -202,18 +203,26 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
     private fun <T : Any> VBox.entry(
         type: GameDataType,
         overrideViewModelProperty: ObjectProperty<GameDataOverrideViewModel<T>>,
+        icon: Node,
         providerDataExtractor: (GameData) -> T?,
         gameDataExtractor: (Game) -> T?,
         dataDisplay: (EventTarget, T) -> Any
     ) {
-        jfxToggleNode(type.displayName, group = navigationToggle) {
+        jfxToggleNode(type.displayName, graphic = icon, group = navigationToggle) {
             useMaxWidth = true
             tabPane.tab(type.displayName) {
                 this@jfxToggleNode.userData = this
                 userData = type
                 val toggleGroup = ToggleGroup().disallowDeselection()
                 scrollpane(fitToWidth = false) {
+                    paddingAll = 0
                     vbox(spacing = 10.0) {
+                        header(type.displayName) {
+                            style {
+                                fontSize = 24.px
+                            }
+                        }
+
                         // Existing provider data
                         vbox(spacing = 10.0) {
                             gameProperty.onChange { game ->
@@ -226,7 +235,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                                 selectedProperty().eventOnChange(providerOverrideSelectionChanges) {
                                                     Triple(type, providerData.header.id, it)
                                                 }
-                                                graphic = hbox(spacing = 10.0) {
+                                                this.graphic = hbox(spacing = 10.0) {
                                                     alignment = Pos.CENTER_LEFT
                                                     paddingAll = 10.0
                                                     children += logo(providerData.header.id).toImageView(height = 120.0, width = 100.0)
@@ -266,8 +275,8 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                 }
                             }
                             spacer()
-                            buttonWithPopover(graphic = Theme.Icon.edit(), closeOnClick = false, styleClass = null) { popOver ->
-                                hbox(spacing = 5.0) {
+                            buttonWithPopover(graphic = Icons.enterText, closeOnClick = false, styleClass = null) { popOver ->
+                                hbox(spacing = 5) {
                                     alignment = Pos.CENTER_LEFT
                                     val viewModel = CustomTextViewModel(type)
                                     overrideViewModelProperty.onChange {
@@ -302,8 +311,8 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                             graphic = hbox(spacing = 10.0) {
                                 alignment = Pos.CENTER_LEFT
                                 paddingAll = 10.0
-                                children += Theme.Icon.timesCircle(40.0)
-                                text("Reset to default") { addClass(Style.textData) }
+                                children += Icons.resetToDefault
+                                text("Reset to Default") { addClass(Style.textData) }
                             }
                             selectedProperty().eventOnChange(clearOverrideSelectionChanges) { type to it }
                         }
@@ -311,7 +320,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                 }
             }
         }
-        separator()
     }
 
     private fun displayScore(target: EventTarget, score: Score) =
@@ -347,7 +355,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
     class Style : Stylesheet() {
         companion object {
             val textData by cssclass()
-            val navigationLabel by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -357,11 +364,6 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         init {
             textData {
                 fontSize = 18.px
-            }
-
-            navigationLabel {
-                fontSize = 14.px
-                fontWeight = FontWeight.BOLD
             }
         }
     }

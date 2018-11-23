@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
-import com.gitlab.ykrasik.gamedex.app.api.settings.CellDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
+import com.gitlab.ykrasik.gamedex.app.api.settings.GameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
@@ -46,7 +46,7 @@ import tornadofx.*
  * Time: 10:07
  */
 class GameWallCellFragment(
-    cellDisplaySettings: CellDisplaySettings,
+    gameWallDisplaySettings: GameWallDisplaySettings,
     nameOverlayDisplaySettings: OverlayDisplaySettings,
     metaTagOverlayDisplaySettings: OverlayDisplaySettings,
     versionOverlayDisplaySettings: OverlayDisplaySettings
@@ -85,7 +85,7 @@ class GameWallCellFragment(
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
 
-            if (cellDisplaySettings.imageDisplayType == ImageDisplayType.FixedSize) {
+            if (gameWallDisplaySettings.imageDisplayType == ImageDisplayType.FixedSize) {
                 maxWidthProperty().cleanBind(root.widthProperty())
                 maxHeightProperty().cleanBind(root.heightProperty())
             } else {
@@ -98,7 +98,7 @@ class GameWallCellFragment(
             metaTagOverlayLabel = overlayLabel(metaTagOverlayDisplaySettings)
             versionOverlayLabel = overlayLabel(versionOverlayDisplaySettings)
 
-            if (cellDisplaySettings.showBorder) {
+            if (gameWallDisplaySettings.showBorder) {
                 rectangle {
                     x = 1.0
                     y = 1.0

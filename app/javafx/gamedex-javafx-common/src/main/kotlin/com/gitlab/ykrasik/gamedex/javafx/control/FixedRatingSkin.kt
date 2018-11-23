@@ -26,7 +26,8 @@
  */
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.sun.javafx.css.StyleManager
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.color
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase
 import impl.org.controlsfx.behavior.RatingBehavior
 import javafx.geometry.Orientation
@@ -35,6 +36,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import org.controlsfx.control.Rating
 import org.controlsfx.tools.Utils
@@ -133,8 +135,7 @@ class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior
         backgroundContainer = null
         foregroundContainer = null
 
-        backgroundContainer = if (isVertical) VBox() else HBox()
-        backgroundContainer!!.styleClass.add("container") //$NON-NLS-1$
+        backgroundContainer = if (isVertical) VBox(4.0) else HBox(4.0)
         children.setAll(backgroundContainer)
 
         if (/*updateOnHover || */partialRating) {
@@ -149,7 +150,7 @@ class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior
         }
 
         for (index in 0..skinnable.max) {
-            val backgroundNode = createRatingStar()
+            val backgroundNode = Icons.starEmpty.color(Color.CADETBLUE)
 
             if (index > 0) {
                 if (isVertical) {
@@ -159,8 +160,8 @@ class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior
                 }
 
                 if (partialRating) {
-                    val foregroundNode = createRatingStar()
-                    foregroundNode.styleClass.add(STRONG)
+                    val foregroundNode = Icons.starFull.color(Color.CORNFLOWERBLUE)
+//                    foregroundNode.styleClass.add(STRONG)
                     foregroundNode.isMouseTransparent = true
 
                     if (isVertical) {
@@ -291,12 +292,6 @@ class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior
     }
 
     companion object {
-
-        init {
-            // refer to ControlsFXControl for why this is necessary
-            StyleManager.getInstance().addUserAgentStylesheet(
-                FixedRatingSkin::class.java.getResource("fixed-rating.css").toExternalForm()) //$NON-NLS-1$
-        }
 
         private val STRONG = "strong" //$NON-NLS-1$
     }

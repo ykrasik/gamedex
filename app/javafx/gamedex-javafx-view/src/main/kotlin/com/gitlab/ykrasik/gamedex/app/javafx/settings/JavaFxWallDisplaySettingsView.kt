@@ -14,39 +14,31 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.report
+package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.jfxButton
-import javafx.beans.property.ObjectProperty
-import javafx.scene.layout.Priority
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
+import com.gitlab.ykrasik.gamedex.javafx.enumComboMenu
+import com.gitlab.ykrasik.gamedex.javafx.jfxToggleButton
+import tornadofx.Fragment
+import tornadofx.field
+import tornadofx.fieldset
+import tornadofx.form
 
 /**
  * User: ykrasik
- * Date: 25/06/2017
- * Time: 09:48
+ * Date: 29/11/2018
+ * Time: 08:20
  */
-class DuplicationFragment(
-    duplication: Filter.Duplications.GameDuplication,
-    games: List<Game>,
-    matchingGameProperty: ObjectProperty<Game?>
-) : Fragment() {
+class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : Fragment("Game Wall", Icons.grid) {
     override val root = form {
-        addClass(CommonStyle.centered)
         fieldset {
-            inputGrow = Priority.ALWAYS
-            field {
-                val game = games.find { it.id == duplication.duplicatedGameId }!!
-                jfxButton(game.name) {
-                    addClass(CommonStyle.fillAvailableWidth)
-                    setOnAction {
-                        matchingGameProperty.set(game)
-                    }
-                }
-            }
+            field("Fixed Size") { enumComboMenu(settings.imageDisplayTypeProperty) }
+            field("Border") { jfxToggleButton(settings.showBorderProperty) }
+            field("Width") { adjustableTextField(settings.widthProperty, "cell width", min = 20.0, max = 500.0) }
+            field("Height") { adjustableTextField(settings.heightProperty, "cell height", min = 20.0, max = 500.0) }
+            field("Horizontal Spacing") { adjustableTextField(settings.horizontalSpacingProperty, "horizontal spacing", min = 0.0, max = 100.0) }
+            field("Vertical Spacing") { adjustableTextField(settings.verticalSpacingProperty, "vertical spacing", min = 0.0, max = 100.0) }
         }
     }
 }

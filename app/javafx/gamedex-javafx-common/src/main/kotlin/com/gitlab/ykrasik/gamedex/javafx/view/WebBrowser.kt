@@ -16,9 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.javafx.Theme
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.screenBounds
+import com.gitlab.ykrasik.gamedex.javafx.*
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -31,30 +29,34 @@ import tornadofx.*
  * Time: 22:29
  */
 class WebBrowser : Fragment() {
-    private var webView: WebView by singleAssign()
+    private var webView: WebView = webview()
 
-    private val standalone by lazy { StandaloneBrowserFragment() }
+    private val fullscreenBrowser = StandaloneBrowserFragment()
     private lateinit var prevParent: Pane
 
     override val root = borderpane {
         vgrow = Priority.ALWAYS
         center {
-            webView = webview()
+            add(webView)
         }
         top {
             hbox(spacing = 10.0) {
                 paddingAll = 5.0
 
-                button(graphic = Theme.Icon.arrowLeft(18.0)) {
+                jfxButton(graphic = Icons.arrowLeft) {
+                    addClass(CommonStyle.thinBorder)
                     enableWhen { canNavigate(back = true) }
                     setOnAction { navigate(back = true) }
                 }
-                button(graphic = Theme.Icon.arrowRight(18.0)) {
+                jfxButton(graphic = Icons.arrowRight) {
+                    addClass(CommonStyle.thinBorder)
                     enableWhen { canNavigate(back = false) }
                     setOnAction { navigate(back = false) }
                 }
                 spacer()
-                button(graphic = Theme.Icon.maximize(18.0)) {
+                jfxButton {
+                    addClass(CommonStyle.thinBorder)
+                    graphicProperty().bind(fullscreenBrowser.isDockedProperty.objectBinding { if (it == true) Icons.exitFullscreen else Icons.fullscreen })
                     setOnAction { toggleStandalone() }
                 }
             }
@@ -66,8 +68,8 @@ class WebBrowser : Fragment() {
     fun load(url: String?) = webView.engine.load(url)
 
     private fun toggleStandalone() {
-        if (standalone.isDocked) {
-            standalone.close()
+        if (fullscreenBrowser.isDocked) {
+            fullscreenBrowser.close()
         } else {
             openStandalone()
         }
@@ -75,7 +77,7 @@ class WebBrowser : Fragment() {
 
     private fun openStandalone() {
         prevParent = root.parent as Pane
-        standalone.openWindow(block = true, owner = null)
+        fullscreenBrowser.openWindow(block = true, owner = null)
         prevParent.children += root
     }
 

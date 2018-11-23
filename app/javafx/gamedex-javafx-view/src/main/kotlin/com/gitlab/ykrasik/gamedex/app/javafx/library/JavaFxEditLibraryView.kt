@@ -93,7 +93,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         textfield(viewModel.pathProperty) {
             validatorFrom(viewModel, pathValidationErrorProperty)
         }
-        jfxButton("Browse", Theme.Icon.folderOpen(17.0)) {
+        jfxButton("Browse", Icons.folderOpen.size(24)) {
             eventOnAction(browseActions)
         }
     }

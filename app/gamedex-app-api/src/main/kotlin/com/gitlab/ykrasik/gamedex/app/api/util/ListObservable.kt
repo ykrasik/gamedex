@@ -27,7 +27,7 @@ import kotlinx.coroutines.experimental.launch
  * Date: 31/03/2018
  * Time: 10:37
  */
-interface ListObservable<out T> : List<T> {
+interface ListObservable<T> : List<T> {
     val itemsChannel: BroadcastReceiveChannel<List<T>>
     val changesChannel: BroadcastReceiveChannel<ListChangeEvent<T>>
 
@@ -114,6 +114,8 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
         _list = items
         notifyChange(ListItemsSetEvent(items = items, prevItems = prevItems))
     }
+
+    fun clear() = setAll(emptyList())
 
     private fun notifyChange(event: ListChangeEvent<T>) {
         if (!buffer) {

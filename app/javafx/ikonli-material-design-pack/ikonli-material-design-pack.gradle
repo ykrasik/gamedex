@@ -1,0 +1,25 @@
+task generateFont(type: Copy) {
+    from '.'
+    into 'src/main/kotlin/org/kordamp/ikonli/materialdesign'
+    include 'MaterialDesign.kt.template'
+    rename { 'MaterialDesign.kt' }
+    expand(glyphs: parseGlyphs())
+}
+
+private def parseGlyphs() {
+    XmlParser parser = new XmlParser()
+    parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+    parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+
+    def svg = parser.parseText(file('src/main/resources/materialdesignicons/fonts/materialdesignicons-webfont.svg').getText('utf-8'))
+    return svg.defs.font.glyph.collect { glyph ->
+        [
+            name: glyph['@glyph-name'],
+            code: String.format("\\u%04x", (int) glyph['@unicode'])
+        ]
+    }
+}
+
+jar {
+    exclude '**/*.svg'
+}

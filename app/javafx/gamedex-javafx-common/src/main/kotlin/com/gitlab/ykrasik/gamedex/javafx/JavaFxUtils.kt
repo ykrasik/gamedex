@@ -65,13 +65,14 @@ fun UIComponent.callOnUndock() {
 }
 
 fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
-fun Image.toImageView(height: Number, width: Number): ImageView = toImageView {
-    fitHeight = height.toDouble()
-    fitWidth = width.toDouble()
+inline fun Image.toImageView(height: Number? = null, width: Number? = null, f: ImageView.() -> Unit = {}): ImageView = toImageView {
+    height?.let { fitHeight = it.toDouble() }
+    width?.let { fitWidth = it.toDouble() }
     isPreserveRatio = true
+    f(this)
 }
 
-fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
+inline fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
 

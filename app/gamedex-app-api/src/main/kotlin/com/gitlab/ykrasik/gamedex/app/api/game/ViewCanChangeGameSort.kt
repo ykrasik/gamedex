@@ -24,14 +24,12 @@ import kotlinx.coroutines.experimental.channels.ReceiveChannel
  * Time: 17:47
  */
 interface ViewCanChangeGameSort {
-    var sort: Sort
-    val sortChanges: ReceiveChannel<Sort>
-}
+    var sortBy: SortBy
+    val sortByChanges: ReceiveChannel<SortBy>
 
-data class Sort(
-    val sortBy: SortBy,
-    val order: SortOrder
-)
+    var sortOrder: SortOrder
+    val sortOrderChanges: ReceiveChannel<SortOrder>
+}
 
 enum class SortBy(val displayName: String) {
     name_("Name"),

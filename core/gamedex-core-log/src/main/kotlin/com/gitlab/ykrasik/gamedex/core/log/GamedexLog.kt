@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory.getLogger
  * Time: 20:47
  */
 object GamedexLog {
-    private val maxLogEntries = 10000
+    private val maxLogEntries = 100000
     private val _entries = ListObservableImpl<LogEntry>()
     val entries: ListObservable<LogEntry> = _entries
 

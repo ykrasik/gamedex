@@ -19,12 +19,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 import com.gitlab.ykrasik.gamedex.app.api.general.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.dialog.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.browse
+import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
@@ -36,7 +35,7 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.Icon.settings()),
+class JavaFxDatabaseSettingsView : PresentableTabView("Database", Icons.database),
     ExportDatabaseView, ImportDatabaseView, ClearUserDataView, CleanupCacheView, CleanupDataView {
 
     override val exportDatabaseActions = channel<Unit>()
@@ -49,68 +48,66 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
         viewRegistry.onCreate(this)
     }
 
-    override val root = vbox {
-        group("Database") {
-            row {
-                jfxButton("Export Database", Theme.Icon.upload()) {
-                    addClass(CommonStyle.thinBorder, Style.exportButton)
-                    useMaxWidth = true
-                    alignment = Pos.CENTER_LEFT
-                    eventOnAction(exportDatabaseActions)
-                }
+    override val root = gridpane {
+        paddingAll = 5
+        vgap = 5.0
+        row {
+            confirmButton("Export Database", Icons.export) {
+                addClass(CommonStyle.thinBorder)
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                eventOnAction(exportDatabaseActions)
             }
-            row {
-                jfxButton("Import Database", Theme.Icon.download()) {
-                    addClass(CommonStyle.thinBorder, Style.importButton)
-                    useMaxWidth = true
-                    alignment = Pos.CENTER_LEFT
-                    eventOnAction(importDatabaseActions)
-                }
+        }
+        row {
+            warningButton("Import Database", Icons.import) {
+                addClass(CommonStyle.thinBorder)
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                eventOnAction(importDatabaseActions)
             }
-            row {
-                region { prefHeight = 20.0 }
+        }
+        row {
+            verticalGap()
+        }
+        row {
+            databaseCleanupButton("Clear User Data") {
+                tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
+                eventOnAction(clearUserDataActions)
             }
-            row {
-                jfxButton("Clear User Data", Theme.Icon.delete(color = Color.RED)) {
-                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
-                    useMaxWidth = true
-                    alignment = Pos.CENTER_LEFT
-                    tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-                    eventOnAction(clearUserDataActions)
-                }
+        }
+        row {
+            verticalGap()
+        }
+        row {
+            databaseCleanupButton("Cleanup Cache") {
+                tooltip("Cleanup stale cached data, like unused images & file structure cache for deleted games.")
+                eventOnAction(cleanupCacheActions)
             }
-            row {
-                region { prefHeight = 20.0 }
-            }
-            row {
-                jfxButton("Cleanup Cache", Theme.Icon.delete(color = Color.ORANGE)) {
-                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
-                    useMaxWidth = true
-                    alignment = Pos.CENTER_LEFT
-                    tooltip("Cleanup stale cached data, like unused images & file structure cache for deleted games.")
-                    eventOnAction(cleanupCacheActions)
-                }
-            }
-            row {
-                jfxButton("Cleanup Data & Cache", Theme.Icon.delete(color = Color.RED)) {
-                    addClass(CommonStyle.thinBorder, Style.cleanupDbButton)
-                    useMaxWidth = true
-                    alignment = Pos.CENTER_LEFT
-                    tooltip("Cleanup stale data, like games that point to paths that no longer exists (& also caches).")
-                    eventOnAction(cleanupDataActions)
-                }
+        }
+        row {
+            databaseCleanupButton("Cleanup Libraries & Cache") {
+                tooltip("Cleanup stale data, like games that point to paths that no longer exists (& also caches).")
+                eventOnAction(cleanupDataActions)
             }
         }
     }
 
-    private fun EventTarget.group(title: String, op: GridPane.() -> Unit = {}): GridPane {
-        label(title) { addClass(Style.title) }
-        return gridpane {
-            paddingTop = 5.0
-            vgap = 5.0
-            op()
+    private inline fun EventTarget.databaseCleanupButton(text: String, crossinline f: JFXButton.() -> Unit) =
+        deleteButton(text) {
+            addClass(CommonStyle.thinBorder)
+            graphic = stackpane {
+                add(Icons.database)
+                add(Icons.deleteSolid.apply {
+                    size(15)
+                    color(Color.ORANGERED)
+                    stackpaneConstraints { alignment = Pos.BOTTOM_RIGHT }
+                })
+            }
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            f()
         }
-    }
 
     override fun selectDatabaseExportDirectory(initialDirectory: File?) =
         chooseDirectory("Select Database Export Folder...", initialDirectory)
@@ -158,9 +155,6 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
     class Style : Stylesheet() {
         companion object {
             val title by cssclass()
-            val importButton by cssclass()
-            val exportButton by cssclass()
-            val cleanupDbButton by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -171,24 +165,6 @@ class JavaFxGeneralSettingsView : PresentableTabView("General Settings", Theme.I
             title {
                 fontSize = 14.px
                 fontWeight = FontWeight.BOLD
-            }
-
-            importButton {
-                and(hover) {
-                    backgroundColor = multi(Color.CORNFLOWERBLUE)
-                }
-            }
-
-            exportButton {
-                and(hover) {
-                    backgroundColor = multi(Color.LIMEGREEN)
-                }
-            }
-
-            cleanupDbButton {
-                and(hover) {
-                    backgroundColor = multi(Color.INDIANRED)
-                }
             }
         }
     }

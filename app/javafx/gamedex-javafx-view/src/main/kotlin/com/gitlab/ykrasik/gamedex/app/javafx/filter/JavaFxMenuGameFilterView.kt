@@ -34,7 +34,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.control.ContentDisplay
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
@@ -119,14 +118,16 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
         indent -= 1
     }
 
-    private fun EventTarget.renderBasicRule(filter: Filter,
-                                            parentFilter: Filter,
-                                            possible: List<KClass<out Filter>>,
-                                            op: (HBox.() -> Unit)? = null) = hbox(spacing = 5.0) {
+    private inline fun EventTarget.renderBasicRule(
+        filter: Filter,
+        parentFilter: Filter,
+        possible: List<KClass<out Filter>>,
+        crossinline op: HBox.() -> Unit = {}
+    ) = hbox(spacing = 5) {
         useMaxWidth = true
         alignment = Pos.CENTER_LEFT
 
-        region { minWidth = indent * 10.0 }
+        gap(size = indent * 10.0)
 
         val ruleProperty = SimpleObjectProperty(filter::class).eventOnChange(replaceFilterActions) { filter to it }
 
@@ -137,12 +138,12 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
             text = { it.name },
             menuOp = {
                 when (it) {
-                    Filter.Platform::class, Filter.AvgScore::class, Filter.Provider::class -> separator()
+                    Filter.Platform::class, Filter.AvgScore::class, Filter.Provider::class -> verticalGap()
                 }
             }
         )
 
-        op?.invoke(this)
+        op(this)
 
         spacer()
 
@@ -152,7 +153,8 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
     private fun HBox.renderAdditionalButtons(currentFilter: Filter, parentFilter: Filter) {
         val negated = parentFilter is Filter.Not
         val target = if (negated) parentFilter else currentFilter
-        buttonWithPopover(graphic = Theme.Icon.plus(), styleClass = null) {
+        // FIXME: Use a NodeList
+        buttonWithPopover(graphic = Icons.plus.size(28), styleClass = null) {
             fun operatorButton(name: String, channel: Channel<Filter>) = jfxButton(name) {
                 useMaxWidth = true
                 eventOnAction(channel) { target }
@@ -161,7 +163,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
             operatorButton("And", wrapInAndActions)
             operatorButton("Or", wrapInOrActions)
         }
-        jfxToggleNode(graphic = Theme.Icon.not()) {
+        jfxToggleNode(graphic = Icons.exclamation) {
             tooltip("Not")
             isSelected = negated
             selectedProperty().onChange { selected ->
@@ -171,7 +173,10 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
                 }
             }
         }
-        jfxButton(graphic = Theme.Icon.delete()) { eventOnAction(deleteFilterActions) { target } }
+        deleteButton {
+            removeClass(CommonStyle.toolbarButton)
+            eventOnAction(deleteFilterActions) { target }
+        }
     }
 
     private fun HBox.renderPlatformFilter(rule: Filter.Platform) = rule.toProperty().apply {
@@ -190,7 +195,7 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
             possibleItems = possibleLibraries,
             selectedItemProperty = library,
             text = { it.name },
-            graphic = { it.platform.toLogo() }
+            graphic = { it.platform.logo }
         )
     }
 
@@ -253,7 +258,6 @@ abstract class BaseJavaFxGameFilterView : PresentableView(), GameFilterView {
 
         init {
             borderedContent {
-                contentDisplay = ContentDisplay.TOP
                 padding = box(2.px)
                 borderColor = multi(box(Color.BLACK))
                 borderWidth = multi(box(0.5.px))

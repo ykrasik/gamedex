@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
@@ -42,7 +42,7 @@ import tornadofx.*
  * Time: 15:03
  */
 class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGameDetails,
-    ViewWithGameCellDisplaySettings, ViewWithNameOverlayDisplaySettings, ViewWithMetaTagOverlayDisplaySettings,
+    ViewWithGameWallDisplaySettings, ViewWithNameOverlayDisplaySettings, ViewWithMetaTagOverlayDisplaySettings,
     ViewWithVersionOverlayDisplaySettings {
 
     override val games = mutableListOf<Game>().sortedFiltered()
@@ -56,7 +56,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     override val showGameDetailsActions = channel<Game>()
 
-    override val cellDisplaySettings = JavaFxCellDisplaySettings()
+    override val gameWallDisplaySettings = JavaFxGameWallDisplaySettings()
     override val nameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
@@ -81,16 +81,16 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     }
 
     override val root = GridView(games).apply {
-        cellHeightProperty().bind(cellDisplaySettings.heightProperty)
-        cellWidthProperty().bind(cellDisplaySettings.widthProperty)
-        horizontalCellSpacingProperty().bind(cellDisplaySettings.horizontalSpacingProperty)
-        verticalCellSpacingProperty().bind(cellDisplaySettings.verticalSpacingProperty)
+        cellHeightProperty().bind(gameWallDisplaySettings.heightProperty)
+        cellWidthProperty().bind(gameWallDisplaySettings.widthProperty)
+        horizontalCellSpacingProperty().bind(gameWallDisplaySettings.horizontalSpacingProperty)
+        verticalCellSpacingProperty().bind(gameWallDisplaySettings.verticalSpacingProperty)
 
         // Binding any observable properties inside the GameWallCell causes a memory leak -
         // the grid constantly constructs new instances of it, so if they retain a listener to the settings - we leak.
         // A workaround is to re-set the cellFactory whenever any settings change - this causes all cells to be rebuilt
         // without them having any listeners.
-        cellDisplaySettings.onChange { setCellFactory(GameWallCellFactory()) }
+        gameWallDisplaySettings.onChange { setCellFactory(GameWallCellFactory()) }
         listOf(nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings).forEach {
             it.onChange { setCellFactory(GameWallCellFactory()) }
         }
@@ -134,7 +134,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     private inner class GameWallCell : GridCell<Game>() {
         private val fragment = GameWallCellFragment(
-            cellDisplaySettings, nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings
+            gameWallDisplaySettings, nameOverlayDisplaySettings, metaTagOverlayDisplaySettings, versionOverlayDisplaySettings
         )
 
         init {
@@ -164,10 +164,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         }
 
         override fun resize(width: Double, height: Double) {
-            fragment.preserveRatio = when (cellDisplaySettings.imageDisplayType) {
+            fragment.preserveRatio = when (gameWallDisplaySettings.imageDisplayType) {
                 ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
-                else -> kotlin.error("Invalid ImageDisplayType: ${cellDisplaySettings.imageDisplayType}")
+                else -> kotlin.error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType}")
             }
 
             super.resize(width, height)

@@ -21,12 +21,13 @@ import com.gitlab.ykrasik.gamedex.app.api.log.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.jfoenix.controls.JFXListCell
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.scene.control.ListCell
-import javafx.scene.control.ToolBar
 import javafx.scene.input.KeyCombination
+import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
+import kfoenix.jfxlistview
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -36,7 +37,7 @@ import java.io.StringWriter
  * Date: 28/04/2017
  * Time: 11:14
  */
-class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLogEntries, ViewCanChangeLogLevel, ViewCanChangeLogTail {
+class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries, ViewCanChangeLogLevel, ViewCanChangeLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
     override val levelChanges = channel<LogLevel>()
@@ -57,17 +58,20 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
         viewRegistry.onCreate(this)
     }
 
-    override fun ToolBar.constructToolbar() {
-        labeled("Level") { enumComboMenu(levelProperty) }
+    override fun HBox.constructToolbar() {
+        enumComboMenu(levelProperty, graphic = { it.toGraphic() }).apply {
+            addClass(CommonStyle.toolbarButton)
+        }
         jfxCheckBox(logTailProperty, "Tail")
     }
 
-    override val root = listview(entries) {
+    override val root = jfxlistview(entries) {
         addClass(Style.logView)
 
         setCellFactory {
-            object : ListCell<LogEntry>() {
+            object : JFXListCell<LogEntry>() {
                 init {
+//                    addClass(CommonStyle.jfxHoverable)
                     contextmenu {
                         item("Copy to Clipboard", KeyCombination.keyCombination("ctrl+c")).action {
                             clipboard.putString(item.message)
@@ -86,6 +90,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
 
                     if (item == null || empty) {
                         text = null
+                        graphic = null
                         return
                     }
 
@@ -97,6 +102,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
                         item.message
                     }
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
+                    graphic = item.level.toGraphic().size(20)
 
                     when (item.level.toLevel()) {
                         Level.TRACE -> toggleClass(Style.trace, true)
@@ -117,6 +123,14 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
     }
 
     private fun LogLevel.toLevel() = Level.toLevel(this.toString())
+
+    private fun LogLevel.toGraphic() = when (this) {
+        LogLevel.Trace -> Icons.logTrace
+        LogLevel.Debug -> Icons.logDebug
+        LogLevel.Info -> Icons.logInfo
+        LogLevel.Warn -> Icons.logWarn
+        LogLevel.Error -> Icons.logError
+    }
 
     class Style : Stylesheet() {
         companion object {
@@ -139,16 +153,19 @@ class JavaFxLogScreen : PresentableScreen("Log", Theme.Icon.book()), ViewWithLog
                     backgroundColor = multi(Color.WHITE) // removes alternating list gray cells.
 
                     and(trace) {
-                        textFill = Color.LIGHTGRAY
+                        textFill = Icons.logTrace.iconColor
                     }
                     and(debug) {
-                        textFill = Color.GRAY
+                        textFill = Icons.logDebug.iconColor
+                    }
+                    and(info) {
+                        textFill = Icons.logInfo.iconColor
                     }
                     and(warn) {
-                        textFill = Color.ORANGE
+                        textFill = Icons.logWarn.iconColor
                     }
                     and(error) {
-                        textFill = Color.RED
+                        textFill = Icons.logError.iconColor
                     }
                     and(selected) {
                         backgroundColor = multi(Color.LIGHTBLUE)

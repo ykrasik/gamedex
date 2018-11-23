@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
-import com.gitlab.ykrasik.gamedex.app.api.settings.MutableCellDisplaySettings
+import com.gitlab.ykrasik.gamedex.app.api.settings.MutableGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.eventOnChange
 import javafx.beans.property.SimpleBooleanProperty
@@ -32,7 +32,7 @@ import tornadofx.setValue
  * Date: 10/06/2018
  * Time: 12:08
  */
-class JavaFxCellDisplaySettings : MutableCellDisplaySettings {
+class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings {
     override val imageDisplayTypeChanges = channel<ImageDisplayType>()
     val imageDisplayTypeProperty = SimpleObjectProperty<ImageDisplayType>().eventOnChange(imageDisplayTypeChanges)
     override var imageDisplayType by imageDisplayTypeProperty

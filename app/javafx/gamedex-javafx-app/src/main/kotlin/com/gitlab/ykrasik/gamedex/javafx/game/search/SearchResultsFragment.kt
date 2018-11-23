@@ -59,7 +59,7 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
                     setOnAction { close(SearchChooser.Choice.ExactMatch(content.root.selectedItem!!)) }
                 }
                 verticalSeparator()
-                toolbarButton("Not Exact Match", Theme.Icon.question()) {
+                toolbarButton("Not Exact Match", Icons.question) {
                     setId(Style.notExactMatch)
                     tooltip("Not Exact Match")
                     enableWhen { content.root.selectionModel.selectedItemProperty().isNotNull }

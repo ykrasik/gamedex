@@ -14,8 +14,9 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.javafx.preloader
 
+import com.gitlab.ykrasik.gamedex.javafx.javaFx
 import javafx.scene.control.Alert
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
@@ -126,12 +127,11 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
         }
     }
 
-}
-
-private fun stringFromError(e: Throwable): String {
-    val out = ByteArrayOutputStream()
-    val writer = PrintWriter(out)
-    e.printStackTrace(writer)
-    writer.close()
-    return out.toString()
+    private fun stringFromError(e: Throwable): String {
+        val out = ByteArrayOutputStream()
+        val writer = PrintWriter(out)
+        e.printStackTrace(writer)
+        writer.close()
+        return out.toString()
+    }
 }

@@ -21,9 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.game.UpdatedAfterPeriodView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesCreatedBefore
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesUpdatedAfter
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.javafx.redownloadButton
+import com.gitlab.ykrasik.gamedex.javafx.syncButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
@@ -62,7 +62,7 @@ class JavaFxGameDownloadView : PresentableView(),
         viewRegistry.onCreate(this)
     }
 
-    override val root = buttonWithPopover("Re-Download", graphic = Theme.Icon.download(), arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->
+    override val root = buttonWithPopover("Re-Download", graphic = Icons.download, arrowLocation = PopOver.ArrowLocation.TOP_RIGHT, closeOnClick = false) { popover ->
         gridpane {
             hgap = 5.0
             vgap = 5.0
@@ -73,7 +73,7 @@ class JavaFxGameDownloadView : PresentableView(),
 
     private fun GridPane.periodButton(label: String, viewModel: PeriodViewModel, actions: Channel<Unit>, popOver: PopOver) {
         row {
-            redownloadButton(label) {
+            syncButton(label) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 disableWhen(viewModel.valid.not())

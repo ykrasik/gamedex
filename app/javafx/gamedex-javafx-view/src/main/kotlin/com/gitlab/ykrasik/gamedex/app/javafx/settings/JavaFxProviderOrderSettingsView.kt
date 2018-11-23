@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.Theme
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.toImageView
@@ -41,7 +41,7 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:17
  */
-class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Theme.Icon.settings()), ProviderOrderSettingsView, ViewWithProviderLogos {
+class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val searchChanges = channel<Order>()

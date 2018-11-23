@@ -35,9 +35,9 @@ license {
     exclude '**/*.jpg'
     exclude '**/*.conf'
     exclude '**/*.Preloader'
+    exclude '**/*.IkonHandler'
 
-    exclude '**/FixedRatingSkin.kt'
-    exclude '**/Notification.kt'
+    exclude '**/MaterialDesign*.kt'
 
     mapping {
         kt = 'javaDocBox'

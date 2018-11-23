@@ -22,8 +22,9 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
+import javafx.scene.layout.HBox
 import kotlinx.coroutines.experimental.channels.Channel
-import org.controlsfx.glyphfont.Glyph
+import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 
 /**
@@ -31,7 +32,7 @@ import tornadofx.*
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView(title: String? = null, icon: Glyph? = null) : View(title, icon) {
+abstract class PresentableView(title: String? = null, icon: FontIcon? = null) : View(title, icon) {
     protected val viewRegistry: ViewRegistry by di()
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
@@ -104,10 +105,14 @@ abstract class PresentableView(title: String? = null, icon: Glyph? = null) : Vie
     fun <E> Channel<E>.event(e: E) = offer(e)
 }
 
-abstract class PresentableTabView(title: String? = null, icon: Glyph? = null) : PresentableView(title, icon) {
+abstract class PresentableTabView(title: String? = null, icon: FontIcon? = null) : PresentableView(title, icon) {
     init {
         // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
         // This is just how TornadoFx works.
         skipFirstDock = true
     }
+}
+
+abstract class PresentableScreen(title: String = "", icon: FontIcon? = null) : PresentableTabView(title, icon) {
+    abstract fun HBox.constructToolbar()
 }

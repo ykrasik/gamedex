@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.javafx.preloader
 
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.javafx.EnhancedDefaultErrorHandler
 import com.gitlab.ykrasik.gamedex.javafx.MainView
 import com.gitlab.ykrasik.gamedex.javafx.asPercent
 import com.gitlab.ykrasik.gamedex.javafx.clipRectangle

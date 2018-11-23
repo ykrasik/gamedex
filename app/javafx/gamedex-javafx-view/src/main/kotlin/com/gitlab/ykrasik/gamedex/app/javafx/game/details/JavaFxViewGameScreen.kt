@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import javafx.beans.property.SimpleObjectProperty
-import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import kotlinx.coroutines.experimental.Deferred
 import org.controlsfx.control.PopOver
@@ -64,26 +64,23 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
         viewRegistry.onCreate(this)
     }
 
-    override fun ToolBar.constructToolbar() {
-        editButton { setOnAction { editGame(GameDataType.name_) } }
-        verticalSeparator()
-        tagButton { eventOnAction(tagGameActions) { game } }
-        verticalSeparator()
+    override fun HBox.constructToolbar() {
+        editButton("Edit") { setOnAction { editGame(GameDataType.name_) } }
+        gap()
+        toolbarButton("Tag", graphic = Icons.tag) { eventOnAction(tagGameActions) { game } }
+        gap()
+        deleteButton("Delete") { eventOnAction(deleteGameActions) { game } }
 
         spacer()
 
-        verticalSeparator()
-        searchButton("Re-Discover") {
+        toolbarButton("Re-Download", graphic = Icons.download) { eventOnAction(redownloadGameActions) { game } }
+        gap()
+        syncButton("Re-Sync") {
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
             eventOnAction(rediscoverGameActions) { game }
         }
-        verticalSeparator()
-        downloadButton("Re-Download") { eventOnAction(redownloadGameActions) { game } }
-        verticalSeparator()
-        deleteButton("Delete") { eventOnAction(deleteGameActions) { game } }
-        verticalSeparator()
     }
 
     override val root = hbox {
@@ -94,9 +91,9 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
             setId(Style.leftGameDetailsView)
             addClass(CommonStyle.card)
 
-            contextmenu {
-                item("Change", graphic = Theme.Icon.poster(20.0)).action {
-                    editGame(GameDataType.poster)
+            popoverContextMenu {
+                jfxButton("Change Poster", graphic = Icons.poster) {
+                    setOnAction { editGame(GameDataType.poster) }
                 }
             }
 

@@ -14,16 +14,45 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.view
+package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import javafx.scene.control.ToolBar
-import org.controlsfx.glyphfont.Glyph
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 01/05/2017
- * Time: 15:50
+ * Date: 10/06/2018
+ * Time: 12:23
  */
-abstract class PresentableScreen(title: String = "", icon: Glyph? = null) : PresentableTabView(title, icon) {
-    abstract fun ToolBar.constructToolbar()
+interface ViewWithGameWallDisplaySettings {
+    val gameWallDisplaySettings: GameWallDisplaySettings
+}
+
+interface ViewCanChangeGameWallDisplaySettings {
+    val mutableGameWallDisplaySettings: MutableGameWallDisplaySettings
+}
+
+interface GameWallDisplaySettings {
+    var imageDisplayType: ImageDisplayType
+    var showBorder: Boolean
+    var width: Double
+    var height: Double
+    var horizontalSpacing: Double
+    var verticalSpacing: Double
+}
+
+interface MutableGameWallDisplaySettings : GameWallDisplaySettings {
+    val imageDisplayTypeChanges: ReceiveChannel<ImageDisplayType>
+    val showBorderChanges: ReceiveChannel<Boolean>
+    val widthChanges: ReceiveChannel<Double>
+    val heightChanges: ReceiveChannel<Double>
+    val horizontalSpacingChanges: ReceiveChannel<Double>
+    val verticalSpacingChanges: ReceiveChannel<Double>
+}
+
+enum class ImageDisplayType(val displayName: String) {
+    FixedSize("Fixed Size"),
+    Fit("Fit"),
+    Stretch("Stretch");
+
+    override fun toString() = displayName
 }
