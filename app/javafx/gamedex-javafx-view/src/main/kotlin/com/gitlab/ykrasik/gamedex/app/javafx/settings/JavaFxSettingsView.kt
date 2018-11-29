@@ -104,15 +104,15 @@ class JavaFxSettingsView : PresentableView("Settings"),
         prefWidth = 800.0
         top {
             toolbar {
-                acceptButton { eventOnAction(acceptActions) }
+                cancelButton { eventOnAction(cancelActions) }
+                gap()
+                resetToDefaultButton { eventOnAction(resetDefaultsActions) }
                 spacer()
                 percentSlider(windowOpacity, min = 0.2, max = 1, text = "Opacity") {
                     tooltip("Hold 'alt' to hide temporarily.")
                 }
                 spacer()
-                resetToDefaultButton { eventOnAction(resetDefaultsActions) }
-                gap()
-                cancelButton { eventOnAction(cancelActions) }
+                acceptButton { eventOnAction(acceptActions) }
             }
         }
         center {

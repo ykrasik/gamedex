@@ -69,12 +69,12 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     override val root = borderpane {
         top {
             toolbar {
+                cancelButton { eventOnAction(cancelActions) }
+                spacer()
                 acceptButton {
                     enableWhen { viewModel.valid }
                     eventOnAction(acceptActions)
                 }
-                spacer()
-                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {

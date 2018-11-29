@@ -117,11 +117,11 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         prefHeight = screenBounds.height.let { it * 3 / 4 }
         top {
             toolbar {
-                acceptButton { eventOnAction(acceptActions) }
-                spacer()
-                resetToDefaultButton { eventOnAction(clearActions) }
-                gap()
                 cancelButton { eventOnAction(cancelActions) }
+                gap()
+                resetToDefaultButton { eventOnAction(clearActions) }
+                spacer()
+                acceptButton { eventOnAction(acceptActions) }
             }
         }
         center {
@@ -287,18 +287,20 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                         promptText = "Custom ${type.displayName}"
                                         validatorFrom(viewModel, overrideViewModelProperty.map { it!!.customValueValidationError })
                                     }
+                                    cancelButton {
+                                        removeClass(CommonStyle.toolbarButton)
+                                        eventOnAction(customOverrideValueRejectActions) {
+                                            popOver.hide()
+                                            type
+                                        }
+                                    }
                                     acceptButton {
+                                        removeClass(CommonStyle.toolbarButton)
                                         enableWhen { viewModel.valid }
                                         setOnAction {
                                             popOver.hide()
                                             customOverrideValueAcceptActions.event(type)
                                             customToggleNode.isSelected = true
-                                        }
-                                    }
-                                    cancelButton {
-                                        eventOnAction(customOverrideValueRejectActions) {
-                                            popOver.hide()
-                                            type
                                         }
                                     }
                                 }

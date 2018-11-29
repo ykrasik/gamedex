@@ -71,9 +71,9 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         addClass(Style.tagWindow)
         top {
             toolbar {
-                acceptButton { eventOnAction(acceptActions) }
-                spacer()
                 cancelButton { eventOnAction(cancelActions) }
+                spacer()
+                acceptButton { eventOnAction(acceptActions) }
             }
         }
         center {

@@ -76,12 +76,12 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
         minHeight = 100.0
         top {
             toolbar {
+                cancelButton { eventOnAction(cancelActions) }
+                spacer()
                 acceptButton {
                     enableWhen { viewModel.valid }
                     eventOnAction(acceptActions)
                 }
-                spacer()
-                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {

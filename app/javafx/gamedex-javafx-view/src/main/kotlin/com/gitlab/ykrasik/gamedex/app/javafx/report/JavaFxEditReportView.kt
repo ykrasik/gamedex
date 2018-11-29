@@ -78,12 +78,12 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
         minHeight = screenBounds.height * 1 / 2
         top {
             toolbar {
+                cancelButton { eventOnAction(cancelActions) }
+                spacer()
                 acceptButton {
                     enableWhen { isValid }
                     eventOnAction(acceptActions)
                 }
-                spacer()
-                cancelButton { eventOnAction(cancelActions) }
             }
         }
         center {
