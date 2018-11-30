@@ -27,8 +27,8 @@ import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import kfoenix.jfxprogressbar
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
 import java.util.*
 

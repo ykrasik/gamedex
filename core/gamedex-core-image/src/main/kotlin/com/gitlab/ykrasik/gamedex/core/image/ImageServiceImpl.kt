@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton

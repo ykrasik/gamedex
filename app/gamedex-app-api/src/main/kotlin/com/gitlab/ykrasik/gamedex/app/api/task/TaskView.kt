@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.task
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik

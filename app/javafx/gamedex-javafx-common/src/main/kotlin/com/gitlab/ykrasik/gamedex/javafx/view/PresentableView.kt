@@ -23,7 +23,7 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
 import javafx.scene.layout.HBox
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.channels.Channel
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 

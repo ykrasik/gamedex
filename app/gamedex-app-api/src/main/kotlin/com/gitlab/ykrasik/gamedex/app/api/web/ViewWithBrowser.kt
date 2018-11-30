@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.web
 
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.channels.Channel
 
 /**
  * User: ykrasik

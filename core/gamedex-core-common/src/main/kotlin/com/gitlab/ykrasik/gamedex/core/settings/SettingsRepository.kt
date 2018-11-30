@@ -21,11 +21,11 @@ import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.logger
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.asCoroutineDispatcher
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.channels.drop
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.drop
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executors
 import kotlin.reflect.KClass

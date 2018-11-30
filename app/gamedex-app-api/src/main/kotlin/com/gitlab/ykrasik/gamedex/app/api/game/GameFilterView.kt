@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlin.reflect.KClass
 
 /**

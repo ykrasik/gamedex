@@ -20,7 +20,7 @@ import javafx.beans.property.StringProperty
 import javafx.geometry.Pos
 import javafx.scene.layout.VBox
 import javafx.stage.StageStyle
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.channels.Channel
 import tornadofx.*
 
 /**

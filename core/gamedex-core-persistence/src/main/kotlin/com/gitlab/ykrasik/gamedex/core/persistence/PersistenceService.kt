@@ -157,7 +157,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     }
 
     override fun clearUserData() = transaction {
-        Games.updateAll {
+        Games.update {
             it[userData] = null
         }
     }

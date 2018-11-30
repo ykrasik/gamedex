@@ -24,8 +24,8 @@ import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.image.Image
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.toProperty
 import java.util.*
 import javax.inject.Inject

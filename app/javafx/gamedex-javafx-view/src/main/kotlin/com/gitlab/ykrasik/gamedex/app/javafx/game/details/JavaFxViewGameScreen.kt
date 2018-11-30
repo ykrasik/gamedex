@@ -30,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.Deferred
 import org.controlsfx.control.PopOver
 import tornadofx.*
 

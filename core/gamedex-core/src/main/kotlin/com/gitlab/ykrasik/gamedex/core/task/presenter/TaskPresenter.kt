@@ -26,8 +26,8 @@ import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton

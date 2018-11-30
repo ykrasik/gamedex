@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.web
 
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik

@@ -33,8 +33,8 @@ import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.util.Duration
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.javafx.JavaFx
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
 import org.controlsfx.glyphfont.FontAwesome
 import org.controlsfx.glyphfont.Glyph
 import tornadofx.*

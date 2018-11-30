@@ -27,8 +27,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.google.inject.ImplementedBy
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.channels.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.map
 import javax.inject.Inject
 import javax.inject.Singleton
 

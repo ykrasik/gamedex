@@ -40,7 +40,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import kfoenix.jfxprogressbar
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.Job
 import tornadofx.*
 
 /**
