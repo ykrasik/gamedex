@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.disallowDeselection
-import com.gitlab.ykrasik.gamedex.javafx.jfxToggleNode
+import com.gitlab.ykrasik.gamedex.javafx.control.disallowDeselection
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleNode
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget

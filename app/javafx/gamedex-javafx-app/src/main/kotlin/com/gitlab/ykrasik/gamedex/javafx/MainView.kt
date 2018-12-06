@@ -27,6 +27,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxLibraryScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
@@ -39,7 +40,6 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import kfoenix.jfxprogressbar
 import kotlinx.coroutines.Job
 import tornadofx.*
 
@@ -162,8 +162,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
         navigationButton("Quit", Icons.quit) { System.exit(0) }
     }.apply {
-        addClass(Style.navigationButton)
-        alignment = Pos.CENTER_LEFT
+        addClass(CommonStyle.toolbarButton, Style.navigationButton)
         textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 
@@ -189,7 +188,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
             if (screen !in fakeScreens) {
                 add(mainNavigationButton)
             } else {
-                backButton { setOnAction { showPreviousScreen() } }
+                backButton { action { showPreviousScreen() } }
             }
             gap()
             items += toolbars.getOrPut(screen) {
@@ -204,11 +203,10 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
         }
     }
 
-    private fun EventTarget.navigationButton(text: String, icon: Node, action: () -> Unit) = jfxButton(text, icon) {
+    private fun EventTarget.navigationButton(text: String, icon: Node, action: () -> Unit) = jfxButton(text, icon, alignment = Pos.CENTER) {
         useMaxWidth = true
-        alignment = Pos.CENTER
         contentDisplay = ContentDisplay.TOP
-        setOnAction { action() }
+        action { action() }
     }
 
     fun showGameDetails() = selectScreen(viewGameScreen)
@@ -236,7 +234,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
 
     private fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean) = vbox(spacing = 5) {
         alignment = Pos.CENTER
-        hbox {
+        defaultHbox {
             val textStyle = if (isMain) Style.mainTaskText else Style.subTaskText
             label(taskProgress.messageProperty) {
                 addClass(Style.progressText, textStyle)
@@ -247,8 +245,7 @@ class MainView : PresentableView("GameDex"), TaskView, ViewCanShowSettings {
                 addClass(Style.progressText, textStyle)
             }
         }
-        jfxprogressbar {
-            progressProperty().bind(taskProgress.progressProperty)
+        jfxProgressBar(taskProgress.progressProperty) {
             useMaxWidth = true
             addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
         }

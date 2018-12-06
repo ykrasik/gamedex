@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -37,8 +38,7 @@ interface TagGameView {
 
     var newTagName: String
     val newTagNameChanges: ReceiveChannel<String>
-
-    var nameValidationError: String?
+    var newTagNameIsValid: IsValid
 
     val addNewTagActions: ReceiveChannel<Unit>
 

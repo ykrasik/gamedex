@@ -32,8 +32,6 @@ class CommonStyle : Stylesheet() {
     companion object {
         val hiddenTabPaneHeader by cssclass()
 
-        // TODO: Delete this.
-        val fillAvailableWidth by cssclass()
         val centered by cssclass()
 
         val hoverable by cssclass()
@@ -49,11 +47,11 @@ class CommonStyle : Stylesheet() {
         val dangerButton by cssclass()
         val infoButton by cssclass()
 
+        val subMenu by cssclass()
+
         val extraMenu by cssclass()
 
         val popoverMenu by cssclass()
-
-        val platformItem by cssclass()
 
         val headerLabel by cssclass()
 
@@ -71,11 +69,6 @@ class CommonStyle : Stylesheet() {
             tabHeaderArea {
                 visibility = FXVisibility.HIDDEN
             }
-        }
-
-        fillAvailableWidth {
-            maxWidth = Double.MAX_VALUE.px
-            alignment = Pos.CENTER_LEFT
         }
 
         centered {
@@ -137,6 +130,12 @@ class CommonStyle : Stylesheet() {
             }
         }
 
+        subMenu {
+            padding = box(4.px, 8.px, 4.px, 8.px)
+            borderRadius = multi(box(3.px))
+            backgroundRadius = multi(box(3.px))
+        }
+
         extraMenu {
             prefWidth = 160.px
             contentDisplay = ContentDisplay.RIGHT
@@ -147,11 +146,6 @@ class CommonStyle : Stylesheet() {
         popoverMenu {
             spacing = 5.px
             padding = box(5.px)
-        }
-
-        platformItem {
-            prefWidth = 100.px
-            alignment = Pos.CENTER_LEFT
         }
 
         headerLabel {

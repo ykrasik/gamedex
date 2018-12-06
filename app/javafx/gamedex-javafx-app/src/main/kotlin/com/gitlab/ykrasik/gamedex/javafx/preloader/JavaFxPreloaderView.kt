@@ -19,14 +19,15 @@ package com.gitlab.ykrasik.gamedex.javafx.preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
 import com.gitlab.ykrasik.gamedex.javafx.MainView
-import com.gitlab.ykrasik.gamedex.javafx.asPercent
-import com.gitlab.ykrasik.gamedex.javafx.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.control.asPercent
+import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
+import com.gitlab.ykrasik.gamedex.javafx.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
-import kfoenix.jfxprogressbar
 import kotlinx.coroutines.*
 import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
@@ -62,11 +63,10 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                         widthProperty().bind(logo.widthProperty())
                     }
                 }
-                jfxprogressbar {
-                    progressProperty().bind(progressProperty)
+                jfxProgressBar(progressProperty) {
                     useMaxWidth = true
                 }
-                hbox {
+                defaultHbox {
                     label(messageProperty) {
                         style {
                             fontSize = 28.px

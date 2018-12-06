@@ -28,6 +28,8 @@ import kotlin.reflect.KClass
  * Time: 10:20
  */
 interface GameFilterView {
+    val onlyShowConditionsForCurrentPlatform: Boolean
+
     val possibleGenres: MutableList<String>
     val possibleTags: MutableList<String>
     val possibleLibraries: MutableList<Library>
@@ -45,6 +47,3 @@ interface GameFilterView {
     val replaceFilterActions: ReceiveChannel<Pair<Filter, KClass<out Filter>>>
     val deleteFilterActions: ReceiveChannel<Filter>
 }
-
-interface MenuGameFilterView : GameFilterView
-interface ReportGameFilterView : GameFilterView

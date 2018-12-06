@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.javafx.toImage
+import com.gitlab.ykrasik.gamedex.javafx.control.toImage
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.scene.image.Image

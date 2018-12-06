@@ -18,11 +18,16 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
-import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleButton
+import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -42,8 +47,8 @@ import tornadofx.*
 class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    private val stateProperty = SimpleObjectProperty(ProviderAccountState.Empty)
-    override var state by stateProperty
+    private val statusProperty = SimpleObjectProperty(ProviderAccountStatus.Empty)
+    override var status by statusProperty
 
     override var lastVerifiedAccount = emptyMap<String, String>()
 
@@ -57,17 +62,25 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
 
     override val accountUrlClicks = channel<Unit>()
 
+    private val canVerifyAccountProperty = SimpleObjectProperty(IsValid.valid)
+    override var canVerifyAccount by canVerifyAccountProperty
+
     override val verifyAccountRequests = channel<Unit>()
 
     private var accountLabelFlashContainer: StackPane by singleAssign()
 
     init {
         viewRegistry.onCreate(this)
+
+        statusProperty.onChange { status ->
+            if (status == ProviderAccountStatus.Invalid) {
+                accountLabelFlashContainer.flash(target = 0.5, reverse = true)
+            }
+        }
     }
 
     override val root = vbox {
-        hbox {
-            alignment = Pos.CENTER_LEFT
+        defaultHbox {
             paddingAll = 10
             label(provider.id) { addClass(Style.providerLabel) }
             spacer()
@@ -81,17 +94,16 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
         form {
             fieldset {
                 field("Enable") {
-                    hbox {
-                        alignment = Pos.BASELINE_CENTER
+                    hbox(alignment = Pos.BASELINE_CENTER) {
                         jfxToggleButton(providerEnabledProperty)
                         spacer()
                         stackpane {
-                            visibleWhen { stateProperty.isNotEqualTo(ProviderAccountState.NotRequired) }
+                            visibleWhen { statusProperty.isNotEqualTo(ProviderAccountStatus.NotRequired) }
                             label {
                                 addClass(Style.accountLabel)
-                                textProperty().bind(stateProperty.map { it!!.text })
-                                graphicProperty().bind(stateProperty.map { it!!.graphic })
-                                textFillProperty().bind(stateProperty.map { it!!.color })
+                                textProperty().bind(statusProperty.map { it!!.text })
+                                graphicProperty().bind(statusProperty.map { it!!.icon })
+                                textFillProperty().bind(statusProperty.map { it!!.color })
                             }
                             accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
                         }
@@ -109,7 +121,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
                         spacer()
                         confirmButton("Verify Account") {
                             addClass(CommonStyle.thinBorder)
-                            disableWhen { stateProperty.isEqualTo(ProviderAccountState.Empty) }
+                            enableWhen(canVerifyAccountProperty)
                             isDefaultButton = true
                             eventOnAction(verifyAccountRequests)
                         }
@@ -128,7 +140,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
         if (field == null) return
         field(field) {
             val currentValue = currentAccountProperty.map { account -> account!![field] ?: "" }
-            textfield(currentValue) {
+            jfxTextField(currentValue) {
                 textProperty().onChange {
                     currentAccount += field to it!!
                 }
@@ -136,33 +148,29 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
         }
     }
 
-    override fun onInvalidAccount() {
-        accountLabelFlashContainer.flash(target = 0.5, reverse = true)
-    }
-
-    private val ProviderAccountState.text
+    private val ProviderAccountStatus.text
         get() = when (this) {
-            ProviderAccountState.Valid -> "Valid Account"
-            ProviderAccountState.Invalid -> "Invalid Account"
-            ProviderAccountState.Empty -> "No Account"
-            ProviderAccountState.Unverified -> "Unverified Account"
-            ProviderAccountState.NotRequired -> null
+            ProviderAccountStatus.Valid -> "Valid Account"
+            ProviderAccountStatus.Invalid -> "Invalid Account"
+            ProviderAccountStatus.Empty -> "No Account"
+            ProviderAccountStatus.Unverified -> "Unverified Account"
+            ProviderAccountStatus.NotRequired -> null
         }
 
-    private val ProviderAccountState.graphic
+    private val ProviderAccountStatus.icon
         get() = when (this) {
-            ProviderAccountState.Valid -> Icons.valid
-            ProviderAccountState.Invalid -> Icons.invalid
-            ProviderAccountState.Empty, ProviderAccountState.Unverified -> Icons.unverified
-            ProviderAccountState.NotRequired -> null
+            ProviderAccountStatus.Valid -> Icons.valid
+            ProviderAccountStatus.Invalid -> Icons.invalid
+            ProviderAccountStatus.Empty, ProviderAccountStatus.Unverified -> Icons.unverified
+            ProviderAccountStatus.NotRequired -> null
         }
 
-    private val ProviderAccountState.color
+    private val ProviderAccountStatus.color
         get() = when (this) {
-            ProviderAccountState.Valid -> Color.GREEN
-            ProviderAccountState.Invalid -> Color.INDIANRED
-            ProviderAccountState.Empty, ProviderAccountState.Unverified -> Color.ORANGE
-            ProviderAccountState.NotRequired -> null
+            ProviderAccountStatus.Valid -> Color.GREEN
+            ProviderAccountStatus.Invalid -> Color.INDIANRED
+            ProviderAccountStatus.Empty, ProviderAccountStatus.Unverified -> Color.ORANGE
+            ProviderAccountStatus.NotRequired -> null
         }
 
     class Style : Stylesheet() {

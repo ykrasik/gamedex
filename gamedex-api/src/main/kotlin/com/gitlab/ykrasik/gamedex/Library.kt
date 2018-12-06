@@ -23,8 +23,10 @@ import java.io.File
  * Date: 25/05/2016
  * Time: 11:29
  */
+typealias LibraryId = Int
+
 data class Library(
-    val id: Int,
+    val id: LibraryId,
     val data: LibraryData
 ) {
     val name get() = data.name

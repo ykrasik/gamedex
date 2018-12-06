@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.GameDataOverride
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -62,7 +63,7 @@ data class GameDataOverrideViewModel<T>(
     val override: GameDataOverride? = null,
     val rawCustomValue: String = "",
     val customValue: T? = null,
-    val customValueValidationError: String? = null
+    val isCustomValueValid: IsValid = IsValid.valid
 )
 
 data class FetchThumbnailRequest(

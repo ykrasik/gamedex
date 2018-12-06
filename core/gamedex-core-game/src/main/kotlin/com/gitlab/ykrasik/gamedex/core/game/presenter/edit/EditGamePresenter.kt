@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
 import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideViewModel
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -83,7 +84,7 @@ class EditGamePresenter @Inject constructor(
         private fun onCustomOverrideSelected(type: GameDataType, selected: Boolean) {
             if (selected) {
                 modifyOverride(type) { current ->
-                    check(current.customValueValidationError == null) { "Cannot set a custom '$type' with a validation error!" }
+                    check(current.isCustomValueValid.isSuccess) { "Custom '$type' is invalid!" }
                     current.copy(override = GameDataOverride.Custom(current.customValue!!))
                 }
             }
@@ -96,22 +97,20 @@ class EditGamePresenter @Inject constructor(
         }
 
         private fun onCustomOverrideValueChanged(type: GameDataType, rawValue: String) {
-            val error = if (rawValue.isEmpty()) {
-                ""
-            } else {
+            val isValid = IsValid.invoke {
+                if (rawValue.isEmpty()) error("Empty value!")
                 try {
                     rawValue.deserializeCustom(type)
-                    null
-                } catch (e: Exception) {
-                    "Invalid ${type.displayName}"
+                } catch (_: Exception) {
+                    error("Invalid ${type.displayName}!")
                 }
             }
-            modifyOverride(type) { it.copy(rawCustomValue = rawValue, customValueValidationError = error) }
+            modifyOverride(type) { it.copy(rawCustomValue = rawValue, isCustomValueValid = isValid) }
         }
 
         private fun onCustomOverrideValueAccepted(type: GameDataType) {
             modifyOverride(type) { current ->
-                check(current.customValueValidationError == null) { "Cannot accept a custom '$type' with a validation error!" }
+                check(current.isCustomValueValid.isSuccess) { "Invalid $type!" }
                 val customValue = current.rawCustomValue.deserializeCustom(type)
                 current.copy(customValue = customValue, override = GameDataOverride.Custom(customValue))
             }
@@ -139,7 +138,7 @@ class EditGamePresenter @Inject constructor(
         private fun <T> initViewModel(type: GameDataType): GameDataOverrideViewModel<T> {
             val currentOverride = (view.game.rawGame.userData?.overrides ?: emptyMap())[type]
             return if (currentOverride == null) {
-                GameDataOverrideViewModel(customValueValidationError = "")
+                GameDataOverrideViewModel(isCustomValueValid = IsValid.invalid("Empty Value!"))
             } else {
                 val (rawValue, value) = when (currentOverride) {
                     is GameDataOverride.Custom -> currentOverride.value.serializeCustom(type) to currentOverride.value

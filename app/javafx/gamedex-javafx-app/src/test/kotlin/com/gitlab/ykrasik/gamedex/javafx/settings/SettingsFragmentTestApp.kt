@@ -18,7 +18,10 @@ package com.gitlab.ykrasik.gamedex.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.javafx.BaseFragmentTestApp
-import com.gitlab.ykrasik.gamedex.javafx.javaFx
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.launch
 
 /**
  * User: ykrasik
@@ -27,7 +30,7 @@ import com.gitlab.ykrasik.gamedex.javafx.javaFx
  */
 object SettingsFragmentTestApp : BaseFragmentTestApp() {
     override fun init() {
-        javaFx {
+        GlobalScope.launch(Dispatchers.JavaFx) {
             JavaFxSettingsView().openModal()
         }
     }

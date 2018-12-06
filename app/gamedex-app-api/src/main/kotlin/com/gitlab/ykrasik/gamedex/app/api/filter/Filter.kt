@@ -20,13 +20,12 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.MultiMap
-import com.gitlab.ykrasik.gamedex.util.toDate
-import com.gitlab.ykrasik.gamedex.util.toMultiMap
-import com.gitlab.ykrasik.gamedex.util.today
+import com.gitlab.ykrasik.gamedex.util.*
 import difflib.DiffUtils
 import difflib.Patch
+import org.joda.time.DateTime
 import org.joda.time.LocalDate
+import org.joda.time.Period
 import kotlin.reflect.KClass
 
 /**
@@ -44,50 +43,44 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.True::class, name = "true"),
 
     JsonSubTypes.Type(value = Filter.CriticScore::class, name = "criticScore"),
+    JsonSubTypes.Type(value = Filter.NullCriticScore::class, name = "nullCriticScore"),
+
     JsonSubTypes.Type(value = Filter.UserScore::class, name = "userScore"),
+    JsonSubTypes.Type(value = Filter.NullUserScore::class, name = "nullUserScore"),
+
     JsonSubTypes.Type(value = Filter.AvgScore::class, name = "avgScore"),
+    JsonSubTypes.Type(value = Filter.NullAvgScore::class, name = "nullAvgScore"),
+
+    JsonSubTypes.Type(value = Filter.MinScore::class, name = "minScore"),
+    JsonSubTypes.Type(value = Filter.MaxScore::class, name = "maxScore"),
+
+    JsonSubTypes.Type(value = Filter.TargetReleaseDate::class, name = "targetReleaseDate"),
+    JsonSubTypes.Type(value = Filter.PeriodReleaseDate::class, name = "periodReleaseDate"),
+    JsonSubTypes.Type(value = Filter.NullReleaseDate::class, name = "nullReleaseDate"),
+
+    JsonSubTypes.Type(value = Filter.TargetUpdateDate::class, name = "targetUpdateDate"),
+    JsonSubTypes.Type(value = Filter.PeriodUpdateDate::class, name = "periodUpdateDate"),
+
+    JsonSubTypes.Type(value = Filter.TargetCreateDate::class, name = "targetCreateDate"),
+    JsonSubTypes.Type(value = Filter.PeriodCreateDate::class, name = "periodCreateDate"),
 
     JsonSubTypes.Type(value = Filter.Platform::class, name = "platform"),
     JsonSubTypes.Type(value = Filter.Library::class, name = "library"),
     JsonSubTypes.Type(value = Filter.Genre::class, name = "genre"),
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
-    JsonSubTypes.Type(value = Filter.ReleaseDate::class, name = "releaseDate"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
     JsonSubTypes.Type(value = Filter.FileSize::class, name = "size"),
 
     JsonSubTypes.Type(value = Filter.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = Filter.NameDiff::class, name = "nameDiff")
 )
+// TODO: What if al the logic is moved into the context, and this will just be the structure?
 sealed class Filter {
     companion object {
-        private val names = mapOf(
-            And::class to "And",
-            Or::class to "Or",
-            Not::class to "Not",
-            True::class to "True",
-            CriticScore::class to "Critic Score",
-            UserScore::class to "User Score",
-            AvgScore::class to "Avg Score",
-            Platform::class to "Platform",
-            Library::class to "Library",
-            Genre::class to "Genre",
-            Tag::class to "Tag",
-            ReleaseDate::class to "Release Date",
-            Provider::class to "Provider",
-            FileSize::class to "File Size",
-            Duplications::class to "Duplications",
-            NameDiff::class to "Name-Folder Diff"
-        )
-
-        fun <T : Filter> name(klass: KClass<T>) = names[klass]!!
-        val <T : Filter> KClass<T>.name get() = name(this)
-
         val `true` = True()
         fun not(delegate: () -> Filter) = delegate().not
     }
 
-    val name get() = name(this::class)
-    override fun toString() = name
     abstract fun evaluate(game: Game, context: Context): Boolean
 
     infix fun and(right: Filter) = And(this, right)
@@ -96,64 +89,22 @@ sealed class Filter {
     infix fun or(right: () -> Filter) = or(right())
     val not get() = Not(this)
 
-    fun replace(target: Filter, with: Filter): Filter {
-        fun doReplace(current: Filter): Filter = when {
-            current === target -> with
-            current is BinaryOperator -> current.map { doReplace(it) }
-            current is UnaryOperator -> current.map { doReplace(it) }
-            else -> current
-        }
-        return doReplace(this)
-    }
-
-    fun delete(target: Filter): Filter? {
-        fun doDelete(current: Filter): Filter? = when {
-            current === target -> null
-            current is BinaryOperator -> {
-                val newLeft = doDelete(current.left)
-                val newRight = doDelete(current.right)
-                when {
-                    newLeft != null && newRight != null -> current.new(newLeft, newRight)
-                    newLeft != null -> newLeft
-                    else -> newRight
-                }
-            }
-            current is UnaryOperator -> {
-                val newRule = doDelete(current.target)
-                if (newRule != null) current.new(newRule) else null
-            }
-            else -> current
-        }
-        return doDelete(this)
-    }
-
     abstract class Operator : Filter()
-
-    abstract class BinaryOperator(val left: Filter, val right: Filter) : Operator() {
-        fun map(f: (Filter) -> Filter): BinaryOperator = new(f(left), f(right))
-        abstract fun new(newLeft: Filter, newRight: Filter): BinaryOperator
-    }
-
-    abstract class UnaryOperator(val target: Filter) : Operator() {
-        fun map(f: (Filter) -> Filter): UnaryOperator = new(f(target))
-        abstract fun new(newRule: Filter): UnaryOperator
-    }
+    abstract class BinaryOperator(val left: Filter, val right: Filter) : Operator()
+    abstract class UnaryOperator(val target: Filter) : Operator()
 
     class And(left: Filter = True(), right: Filter = True()) : BinaryOperator(left, right) {
         override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) && right.evaluate(game, context)
-        override fun new(newLeft: Filter, newRight: Filter) = And(newLeft, newRight)
         override fun toString() = "($left) and ($right)"
     }
 
     class Or(left: Filter = True(), right: Filter = True()) : BinaryOperator(left, right) {
         override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) || right.evaluate(game, context)
-        override fun new(newLeft: Filter, newRight: Filter) = Or(newLeft, newRight)
         override fun toString() = "($left) or ($right)"
     }
 
     class Not(target: Filter = True()) : UnaryOperator(target) {
         override fun evaluate(game: Game, context: Context) = !target.evaluate(game, context)
-        override fun new(newRule: Filter) = Not(newRule)
         override fun toString() = "!($target)"
     }
 
@@ -163,34 +114,122 @@ sealed class Filter {
         override fun evaluate(game: Game, context: Context) = true
     }
 
-    abstract class ScoreRule(val target: Double) : Rule() {
+    abstract class ScoreRule : Rule() {
+        protected abstract fun extractScore(game: Game, context: Context): Double?
+    }
+
+    abstract class TargetScore(val target: Double) : ScoreRule() {
         override fun evaluate(game: Game, context: Context): Boolean {
             val score = extractScore(game, context)
-            return when {
-                score == null -> target == NoScore
-                target != NoScore -> score >= target
-                else -> false
-            }
-        }
-
-        protected abstract fun extractScore(game: Game, context: Context): Double?
-        override fun toString() = "$name ${if (target == NoScore) "== null" else ">= $target"}"
-
-        companion object {
-            val NoScore = -1.0
+            return score != null && score >= target
         }
     }
 
-    class CriticScore(target: Double) : ScoreRule(target) {
+    abstract class NullScore : ScoreRule() {
+        override fun evaluate(game: Game, context: Context): Boolean {
+            val score = extractScore(game, context)
+            return score == null
+        }
+    }
+
+    class CriticScore(target: Double) : TargetScore(target) {
         override fun extractScore(game: Game, context: Context) = game.criticScore?.score
+        override fun toString() = "Critic Score >= $target"
     }
 
-    class UserScore(target: Double) : ScoreRule(target) {
+    class NullCriticScore : NullScore() {
+        override fun extractScore(game: Game, context: Context) = game.criticScore?.score
+        override fun toString() = "Critic Score == NULL"
+    }
+
+    class UserScore(target: Double) : TargetScore(target) {
         override fun extractScore(game: Game, context: Context) = game.userScore?.score
+        override fun toString() = "User Score >= $target"
     }
 
-    class AvgScore(target: Double) : ScoreRule(target) {
+    class NullUserScore : NullScore() {
+        override fun extractScore(game: Game, context: Context) = game.userScore?.score
+        override fun toString() = "User Score == NULL"
+    }
+
+    class AvgScore(target: Double) : TargetScore(target) {
         override fun extractScore(game: Game, context: Context) = game.avgScore
+        override fun toString() = "Avg Score >= $target"
+    }
+
+    class NullAvgScore : NullScore() {
+        override fun extractScore(game: Game, context: Context) = game.avgScore
+        override fun toString() = "Avg Score == NULL"
+    }
+
+    class MinScore(target: Double) : TargetScore(target) {
+        override fun extractScore(game: Game, context: Context) = game.minScore
+        override fun toString() = "Min Score >= $target"
+    }
+
+    class MaxScore(target: Double) : TargetScore(target) {
+        override fun extractScore(game: Game, context: Context) = game.maxScore
+        override fun toString() = "Max Score >= $target"
+    }
+
+    abstract class DateRule : Rule() {
+        protected abstract fun extractDate(game: Game, context: Context): DateTime?
+    }
+
+    abstract class TargetDate(val date: LocalDate) : DateRule() {
+        override fun evaluate(game: Game, context: Context): Boolean {
+            val date = extractDate(game, context)
+            return date != null && date.toLocalDate() >= this.date
+        }
+    }
+
+    abstract class PeriodDate(val period: Period) : DateRule() {
+        override fun evaluate(game: Game, context: Context): Boolean {
+            val date = extractDate(game, context)
+            return date != null && date.toLocalDate() >= (now - period).toLocalDate()
+        }
+    }
+
+    abstract class NullDate : DateRule() {
+        override fun evaluate(game: Game, context: Context): Boolean {
+            val date = extractDate(game, context)
+            return date == null
+        }
+    }
+
+    class TargetReleaseDate(date: LocalDate) : TargetDate(date) {
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun toString() = "Release Date >= $date"
+    }
+
+    class PeriodReleaseDate(period: Period) : PeriodDate(period) {
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun toString() = "Release Date >= (Now - ${period.toHumanReadable()}"
+    }
+
+    class NullReleaseDate : NullDate() {
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun toString() = "Release Date == NULL"
+    }
+
+    class TargetCreateDate(date: LocalDate) : TargetDate(date) {
+        override fun extractDate(game: Game, context: Context) = game.createDate
+        override fun toString() = "Create Date >= $date"
+    }
+
+    class PeriodCreateDate(period: Period) : PeriodDate(period) {
+        override fun extractDate(game: Game, context: Context) = game.createDate
+        override fun toString() = "Create Date >= (Now - ${period.toHumanReadable()}"
+    }
+
+    class TargetUpdateDate(date: LocalDate) : TargetDate(date) {
+        override fun extractDate(game: Game, context: Context) = game.updateDate
+        override fun toString() = "Update Date >= $date"
+    }
+
+    class PeriodUpdateDate(period: Period) : PeriodDate(period) {
+        override fun extractDate(game: Game, context: Context) = game.updateDate
+        override fun toString() = "Update Date >= (Now - ${period.toHumanReadable()}"
     }
 
     class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
@@ -198,44 +237,33 @@ sealed class Filter {
             val size = context.size(game)
             return size >= target
         }
-        override fun toString() = "$name >= ${target.humanReadable}"
+
+        override fun toString() = "File Size >= ${target.humanReadable}"
     }
 
     class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.platform == platform
-        override fun toString() = "$name == '$platform'"
+        override fun toString() = "Platform == '$platform'"
     }
 
     class Library(val id: Int) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.library.id == id
-        override fun toString() = "$name == Library($id)"
+        override fun toString() = "Library == Library($id)"
     }
 
     class Genre(val genre: String) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.genres.any { it == genre }
-        override fun toString() = "$name == '$genre'"
+        override fun toString() = "Genre == '$genre'"
     }
 
     class Tag(val tag: String) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
-        override fun toString() = "$name == '$tag'"
-    }
-
-    class ReleaseDate(val releaseDate: LocalDate) : Rule() {
-        override fun evaluate(game: Game, context: Context): Boolean {
-            val target = try {
-                game.releaseDate!!.toDate()
-            } catch (e: Exception) {
-                today
-            }
-            return releaseDate.isBefore(target)
-        }
-        override fun toString() = "$name >= '$releaseDate'"
+        override fun toString() = "Tag == '$tag'"
     }
 
     class Provider(val providerId: ProviderId) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.providerHeaders.any { it.id == providerId }
-        override fun toString() = "$name == '$providerId'"
+        override fun toString() = "Provider == '$providerId'"
     }
 
     // TODO: Add ignore case option

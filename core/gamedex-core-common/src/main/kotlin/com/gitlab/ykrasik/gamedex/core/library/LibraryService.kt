@@ -32,7 +32,8 @@ interface LibraryService {
     val libraries: ListObservable<Library>
 
     operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library
+    operator fun get(platform: Platform, name: String): Library?
+    operator fun get(path: File): Library?
 
     fun add(data: LibraryData): Task<Library>
     fun addAll(data: List<LibraryData>): Task<List<Library>>
@@ -43,10 +44,4 @@ interface LibraryService {
     fun deleteAll(libraries: List<Library>): Task<Unit>
 
     fun invalidate()
-
-    fun isAvailableNewName(platform: Platform, newName: String): Boolean
-    fun isAvailableUpdatedName(library: Library, updatedName: String): Boolean
-
-    fun isAvailableNewPath(newPath: File): Boolean
-    fun isAvailableUpdatedPath(library: Library, updatedPath: File): Boolean
 }

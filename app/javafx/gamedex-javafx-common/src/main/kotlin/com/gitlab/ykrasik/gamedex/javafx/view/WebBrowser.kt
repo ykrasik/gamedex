@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -40,24 +41,24 @@ class WebBrowser : Fragment() {
             add(webView)
         }
         top {
-            hbox(spacing = 10.0) {
+            defaultHbox {
                 paddingAll = 5.0
 
                 jfxButton(graphic = Icons.arrowLeft) {
                     addClass(CommonStyle.thinBorder)
                     enableWhen { canNavigate(back = true) }
-                    setOnAction { navigate(back = true) }
+                    action { navigate(back = true) }
                 }
                 jfxButton(graphic = Icons.arrowRight) {
                     addClass(CommonStyle.thinBorder)
                     enableWhen { canNavigate(back = false) }
-                    setOnAction { navigate(back = false) }
+                    action { navigate(back = false) }
                 }
                 spacer()
                 jfxButton {
                     addClass(CommonStyle.thinBorder)
                     graphicProperty().bind(fullscreenBrowser.isDockedProperty.objectBinding { if (it == true) Icons.exitFullscreen else Icons.fullscreen })
-                    setOnAction { toggleStandalone() }
+                    action { toggleStandalone() }
                 }
             }
         }

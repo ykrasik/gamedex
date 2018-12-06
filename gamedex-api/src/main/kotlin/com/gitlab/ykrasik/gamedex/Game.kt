@@ -48,6 +48,7 @@ data class Game(
     val criticScore get() = gameData.criticScore
     val userScore get() = gameData.userScore
     val minScore get() = withBothScores { c, u -> minOf(c, u) }
+    val maxScore get() = withBothScores { c, u -> maxOf(c, u) }
     val avgScore get() = withBothScores { c, u -> (c + u) / 2 }
     private inline fun withBothScores(f: (criticScore: Double, userScore: Double) -> Double): Double? =
         criticScore?.let { c -> userScore?.let { u -> f(c.score, u.score) } }
@@ -126,7 +127,7 @@ data class ImageUrls(
 )
 
 data class Metadata(
-    val libraryId: Int,
+    val libraryId: LibraryId,
     val path: String,
     val timestamp: Timestamp
 ) {

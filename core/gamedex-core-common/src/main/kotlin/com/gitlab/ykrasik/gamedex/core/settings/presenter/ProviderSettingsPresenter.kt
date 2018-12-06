@@ -16,8 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountState
+import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
+import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
@@ -45,15 +46,10 @@ class ProviderSettingsPresenter @Inject constructor(
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
         init {
             // This will not update if settings are reset to default - by design.
-            view.currentAccount = settingsService.providers[view.provider.id]!!.account
             view.enabled = settingsService.providers[view.provider.id]!!.enabled
+            view.currentAccount = settingsService.providers[view.provider.id]!!.account
             view.lastVerifiedAccount = if (view.currentAccount.isNotEmpty()) view.currentAccount else emptyMap()
-            view.state = when {
-                view.provider.accountFeature == null -> ProviderAccountState.NotRequired
-                accountHasEmptyFields() -> ProviderAccountState.Empty
-                view.currentAccount.isNotEmpty() -> ProviderAccountState.Valid
-                else -> ProviderAccountState.Empty
-            }
+            onCurrentAccountChanged(view.currentAccount)
 
             // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
             view.enabledChanges.forEach { onEnabledChanged(it) }
@@ -68,14 +64,13 @@ class ProviderSettingsPresenter @Inject constructor(
 
         private suspend fun onEnabledChanged(enabled: Boolean) {
             if (enabled) {
-                if (view.state == ProviderAccountState.Unverified) {
+                if (view.status == ProviderAccountStatus.Unverified) {
                     verifyAccount()
                 }
-                if (view.state == ProviderAccountState.Valid || view.state == ProviderAccountState.NotRequired) {
+                if (view.status == ProviderAccountStatus.Valid || view.status == ProviderAccountStatus.NotRequired) {
                     modifyProviderSettings { copy(enabled = true, account = view.currentAccount) }
                 } else {
                     view.enabled = false
-                    view.onInvalidAccount()
                 }
             } else {
                 modifyProviderSettings { copy(enabled = false) }
@@ -87,23 +82,33 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         private suspend fun verifyAccount() {
+            check(view.canVerifyAccount.isSuccess) { "Verifying account not allowed!" }
             val valid = taskService.execute(gameProviderService.verifyAccount(view.provider.id, view.currentAccount))
             if (valid) {
                 log.info("[${view.provider.id}] Valid!")
-                view.state = ProviderAccountState.Valid
+                view.status = ProviderAccountStatus.Valid
                 view.lastVerifiedAccount = view.currentAccount
             } else {
                 log.info("[${view.provider.id}] Invalid!")
-                view.state = ProviderAccountState.Invalid
+                view.status = ProviderAccountStatus.Invalid
             }
         }
 
         private fun onCurrentAccountChanged(currentAccount: Map<String, String>) {
-            view.state = when {
-                view.provider.accountFeature == null -> ProviderAccountState.NotRequired
-                accountHasEmptyFields() -> ProviderAccountState.Empty
-                currentAccount == view.lastVerifiedAccount -> ProviderAccountState.Valid
-                else -> ProviderAccountState.Unverified
+            view.status = when {
+                view.provider.accountFeature == null -> ProviderAccountStatus.NotRequired
+                accountHasEmptyFields() -> ProviderAccountStatus.Empty
+                currentAccount == view.lastVerifiedAccount -> ProviderAccountStatus.Valid
+                else -> ProviderAccountStatus.Unverified
+            }
+            setCanVerifyAccount()
+        }
+
+        private fun setCanVerifyAccount() {
+            view.canVerifyAccount = ValueOrError {
+                check(view.status != ProviderAccountStatus.NotRequired) { "Provider does not require an account!" }
+                check(view.status != ProviderAccountStatus.Empty) { "Empty account!" }
+                check(view.status != ProviderAccountStatus.Valid) { "Account already verified!" }
             }
         }
 

@@ -16,10 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesCreatedBefore
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGames
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
+import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,18 +30,26 @@ import javax.inject.Singleton
 /**
  * User: ykrasik
  * Date: 06/05/2018
- * Time: 13:11
+ * Time: 13:08
  */
 @Singleton
-class RedownloadGamesCreatedBeforePresenter @Inject constructor(
+class RedownloadGamesPresenter @Inject constructor(
+    private val settingsService: SettingsService,
+    private val filterContextFactory: FilterContextFactory,
+    private val gameService: GameService,
     private val gameDownloadService: GameDownloadService,
     private val taskService: TaskService
-) : Presenter<ViewCanRedownloadGamesCreatedBefore> {
-    override fun present(view: ViewCanRedownloadGamesCreatedBefore) = object : ViewSession() {
+) : Presenter<ViewCanRedownloadGames> {
+    override fun present(view: ViewCanRedownloadGames) = object : ViewSession() {
         init {
-            view.redownloadGamesCreatedBeforeActions.forEach {
-                taskService.execute(gameDownloadService.redownloadGamesCreatedBeforePeriod())
-            }
+            view.redownloadGamesActions.forEach { redownloadGames() }
+        }
+
+        private suspend fun redownloadGames() {
+            val context = filterContextFactory.create(emptyList())
+            val condition = settingsService.game.redownloadGamesCondition
+            val games = gameService.games.filter { condition.evaluate(it, context) }
+            taskService.execute(gameDownloadService.redownloadGames(games.sortedBy { it.name }))
         }
     }
 }

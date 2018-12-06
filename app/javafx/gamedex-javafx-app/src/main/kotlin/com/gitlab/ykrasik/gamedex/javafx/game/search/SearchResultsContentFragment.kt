@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.imageViewColumn
-import com.gitlab.ykrasik.gamedex.javafx.minWidthFitContent
+import com.gitlab.ykrasik.gamedex.javafx.control.imageViewColumn
+import com.gitlab.ykrasik.gamedex.javafx.control.minWidthFitContent
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.value.ObservableValue

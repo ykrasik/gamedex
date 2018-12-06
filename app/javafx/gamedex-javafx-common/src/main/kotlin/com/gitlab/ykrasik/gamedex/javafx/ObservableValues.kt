@@ -16,8 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
+import com.gitlab.ykrasik.gamedex.app.api.util.and
 import com.gitlab.ykrasik.gamedex.util.Extractor
-import javafx.beans.property.*
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.Property
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -42,10 +46,6 @@ fun <T> ObservableValue<T>.printChanges(id: String) {
 }
 
 fun <T, R> ObservableValue<T>.map(f: (T?) -> R): ObjectProperty<R> = map(f) { SimpleObjectProperty(it) }
-fun <T> ObservableValue<T>.mapString(f: (T?) -> String): StringProperty = map(f) { SimpleStringProperty(it) }
-fun <T> ObservableValue<T>.mapBoolean(f: (T?) -> Boolean): BooleanProperty = map(f) { SimpleBooleanProperty(it) }
-fun <T> ObservableValue<T>.mapInt(f: (T?) -> Int): IntegerProperty = map(f) { SimpleIntegerProperty(it) }
-fun <T> ObservableValue<T>.mapDouble(f: (T?) -> Double): DoubleProperty = map(f) { SimpleDoubleProperty(it) }
 
 private fun <T, R, P : Property<in R>> ObservableValue<T>.map(f: (T?) -> R, factory: (R) -> P): P {
     fun doMap() = f(this.value)
@@ -57,18 +57,6 @@ private fun <T, R, P : Property<in R>> ObservableValue<T>.map(f: (T?) -> R, fact
 
 fun <T, R> Property<T>.mapBidirectional(extractor: Extractor<T, R>, reverseExtractor: Extractor<R, T>): ObjectProperty<R> =
     mapBidirectional(extractor, reverseExtractor) { SimpleObjectProperty(it) }
-
-fun <T> Property<T>.mapBidirectionalBoolean(extractor: Extractor<T, Boolean>, reverseExtractor: Extractor<Boolean, T>): BooleanProperty =
-    mapBidirectional(extractor, reverseExtractor) { SimpleBooleanProperty(it) }
-
-fun <T> Property<T>.mapBidirectionalString(extractor: Extractor<T, String>, reverseExtractor: Extractor<String, T>): StringProperty =
-    mapBidirectional(extractor, reverseExtractor) { SimpleStringProperty(it) }
-
-fun <T> Property<T>.mapBidirectionalInt(extractor: Extractor<T, Int>, reverseExtractor: Extractor<Int, T>): IntegerProperty =
-    mapBidirectional(extractor, reverseExtractor) { SimpleIntegerProperty(it) }
-
-fun <T> Property<T>.mapBidirectionalDouble(extractor: Extractor<T, Double>, reverseExtractor: Extractor<Double, T>): DoubleProperty =
-    mapBidirectional(extractor, reverseExtractor) { SimpleDoubleProperty(it) }
 
 private fun <T, R, P : Property<in R>> Property<T>.mapBidirectional(
     extractor: Extractor<T, R>,
@@ -124,3 +112,13 @@ fun <T, R> ObservableValue<T>.combineLatest(other: ObservableValue<R>): ObjectPr
     other.onChange { property.value = this.value to it }
     return property
 }
+
+inline fun <T, R, U> ObservableValue<T>.map(other: ObservableValue<R>, crossinline f: (T, R) -> U): ObjectProperty<U> {
+    val property = SimpleObjectProperty(f(this.value, other.value))
+    this.onChange { property.value = f(it!!, other.value) }
+    other.onChange { property.value = f(this.value, it!!) }
+    return property
+}
+
+fun ObservableValue<out ValueOrError<Any>>.and(other: ObservableValue<out ValueOrError<Any>>): ObjectProperty<ValueOrError<Any>> =
+    map(other) { first, second -> first.and(second) }

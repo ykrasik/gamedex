@@ -14,46 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.javafx.filter
+package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.javafx.mapBidirectional
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import javafx.beans.property.Property
-import javafx.geometry.Pos
-import tornadofx.*
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 01/07/2017
- * Time: 11:36
+ * Date: 11/12/2018
+ * Time: 08:50
  */
-class FileSizeRuleFragment(rule: Property<Filter.FileSize>) : Fragment() {
-    private val sizeTextProperty = rule.mapBidirectional({ target.humanReadable }, { Filter.FileSize(FileSize(this)) })
-
-    private val viewModel = FileSizeViewModel(sizeTextProperty).apply {
-        textProperty.onChange { commit() }
-        validate(decorateErrors = true)
-    }
-
-    override val root = hbox {
-        alignment = Pos.CENTER_LEFT
-        textfield(viewModel.textProperty) {
-            isFocusTraversable = false
-            validator {
-                val valid = try {
-                    FileSize(it!!); true
-                } catch (e: Exception) {
-                    false
-                }
-                if (!valid) error("Invalid file size! Format: {x} B KB MB GB TB PB EB") else null
-            }
-        }
-    }
-
-    val isValid = viewModel.valid
-
-    private class FileSizeViewModel(p: Property<String>) : ViewModel() {
-        val textProperty = bind { p }
-    }
+interface ViewWithCurrentPlatformFilter {
+    var currentPlatformFilter: Filter
+    val currentPlatformFilterChanges: ReceiveChannel<Filter>
 }

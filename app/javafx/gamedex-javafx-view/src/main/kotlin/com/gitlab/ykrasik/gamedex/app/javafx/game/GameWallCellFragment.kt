@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.GameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.javafx.fadeOnImageChange
+import com.gitlab.ykrasik.gamedex.javafx.control.fadeOnImageChange
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.ObservableValue

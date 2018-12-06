@@ -36,8 +36,8 @@ class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository
     override fun get(id: Int) = libraries.find { it.id == id }
         ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
 
-    override fun get(platform: Platform, name: String) = doGet(platform, name)
-        ?: throw IllegalArgumentException("Library doesn't exist: platform=$platform, name=$name")
+    override fun get(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
+    override fun get(path: File) = libraries.find { it.path == path }
 
     override fun add(data: LibraryData) = task("Adding Library '${data.name}'...") {
         successMessage = { "Added Library: '${data.name}'." }
@@ -66,19 +66,4 @@ class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository
     }
 
     override fun invalidate() = repo.invalidate()
-
-    override fun isAvailableNewName(platform: Platform, newName: String): Boolean =
-        doGet(platform, newName) == null
-
-    override fun isAvailableUpdatedName(library: Library, updatedName: String): Boolean =
-        doGet(library.platform, updatedName) ?: library == library
-
-    override fun isAvailableNewPath(newPath: File): Boolean =
-        doGet(newPath) == null
-
-    override fun isAvailableUpdatedPath(library: Library, updatedPath: File): Boolean =
-        doGet(updatedPath) ?: library == library
-
-    private fun doGet(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
-    private fun doGet(path: File) = libraries.find { it.path == path }
 }

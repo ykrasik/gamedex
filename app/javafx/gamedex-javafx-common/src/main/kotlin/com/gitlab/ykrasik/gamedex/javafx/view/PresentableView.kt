@@ -67,12 +67,12 @@ abstract class PresentableView(title: String? = null, icon: FontIcon? = null) : 
 
     // TODO: Find a better name
     fun ButtonBase.eventOnAction(channel: Channel<Unit>) = apply {
-        setOnAction { channel.event(Unit) }
+        action { channel.event(Unit) }
     }
 
     // TODO: Find a better name
     inline fun <T> ButtonBase.eventOnAction(channel: Channel<T>, crossinline f: () -> T) = apply {
-        setOnAction { channel.event(f()) }
+        action { channel.event(f()) }
     }
 
     fun ViewModel.presentableStringProperty(channel: Channel<String>): Property<String> =

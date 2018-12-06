@@ -20,14 +20,22 @@ import com.gitlab.ykrasik.gamedex.Timestamp
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.LocalDate
+import org.joda.time.Period
+import org.joda.time.format.PeriodFormat
 
 /**
  * User: ykrasik
  * Date: 28/05/2017
  * Time: 22:05
  */
-val now: DateTime get() = DateTime.now(DateTimeZone.UTC)
-val today: LocalDate get() = LocalDate.now(DateTimeZone.UTC)
+
+typealias JodaLocalDate = org.joda.time.LocalDate
+typealias JodaDateTime = org.joda.time.DateTime
+typealias JavaLocalDate = java.time.LocalDate
+typealias JavaDateTime = java.time.LocalDateTime
+
+val now: JodaDateTime get() = DateTime.now(DateTimeZone.UTC)
+val today: JodaLocalDate get() = LocalDate.now(DateTimeZone.UTC)
 
 val nowTimestamp: Timestamp
     get() {
@@ -35,10 +43,24 @@ val nowTimestamp: Timestamp
         return Timestamp(createDate = time, updateDate = time)
     }
 
-fun Long.toDateTime(): DateTime = DateTime(this, DateTimeZone.UTC)
-fun String.toDate(): LocalDate = LocalDate.parse(this)
+fun Long.toDateTime(): JodaDateTime = DateTime(this, DateTimeZone.UTC)
 
-fun LocalDate.toJava(): java.time.LocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
-fun java.time.LocalDate.toJoda(): LocalDate = LocalDate(year, monthValue, dayOfMonth)
+fun String.toDate(): JodaLocalDate = LocalDate.parse(this)
+fun String.toDateOrNull(): JodaLocalDate? = runCatching { toDate() }.getOrNull()
 
-fun DateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
+fun String.toDateTime(): JodaDateTime = DateTime.parse(this)
+fun String.toDateTimeOrNull(): JodaDateTime? = runCatching { toDateTime() }.getOrNull()
+
+fun JodaLocalDate.toJava(): JavaLocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
+fun JavaLocalDate.toJoda(): JodaLocalDate = LocalDate(year, monthValue, dayOfMonth)
+
+fun JodaDateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
+fun Period.toHumanReadable(): String = PeriodFormat.getDefault().print(this)
+fun Long.toHumanReadableDuration(): String = Period(this).toHumanReadable()
+
+val Int.years get() = Period.years(this)
+val Int.months get() = Period.months(this)
+val Int.weeks get() = Period.weeks(this)
+val Int.days get() = Period.days(this)
+val Int.hours get() = Period.hours(this)
+val Int.minutes get() = Period.minutes(this)

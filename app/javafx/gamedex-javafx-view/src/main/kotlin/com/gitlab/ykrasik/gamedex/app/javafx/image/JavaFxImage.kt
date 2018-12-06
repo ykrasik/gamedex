@@ -18,8 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
-import com.gitlab.ykrasik.gamedex.javafx.javaFx
-import com.gitlab.ykrasik.gamedex.javafx.toImage
+import com.gitlab.ykrasik.gamedex.javafx.control.toImage
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
@@ -93,7 +92,7 @@ class ImageLoader @Inject constructor(private val imageService: ImageService) {
             noImage.toProperty()
         } else {
             cache.getOrPut(url) {
-                imageService.fetchImage(url,  persistIfAbsent).toObservableImage()
+                imageService.fetchImage(url, persistIfAbsent).toObservableImage()
             }
         }
 
@@ -111,7 +110,7 @@ class ImageLoader @Inject constructor(private val imageService: ImageService) {
         if (this.isCompleted) {
             p.value = this.getCompleted().image
         } else {
-            javaFx {
+            GlobalScope.launch(Dispatchers.JavaFx) {
                 p.value = await().image
             }
         }

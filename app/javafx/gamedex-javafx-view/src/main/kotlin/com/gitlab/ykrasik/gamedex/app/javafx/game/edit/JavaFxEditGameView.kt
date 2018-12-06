@@ -26,12 +26,13 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
@@ -161,7 +162,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
         entry(
             GameDataType.releaseDate,
             releaseDateOverrideProperty,
-            icon = Icons.calendar,
+            icon = Icons.date,
             providerDataExtractor = GameData::releaseDate,
             gameDataExtractor = Game::releaseDate,
             dataDisplay = ::displayText
@@ -235,11 +236,10 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                                 selectedProperty().eventOnChange(providerOverrideSelectionChanges) {
                                                     Triple(type, providerData.header.id, it)
                                                 }
-                                                this.graphic = hbox(spacing = 10.0) {
-                                                    alignment = Pos.CENTER_LEFT
+                                                graphic = defaultHbox {
                                                     paddingAll = 10.0
                                                     children += logo(providerData.header.id).toImageView(height = 120.0, width = 100.0)
-                                                    dataDisplay(this@hbox, data)
+                                                    dataDisplay(this, data)
                                                 }
                                             }
                                         }
@@ -260,8 +260,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
 
                                 selectedProperty().eventOnChange(customOverrideSelectionChanges) { type to it }
 
-                                graphic = hbox(spacing = 10.0) {
-                                    alignment = Pos.CENTER_LEFT
+                                graphic = defaultHbox {
                                     paddingAll = 10.0
 
                                     overrideViewModelProperty.map { it!!.customValue }.perform { customValue ->
@@ -275,17 +274,16 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                 }
                             }
                             spacer()
-                            buttonWithPopover(graphic = Icons.enterText, closeOnClick = false, styleClass = null) { popOver ->
-                                hbox(spacing = 5) {
-                                    alignment = Pos.CENTER_LEFT
-                                    val viewModel = CustomTextViewModel(type)
+                            buttonWithPopover(graphic = Icons.enterText, closeOnClick = false) { popOver ->
+                                defaultHbox {
+                                    val customValueText = SimpleStringProperty("").eventOnChange(customOverrideValueChanges) { type to it }
                                     overrideViewModelProperty.onChange {
-                                        viewModel.textProperty.value = it!!.rawCustomValue
+                                        customValueText.value = it!!.rawCustomValue
                                     }
-                                    textfield(viewModel.textProperty) {
+                                    val isValid = overrideViewModelProperty.map { it!!.isCustomValueValid }
+                                    jfxTextField(customValueText, promptText = "Custom ${type.displayName}") {
                                         minWidth = 300.0
-                                        promptText = "Custom ${type.displayName}"
-                                        validatorFrom(viewModel, overrideViewModelProperty.map { it!!.customValueValidationError })
+                                        validWhen(isValid)
                                     }
                                     cancelButton {
                                         removeClass(CommonStyle.toolbarButton)
@@ -296,8 +294,8 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                                     }
                                     acceptButton {
                                         removeClass(CommonStyle.toolbarButton)
-                                        enableWhen { viewModel.valid }
-                                        setOnAction {
+                                        enableWhen(isValid)
+                                        action {
                                             popOver.hide()
                                             customOverrideValueAcceptActions.event(type)
                                             customToggleNode.isSelected = true
@@ -310,8 +308,7 @@ class JavaFxEditGameView : PresentableView(), EditGameView, ViewWithProviderLogo
                         // Reset button
                         jfxToggleNode(group = toggleGroup) {
                             useMaxWidth = true
-                            graphic = hbox(spacing = 10.0) {
-                                alignment = Pos.CENTER_LEFT
+                            graphic = defaultHbox {
                                 paddingAll = 10.0
                                 children += Icons.resetToDefault
                                 text("Reset to Default") { addClass(Style.textData) }

@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.MutableGameWallDisplaySetting
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.eventOnChange
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
 import tornadofx.onChange
@@ -42,19 +41,19 @@ class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings {
     override var showBorder by showBorderProperty
 
     override val widthChanges = channel<Double>()
-    val widthProperty = SimpleDoubleProperty().eventOnChange(widthChanges) { it.toDouble() }
+    val widthProperty = SimpleObjectProperty<Double>().eventOnChange(widthChanges)
     override var width by widthProperty
 
     override val heightChanges = channel<Double>()
-    val heightProperty = SimpleDoubleProperty().eventOnChange(heightChanges) { it.toDouble() }
+    val heightProperty = SimpleObjectProperty<Double>().eventOnChange(heightChanges)
     override var height by heightProperty
 
     override val horizontalSpacingChanges = channel<Double>()
-    val horizontalSpacingProperty = SimpleDoubleProperty().eventOnChange(horizontalSpacingChanges) { it.toDouble() }
+    val horizontalSpacingProperty = SimpleObjectProperty<Double>().eventOnChange(horizontalSpacingChanges)
     override var horizontalSpacing by horizontalSpacingProperty
 
     override val verticalSpacingChanges = channel<Double>()
-    val verticalSpacingProperty = SimpleDoubleProperty().eventOnChange(verticalSpacingChanges) { it.toDouble() }
+    val verticalSpacingProperty = SimpleObjectProperty<Double>().eventOnChange(verticalSpacingChanges)
     override var verticalSpacing by verticalSpacingProperty
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(

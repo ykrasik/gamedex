@@ -17,11 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
-import org.joda.time.Period
-import org.joda.time.PeriodType
+import com.gitlab.ykrasik.gamedex.util.months
 
 /**
  * User: ykrasik
@@ -34,8 +34,7 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
         val sortBy: SortBy,
         val sortOrder: SortOrder,
         val discoverGameChooseResults: DiscoverGameChooseResults,
-        val redownloadCreatedBeforePeriod: Period,
-        val redownloadUpdatedAfterPeriod: Period
+        val redownloadGamesCondition: Filter
     )
 
     override val storage = factory("game", Data::class) {
@@ -44,8 +43,7 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
             sortBy = SortBy.criticScore,
             sortOrder = SortOrder.desc,
             discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
-            redownloadCreatedBeforePeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime()),
-            redownloadUpdatedAfterPeriod = Period.months(2).normalizedStandard(PeriodType.yearMonthDayTime())
+            redownloadGamesCondition = Filter.PeriodUpdateDate(2.months)
         )
     }
 
@@ -61,9 +59,6 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     val discoverGameChooseResultsChannel = storage.channel(Data::discoverGameChooseResults)
     val discoverGameChooseResults by discoverGameChooseResultsChannel
 
-    val redownloadCreatedBeforePeriodChannel = storage.channel(Data::redownloadCreatedBeforePeriod)
-    val redownloadCreatedBeforePeriod by redownloadCreatedBeforePeriodChannel
-
-    val redownloadUpdatedAfterPeriodChannel = storage.channel(Data::redownloadUpdatedAfterPeriod)
-    val redownloadUpdatedAfterPeriod by redownloadUpdatedAfterPeriodChannel
+    val redownloadGamesConditionChannel = storage.channel(Data::redownloadGamesCondition)
+    val redownloadGamesCondition by redownloadGamesConditionChannel
 }

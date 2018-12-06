@@ -16,11 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.adjustableTextField
-import javafx.geometry.Pos
-import javafx.scene.paint.Color
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.showWhen
+import tornadofx.Fragment
+import tornadofx.field
+import tornadofx.fieldset
+import tornadofx.form
 
 /**
  * User: ykrasik
@@ -31,7 +34,7 @@ class JavaFxGameDisplaySettingsView(settings: JavaFxOverlayDisplaySettings, name
     override val root = form {
         fieldset {
             field("Show") {
-                hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                defaultHbox {
                     jfxToggleButton(settings.enabledProperty)
                     jfxCheckBox(settings.showOnlyWhenActiveProperty, "Only When Active") {
                         showWhen { settings.enabledProperty }
@@ -42,39 +45,21 @@ class JavaFxGameDisplaySettingsView(settings: JavaFxOverlayDisplaySettings, name
         fieldset {
             showWhen { settings.enabledProperty }
             field("Position") {
-                hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
+                defaultHbox {
                     enumComboMenu(settings.positionProperty)
                     jfxCheckBox(settings.fillWidthProperty, "Fill Width")
                 }
             }
             field("Font") {
-                hbox(spacing = 5, alignment = Pos.CENTER_LEFT) {
-                    adjustableTextField(settings.fontSizeProperty, "Font Size", min = 1, max = 90)
+                defaultHbox {
+                    plusMinusSlider(settings.fontSizeProperty, min = 1, max = 90)
                     jfxCheckBox(settings.boldFontProperty, "Bold")
                     jfxCheckBox(settings.italicFontProperty, "Italic")
                 }
             }
-            field("Font Color") {
-                colorpicker {
-                    settings.textColorProperty.perform {
-                        value = Color.valueOf(it)
-                    }
-                    setOnAction {
-                        settings.textColor = value.toString()
-                    }
-                }
-            }
-            field("Background Color") {
-                colorpicker {
-                    settings.backgroundColorProperty.perform {
-                        value = Color.valueOf(it)
-                    }
-                    setOnAction {
-                        settings.backgroundColor = value.toString()
-                    }
-                }
-            }
-            field("Opacity") { percentSlider(settings.opacityProperty, min = 0, max = 1.0) }
+            field("Font Color") { jfxColorPicker(settings.textColorProperty) }
+            field("Background Color") { jfxColorPicker(settings.backgroundColorProperty) }
+            field("Opacity") { percentSlider(settings.opacityProperty) }
         }
     }
 }

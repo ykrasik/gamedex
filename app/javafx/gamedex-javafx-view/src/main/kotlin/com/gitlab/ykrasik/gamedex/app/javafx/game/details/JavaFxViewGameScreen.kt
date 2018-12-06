@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import javafx.beans.property.SimpleObjectProperty
@@ -65,7 +66,7 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     }
 
     override fun HBox.constructToolbar() {
-        editButton("Edit") { setOnAction { editGame(GameDataType.name_) } }
+        editButton("Edit") { action { editGame(GameDataType.name_) } }
         gap()
         toolbarButton("Tag", graphic = Icons.tag) { eventOnAction(tagGameActions) { game } }
         gap()
@@ -84,16 +85,15 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     }
 
     override val root = hbox {
-        setId(Style.gameDetailsViewContent)
+        paddingAll = 2
 
         // Left
         stackpane {
-            setId(Style.leftGameDetailsView)
             addClass(CommonStyle.card)
 
             popoverContextMenu {
                 jfxButton("Change Poster", graphic = Icons.poster) {
-                    setOnAction { editGame(GameDataType.poster) }
+                    action { editGame(GameDataType.poster) }
                 }
             }
 
@@ -110,12 +110,12 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
             }
         }
 
-        region { setId(Style.middleGameDetailsView) }
+        gap(size = 5)
 
         // Right
         vbox {
-            setId(Style.rightGameDetailsView)
             addClass(CommonStyle.card)
+            paddingAll = 5
             hgrow = Priority.ALWAYS
 
             // Top
@@ -124,7 +124,7 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
                 gameDetailsView.game = it
             }
 
-            separator { paddingTop = 10.0 }
+            verticalGap(size = 30)
 
             // Bottom
             addComponent(browser)
@@ -141,31 +141,12 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
 
     class Style : Stylesheet() {
         companion object {
-            val gameDetailsViewContent by cssid()
-            val leftGameDetailsView by cssid()
-            val middleGameDetailsView by cssid()
-            val rightGameDetailsView by cssid()
-
             init {
                 importStylesheetSafe(Style::class)
             }
         }
 
         init {
-            gameDetailsViewContent {
-                padding = box(2.px)
-            }
-
-            leftGameDetailsView {
-            }
-
-            middleGameDetailsView {
-                padding = box(2.px)
-            }
-
-            rightGameDetailsView {
-                padding = box(5.px)
-            }
         }
     }
 }

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.rename
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -26,8 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -66,7 +65,7 @@ class RenameMoveGamePresenter @Inject constructor(
             view.library = game.library
             view.path = game.rawGame.metadata.path.toFile().let { it.parentFile?.path ?: "" }
             view.name = view.initialName ?: game.rawGame.metadata.path.toFile().name
-            view.nameValidationError = null
+            validate()
         }
 
         private fun onSelectDirectory() {
@@ -82,56 +81,47 @@ class RenameMoveGamePresenter @Inject constructor(
         private fun onBrowseToGame() = view.browseTo(view.game.path)
 
         private fun validate() {
-            view.nameValidationError = run {
+            view.nameIsValid = IsValid.invoke {
+                val basePath = view.library.path.resolve(view.path).normalize()
+                val validBasePath = basePath.startsWith(view.library.path) &&
+                    (commonData.realLibraries - view.library).none { basePath.startsWith(it.path) }
+                if (!validBasePath) {
+                    error("Path is not in library '${view.library.name}'!")
+                }
+
+                if (view.name.isBlank()) {
+                    error("Empty name!")
+                }
+
+                check(!view.name.contains(File.separatorChar)) { "Invalid name!" }
                 try {
-                    val basePath = view.library.path.resolve(view.path).normalize()
-                    val validBasePath = basePath.startsWith(view.library.path) &&
-                        commonData.realLibraries.filter { !view.library.path.startsWith(it.path) }.none { basePath.startsWith(it.path) }
-                    if (!validBasePath) {
-                        return@run "Path is not in library '${view.library.name}'!"
-                    }
+                    Paths.get(basePath.resolve(view.name).toURI())
+                } catch (_: Exception) {
+                    error("Invalid name!")
+                }
 
-                    if (view.name.isBlank()) {
-                        return@run "Empty name!"
+                val file = basePath.resolve(view.name)
+                if (file.exists()) {
+                    // Windows is case insensitive.
+                    if (file.path == view.game.path.path || !file.path.equals(view.game.path.path, ignoreCase = true)) {
+                        error("Already exists!")
                     }
-
-                    val validName = !view.name.contains(File.separatorChar) && try {
-                        Paths.get(basePath.resolve(view.name).toURI())
-                        true
-                    } catch (e: Exception) {
-                        false
-                    }
-                    if (!validName) {
-                        return@run "Invalid name!"
-                    }
-
-                    val file = basePath.resolve(view.name)
-                    if (file.exists()) {
-                        // Windows is case insensitive.
-                        if (file.path == view.game.path.path || !file.path.equals(view.game.path.path, ignoreCase = true)) {
-                            return@run "Already exists!"
-                        }
-                    }
-                    null
-                } catch (e: Exception) {
-                    e.message
                 }
             }
+            view.canAccept = view.nameIsValid
         }
 
         private suspend fun onAccept() {
-            check(view.nameValidationError == null) { "Cannot accept invalid state!" }
-            withContext(Dispatchers.IO) {
-                val library = view.library
-                val game = view.game
-                val newPath = view.path.toFile().resolve(view.name)
-                val fullPath = library.path.resolve(newPath)
-                log.info("Renaming/Moving: ${game.path} -> $fullPath")
+            check(view.canAccept.isSuccess) { "Cannot accept invalid state!" }
+            val library = view.library
+            val game = view.game
+            val newPath = view.path.toFile().resolve(view.name)
+            val fullPath = library.path.resolve(newPath)
+            log.info("Renaming/Moving: ${game.path} -> $fullPath")
 
-                fileSystemService.move(from = game.path, to = fullPath)
+            fileSystemService.move(from = game.path, to = fullPath)
 
-                taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
-            }
+            taskService.execute(gameService.replace(game, game.rawGame.withMetadata { it.copy(libraryId = library.id, path = newPath.toString()) }))
 
             close()
         }

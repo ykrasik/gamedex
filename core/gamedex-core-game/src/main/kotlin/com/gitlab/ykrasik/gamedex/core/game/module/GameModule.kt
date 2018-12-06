@@ -29,10 +29,13 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGameChoos
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGamesWithoutProvidersPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverNewGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.RediscoverGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.download.*
+import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamePresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamesConditionPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.file.FileStructurePresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.filter.CurrentPlatformFilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.RenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.rename.ShowRenameMoveGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.tag.ShowTagGamePresenter
@@ -56,6 +59,7 @@ object GameModule : InternalCoreModule() {
         bindPresenter(GamesPresenter::class)
         bindPresenter(SearchGamesPresenter::class)
         bindPresenter(SelectPlatformPresenter::class)
+        bindPresenter(CurrentPlatformFilterPresenter::class)
         bindPresenter(SortGamesPresenter::class)
 
         bindPresenter(DeleteGamePresenter::class)
@@ -69,11 +73,9 @@ object GameModule : InternalCoreModule() {
         bindPresenter(DiscoverNewGamesPresenter::class)
         bindPresenter(RediscoverGamePresenter::class)
 
-        bindPresenter(GameRedownloadCreatedBeforePeriodPresenter::class)
-        bindPresenter(GameRedownloadUpdatedAfterPeriodPresenter::class)
         bindPresenter(RedownloadGamePresenter::class)
-        bindPresenter(RedownloadGamesCreatedBeforePresenter::class)
-        bindPresenter(RedownloadGamesUpdatedAfterPresenter::class)
+        bindPresenter(RedownloadGamesConditionPresenter::class)
+        bindPresenter(RedownloadGamesPresenter::class)
 
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)

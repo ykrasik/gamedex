@@ -17,10 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import javafx.scene.paint.Color
-import tornadofx.Stylesheet
-import tornadofx.cssclass
-import tornadofx.csselement
-import tornadofx.multi
+import tornadofx.*
 
 /**
  * User: ykrasik
@@ -29,6 +26,7 @@ import tornadofx.multi
  */
 class JFXStyle : Stylesheet() {
     companion object {
+        val jfxButton by cssclass()
         val jfxProgressBar by csselement("JFXProgressBar")
         val jfxSpinner by csselement("JFXSpinner")
 
@@ -48,6 +46,34 @@ class JFXStyle : Stylesheet() {
             }
             arc {
                 stroke = Color.ORANGE
+            }
+        }
+
+        spinner {
+            promptTextFill = Color.BLACK
+            textFill = Color.BLACK
+            backgroundColor = multi(Color.TRANSPARENT)
+            padding = box(0.px, 0.px, 3.px, 0.px)
+
+            incrementArrowButton {
+                backgroundColor = multi(Color.TRANSPARENT)
+                incrementArrow {
+                    backgroundColor = multi(c("#007cff"))
+                    fontSize = 30.px
+                }
+            }
+            decrementArrowButton {
+                backgroundColor = multi(Color.TRANSPARENT)
+                decrementArrow {
+                    backgroundColor = multi(c("#007cff"))
+                    fontSize = 30.px
+                }
+            }
+
+            textField {
+                backgroundColor = multi(Color.TRANSPARENT)
+                borderWidth = multi(box(0.px, 0.px, 1.px, 0.px))
+                borderColor = multi(box(c("#bdbdbd")))
             }
         }
     }

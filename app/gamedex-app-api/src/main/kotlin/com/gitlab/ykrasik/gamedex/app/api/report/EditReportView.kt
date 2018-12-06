@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -28,9 +29,11 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface EditReportView {
     var report: Report?
 
+    var canAccept: IsValid
+
     var name: String
     val nameChanges: ReceiveChannel<String>
-    var nameValidationError: String?
+    var nameIsValid: IsValid
 
     var filter: Filter
     val filterChanges: ReceiveChannel<Filter>

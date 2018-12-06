@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.color
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase
 import impl.org.controlsfx.behavior.RatingBehavior
+import javafx.event.EventTarget
 import javafx.geometry.Orientation
 import javafx.scene.Node
 import javafx.scene.layout.HBox
@@ -40,7 +41,18 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import org.controlsfx.control.Rating
 import org.controlsfx.tools.Utils
+import tornadofx.opcr
 import java.util.*
+
+inline fun EventTarget.fixedRating(
+    max: Int,
+    isPartial: Boolean = true,
+    op: Rating.() -> Unit = {}
+) = opcr(this, Rating(max)) {
+    isPartialRating = isPartial
+    skin = FixedRatingSkin(this)
+    op()
+}
 
 class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior>(control, RatingBehavior(control)) {
 //    private final EventHandler<MouseEvent> mouseMoveHandler = new EventHandler<MouseEvent>() {
@@ -265,10 +277,10 @@ class FixedRatingSkin(control: Rating) : BehaviorSkinBase<Rating, RatingBehavior
         // the list is vertical (as the buttons are ordered bottom to top).
         val buttons = ArrayList(backgroundContainer!!.children)
         if (isVertical) {
-            Collections.reverse(buttons)
+            buttons.reverse()
         }
 
-        for (i in 0..max - 1) {
+        for (i in 0 until max) {
             val button = buttons[i]
 
             val styleClass = button.styleClass

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import kotlinx.coroutines.channels.ReceiveChannel
 
@@ -27,7 +28,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface ProviderSettingsView {
     val provider: GameProvider
 
-    var state: ProviderAccountState
+    var status: ProviderAccountStatus
 
     var lastVerifiedAccount: Map<String, String>
 
@@ -38,11 +39,11 @@ interface ProviderSettingsView {
     val enabledChanges: ReceiveChannel<Boolean>
 
     val accountUrlClicks: ReceiveChannel<Unit>
-    val verifyAccountRequests: ReceiveChannel<Unit>
 
-    fun onInvalidAccount()
+    var canVerifyAccount: IsValid
+    val verifyAccountRequests: ReceiveChannel<Unit>
 }
 
-enum class ProviderAccountState {
+enum class ProviderAccountStatus {
     Valid, Invalid, Empty, Unverified, NotRequired
 }

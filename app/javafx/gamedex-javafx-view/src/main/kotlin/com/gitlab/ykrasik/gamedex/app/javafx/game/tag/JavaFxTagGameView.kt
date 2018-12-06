@@ -18,8 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.tag
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -47,15 +49,11 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
     override val checkTagChanges = channel<Pair<String, Boolean>>()
 
     override val newTagNameChanges = channel<String>()
-    private val viewModel = TagViewModel()
-    override var newTagName by viewModel.nameProperty
+    private val newTagNameProperty = SimpleStringProperty("").eventOnChange(newTagNameChanges)
+    override var newTagName by newTagNameProperty
 
-    private inner class TagViewModel : ViewModel() {
-        val nameProperty = presentableStringProperty(newTagNameChanges)
-    }
-
-    private val nameValidationErrorProperty = SimpleStringProperty(null)
-    override var nameValidationError by nameValidationErrorProperty
+    private val newTagNameIsValidProperty = SimpleObjectProperty(IsValid.valid)
+    override var newTagNameIsValid by newTagNameIsValidProperty
 
     override val addNewTagActions = channel<Unit>()
     override val acceptActions = channel<Unit>()
@@ -63,7 +61,6 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
 
     init {
         checkedTags.onChange { tags.invalidate() }
-        nameValidationErrorProperty.onChange { viewModel.validate() }
         viewRegistry.onCreate(this)
     }
 
@@ -79,15 +76,11 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
         center {
             vbox(spacing = 10) {
                 paddingAll = 10
-                gridpane {
-                    hgap = 5.0
-                    row {
-                        jfxToggleButton(toggleAllProperty, "Toggle All") {
-                            tooltip("Toggle all")
-                        }
-                        spacer()
-                        addTagButton()
+                defaultHbox {
+                    jfxToggleButton(toggleAllProperty, "Toggle All") {
+                        tooltip("Toggle all")
                     }
+                    addTagButton()
                 }
                 verticalGap()
                 existingTags()
@@ -97,17 +90,14 @@ class JavaFxTagGameView : PresentableView("Tag"), TagGameView {
 
     private fun EventTarget.addTagButton() {
         label("New Tag:")
-        val newTagName = textfield(viewModel.nameProperty) {
+        val newTagName = jfxTextField(newTagNameProperty, promptText = "Tag Name") {
             setId(Style.newTagTextField)
-            promptText = "Tag Name"
             isFocusTraversable = false
-            validator(ValidationTrigger.None) {
-                nameValidationError?.let { if (it.isEmpty()) null else error(it) }
-            }
+            validWhen(newTagNameIsValidProperty)
         }
 
         plusButton {
-            disableWhen { nameValidationErrorProperty.isNotNull }
+            enableWhen(newTagNameIsValidProperty)
             defaultButtonProperty().bind(newTagName.focusedProperty())
             eventOnAction(addNewTagActions)
         }

@@ -19,13 +19,14 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverGamesWithoutProviders
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDiscoverNewGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.control.popOver
+import com.gitlab.ykrasik.gamedex.javafx.control.toggle
 import com.gitlab.ykrasik.gamedex.javafx.syncButton
-import com.gitlab.ykrasik.gamedex.javafx.toggle
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.geometry.Pos
 import javafx.scene.input.MouseEvent
 import org.controlsfx.control.PopOver
+import tornadofx.action
 import tornadofx.separator
 import tornadofx.tooltip
 import tornadofx.useMaxWidth
@@ -65,7 +66,7 @@ class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, View
                 eventOnAction(discoverGamesWithoutProvidersActions)
             }
         }
-        setOnAction {
+        action {
             leftPopover.toggle(this)
             downPopover.toggle(this)
         }

@@ -19,12 +19,15 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.acceptButton
+import com.gitlab.ykrasik.gamedex.javafx.cancelButton
+import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.header
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.HPos
 import javafx.scene.layout.Priority
 import tornadofx.*
@@ -43,23 +46,23 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
     private val gameProperty = SimpleObjectProperty<Game>()
     override var game by gameProperty
 
+    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
+    override var canAccept by canAcceptProperty
+
     override val libraryChanges = channel<Library>()
+    private val libraryProperty = SimpleObjectProperty<Library>().eventOnChange(libraryChanges)
+    override var library by libraryProperty
+
     override val pathChanges = channel<String>()
+    private val pathProperty = SimpleObjectProperty<String>("").eventOnChange(pathChanges)
+    override var path by pathProperty
+
     override val nameChanges = channel<String>()
-    private val viewModel = RenameFolderViewModel()
+    private val nameProperty = SimpleObjectProperty<String>("").eventOnChange(nameChanges)
+    override var name by nameProperty
 
-    override var library by viewModel.libraryProperty
-    override var path by viewModel.pathProperty
-    override var name by viewModel.nameProperty
-
-    private inner class RenameFolderViewModel : ViewModel() {
-        val libraryProperty = presentableProperty(libraryChanges) { SimpleObjectProperty<Library>() }
-        val pathProperty = presentableStringProperty(pathChanges)
-        val nameProperty = presentableStringProperty(nameChanges)
-    }
-
-    private val nameValidationErrorProperty = SimpleStringProperty(null)
-    override var nameValidationError by nameValidationErrorProperty
+    private val nameIsValidProperty = SimpleObjectProperty(IsValid.valid)
+    override var nameIsValid by nameIsValidProperty
 
     override val selectDirectoryActions = channel<Unit>()
     override val browseToGameActions = channel<Unit>()
@@ -79,7 +82,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                 cancelButton { eventOnAction(cancelActions) }
                 spacer()
                 acceptButton {
-                    enableWhen { viewModel.valid }
+                    enableWhen(canAcceptProperty)
                     eventOnAction(acceptActions)
                 }
             }
@@ -102,7 +105,7 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
                             popoverComboMenu(
                                 possibleItems = possibleLibraries,
-                                selectedItemProperty = viewModel.libraryProperty,
+                                selectedItemProperty = libraryProperty,
                                 text = { it.path.path }
                             ).apply {
                                 gridpaneConstraints { columnRowIndex(0, 1); hAlignment = HPos.LEFT }
@@ -112,14 +115,14 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                             jfxButton {
                                 gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
-                                textProperty().bind(viewModel.pathProperty.map { if (it!!.isEmpty()) File.separator else it })
+                                textProperty().bind(pathProperty.stringBinding { if (it.isNullOrEmpty()) File.separator else it })
                                 eventOnAction(selectDirectoryActions)
                             }
 
                             header("Name") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
-                            textfield(viewModel.nameProperty) {
+                            jfxTextField(nameProperty) {
                                 gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
-                                validatorFrom(viewModel, nameValidationErrorProperty)
+                                validWhen(nameIsValidProperty)
                             }
                         }
                     }

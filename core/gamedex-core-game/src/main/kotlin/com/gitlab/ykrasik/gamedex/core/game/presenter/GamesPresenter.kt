@@ -53,6 +53,7 @@ class GamesPresenter @Inject constructor(
             SortBy.criticScore -> criticScoreComparator.then(nameComparator)
             SortBy.userScore -> userScoreComparator.then(nameComparator)
             SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+            SortBy.maxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.size -> compareBy<Game> { fileSystemService.structure(it).size }.then(nameComparator)
             SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
@@ -70,7 +71,6 @@ class GamesPresenter @Inject constructor(
         settingsService.platforms[platform]!!.dataChannel.subscribe()
     }.map { settings ->
         val context = filterContextFactory.create(emptyList())
-        // TODO: This will not handle cases where re-downloading (or re-discovering) a game made the game have a different name that no longer matches the search.
         val matches = gameSearchService.search(settings.search).map { it.id }
         return@map { game: Game ->
             (settings.search.isBlank() || matches.contains(game.id)) && settings.filter.evaluate(game, context)

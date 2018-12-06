@@ -19,8 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.acceptButton
+import com.gitlab.ykrasik.gamedex.javafx.cancelButton
+import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.size
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -36,26 +41,26 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     private val libraryProperty = SimpleObjectProperty<Library?>(null)
     override var library by libraryProperty
 
+    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
+    override var canAccept by canAcceptProperty
+
     override val nameChanges = channel<String>()
+    private val nameProperty = SimpleStringProperty("").eventOnChange(nameChanges)
+    override var name by nameProperty
+
+    private val nameIsValidProperty = SimpleObjectProperty(IsValid.valid)
+    override var nameIsValid by nameIsValidProperty
+    
     override val pathChanges = channel<String>()
+    private val pathProperty = SimpleStringProperty("").eventOnChange(pathChanges)
+    override var path by pathProperty
+
+    private val pathIsValidProperty = SimpleObjectProperty(IsValid.valid)
+    override var pathIsValid by pathIsValidProperty
+
     override val platformChanges = channel<Platform>()
-
-    private val viewModel = LibraryViewModel()
-    override var name by viewModel.nameProperty
-    override var path by viewModel.pathProperty
-    override var platform by viewModel.platformProperty
-
-    private inner class LibraryViewModel : ViewModel() {
-        val nameProperty = presentableStringProperty(nameChanges)
-        val pathProperty = presentableStringProperty(pathChanges)
-        val platformProperty = presentableProperty(platformChanges) { SimpleObjectProperty(Platform.pc) }
-    }
-
-    private val nameValidationErrorProperty = SimpleStringProperty(null)
-    override var nameValidationError by nameValidationErrorProperty
-
-    private val pathValidationErrorProperty = SimpleStringProperty(null)
-    override var pathValidationError by pathValidationErrorProperty
+    private val platformProperty = SimpleObjectProperty<Platform>(Platform.pc).eventOnChange(platformChanges)
+    override var platform by platformProperty
 
     override val browseActions = channel<Unit>()
     override val acceptActions = channel<Unit>()
@@ -72,7 +77,7 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
                 cancelButton { eventOnAction(cancelActions) }
                 spacer()
                 acceptButton {
-                    enableWhen { viewModel.valid }
+                    enableWhen(canAcceptProperty)
                     eventOnAction(acceptActions)
                 }
             }
@@ -82,7 +87,9 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
                 minWidth = 600.0
                 fieldset {
                     pathField()
+                    verticalGap()
                     nameField()
+                    verticalGap()
                     platformField()
                 }.apply { textProperty.bind(titleProperty) }
             }
@@ -90,8 +97,8 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     }
 
     private fun Fieldset.pathField() = field("Path") {
-        textfield(viewModel.pathProperty) {
-            validatorFrom(viewModel, pathValidationErrorProperty)
+        jfxTextField(pathProperty, promptText = "Library Path") {
+            validWhen(pathIsValidProperty)
         }
         jfxButton("Browse", Icons.folderOpen.size(24)) {
             eventOnAction(browseActions)
@@ -99,14 +106,14 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
     }
 
     private fun Fieldset.nameField() = field("Name") {
-        textfield(viewModel.nameProperty) {
-            validatorFrom(viewModel, nameValidationErrorProperty)
+        jfxTextField(nameProperty, promptText = "Library Name") {
+            validWhen(nameIsValidProperty)
         }
     }
 
     private fun Fieldset.platformField() = field("Platform") {
         enableWhen { libraryProperty.isNull }
-        platformComboBox(viewModel.platformProperty)
+        platformComboBox(platformProperty)
     }
 
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)

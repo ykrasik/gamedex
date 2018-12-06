@@ -14,31 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.download
+package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGamesUpdatedAfter
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
-import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 13:11
+ * Date: 09/12/2018
+ * Time: 13:59
  */
-@Singleton
-class RedownloadGamesUpdatedAfterPresenter @Inject constructor(
-    private val gameDownloadService: GameDownloadService,
-    private val taskService: TaskService
-) : Presenter<ViewCanRedownloadGamesUpdatedAfter> {
-    override fun present(view: ViewCanRedownloadGamesUpdatedAfter) = object : ViewSession() {
-        init {
-            view.redownloadGamesUpdatedAfterActions.forEach {
-                taskService.execute(gameDownloadService.redownloadGamesUpdatedAfterPeriod())
-            }
-        }
-    }
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = Either.Left::class, name = "left"),
+    JsonSubTypes.Type(value = Either.Right::class, name = "right")
+)
+sealed class Either<out A, out B> {
+    data class Left<A>(val value: A) : Either<A, Nothing>()
+    data class Right<B>(val value: B) : Either<Nothing, B>()
 }

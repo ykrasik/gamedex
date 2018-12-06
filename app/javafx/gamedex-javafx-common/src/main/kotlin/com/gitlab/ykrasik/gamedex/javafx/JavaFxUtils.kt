@@ -24,21 +24,16 @@ import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
-import javafx.scene.control.*
-import javafx.scene.image.Image
-import javafx.scene.image.ImageView
-import javafx.scene.input.MouseEvent
+import javafx.scene.control.Separator
+import javafx.scene.control.TableColumnBase
+import javafx.scene.control.ToolBar
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.util.Duration
-import kotlinx.coroutines.*
-import kotlinx.coroutines.javafx.JavaFx
-import org.controlsfx.glyphfont.FontAwesome
-import org.controlsfx.glyphfont.Glyph
 import tornadofx.*
-import java.io.ByteArrayInputStream
 import kotlin.reflect.KClass
 
 /**
@@ -47,8 +42,6 @@ import kotlin.reflect.KClass
  * Time: 20:45
  */
 val screenBounds: Rectangle2D = Screen.getPrimary().bounds
-
-fun javaFx(f: suspend CoroutineScope.() -> Unit): Job = GlobalScope.launch(Dispatchers.JavaFx, block = f)
 
 private object StylesheetLock
 
@@ -64,17 +57,8 @@ fun UIComponent.callOnUndock() {
     onUndockListeners?.forEach { it.invoke(this) }
 }
 
-fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
-inline fun Image.toImageView(height: Number? = null, width: Number? = null, f: ImageView.() -> Unit = {}): ImageView = toImageView {
-    height?.let { fitHeight = it.toDouble() }
-    width?.let { fitWidth = it.toDouble() }
-    isPreserveRatio = true
-    f(this)
-}
-
-inline fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
-
-fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
+fun EventTarget.defaultHbox(spacing: Number = 5, alignment: Pos = Pos.CENTER_LEFT, op: HBox.() -> Unit = {}) =
+    hbox(spacing, alignment, op)
 
 fun Region.printSize(id: String) {
     printWidth(id)
@@ -111,14 +95,6 @@ private fun printSize(
     actual.printChanges("$id $sizeName")
 }
 
-fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView = apply {
-    imageProperty().onChange {
-        fade(fadeInDuration, 1.0, play = true) {
-            fromValue = 0.0
-        }
-    }
-}
-
 fun Region.padding(op: (InsetBuilder.() -> Unit)) {
     val builder = InsetBuilder(this)
     op(builder)
@@ -138,38 +114,6 @@ fun EventTarget.verticalSeparator(padding: Number? = 10, op: Separator.() -> Uni
     }
 }
 
-fun FontAwesome.Glyph.toGraphic(op: (Glyph.() -> Unit)? = null) = Glyph("FontAwesome", this).apply {
-    op?.invoke(this)
-}
-
-fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
-    val tableView = this
-    var lastSelectedRow: TableRow<S>? = null
-    setRowFactory {
-        TableRow<S>().apply {
-            selectedProperty().onChange {
-                if (it) lastSelectedRow = this
-            }
-            if (onClickAgain) {
-                addEventFilter(MouseEvent.MOUSE_PRESSED) { e ->
-                    if (index >= 0 && index < tableView.items.size && tableView.selectionModel.isSelected(index)) {
-                        tableView.selectionModel.clearSelection()
-                        e.consume()
-                    }
-                }
-            }
-        }
-    }
-    addEventFilter(MouseEvent.MOUSE_CLICKED) { e ->
-        lastSelectedRow?.let { row ->
-            val boundsOfSelectedRow = row.localToScene(row.layoutBounds)
-            if (!boundsOfSelectedRow.contains(e.sceneX, e.sceneY)) {
-                tableView.selectionModel.clearSelection()
-            }
-        }
-    }
-}
-
 fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
     val shouldShow = expr()
     managedWhen { shouldShow }
@@ -178,23 +122,6 @@ fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
 
 fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
-}
-
-fun EventTarget.labeled(text: String, styleClasses: List<CssRule> = emptyList(), f: Pane.() -> Unit) = hbox(spacing = 5.0) {
-    alignment = Pos.CENTER_LEFT
-    val label = label(text) {
-        styleClasses.forEach { addClass(it) }
-    }
-    val fakePane = Pane()
-    f(fakePane)
-    label.labelFor = fakePane.children.first()
-    children += fakePane.children
-}
-
-fun <T> TableView<T>.minWidthFitContent(indexColumn: TableColumn<T, Number>? = null) {
-    minWidthProperty().bind(contentColumns.fold(indexColumn?.widthProperty()?.subtract(10) ?: 0.0.toProperty()) { binding, column ->
-        binding.add(column.widthProperty())
-    })
 }
 
 fun Node.flash(duration: Duration = 0.15.seconds, target: Double = 0.0, reverse: Boolean = false): FadeTransition =

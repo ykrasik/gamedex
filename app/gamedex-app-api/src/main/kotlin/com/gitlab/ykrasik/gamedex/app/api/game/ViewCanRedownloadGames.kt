@@ -14,44 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 21/04/2018
- * Time: 16:45
+ * Date: 06/05/2018
+ * Time: 09:38
  */
-class InitOnceGlobal<T> : ReadWriteProperty<Nothing?, T> {
-    private var value: Any? = EMPTY
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getValue(thisRef: Nothing?, property: KProperty<*>): T {
-        check(value != EMPTY) { "Value wasn't initialized yet!" }
-        return value as T
-    }
-
-    override fun setValue(thisRef: Nothing?, property: KProperty<*>, value: T) {
-        check(this.value == EMPTY) { "Value was already initialized: ${this.value}" }
-        this.value = value
-    }
+interface ViewCanRedownloadGames {
+    val redownloadGamesActions: ReceiveChannel<Unit>
 }
-
-class InitOnce<T> : ReadWriteProperty<Any, T> {
-    private var value: Any? = EMPTY
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getValue(thisRef: Any, property: KProperty<*>): T {
-        check(value != EMPTY) { "Value wasn't initialized yet!" }
-        return value as T
-    }
-
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        check(this.value == EMPTY) { "Value was already initialized: ${this.value}" }
-        this.value = value
-    }
-}
-
-private object EMPTY

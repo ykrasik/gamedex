@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -42,7 +43,7 @@ class TagGamePresenter @Inject constructor(
     private val viewManager: ViewManager
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : ViewSession() {
-        private var ignoreNextUncheckAll = false
+        private var ignoreNextUncheckAll = false  // FIXME: Get rid of this.
 
         init {
             view.checkAllChanges.forEach { onCheckAllChanged(it) }
@@ -59,7 +60,8 @@ class TagGamePresenter @Inject constructor(
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)
             view.toggleAll = view.tags.toSet() == game.tags.toSet()
-            view.nameValidationError = null
+            view.newTagName = ""
+            validateNewTag("")
             ignoreNextUncheckAll = false
         }
 
@@ -89,10 +91,13 @@ class TagGamePresenter @Inject constructor(
         }
 
         private fun onNewTagNameChanged(name: String) {
-            view.nameValidationError = when {
-                name.isEmpty() -> ""
-                view.tags.contains(name) -> "Tag already exists!"
-                else -> null
+            validateNewTag(name)
+        }
+
+        private fun validateNewTag(name: String) {
+            view.newTagNameIsValid = IsValid.invoke {
+                if (name.isEmpty()) error("Empty Name!")
+                if (view.tags.contains(name)) error("Tag already exists!")
             }
         }
 

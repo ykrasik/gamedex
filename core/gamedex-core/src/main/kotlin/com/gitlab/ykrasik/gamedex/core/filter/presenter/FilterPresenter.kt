@@ -16,23 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
-import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
-import com.gitlab.ykrasik.gamedex.app.api.game.MenuGameFilterView
-import com.gitlab.ykrasik.gamedex.app.api.game.ReportGameFilterView
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.setAll
-import com.gitlab.ykrasik.gamedex.util.toDate
+import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
+import kotlin.reflect.full.superclasses
 
 /**
  * User: ykrasik
@@ -40,45 +35,54 @@ import kotlin.reflect.KClass
  * Time: 12:17
  */
 // FIXME: This does not live-update possible tags & genres, and possibly libraries
-abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
+@Singleton
+class FilterPresenter @Inject constructor(
     private val commonData: CommonData,
-    protected val settingsService: SettingsService,
-    private val bindPlatform: Boolean
-) : Presenter<V> {
-    protected abstract val excludedRules: List<KClass<out Filter.Rule>>
-    protected abstract val alwaysShowAllRules: Boolean
-    protected abstract val libraries: ListObservable<Library>
-    protected abstract val genres: ListObservable<String>
-    protected abstract val tags: ListObservable<String>
+    private val settingsService: SettingsService
+) : Presenter<GameFilterView> {
+    override fun present(view: GameFilterView) = object : ViewSession() {
+        private val excludedRules =
+            if (view.onlyShowConditionsForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
+            else emptyList()
 
-    private val operators = mapOf(
-        Filter.And::class to { Filter.And() },
-        Filter.Or::class to { Filter.Or() }
-    )
+        private val libraries = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformLibraries else commonData.realLibraries
+        private val genres = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformGenres else commonData.genres
+        private val tags = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformTags else commonData.tags
 
-    private val rules = mapOf(
-        Filter.Platform::class to { Filter.Platform(Platform.pc) },
-        Filter.Library::class to {
-            // TODO: Consider making the library here optional, as there are cases where this filter is accessed without any libraries available.
-            Filter.Library(libraries.first().id)
-        },
-        Filter.Genre::class to { Filter.Genre(genres.firstOrNull() ?: "") },
-        Filter.Tag::class to { Filter.Tag(tags.firstOrNull() ?: "") },
-        Filter.ReleaseDate::class to { Filter.ReleaseDate("2014-01-01".toDate()) },
-        Filter.Provider::class to { Filter.Provider(commonData.allProviders.first().id) },
-        Filter.CriticScore::class to { Filter.CriticScore(60.0) },
-        Filter.UserScore::class to { Filter.UserScore(60.0) },
-        Filter.AvgScore::class to { Filter.AvgScore(60.0) },
-        Filter.FileSize::class to { Filter.FileSize(FileSize(1024L * 1024 * 1024 * 10)) },
-        Filter.Duplications::class to { Filter.Duplications() },
-        Filter.NameDiff::class to { Filter.NameDiff() }
-    ).filterKeys { !excludedRules.contains(it) }
+        private val operators = listOf(
+            ConditionBuilder.singleParam<Filter.Not, Filter>(Filter::Not) { Filter.True() },
+            ConditionBuilder.twoParams<Filter.And, Filter, Filter>(Filter::And, { Filter.True() }, { Filter.True() }),
+            ConditionBuilder.twoParams<Filter.Or, Filter, Filter>(Filter::Or, { Filter.True() }, { Filter.True() })
+        ).associateBy { it.klass }.toMap()
 
-    private val rulesList = rules.keys.toList()
+        private val rules = listOf(
+            ConditionBuilder.singleParam(Filter::Platform) { Platform.pc },
+            ConditionBuilder.singleParam(Filter::Library) { libraries.first().id },
+            ConditionBuilder.singleParam(Filter::Genre) { genres.firstOrNull() ?: "" },
+            ConditionBuilder.singleParam(Filter::Tag) { tags.firstOrNull() ?: "" },
+            ConditionBuilder.singleParam(Filter::Provider) { commonData.allProviders.first().id },
+            ConditionBuilder.singleParam(Filter::CriticScore) { 60.0 },
+            ConditionBuilder.noParams(Filter::NullCriticScore),
+            ConditionBuilder.singleParam(Filter::UserScore) { 60.0 },
+            ConditionBuilder.noParams(Filter::NullUserScore),
+            ConditionBuilder.singleParam(Filter::AvgScore) { 60.0 },
+            ConditionBuilder.noParams(Filter::NullAvgScore),
+            ConditionBuilder.singleParam(Filter::MinScore) { 60.0 },
+            ConditionBuilder.singleParam(Filter::MaxScore) { 60.0 },
+            ConditionBuilder.singleParam(Filter::TargetReleaseDate) { "2014-01-01".toDate() },
+            ConditionBuilder.singleParam(Filter::PeriodReleaseDate) { 1.years },
+            ConditionBuilder.noParams(Filter::NullReleaseDate),
+            ConditionBuilder.singleParam(Filter::TargetCreateDate) { "2014-01-01".toDate() },
+            ConditionBuilder.singleParam(Filter::PeriodCreateDate) { 2.months },
+            ConditionBuilder.singleParam(Filter::TargetUpdateDate) { "2014-01-01".toDate() },
+            ConditionBuilder.singleParam(Filter::PeriodUpdateDate) { 2.months },
+            ConditionBuilder.singleParam(Filter::FileSize) { FileSize(10.gb) },
+            ConditionBuilder.noParams(Filter::Duplications),
+            ConditionBuilder.noParams(Filter::NameDiff)
+        ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 
-    private fun createRule(klass: KClass<out Filter>): Filter = (rules[klass] ?: operators[klass])!!()
+        private val rulesList = rules.keys.toList()
 
-    override fun present(view: V) = object : ViewSession() {
         init {
             genres.bindTo(view.possibleGenres)
             genres.changesChannel.forEach { setPossibleRules() }
@@ -89,19 +93,13 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
             // Providers are a static configuration that can't change during runtime, so no need to listen to changes.
             view.possibleProviderIds.setAll(commonData.allProviders.map { it.id })
 
-            libraries.changesChannel.forEach {
-                setPossibleLibraries()
-                setPossibleRules()
-            }
+            setState()
+            libraries.changesChannel.forEach { setState() }
 
-            if (bindPlatform) {
+            if (view.onlyShowConditionsForCurrentPlatform) {
 //            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
                 // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
-                settingsService.game.platformChannel.forEachImmediately {
-                    setState(currentPlatformFilter = true)
-                }
-            } else {
-                setState(currentPlatformFilter = false)
+                settingsService.game.platformChannel.forEach { setState() }
             }
 
             view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(it)) }
@@ -114,9 +112,8 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
             view.deleteFilterActions.forEach { deleteFilter(it) }
         }
 
-        private fun setState(currentPlatformFilter: Boolean) {
+        private fun setState() {
             setPossibleLibraries()
-            view.filter = if (currentPlatformFilter) settingsService.currentPlatformSettings.filter else Filter.`true`
             setPossibleRules()
         }
 
@@ -128,7 +125,7 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
 
         private fun setPossibleRules() {
             val rules: List<KClass<out Filter.Rule>> = when {
-                alwaysShowAllRules -> rulesList
+                !view.onlyShowConditionsForCurrentPlatform -> rulesList
                 commonData.games.size <= 1 -> emptyList()
                 else -> {
                     val rules = rulesList.toMutableList()
@@ -154,55 +151,113 @@ abstract class BaseGameFilterPresenter<V : GameFilterView> constructor(
         }
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
-            val newRule = createRule(with).let { newRule ->
-                if (filter is Filter.BinaryOperator && newRule is Filter.BinaryOperator) {
-                    newRule.new(filter.left, filter.right)
-                } else {
-                    newRule
-                }
+            val conditionBuilder = when {
+                filter is Filter.BinaryOperator && with.superclasses.first() == Filter.BinaryOperator::class ->
+                    @Suppress("UNCHECKED_CAST")
+                    newBinaryOperator(from = filter, to = with as KClass<out Filter.BinaryOperator>) { it }
+                filter is Filter.TargetScore && with.superclasses.first() == Filter.TargetScore::class ->
+                    rules[with]!!.withParams(filter.target)
+                filter is Filter.TargetDate && with.superclasses.first() == Filter.TargetDate::class ->
+                    rules[with]!!.withParams(filter.date)
+                filter is Filter.PeriodDate && with.superclasses.first() == Filter.PeriodDate::class ->
+                    rules[with]!!.withParams(filter.period)
+                else ->
+                    rules[with]!!
             }
+            val newRule = conditionBuilder()
             replaceFilter(filter, newRule)
         }
 
-        private fun replaceFilter(filter: Filter, with: Filter) = modifyRootFilter {
-            replace(filter, with)
-        }
+        private fun replaceFilter(filter: Filter, with: Filter) = modifyFilter { replace(filter, with) }
 
-        private fun deleteFilter(filter: Filter) = modifyRootFilter {
-            delete(filter) ?: Filter.`true`
-        }
+        private fun deleteFilter(filter: Filter) = modifyFilter { delete(filter) ?: Filter.`true` }
 
-        private fun modifyRootFilter(f: Filter.() -> Filter) {
+        private fun modifyFilter(f: Filter.() -> Filter) {
             view.filter = f(view.filter)
-            afterFilterSet(view.filter)
+        }
+
+        private fun Filter.replace(target: Filter, with: Filter): Filter {
+            fun doReplace(current: Filter): Filter = when {
+                current === target -> with
+                current is Filter.BinaryOperator -> newBinaryOperator(current, transform = ::doReplace)()
+                current is Filter.UnaryOperator -> newUnaryOperator(current, transform = ::doReplace)()
+                else -> current
+            }
+            return doReplace(this)
+        }
+
+        private fun Filter.delete(target: Filter): Filter? {
+            fun doDelete(current: Filter): Filter? = when {
+                current === target -> null
+                current is Filter.BinaryOperator -> {
+                    val newLeft = doDelete(current.left)
+                    val newRight = doDelete(current.right)
+                    when {
+                        newLeft != null && newRight != null -> newBinaryOperator(current).withParams(newLeft, newRight)()
+                        newLeft != null -> newLeft
+                        else -> newRight
+                    }
+                }
+                current is Filter.UnaryOperator -> {
+                    val newRule = doDelete(current.target)
+                    if (newRule != null) newUnaryOperator(current).withParams(newRule)() else null
+                }
+                else -> current
+            }
+            return doDelete(this)
+        }
+
+        private fun newBinaryOperator(
+            from: Filter.BinaryOperator,
+            to: KClass<out Filter.BinaryOperator> = from::class,
+            transform: ((Filter) -> Filter)? = null
+        ) = operators[to]!!.let { new ->
+            if (transform == null) {
+                new
+            } else {
+                new.withParams(transform(from.left), transform(from.right))
+            }
+        }
+
+        private fun newUnaryOperator(
+            from: Filter.UnaryOperator,
+            to: KClass<out Filter.UnaryOperator> = from::class,
+            transform: ((Filter) -> Filter)? = null
+        ) = operators[to]!!.let { new ->
+            if (transform == null) {
+                new
+            } else {
+                new.withParams(transform(from.target))
+            }
         }
     }
 
-    protected abstract fun afterFilterSet(filter: Filter)
-}
+    private data class ConditionBuilder<T : Filter>(
+        val klass: KClass<T>,
+        private val param1: Any? = null,
+        private val param2: Any? = null,
+        private val build: (Any?, Any?) -> T
+    ) {
+        fun withParams(param1: Any? = null, param2: Any? = null) =
+            copy(param1 = param1, param2 = param2)
 
-@Singleton
-class MenuGameFilterPresenter @Inject constructor(commonData: CommonData, settingsService: SettingsService) :
-    BaseGameFilterPresenter<MenuGameFilterView>(commonData, settingsService, bindPlatform = true) {
-    override val excludedRules get() = listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
-    override val alwaysShowAllRules = false
-    override val libraries = commonData.platformLibraries
-    override val genres = commonData.platformGenres
-    override val tags = commonData.platformTags
+        operator fun invoke(): T = this.build(param1, param2)
 
-    override fun afterFilterSet(filter: Filter) {
-        settingsService.currentPlatformSettings.modify { copy(filter = filter) }
+        companion object {
+            inline operator fun <reified T : Filter> invoke(crossinline build: (Any?, Any?) -> T): ConditionBuilder<T> =
+                ConditionBuilder(T::class) { param1, param2 -> build(param1, param2) }
+
+            inline fun <reified T : Filter> noParams(crossinline factory: () -> T): ConditionBuilder<T> =
+                ConditionBuilder { _, _ -> factory() }
+
+            inline fun <reified T : Filter, reified A> singleParam(crossinline factory: (A) -> T, crossinline default: () -> A): ConditionBuilder<T> =
+                ConditionBuilder { param, _ -> factory(param as? A ?: default()) }
+
+            inline fun <reified T : Filter, reified A, reified B> twoParams(
+                crossinline factory: (A, B) -> T,
+                crossinline defaultA: () -> A,
+                crossinline defaultB: () -> B
+            ): ConditionBuilder<T> = ConditionBuilder { param1, param2 -> factory(param1 as? A ?: defaultA(), param2 as? B ?: defaultB()) }
+        }
     }
-}
-
-@Singleton
-class ReportGameFilterPresenter @Inject constructor(commonData: CommonData, settingsService: SettingsService) :
-    BaseGameFilterPresenter<ReportGameFilterView>(commonData, settingsService, bindPlatform = false) {
-    override val excludedRules get() = emptyList<KClass<out Filter.Rule>>()
-    override val alwaysShowAllRules = true
-    override val libraries = commonData.realLibraries
-    override val genres = commonData.genres
-    override val tags = commonData.tags
-
-    override fun afterFilterSet(filter: Filter) {}
 }

@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.javafx.control.buttonWithPopover
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.util.browse
 import com.jfoenix.controls.JFXButton
-import javafx.beans.property.Property
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -70,12 +71,15 @@ object Icons {
     val invalid get() = fontIcon(MaterialDesign.MDI_SHIELD_OFF, color = red)
     val unverified get() = fontIcon(MaterialDesign.MDI_SHIELD_OUTLINE, color = orange)
     val excluded get() = fontIcon(MaterialDesign.MDI_CLOSE_OUTLINE, color = red)
+    val checked get() = fontIcon(MaterialDesign.MDI_CHECKBOX_MARKED_OUTLINE, color = green)
+    val checkX get() = fontIcon(MaterialDesign.MDI_CLOSE_BOX_OUTLINE, color = red)
 
     val add get() = fontIcon(MaterialDesign.MDI_PLUS_CIRCLE, color = green)
     val plus get() = fontIcon(MaterialDesign.MDI_PLUS, color = green)
     val minus get() = fontIcon(MaterialDesign.MDI_MINUS, color = red)
     val arrowLeft get() = fontIcon(MaterialDesign.MDI_ARROW_LEFT)
     val arrowRight get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT)
+    val chevronRight get() = fontIcon(MaterialDesign.MDI_CHEVRON_RIGHT)
 
     val tune get() = fontIcon(MaterialDesign.MDI_TUNE_VERTICAL)
     val filter get() = fontIcon(MaterialDesign.MDI_FILTER)
@@ -99,9 +103,16 @@ object Icons {
     val text get() = fontIcon(MaterialDesign.MDI_FORMAT_COLOR_TEXT)
     val enterText get() = fontIcon(MaterialDesign.MDI_RENAME_BOX, color = orange)
     val textbox get() = fontIcon(MaterialDesign.MDI_TEXTBOX)
-    val calendar get() = fontIcon(MaterialDesign.MDI_CALENDAR)
+    val documents get() = fontIcon(MaterialDesign.MDI_BOOK_MULTIPLE_VARIANT)
+    val date get() = fontIcon(MaterialDesign.MDI_CALENDAR)
+    val createDate get() = fontIcon(MaterialDesign.MDI_CALENDAR_PLUS)
+    val updateDate get() = fontIcon(MaterialDesign.MDI_CALENDAR_EDIT)
     val thumbnail get() = fontIcon(MaterialDesign.MDI_FILE_IMAGE)
     val poster get() = fontIcon(MaterialDesign.MDI_IMAGE)
+    val screenshots get() = fontIcon(MaterialDesign.MDI_IMAGE_MULTIPLE)
+    val duplicate get() = fontIcon(MaterialDesign.MDI_CONTENT_DUPLICATE)
+    val diff get() = fontIcon(MaterialDesign.MDI_VECTOR_DIFFERENCE)
+    val select get() = fontIcon(MaterialDesign.MDI_SELECT)
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER)
@@ -109,13 +120,22 @@ object Icons {
     val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE)
     val folderOpen get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN)
     val folderSearch get() = fontIcon(MaterialDesign.MDI_FOLDER_SEARCH_OUTLINE)
+    val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
+    val fileQuestion get() = fontIcon(MaterialDesign.MDI_FILE_QUESTION)
 
     val download get() = fontIcon(MaterialDesign.MDI_CLOUD_DOWNLOAD)
     val upload get() = fontIcon(MaterialDesign.MDI_CLOUD_UPLOAD)
     val export get() = fontIcon(MaterialDesign.MDI_EXPORT)
     val import get() = fontIcon(MaterialDesign.MDI_IMPORT)
     val database get() = fontIcon(MaterialDesign.MDI_DATABASE)
+    val addNetwork get() = fontIcon(MaterialDesign.MDI_PLUS_NETWORK)
+    val siteMap get() = fontIcon(MaterialDesign.MDI_SITEMAP)
+    val tournament get() = fontIcon(MaterialDesign.MDI_TOURNAMENT)
+    val history get() = fontIcon(MaterialDesign.MDI_HISTORY)
+    val clockStart get() = fontIcon(MaterialDesign.MDI_CLOCK_START)
+    val clockEnd get() = fontIcon(MaterialDesign.MDI_CLOCK_END)
 
+    val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)
     val android get() = fontIcon(MaterialDesign.MDI_ANDROID, Color.FORESTGREEN)
     val apple get() = fontIcon(MaterialDesign.MDI_APPLE, Color.GRAY)
@@ -125,9 +145,23 @@ object Icons {
     val warning get() = fontIcon(MaterialDesign.MDI_ALERT_OUTLINE, color = Color.ORANGE)
     val error get() = fontIcon(MaterialDesign.MDI_CLOSE_BOX_OUTLINE, color = Color.INDIANRED)
     val exclamation get() = fontIcon(MaterialDesign.MDI_EXCLAMATION, color = Color.RED)
+    val or get() = fontIcon(MaterialDesign.MDI_GATE_OR)
+    val and get() = fontIcon(MaterialDesign.MDI_GATE_AND)
+    val validationError get() = warning.color(Color.RED)
+
+    val equal get() = fontIcon(MaterialDesign.MDI_EQUAL)
+    val notEqual get() = fontIcon(MaterialDesign.MDI_NOT_EQUAL_VARIANT)
+    val gtOrEq get() = fontIcon(MaterialDesign.MDI_GREATER_THAN_OR_EQUAL)
+    val lt get() = fontIcon(MaterialDesign.MDI_LESS_THAN)
+    val min get() = fontIcon(MaterialDesign.MDI_ARROW_COLLAPSE_DOWN)
+    val max get() = fontIcon(MaterialDesign.MDI_CHART_BELL_CURVE)
+    val contain get() = fontIcon(MaterialDesign.MDI_SET_LEFT_CENTER)
+    val notContain get() = fontIcon(MaterialDesign.MDI_SET_LEFT)
+    val `null` get() = fontIcon(MaterialDesign.MDI_NULL)
 
     val starFull get() = fontIcon(MaterialDesign.MDI_STAR)
     val starEmpty get() = fontIcon(MaterialDesign.MDI_STAR_OUTLINE)
+    val starHalf get() = fontIcon(MaterialDesign.MDI_STAR_HALF)
 
     val logTrace get() = fontIcon(MaterialDesign.MDI_ALPHA_T_BOX, color = Color.LIGHTGRAY)
     val logDebug get() = fontIcon(MaterialDesign.MDI_ALPHA_D_BOX, color = Color.GRAY)
@@ -256,18 +290,10 @@ val Platform.logo
         else -> kotlin.error("Unknown platform: $this")
     }.size(26)
 
-fun EventTarget.platformComboBox(selected: Property<Platform>) = enumComboMenu(
-    selectedItemProperty = selected,
-    styleClass = CommonStyle.platformItem,
-    itemStyleClass = CommonStyle.fillAvailableWidth,
-    text = Platform::displayName,
-    graphic = { it.logo }
-)
-
 @Deprecated("Delegate to presenter for this.")
 inline fun EventTarget.pathButton(path: File, op: JFXButton.() -> Unit = {}) = jfxButton(path.path) {
     isFocusTraversable = false
-    setOnAction { browse(path) }
+    action { browse(path) }
     op(this)
 }
 

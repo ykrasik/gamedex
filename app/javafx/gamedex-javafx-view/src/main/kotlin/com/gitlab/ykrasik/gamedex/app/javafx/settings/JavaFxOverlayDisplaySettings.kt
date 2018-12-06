@@ -21,8 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.MutableOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.eventOnChange
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
 import tornadofx.onChange
@@ -51,7 +49,7 @@ class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings {
     override var fillWidth by fillWidthProperty
 
     override val fontSizeChanges = channel<Int>()
-    val fontSizeProperty = SimpleIntegerProperty().eventOnChange(fontSizeChanges) { it.toInt() }
+    val fontSizeProperty = SimpleObjectProperty<Int>().eventOnChange(fontSizeChanges)
     override var fontSize by fontSizeProperty
 
     override val boldFontChanges = channel<Boolean>()
@@ -71,7 +69,7 @@ class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings {
     override var backgroundColor by backgroundColorProperty
 
     override val opacityChanges = channel<Double>()
-    val opacityProperty = SimpleDoubleProperty().eventOnChange(opacityChanges) { it.toDouble() }
+    val opacityProperty = SimpleObjectProperty<Double>().eventOnChange(opacityChanges)
     override var opacity by opacityProperty
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(

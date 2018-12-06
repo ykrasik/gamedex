@@ -16,13 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
-import com.gitlab.ykrasik.gamedex.javafx.javaFx
 import javafx.scene.control.Alert
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.launch
 import tornadofx.*
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
@@ -45,7 +48,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
         if (isCycle(error)) {
             log.log(Level.INFO, "Detected cycle handling error, aborting.", error)
         } else {
-            javaFx {
+            GlobalScope.launch(Dispatchers.JavaFx) {
                 showErrorDialog(error)
             }
         }

@@ -17,18 +17,18 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxReportGameFilterView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
-import javafx.geometry.Pos
 import javafx.scene.layout.Priority
 import javafx.scene.layout.Region
 import tornadofx.*
@@ -39,32 +39,29 @@ import tornadofx.*
  * Time: 16:56
  */
 class JavaFxEditReportView : PresentableView(), EditReportView {
-    private val filterView: JavaFxReportGameFilterView by inject()
+    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = false)
 
     private val reportProperty = SimpleObjectProperty<Report?>(null)
     override var report by reportProperty
 
+    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
+    override var canAccept by canAcceptProperty
+
     override val nameChanges = channel<String>()
-    override val filterChanges = channel<Filter>()
+    private val nameProperty = SimpleStringProperty("").eventOnChange(nameChanges)
+    override var name by nameProperty
 
-    private val viewModel = ReportViewModel()
-    override var name by viewModel.nameProperty
+    private val nameIsValidProperty = SimpleObjectProperty(IsValid.valid)
+    override var nameIsValid by nameIsValidProperty
+
     override var filter by filterView.filterProperty
-
-    private inner class ReportViewModel : ViewModel() {
-        val nameProperty = presentableStringProperty(nameChanges)
-    }
-
-    private val nameValidationErrorProperty = SimpleStringProperty(null)
-    override var nameValidationError by nameValidationErrorProperty
+    override val filterChanges = filterView.filterChanges
 
     override val excludedGames = mutableListOf<Game>().observable()
 
     override val unexcludeGameActions = channel<Game>()
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
-
-    private val isValid = viewModel.valid.and(filterView.isValid)
 
     init {
         titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report '${it.name}'" })
@@ -81,7 +78,7 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
                 cancelButton { eventOnAction(cancelActions) }
                 spacer()
                 acceptButton {
-                    enableWhen { isValid }
+                    enableWhen(canAcceptProperty.and(filterView.isValid))
                     eventOnAction(acceptActions)
                 }
             }
@@ -89,18 +86,17 @@ class JavaFxEditReportView : PresentableView(), EditReportView {
         center {
             vbox(spacing = 10) {
                 addClass(Style.rulesContent)
-                hbox(spacing = 10) {
-                    alignment = Pos.CENTER_LEFT
+                defaultHbox(spacing = 10) {
                     header("Name")
 
-                    textfield(viewModel.nameProperty) {
-                        validatorFrom(viewModel, nameValidationErrorProperty)
+                    jfxTextField(nameProperty, promptText = "Report Name") {
+                        validWhen(nameIsValidProperty)
                     }
                 }
 
                 verticalGap()
 
-                hbox {
+                defaultHbox {
                     vbox(spacing = 10.0) {
                         header("Rules")
                         addComponent(filterView)

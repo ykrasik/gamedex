@@ -16,17 +16,61 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
+import javafx.beans.value.ObservableValue
+import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.geometry.Orientation
 import javafx.geometry.VPos
+import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Pane
+import javafx.util.Duration
+import tornadofx.fade
+import tornadofx.onChange
+import tornadofx.opcr
+import tornadofx.seconds
+import java.io.ByteArrayInputStream
 
 /**
  * User: ykrasik
  * Date: 30/03/2017
  * Time: 08:36
  */
+fun ByteArray.toImage(): Image = Image(ByteArrayInputStream(this))
+
+inline fun Image.toImageView(op: ImageView.() -> Unit = {}): ImageView = ImageView(this).apply { op() }
+inline fun Image.toImageView(
+    height: Number? = null,
+    width: Number? = null,
+    f: ImageView.() -> Unit = {}
+): ImageView = toImageView {
+    height?.let { fitHeight = it.toDouble() }
+    width?.let { fitWidth = it.toDouble() }
+    isPreserveRatio = true
+    f(this)
+}
+
+inline fun EventTarget.imageViewResizingPane(
+    imageView: ImageView,
+    op: ImageViewResizingPane.() -> Unit = {}
+) = opcr(this, ImageViewResizingPane(imageView), op)
+
+fun ImageView.fadeOnImageChange(fadeInDuration: Duration = 0.2.seconds): ImageView = apply {
+    imageProperty().onChange {
+        fade(fadeInDuration, 1.0, play = true) {
+            fromValue = 0.0
+        }
+    }
+}
+
+inline fun EventTarget.imageViewResizingPane(
+    image: ObservableValue<Image>,
+    op: ImageViewResizingPane.() -> Unit = {}
+) = imageViewResizingPane(ImageView()) {
+    imageProperty.bind(image)
+    op()
+}
+
 // TODO: Distorts the image sometimes.
 class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
     init {
@@ -79,10 +123,11 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
 
     override fun getContentBias(): Orientation = Orientation.VERTICAL
 
-    private val imageRatio: Double get() {
-        val image = imageView.image
-        return image.height / image.width
-    }
+    private val imageRatio: Double
+        get() {
+            val image = imageView.image
+            return image.height / image.width
+        }
 
     private fun limitByMaxWidth(width: Double) = limitIfApplicable(width, maxWidth)
     private fun limitByMaxHeight(height: Double) = limitIfApplicable(height, maxHeight)

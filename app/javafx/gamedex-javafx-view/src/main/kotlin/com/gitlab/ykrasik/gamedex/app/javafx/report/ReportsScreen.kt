@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -217,7 +218,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                         useMaxSize = true
                         val game = games.find { it.id == result.duplicatedGameId }!!
                         text = game.name
-                        setOnAction {
+                        action {
                             matchingGameProperty.set(game)
                         }
                     }
@@ -296,15 +297,15 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 }
             }
         }.apply {
-            addClass(CommonStyle.thinBorder)
+            addClass(CommonStyle.toolbarButton, CommonStyle.thinBorder)
             alignment = Pos.CENTER_LEFT
             textProperty().bind(currentReport.map { it?.name ?: "Select Report" })
         }
         gap()
-        searchField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
+        searchTextField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
 
         spacer()
-        
+
         excludeButton {
             textProperty().bind(selectedGameProperty.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
             enableWhen { selectedGameProperty.isNotNull }

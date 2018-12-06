@@ -21,8 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.EventBusImpl
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
-import com.gitlab.ykrasik.gamedex.core.filter.presenter.MenuGameFilterPresenter
-import com.gitlab.ykrasik.gamedex.core.filter.presenter.ReportGameFilterPresenter
+import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
 import com.gitlab.ykrasik.gamedex.core.general.module.GeneralModule
 import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
@@ -89,8 +88,7 @@ object CoreModule : InternalCoreModule() {
         bindPresenter(TaskPresenter::class)
         bindPresenter(ViewWithTaskPresenter::class)
 
-        bindPresenter(MenuGameFilterPresenter::class)
-        bindPresenter(ReportGameFilterPresenter::class)
+        bindPresenter(FilterPresenter::class)
 
         bindPresenter(ShowSettingsPresenter::class)
         bindPresenter(SettingsPresenter::class)

@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.javafx.determineArrowLocation
-import com.gitlab.ykrasik.gamedex.javafx.popOver
+import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
+import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import javafx.scene.Node
 import javafx.scene.input.MouseEvent
 

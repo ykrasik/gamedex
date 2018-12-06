@@ -23,6 +23,8 @@ import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.allowDeselection
+import com.gitlab.ykrasik.gamedex.javafx.control.popoverContextMenu
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox
@@ -52,16 +54,16 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Icons.hdd),
     override fun HBox.constructToolbar() {
         spacer()
         verticalSeparator()
-        addButton { setOnAction { addLibrary() } }
+        addButton { action { addLibrary() } }
         verticalSeparator()
         editButton {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            setOnAction { editLibrary() }
+            action { editLibrary() }
         }
         verticalSeparator()
         deleteButton("Delete") {
             disableWhen { root.selectionModel.selectedItemProperty().isNull }
-            setOnAction { deleteLibrary() }
+            action { deleteLibrary() }
         }
     }
 
@@ -86,19 +88,19 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Icons.hdd),
         popoverContextMenu {
             addButton("Add") {
                 alignment = Pos.CENTER_LEFT
-                setOnAction { addLibrary() }
+                action { addLibrary() }
             }
             separator()
             editButton("Edit") {
                 alignment = Pos.CENTER_LEFT
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-                setOnAction { editLibrary() }
+                action { editLibrary() }
             }
             separator()
             deleteButton("Delete") {
                 alignment = Pos.CENTER_LEFT
                 disableWhen { this@tableview.selectionModel.selectedItemProperty().isNull }
-                setOnAction { deleteLibrary() }
+                action { deleteLibrary() }
             }
         }
 

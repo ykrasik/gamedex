@@ -53,14 +53,21 @@ fun browse(path: File) = Desktop.getDesktop().open(path)
 // FIXME: Make this an inline class when they are available.
 @JsonIgnoreProperties("humanReadable")
 data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
-    val humanReadable: String
-        get() {
+    val scaled: Pair<Double, Scale>
+        get () {
             val unit = 1024
-            if (bytes < unit) return "$bytes B"
+            if (bytes < unit) return bytes.toDouble() to Scale.B
 
             val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
-            val pre = ("KMGTPE")[exp - 1]
-            return String.format("%.1f %sB", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
+            val number = bytes / Math.pow(unit.toDouble(), exp.toDouble())
+            val scale = Scale.values().drop(1)[exp - 1]
+            return number to scale
+        }
+
+    val humanReadable: String
+        get() {
+            val (number, scale) = scaled
+            return String.format("%.1f %s", number, scale)
         }
 
     operator fun plus(other: FileSize): FileSize = FileSize(bytes + other.bytes)
@@ -70,15 +77,19 @@ data class FileSize(@JsonValue val bytes: Long) : Comparable<FileSize> {
 
     override fun toString() = humanReadable
 
+    enum class Scale { B, KB, MB, GB, TB }
+
     companion object {
-        private val regex = "([\\d.]+)[\\s]?([KMGTPE]?B)".toRegex(RegexOption.IGNORE_CASE)
-        private val powerMap = mapOf("B" to 0, "KB" to 1, "MB" to 2, "GB" to 3, "TB" to 4, "PB" to 5, "EB" to 6)
+        private val regex = "([\\d.]+)[\\s]?([KMGT]?B)".toRegex(RegexOption.IGNORE_CASE)
 
         operator fun invoke(humanReadable: String): FileSize {
             val result = regex.find(humanReadable) ?: throw IllegalArgumentException("Invalid input: '$humanReadable'")
-            val (number, scale) = result.destructured
-            val pow = powerMap[scale.toUpperCase()]!!
-            val bytes = BigDecimal(number).multiply(BigDecimal.valueOf(1024).pow(pow))
+            val (amount, scale) = result.destructured
+            return invoke(amount.toDouble(), Scale.valueOf(scale.toUpperCase()))
+        }
+
+        operator fun invoke(amount: Number, scale: Scale): FileSize {
+            val bytes = BigDecimal(amount.toDouble()).multiply(BigDecimal.valueOf(1024).pow(scale.ordinal))
             return FileSize(bytes.toLong())
         }
 

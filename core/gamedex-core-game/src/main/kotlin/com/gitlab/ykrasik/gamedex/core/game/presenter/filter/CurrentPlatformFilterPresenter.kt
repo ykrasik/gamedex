@@ -14,33 +14,34 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.util
+package com.gitlab.ykrasik.gamedex.core.game.presenter.filter
 
-import java.util.concurrent.TimeUnit
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithCurrentPlatformFilter
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 04/06/2018
- * Time: 09:44
+ * Date: 11/12/2018
+ * Time: 08:53
  */
-private val timeUnits = listOf(
-    TimeUnit.DAYS to "d",
-    TimeUnit.HOURS to "h",
-    TimeUnit.MINUTES to "m",
-    TimeUnit.SECONDS to "s",
-    TimeUnit.MILLISECONDS to "ms"
-)
+@Singleton
+class CurrentPlatformFilterPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewWithCurrentPlatformFilter> {
+    override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
+        init {
+            view.currentPlatformFilter = settingsService.currentPlatformSettings.filter
+            settingsService.game.platformChannel.forEach {
+                view.currentPlatformFilter = settingsService.currentPlatformSettings.filter
+            }
 
-fun Long.toHumanReadableDuration(): String {
-    var accumulated = this
-
-    val builder = StringBuilder()
-    timeUnits.forEach { (timeUnit, name) ->
-        val convertedDuration = timeUnit.convert(accumulated, TimeUnit.MILLISECONDS)
-        if (convertedDuration > 0) {
-            builder.append(convertedDuration).append(name).append('.')
-            accumulated -= TimeUnit.MILLISECONDS.convert(convertedDuration, timeUnit)
+            view.currentPlatformFilterChanges.forEach {
+                settingsService.currentPlatformSettings.modify { copy(filter = it) }
+            }
         }
     }
-    return if (builder.isEmpty()) "0ms" else builder.substring(0, builder.length - 1)
 }

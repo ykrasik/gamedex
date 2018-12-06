@@ -56,30 +56,30 @@ class SearchResultsFragment(data: SearchChooser.Data) : Fragment("Choose Search 
             toolbar {
                 acceptButton {
                     enableWhen { content.root.selectionModel.selectedItemProperty().isNotNull }
-                    setOnAction { close(SearchChooser.Choice.ExactMatch(content.root.selectedItem!!)) }
+                    action { close(SearchChooser.Choice.ExactMatch(content.root.selectedItem!!)) }
                 }
                 verticalSeparator()
                 toolbarButton("Not Exact Match", Icons.question) {
                     setId(Style.notExactMatch)
                     tooltip("Not Exact Match")
                     enableWhen { content.root.selectionModel.selectedItemProperty().isNotNull }
-                    setOnAction { close(SearchChooser.Choice.NotExactMatch(content.root.selectedItem!!)) }
+                    action { close(SearchChooser.Choice.NotExactMatch(content.root.selectedItem!!)) }
                 }
                 verticalSeparator()
                 backButton("Proceed Without") {
                     setId(Style.proceedWithout)
                     tooltip("Proceed Without")
-                    setOnAction { close(SearchChooser.Choice.ProceedWithout) }
+                    action { close(SearchChooser.Choice.ProceedWithout) }
                 }
                 verticalSeparator()
                 spacer()
                 verticalSeparator()
                 excludeButton("Exclude ${data.providerId}") {
                     tooltip("Exclude searching ${data.providerId} for '${data.name}'")
-                    setOnAction { close(SearchChooser.Choice.ExcludeProvider(data.providerId)) }
+                    action { close(SearchChooser.Choice.ExcludeProvider(data.providerId)) }
                 }
                 verticalSeparator()
-                cancelButton { setOnAction { close(SearchChooser.Choice.Cancel) } }
+                cancelButton { action { close(SearchChooser.Choice.Cancel) } }
             }
         }
     }

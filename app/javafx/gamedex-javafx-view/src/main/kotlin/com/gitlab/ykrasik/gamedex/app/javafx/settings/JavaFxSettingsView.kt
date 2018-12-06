@@ -23,13 +23,15 @@ import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.jfoenix.controls.JFXSlider
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.Node
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
@@ -69,7 +71,7 @@ class JavaFxSettingsView : PresentableView("Settings"),
 
     private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
 
-    private val windowOpacity = SimpleDoubleProperty(1.0)
+    private val windowOpacity = SimpleObjectProperty(1.0)
 
     private val viewProperty = "view"
     private val tabProperty = "tab"
@@ -108,7 +110,11 @@ class JavaFxSettingsView : PresentableView("Settings"),
                 gap()
                 resetToDefaultButton { eventOnAction(resetDefaultsActions) }
                 spacer()
-                percentSlider(windowOpacity, min = 0.2, max = 1, text = "Opacity") {
+
+                // TODO: This is probably a sucky way of doing this, find a better solution.
+                label("Window Opacity")
+                percentSlider(windowOpacity, min = 0.2, conflateValueChanges = false) {
+                    indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
                     tooltip("Hold 'alt' to hide temporarily.")
                 }
                 spacer()
@@ -119,7 +125,7 @@ class JavaFxSettingsView : PresentableView("Settings"),
             tabPane = jfxTabPane { addClass(CommonStyle.hiddenTabPaneHeader) }
         }
         left {
-            hbox(spacing = 5.0) {
+            defaultHbox {
                 paddingAll = 5.0
                 vbox(spacing = 5.0) {
                     togglegroup {
@@ -190,7 +196,7 @@ class JavaFxSettingsView : PresentableView("Settings"),
     }
 
     override fun onDock() {
-        currentStage!!.opacityProperty().cleanBind(windowOpacity)
+        currentStage!!.opacityProperty().cleanBind(windowOpacity.doubleBinding { it!! })
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")

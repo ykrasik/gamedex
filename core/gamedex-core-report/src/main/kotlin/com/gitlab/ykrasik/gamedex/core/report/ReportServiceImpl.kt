@@ -64,8 +64,8 @@ class ReportServiceImpl @Inject constructor(private val repo: ReportSettingsRepo
     fun invalidate() = repo.invalidate()
 
     private companion object {
-        val noCriticScore = Filter.CriticScore(Filter.ScoreRule.NoScore)
-        val noUserScore = Filter.UserScore(Filter.ScoreRule.NoScore)
+        val noCriticScore = Filter.NullCriticScore()
+        val noUserScore = Filter.NullUserScore()
 
         val defaultReports = listOf(
             ReportData("Name Diff", Filter.NameDiff()),

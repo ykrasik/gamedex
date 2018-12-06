@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
@@ -29,17 +30,18 @@ import java.io.File
 interface EditLibraryView {
     var library: Library?
 
+    var canAccept: IsValid
+
     var name: String
     val nameChanges: ReceiveChannel<String>
+    var nameIsValid: IsValid
 
     var path: String
     val pathChanges: ReceiveChannel<String>
+    var pathIsValid: IsValid
 
     var platform: Platform
     val platformChanges: ReceiveChannel<Platform>
-
-    var nameValidationError: String?
-    var pathValidationError: String?
 
     val browseActions: ReceiveChannel<Unit>
     val acceptActions: ReceiveChannel<Unit>

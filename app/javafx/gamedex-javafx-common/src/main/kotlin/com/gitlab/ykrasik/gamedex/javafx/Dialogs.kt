@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import javafx.beans.property.StringProperty
-import javafx.geometry.Pos
 import javafx.scene.layout.VBox
 import javafx.stage.StageStyle
 import kotlinx.coroutines.channels.Channel
@@ -38,16 +37,15 @@ fun UIComponent.areYouSureDialogContainer(
     minHeight = 100.0
     top {
         toolbar {
-            cancelButton { setOnAction { cancelActions.offer(Unit) } }
+            cancelButton { action { cancelActions.offer(Unit) } }
             spacer()
-            acceptButton { setOnAction { acceptActions.offer(Unit) } }
+            acceptButton { action { acceptActions.offer(Unit) } }
         }
     }
     center {
         vbox(spacing = 10.0) {
-            hbox {
+            defaultHbox {
                 paddingAll = 20.0
-                alignment = Pos.CENTER_LEFT
                 label(text)
                 spacer()
                 children += Icons.warning
@@ -71,16 +69,15 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
         minHeight = 100.0
         top {
             toolbar {
-                cancelButton { setOnAction { close(accept = false) } }
+                cancelButton { action { close(accept = false) } }
                 spacer()
-                acceptButton { setOnAction { close(accept = true) } }
+                acceptButton { action { close(accept = true) } }
             }
         }
         center {
             vbox(spacing = 10.0) {
-                hbox {
+                defaultHbox {
                     paddingAll = 20.0
-                    alignment = Pos.CENTER_LEFT
                     label(text)
                     spacer()
                     children += Icons.warning

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
@@ -32,6 +33,8 @@ interface RenameMoveGameView {
     var initialName: String?
     var game: Game
 
+    var canAccept: IsValid
+
     var library: Library
     val libraryChanges: ReceiveChannel<Library>
 
@@ -40,8 +43,7 @@ interface RenameMoveGameView {
 
     var name: String
     val nameChanges: ReceiveChannel<String>
-
-    var nameValidationError: String?
+    var nameIsValid: IsValid
 
     val selectDirectoryActions: ReceiveChannel<Unit>
     fun selectDirectory(initialDirectory: File): File?

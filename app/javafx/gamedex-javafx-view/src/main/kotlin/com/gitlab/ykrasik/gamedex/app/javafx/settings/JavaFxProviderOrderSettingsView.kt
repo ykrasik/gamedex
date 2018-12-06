@@ -23,9 +23,10 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.color
+import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleObjectProperty
@@ -34,6 +35,7 @@ import javafx.scene.Cursor
 import javafx.scene.effect.DropShadow
 import javafx.scene.effect.Glow
 import javafx.scene.layout.Pane
+import javafx.scene.paint.Color
 import tornadofx.*
 
 /**
@@ -85,20 +87,20 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
     }
 
     override val root = form {
-        // TODO: Forms take a long time to load!!!
         fieldset("Order Priorities") {
             listOf(
-                "Search" to searchProperty,
-                "Name" to nameProperty,
-                "Description" to descriptionProperty,
-                "Release Date" to releaseDateProperty,
-                "Critic Score" to criticScoreProperty,
-                "User Score" to userScoreProperty,
-                "Thumbnail" to thumbnailProperty,
-                "Poster" to posterProperty,
-                "Screenshots" to screenshotProperty
-            ).forEach { (name, orderProperty) ->
+                Triple("Search", Icons.search, searchProperty),
+                Triple("Name", Icons.text, nameProperty),
+                Triple("Description", Icons.textbox, descriptionProperty),
+                Triple("Release Date", Icons.date, releaseDateProperty),
+                Triple("Critic Score", Icons.starFull, criticScoreProperty),
+                Triple("User Score", Icons.starEmpty, userScoreProperty),
+                Triple("Thumbnail", Icons.thumbnail, thumbnailProperty),
+                Triple("Poster", Icons.poster, posterProperty),
+                Triple("Screenshots", Icons.screenshots, screenshotProperty)
+            ).forEach { (name, icon, orderProperty) ->
                 field(name) {
+                    label.graphic = icon.color(Color.BLACK)
                     providerOrder(orderProperty)
                 }
             }
@@ -106,8 +108,7 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
     }
 
     private fun Pane.providerOrder(orderProperty: SimpleObjectProperty<Order>) {
-        hbox(spacing = 20.0) {
-            alignment = Pos.CENTER
+        hbox(spacing = 20.0, alignment = Pos.CENTER) {
             orderProperty.perform { order ->
                 val ordered = order.entries.sortedBy { it.value }.map { it.key }
                 var dragging: ProviderId? = null

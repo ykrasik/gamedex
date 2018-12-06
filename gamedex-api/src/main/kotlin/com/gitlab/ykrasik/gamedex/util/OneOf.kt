@@ -14,24 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.util
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:43
+ * Date: 09/12/2018
+ * Time: 13:59
  */
-// FIXME: This sucks, make this a PeriodComponent style thing.
-interface CreatedBeforePeriodView {
-    var createdBeforePeriodText: String
-    val createdBeforePeriodTextChanges: ReceiveChannel<String>
-    var createdBeforePeriodValidationError: String?
-}
-
-interface UpdatedAfterPeriodView {
-    var updatedAfterPeriodText: String
-    val updatedAfterPeriodTextChanges: ReceiveChannel<String>
-    var updatedAfterPeriodValidationError: String?
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = OneOf.A::class, name = "a"),
+    JsonSubTypes.Type(value = OneOf.B::class, name = "b"),
+    JsonSubTypes.Type(value = OneOf.C::class, name = "c")
+)
+sealed class OneOf<out A, out B, out C> {
+    data class A<A>(val value: A) : OneOf<A, Nothing, Nothing>()
+    data class B<B>(val value: B) : OneOf<Nothing, B, Nothing>()
+    data class C<C>(val value: C) : OneOf<Nothing, Nothing, C>()
 }

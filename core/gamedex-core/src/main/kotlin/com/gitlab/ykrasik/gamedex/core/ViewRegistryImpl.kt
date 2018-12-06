@@ -38,8 +38,8 @@ class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<
 
     @Suppress("UNCHECKED_CAST")
     private fun presentView(view: Any): List<ViewSession> {
-        return view.javaClass.kotlin.allSuperclasses.mapNotNull { clazz ->
-            (presenters[clazz] as? Presenter<Any>)?.present(view)
+        return view.javaClass.kotlin.allSuperclasses.mapNotNull { klass ->
+            (presenters[klass] as? Presenter<Any>)?.present(view)
         }
     }
 

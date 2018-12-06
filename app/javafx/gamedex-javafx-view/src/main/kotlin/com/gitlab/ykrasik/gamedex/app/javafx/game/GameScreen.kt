@@ -19,10 +19,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxMenuGameFilterView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
@@ -35,11 +36,12 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort {
+class GameScreen : PresentableScreen("Games", Icons.games),
+    ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort, ViewWithCurrentPlatformFilter {
     private val gameWallView: GameWallView by inject()
-    private val filterView: JavaFxMenuGameFilterView by inject()
     private val discoverGamesView: JavaFxDiscoverGamesView by inject()
     private val downloadView: JavaFxGameDownloadView by inject()
+    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = true)
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
@@ -59,6 +61,9 @@ class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatfor
     private val sortOrderProperty = SimpleObjectProperty<SortOrder>(SortOrder.asc).eventOnChange(sortOrderChanges)
     override var sortOrder by sortOrderProperty
 
+    override var currentPlatformFilter by filterView.filterProperty
+    override val currentPlatformFilterChanges = filterView.filterChanges
+
     init {
         viewRegistry.onCreate(this)
     }
@@ -68,10 +73,10 @@ class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatfor
         platformButton()
 
         gap()
-        
+
         filterButton()
         sortButton()
-        searchField(this@GameScreen, searchTextProperty)
+        searchTextField(this@GameScreen, searchTextProperty)
 
         spacer()
 
@@ -85,29 +90,31 @@ class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatfor
     private fun EventTarget.platformButton() = popoverComboMenu(
         possibleItems = availablePlatforms,
         selectedItemProperty = currentPlatformProperty,
-        styleClass = CommonStyle.toolbarButton,
         text = Platform::displayName,
         graphic = { it.logo }
     ).apply {
+        addClass(CommonStyle.toolbarButton)
         textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: $it" })
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnClick = false, styleClass = null) {
-        hbox(spacing = 5) {
+    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnClick = false) {
+        defaultHbox {
             paddingAll = 5
             popoverComboMenu(
                 possibleItems = SortBy.values().toList().observable(),
                 selectedItemProperty = sortByProperty,
-                styleClass = CommonStyle.toolbarButton,
-                text = { it.displayName }
-            )
+                text = { it.displayName },
+                graphic = { it.icon }
+            ).apply {
+                addClass(CommonStyle.toolbarButton)
+            }
             jfxButton {
                 graphicProperty().bind(sortOrderProperty.objectBinding { if (it == SortOrder.asc) Icons.ascending else Icons.descending })
                 tooltip {
                     textProperty().bind(sortOrderProperty.stringBinding { it!!.displayName })
                 }
-                setOnAction {
+                action {
                     sortOrder = sortOrder.toggle()
                 }
             }
@@ -116,9 +123,23 @@ class GameScreen : PresentableScreen("Games", Icons.games), ViewCanSelectPlatfor
         tooltip("Sort")
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnClick = false, styleClass = null) {
+    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnClick = false) {
         addComponent(filterView)
     }.apply {
         tooltip("Filter")
     }
+
+    private val SortBy.icon
+        get() = when (this) {
+            SortBy.name_ -> Icons.text
+            SortBy.criticScore -> Icons.starFull
+            SortBy.userScore -> Icons.starEmpty
+            SortBy.avgScore -> Icons.starHalf
+            SortBy.minScore -> Icons.min
+            SortBy.maxScore -> Icons.max
+            SortBy.size -> Icons.fileQuestion
+            SortBy.releaseDate -> Icons.date
+            SortBy.createDate -> Icons.createDate
+            SortBy.updateDate -> Icons.updateDate
+        }
 }

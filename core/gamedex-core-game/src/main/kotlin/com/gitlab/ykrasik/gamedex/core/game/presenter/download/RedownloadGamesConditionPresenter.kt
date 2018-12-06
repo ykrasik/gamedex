@@ -14,15 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithRedownloadGamesCondition
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 20/07/2018
- * Time: 09:38
+ * Date: 06/05/2018
+ * Time: 13:11
  */
-interface ViewCanRedownloadGamesCreatedBefore {
-    val redownloadGamesCreatedBeforeActions: ReceiveChannel<Unit>
+@Singleton
+class RedownloadGamesConditionPresenter @Inject constructor(
+    private val settingsService: SettingsService
+) : Presenter<ViewWithRedownloadGamesCondition> {
+    override fun present(view: ViewWithRedownloadGamesCondition) = object : ViewSession() {
+        init {
+            settingsService.game.bind({ redownloadGamesConditionChannel }, view::redownloadGamesCondition, view.redownloadGamesConditionChanges) { copy(redownloadGamesCondition = it) }
+        }
+    }
 }

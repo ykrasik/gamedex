@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -68,21 +69,24 @@ class EditReportPresenter @Inject constructor(
         }
 
         private fun validateName() {
-            view.nameValidationError = when {
-                view.name.isEmpty() -> "Name is required!"
-                nameAlreadyUsed -> "Name already in use!"
-                else -> null
+            view.nameIsValid = IsValid.invoke {
+                val name = view.name
+                if (name.isEmpty()) error("Name is required!")
+                if (name in (reportService.reports.map { it.name } - view.report?.name)) error("Name already in use!")
             }
+            setCanAccept()
         }
 
-        private val nameAlreadyUsed get() = view.name in (reportService.reports.map { it.name } - view.report?.name)
+        private fun setCanAccept() {
+            view.canAccept = view.nameIsValid
+        }
 
         private fun onUnexcludeGame(game: Game) {
             view.excludedGames -= game
         }
 
         private suspend fun onAccept() {
-            check(view.nameValidationError == null) { "Cannot accept invalid state!" }
+            check(view.canAccept.isSuccess) { "Cannot accept invalid state!" }
             val newReportData = ReportData(
                 name = view.name,
                 filter = view.filter,

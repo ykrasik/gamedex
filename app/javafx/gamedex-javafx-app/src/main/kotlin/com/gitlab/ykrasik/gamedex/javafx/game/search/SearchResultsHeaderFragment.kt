@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.javafx.game.search
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.provider.logoImage
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.HPos
@@ -71,7 +73,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
             defaultButtonProperty().bind(newSearch.focusedProperty())
             prefHeightProperty().bind(newSearch.heightProperty())
             tooltip("Search for a different name")
-            setOnAction { close(SearchChooser.Choice.NewSearch(newSearch.text)) }
+            action { close(SearchChooser.Choice.NewSearch(newSearch.text)) }
         }
         region { gridpaneConstraints { columnRowIndex(2, 1); hGrow = Priority.ALWAYS } }
 
@@ -87,7 +89,7 @@ class SearchResultsHeaderFragment(data: SearchChooser.Data, close: (SearchChoose
                         "${if (it!!) "Hide" else "Show"} ${data.filteredResults.size} filtered results"
                     })
                 }
-                setOnAction { showingFiltered = !showingFiltered }
+                action { showingFiltered = !showingFiltered }
             }
         }
         label {

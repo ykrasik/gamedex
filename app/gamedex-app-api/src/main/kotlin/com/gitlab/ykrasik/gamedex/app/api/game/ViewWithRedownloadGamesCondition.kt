@@ -16,13 +16,15 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
+ * Date: 20/07/2018
  * Time: 09:38
  */
-interface ViewCanRedownloadGamesUpdatedAfter {
-    val redownloadGamesUpdatedAfterActions: ReceiveChannel<Unit>
+interface ViewWithRedownloadGamesCondition {
+    var redownloadGamesCondition: Filter
+    val redownloadGamesConditionChanges: ReceiveChannel<Filter>
 }

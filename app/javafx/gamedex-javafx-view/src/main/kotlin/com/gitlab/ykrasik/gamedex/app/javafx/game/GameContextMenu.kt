@@ -21,13 +21,20 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.control.dropDownMenu
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.jfoenix.controls.JFXButton
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.VBox
 import org.controlsfx.control.PopOver
+import tornadofx.action
 import tornadofx.addClass
+import tornadofx.useMaxWidth
 import tornadofx.vbox
 
 /**
@@ -54,8 +61,8 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
         addClass(CommonStyle.popoverMenu)
         item("View", Icons.view) { eventOnAction(showGameDetailsActions) { data } }
         verticalGap()
-        item("Edit", Icons.edit) { setOnAction { editGame(GameDataType.name_) } }
-        item("Change Thumbnail", Icons.thumbnail) { setOnAction { editGame(GameDataType.thumbnail) } }
+        item("Edit", Icons.edit) { action { editGame(GameDataType.name_) } }
+        item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.thumbnail) } }
         verticalGap()
         item("Tag", Icons.tag) { eventOnAction(tagGameActions) { data } }
         verticalGap()
@@ -78,8 +85,9 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
         }
     }
 
-    private fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, op = op).apply {
-        addClass(CommonStyle.fillAvailableWidth)
+    private inline fun VBox.item(text: String, icon: Node, op: JFXButton.() -> Unit) = jfxButton(text, icon, alignment = Pos.CENTER_LEFT) {
+        useMaxWidth = true
+        op()
     }
 
     private fun editGame(initialScreen: GameDataType) = editGameActions.event(data to initialScreen)

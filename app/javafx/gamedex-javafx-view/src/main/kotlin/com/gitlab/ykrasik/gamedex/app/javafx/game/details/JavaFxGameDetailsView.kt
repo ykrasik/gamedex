@@ -27,13 +27,15 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.fixedRating
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.HPos
-import javafx.geometry.Pos
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
@@ -137,8 +139,7 @@ class JavaFxGameDetailsView(
     private fun GridPane.score(score: Score?, name: String) {
         if (score != null || evenIfEmpty) row {
             detailsHeader("$name Score")
-            hbox(spacing = 5) {
-                alignment = Pos.CENTER_LEFT
+            defaultHbox {
                 if (score != null) {
                     fixedRating(10) { rating = score.score / 10 }
                     detailsContent(score.score.format(3))
@@ -155,8 +156,7 @@ class JavaFxGameDetailsView(
     private fun GridPane.elementList(elements: List<String>, name: String) {
         if (elements.isNotEmpty()) row {
             detailsHeader(name)
-            hbox(spacing = 5) {
-                alignment = Pos.CENTER_LEFT
+            defaultHbox {
                 if (elements.isNotEmpty()) {
                     elements.forEach { detailsContent(it) }
                 } else {

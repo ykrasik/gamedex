@@ -20,6 +20,9 @@ import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.jfoenix.controls.JFXListCell
 import javafx.beans.property.SimpleBooleanProperty
@@ -27,7 +30,6 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
-import kfoenix.jfxlistview
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -59,13 +61,13 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
     }
 
     override fun HBox.constructToolbar() {
-        enumComboMenu(levelProperty, graphic = { it.toGraphic() }).apply {
+        enumComboMenu(levelProperty, graphic = { it.icon }).apply {
             addClass(CommonStyle.toolbarButton)
         }
         jfxCheckBox(logTailProperty, "Tail")
     }
 
-    override val root = jfxlistview(entries) {
+    override val root = jfxListView(entries) {
         addClass(Style.logView)
 
         setCellFactory {
@@ -102,7 +104,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
                         item.message
                     }
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
-                    graphic = item.level.toGraphic().size(20)
+                    graphic = item.level.icon.size(20)
 
                     when (item.level.toLevel()) {
                         Level.TRACE -> toggleClass(Style.trace, true)
@@ -124,13 +126,14 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
 
     private fun LogLevel.toLevel() = Level.toLevel(this.toString())
 
-    private fun LogLevel.toGraphic() = when (this) {
-        LogLevel.Trace -> Icons.logTrace
-        LogLevel.Debug -> Icons.logDebug
-        LogLevel.Info -> Icons.logInfo
-        LogLevel.Warn -> Icons.logWarn
-        LogLevel.Error -> Icons.logError
-    }
+    private val LogLevel.icon
+        get() = when (this) {
+            LogLevel.Trace -> Icons.logTrace
+            LogLevel.Debug -> Icons.logDebug
+            LogLevel.Info -> Icons.logInfo
+            LogLevel.Warn -> Icons.logWarn
+            LogLevel.Error -> Icons.logError
+        }
 
     class Style : Stylesheet() {
         companion object {

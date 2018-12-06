@@ -33,6 +33,8 @@ typealias Modifier<T, R> = T.(R) -> T
 fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path).readBytes()
 
 val Int.kb: Int get() = this * 1024
+val Int.mb: Int get() = kb * 1024
+val Int.gb: Long get() = mb * 1024L
 
 fun String.browseToUrl() = Desktop.getDesktop().browse(URI(this))
 
@@ -56,3 +58,6 @@ fun String.md5(): String {
     val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
 }
+
+fun Double.asPercent() = "${Math.min((this * 100).toInt(), 100)}%"
+fun Double.roundBy(step: Double) = Math.round(this / step) * step

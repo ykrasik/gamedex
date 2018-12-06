@@ -16,10 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.core.library.presenter
 
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.util.and
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
@@ -58,8 +61,8 @@ class EditLibraryPresenter @Inject constructor(
             view.name = library?.name ?: ""
             view.path = library?.path?.toString() ?: ""
             view.platform = library?.platform ?: Platform.pc
-            view.nameValidationError = null
-            view.pathValidationError = null
+            view.nameIsValid = IsValid.valid
+            view.pathIsValid = IsValid.valid
             if (library == null) {
                 onBrowse()
             }
@@ -79,46 +82,62 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun validate() {
-            validateName()
             validatePath()
+            validateName()
         }
 
         private fun validateName() {
-            view.nameValidationError = when {
-                view.name.isEmpty() -> "Name is required!"
-                !isAvailableNewName && !isAvailableUpdatedName -> "Name already in use for this platform!"
-                else -> null
+            view.nameIsValid = IsValid.invoke {
+                val name = view.name
+                if (name.isEmpty()) error("Name is required!")
+                if (!isAvailableNewLibrary { libraryService[view.platform, name] } &&
+                    !isAvailableUpdatedLibrary { libraryService[it.platform, name] })
+                    error("Name already in use for this platform!")
             }
+            setCanAccept()
         }
-
-        private val isAvailableNewName get() = view.library == null && libraryService.isAvailableNewName(view.platform, view.name)
-        private val isAvailableUpdatedName get() = view.library != null && libraryService.isAvailableUpdatedName(view.library!!, view.name)
 
         private fun validatePath() {
-            view.pathValidationError = when {
-                view.path.isEmpty() -> "Path is required!"
-                !view.path.toFile().isDirectory -> "Path doesn't exist!"
-                !isAvailableNewPath && !isAvailableUpdatedPath -> "Path already in use!"
-                else -> null
+            view.pathIsValid = IsValid.invoke {
+                if (view.path.isEmpty()) error("Path is required!")
+
+                val file = view.path.toFile()
+                if (!file.isDirectory) error("Path doesn't exist!")
+                if (!isAvailableNewLibrary { libraryService[file] } &&
+                    !isAvailableUpdatedLibrary { libraryService[file] })
+                    error("Path already in use!")
             }
+            setCanAccept()
         }
 
-        private val isAvailableNewPath get() = view.library == null && libraryService.isAvailableNewPath(view.path.toFile())
-        private val isAvailableUpdatedPath get() = view.library != null && libraryService.isAvailableUpdatedPath(view.library!!, view.path.toFile())
+        private inline fun isAvailableNewLibrary(findExisting: () -> Library?): Boolean =
+            view.library == null && findExisting() == null
+
+        private inline fun isAvailableUpdatedLibrary(findExisting: (Library) -> Library?): Boolean =
+            view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
+
+        private fun setCanAccept() {
+            val valid = view.pathIsValid.and(view.nameIsValid)
+            if (view.canAccept != valid) {
+                view.canAccept = valid
+            }
+        }
 
         private fun onBrowse() {
             val initialDirectory = settingsService.general.prevDirectory.existsOrNull()
-            val selectedDirectory = view.selectDirectory(initialDirectory) ?: return
-            settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
-            view.path = selectedDirectory.toString()
-            if (view.name.isEmpty()) {
-                view.name = selectedDirectory.name
+            val selectedDirectory = view.selectDirectory(initialDirectory)
+            if (selectedDirectory != null) {
+                settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
+                view.path = selectedDirectory.toString()
+                if (view.name.isEmpty()) {
+                    view.name = selectedDirectory.name
+                }
             }
             validate()
         }
 
         private suspend fun onAccept() {
-            check(view.nameValidationError == null && view.pathValidationError == null) { "Cannot accept invalid state!" }
+            check(view.canAccept.isSuccess) { "Cannot accept invalid state!" }
             val libraryData = LibraryData(name = view.name, path = view.path.toFile(), platform = view.platform)
             val task = if (view.library == null) {
                 libraryService.add(libraryData)
