@@ -66,8 +66,8 @@ object Icons {
     val dots get() = fontIcon(MaterialDesign.MDI_DOTS_VERTICAL)
 
     val check get() = fontIcon(MaterialDesign.MDI_CHECK, color = green)
-    val valid get() = fontIcon(MaterialDesign.MDI_VERIFIED, color = green)
-    val invalid get() = fontIcon(MaterialDesign.MDI_SECURITY_OFF, color = red)
+    val valid get() = fontIcon(MaterialDesign.MDI_SHIELD_CHECK, color = green)
+    val invalid get() = fontIcon(MaterialDesign.MDI_SHIELD_OFF, color = red)
     val unverified get() = fontIcon(MaterialDesign.MDI_SHIELD_OUTLINE, color = orange)
     val excluded get() = fontIcon(MaterialDesign.MDI_CLOSE_OUTLINE, color = red)
 
