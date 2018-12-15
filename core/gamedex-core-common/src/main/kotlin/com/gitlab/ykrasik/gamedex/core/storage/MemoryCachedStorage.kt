@@ -30,26 +30,18 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
         return key
     }
 
+    override fun insert(key: K, value: V) {
+        delegate.insert(key, value)
+        cache[key] = value
+    }
+
+    override fun update(key: K, value: V) {
+        delegate.update(key, value)
+        cache[key] = value
+    }
+
     override fun set(key: K, value: V) {
         delegate[key] = value
-        cache[key] = value
-    }
-
-    override fun setIfNotExists(key: K, value: V): Boolean {
-        val success = delegate.setIfNotExists(key, value)
-        if (success) {
-            cache[key] = value
-        }
-        return success
-    }
-
-    override fun setOnlyIfExists(key: K, value: V) {
-        delegate.setOnlyIfExists(key, value)
-        cache[key] = value
-    }
-
-    override fun setOnlyIfDoesntExist(key: K, value: V) {
-        delegate.setOnlyIfDoesntExist(key, value)
         cache[key] = value
     }
 
@@ -66,20 +58,14 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
 
     override fun getAll() = cache
 
-    override fun delete(key: K): Boolean {
-        val success = delegate.delete(key)
+    override fun delete(key: K) {
+        delegate.delete(key)
         cache -= key
-        return success
     }
 
     override fun deleteAll(keys: Iterable<K>) {
         delegate.deleteAll(keys)
         cache -= keys
-    }
-
-    override fun deleteOnlyIfExists(key: K) {
-        delegate.deleteOnlyIfExists(key)
-        cache -= key
     }
 
     override fun ids() = cache.keys

@@ -46,8 +46,8 @@ object TestApplication {
     @JvmStatic
     fun main(args: Array<String>) {
         System.setProperty("gameDex.persistence.dbUrl", dbUrl)
-        System.setProperty("gameDex.provider.giantBomb.endpoint", giantBombServer.endpointUrl)
-        System.setProperty("gameDex.provider.igdb.endpoint", igdbServer.endpointUrl)
+        System.setProperty("gameDex.provider.giantBomb.baseUrl", giantBombServer.baseUrl)
+        System.setProperty("gameDex.provider.igdb.baseUrl", igdbServer.baseUrl)
         System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
         System.setProperty("gameDex.file.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
 

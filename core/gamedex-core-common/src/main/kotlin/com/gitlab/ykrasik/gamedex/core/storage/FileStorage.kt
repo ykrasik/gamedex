@@ -42,23 +42,23 @@ class FileStorage<K, V>(
         if (keyGenerator == null) throw UnsupportedOperationException("[$basePath] Storage does not support 'add' operations, only 'set'!")
 
         val key = keyGenerator.nextKey()
-        setOnlyIfDoesntExist(key, value)
+        insert(key, value)
         return key
     }
 
-    override fun set(key: K, value: V) = set(key, value) { }
-
-    override fun setIfNotExists(key: K, value: V): Boolean {
+    override fun insert(key: K, value: V) {
         set(key, value) { file ->
-            if (file.exists()) {
-                return@setIfNotExists false
-            }
+            check(!file.exists()) { "File already exists: $file" }
         }
-        return true
     }
 
-    override fun setOnlyIfExists(key: K, value: V) = check(!setIfNotExists(key, value)) { "File doesn't exist: ${fileFor(key)}" }
-    override fun setOnlyIfDoesntExist(key: K, value: V) = check(setIfNotExists(key, value)) { "File already exists: ${fileFor(key)}" }
+    override fun update(key: K, value: V) {
+        set(key, value) { file ->
+            check(file.isFile) { "File doesn't exist: $file" }
+        }
+    }
+
+    override fun set(key: K, value: V) = set(key, value) { }
 
     private inline fun set(key: K, value: V, handleFile: (File) -> Unit) {
         val file = fileFor(key)
@@ -84,20 +84,15 @@ class FileStorage<K, V>(
         }.toMap()
     } ?: emptyMap()
 
-    override fun delete(key: K): Boolean {
+    override fun delete(key: K) {
         val file = fileFor(key)
-        val isFile = file.isFile
-        if (isFile) {
-            file.delete()
-        }
-        return isFile
+        check(file.isFile) { "File doesn't exist: $file" }
+        file.delete()
     }
 
     override fun deleteAll(keys: Iterable<K>) {
         ids().forEach { delete(it) }
     }
-
-    override fun deleteOnlyIfExists(key: K) = check(delete(key)) { "File doesn't exist: ${fileFor(key)}" }
 
     override fun ids() = streamFiles { stream -> stream.map { namingStrategy.toKey(it) }.toList() } ?: emptyList()
 

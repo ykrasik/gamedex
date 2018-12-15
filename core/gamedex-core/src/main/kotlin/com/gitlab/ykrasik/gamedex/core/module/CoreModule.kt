@@ -23,10 +23,10 @@ import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
-import com.gitlab.ykrasik.gamedex.core.general.module.GeneralModule
 import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
+import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
@@ -39,6 +39,8 @@ import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
 import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
 import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithTaskPresenter
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
+import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
+import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowserPresenter
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
@@ -70,7 +72,7 @@ object CoreModule : InternalCoreModule() {
     private fun installModules() {
         install(FileModule)
         install(GameModule)
-        install(GeneralModule)
+        install(MaintenanceModule)
         install(ImageModule)
         install(LibraryModule)
         install(LogModule)
@@ -102,6 +104,9 @@ object CoreModule : InternalCoreModule() {
         bindPresenter(GameVersionOverlayDisplaySettingsPresenter::class)
         bindPresenter(ProviderOrderSettingsPresenter::class)
         bindPresenter(ProviderSettingsPresenter::class)
+
+        bindPresenter(BrowserPresenter::class)
+        bindPresenter(BrowseUrlPresenter::class)
     }
 
     @Provides

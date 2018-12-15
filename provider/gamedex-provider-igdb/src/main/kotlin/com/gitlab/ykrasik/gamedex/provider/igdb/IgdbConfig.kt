@@ -27,7 +27,7 @@ import io.github.config4k.extract
  * Time: 11:11
  */
 data class IgdbConfig(
-    val endpoint: String,
+    val baseUrl: String,
     val baseImageUrl: String,
     val accountUrl: String,
     val maxSearchResults: Int,

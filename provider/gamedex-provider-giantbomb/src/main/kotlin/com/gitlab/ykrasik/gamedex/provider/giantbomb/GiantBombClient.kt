@@ -40,7 +40,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     private val log = logger()
 
     open fun search(name: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
-        endpoint = config.endpoint,
+        endpoint = config.baseUrl,
         account = account,
         messagePrefix = "Search [$platform] '$name'",
         params = mapOf(

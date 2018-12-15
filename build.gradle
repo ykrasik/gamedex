@@ -258,7 +258,7 @@ project("core:gamedex-core-game") {
     }
 }
 
-project("core:gamedex-core-general") {
+project("core:gamedex-core-maintenance") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
         fullDependency ":core:gamedex-core-persistence"
@@ -306,7 +306,7 @@ project("core:gamedex-core") {
         fullDependency ":core:gamedex-core-file"
         fullDependency ":core:gamedex-core-image"
         fullDependency ":core:gamedex-core-game"
-        fullDependency ":core:gamedex-core-general"
+        fullDependency ":core:gamedex-core-maintenance"
         fullDependency ":core:gamedex-core-library"
         fullDependency ":core:gamedex-core-log"
         fullDependency ":core:gamedex-core-persistence"

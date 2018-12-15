@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -41,7 +42,8 @@ import java.util.concurrent.TimeUnit
  * Date: 19/03/2017
  * Time: 16:48
  */
-class IgdbMockServer(port: Int) : Closeable {
+class IgdbMockServer(port: Int = freePort) : Closeable {
+    val baseUrl = "http://localhost:$port"
     private val wiremock = WireMockServer(port)
 
     fun start() = wiremock.start()
@@ -71,15 +73,15 @@ class IgdbMockServer(port: Int) : Closeable {
     }
 }
 
-class IgdbFakeServer(port: Int, private val apiKey: String) : Closeable {
+class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : Closeable {
     private val imagePath = "images"
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
     val providerId = "Igdb"
-    val endpointUrl = "http://localhost:$port"
-    fun detailsUrl(id: Int) = "$endpointUrl/$id"
-    val baseImageUrl = "$endpointUrl/$imagePath"
+    val baseUrl = "http://localhost:$port"
+    fun detailsUrl(id: Int) = "$baseUrl/$id"
+    val baseImageUrl = "$baseUrl/$imagePath"
     val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
     val posterUrl = "$baseImageUrl/$posterPath"
     val screenshotUrl = posterUrl

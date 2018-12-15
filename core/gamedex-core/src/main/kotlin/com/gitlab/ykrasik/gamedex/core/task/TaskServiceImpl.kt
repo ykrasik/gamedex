@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.awaitEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,11 +32,10 @@ class TaskServiceImpl @Inject constructor(
     private val viewManager: ViewManager,
     private val eventBus: EventBus
 ) : TaskService {
-    @Suppress("UNCHECKED_CAST")
     override suspend fun <T> execute(task: Task<T>): T = withTaskView {
         eventBus.send(TaskStartedEvent(task))
-        val event = eventBus.awaitEvent(TaskFinishedEvent::class) { it.task == task }
-        return event.result.await() as T
+        val event = eventBus.awaitEvent<TaskFinishedEvent<T>> { it.task == task }
+        return event.result.await()
     }
 
     private inline fun <T> withTaskView(f: () -> T): T {

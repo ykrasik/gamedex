@@ -51,14 +51,14 @@ class ReportSettingsRepository @Inject constructor(private val storage: Storage<
 
     fun update(report: Report, data: ReportData): Report {
         val updatedData = data.updatedNow()
-        storage.setOnlyIfExists(report.id, updatedData)
+        storage.update(report.id, updatedData)
         val updatedReport = report.copy(data = updatedData)
         reports.replace(report, updatedReport)
         return updatedReport
     }
 
     fun delete(report: Report) {
-        storage.deleteOnlyIfExists(report.id)
+        storage.delete(report.id)
         reports -= report
     }
 

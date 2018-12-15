@@ -20,8 +20,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:38
+ * Date: 15/12/2018
+ * Time: 18:44
  */
 interface ViewCanRedownloadGames {
     val redownloadGamesActions: ReceiveChannel<Unit>

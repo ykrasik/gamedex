@@ -28,6 +28,7 @@ import javax.inject.Singleton
  * Date: 29/05/2016
  * Time: 10:56
  */
+@Suppress("unused")
 object GiantBombModule : ProviderModule() {
     override fun configure() {
         bindProvider<GiantBombProvider>()

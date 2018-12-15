@@ -24,24 +24,21 @@ package com.gitlab.ykrasik.gamedex.core.storage
 interface Storage<K, V> {
     fun add(value: V): K
 
+    @Throws(IllegalStateException::class)
+    fun insert(key: K, value: V)
+
+    @Throws(IllegalStateException::class)
+    fun update(key: K, value: V)
+
     operator fun set(key: K, value: V)
-    fun setIfNotExists(key: K, value: V): Boolean
-
-    @Throws(IllegalStateException::class)
-    fun setOnlyIfExists(key: K, value: V)
-
-    @Throws(IllegalStateException::class)
-    fun setOnlyIfDoesntExist(key: K, value: V)
 
     operator fun get(key: K): V?
     fun getAll(): Map<K, V>
 
-    fun delete(key: K): Boolean
+    @Throws(IllegalStateException::class)
+    fun delete(key: K)
 
     fun deleteAll(keys: Iterable<K>)
-
-    @Throws(IllegalStateException::class)
-    fun deleteOnlyIfExists(key: K)
 
     fun ids(): Iterable<K>
 

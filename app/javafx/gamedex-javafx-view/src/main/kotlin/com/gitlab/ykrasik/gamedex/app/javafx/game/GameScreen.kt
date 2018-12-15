@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxGameDownloadView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -40,7 +39,6 @@ class GameScreen : PresentableScreen("Games", Icons.games),
     ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort, ViewWithCurrentPlatformFilter {
     private val gameWallView: GameWallView by inject()
     private val discoverGamesView: JavaFxDiscoverGamesView by inject()
-    private val downloadView: JavaFxGameDownloadView by inject()
     private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = true)
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
@@ -81,8 +79,6 @@ class GameScreen : PresentableScreen("Games", Icons.games),
         spacer()
 
         addComponent(discoverGamesView)
-        gap()
-        addComponent(downloadView)
     }
 
     override val root = gameWallView.root

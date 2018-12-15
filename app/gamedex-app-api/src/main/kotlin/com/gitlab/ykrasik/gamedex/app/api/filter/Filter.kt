@@ -186,7 +186,7 @@ sealed class Filter {
     abstract class PeriodDate(val period: Period) : DateRule() {
         override fun evaluate(game: Game, context: Context): Boolean {
             val date = extractDate(game, context)
-            return date != null && date.toLocalDate() >= (now - period).toLocalDate()
+            return date != null && date >= (now - period)
         }
     }
 

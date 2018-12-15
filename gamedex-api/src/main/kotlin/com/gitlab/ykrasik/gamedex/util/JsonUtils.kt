@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import java.io.File
@@ -38,6 +39,7 @@ val objectMapper: ObjectMapper = ObjectMapper()
     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
     .configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true)
     .configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
     .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
 

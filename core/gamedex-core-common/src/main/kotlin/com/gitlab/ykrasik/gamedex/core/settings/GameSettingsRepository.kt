@@ -43,7 +43,7 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
             sortBy = SortBy.criticScore,
             sortOrder = SortOrder.desc,
             discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
-            redownloadGamesCondition = Filter.PeriodUpdateDate(2.months)
+            redownloadGamesCondition = Filter.PeriodUpdateDate(2.months).not
         )
     }
 

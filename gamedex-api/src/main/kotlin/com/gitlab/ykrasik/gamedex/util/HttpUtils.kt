@@ -21,6 +21,7 @@ import khttp.get
 import khttp.responses.Response
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.ServerSocket
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLDecoder
@@ -68,3 +69,5 @@ fun String.toUrl() = URL(this)
 
 val URL.filePath get() = File(path)
 val URL.fileName get() = File(path).name
+
+val freePort get() = ServerSocket(0).use { it.localPort }

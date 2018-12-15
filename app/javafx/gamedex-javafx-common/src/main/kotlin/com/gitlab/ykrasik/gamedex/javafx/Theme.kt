@@ -23,8 +23,10 @@ import com.gitlab.ykrasik.gamedex.util.browse
 import com.jfoenix.controls.JFXButton
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
@@ -92,6 +94,7 @@ object Icons {
     val exitFullscreen get() = fontIcon(MaterialDesign.MDI_FULLSCREEN_EXIT)
 
     val view get() = fontIcon(MaterialDesign.MDI_EYE_OUTLINE)
+    val details get() = fontIcon(MaterialDesign.MDI_FILE_FIND_OUTLINE)
     val edit get() = fontIcon(MaterialDesign.MDI_PENCIL, color = orange)
     val delete get() = fontIcon(MaterialDesign.MDI_DELETE_FOREVER, color = red)
     val deleteSolid get() = fontIcon(MaterialDesign.MDI_DELETE, color = red)
@@ -134,6 +137,15 @@ object Icons {
     val history get() = fontIcon(MaterialDesign.MDI_HISTORY)
     val clockStart get() = fontIcon(MaterialDesign.MDI_CLOCK_START)
     val clockEnd get() = fontIcon(MaterialDesign.MDI_CLOCK_END)
+    val databaseCleanup
+        get() = StackPane().apply {
+            add(Icons.database)
+            add(Icons.deleteSolid.apply {
+                size(15)
+                color(Color.ORANGERED)
+                stackpaneConstraints { alignment = Pos.BOTTOM_RIGHT }
+            })
+        }
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)

@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.javafx.size
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
+import javafx.scene.control.ContentDisplay
 import javafx.scene.control.ScrollPane
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
@@ -48,7 +49,8 @@ inline fun popOver(
     isDetachable = false
     isAutoFix = true
 
-    val scrollpane = ScrollPane().apply {
+    contentNode = ScrollPane()
+    with(contentNode as ScrollPane) {
         maxHeight = screenBounds.height * 3 / 4
         isFitToWidth = true
         isFitToHeight = true
@@ -61,7 +63,6 @@ inline fun popOver(
             op(popover)
         }
     }
-    contentNode = scrollpane
 }
 
 fun PopOver.determineArrowLocation(x: Double, y: Double) = apply {
@@ -139,6 +140,7 @@ inline fun EventTarget.subMenu(
     text: String? = null,
     graphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+    contentDisplay: ContentDisplay = ContentDisplay.LEFT,
     closeOnClick: Boolean = true,
     crossinline op: VBox.() -> Unit = {}
 ) = hbox(alignment = Pos.CENTER_LEFT) {
@@ -147,6 +149,7 @@ inline fun EventTarget.subMenu(
         useMaxWidth = true
         hgrow = Priority.ALWAYS
         this.graphic = graphic
+        this.contentDisplay = contentDisplay
     }
     add(Icons.chevronRight.size(14))
     dropDownMenu(arrowLocation, closeOnClick, op)

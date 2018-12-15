@@ -35,8 +35,7 @@ import io.ktor.http.HttpStatusCode
  * Time: 21:02
  */
 class IgdbClientIT : ScopedWordSpec() {
-    val port = 9001
-    val server = IgdbMockServer(port)
+    val server = IgdbMockServer()
 
     init {
         "search" should {
@@ -101,10 +100,9 @@ class IgdbClientIT : ScopedWordSpec() {
     }
 
     inner class Scope {
-        val baseUrl = "http://localhost:$port"
-        val baseImageUrl = "$baseUrl/images"
+        val baseImageUrl = "${server.baseUrl}/images"
         val id = randomInt()
-        val detailUrl = "$baseUrl/$id"
+        val detailUrl = "${server.baseUrl}/$id"
         val apiKey = randomWord()
         val maxSearchResults = randomInt()
         val platform = randomEnum<Platform>()
@@ -148,7 +146,7 @@ class IgdbClientIT : ScopedWordSpec() {
 
         val client = IgdbClient(
             IgdbConfig(
-                endpoint = baseUrl,
+                baseUrl = server.baseUrl,
                 baseImageUrl = baseImageUrl,
                 accountUrl = "",
                 maxSearchResults = maxSearchResults,

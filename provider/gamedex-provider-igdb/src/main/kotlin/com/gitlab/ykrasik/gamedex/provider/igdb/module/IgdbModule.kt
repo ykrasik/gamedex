@@ -28,6 +28,7 @@ import javax.inject.Singleton
  * Date: 05/02/2017
  * Time: 21:51
  */
+@Suppress("unused")
 object IgdbModule : ProviderModule() {
     override fun configure() {
         bindProvider<IgdbProvider>()

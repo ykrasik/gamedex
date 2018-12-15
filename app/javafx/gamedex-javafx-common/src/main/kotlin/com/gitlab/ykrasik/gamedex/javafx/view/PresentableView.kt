@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
+import javafx.scene.Node
 import javafx.scene.control.ButtonBase
 import javafx.scene.control.TextInputControl
 import javafx.scene.layout.HBox
@@ -32,7 +33,7 @@ import tornadofx.*
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView(title: String? = null, icon: FontIcon? = null) : View(title, icon) {
+abstract class PresentableView(title: String? = null, icon: Node? = null) : View(title, icon) {
     protected val viewRegistry: ViewRegistry by di()
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.

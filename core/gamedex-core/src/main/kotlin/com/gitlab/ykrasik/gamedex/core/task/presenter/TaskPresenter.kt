@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.awaitEvent
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
@@ -50,7 +51,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
         private suspend fun <T> execute(task: Task<T>) {
             if (view.job != null) {
                 log.warn("Trying to execute a task(${task.title}) when one is already executing(${view.taskProgress.title})")
-                eventBus.awaitEvent(TaskFinishedEvent::class)
+                eventBus.awaitEvent<TaskFinishedEvent<T>>()
                 log.warn("Previous task(${view.taskProgress.title}) finished, executing new task(${task.title})")
             }
             check(view.job == null) { "Already running a job: ${view.taskProgress.title}" }

@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.javafx.module
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.app.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImageFactory
 import com.gitlab.ykrasik.gamedex.core.provider.SearchChooser
-import com.gitlab.ykrasik.gamedex.javafx.JavaFxViewManager
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSearchChooser
 import com.google.inject.AbstractModule
 

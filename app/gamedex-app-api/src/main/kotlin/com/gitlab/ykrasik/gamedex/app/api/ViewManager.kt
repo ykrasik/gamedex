@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.app.api
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
@@ -73,6 +75,12 @@ interface ViewManager {
     fun showEditReportView(view: EditReportView)
     fun showEditReportView(f: EditReportView.() -> Unit) = mutateAndShow(editReportView, f, this::showEditReportView)
     fun closeEditReportView(view: EditReportView)
+
+    fun showRedownloadGamesView(): RedownloadGamesView
+    fun closeRedownloadGamesView(view: RedownloadGamesView)
+
+    fun showCleanupDatabaseView(staleData: StaleData): CleanupDatabaseView
+    fun closeCleanupDatabaseView(view: CleanupDatabaseView)
 
     val settingsView: SettingsView
     fun showSettingsView(view: SettingsView)

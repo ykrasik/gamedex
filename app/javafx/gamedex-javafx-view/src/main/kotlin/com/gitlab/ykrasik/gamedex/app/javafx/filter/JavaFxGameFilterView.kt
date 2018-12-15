@@ -298,6 +298,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
                     kotlin.error("${e.message} [years months days hours minutes seconds]")
                 }
             }
+            bindValidation(period)
             period.onChange {
                 if (it!!.isSuccess) {
                     this@apply.value = factory(it.value!!)

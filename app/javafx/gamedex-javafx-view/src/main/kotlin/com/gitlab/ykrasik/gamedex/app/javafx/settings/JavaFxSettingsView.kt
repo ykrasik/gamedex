@@ -94,7 +94,6 @@ class JavaFxSettingsView : PresentableView("Settings"),
         }
     }
 
-    private val databaseSettingsView: JavaFxDatabaseSettingsView by inject()
     private val wallDisplaySettingsView = JavaFxWallDisplaySettingsView(mutableGameWallDisplaySettings)
     private val nameDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableNameOverlayDisplaySettings, "Name")
     private val metaTagDisplaySettingsView = JavaFxGameDisplaySettingsView(mutableMetaTagOverlayDisplaySettings, "MetaTag")
@@ -142,9 +141,6 @@ class JavaFxSettingsView : PresentableView("Settings"),
                                 tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                             }
                         }
-                        header("General")
-                        entry(databaseSettingsView).apply { isSelected = true }
-                        verticalGap(size = 20)
 
                         header("Game Display")
                         entry(wallDisplaySettingsView)

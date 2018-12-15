@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -41,7 +42,8 @@ import java.util.concurrent.TimeUnit
  * Date: 19/03/2017
  * Time: 13:14
  */
-class GiantBombMockServer(port: Int) : Closeable {
+class GiantBombMockServer(port: Int = freePort) : Closeable {
+    val baseUrl = "http://localhost:$port"
     private val wiremock = WireMockServer(port)
 
     fun start() = wiremock.start()
@@ -69,16 +71,16 @@ class GiantBombMockServer(port: Int) : Closeable {
     }
 }
 
-class GiantBombFakeServer(port: Int, private val apiKey: String) : Closeable {
+class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Closeable {
     private val apiDetailPath = "details"
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
 
     val providerId = "GiantBomb"
-    val endpointUrl = "http://localhost:$port"
-    val apiDetailsUrl = "$endpointUrl/$apiDetailPath"
-    val thumbnailUrl = "$endpointUrl/$thumbnailPath"
-    val superUrl = "$endpointUrl/$superPath"
+    val baseUrl = "http://localhost:$port"
+    val apiDetailsUrl = "$baseUrl/$apiDetailPath"
+    val thumbnailUrl = "$baseUrl/$thumbnailPath"
+    val superUrl = "$baseUrl/$superPath"
     val screenshotUrl = superUrl
 
     private val ktor = embeddedServer(Netty, port) {

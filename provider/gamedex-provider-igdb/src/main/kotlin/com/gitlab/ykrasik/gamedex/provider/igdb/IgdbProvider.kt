@@ -61,7 +61,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     }
 
     private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
-        apiUrl = "${config.endpoint}/$id",
+        apiUrl = "${config.baseUrl}/$id",
         name = name,
         releaseDate = releaseDates?.findReleaseDate(platform),
         criticScore = toScore(aggregatedRating, aggregatedRatingCount),

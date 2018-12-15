@@ -44,8 +44,7 @@ class ImageRepository @Inject constructor(@ImageStorage private val storage: Sto
             .toMap()
     }
 
-    fun deleteImages(imageUrls: List<String>): Int =
-        imageUrls.asSequence().map { storage.delete(it) }.sumBy { if (it) 1 else 0 }
+    fun deleteImages(imageUrls: List<String>) = imageUrls.forEach { storage.delete(it) }
 }
 
 @BindingAnnotation

@@ -30,6 +30,8 @@ interface EventBus {
     suspend fun <E : CoreEvent> awaitEvent(event: KClass<E>, predicate: (E) -> Boolean = { true }): E
 }
 
+suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(noinline predicate: (E) -> Boolean = { true }) = awaitEvent(E::class, predicate)
+
 interface EventSubscription {
     fun cancel()
 }

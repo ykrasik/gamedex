@@ -27,7 +27,7 @@ import io.github.config4k.extract
  * Time: 10:53
  */
 data class GiantBombConfig(
-    val endpoint: String,
+    val baseUrl: String,
     val noImageFileName: String,
     val accountUrl: String,
     val defaultOrder: ProviderOrderPriorities,

@@ -31,12 +31,17 @@ class JFXStyle : Stylesheet() {
         val jfxSpinner by csselement("JFXSpinner")
 
         val arc by cssclass()
+        val secondaryBar by cssclass()
     }
 
     init {
         jfxProgressBar {
             bar {
                 backgroundColor = multi(Color.CORNFLOWERBLUE)
+                backgroundRadius = multi(box(20.px))
+            }
+            secondaryBar {
+                backgroundRadius = multi(box(20.px))
             }
         }
 

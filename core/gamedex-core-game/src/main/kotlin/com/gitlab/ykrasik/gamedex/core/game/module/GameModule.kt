@@ -30,8 +30,8 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGamesWith
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverNewGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.RediscoverGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamesConditionPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamesPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.download.ShowRedownloadGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.file.FileStructurePresenter
@@ -74,7 +74,7 @@ object GameModule : InternalCoreModule() {
         bindPresenter(RediscoverGamePresenter::class)
 
         bindPresenter(RedownloadGamePresenter::class)
-        bindPresenter(RedownloadGamesConditionPresenter::class)
+        bindPresenter(ShowRedownloadGamesPresenter::class)
         bindPresenter(RedownloadGamesPresenter::class)
 
         bindPresenter(EditGamePresenter::class)

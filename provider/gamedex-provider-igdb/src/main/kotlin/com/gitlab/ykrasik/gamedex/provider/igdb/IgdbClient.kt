@@ -36,7 +36,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     private val log = logger()
 
     open fun search(name: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
-        endpoint = "${config.endpoint}/",
+        endpoint = "${config.baseUrl}/",
         account = account,
         messagePrefix = "[$platform] Search '$name'",
         params = mapOf(

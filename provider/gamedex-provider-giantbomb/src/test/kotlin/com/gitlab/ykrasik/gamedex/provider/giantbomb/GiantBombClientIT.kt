@@ -35,8 +35,7 @@ import io.ktor.http.HttpStatusCode
  * Time: 21:06
  */
 class GiantBombClientIT : ScopedWordSpec() {
-    val port = 9000
-    val server = GiantBombMockServer(port)
+    val server = GiantBombMockServer()
 
     init {
         "search" should {
@@ -89,9 +88,8 @@ class GiantBombClientIT : ScopedWordSpec() {
     }
 
     inner class Scope {
-        val baseUrl = "http://localhost:$port/"
         val detailPath = randomPath()
-        val detailUrl = "$baseUrl$detailPath"
+        val detailUrl = "${server.baseUrl}/$detailPath"
         val apiKey = randomWord()
         val platform = randomEnum<Platform>()
         val platformId = randomInt(100)
@@ -130,7 +128,7 @@ class GiantBombClientIT : ScopedWordSpec() {
 
         val client = GiantBombClient(
             GiantBombConfig(
-                endpoint = baseUrl,
+                baseUrl = server.baseUrl,
                 noImageFileName = "",
                 accountUrl = "",
                 defaultOrder = ProviderOrderPriorities.default,

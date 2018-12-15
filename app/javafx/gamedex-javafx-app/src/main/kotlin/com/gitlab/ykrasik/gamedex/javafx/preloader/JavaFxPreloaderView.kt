@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.javafx.preloader
 
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.javafx.MainView
+import com.gitlab.ykrasik.gamedex.app.javafx.MainView
+import com.gitlab.ykrasik.gamedex.javafx.Main
 import com.gitlab.ykrasik.gamedex.javafx.control.asPercent
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
@@ -95,7 +96,7 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
             withContext(Dispatchers.JavaFx) {
                 message = "Loading user interface..."
                 delay(5)       // Delay to allow the 'done' message to display.
-                replaceWith(find(MainView::class), ViewTransition.Fade(1.5.seconds))
+                replaceWith(find(MainView::class, params = mapOf(MainView.StartTimeParam to Main.startTime)), ViewTransition.Fade(1.5.seconds))
             }
         }
     }

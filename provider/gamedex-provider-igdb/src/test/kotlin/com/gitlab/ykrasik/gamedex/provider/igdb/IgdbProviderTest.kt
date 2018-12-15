@@ -337,7 +337,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         private val client = mock<IgdbClient>()
         val provider = IgdbProvider(
             IgdbConfig(
-                endpoint = baseUrl,
+                baseUrl = baseUrl,
                 baseImageUrl = baseImageUrl,
                 accountUrl = "",
                 maxSearchResults = randomInt(),
