@@ -8,7 +8,7 @@ buildscript {
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
-            v = '1.3.10'
+            v = '1.3.11'
             majorV = '1.3'
             std = [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: v]
             reflect = [group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: v]
@@ -17,9 +17,11 @@ buildscript {
         }
 
         coroutines = [:].with {
-            v = '1.0.0'
+            v = '1.1.0'
             core = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: v]
             javaFx = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-javafx', version: v]
+            debug = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-debug', version: v]
+            test = [group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-test', version: v]
             delegate
         }
 
@@ -44,7 +46,7 @@ buildscript {
         khttp = [group: 'com.github.jkcclemens', name: 'khttp', version: 'master-SNAPSHOT']
 
         jackson = [:].with {
-            v = '2.9.7'
+            v = '2.9.8'
             core = [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: v]
             kotlin = [group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: v]
             joda = [group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: v]
@@ -60,7 +62,7 @@ buildscript {
             delegate
         }
         tornadoFx = [:].with {
-            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.17']
+            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.18']
             controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
             delegate
         }
@@ -85,12 +87,12 @@ buildscript {
         }
 
         ktor = [:].with {
-            v = '1.0.0'
+            v = '1.1.1'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
             delegate
         }
-        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.19.0']
+        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.20.0']
 
         gradleJavaFx = [group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2']
         gradleVersions = [group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: '0.20.0']
@@ -151,6 +153,9 @@ subprojects {
         testCompile kotlinTest
         testCompile mockito.core
         testCompile mockito.kotlin
+
+        testCompile coroutines.debug
+        testCompile coroutines.test
     }
 
     compileKotlin {
