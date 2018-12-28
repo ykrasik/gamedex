@@ -19,8 +19,9 @@ package com.gitlab.ykrasik.gamedex.app.api.report
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import kotlinx.coroutines.channels.Channel
 
 /**
  * User: ykrasik
@@ -28,14 +29,21 @@ import kotlinx.coroutines.channels.Channel
  * Time: 10:29
  */
 interface ReportView {
-    val report: Report?
-    val reportChanges: Channel<Report?>
+    val report: UserMutableState<Report?>
 
-    var result: ReportResult?
+    val result: State<ReportResult>
 }
 
 data class ReportResult(
     val games: List<Game>,
     val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>,
     val fileStructure: Map<GameId, FileStructure>
-)
+) {
+    companion object {
+        val Null = ReportResult(
+            games = emptyList(),
+            additionalData = emptyMap(),
+            fileStructure = emptyMap()
+        )
+    }
+}

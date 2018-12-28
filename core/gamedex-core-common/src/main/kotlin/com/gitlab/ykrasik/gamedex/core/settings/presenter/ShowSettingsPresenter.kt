@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -30,12 +31,15 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowSettingsPresenter @Inject constructor(
-    private val viewManager: ViewManager
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
 ) : Presenter<ViewCanShowSettings> {
     override fun present(view: ViewCanShowSettings) = object : ViewSession() {
         init {
             view.showSettingsActions.forEach {
-                viewManager.showSettingsView { }
+                val settingsView = viewManager.showSettingsView()
+                eventBus.awaitViewFinished(settingsView)
+                viewManager.closeSettingsView(settingsView)
             }
         }
     }

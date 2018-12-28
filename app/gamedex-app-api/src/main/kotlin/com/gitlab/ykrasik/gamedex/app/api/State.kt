@@ -14,46 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.web.presenter
+package com.gitlab.ykrasik.gamedex.app.api
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import java.net.URLEncoder
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 06/10/2018
- * Time: 12:14
+ * Date: 02/12/2018
+ * Time: 16:44
  */
-@Singleton
-class BrowserPresenter @Inject constructor() : Presenter<ViewWithBrowser> {
-    override fun present(view: ViewWithBrowser) = object : ViewSession() {
-        init {
-            view.gameChanges.forEach { game ->
-                if (showing) {
-                    browseToGame(game)
-                }
-            }
-        }
 
-        override fun onShow() {
-            browseToGame(view.game)
-        }
+/**
+ * State that can be changed by setting [value] from code.
+ * The view holding this state is expected to react to such changes, in a manner appropriate to the view.
+ */
+interface State<T> {
+    /**
+     * Used to notify the view about value changes.
+     */
+    var value: T
+}
 
-        override fun onHide() {
-            browseToGame(null)
-        }
+/**
+ * State that can both be changed from code by setting [value] (in which case the view should react to the change)
+ * as well as be changed by the user, in which case the change is reported to the [changes] channel.
+ * Such changes will trigger code listening to these changes to react.
+ */
+interface UserMutableState<T> : State<T> {
+    /**
+     * Used to notify the view about value changes. Must not trigger an event on [changes]!
+     */
+    override var value: T
 
-        private fun browseToGame(game: Game?) {
-            val url = game?.let {
-                val search = URLEncoder.encode("${it.name} ${it.platform} gameplay", "utf-8")
-                "https://www.youtube.com/results?search_query=$search"
-            }
-            view.browseTo(url)
-        }
-    }
+    /**
+     * Reports changes the user made to the value from the view.
+     */
+    val changes: ReceiveChannel<T>
 }

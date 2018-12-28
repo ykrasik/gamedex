@@ -32,15 +32,15 @@ import javax.inject.Singleton
 class ProviderOrderSettingsPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {
-            settingsService.providerOrder.bind({ searchChannel }, view::search, view.searchChanges) { copy(search = it) }
-            settingsService.providerOrder.bind({ nameChannel }, view::name, view.nameChanges) { copy(name = it) }
-            settingsService.providerOrder.bind({ descriptionChannel }, view::description, view.descriptionChanges) { copy(description = it) }
-            settingsService.providerOrder.bind({ releaseDateChannel }, view::releaseDate, view.releaseDateChanges) { copy(releaseDate = it) }
-            settingsService.providerOrder.bind({ criticScoreChannel }, view::criticScore, view.criticScoreChanges) { copy(criticScore = it) }
-            settingsService.providerOrder.bind({ userScoreChannel }, view::userScore, view.userScoreChanges) { copy(userScore = it) }
-            settingsService.providerOrder.bind({ thumbnailChannel }, view::thumbnail, view.thumbnailChanges) { copy(thumbnail = it) }
-            settingsService.providerOrder.bind({ posterChannel }, view::poster, view.posterChanges) { copy(poster = it) }
-            settingsService.providerOrder.bind({ screenshotChannel }, view::screenshot, view.screenshotChanges) { copy(screenshot = it) }
+            settingsService.providerOrder.bind({ searchChannel }, view.search) { copy(search = it) }
+            settingsService.providerOrder.bind({ nameChannel }, view.name) { copy(name = it) }
+            settingsService.providerOrder.bind({ descriptionChannel }, view.description) { copy(description = it) }
+            settingsService.providerOrder.bind({ releaseDateChannel }, view.releaseDate) { copy(releaseDate = it) }
+            settingsService.providerOrder.bind({ criticScoreChannel }, view.criticScore) { copy(criticScore = it) }
+            settingsService.providerOrder.bind({ userScoreChannel }, view.userScore) { copy(userScore = it) }
+            settingsService.providerOrder.bind({ thumbnailChannel }, view.thumbnail) { copy(thumbnail = it) }
+            settingsService.providerOrder.bind({ posterChannel }, view.poster) { copy(poster = it) }
+            settingsService.providerOrder.bind({ screenshotChannel }, view.screenshot) { copy(screenshot = it) }
         }
     }
 }

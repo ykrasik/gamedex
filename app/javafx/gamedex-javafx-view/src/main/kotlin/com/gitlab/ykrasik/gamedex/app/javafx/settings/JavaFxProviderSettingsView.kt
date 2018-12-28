@@ -20,19 +20,14 @@ import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleButton
-import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
@@ -47,32 +42,23 @@ import tornadofx.*
 class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    private val statusProperty = SimpleObjectProperty(ProviderAccountStatus.Empty)
-    override var status by statusProperty
+    override var status = state(ProviderAccountStatus.Empty)
+    override var enabled = userMutableState(false)
 
-    override var lastVerifiedAccount = emptyMap<String, String>()
+    override var currentAccount = userMutableState(emptyMap<String, String>())
 
-    override val currentAccountChanges = channel<Map<String, String>>()
-    private val currentAccountProperty = SimpleObjectProperty(emptyMap<String, String>()).eventOnChange(currentAccountChanges)
-    override var currentAccount by currentAccountProperty
+    override val gotoAccountUrlActions = channel<Unit>()
 
-    override val enabledChanges = channel<Boolean>()
-    private val providerEnabledProperty = SimpleBooleanProperty(false).eventOnChange(enabledChanges)
-    override var enabled by providerEnabledProperty
+    override var canVerifyAccount = state(IsValid.valid)
 
-    override val accountUrlClicks = channel<Unit>()
-
-    private val canVerifyAccountProperty = SimpleObjectProperty(IsValid.valid)
-    override var canVerifyAccount by canVerifyAccountProperty
-
-    override val verifyAccountRequests = channel<Unit>()
+    override val verifyAccountActions = channel<Unit>()
 
     private var accountLabelFlashContainer: StackPane by singleAssign()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
 
-        statusProperty.onChange { status ->
+        status.property.onChange { status ->
             if (status == ProviderAccountStatus.Invalid) {
                 accountLabelFlashContainer.flash(target = 0.5, reverse = true)
             }
@@ -80,8 +66,8 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
     }
 
     override val root = vbox {
-        defaultHbox {
-            paddingAll = 10
+        defaultHbox(alignment = Pos.TOP_LEFT) {
+            paddingAll = 5
             label(provider.id) { addClass(Style.providerLabel) }
             spacer()
             imageview {
@@ -93,17 +79,17 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
         verticalGap(size = 40)
         form {
             fieldset {
-                field("Enable") {
+                horizontalField("Enable") {
                     hbox(alignment = Pos.BASELINE_CENTER) {
-                        jfxToggleButton(providerEnabledProperty)
+                        jfxToggleButton(enabled.property)
                         spacer()
                         stackpane {
-                            visibleWhen { statusProperty.isNotEqualTo(ProviderAccountStatus.NotRequired) }
+                            visibleWhen { status.property.isNotEqualTo(ProviderAccountStatus.NotRequired) }
                             label {
                                 addClass(Style.accountLabel)
-                                textProperty().bind(statusProperty.map { it!!.text })
-                                graphicProperty().bind(statusProperty.map { it!!.icon })
-                                textFillProperty().bind(statusProperty.map { it!!.color })
+                                textProperty().bind(status.property.map { it!!.text })
+                                graphicProperty().bind(status.property.map { it!!.icon })
+                                textFillProperty().bind(status.property.map { it!!.color })
                             }
                             accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
                         }
@@ -121,14 +107,14 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
                         spacer()
                         confirmButton("Verify Account") {
                             addClass(CommonStyle.thinBorder)
-                            enableWhen(canVerifyAccountProperty)
+                            enableWhen(canVerifyAccount)
                             isDefaultButton = true
-                            eventOnAction(verifyAccountRequests)
+                            eventOnAction(verifyAccountActions)
                         }
                     }
-                    field("Create") {
+                    horizontalField("Create") {
                         hyperlink(accountFeature.accountUrl) {
-                            eventOnAction(accountUrlClicks)
+                            eventOnAction(gotoAccountUrlActions)
                         }
                     }
                 }
@@ -138,11 +124,11 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
 
     private fun Fieldset.accountField(field: String?) {
         if (field == null) return
-        field(field) {
-            val currentValue = currentAccountProperty.map { account -> account!![field] ?: "" }
+        horizontalField(field) {
+            val currentValue = currentAccount.property.map { account -> account!![field] ?: "" }
             jfxTextField(currentValue) {
                 textProperty().onChange {
-                    currentAccount += field to it!!
+                    currentAccount.valueFromView += field to it!!
                 }
             }
         }

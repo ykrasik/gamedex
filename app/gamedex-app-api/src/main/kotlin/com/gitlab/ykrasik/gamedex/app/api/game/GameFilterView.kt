@@ -17,8 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlin.reflect.KClass
 
@@ -36,8 +38,6 @@ interface GameFilterView {
     val possibleProviderIds: MutableList<ProviderId>
     val possibleRules: MutableList<KClass<out Filter.Rule>>
 
-    var filter: Filter
-
     val wrapInAndActions: ReceiveChannel<Filter>
     val wrapInOrActions: ReceiveChannel<Filter>
     val wrapInNotActions: ReceiveChannel<Filter>
@@ -46,4 +46,7 @@ interface GameFilterView {
     val updateFilterActions: ReceiveChannel<Pair<Filter.Rule, Filter.Rule>>
     val replaceFilterActions: ReceiveChannel<Pair<Filter, KClass<out Filter>>>
     val deleteFilterActions: ReceiveChannel<Filter>
+
+    val filter: State<Filter>
+    val filterIsValid: State<IsValid>
 }

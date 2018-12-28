@@ -17,19 +17,16 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
  * Date: 02/05/2018
  * Time: 10:42
  */
-interface DeleteGameView {
-    var game: Game
+interface DeleteGameView : ConfirmationView {
+    val game: Game
 
-    var fromFileSystem: Boolean
-    val fromFileSystemChanges: ReceiveChannel<Boolean>
-
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
+    val fromFileSystem: UserMutableState<Boolean>
 }

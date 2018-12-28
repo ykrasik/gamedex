@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory.getLogger
  * Date: 13/04/2018
  * Time: 20:47
  */
-object GamedexLog {
+object GameDexLog {
     private val maxLogEntries = 100000
     private val _entries = ListObservableImpl<LogEntry>()
     val entries: ListObservable<LogEntry> = _entries
@@ -47,9 +47,9 @@ object GamedexLog {
     }
 }
 
-class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
+class GameDexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
     override fun append(e: ILoggingEvent) {
-        GamedexLog += LogEntry(
+        GameDexLog += LogEntry(
             level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
             timestamp = DateTime(e.timeStamp),
             loggerName = e.loggerName.substringAfterLast('.'),
@@ -61,7 +61,7 @@ class GamedexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
     companion object {
         fun init() {
             with(getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger) {
-                addAppender(GamedexLogAppender().apply { start() })
+                addAppender(GameDexLogAppender().apply { start() })
                 level = Level.TRACE
             }
         }

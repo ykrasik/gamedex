@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import kotlinx.coroutines.Deferred
 
@@ -26,7 +27,7 @@ import kotlinx.coroutines.Deferred
  * Time: 20:09
  */
 interface GameView {
-    var game: Game
+    val game: State<Game>
 
-    var poster: Deferred<Image>?
+    val poster: State<Deferred<Image>?>
 }

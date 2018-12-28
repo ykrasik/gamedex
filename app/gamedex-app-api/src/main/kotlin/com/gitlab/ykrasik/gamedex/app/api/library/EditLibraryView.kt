@@ -18,7 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
@@ -27,25 +30,18 @@ import java.io.File
  * Date: 21/04/2018
  * Time: 07:05
  */
-interface EditLibraryView {
-    var library: Library?
+interface EditLibraryView : ConfirmationView {
+    val library: Library?
 
-    var canAccept: IsValid
+    val name: UserMutableState<String>
+    val nameIsValid: State<IsValid>
 
-    var name: String
-    val nameChanges: ReceiveChannel<String>
-    var nameIsValid: IsValid
+    val path: UserMutableState<String>
+    val pathIsValid: State<IsValid>
 
-    var path: String
-    val pathChanges: ReceiveChannel<String>
-    var pathIsValid: IsValid
-
-    var platform: Platform
-    val platformChanges: ReceiveChannel<Platform>
+    val platform: UserMutableState<Platform>
 
     val browseActions: ReceiveChannel<Unit>
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
 
     fun selectDirectory(initialDirectory: File?): File?
 }

@@ -24,8 +24,13 @@ import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.scene.Node
 import javafx.scene.control.Label
+import javafx.scene.control.ToggleButton
 import javafx.scene.control.ToggleGroup
-import tornadofx.*
+import tornadofx.addClass
+import tornadofx.getToggleGroup
+import tornadofx.opcr
+import tornadofx.useMaxWidth
+import kotlin.collections.set
 
 /**
  * User: ykrasik
@@ -46,32 +51,35 @@ inline fun EventTarget.jfxToggleButton(
 }
 
 inline fun Node.jfxToggleNode(
+    text: String? = null,
     graphic: Node? = null,
     group: ToggleGroup? = getToggleGroup(),
     op: JFXToggleNode.() -> Unit = {}
-) = opcr(this, JFXToggleNode().apply {
+) = opcr(this, JFXToggleNode()) {
     addClass(CommonStyle.jfxHoverable)
-    this.graphic = graphic
+    this.graphic = Label(text, graphic).apply {
+        addClass(CommonStyle.jfxToggleNodeLabel)
+        useMaxWidth = true
+    }
     this.toggleGroup = group
-}, op)
+    op()
+}
 
 inline fun Node.jfxToggleNode(
     text: String? = null,
     graphic: Node? = null,
     value: Any? = null,
     group: ToggleGroup? = getToggleGroup(),
-    labelStyleClasses: List<CssRule> = emptyList(),
     op: JFXToggleNode.() -> Unit = {}
 ): JFXToggleNode {
-    val actualText = if (value != null && text == null) value.toString() else text ?: ""
-    val label = Label(actualText, graphic).apply {
-        addClass(CommonStyle.jfxToggleNodeLabel)
-        useMaxWidth = true
-        labelStyleClasses.forEach { addClass(it) }
+    return jfxToggleNode(text, graphic, group) {
+        toggleValue(value)
+        op()
     }
-    return jfxToggleNode(label, group, op).apply {
-        properties["tornadofx.toggleGroupValue"] = value ?: text
-    }
+}
+
+fun ToggleButton.toggleValue(value: Any?) = apply {
+    properties["tornadofx.toggleGroupValue"] = value
 }
 
 inline fun EventTarget.jfxCheckBox(op: JFXCheckBox.() -> Unit = {}) = opcr(this, JFXCheckBox(), op)

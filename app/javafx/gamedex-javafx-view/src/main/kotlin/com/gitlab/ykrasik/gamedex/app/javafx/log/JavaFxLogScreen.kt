@@ -18,15 +18,12 @@ package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.*
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.jfoenix.controls.JFXListCell
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
@@ -42,29 +39,24 @@ import java.io.StringWriter
 class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries, ViewCanChangeLogLevel, ViewCanChangeLogTail {
     override val entries = mutableListOf<LogEntry>().observable().sortedFiltered()
 
-    override val levelChanges = channel<LogLevel>()
-    private val levelProperty = SimpleObjectProperty(LogLevel.Info).eventOnChange(levelChanges)
-    override var level by levelProperty
-
-    override val logTailChanges = channel<Boolean>()
-    private val logTailProperty = SimpleBooleanProperty(false).eventOnChange(logTailChanges)
-    override var logTail by logTailProperty
+    override var level = userMutableState(LogLevel.Info)
+    override var logTail = userMutableState(false)
 
     init {
-        entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.toLevel()) }
-        levelProperty.onChange { entries.refilter() }
+        entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.value.toLevel()) }
+        level.onChange { entries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
 //        })
 
-        viewRegistry.onCreate(this)
+        register()
     }
 
-    override fun HBox.constructToolbar() {
-        enumComboMenu(levelProperty, graphic = { it.icon }).apply {
+    override fun HBox.buildToolbar() {
+        enumComboMenu(level.property, graphic = { it.icon }).apply {
             addClass(CommonStyle.toolbarButton)
         }
-        jfxCheckBox(logTailProperty, "Tail")
+        jfxCheckBox(logTail.property, "Tail")
     }
 
     override val root = jfxListView(entries) {
@@ -118,7 +110,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
         }
 
         entries.onChange {
-            if (logTail) {
+            if (logTail.value) {
                 scrollTo(items.size)
             }
         }

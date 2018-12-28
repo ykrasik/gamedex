@@ -18,14 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.event.EventTarget
 import javafx.scene.layout.HBox
 import tornadofx.*
@@ -43,38 +40,28 @@ class GameScreen : PresentableScreen("Games", Icons.games),
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
-    override val currentPlatformChanges = channel<Platform>()
-    private val currentPlatformProperty = SimpleObjectProperty<Platform>().eventOnChange(currentPlatformChanges)
-    override var currentPlatform by currentPlatformProperty
+    override var currentPlatform = userMutableState(Platform.pc)
 
-    override val searchTextChanges = channel<String>()
-    private val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
-    override var searchText by searchTextProperty
+    override val searchText = userMutableState("")
 
-    override val sortByChanges = channel<SortBy>()
-    private val sortByProperty = SimpleObjectProperty<SortBy>(SortBy.name_).eventOnChange(sortByChanges)
-    override var sortBy by sortByProperty
+    override var sortBy = userMutableState(SortBy.name_)
+    override var sortOrder = userMutableState(SortOrder.asc)
 
-    override val sortOrderChanges = channel<SortOrder>()
-    private val sortOrderProperty = SimpleObjectProperty<SortOrder>(SortOrder.asc).eventOnChange(sortOrderChanges)
-    override var sortOrder by sortOrderProperty
-
-    override var currentPlatformFilter by filterView.filterProperty
-    override val currentPlatformFilterChanges = filterView.filterChanges
+    override val currentPlatformFilter = userMutableState(filterView.filter)
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     // FIXME: Change search -> sync, refresh maybe to download?
-    override fun HBox.constructToolbar() {
+    override fun HBox.buildToolbar() {
         platformButton()
 
         gap()
 
         filterButton()
         sortButton()
-        searchTextField(this@GameScreen, searchTextProperty)
+        searchTextField(this@GameScreen, searchText.property)
 
         spacer()
 
@@ -85,7 +72,7 @@ class GameScreen : PresentableScreen("Games", Icons.games),
 
     private fun EventTarget.platformButton() = popoverComboMenu(
         possibleItems = availablePlatforms,
-        selectedItemProperty = currentPlatformProperty,
+        selectedItemProperty = currentPlatform.property,
         text = Platform::displayName,
         graphic = { it.logo }
     ).apply {
@@ -99,19 +86,19 @@ class GameScreen : PresentableScreen("Games", Icons.games),
             paddingAll = 5
             popoverComboMenu(
                 possibleItems = SortBy.values().toList().observable(),
-                selectedItemProperty = sortByProperty,
+                selectedItemProperty = sortBy.property,
                 text = { it.displayName },
                 graphic = { it.icon }
             ).apply {
                 addClass(CommonStyle.toolbarButton)
             }
             jfxButton {
-                graphicProperty().bind(sortOrderProperty.objectBinding { if (it == SortOrder.asc) Icons.ascending else Icons.descending })
+                graphicProperty().bind(sortOrder.property.objectBinding { if (it == SortOrder.asc) Icons.ascending else Icons.descending })
                 tooltip {
-                    textProperty().bind(sortOrderProperty.stringBinding { it!!.displayName })
+                    textProperty().bind(sortOrder.property.stringBinding { it!!.displayName })
                 }
                 action {
-                    sortOrder = sortOrder.toggle()
+                    sortOrder.valueFromView = sortOrder.value.toggle()
                 }
             }
         }

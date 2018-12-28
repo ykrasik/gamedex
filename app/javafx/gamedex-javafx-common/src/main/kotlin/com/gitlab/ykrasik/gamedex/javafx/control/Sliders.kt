@@ -16,8 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.combineLatest
+import com.gitlab.ykrasik.gamedex.javafx.map
+import com.gitlab.ykrasik.gamedex.javafx.minusButton
+import com.gitlab.ykrasik.gamedex.javafx.plusButton
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.gitlab.ykrasik.gamedex.util.roundBy
 import com.jfoenix.controls.JFXSlider
@@ -98,7 +101,7 @@ inline fun EventTarget.plusMinusSlider(
 
     with(minusButton) {
         enableWhen(slider.valueProperty().map { value ->
-            ValueOrError {
+            Try<Any> {
                 check(value!!.toDouble() - step >= min.toDouble()) { "Limit reached!" }
             }
         })
@@ -107,7 +110,7 @@ inline fun EventTarget.plusMinusSlider(
 
     with(plusButton) {
         enableWhen(slider.valueProperty().map { value ->
-            ValueOrError {
+            Try<Any> {
                 check(value!!.toDouble() + step <= max.toDouble()) { "Limit reached!" }
             }
         })

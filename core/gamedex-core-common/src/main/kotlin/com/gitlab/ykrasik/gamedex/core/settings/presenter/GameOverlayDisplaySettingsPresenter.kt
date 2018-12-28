@@ -33,16 +33,16 @@ abstract class ChangeGameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                repo.bind({ enabledChannel }, ::enabled, enabledChanges) { copy(enabled = it) }
-                repo.bind({ showOnlyWhenActiveChannel }, ::showOnlyWhenActive, showOnlyWhenActiveChanges) { copy(showOnlyWhenActive = it) }
-                repo.bind({ positionChannel }, ::position, positionChanges) { copy(position = it) }
-                repo.bind({ fillWidthChannel }, ::fillWidth, fillWidthChanges) { copy(fillWidth = it) }
-                repo.bind({ fontSizeChannel }, ::fontSize, fontSizeChanges) { copy(fontSize = it) }
-                repo.bind({ boldFontChannel }, ::boldFont, boldFontChanges) { copy(boldFont = it) }
-                repo.bind({ italicFontChannel }, ::italicFont, italicFontChanges) { copy(italicFont = it) }
-                repo.bind({ textColorChannel }, ::textColor, textColorChanges) { copy(textColor = it) }
-                repo.bind({ backgroundColorChannel }, ::backgroundColor, backgroundColorChanges) { copy(backgroundColor = it) }
-                repo.bind({ opacityChannel }, ::opacity, opacityChanges) { copy(opacity = it) }
+                repo.bind({ enabledChannel }, enabled) { copy(enabled = it) }
+                repo.bind({ showOnlyWhenActiveChannel }, showOnlyWhenActive) { copy(showOnlyWhenActive = it) }
+                repo.bind({ positionChannel }, position) { copy(position = it) }
+                repo.bind({ fillWidthChannel }, fillWidth) { copy(fillWidth = it) }
+                repo.bind({ fontSizeChannel }, fontSize) { copy(fontSize = it) }
+                repo.bind({ boldFontChannel }, boldFont) { copy(boldFont = it) }
+                repo.bind({ italicFontChannel }, italicFont) { copy(italicFont = it) }
+                repo.bind({ textColorChannel }, textColor) { copy(textColor = it) }
+                repo.bind({ backgroundColorChannel }, backgroundColor) { copy(backgroundColor = it) }
+                repo.bind({ opacityChannel }, opacity) { copy(opacity = it) }
             }
         }
     }
@@ -76,16 +76,16 @@ abstract class GameOverlayDisplaySettingsPresenter<V> : Presenter<V> {
     override fun present(view: V) = object : ViewSession() {
         init {
             with(extractOverlay(view)) {
-                repo.enabledChannel.reportChangesTo(::enabled)
-                repo.showOnlyWhenActiveChannel.reportChangesTo(::showOnlyWhenActive)
-                repo.positionChannel.reportChangesTo(::position)
-                repo.fillWidthChannel.reportChangesTo(::fillWidth)
-                repo.fontSizeChannel.reportChangesTo(::fontSize)
-                repo.boldFontChannel.reportChangesTo(::boldFont)
-                repo.italicFontChannel.reportChangesTo(::italicFont)
-                repo.textColorChannel.reportChangesTo(::textColor)
-                repo.backgroundColorChannel.reportChangesTo(::backgroundColor)
-                repo.opacityChannel.reportChangesTo(::opacity)
+                repo.enabledChannel.bind(enabled)
+                repo.showOnlyWhenActiveChannel.bind(showOnlyWhenActive)
+                repo.positionChannel.bind(position)
+                repo.fillWidthChannel.bind(fillWidth)
+                repo.fontSizeChannel.bind(fontSize)
+                repo.boldFontChannel.bind(boldFont)
+                repo.italicFontChannel.bind(italicFont)
+                repo.textColorChannel.bind(textColor)
+                repo.backgroundColorChannel.bind(backgroundColor)
+                repo.opacityChannel.bind(opacity)
             }
         }
     }

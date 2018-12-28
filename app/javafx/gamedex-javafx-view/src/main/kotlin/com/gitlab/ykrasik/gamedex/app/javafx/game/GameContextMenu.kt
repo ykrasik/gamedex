@@ -54,7 +54,7 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
     override val rediscoverGameActions = channel<Game>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = vbox {

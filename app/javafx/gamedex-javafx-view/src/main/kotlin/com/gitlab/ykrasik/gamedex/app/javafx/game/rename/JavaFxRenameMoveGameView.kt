@@ -19,13 +19,14 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.cancelButton
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.header
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.HPos
@@ -38,74 +39,50 @@ import java.io.File
  * Date: 11/06/2017
  * Time: 19:47
  */
-class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
-    override val possibleLibraries = mutableListOf<Library>().observable()
-
+class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView {
     override var initialName: String? = null
 
-    private val gameProperty = SimpleObjectProperty<Game>()
+    private val gameProperty = SimpleObjectProperty(Game.Null)
     override var game by gameProperty
 
-    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
-    override var canAccept by canAcceptProperty
+    override val possibleLibraries = mutableListOf<Library>().observable()
 
-    override val libraryChanges = channel<Library>()
-    private val libraryProperty = SimpleObjectProperty<Library>().eventOnChange(libraryChanges)
-    override var library by libraryProperty
-
-    override val pathChanges = channel<String>()
-    private val pathProperty = SimpleObjectProperty<String>("").eventOnChange(pathChanges)
-    override var path by pathProperty
-
-    override val nameChanges = channel<String>()
-    private val nameProperty = SimpleObjectProperty<String>("").eventOnChange(nameChanges)
-    override var name by nameProperty
-
-    private val nameIsValidProperty = SimpleObjectProperty(IsValid.valid)
-    override var nameIsValid by nameIsValidProperty
+    override val library = userMutableState(Library.Null)
+    override val path = userMutableState("")
+    override val name = userMutableState("")
+    override val nameIsValid = state(IsValid.valid)
 
     override val selectDirectoryActions = channel<Unit>()
     override val browseToGameActions = channel<Unit>()
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it?.path}" })
-        viewRegistry.onCreate(this)
+        titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it!!.path}" })
+        register()
     }
 
     override val root = borderpane {
         minWidth = 700.0
         minHeight = 100.0
-        top {
-            toolbar {
-                cancelButton { eventOnAction(cancelActions) }
-                spacer()
-                acceptButton {
-                    enableWhen(canAcceptProperty)
-                    eventOnAction(acceptActions)
-                }
-            }
-        }
+        top = confirmationToolbar()
         center {
             form {
-                paddingAll = 10.0
+                paddingAll = 10
                 fieldset("From") {
-                    field {
+                    horizontalField {
                         jfxButton {
-                            textProperty().bind(gameProperty.stringBinding { it?.path?.toString() })
+                            textProperty().bind(gameProperty.stringBinding { it!!.path.toString() })
                             eventOnAction(browseToGameActions)
                         }
                     }
                 }
                 fieldset("To") {
-                    field {
+                    horizontalField {
                         gridpane {
                             hgap = 5.0
                             header("Library") { gridpaneConstraints { columnRowIndex(0, 0); hAlignment = HPos.CENTER } }
                             popoverComboMenu(
                                 possibleItems = possibleLibraries,
-                                selectedItemProperty = libraryProperty,
+                                selectedItemProperty = library.property,
                                 text = { it.path.path }
                             ).apply {
                                 gridpaneConstraints { columnRowIndex(0, 1); hAlignment = HPos.LEFT }
@@ -115,14 +92,14 @@ class JavaFxRenameMoveGameView : PresentableView(), RenameMoveGameView {
                             jfxButton {
                                 gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
-                                textProperty().bind(pathProperty.stringBinding { if (it.isNullOrEmpty()) File.separator else it })
+                                textProperty().bind(path.property.stringBinding { if (it.isNullOrEmpty()) File.separator else it })
                                 eventOnAction(selectDirectoryActions)
                             }
 
                             header("Name") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
-                            jfxTextField(nameProperty) {
+                            jfxTextField(name.property) {
                                 gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
-                                validWhen(nameIsValidProperty)
+                                validWhen(nameIsValid)
                             }
                         }
                     }

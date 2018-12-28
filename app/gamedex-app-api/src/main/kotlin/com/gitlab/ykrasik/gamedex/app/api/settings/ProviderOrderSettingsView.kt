@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,32 +25,15 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:25
  */
 interface ProviderOrderSettingsView {
-    var search: Order
-    val searchChanges: ReceiveChannel<Order>
-
-    var name: Order
-    val nameChanges: ReceiveChannel<Order>
-
-    var description: Order
-    val descriptionChanges: ReceiveChannel<Order>
-
-    var releaseDate: Order
-    val releaseDateChanges: ReceiveChannel<Order>
-
-    var criticScore: Order
-    val criticScoreChanges: ReceiveChannel<Order>
-
-    var userScore: Order
-    val userScoreChanges: ReceiveChannel<Order>
-
-    var thumbnail: Order
-    val thumbnailChanges: ReceiveChannel<Order>
-
-    var poster: Order
-    val posterChanges: ReceiveChannel<Order>
-
-    var screenshot: Order
-    val screenshotChanges: ReceiveChannel<Order>
+    val search: UserMutableState<Order>
+    val name: UserMutableState<Order>
+    val description: UserMutableState<Order>
+    val releaseDate: UserMutableState<Order>
+    val criticScore: UserMutableState<Order>
+    val userScore: UserMutableState<Order>
+    val thumbnail: UserMutableState<Order>
+    val poster: UserMutableState<Order>
+    val screenshot: UserMutableState<Order>
 }
 
 typealias Order = Map<ProviderId, Int>

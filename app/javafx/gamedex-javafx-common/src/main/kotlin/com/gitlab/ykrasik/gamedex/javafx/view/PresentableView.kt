@@ -17,13 +17,11 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
-import javafx.beans.property.Property
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBase
-import javafx.scene.control.TextInputControl
 import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import kotlinx.coroutines.channels.Channel
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
@@ -34,7 +32,7 @@ import tornadofx.*
  * Time: 07:13
  */
 abstract class PresentableView(title: String? = null, icon: Node? = null) : View(title, icon) {
-    protected val viewRegistry: ViewRegistry by di()
+    private val viewRegistry: ViewRegistry by di()
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
     // This is just how TornadoFx works.
@@ -53,6 +51,10 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
             }
         }
     }
+
+    protected fun register() = viewRegistry.onCreate(this)
+
+    fun <E> Channel<E>.event(e: E) = offer(e)
 
     fun <T, O : ObservableValue<T>> O.eventOnNullableChange(channel: Channel<T?>): O = eventOnNullableChange(channel) { it }
 
@@ -75,35 +77,6 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
     inline fun <T> ButtonBase.eventOnAction(channel: Channel<T>, crossinline f: () -> T) = apply {
         action { channel.event(f()) }
     }
-
-    fun ViewModel.presentableStringProperty(channel: Channel<String>): Property<String> =
-        presentableProperty(channel) { SimpleStringProperty("") }
-
-    inline fun <R> ViewModel.presentableStringProperty(channel: Channel<R>, crossinline factory: (String) -> R): Property<String> =
-        presentableProperty(channel, { SimpleStringProperty("") }, factory)
-
-    inline fun <reified T : Any, reified O : Property<T>> ViewModel.presentableProperty(channel: Channel<T>, crossinline propertyFactory: () -> O): O =
-        presentableProperty(channel, propertyFactory) { it }
-
-    inline fun <reified T : Any, R, reified O : Property<T>> ViewModel.presentableProperty(
-        channel: Channel<R>,
-        crossinline propertyFactory: () -> O,
-        crossinline valueFactory: (T) -> R
-    ): O = bind<O, T, O> { propertyFactory() }.apply {
-        onChange {
-            channel.event(valueFactory(it!!))
-            commit()
-        }
-    }
-
-    fun TextInputControl.validatorFrom(viewModel: ViewModel, errorValue: ObservableValue<String?>) {
-        errorValue.onChange { viewModel.validate() }
-        validator(ValidationTrigger.None) {
-            errorValue.value?.let { error(it) }
-        }
-    }
-
-    fun <E> Channel<E>.event(e: E) = offer(e)
 }
 
 abstract class PresentableTabView(title: String? = null, icon: FontIcon? = null) : PresentableView(title, icon) {
@@ -115,5 +88,13 @@ abstract class PresentableTabView(title: String? = null, icon: FontIcon? = null)
 }
 
 abstract class PresentableScreen(title: String = "", icon: FontIcon? = null) : PresentableTabView(title, icon) {
-    abstract fun HBox.constructToolbar()
+    open val navigation: ScreenNavigation = ScreenNavigation.MainMenu
+
+    abstract fun HBox.buildToolbar()
+}
+
+sealed class ScreenNavigation {
+    object MainMenu : ScreenNavigation()
+    class SubMenu(val builder: VBox.() -> Unit) : ScreenNavigation()
+    object Standalone : ScreenNavigation()
 }

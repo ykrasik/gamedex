@@ -18,11 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.discover
 
 import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanChangeDiscoverGameChooseResults
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.disallowDeselection
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleNode
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import tornadofx.*
 
@@ -32,13 +31,10 @@ import tornadofx.*
  * Time: 21:15
  */
 private class JavaFxDiscoverGameChooseResultsView : PresentableView(), ViewCanChangeDiscoverGameChooseResults {
-    override val discoverGameChooseResultsChanges = channel<DiscoverGameChooseResults>()
-    private val discoverGameChooseResultsProperty = SimpleObjectProperty<DiscoverGameChooseResults>(null)
-        .eventOnChange(discoverGameChooseResultsChanges)
-    override var discoverGameChooseResults by discoverGameChooseResultsProperty
+    override var discoverGameChooseResults = userMutableState(DiscoverGameChooseResults.chooseIfNonExact)
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = vbox(spacing = 5.0) {
@@ -49,7 +45,7 @@ private class JavaFxDiscoverGameChooseResultsView : PresentableView(), ViewCanCh
                 }
             }
             disallowDeselection()
-            bind(discoverGameChooseResultsProperty)
+            bind(discoverGameChooseResults.property)
         }
     }
 }

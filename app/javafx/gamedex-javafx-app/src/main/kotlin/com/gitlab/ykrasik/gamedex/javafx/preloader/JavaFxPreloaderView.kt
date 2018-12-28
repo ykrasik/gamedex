@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.javafx.MainView
 import com.gitlab.ykrasik.gamedex.javafx.Main
 import com.gitlab.ykrasik.gamedex.javafx.control.asPercent
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
-import com.gitlab.ykrasik.gamedex.javafx.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.module.GuiceDiContainer
 import com.gitlab.ykrasik.gamedex.javafx.module.JavaFxModule
 import javafx.beans.property.SimpleDoubleProperty
@@ -58,8 +58,8 @@ class JavaFxPreloaderView : View("GameDex"), PreloaderView {
                     image = logo
 
                     clipRectangle {
-                        arcWidth = 10.0
-                        arcHeight = 10.0
+                        arcWidth = 14.0
+                        arcHeight = 14.0
                         heightProperty().bind(logo.heightProperty())
                         widthProperty().bind(logo.widthProperty())
                     }

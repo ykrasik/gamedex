@@ -34,12 +34,12 @@ class CurrentPlatformFilterPresenter @Inject constructor(
 ) : Presenter<ViewWithCurrentPlatformFilter> {
     override fun present(view: ViewWithCurrentPlatformFilter) = object : ViewSession() {
         init {
-            view.currentPlatformFilter = settingsService.currentPlatformSettings.filter
+            view.currentPlatformFilter *= settingsService.currentPlatformSettings.filter
             settingsService.game.platformChannel.forEach {
-                view.currentPlatformFilter = settingsService.currentPlatformSettings.filter
+                view.currentPlatformFilter *= settingsService.currentPlatformSettings.filter
             }
 
-            view.currentPlatformFilterChanges.forEach {
+            view.currentPlatformFilter.forEach {
                 settingsService.currentPlatformSettings.modify { copy(filter = it) }
             }
         }

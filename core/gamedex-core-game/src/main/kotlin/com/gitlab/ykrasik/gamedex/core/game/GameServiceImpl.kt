@@ -110,6 +110,8 @@ class GameServiceImpl @Inject constructor(
 
     override fun invalidate() = repo.invalidate()
 
+    override fun buildGame(rawGame: RawGame) = rawGame.toGame()
+
     // ugly cast, whatever.
     private fun rebuildGames() = (games as ListObservableImpl<Game>).setAll(games.map { it.rawGame.toGame() })
 

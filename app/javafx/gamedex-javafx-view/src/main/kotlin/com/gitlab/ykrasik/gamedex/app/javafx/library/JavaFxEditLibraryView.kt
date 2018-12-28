@@ -19,16 +19,15 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.cancelButton
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.size
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 import java.io.File
 
@@ -37,51 +36,27 @@ import java.io.File
  * Date: 12/10/2016
  * Time: 10:56
  */
-class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
+class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibraryView {
     private val libraryProperty = SimpleObjectProperty<Library?>(null)
     override var library by libraryProperty
 
-    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
-    override var canAccept by canAcceptProperty
-
-    override val nameChanges = channel<String>()
-    private val nameProperty = SimpleStringProperty("").eventOnChange(nameChanges)
-    override var name by nameProperty
-
-    private val nameIsValidProperty = SimpleObjectProperty(IsValid.valid)
-    override var nameIsValid by nameIsValidProperty
+    override val name = userMutableState("")
+    override val nameIsValid = state(IsValid.valid)
     
-    override val pathChanges = channel<String>()
-    private val pathProperty = SimpleStringProperty("").eventOnChange(pathChanges)
-    override var path by pathProperty
+    override val path = userMutableState("")
+    override val pathIsValid = state(IsValid.valid)
 
-    private val pathIsValidProperty = SimpleObjectProperty(IsValid.valid)
-    override var pathIsValid by pathIsValidProperty
-
-    override val platformChanges = channel<Platform>()
-    private val platformProperty = SimpleObjectProperty<Platform>(Platform.pc).eventOnChange(platformChanges)
-    override var platform by platformProperty
+    override val platform = userMutableState(Platform.pc)
 
     override val browseActions = channel<Unit>()
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
 
     init {
         titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = borderpane {
-        top {
-            toolbar {
-                cancelButton { eventOnAction(cancelActions) }
-                spacer()
-                acceptButton {
-                    enableWhen(canAcceptProperty)
-                    eventOnAction(acceptActions)
-                }
-            }
-        }
+        top = confirmationToolbar()
         center {
             form {
                 minWidth = 600.0
@@ -96,24 +71,24 @@ class JavaFxEditLibraryView : PresentableView(), EditLibraryView {
         }
     }
 
-    private fun Fieldset.pathField() = field("Path") {
-        jfxTextField(pathProperty, promptText = "Library Path") {
-            validWhen(pathIsValidProperty)
+    private fun Fieldset.pathField() = horizontalField("Path") {
+        jfxTextField(path.property, promptText = "Library Path") {
+            validWhen(pathIsValid)
         }
         jfxButton("Browse", Icons.folderOpen.size(24)) {
             eventOnAction(browseActions)
         }
     }
 
-    private fun Fieldset.nameField() = field("Name") {
-        jfxTextField(nameProperty, promptText = "Library Name") {
-            validWhen(nameIsValidProperty)
+    private fun Fieldset.nameField() = horizontalField("Name") {
+        jfxTextField(name.property, promptText = "Library Name") {
+            validWhen(nameIsValid)
         }
     }
 
-    private fun Fieldset.platformField() = field("Platform") {
+    private fun Fieldset.platformField() = horizontalField("Platform") {
         enableWhen { libraryProperty.isNull }
-        platformComboBox(platformProperty)
+        platformComboBox(platform.property)
     }
 
     override fun selectDirectory(initialDirectory: File?) = chooseDirectory("Select Library Folder...", initialDirectory)

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.log
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -24,6 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 12:57
  */
 interface ViewCanChangeLogTail {
-    var logTail: Boolean
-    val logTailChanges: ReceiveChannel<Boolean>
+    val logTail: UserMutableState<Boolean>
 }

@@ -17,7 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -25,9 +26,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:51
  */
 interface ViewCanSearchReports {
-    val result: ReportResult
+    val result: State<ReportResult>
 
-    var searchText: String
-    val searchTextChanges: ReceiveChannel<String>
-    var matchingGame: Game?
+    val searchText: UserMutableState<String>
+    val matchingGame: State<Game?>
 }

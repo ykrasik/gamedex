@@ -16,37 +16,37 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.preloader
 
+import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
+import com.gitlab.ykrasik.gamedex.util.logger
 import javafx.scene.control.Alert
 import javafx.scene.control.Label
 import javafx.scene.control.TextArea
 import javafx.scene.layout.VBox
-import javafx.scene.paint.Color
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
-import tornadofx.*
+import tornadofx.add
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
-import java.util.concurrent.CancellationException
-import java.util.logging.Level
-import java.util.logging.Logger
 
 /**
  * A copy of [tornadofx.DefaultErrorHandler] that ignores [CancellationException].
  * It exists because CancellationExceptions were being logged to the logger as errors.
  */
 class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
-    private val log = Logger.getLogger("ErrorHandler")
+    private val log = logger("ErrorHandler")
 
     override fun uncaughtException(t: Thread, error: Throwable) {
+        if (error is ExpectedException) return
         if (error is CancellationException && error !is ClosedSendChannelException) return
 
-        log.log(Level.SEVERE, "Uncaught error", error)
+        log.error("Uncaught error", error)
 
         if (isCycle(error)) {
-            log.log(Level.INFO, "Detected cycle handling error, aborting.", error)
+            log.info("Detected cycle handling error, aborting.", error)
         } else {
             GlobalScope.launch(Dispatchers.JavaFx) {
                 showErrorDialog(error)
@@ -75,55 +75,7 @@ class EnhancedDefaultErrorHandler : Thread.UncaughtExceptionHandler {
             headerText = if (error.stackTrace?.isEmpty() != false) "Error" else "Error in " + error.stackTrace[0].toString()
             dialogPane.content = VBox().apply {
                 add(cause)
-                if (error is RestException) {
-                    try {
-
-                        title = "HTTP Request Error: $title"
-                        form {
-                            fieldset(error.message) {
-                                val response = error.response
-                                if (response != null) {
-                                    field("Status") {
-                                        label("${response.statusCode} ${response.reason}")
-                                    }
-
-                                    val c = response.text()
-
-                                    if (c != null) {
-                                        tabpane {
-                                            background = Color.TRANSPARENT.asBackground()
-
-                                            tab("Plain text") {
-                                                textarea(c)
-                                            }
-                                            tab("HTML") {
-                                                if (response.header("Content-Type")?.contains("html", true) == true)
-                                                    select()
-
-                                                webview {
-                                                    engine.loadContent(c)
-                                                }
-                                            }
-                                            tab("Stacktrace") {
-                                                add(textarea)
-                                            }
-                                            tabs.withEach { isClosable = false }
-                                        }
-                                    } else {
-                                        add(textarea)
-                                    }
-                                } else {
-                                    add(textarea)
-                                }
-                            }
-                        }
-
-                    } catch (e: Exception) {
-                        add(textarea)
-                    }
-                } else {
-                    add(textarea)
-                }
+                add(textarea)
             }
 
             showAndWait()

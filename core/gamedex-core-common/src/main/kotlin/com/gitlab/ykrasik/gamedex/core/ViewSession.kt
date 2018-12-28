@@ -16,13 +16,18 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.*
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Modifier
+import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.setAll
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty
 
 /**
  * User: ykrasik
@@ -35,29 +40,51 @@ interface Presenter<in V> {
 
 abstract class ViewSession : CoroutineScope {
     override val coroutineContext = Dispatchers.Main + Job()
-    private var _showing = false
-    protected val showing get() = _showing
+    private var _isShowing = false
+    protected val isShowing get() = _isShowing
 
     fun show() {
-        check(!_showing) { "Presenter already showing: $this" }
-        _showing = true
+        check(!_isShowing) { "Presenter already showing: $this" }
+        _isShowing = true
         onShow()
     }
 
     protected open fun onShow() {}
 
     fun hide() {
-        check(_showing) { "Presenter wasn't showing: $this" }
-        _showing = false
+        check(_isShowing) { "Presenter wasn't showing: $this" }
+        _isShowing = false
         onHide()
     }
 
     protected open fun onHide() {}
 
     fun destroy() {
-        if (_showing) hide()
+        if (_isShowing) hide()
         coroutineContext.cancel()
     }
+
+    protected operator fun <T> UserMutableState<T>.getValue(thisRef: Any, property: KProperty<*>) = value
+    protected operator fun <T> UserMutableState<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
+        this.value = value!!
+    }
+
+    protected operator fun <T> State<T>.getValue(thisRef: Any, property: KProperty<*>) = value
+    protected operator fun <T> State<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
+        this.value = value!!
+    }
+
+    protected fun <T> UserMutableState<T>.forEach(f: suspend (T) -> Unit) = changes.forEach(f)
+
+    protected operator fun <T> State<T>.timesAssign(value: T) {
+        this.value = value
+    }
+
+    protected inline fun <T> State<T>.modify(f: Modifier<T>) {
+        this.value = f(value)
+    }
+
+    protected fun State<IsValid>.and(other: State<IsValid>) = value.and(other.value)
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
     protected fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
@@ -96,21 +123,18 @@ abstract class ViewSession : CoroutineScope {
 
     protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
         channelAccessor: S.() -> BroadcastReceiveChannel<T>,
-        viewProperty: KMutableProperty0<T>,
-        changesChannel: ReceiveChannel<T>,
+        userMutableState: UserMutableState<T>,
         crossinline f: (Data).(T) -> Data
     ) {
         val channel = channelAccessor(this)
-        channel.reportChangesTo(viewProperty)
-        changesChannel.forEach { change ->
+        channel.bind(userMutableState)
+        userMutableState.changes.forEach { change ->
             this.modify { f(change) }
         }
     }
 
-    protected fun <T> BroadcastReceiveChannel<T>.reportChangesTo(viewProperty: KMutableProperty0<T>) {
-        viewProperty.set(peek()!!)
-        forEach { viewProperty.set(it) }
-    }
+    protected fun <T> BroadcastReceiveChannel<T>.bind(state: State<T>) =
+        forEachImmediately { state.value = it }
 
     protected inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
         on(E::class) { event ->
@@ -118,4 +142,8 @@ abstract class ViewSession : CoroutineScope {
                 handler(event)
             }
         }
+
+    protected fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
+
+    protected suspend inline fun <V> EventBus.awaitViewFinished(view: V) = awaitEvent<ViewFinishedEvent<V>> { it.view == view }
 }

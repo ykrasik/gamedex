@@ -67,11 +67,19 @@ fun <T> List<T>.replace(source: T, target: T): List<T> {
     }
 }
 
+inline fun <T> MutableList<T>.replaceWhere(target: T, predicate: (T) -> Boolean) {
+    val index = indexOfFirst(predicate)
+    check(index != -1) { "List doesn't contain any elements matching predicate to replace!" }
+    this[index] = target
+}
+
 inline fun <T> List<T>.replaceWhere(target: T, predicate: (T) -> Boolean): List<T> =
     map { elem -> if (predicate(elem)) target else elem }
 
 fun <T> List<T>.replaceIndex(index: Int, value: T): List<T> =
     mapIndexed { i, elem -> if (index == i) value else elem }
 
-fun <T> List<T>.modify(index: Int, modifier: (T) -> T): List<T> =
+inline fun <T> List<T>.modify(index: Int, modifier: Modifier<T>): List<T> =
     mapIndexed { i, elem -> if (index == i) modifier(elem) else elem }
+
+inline fun <T> List<T>.modifyLast(modifier: Modifier<T>): List<T> = modify(size - 1, modifier)

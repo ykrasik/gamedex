@@ -28,11 +28,10 @@ import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettin
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toPredicate
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.util.Callback
@@ -51,12 +50,8 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     override val games = mutableListOf<Game>().sortedFiltered()
 
-    private val sortProperty = SimpleObjectProperty(Comparator.comparing(Game::name))
-    override var sort by sortProperty
-
-    private val filterProperty = SimpleObjectProperty { _: Game -> true }
-    override var filter by filterProperty
-    private val filterPredicateProperty = filterProperty.map { it!!.toPredicate() }
+    override var sort = state(Comparator.comparing(Game::name))
+    override val filter = state { _: Game -> true}
 
     override val showGameDetailsActions = channel<Game>()
 
@@ -79,16 +74,16 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     private var popOverShowing = false
 
     init {
-        games.sortedItems.comparatorProperty().bind(sortProperty)
-        games.filteredItems.predicateProperty().bind(filterPredicateProperty)
-        viewRegistry.onCreate(this)
+        games.sortedItems.comparatorProperty().bind(sort.property)
+        games.filteredItems.predicateProperty().bind(filter.property.objectBinding { it!!.toPredicate() })
+        register()
     }
 
     override val root = GridView(games).apply {
-        cellHeightProperty().bind(gameWallDisplaySettings.heightProperty)
-        cellWidthProperty().bind(gameWallDisplaySettings.widthProperty)
-        horizontalCellSpacingProperty().bind(gameWallDisplaySettings.horizontalSpacingProperty)
-        verticalCellSpacingProperty().bind(gameWallDisplaySettings.verticalSpacingProperty)
+        cellHeightProperty().bind(gameWallDisplaySettings.height.property)
+        cellWidthProperty().bind(gameWallDisplaySettings.width.property)
+        horizontalCellSpacingProperty().bind(gameWallDisplaySettings.horizontalSpacing.property)
+        verticalCellSpacingProperty().bind(gameWallDisplaySettings.verticalSpacing.property)
 
         // Binding any observable properties inside the GameWallCell causes a memory leak -
         // the grid constantly constructs new instances of it, so if they retain a listener to the settings - we leak.
@@ -116,7 +111,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             determineArrowLocation(e.screenX, e.screenY)
-                            gameDetailsView.game = cell.item
+                            gameDetailsView.game.valueFromView = cell.item
                             cell.markSelected(true)
                             show(cell)
                             popOverShowing = true
@@ -168,10 +163,10 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
         }
 
         override fun resize(width: Double, height: Double) {
-            fragment.preserveRatio = when (gameWallDisplaySettings.imageDisplayType) {
+            fragment.preserveRatio = when (gameWallDisplaySettings.imageDisplayType.value) {
                 ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
-                else -> kotlin.error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType}")
+                else -> kotlin.error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType.value}")
             }
 
             super.resize(width, height)

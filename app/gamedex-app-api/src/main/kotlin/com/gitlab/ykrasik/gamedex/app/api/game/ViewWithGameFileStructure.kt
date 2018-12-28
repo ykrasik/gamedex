@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -26,8 +27,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:11
  */
 interface ViewWithGameFileStructure {
-    val game: Game
-    val gameChanges: ReceiveChannel<Game>  // FIXME: This solution is meh, a better one would be to send an onShow to the presenter.
+    val game: UserMutableState<Game>  // FIXME: This solution is meh, a better one would be to send an onShow to the presenter.
 
-    var fileStructure: FileStructure
+    val fileStructure: State<FileStructure>
 }

@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
@@ -44,8 +45,8 @@ class DiffResultFragment(diff: Filter.NameDiff.GameNameFolderDiff, game: Game) :
     override val root = form {
         addClass(CommonStyle.centered)
         fieldset {
-            field("Expected") { render(diff.expectedName, diff.patch.deltas) { it.revised } }
-            field("Actual") { render(diff.actualName, diff.patch.deltas) { it.original } }
+            horizontalField("Expected") { render(diff.expectedName, diff.patch.deltas) { it.revised } }
+            horizontalField("Actual") { render(diff.actualName, diff.patch.deltas) { it.original } }
         }
 
         contextMenu.install(this) { game to diff }
@@ -115,7 +116,7 @@ class DiffResultContextMenu : InstallableContextMenu<Pair<Game, Filter.NameDiff.
     override val renameMoveGameActions = channel<Pair<Game, String?>>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = vbox {

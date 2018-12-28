@@ -14,28 +14,27 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.task.presenter
+package com.gitlab.ykrasik.gamedex.core.navigation.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
+import com.gitlab.ykrasik.gamedex.app.api.navigation.ViewCanCloseOtherViews
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
-import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/10/2018
- * Time: 12:27
+ * Date: 23/12/2018
+ * Time: 09:07
  */
 @Singleton
-class ViewWithTaskPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<ViewWithRunningTask> {
-    override fun present(view: ViewWithRunningTask) = object : ViewSession() {
+class CloseViewPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<ViewCanCloseOtherViews> {
+    override fun present(view: ViewCanCloseOtherViews) = object : ViewSession() {
         init {
-            eventBus.forEach<TaskStartedEvent<*>> { view.runningTask = true }
-            eventBus.forEach<TaskFinishedEvent<*>> { view.runningTask = false }
+            view.closeViewActions.forEach {
+                eventBus.viewFinished(it)
+            }
         }
     }
 }

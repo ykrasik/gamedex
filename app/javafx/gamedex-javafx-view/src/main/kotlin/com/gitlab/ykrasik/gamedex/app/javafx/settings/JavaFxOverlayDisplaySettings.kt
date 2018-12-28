@@ -18,62 +18,29 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.app.api.settings.MutableOverlayDisplaySettings
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.eventOnChange
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
-import tornadofx.getValue
+import com.gitlab.ykrasik.gamedex.app.api.settings.OverlayDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import tornadofx.onChange
-import tornadofx.setValue
 
 /**
  * User: ykrasik
  * Date: 10/06/2018
  * Time: 14:29
  */
-class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings {
-    override val enabledChanges = channel<Boolean>()
-    val enabledProperty = SimpleBooleanProperty().eventOnChange(enabledChanges)
-    override var enabled by enabledProperty
-
-    override val showOnlyWhenActiveChanges = channel<Boolean>()
-    val showOnlyWhenActiveProperty = SimpleBooleanProperty().eventOnChange(showOnlyWhenActiveChanges)
-    override var showOnlyWhenActive by showOnlyWhenActiveProperty
-
-    override val positionChanges = channel<DisplayPosition>()
-    val positionProperty = SimpleObjectProperty<DisplayPosition>().eventOnChange(positionChanges)
-    override var position by positionProperty
-
-    override val fillWidthChanges = channel<Boolean>()
-    val fillWidthProperty = SimpleBooleanProperty().eventOnChange(fillWidthChanges)
-    override var fillWidth by fillWidthProperty
-
-    override val fontSizeChanges = channel<Int>()
-    val fontSizeProperty = SimpleObjectProperty<Int>().eventOnChange(fontSizeChanges)
-    override var fontSize by fontSizeProperty
-
-    override val boldFontChanges = channel<Boolean>()
-    val boldFontProperty = SimpleBooleanProperty().eventOnChange(boldFontChanges)
-    override var boldFont by boldFontProperty
-
-    override val italicFontChanges = channel<Boolean>()
-    val italicFontProperty = SimpleBooleanProperty().eventOnChange(italicFontChanges)
-    override var italicFont by italicFontProperty
-
-    override val textColorChanges = channel<String>()
-    val textColorProperty = SimpleObjectProperty<String>().eventOnChange(textColorChanges)
-    override var textColor by textColorProperty
-
-    override val backgroundColorChanges = channel<String>()
-    val backgroundColorProperty = SimpleObjectProperty<String>().eventOnChange(backgroundColorChanges)
-    override var backgroundColor by backgroundColorProperty
-
-    override val opacityChanges = channel<Double>()
-    val opacityProperty = SimpleObjectProperty<Double>().eventOnChange(opacityChanges)
-    override var opacity by opacityProperty
+class JavaFxOverlayDisplaySettings : MutableOverlayDisplaySettings, OverlayDisplaySettings {
+    override val enabled = userMutableState(false)
+    override val showOnlyWhenActive = userMutableState(false)
+    override val position = userMutableState(DisplayPosition.Center)
+    override val fillWidth = userMutableState(false)
+    override val fontSize = userMutableState(0)
+    override val boldFont = userMutableState(false)
+    override val italicFont = userMutableState(false)
+    override val textColor = userMutableState("")
+    override val backgroundColor = userMutableState("")
+    override val opacity = userMutableState(0.0)
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(
-        enabledProperty, showOnlyWhenActiveProperty, positionProperty, fillWidthProperty, fontSizeProperty, boldFontProperty,
-        italicFontProperty, textColorProperty, backgroundColorProperty, opacityProperty
+        enabled.property, showOnlyWhenActive.property, position.property, fillWidth.property, fontSize.property, boldFont.property,
+        italicFont.property, textColor.property, backgroundColor.property, opacity.property
     ).forEach { it.onChange { f() } }
 }

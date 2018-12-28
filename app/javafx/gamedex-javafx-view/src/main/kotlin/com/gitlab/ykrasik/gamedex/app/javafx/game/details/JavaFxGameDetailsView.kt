@@ -27,13 +27,13 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.fixedRating
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
-import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
 import javafx.geometry.HPos
 import javafx.scene.control.Label
@@ -53,31 +53,26 @@ class JavaFxGameDetailsView(
     private val withDescription: Boolean = true,
     private val evenIfEmpty: Boolean = false
 ) : PresentableView(), ViewWithProviderLogos, ViewWithGameFileStructure, ViewCanBrowseFile, ViewCanBrowseUrl {
-    override val gameChanges = channel<Game>()
-    private val gameProperty = SimpleObjectProperty<Game>().eventOnChange(gameChanges)
-    override var game by gameProperty
-
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    private val fileStructureProperty = SimpleObjectProperty<FileStructure>()
-    override var fileStructure by fileStructureProperty
+    override val game = userMutableState(Game.Null)
+
+    override val fileStructure = state(FileStructure.NotAvailable)
 
     private val fileStructurePlaceholder = label {
         minWidth = 60.0
-        fileStructureProperty.onChange {
-            text = it!!.size.humanReadable
-        }
+        textProperty().bind(fileStructure.property.stringBinding { it!!.size.humanReadable })
     }
 
     override val browseToFileActions = channel<File>()
     override val browseToUrlActions = channel<String>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = stackpane {
-        gameProperty.onChange {
+        game.onChange {
             replaceChildren {
                 gridpane {
                     hgap = 5.0
@@ -99,8 +94,8 @@ class JavaFxGameDetailsView(
     }
 
     private fun GridPane.name() = row {
-        children += game.platform.logo
-        label(game.name) {
+        children += game.value.platform.logo
+        header(game.value.name) {
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
@@ -109,14 +104,14 @@ class JavaFxGameDetailsView(
 
     private fun GridPane.path() = row {
         detailsHeader("Path")
-        jfxButton(game.path.toString()) {
+        jfxButton(game.value.path.toString()) {
             addClass(CommonStyle.hoverable, Style.detailsContent)
             isFocusTraversable = false
-            eventOnAction(browseToFileActions) { game.path }
+            eventOnAction(browseToFileActions) { game.value.path }
         }
     }
 
-    private fun GridPane.description() = game.description.let { description ->
+    private fun GridPane.description() = game.value.description.let { description ->
         if (description != null || evenIfEmpty) row {
             detailsHeader("Description")
             detailsContent(description.toDisplayString()) {
@@ -127,15 +122,15 @@ class JavaFxGameDetailsView(
         }
     }
 
-    private fun GridPane.releaseDate() = game.releaseDate.let { releaseDate ->
+    private fun GridPane.releaseDate() = game.value.releaseDate.let { releaseDate ->
         if (releaseDate != null || evenIfEmpty) row {
             detailsHeader("Release Date")
             detailsContent(releaseDate.toDisplayString())
         }
     }
 
-    private fun GridPane.criticScore() = score(game.criticScore, "Critic")
-    private fun GridPane.userScore() = score(game.userScore, "User")
+    private fun GridPane.criticScore() = score(game.value.criticScore, "Critic")
+    private fun GridPane.userScore() = score(game.value.userScore, "User")
     private fun GridPane.score(score: Score?, name: String) {
         if (score != null || evenIfEmpty) row {
             detailsHeader("$name Score")
@@ -151,8 +146,8 @@ class JavaFxGameDetailsView(
         }
     }
 
-    private fun GridPane.genres() = elementList(game.genres, "Genres")
-    private fun GridPane.tags() = elementList(game.tags, "Tags")
+    private fun GridPane.genres() = elementList(game.value.genres, "Genres")
+    private fun GridPane.tags() = elementList(game.value.tags, "Tags")
     private fun GridPane.elementList(elements: List<String>, name: String) {
         if (elements.isNotEmpty()) row {
             detailsHeader(name)
@@ -166,7 +161,7 @@ class JavaFxGameDetailsView(
         }
     }
 
-    private fun GridPane.urls() = game.rawGame.providerData.let { providerData ->
+    private fun GridPane.urls() = game.value.rawGame.providerData.let { providerData ->
         if (providerData.isNotEmpty() || evenIfEmpty) row {
             detailsHeader("URL")
             if (providerData.isNotEmpty()) {
@@ -189,11 +184,11 @@ class JavaFxGameDetailsView(
     private fun GridPane.timestamp() {
         row {
             detailsHeader("Create Date")
-            label(game.createDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
+            label(game.value.createDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
         }
         row {
             detailsHeader("Update Date")
-            label(game.updateDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
+            label(game.value.updateDate.withZone(DateTimeZone.getDefault()).toHumanReadable())
         }
     }
 

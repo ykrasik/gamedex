@@ -18,9 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.showWhen
 import tornadofx.Fragment
-import tornadofx.field
 import tornadofx.fieldset
 import tornadofx.form
 
@@ -32,28 +30,28 @@ import tornadofx.form
 class JavaFxGameDisplaySettingsView(settings: JavaFxOverlayDisplaySettings, name: String) : Fragment("$name Display", Icons.display) {
     override val root = form {
         fieldset("Enabled") {
-            field("Show") { jfxCheckBox(settings.enabledProperty) }
-            field("Only on Mouse Over") {
-                showWhen { settings.enabledProperty }
-                jfxCheckBox(settings.showOnlyWhenActiveProperty)
+            horizontalField("Show") { jfxCheckBox(settings.enabled.property) }
+            horizontalField("Only on Mouse Over") {
+                showWhen { settings.enabled.property }
+                jfxCheckBox(settings.showOnlyWhenActive.property)
             }
         }
         fieldset("Position") {
-            showWhen { settings.enabledProperty }
-            field("Position") { enumComboMenu(settings.positionProperty) }
-            field("Fill Width") { jfxCheckBox(settings.fillWidthProperty) }
+            showWhen { settings.enabled.property }
+            horizontalField("Position") { enumComboMenu(settings.position.property) }
+            horizontalField("Fill Width") { jfxCheckBox(settings.fillWidth.property) }
         }
         fieldset("Font") {
-            showWhen { settings.enabledProperty }
-            field("Size") { plusMinusSlider(settings.fontSizeProperty, min = 1, max = 90) }
-            field("Bold") { jfxCheckBox(settings.boldFontProperty) }
-            field("Italic") { jfxCheckBox(settings.italicFontProperty) }
-            field("Color") { jfxColorPicker(settings.textColorProperty) }
+            showWhen { settings.enabled.property }
+            horizontalField("Size") { plusMinusSlider(settings.fontSize.property, min = 1, max = 90) }
+            horizontalField("Bold") { jfxCheckBox(settings.boldFont.property) }
+            horizontalField("Italic") { jfxCheckBox(settings.italicFont.property) }
+            horizontalField("Color") { jfxColorPicker(settings.textColor.property) }
         }
         fieldset("Background") {
-            showWhen { settings.enabledProperty }
-            field("Color") { jfxColorPicker(settings.backgroundColorProperty) }
-            field("Opacity") { percentSlider(settings.opacityProperty) }
+            showWhen { settings.enabled.property }
+            horizontalField("Color") { jfxColorPicker(settings.backgroundColor.property) }
+            horizontalField("Opacity") { percentSlider(settings.opacity.property) }
         }
     }
 }

@@ -17,13 +17,12 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxToggleButton
-import com.gitlab.ykrasik.gamedex.javafx.control.plusMinusSlider
-import com.gitlab.ykrasik.gamedex.javafx.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.size
-import tornadofx.*
+import tornadofx.Fragment
+import tornadofx.action
+import tornadofx.fieldset
+import tornadofx.form
 
 /**
  * User: ykrasik
@@ -33,26 +32,26 @@ import tornadofx.*
 class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : Fragment("Game Wall", Icons.grid) {
     override val root = form {
         fieldset {
-            field("Fixed Size") { enumComboMenu(settings.imageDisplayTypeProperty) }
-            field("Border") { jfxToggleButton(settings.showBorderProperty) }
-            field("Width") {
+            horizontalField("Fixed Size") { enumComboMenu(settings.imageDisplayType.property) }
+            horizontalField("Border") { jfxToggleButton(settings.showBorder.property) }
+            horizontalField("Width") {
                 defaultHbox {
-                    plusMinusSlider(settings.widthProperty, min = 20, max = 500)
+                    plusMinusSlider(settings.width.property, min = 20, max = 500)
                     jfxButton("Set from Height", Icons.equal.size(20)) {
-                        action { settings.width = settings.height }
+                        action { settings.width.valueFromView = settings.height.value }
                     }
                 }
             }
-            field("Height") {
+            horizontalField("Height") {
                 defaultHbox {
-                    plusMinusSlider(settings.heightProperty, min = 20, max = 500)
+                    plusMinusSlider(settings.height.property, min = 20, max = 500)
                     jfxButton("Set from Width", Icons.equal.size(20)) {
-                        action { settings.height = settings.width }
+                        action { settings.height.valueFromView = settings.width.value }
                     }
                 }
             }
-            field("Horizontal Spacing") { plusMinusSlider(settings.horizontalSpacingProperty, min = 0, max = 100) }
-            field("Vertical Spacing") { plusMinusSlider(settings.verticalSpacingProperty, min = 0, max = 100) }
+            horizontalField("Horizontal Spacing") { plusMinusSlider(settings.horizontalSpacing.property, min = 0, max = 100) }
+            horizontalField("Vertical Spacing") { plusMinusSlider(settings.verticalSpacing.property, min = 0, max = 100) }
         }
     }
 }

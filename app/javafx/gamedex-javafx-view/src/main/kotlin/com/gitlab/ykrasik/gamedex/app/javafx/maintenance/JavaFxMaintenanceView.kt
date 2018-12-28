@@ -45,7 +45,7 @@ class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
     override val redownloadGamesActions = channel<Unit>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = vbox(spacing = 5) {

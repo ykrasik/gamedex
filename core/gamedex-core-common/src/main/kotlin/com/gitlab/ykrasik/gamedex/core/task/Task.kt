@@ -30,16 +30,18 @@ import kotlin.properties.Delegates
  * Date: 31/03/2018
  * Time: 19:35
  */
-class Task<out T>(
+class Task<T>(
     val title: String,
     val isCancellable: Boolean,
     initialImage: Image?,
     private val run: suspend Task<*>.() -> T
 ) {
+    // TODO: should probably be a conflated channel
     private val _messageChannel = BroadcastEventChannel<String>()
     val messageChannel: BroadcastReceiveChannel<String> = _messageChannel
     var message by Delegates.observable("") { _, _, value -> _messageChannel.offer(value) }
 
+    // TODO: should probably be a conflated channel
     private val _processedItemsChannel = BroadcastEventChannel<Int>()
     val processedItemsChannel: BroadcastReceiveChannel<Int> = _processedItemsChannel
     private val _processedItems = AtomicInteger(0)
@@ -54,6 +56,7 @@ class Task<out T>(
         _processedItemsChannel.offer(value)
     }
 
+    // TODO: should probably be a conflated channel
     private val _totalItemsChannel = BroadcastEventChannel<Int>().apply {
         subscribe {
             // When totalItems changes, reset processedItems.
@@ -63,15 +66,22 @@ class Task<out T>(
     val totalItemsChannel: BroadcastReceiveChannel<Int> = _totalItemsChannel
     var totalItems by Delegates.observable(0) { _, _, value -> _totalItemsChannel.offer(value) }
 
+    // TODO: should probably be a conflated channel
     private val _imageChannel = BroadcastEventChannel<Image?>()
     val imageChannel: BroadcastReceiveChannel<Image?> = _imageChannel
     var image by Delegates.observable(initialImage) { _, _, value -> _imageChannel.offer(value) }
 
+    // TODO: should probably be a conflated channel
     private val _subTaskChannel = BroadcastEventChannel<Task<*>?>()
     val subTaskChannel: BroadcastReceiveChannel<Task<*>?> = _subTaskChannel
 
-    var successMessage: (() -> String)? = null
+    var successMessage: ((T) -> String)? = null
     var cancelMessage: (() -> String)? = { "Cancelled" }
+
+    // Setting this value to non-null will mean the task view will display this exception.
+    // The exception will still propagate up and stop code from executing, but it should not be handled by the default uncaught exception handler.
+    // This is to allow tasks to display errors that are expected in a nicer way.
+    var errorMessage: ((Exception) -> String)? = null
 
     inline fun successOrCancelledMessage(crossinline f: (success: Boolean) -> String) {
         successMessage = { f(true) }
@@ -146,3 +156,5 @@ fun <T> task(
     initialImage: Image? = null,
     run: suspend Task<*>.() -> T
 ): Task<T> = Task(title, isCancellable, initialImage, run)
+
+class ExpectedException(cause: Exception) : RuntimeException(cause)

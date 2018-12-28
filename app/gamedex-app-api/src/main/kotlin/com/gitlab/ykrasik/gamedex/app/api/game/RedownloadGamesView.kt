@@ -16,20 +16,17 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
  * Date: 06/05/2018
  * Time: 09:38
  */
-interface RedownloadGamesView {
-    var redownloadGamesCondition: Filter
-    val redownloadGamesConditionChanges: ReceiveChannel<Filter>
-
-    var canAccept: IsValid
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
+interface RedownloadGamesView : ConfirmationView {
+    val redownloadGamesCondition: UserMutableState<Filter>
+    val redownloadGamesConditionIsValid: UserMutableState<IsValid>
 }

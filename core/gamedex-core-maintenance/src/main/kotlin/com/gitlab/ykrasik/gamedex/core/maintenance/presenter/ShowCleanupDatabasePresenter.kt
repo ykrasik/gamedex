@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
-import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -47,7 +48,7 @@ class ShowCleanupDatabasePresenter @Inject constructor(
             if (staleData.isEmpty) return
 
             val cleanupDatabaseView = viewManager.showCleanupDatabaseView(staleData)
-            eventBus.awaitEvent<ViewFinishedEvent<CleanupDatabaseView>> { it.view == cleanupDatabaseView }
+            eventBus.awaitViewFinished(cleanupDatabaseView)
             viewManager.closeCleanupDatabaseView(cleanupDatabaseView)
         }
     }

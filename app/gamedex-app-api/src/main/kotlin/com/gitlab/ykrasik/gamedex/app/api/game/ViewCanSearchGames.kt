@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -24,8 +24,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:02
  */
 interface ViewCanSearchGames {
-    var searchText: String
-    val searchTextChanges: ReceiveChannel<String>
+    val searchText: UserMutableState<String>
 
     // TODO: Add auto-complete suggestions.
 }

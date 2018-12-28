@@ -16,10 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import javafx.beans.property.StringProperty
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import javafx.scene.layout.VBox
 import javafx.stage.StageStyle
-import kotlinx.coroutines.channels.Channel
 import tornadofx.*
 
 /**
@@ -27,40 +26,6 @@ import tornadofx.*
  * Date: 11/06/2017
  * Time: 19:45
  */
-fun UIComponent.areYouSureDialogContainer(
-    acceptActions: Channel<Unit>,
-    cancelActions: Channel<Unit>,
-    text: StringProperty = "Are You Sure?".toProperty(),
-    op: (VBox.() -> Unit)? = null
-) = borderpane {
-    minWidth = 400.0
-    minHeight = 100.0
-    top {
-        toolbar {
-            cancelButton { action { cancelActions.offer(Unit) } }
-            spacer()
-            acceptButton { action { acceptActions.offer(Unit) } }
-        }
-    }
-    center {
-        vbox(spacing = 10.0) {
-            defaultHbox {
-                paddingAll = 20.0
-                label(text)
-                spacer()
-                children += Icons.warning
-            }
-            if (op != null) {
-                vbox(spacing = 10.0) {
-                    paddingAll = 20.0
-                    paddingRight = 30.0
-                    op(this)
-                }
-            }
-        }
-    }
-}
-
 fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
     private var accept = false
 

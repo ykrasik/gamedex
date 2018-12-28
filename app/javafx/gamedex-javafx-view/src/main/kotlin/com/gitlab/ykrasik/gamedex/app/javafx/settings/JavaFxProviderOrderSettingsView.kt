@@ -20,13 +20,10 @@ import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.color
+import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
-import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.perform
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleObjectProperty
@@ -46,62 +43,36 @@ import tornadofx.*
 class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override val searchChanges = channel<Order>()
-    private val searchProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(searchChanges)
-    override var search by searchProperty
-
-    override val nameChanges = channel<Order>()
-    private val nameProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(nameChanges)
-    override var name by nameProperty
-
-    override val descriptionChanges = channel<Order>()
-    private val descriptionProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(descriptionChanges)
-    override var description by descriptionProperty
-
-    override val releaseDateChanges = channel<Order>()
-    private val releaseDateProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(releaseDateChanges)
-    override var releaseDate by releaseDateProperty
-
-    override val criticScoreChanges = channel<Order>()
-    private val criticScoreProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(criticScoreChanges)
-    override var criticScore by criticScoreProperty
-
-    override val userScoreChanges = channel<Order>()
-    private val userScoreProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(userScoreChanges)
-    override var userScore by userScoreProperty
-
-    override val thumbnailChanges = channel<Order>()
-    private val thumbnailProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(thumbnailChanges)
-    override var thumbnail by thumbnailProperty
-
-    override val posterChanges = channel<Order>()
-    private val posterProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(posterChanges)
-    override var poster by posterProperty
-
-    override val screenshotChanges = channel<Order>()
-    private val screenshotProperty = SimpleObjectProperty<Order>(emptyMap()).eventOnChange(screenshotChanges)
-    override var screenshot by screenshotProperty
+    override val search = userMutableState<Order>(emptyMap())
+    override val name = userMutableState<Order>(emptyMap())
+    override val description = userMutableState<Order>(emptyMap())
+    override val releaseDate = userMutableState<Order>(emptyMap())
+    override val criticScore = userMutableState<Order>(emptyMap())
+    override val userScore = userMutableState<Order>(emptyMap())
+    override val thumbnail = userMutableState<Order>(emptyMap())
+    override val poster = userMutableState<Order>(emptyMap())
+    override val screenshot = userMutableState<Order>(emptyMap())
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = form {
         fieldset("Order Priorities") {
             listOf(
-                Triple("Search", Icons.search, searchProperty),
-                Triple("Name", Icons.text, nameProperty),
-                Triple("Description", Icons.textbox, descriptionProperty),
-                Triple("Release Date", Icons.date, releaseDateProperty),
-                Triple("Critic Score", Icons.starFull, criticScoreProperty),
-                Triple("User Score", Icons.starEmpty, userScoreProperty),
-                Triple("Thumbnail", Icons.thumbnail, thumbnailProperty),
-                Triple("Poster", Icons.poster, posterProperty),
-                Triple("Screenshots", Icons.screenshots, screenshotProperty)
-            ).forEach { (name, icon, orderProperty) ->
-                field(name) {
+                Triple("Search", Icons.search, search),
+                Triple("Name", Icons.text, name),
+                Triple("Description", Icons.textbox, description),
+                Triple("Release Date", Icons.date, releaseDate),
+                Triple("Critic Score", Icons.starFull, criticScore),
+                Triple("User Score", Icons.starEmpty, userScore),
+                Triple("Thumbnail", Icons.thumbnail, thumbnail),
+                Triple("Poster", Icons.poster, poster),
+                Triple("Screenshots", Icons.screenshots, screenshot)
+            ).forEach { (name, icon, order) ->
+                horizontalField(name) {
                     label.graphic = icon.color(Color.BLACK)
-                    providerOrder(orderProperty)
+                    providerOrder(order.property)
                 }
             }
         }

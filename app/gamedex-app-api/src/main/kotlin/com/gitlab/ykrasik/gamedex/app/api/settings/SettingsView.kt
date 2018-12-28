@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import kotlinx.coroutines.channels.ReceiveChannel
 
@@ -24,11 +25,9 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Date: 24/06/2018
  * Time: 09:38
  */
-interface SettingsView {
+interface SettingsView : ConfirmationView {
     val providers: MutableList<GameProvider>
 
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
     val resetDefaultsActions: ReceiveChannel<Unit>
 
     fun confirmResetDefaults(): Boolean

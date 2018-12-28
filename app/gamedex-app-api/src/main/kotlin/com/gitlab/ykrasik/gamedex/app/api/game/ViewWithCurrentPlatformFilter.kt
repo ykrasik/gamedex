@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
@@ -25,6 +25,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 08:50
  */
 interface ViewWithCurrentPlatformFilter {
-    var currentPlatformFilter: Filter
-    val currentPlatformFilterChanges: ReceiveChannel<Filter>
+    val currentPlatformFilter: UserMutableState<Filter>
 }

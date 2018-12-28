@@ -27,6 +27,8 @@ import org.joda.time.DateTime
  * Date: 26/05/2016
  * Time: 15:32
  */
+typealias GameId = Int
+
 data class Game(
     val rawGame: RawGame,
     val library: Library,
@@ -67,9 +69,44 @@ data class Game(
     val excludedProviders get() = userData?.excludedProviders ?: emptyList()
 
     override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
-}
 
-typealias GameId = Int
+    companion object {
+        val Null = Game(
+            rawGame = RawGame(
+                id = 0,
+                metadata = Metadata(
+                    libraryId = 0,
+                    path = "",
+                    timestamp = Timestamp.zero
+                ),
+                providerData = emptyList(),
+                userData = null
+            ),
+            library = Library.Null,
+            gameData = GameData(
+                siteUrl = "",
+                name = "",
+                description = null,
+                releaseDate = null,
+                criticScore = null,
+                userScore = null,
+                genres = emptyList(),
+                imageUrls = ImageUrls(
+                    thumbnailUrl = null,
+                    posterUrl = null,
+                    screenshotUrls = emptyList()
+                )
+            ),
+            folderNameMetadata = FolderNameMetadata(
+                rawName = "",
+                gameName = "",
+                order = null,
+                metaTag = null,
+                version = null
+            )
+        )
+    }
+}
 
 data class RawGame(
     val id: GameId,
@@ -183,7 +220,9 @@ enum class GameDataType(val displayName: String) {
     genres("Genres"),
     thumbnail("Thumbnail"),
     poster("Poster"),
-    screenshots("Screenshots")
+    screenshots("Screenshots");
+
+    override fun toString() = displayName
 }
 
 data class UserData(
@@ -206,6 +245,12 @@ data class UserData(
         tags = (this.tags + other.tags).distinct(),
         excludedProviders = (this.excludedProviders + other.excludedProviders).distinct()
     )
+}
+
+fun UserData?.merge(userData: UserData?): UserData? {
+    if (this == null) return userData
+    if (userData == null) return this
+    return merge(userData)
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

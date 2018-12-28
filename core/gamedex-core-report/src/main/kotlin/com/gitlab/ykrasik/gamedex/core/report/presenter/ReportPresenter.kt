@@ -49,12 +49,12 @@ class ReportPresenter @Inject constructor(
         private var reportDirty by reportDirtyChannel
 
         init {
-            view.reportChanges.forEach { reportDirty = true }
+            view.report.forEach { reportDirty = true }
             gameService.games.itemsChannel.forEach { reportDirty = true }
 
             reportDirtyChannel.forEach { isReportDirty ->
-                if (isReportDirty && showing) {
-                    view.report?.let { report ->
+                if (isReportDirty && isShowing) {
+                    view.report.value?.let { report ->
                         calculate(gameService.games, report)
                         reportDirty = false
                     }
@@ -68,7 +68,7 @@ class ReportPresenter @Inject constructor(
         }
 
         private suspend fun calculate(games: List<Game>, report: Report) {
-            view.result = taskService.execute(task("Calculating '${report.name}' report...") {
+            view.result *= taskService.execute(task("Calculating '${report.name}' report...") {
                 val context = filterContextFactory.create(games)
 
                 totalItems = games.size

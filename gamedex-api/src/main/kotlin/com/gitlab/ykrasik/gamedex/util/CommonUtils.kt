@@ -27,8 +27,8 @@ import java.util.function.Predicate
  * Date: 10/02/2017
  * Time: 09:02
  */
+typealias Modifier<T> = T.() -> T
 typealias Extractor<T, R> = T.() -> R
-typealias Modifier<T, R> = T.(R) -> T
 
 fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getResource(path).readBytes()
 

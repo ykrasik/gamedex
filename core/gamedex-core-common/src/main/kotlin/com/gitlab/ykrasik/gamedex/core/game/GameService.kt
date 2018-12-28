@@ -41,6 +41,8 @@ interface GameService {
     fun deleteAllUserData(): Task<Unit>
 
     fun invalidate()
+
+    fun buildGame(rawGame: RawGame): Game
 }
 
 data class AddGameRequest(

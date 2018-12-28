@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.javafx.control.PopOverContent
 import com.gitlab.ykrasik.gamedex.javafx.control.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.util.browse
@@ -27,7 +28,6 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
 import org.controlsfx.control.PopOver
@@ -62,6 +62,7 @@ object Icons {
     val accept get() = fontIcon(MaterialDesign.MDI_CHECK_CIRCLE, color = green)
     val cancel get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = red)
     val close get() = fontIcon(MaterialDesign.MDI_CLOSE, color = red)
+    val closeCircle get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = red)
     val stop get() = fontIcon(MaterialDesign.MDI_STOP, color = red)
     val redo get() = fontIcon(MaterialDesign.MDI_REDO, color = orange)
     val clear get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE_OUTLINE)
@@ -120,7 +121,7 @@ object Icons {
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER)
     val folderEdit get() = fontIcon(MaterialDesign.MDI_FOLDER_EDIT, color = orange)
-    val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE)
+    val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE, color = red)
     val folderOpen get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN)
     val folderSearch get() = fontIcon(MaterialDesign.MDI_FOLDER_SEARCH_OUTLINE)
     val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
@@ -230,13 +231,6 @@ inline fun EventTarget.cancelButton(text: String? = null, crossinline op: JFXBut
         op()
     }
 
-inline fun EventTarget.stopButton(text: String? = "Stop", crossinline op: JFXButton.() -> Unit = {}) =
-    dangerButton(text, Icons.stop) {
-        isCancelButton = true
-        tooltip("Stop")
-        op()
-    }
-
 inline fun EventTarget.backButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Icons.arrowLeft) {
         isCancelButton = true
@@ -246,7 +240,7 @@ inline fun EventTarget.backButton(text: String? = null, crossinline op: JFXButto
 
 inline fun EventTarget.resetToDefaultButton(text: String? = "Reset to Default", crossinline op: JFXButton.() -> Unit = {}) =
     warningButton(text, Icons.resetToDefault) {
-        tooltip("Reset to Defaults")
+        tooltip("Reset to Default")
         op()
     }
 
@@ -287,7 +281,7 @@ inline fun EventTarget.editButton(text: String? = null, crossinline op: JFXButto
 inline fun EventTarget.syncButton(text: String, crossinline op: JFXButton.() -> Unit = {}) =
     infoButton(text, Icons.sync, op)
 
-inline fun EventTarget.extraMenu(op: VBox.(PopOver) -> Unit = {}) = buttonWithPopover(
+inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) = buttonWithPopover(
     graphic = Icons.dots,
     arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
     op = op
@@ -298,7 +292,7 @@ val Platform.logo
         Platform.pc -> Icons.windows
         Platform.android -> Icons.android
         Platform.mac -> Icons.apple
-        Platform.excluded -> Icons.excluded
+        Platform.excluded -> Icons.folderRemove
         else -> kotlin.error("Unknown platform: $this")
     }.size(26)
 

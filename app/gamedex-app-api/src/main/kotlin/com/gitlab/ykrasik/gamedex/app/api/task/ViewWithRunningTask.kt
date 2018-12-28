@@ -16,11 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.task
 
+import com.gitlab.ykrasik.gamedex.app.api.State
+
 /**
  * User: ykrasik
  * Date: 29/10/2018
  * Time: 11:53
  */
 interface ViewWithRunningTask {
-    var runningTask: Boolean
+    val isRunningTask: State<Boolean>
 }

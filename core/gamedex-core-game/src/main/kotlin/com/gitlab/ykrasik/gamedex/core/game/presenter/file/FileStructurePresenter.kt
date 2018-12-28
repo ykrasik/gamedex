@@ -32,8 +32,8 @@ import javax.inject.Singleton
 class FileStructurePresenter @Inject constructor(private val fileSystemService: FileSystemService) : Presenter<ViewWithGameFileStructure> {
     override fun present(view: ViewWithGameFileStructure) = object : ViewSession() {
         init {
-            view.gameChanges.forEach {
-                view.fileStructure = fileSystemService.structure(it)
+            view.game.forEach {
+                view.fileStructure *= fileSystemService.structure(it)
             }
         }
     }

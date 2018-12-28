@@ -17,16 +17,18 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,12 +43,13 @@ class EditReportPresenter @Inject constructor(
     private val reportService: ReportService,
     private val gameService: GameService,
     private val taskService: TaskService,
-    private val viewManager: ViewManager
+    private val eventBus: EventBus
 ) : Presenter<EditReportView> {
     override fun present(view: EditReportView) = object : ViewSession() {
         init {
-            view.nameChanges.forEach { onNameChanged() }
-            view.filterChanges.forEach { onFilterChanged() }
+            view.name.forEach { onNameChanged() }
+            view.filter.forEach { setCanAccept() }
+            view.filterIsValid.forEach { setCanAccept() }
 
             view.unexcludeGameActions.forEach { onUnexcludeGame(it) }
             view.acceptActions.forEach { onAccept() }
@@ -55,8 +58,8 @@ class EditReportPresenter @Inject constructor(
 
         override fun onShow() {
             val report = view.report
-            view.name = report?.name ?: ""
-            view.filter = report?.filter ?: Filter.`true`
+            view.name *= report?.name ?: ""
+            view.filter *= report?.filter ?: Filter.`true`
             view.excludedGames.setAll(report?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }
@@ -65,12 +68,9 @@ class EditReportPresenter @Inject constructor(
             validateName()
         }
 
-        private fun onFilterChanged() {
-        }
-
         private fun validateName() {
-            view.nameIsValid = IsValid.invoke {
-                val name = view.name
+            view.nameIsValid *= Try {
+                val name = view.name.value
                 if (name.isEmpty()) error("Name is required!")
                 if (name in (reportService.reports.map { it.name } - view.report?.name)) error("Name already in use!")
             }
@@ -78,18 +78,24 @@ class EditReportPresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept = view.nameIsValid
+            view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(IsValid {
+                check(view.filter.value != view.report?.filter ||
+                    view.name.value != view.report?.name ||
+                    view.excludedGames.map { it.id } != view.report?.excludedGames) { "Nothing changed!" }
+                check(view.filter.value !is Filter.True) { "Please select a condition!"}
+            })
         }
 
         private fun onUnexcludeGame(game: Game) {
             view.excludedGames -= game
+            setCanAccept()
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.isSuccess) { "Cannot accept invalid state!" }
+            check(view.canAccept.value.isSuccess) { "Cannot accept invalid state!" }
             val newReportData = ReportData(
-                name = view.name,
-                filter = view.filter,
+                name = view.name.value,
+                filter = view.filter.value,
                 excludedGames = view.excludedGames.map { it.id }
             )
             taskService.execute(
@@ -99,15 +105,13 @@ class EditReportPresenter @Inject constructor(
                     reportService.add(newReportData)
                 }
             )
-            close()
+            finished()
         }
 
         private fun onCancel() {
-            close()
+            finished()
         }
 
-        private fun close() {
-            viewManager.closeEditReportView(view)
-        }
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

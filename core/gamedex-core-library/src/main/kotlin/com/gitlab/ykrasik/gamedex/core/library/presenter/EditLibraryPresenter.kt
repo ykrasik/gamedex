@@ -21,13 +21,12 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
-import com.gitlab.ykrasik.gamedex.app.api.util.and
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -47,9 +46,9 @@ class EditLibraryPresenter @Inject constructor(
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
         init {
-            view.nameChanges.forEach { onNameChanged() }
-            view.pathChanges.forEach { onPathChanged() }
-            view.platformChanges.forEach { onPlatformChanged() }
+            view.name.forEach { onNameChanged() }
+            view.path.forEach { onPathChanged() }
+            view.platform.forEach { onPlatformChanged() }
 
             view.browseActions.forEach { onBrowse() }
             view.acceptActions.forEach { onAccept() }
@@ -58,11 +57,11 @@ class EditLibraryPresenter @Inject constructor(
 
         override fun onShow() {
             val library = view.library
-            view.name = library?.name ?: ""
-            view.path = library?.path?.toString() ?: ""
-            view.platform = library?.platform ?: Platform.pc
-            view.nameIsValid = IsValid.valid
-            view.pathIsValid = IsValid.valid
+            view.name *= library?.name ?: ""
+            view.path *= library?.path?.toString() ?: ""
+            view.platform *= library?.platform ?: Platform.pc
+            view.nameIsValid *= IsValid.valid
+            view.pathIsValid *= IsValid.valid
             if (library == null) {
                 onBrowse()
             }
@@ -87,10 +86,10 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun validateName() {
-            view.nameIsValid = IsValid.invoke {
-                val name = view.name
+            view.nameIsValid *= IsValid {
+                val name = view.name.value
                 if (name.isEmpty()) error("Name is required!")
-                if (!isAvailableNewLibrary { libraryService[view.platform, name] } &&
+                if (!isAvailableNewLibrary { libraryService[view.platform.value, name] } &&
                     !isAvailableUpdatedLibrary { libraryService[it.platform, name] })
                     error("Name already in use for this platform!")
             }
@@ -98,10 +97,10 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun validatePath() {
-            view.pathIsValid = IsValid.invoke {
-                if (view.path.isEmpty()) error("Path is required!")
+            view.pathIsValid *= IsValid {
+                if (view.path.value.isEmpty()) error("Path is required!")
 
-                val file = view.path.toFile()
+                val file = view.path.value.toFile()
                 if (!file.isDirectory) error("Path doesn't exist!")
                 if (!isAvailableNewLibrary { libraryService[file] } &&
                     !isAvailableUpdatedLibrary { libraryService[file] })
@@ -117,10 +116,7 @@ class EditLibraryPresenter @Inject constructor(
             view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
         private fun setCanAccept() {
-            val valid = view.pathIsValid.and(view.nameIsValid)
-            if (view.canAccept != valid) {
-                view.canAccept = valid
-            }
+            view.canAccept *= view.pathIsValid.and(view.nameIsValid)
         }
 
         private fun onBrowse() {
@@ -128,17 +124,17 @@ class EditLibraryPresenter @Inject constructor(
             val selectedDirectory = view.selectDirectory(initialDirectory)
             if (selectedDirectory != null) {
                 settingsService.general.modify { copy(prevDirectory = selectedDirectory) }
-                view.path = selectedDirectory.toString()
-                if (view.name.isEmpty()) {
-                    view.name = selectedDirectory.name
+                view.path *= selectedDirectory.toString()
+                if (view.name.value.isEmpty()) {
+                    view.name *= selectedDirectory.name
                 }
             }
             validate()
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.isSuccess) { "Cannot accept invalid state!" }
-            val libraryData = LibraryData(name = view.name, path = view.path.toFile(), platform = view.platform)
+            check(view.canAccept.value.isSuccess) { "Cannot accept invalid state!" }
+            val libraryData = LibraryData(name = view.name.value, path = view.path.value.toFile(), platform = view.platform.value)
             val task = if (view.library == null) {
                 libraryService.add(libraryData)
             } else {

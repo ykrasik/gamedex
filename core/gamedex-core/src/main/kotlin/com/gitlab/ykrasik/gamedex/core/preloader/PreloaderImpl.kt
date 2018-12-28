@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.core.log.GamedexLog
-import com.gitlab.ykrasik.gamedex.core.log.GamedexLogAppender
+import com.gitlab.ykrasik.gamedex.core.log.GameDexLog
+import com.gitlab.ykrasik.gamedex.core.log.GameDexLogAppender
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
@@ -48,7 +48,7 @@ class PreloaderImpl : Preloader {
         val (injector, millisTaken) = millisTaken {
             SLF4JBridgeHandler.removeHandlersForRootLogger()
             SLF4JBridgeHandler.install()
-            GamedexLogAppender.init()
+            GameDexLogAppender.init()
 
             withContext(Dispatchers.Main) {
                 view.progress = 0.0
@@ -56,7 +56,7 @@ class PreloaderImpl : Preloader {
             }
 
             // While loading, display all log messages in the task
-            val subscription = GamedexLog.entries.itemsChannel.subscribe(Dispatchers.Main) {
+            val subscription = GameDexLog.entries.itemsChannel.subscribe(Dispatchers.Main) {
                 it.lastOrNull()?.let {
                     if (it.level.canLog(LogLevel.Info)) {
                         view.message = it.message

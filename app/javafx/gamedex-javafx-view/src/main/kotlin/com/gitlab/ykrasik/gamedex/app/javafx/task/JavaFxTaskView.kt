@@ -22,11 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.asPercent
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxProgressBar
-import com.gitlab.ykrasik.gamedex.javafx.control.maskerPane
+import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.*
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -42,22 +39,18 @@ import tornadofx.*
  * Time: 10:02
  */
 class JavaFxTaskView : PresentableView(), TaskView {
-    private val jobProperty = SimpleObjectProperty<Job?>(null)
-    override var job by jobProperty
+    override val job = state<Job?>(null)
 
-    private val isCancellableProperty = SimpleBooleanProperty(false)
-    override var isCancellable by isCancellableProperty
-
+    override val isCancellable = state(false)
     override val cancelTaskActions = channel<Unit>()
 
     override val taskProgress = JavaFxTaskProgress()
     override val subTaskProgress = JavaFxTaskProgress()
 
-    private val isRunningSubTaskProperty = SimpleBooleanProperty(false)
-    override var isRunningSubTask by isRunningSubTaskProperty
+    override val isRunningSubTask = state(false)
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = stackpane { }
@@ -65,19 +58,19 @@ class JavaFxTaskView : PresentableView(), TaskView {
     fun init(f: EventTarget.() -> Node): StackPane = root.apply {
         f()
         maskerPane {
-            visibleWhen { jobProperty.isNotNull }
+            visibleWhen { job.property.isNotNull }
             progressNode = vbox(spacing = 5) {
                 progressDisplay(taskProgress, isMain = true)
 
                 vbox {
-                    showWhen { isRunningSubTaskProperty }
+                    showWhen { isRunningSubTask.property }
 
                     region { minHeight = 20.0 }
                     progressDisplay(subTaskProgress, isMain = false)
                 }
 
                 hbox {
-                    showWhen { isCancellableProperty }
+                    showWhen { isCancellable.property }
                     spacer()
                     cancelButton("Cancel") {
                         addClass(Style.progressText)
@@ -97,22 +90,24 @@ class JavaFxTaskView : PresentableView(), TaskView {
 //        }
     }
 
-    override fun taskCancelled(message: String) = taskSuccess(message)
+    override fun taskCancelled(message: String) = notification(message).warn.show()
+
+    override fun taskError(error: Exception, message: String) = notification(message).error.show()
 
     private fun EventTarget.progressDisplay(taskProgress: JavaFxTaskProgress, isMain: Boolean) = vbox(spacing = 5) {
         alignment = Pos.CENTER
         defaultHbox {
             val textStyle = if (isMain) Style.mainTaskText else Style.subTaskText
-            label(taskProgress.messageProperty) {
+            label(taskProgress.message.property) {
                 addClass(Style.progressText, textStyle)
             }
             spacer()
-            label(taskProgress.progressProperty.asPercent()) {
-                visibleWhen { taskProgress.progressProperty.isNotEqualTo(-1) }
+            label(taskProgress.progress.property.asPercent()) {
+                visibleWhen { taskProgress.totalItems.property.isNotEqualTo(0) }
                 addClass(Style.progressText, textStyle)
             }
         }
-        jfxProgressBar(taskProgress.progressProperty) {
+        jfxProgressBar(taskProgress.progress.property) {
             useMaxWidth = true
             addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
         }
@@ -124,21 +119,15 @@ class JavaFxTaskView : PresentableView(), TaskView {
     }
 
     class JavaFxTaskProgress : TaskProgress {
-        val titleProperty = SimpleStringProperty("")
-        override var title by titleProperty
+        override val title = state("")
 
-        val imageProperty = SimpleObjectProperty<Image?>(null)
-        val javaFxImageProperty = imageProperty.map { it?.image }
-        override var image by imageProperty
+        override val image = state<Image?>(null)
+        val javaFxImageProperty = image.property.map { it?.image }
 
-        val messageProperty = SimpleStringProperty("")
-        override var message by messageProperty
-
-        val processedItemsProperty = SimpleIntegerProperty(0)
-        override var processedItems by processedItemsProperty
-
-        val totalItemsProperty = SimpleIntegerProperty(0)
-        override var totalItems by totalItemsProperty
+        override val message = state("")
+        override val processedItems = state(0)
+        override val totalItems = state(0)
+        override val progress = state(ProgressIndicator.INDETERMINATE_PROGRESS)
 
 //        val processedItemsCount = processedItemsProperty.combineLatest(totalItemsProperty).stringBinding {
 //            val (processedItems, totalItems) = it!!
@@ -148,9 +137,6 @@ class JavaFxTaskView : PresentableView(), TaskView {
 //                ""
 //            }
 //        }
-
-        val progressProperty = SimpleDoubleProperty(ProgressIndicator.INDETERMINATE_PROGRESS)
-        override var progress by progressProperty
     }
 
     class Style : Stylesheet() {

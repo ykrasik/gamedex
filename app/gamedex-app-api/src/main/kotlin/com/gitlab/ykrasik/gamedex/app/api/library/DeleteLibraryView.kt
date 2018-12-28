@@ -18,18 +18,15 @@ package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 
 /**
  * User: ykrasik
  * Date: 06/05/2018
  * Time: 12:45
  */
-interface DeleteLibraryView {
-    var library: Library
+interface DeleteLibraryView : ConfirmationView {
+    val library: Library
 
     val gamesToBeDeleted: MutableList<Game>
-
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
 }

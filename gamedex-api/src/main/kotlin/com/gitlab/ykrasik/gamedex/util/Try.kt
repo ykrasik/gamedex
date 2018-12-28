@@ -14,19 +14,45 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.web
-
-import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.Channel
+package com.gitlab.ykrasik.gamedex.util
 
 /**
  * User: ykrasik
- * Date: 06/10/2018
- * Time: 12:13
+ * Date: 02/12/2018
+ * Time: 15:40
  */
-interface ViewWithBrowser {
-    val game: Game?
-    val gameChanges: Channel<Game?>
+sealed class Try<out T> {
+    data class Success<out T>(val value: T) : Try<T>()
+    data class Error<out T>(val error: Exception) : Try<T>()
 
-    fun browseTo(url: String?)
+    val isSuccess: Boolean get() = this is Success
+    val isError: Boolean get() = this is Error
+
+    fun get(): T = when (this) {
+        is Success -> value
+        is Error -> throw error
+    }
+
+    val valueOrNull get() = if (this is Success) value else null
+    val errorOrNull get() = if (this is Error) error else null
+
+    companion object {
+        fun <T> success(value: T): Try<T> = Success(value)
+        fun <T> error(error: Exception): Try<T> = Error(error)
+
+        val valid: IsValid = success(Unit)
+        fun invalid(error: String): IsValid = error(IllegalArgumentException(error))
+
+        inline operator fun <T> invoke(f: () -> T): Try<T> =
+            try {
+                success(f())
+            } catch (e: Exception) {
+                error(e)
+            }
+    }
 }
+
+typealias IsValid = Try<Any>
+
+fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
+fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this

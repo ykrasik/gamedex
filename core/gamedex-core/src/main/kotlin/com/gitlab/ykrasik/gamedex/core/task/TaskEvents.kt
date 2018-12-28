@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.task
 
 import com.gitlab.ykrasik.gamedex.core.CoreEvent
-import kotlinx.coroutines.Deferred
+import com.gitlab.ykrasik.gamedex.util.Try
 
 /**
  * User: ykrasik
@@ -25,4 +25,4 @@ import kotlinx.coroutines.Deferred
  * Time: 14:54
  */
 data class TaskStartedEvent<T>(val task: Task<T>) : CoreEvent
-data class TaskFinishedEvent<T>(val task: Task<T>, val result: Deferred<T>) : CoreEvent
+data class TaskFinishedEvent<T>(val task: Task<T>, val result: Try<T>) : CoreEvent

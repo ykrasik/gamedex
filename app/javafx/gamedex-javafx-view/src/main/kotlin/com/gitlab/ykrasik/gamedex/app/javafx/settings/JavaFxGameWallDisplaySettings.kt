@@ -16,47 +16,26 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.settings.GameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.app.api.settings.MutableGameWallDisplaySettings
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.eventOnChange
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
-import tornadofx.getValue
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import tornadofx.onChange
-import tornadofx.setValue
 
 /**
  * User: ykrasik
  * Date: 10/06/2018
  * Time: 12:08
  */
-class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings {
-    override val imageDisplayTypeChanges = channel<ImageDisplayType>()
-    val imageDisplayTypeProperty = SimpleObjectProperty<ImageDisplayType>().eventOnChange(imageDisplayTypeChanges)
-    override var imageDisplayType by imageDisplayTypeProperty
-
-    override val showBorderChanges = channel<Boolean>()
-    val showBorderProperty = SimpleBooleanProperty().eventOnChange(showBorderChanges)
-    override var showBorder by showBorderProperty
-
-    override val widthChanges = channel<Double>()
-    val widthProperty = SimpleObjectProperty<Double>().eventOnChange(widthChanges)
-    override var width by widthProperty
-
-    override val heightChanges = channel<Double>()
-    val heightProperty = SimpleObjectProperty<Double>().eventOnChange(heightChanges)
-    override var height by heightProperty
-
-    override val horizontalSpacingChanges = channel<Double>()
-    val horizontalSpacingProperty = SimpleObjectProperty<Double>().eventOnChange(horizontalSpacingChanges)
-    override var horizontalSpacing by horizontalSpacingProperty
-
-    override val verticalSpacingChanges = channel<Double>()
-    val verticalSpacingProperty = SimpleObjectProperty<Double>().eventOnChange(verticalSpacingChanges)
-    override var verticalSpacing by verticalSpacingProperty
+class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings, GameWallDisplaySettings {
+    override val imageDisplayType = userMutableState(ImageDisplayType.FixedSize)
+    override val showBorder = userMutableState(false)
+    override val width = userMutableState(0.0)
+    override val height = userMutableState(0.0)
+    override val horizontalSpacing = userMutableState(0.0)
+    override val verticalSpacing = userMutableState(0.0)
 
     inline fun onChange(crossinline f: () -> Unit) = listOf(
-        imageDisplayTypeProperty, showBorderProperty, widthProperty, heightProperty, horizontalSpacingProperty, verticalSpacingProperty
+        imageDisplayType.property, showBorder.property, width.property, height.property, horizontalSpacing.property, verticalSpacing.property
     ).forEach { it.onChange { f() } }
 }

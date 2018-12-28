@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import javafx.geometry.Pos
+import javafx.scene.Cursor
 import javafx.scene.control.ContentDisplay
 import javafx.scene.effect.DropShadow
 import javafx.scene.paint.Color
@@ -57,6 +58,12 @@ class CommonStyle : Stylesheet() {
 
         val thinBorder by cssclass()
 
+        val gamedexWindow by cssclass()
+
+        val customToolbar by cssclass()
+
+        val customHoverable by cssclass()
+
         init {
             importStylesheetSafe(CommonStyle::class)
         }
@@ -95,9 +102,8 @@ class CommonStyle : Stylesheet() {
         }
 
         card {
-            borderColor = multi(box(Color.BLACK))
             borderRadius = multi(box(10.px))
-            backgroundColor = multi(Color.LIGHTGRAY)
+            backgroundColor = multi(Colors.heavyRain)
             backgroundRadius = multi(box(10.px))
         }
 
@@ -157,6 +163,39 @@ class CommonStyle : Stylesheet() {
             borderColor = multi(box(Color.BLACK))
             borderRadius = multi(box(3.px))
             borderWidth = multi(box(0.5.px))
+        }
+
+        gamedexWindow {
+            backgroundColor = multi(Color.WHITE)
+            backgroundRadius = multi(box(10.px))
+//            unsafe("-fx-effect", raw("dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0.0, 0.0)"))
+//            backgroundInsets = multi(box(6.px))
+//            effect = DropShadow()
+        }
+
+        customToolbar {
+            backgroundColor = multi(Colors.cloudyKnoxville)
+            padding = box(6.px)
+            borderWidth = multi(box(top = 0.px, bottom = 0.5.px, left = 0.px, right = 0.px))
+            borderColor = multi(box(Color.GRAY))
+        }
+
+        customHoverable {
+            cursor = Cursor.DEFAULT
+            backgroundRadius = multi(box(10.px))
+            padding = box(0.px)
+            and(hover) {
+                backgroundColor = multi(Color.TRANSPARENT)
+            }
+            and(armed) {
+                backgroundColor = multi(Color.TRANSPARENT)
+            }
+            and(pressed) {
+                backgroundColor = multi(Color.TRANSPARENT)
+            }
+            and(selected) {
+                backgroundColor = multi(Color.TRANSPARENT)
+            }
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

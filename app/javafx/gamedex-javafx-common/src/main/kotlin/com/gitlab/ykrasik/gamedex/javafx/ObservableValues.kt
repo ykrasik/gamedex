@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
-import com.gitlab.ykrasik.gamedex.app.api.util.and
 import com.gitlab.ykrasik.gamedex.util.Extractor
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
@@ -113,12 +113,12 @@ fun <T, R> ObservableValue<T>.combineLatest(other: ObservableValue<R>): ObjectPr
     return property
 }
 
-inline fun <T, R, U> ObservableValue<T>.map(other: ObservableValue<R>, crossinline f: (T, R) -> U): ObjectProperty<U> {
+inline fun <T, R, U> ObservableValue<T>.mapWith(other: ObservableValue<R>, crossinline f: (T, R) -> U): ObjectProperty<U> {
     val property = SimpleObjectProperty(f(this.value, other.value))
     this.onChange { property.value = f(it!!, other.value) }
     other.onChange { property.value = f(this.value, it!!) }
     return property
 }
 
-fun ObservableValue<out ValueOrError<Any>>.and(other: ObservableValue<out ValueOrError<Any>>): ObjectProperty<ValueOrError<Any>> =
-    map(other) { first, second -> first.and(second) }
+fun ObservableValue<out Try<Any>>.and(other: ObservableValue<out Try<Any>>): ObjectProperty<Try<Any>> =
+    mapWith(other) { first, second -> first.and(second) }

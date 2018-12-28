@@ -17,54 +17,35 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game.download
 
 import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGamesView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.and
-import com.gitlab.ykrasik.gamedex.javafx.cancelButton
-import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.SimpleObjectProperty
-import tornadofx.*
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import tornadofx.borderpane
+import tornadofx.paddingAll
+import tornadofx.scrollpane
 
 /**
  * User: ykrasik
  * Date: 05/06/2017
  * Time: 10:57
  */
-class JavaFxRedownloadGamesView : PresentableView("Re-Download Games", Icons.download), RedownloadGamesView {
+class JavaFxRedownloadGamesView : ConfirmationWindow("Re-Download Games", Icons.download), RedownloadGamesView {
     private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = true)
 
-    override var redownloadGamesCondition by filterView.filterProperty
-    override val redownloadGamesConditionChanges = filterView.filterChanges
-
-    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
-    override var canAccept by canAcceptProperty
-
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
+    override val redownloadGamesCondition = userMutableState(filterView.filter)
+    override val redownloadGamesConditionIsValid = userMutableState(filterView.filterIsValid)
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = borderpane {
-        prefWidth = 600.0
-        minHeight = 500.0
-        top {
-            toolbar {
-                cancelButton { eventOnAction(cancelActions) }
-                spacer()
-                acceptButton {
-                    enableWhen(canAcceptProperty.and(filterView.isValid))
-                    eventOnAction(acceptActions)
-                }
-            }
-        }
-        center = filterView.root.apply {
+        top = confirmationToolbar()
+        center = scrollpane {
             paddingAll = 10
+            add(filterView.root)
+            redownloadGamesCondition.onChange { resizeToContent() }
         }
     }
 }

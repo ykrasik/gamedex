@@ -16,6 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
@@ -23,10 +26,10 @@ import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.download.JavaFxRedownloadGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
@@ -37,6 +40,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseVi
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
+import javafx.stage.StageStyle
 import tornadofx.Controller
 import tornadofx.View
 
@@ -60,40 +64,46 @@ class JavaFxViewManager : Controller(), ViewManager {
         // Nothing to do here, the taskView is never hidden.
     }
 
-    override val editLibraryView: JavaFxEditLibraryView by inject()
-    override fun showEditLibraryView(view: EditLibraryView) = view.openModal()
+    private val editLibraryView: JavaFxEditLibraryView by inject()
+    override fun showEditLibraryView(library: Library?) = editLibraryView.showModal { this.library = library }
     override fun closeEditLibraryView(view: EditLibraryView) = view.close()
 
-    override val gameView: JavaFxViewGameScreen by inject()
-    override fun showGameView(view: GameView) = mainView.showGameDetails()
+    override fun showGameView(game: Game) = mainView.showGameDetails(game)
     override fun closeGameView(view: GameView) = mainView.showPreviousScreen()
 
-    override val deleteLibraryView: JavaFxDeleteLibraryView by inject()
-    override fun showDeleteLibraryView(view: DeleteLibraryView) = view.openModal()
+    private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
+    override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showModal { this.library = library }
     override fun closeDeleteLibraryView(view: DeleteLibraryView) = view.close()
 
-    override val editGameView: JavaFxEditGameView by inject()
-    override fun showEditGameView(view: EditGameView) = view.openModal()
+    private val editGameView: JavaFxEditGameView by inject()
+    override fun showEditGameView(game: Game, initialType: GameDataType) = editGameView.showModal {
+        this.game = game
+        this.initialScreen = initialType
+    }
+
     override fun closeEditGameView(view: EditGameView) = view.close()
 
-    override val deleteGameView: JavaFxDeleteGameView by inject()
-    override fun showDeleteGameView(view: DeleteGameView) = view.openModal()
+    private val deleteGameView: JavaFxDeleteGameView by inject()
+    override fun showDeleteGameView(game: Game) = deleteGameView.showModal { this.game = game }
     override fun closeDeleteGameView(view: DeleteGameView) = view.close()
 
-    override val renameMoveGameView: JavaFxRenameMoveGameView by inject()
-    override fun showRenameMoveGameView(view: RenameMoveGameView) = view.openModal()
+    private val renameMoveGameView: JavaFxRenameMoveGameView by inject()
+    override fun showRenameMoveGameView(game: Game, initialName: String?) = renameMoveGameView.showModal {
+        this.game = game
+        this.initialName = initialName
+    }
     override fun closeRenameMoveGameView(view: RenameMoveGameView) = view.close()
 
-    override val tagGameView: JavaFxTagGameView by inject()
-    override fun showTagGameView(view: TagGameView) = view.openModal()
+    private val tagGameView: JavaFxTagGameView by inject()
+    override fun showTagGameView(game: Game) = tagGameView.showModal { this.game = game }
     override fun closeTagGameView(view: TagGameView) = view.close()
 
-    override val editReportView: JavaFxEditReportView by inject()
-    override fun showEditReportView(view: EditReportView) = view.openModal()
+    private val editReportView: JavaFxEditReportView by inject()
+    override fun showEditReportView(report: Report?) = editReportView.showModal { this.report = report }
     override fun closeEditReportView(view: EditReportView) = view.close()
 
-    override val settingsView: JavaFxSettingsView by inject()
-    override fun showSettingsView(view: SettingsView) = view.openModal()
+    private val settingsView: JavaFxSettingsView by inject()
+    override fun showSettingsView() = settingsView.showModal()
     override fun closeSettingsView(view: SettingsView) = view.close()
 
     private val redownloadGamesView: JavaFxRedownloadGamesView by inject()
@@ -101,18 +111,13 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun closeRedownloadGamesView(view: RedownloadGamesView) = view.close()
 
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
-    override fun showCleanupDatabaseView(staleData: StaleData): CleanupDatabaseView {
-        cleanupDatabaseView.staleData = staleData
-        return cleanupDatabaseView.showModal()
-    }
-
+    override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
     override fun closeCleanupDatabaseView(view: CleanupDatabaseView) = view.close()
-
-    private fun Any.openModal() {
-        (this as View).openModal()
-    }
 
     private fun Any.close() = (this as View).close()
 
-    private fun <T : View> T.showModal(): T = apply { openModal() }
+    private inline fun <V : View> V.showModal(f: V.() -> Unit = {}): V = apply {
+        f()
+        openModal(StageStyle.TRANSPARENT)
+    }
 }

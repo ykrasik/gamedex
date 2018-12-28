@@ -19,25 +19,23 @@ package com.gitlab.ykrasik.gamedex.app.api.maintenance
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
  * Date: 06/05/2018
  * Time: 12:29
  */
-interface CleanupDatabaseView {
+interface CleanupDatabaseView : ConfirmationView {
     val staleData: StaleData
 
     val librariesAndGames: StaleDataCategory
     val images: StaleDataCategory
     val fileCache: StaleDataCategory
-
-    var canAccept: IsValid
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
 }
 
 data class StaleData(
@@ -53,7 +51,6 @@ data class StaleData(
 }
 
 interface StaleDataCategory {
-    var canDelete: IsValid
-    var shouldDelete: Boolean
-    val shouldDeleteChanges: ReceiveChannel<Boolean>
+    val canDelete: State<IsValid>
+    val shouldDelete: UserMutableState<Boolean>
 }

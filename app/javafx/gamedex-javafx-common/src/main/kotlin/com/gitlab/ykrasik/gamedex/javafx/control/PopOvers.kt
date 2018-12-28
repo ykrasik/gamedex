@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.size
-import javafx.event.EventTarget
+import javafx.beans.property.Property
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.ContentDisplay
@@ -38,10 +38,14 @@ import tornadofx.*
  * Date: 09/12/2018
  * Time: 13:34
  */
+class PopOverContent(val popOver: PopOver) : VBox() {
+    fun close() = popOver.hide()
+}
+
 inline fun popOver(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnClick: Boolean = true,
-    op: VBox.(PopOver) -> Unit = {}
+    op: PopOverContent.() -> Unit = {}
 ): PopOver = PopOver().apply {
     val popover = this
     this.arrowLocation = arrowLocation
@@ -58,10 +62,36 @@ inline fun popOver(
         if (closeOnClick) addEventFilter(MouseEvent.MOUSE_CLICKED) { popover.hide() }
         addEventHandler(KeyEvent.KEY_PRESSED) { if (it.code === KeyCode.ESCAPE) popover.hide() }
 
-        content = VBox().apply {
+        content = PopOverContent(popover).apply {
             addClass(CommonStyle.popoverMenu)
-            op(popover)
+            op()
+
+//            if (closeOnClick) {
+//                val consumedProperty = SimpleBooleanProperty(false).apply {
+//                    onChange { popover.hide() }
+//                }
+//
+//                addEventFilter(MouseEvent.MOUSE_CLICKED) { e ->
+//                    if (e is ObservableMouseEvent) return@addEventFilter
+//
+//                    val observableMouseEvent = ObservableMouseEvent(e, consumedProperty)
+//                    e.consume()
+//                    fireEvent(observableMouseEvent)
+//                }
+//
+//                addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+//            }
         }
+    }
+}
+
+class ObservableMouseEvent(e: MouseEvent, private val consumedProperty: Property<Boolean>) : MouseEvent(
+    e.source, e.target, e.eventType, e.x, e.y, e.screenX, e.screenY, e.button, e.clickCount, e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown, e.isPrimaryButtonDown,
+    e.isMiddleButtonDown, e.isSecondaryButtonDown, e.isSynthesized, e.isPopupTrigger, e.isStillSincePress, e.pickResult
+) {
+    override fun consume() {
+        super.consume()
+        consumedProperty.value = true
     }
 }
 
@@ -105,10 +135,13 @@ fun PopOver.toggle(parent: Node) = if (isShowing) hide() else show(parent)
 inline fun Node.popoverContextMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnClick: Boolean = true,
-    op: VBox.(PopOver) -> Unit = {}
+    op: PopOverContent.() -> Unit = {}
 ): PopOver {
-    val popover = popOver(arrowLocation, closeOnClick, op).apply { isAutoFix = false; isAutoHide = true }
-    addEventHandler(MouseEvent.MOUSE_CLICKED) { popover.hide() }
+    val popover = popOver(arrowLocation, closeOnClick) {
+        popOver.isAutoFix = false
+        popOver.isAutoHide = true
+        op()
+    }
     setOnContextMenuRequested { e -> popover.show(this@popoverContextMenu, e.screenX, e.screenY) }
     return popover
 }
@@ -116,14 +149,14 @@ inline fun Node.popoverContextMenu(
 inline fun Node.dropDownMenu(
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
     closeOnClick: Boolean = true,
-    op: VBox.() -> Unit = {}
+    op: PopOverContent.() -> Unit = {}
 ): PopOver {
-    val popover = popOver(arrowLocation, closeOnClick) { popover ->
-        addEventHandler(MouseEvent.MOUSE_EXITED) { popover.hide() }
+    val popover = popOver(arrowLocation, closeOnClick) {
+        setOnMouseExited { close() }
         op(this)
     }
 
-    addEventHandler(MouseEvent.MOUSE_ENTERED) {
+    setOnMouseEntered {
         if (!popover.isShowing) popover.show(this@dropDownMenu)
     }
     setOnMouseExited {
@@ -136,13 +169,13 @@ inline fun Node.dropDownMenu(
     return popover
 }
 
-inline fun EventTarget.subMenu(
+inline fun PopOverContent.subMenu(
     text: String? = null,
     graphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.LEFT_TOP,
     contentDisplay: ContentDisplay = ContentDisplay.LEFT,
     closeOnClick: Boolean = true,
-    crossinline op: VBox.() -> Unit = {}
+    crossinline op: PopOverContent.() -> Unit = {}
 ) = hbox(alignment = Pos.CENTER_LEFT) {
     addClass(CommonStyle.subMenu, CommonStyle.jfxHoverable)
     label(text ?: "") {

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -24,8 +24,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 14:18
  */
 interface ViewCanChangeDiscoverGameChooseResults {
-    var discoverGameChooseResults: DiscoverGameChooseResults
-    val discoverGameChooseResultsChanges: ReceiveChannel<DiscoverGameChooseResults>
+    val discoverGameChooseResults: UserMutableState<DiscoverGameChooseResults>
 }
 
 enum class DiscoverGameChooseResults(val description: String) {

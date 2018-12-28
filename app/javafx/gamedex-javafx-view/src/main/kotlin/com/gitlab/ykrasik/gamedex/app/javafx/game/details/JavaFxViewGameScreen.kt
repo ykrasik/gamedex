@@ -21,14 +21,14 @@ import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
 import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
+import com.gitlab.ykrasik.gamedex.javafx.view.ScreenNavigation
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import kotlinx.coroutines.Deferred
@@ -41,18 +41,18 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanTagGame, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewWithBrowser {
+    ViewCanTagGame, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewCanSearchYouTube {
+    override val navigation = ScreenNavigation.Standalone
+
     private val imageLoader: ImageLoader by di()
 
     private val browser = WebBrowser()
 
-    override val gameChanges = channel<Game?>()
-    private val gameProperty = SimpleObjectProperty<Game>().eventOnChange(gameChanges)
-    override var game by gameProperty
+    override val game = userMutableState(Game.Null)
 
-    private val posterProperty = SimpleObjectProperty<Deferred<Image>?>(null)
-    override var poster by posterProperty
+    override val poster = state<Deferred<Image>?>(null)
 
+    override val displayYouTubeForGameRequests = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val tagGameActions = channel<Game>()
@@ -62,30 +62,32 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     private val gameDetailsView = JavaFxGameDetailsView(evenIfEmpty = true)
 
     init {
-        viewRegistry.onCreate(this)
+        register()
+
+        game.property.eventOnChange(displayYouTubeForGameRequests)
     }
 
-    override fun HBox.constructToolbar() {
+    override fun HBox.buildToolbar() {
         editButton("Edit") { action { editGame(GameDataType.name_) } }
         gap()
-        toolbarButton("Tag", graphic = Icons.tag) { eventOnAction(tagGameActions) { game } }
+        toolbarButton("Tag", graphic = Icons.tag) { eventOnAction(tagGameActions) { game.value } }
         gap()
-        deleteButton("Delete") { eventOnAction(deleteGameActions) { game } }
+        deleteButton("Delete") { eventOnAction(deleteGameActions) { game.value } }
 
         spacer()
 
-        toolbarButton("Re-Download", graphic = Icons.download) { eventOnAction(redownloadGameActions) { game } }
+        toolbarButton("Re-Download", graphic = Icons.download) { eventOnAction(redownloadGameActions) { game.value } }
         gap()
         syncButton("Re-Sync") {
             dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
                 discoverGameChooseResultsMenu()
             }
-            eventOnAction(rediscoverGameActions) { game }
+            eventOnAction(rediscoverGameActions) { game.value }
         }
     }
 
     override val root = hbox {
-        paddingAll = 2
+        paddingAll = 8
 
         // Left
         stackpane {
@@ -97,31 +99,24 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
                 }
             }
 
-            imageViewResizingPane(posterProperty.flatMap { imageLoader.loadImage(it) }) {
+            imageViewResizingPane(poster.property.flatMap { imageLoader.loadImage(it) }) {
                 maxWidth = screenBounds.width * maxPosterWidthPercent
-
-                // Clip the posterPane's corners to be round after the posterPane's size is calculated.
-                clipRectangle {
-                    arcWidth = 20.0
-                    arcHeight = 20.0
-                    heightProperty().bind(this@imageViewResizingPane.heightProperty())
-                    widthProperty().bind(this@imageViewResizingPane.widthProperty())
-                }
+                clipRectangle(arc = 20)
             }
         }
 
-        gap(size = 5)
+        gap(size = 8)
 
         // Right
         vbox {
             addClass(CommonStyle.card)
-            paddingAll = 5
+            paddingAll = 10
             hgrow = Priority.ALWAYS
 
             // Top
             addComponent(gameDetailsView)
-            gameProperty.onChange {
-                gameDetailsView.game = it
+            game.onChange {
+                gameDetailsView.game.valueFromView = it
             }
 
             verticalGap(size = 30)
@@ -131,22 +126,11 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
         }
     }
 
-    private fun editGame(initialTab: GameDataType) = editGameActions.event(game to initialTab)
+    private fun editGame(initialTab: GameDataType) = editGameActions.event(game.value to initialTab)
 
     override fun browseTo(url: String?) = browser.load(url)
 
     companion object {
         private val maxPosterWidthPercent = 0.44
-    }
-
-    class Style : Stylesheet() {
-        companion object {
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-        }
     }
 }

@@ -24,17 +24,14 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.jfoenix.controls.JFXSlider
 import com.jfoenix.controls.JFXToggleNode
 import javafx.beans.property.ReadOnlyObjectProperty
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.Node
 import javafx.scene.control.Tab
-import javafx.scene.control.TabPane
 import javafx.scene.control.Toggle
 import tornadofx.*
 
@@ -43,7 +40,7 @@ import tornadofx.*
  * Date: 06/01/2017
  * Time: 22:22
  */
-class JavaFxSettingsView : PresentableView("Settings"),
+class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     SettingsView,
     ViewWithProviderLogos,
     ViewWithRunningTask,
@@ -55,43 +52,25 @@ class JavaFxSettingsView : PresentableView("Settings"),
     override val providers = mutableListOf<GameProvider>()
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override val acceptActions = channel<Unit>()
     override val resetDefaultsActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
-
-    private val runningTaskProperty = SimpleBooleanProperty(false)
-    override var runningTask by runningTaskProperty
 
     override val mutableGameWallDisplaySettings = JavaFxGameWallDisplaySettings()
     override val mutableNameOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val mutableMetaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    private var tabPane: TabPane by singleAssign()
-
     private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
-
-    private val windowOpacity = SimpleObjectProperty(1.0)
 
     private val viewProperty = "view"
     private val tabProperty = "tab"
 
-    init {
-        viewRegistry.onCreate(this)
+    private val tabPane = jfxTabPane {
+        addClass(CommonStyle.hiddenTabPaneHeader)
+        paddingAll = 5
+    }
 
-        var prevOpacity = 1.0
-        runningTaskProperty.onChange { isRunningTask ->
-            val showing = modalStage?.isShowing ?: false
-            if (showing) {
-                // Make the settings window invisible while running any task.
-                if (isRunningTask) {
-                    prevOpacity = windowOpacity.value
-                    windowOpacity.value = 0.0
-                } else {
-                    windowOpacity.value = prevOpacity
-                }
-            }
-        }
+    init {
+        register()
     }
 
     private val wallDisplaySettingsView = JavaFxWallDisplaySettingsView(mutableGameWallDisplaySettings)
@@ -101,84 +80,74 @@ class JavaFxSettingsView : PresentableView("Settings"),
     private val providerOrderView: JavaFxProviderOrderSettingsView by inject()
 
     override val root = borderpane {
-        prefHeight = screenBounds.height / 2
+//        prefHeight = screenBounds.height / 2
         prefWidth = 800.0
-        top {
-            toolbar {
-                cancelButton { eventOnAction(cancelActions) }
-                gap()
-                resetToDefaultButton { eventOnAction(resetDefaultsActions) }
-                spacer()
+        top = confirmationToolbar {
+            gap()
+            resetToDefaultButton { eventOnAction(resetDefaultsActions) }
+            spacer()
 
-                // TODO: This is probably a sucky way of doing this, find a better solution.
-                label("Window Opacity")
-                percentSlider(windowOpacity, min = 0.2, conflateValueChanges = false) {
-                    indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
-                    tooltip("Hold 'alt' to hide temporarily.")
-                }
-                spacer()
-                acceptButton { eventOnAction(acceptActions) }
+            // TODO: This is probably a sucky way of doing this, find a better solution.
+            label("Window Opacity")
+            percentSlider(windowOpacityProperty, min = 0.2, conflateValueChanges = false) {
+                indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
+                tooltip("Hold 'shift' to hide temporarily.")
             }
-        }
-        center {
-            tabPane = jfxTabPane { addClass(CommonStyle.hiddenTabPaneHeader) }
-        }
-        left {
-            defaultHbox {
-                paddingAll = 5.0
-                vbox(spacing = 5.0) {
-                    togglegroup {
-                        selectedToggleProperty = selectedToggleProperty()
-                        selectedToggleProperty().addListener { _, oldValue, newValue ->
-                            // Disallow de-selection.
-                            if (newValue == null) {
-                                selectToggle(oldValue)
-                            } else {
-                                if (oldValue != null) {
-                                    (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
-                                }
-                                (newValue.properties[viewProperty] as UIComponent).callOnDock()
-                                tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
-                            }
-                        }
 
-                        header("Game Display")
-                        entry(wallDisplaySettingsView)
-                        entry(nameDisplaySettingsView)
-                        entry(metaTagDisplaySettingsView)
-                        entry(versionDisplaySettingsView)
-                        verticalGap(size = 20)
-
-                        header("Providers")
-                        entry(providerOrderView)
-                        providers.forEach { provider ->
-                            val view = JavaFxProviderSettingsView(provider)
-                            val tab = tabPane.tab(view)
-                            jfxToggleNode(provider.id, graphic = providerLogos[provider.id]!!.image.toImageView(height = 36, width = 36)) {
-                                addClass(CommonStyle.toolbarButton)
-                                useMaxWidth = true
-                                properties += viewProperty to view
-                                properties += tabProperty to tab
-                            }
+            spacer()
+        }
+        left = vbox(spacing = 5) {
+            paddingAll = 10
+            togglegroup {
+                selectedToggleProperty = selectedToggleProperty()
+                selectedToggleProperty().addListener { _, oldValue, newValue ->
+                    // Disallow de-selection.
+                    if (newValue == null) {
+                        selectToggle(oldValue)
+                    } else {
+                        if (oldValue != null) {
+                            (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
                         }
+                        (newValue.properties[viewProperty] as UIComponent).callOnDock()
+                        tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                     }
                 }
-                gap()
+
+                header("Game Display")
+                entry(wallDisplaySettingsView)
+                entry(nameDisplaySettingsView)
+                entry(metaTagDisplaySettingsView)
+                entry(versionDisplaySettingsView)
+                verticalGap(size = 20)
+
+                header("Providers")
+                entry(providerOrderView)
+                providers.forEach { provider ->
+                    val view = JavaFxProviderSettingsView(provider)
+                    val tab = tabPane.tab(view)
+                    jfxToggleNode(provider.id, graphic = providerLogos[provider.id]!!.image.toImageView(height = 36, width = 36)) {
+                        addClass(CommonStyle.toolbarButton)
+                        useMaxWidth = true
+                        properties += viewProperty to view
+                        properties += tabProperty to tab
+                    }
+                }
             }
         }
+        center = tabPane
 
         var hidden = false
         var prevOpacity = 1.0
         setOnKeyPressed { e ->
-            if (e.isAltDown) {
-                prevOpacity = windowOpacity.value
-                windowOpacity.value = 0.0
+            if (e.isShiftDown) {
+                prevOpacity = windowOpacity
+                windowOpacity = 0.0
                 hidden = true
             }
         }
         setOnKeyReleased {
             if (hidden) {
-                windowOpacity.value = prevOpacity
+                windowOpacity = prevOpacity
                 hidden = false
             }
         }
@@ -189,10 +158,6 @@ class JavaFxSettingsView : PresentableView("Settings"),
         properties += viewProperty to component
         properties += tabProperty to tabPane.tab(component)
         op()
-    }
-
-    override fun onDock() {
-        currentStage!!.opacityProperty().cleanBind(windowOpacity.doubleBinding { it!! })
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")

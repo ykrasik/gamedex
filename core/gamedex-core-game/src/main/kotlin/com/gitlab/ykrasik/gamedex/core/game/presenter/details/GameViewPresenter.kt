@@ -16,12 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.GameView
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsSetEvent
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -38,51 +38,48 @@ import javax.inject.Singleton
 class GameViewPresenter @Inject constructor(
     private val gameService: GameService,
     private val imageService: ImageService,
-    private val viewManager: ViewManager
+    private val eventBus: EventBus
 ) : Presenter<GameView> {
     override fun present(view: GameView) = object : ViewSession() {
         init {
             gameService.games.changesChannel.forEach { event ->
-                if (!showing) return@forEach
+                if (!isShowing) return@forEach
 
-                val game = view.game
+                val game = view.game.value
                 when (event) {
                     is ListItemRemovedEvent -> {
-                        if (event.item == game) close()
+                        if (event.item == game) finished()
                     }
                     is ListItemsRemovedEvent -> {
-                        if (event.items.contains(game)) close()
+                        if (event.items.contains(game)) finished()
                     }
                     is ListItemSetEvent -> {
                         if (event.item.id == game.id) {
-                            view.game = event.item
+                            val item = event.item
+                            view.game *= item
                             onShow()
                         }
                     }
                     is ListItemsSetEvent -> {
                         val relevantGame = event.items.find { it.id == game.id }
                         if (relevantGame != null) {
-                            view.game = relevantGame
+                            view.game *= relevantGame
                             onShow()
                         }
                     }
                     else -> {
-                        // ignored
+                        // Ignored
                     }
                 }
             }
         }
 
         override fun onShow() {
-            view.game.let { game ->
-                view.poster = game.posterUrl?.let { posterUrl ->
-                    imageService.fetchImage(posterUrl, persistIfAbsent = false)
-                }
+            view.poster *= view.game.value.posterUrl?.let { posterUrl ->
+                imageService.fetchImage(posterUrl, persistIfAbsent = false)
             }
         }
 
-        private fun close() {
-            viewManager.closeGameView(view)
-        }
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

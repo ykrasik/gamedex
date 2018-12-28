@@ -155,12 +155,6 @@ class GameDiscoveryServiceImpl @Inject constructor(
         return updateGame(game, newProviderData, newUserData)
     }
 
-    private fun UserData?.merge(userData: UserData?): UserData? {
-        if (userData == null) return this
-        if (this == null) return userData
-        return this.merge(userData)
-    }
-
     private suspend fun Task<*>.updateGame(game: Game, newProviderData: List<ProviderData>, newUserData: UserData?): Game {
         val newRawGame = game.rawGame.copy(providerData = newProviderData, userData = newUserData)
         return executeSubTask(gameService.replace(game, newRawGame))

@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewWithBrowser
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
@@ -34,8 +34,6 @@ import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.property.SimpleStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -62,7 +60,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
     ViewCanSearchReports,
     ViewCanShowGameDetails,
     ViewWithProviderLogos,
-    ViewWithBrowser,
+    ViewCanSearchYouTube,
     ViewCanBrowseFile {
 
     override val reports = mutableListOf<Report>().observable()
@@ -76,23 +74,18 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
 
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override val reportChanges = channel<Report?>()
-    private val reportProperty = SimpleObjectProperty<Report>().eventOnChange(reportChanges)
-    override var report by reportProperty
+    override val report = userMutableState<Report?>(null)
+    override val result = state(ReportResult.Null)
 
-    private val resultProperty = SimpleObjectProperty<ReportResult>(ReportResult(emptyList(), emptyMap(), emptyMap()))
-    override var result by resultProperty
-
-    private val games = resultProperty.mapToList { it.games }
+    private val games = result.property.mapToList { it.games }
 
     override val showGameDetailsActions = channel<Game>()
 
-    override val searchTextChanges = channel<String>()
-    private val searchTextProperty = SimpleStringProperty("").eventOnChange(searchTextChanges)
-    override var searchText by searchTextProperty
+    override val searchText = userMutableState("")
 
-    private val matchingGameProperty = SimpleObjectProperty<Game?>(null)
-    override var matchingGame by matchingGameProperty
+    override val matchingGame = state<Game?>(null)
+
+    override val displayYouTubeForGameRequests = channel<Game>()
 
     private val gamesTable = tableview(games) {
         vgrow = Priority.ALWAYS
@@ -107,23 +100,27 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 eventOnAction(browseToFileActions) { game.path }
             }
         }
-        customGraphicColumn("Size", { game -> (result.fileStructure[game.id] ?: FileStructure.NotAvailable).size.toProperty() }) { size ->
+        customGraphicColumn("Size", { game -> (result.value.fileStructure[game.id] ?: FileStructure.NotAvailable).size.toProperty() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 
         gameContextMenu.install(this) { selectionModel.selectedItem }
         onUserSelect { showGameDetailsActions.event(it) }
 
-        resultProperty.onChange { resizeColumnsToFitContent() }
+        result.property.onChange { resizeColumnsToFitContent() }
 
         minWidthFitContent(indexColumn)
+
+        selectionModel.selectedItemProperty().onChange {
+            if (it != null) {
+                displayYouTubeForGameRequests.event(it)
+            }
+        }
     }
 
-    override val gameChanges = channel<Game?>()
-    private val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty().eventOnNullableChange(gameChanges)
-    override val game by selectedGameProperty
+    private val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
 
-    private val additionalInfoProperty = selectedGameProperty.map { result.additionalData[it?.id] }
+    private val additionalInfoProperty = selectedGameProperty.map { result.value.additionalData[it?.id] }
 
     override val browseToFileActions = channel<File>()
 
@@ -168,7 +165,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 root.paddingAll = 5.0
             }
             selectedGameProperty.perform { game ->
-                game?.let { gameDetailsView.game = it }
+                game?.let { gameDetailsView.game.valueFromView = it }
             }
 
             verticalGap(size = 30)
@@ -179,9 +176,9 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
     }
 
     init {
-        viewRegistry.onCreate(this)
+        register()
 
-        matchingGameProperty.onChange { match ->
+        matchingGame.property.onChange { match ->
             if (match != null) {
                 gamesTable.selectionModel.select(match)
                 gamesTable.scrollTo(match)
@@ -200,7 +197,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 }
             } else {
                 if (!ignoreNextToggleChange) {
-                    report = newToggle.report
+                    report.valueFromView = newToggle.report
                 }
             }
         }
@@ -219,7 +216,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                         val game = games.find { it.id == result.duplicatedGameId }!!
                         text = game.name
                         action {
-                            matchingGameProperty.set(game)
+                            matchingGame.property.value = game
                         }
                     }
                 }
@@ -250,7 +247,8 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
 
     override fun browseTo(url: String?) = browser.load(url)
 
-    override fun HBox.constructToolbar() {
+    //    override val navigation = ScreenNavigation.SubMenu {
+    override fun HBox.buildToolbar() {
         buttonWithPopover(graphic = Icons.chart) {
             reports.perform { reports ->
                 val prevReport = currentReport.value
@@ -302,7 +300,8 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
             textProperty().bind(currentReport.map { it?.name ?: "Select Report" })
         }
         gap()
-        searchTextField(this@ReportsScreen, searchTextProperty) { isFocusTraversable = false }
+//    override fun HBox.buildToolbar() {
+        searchTextField(this@ReportsScreen, searchText.property) { isFocusTraversable = false }
 
         spacer()
 

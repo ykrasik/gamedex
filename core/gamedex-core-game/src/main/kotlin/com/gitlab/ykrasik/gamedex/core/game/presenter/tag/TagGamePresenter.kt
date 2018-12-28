@@ -18,14 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.tag
 
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.UserData
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.CommonData
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,15 +40,13 @@ class TagGamePresenter @Inject constructor(
     private val gameService: GameService,
     private val commonData: CommonData,
     private val taskService: TaskService,
-    private val viewManager: ViewManager
+    private val eventBus: EventBus
 ) : Presenter<TagGameView> {
     override fun present(view: TagGameView) = object : ViewSession() {
-        private var ignoreNextUncheckAll = false  // FIXME: Get rid of this.
-
         init {
-            view.checkAllChanges.forEach { onCheckAllChanged(it) }
+            view.toggleAll.forEach { onToggleAllChanged(it) }
             view.checkTagChanges.forEach { (tag, checked) -> onCheckTagChanged(tag, checked) }
-            view.newTagNameChanges.forEach { onNewTagNameChanged(it) }
+            view.newTagName.forEach { onNewTagNameChanged(it) }
 
             view.addNewTagActions.forEach { onAddNewTag() }
             view.acceptActions.forEach { onAccept() }
@@ -59,34 +57,37 @@ class TagGamePresenter @Inject constructor(
             val game = view.game
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)
-            view.toggleAll = view.tags.toSet() == game.tags.toSet()
-            view.newTagName = ""
+            view.toggleAll *= view.tags.toSet() == game.tags.toSet()
+            view.newTagName *= ""
             validateNewTag("")
-            ignoreNextUncheckAll = false
+            setCanAccept()
         }
 
-        private fun onCheckAllChanged(checkAll: Boolean) {
-            if (checkAll) {
+        private fun onToggleAllChanged(toggleAll: Boolean) {
+            if (toggleAll) {
                 view.checkedTags.addAll(view.tags)
             } else {
-                if (!ignoreNextUncheckAll) {
-                    view.checkedTags.clear()
-                }
-                ignoreNextUncheckAll = false
+                view.checkedTags.clear()
             }
+            setCanAccept()
         }
 
         private fun onCheckTagChanged(tag: String, checked: Boolean) {
             if (checked) {
-                ignoreNextUncheckAll = false
                 view.checkedTags += tag
                 if (view.checkedTags == view.tags.toSet()) {
-                    view.toggleAll = true
+                    view.toggleAll *= true
                 }
             } else {
-                ignoreNextUncheckAll = true
                 view.checkedTags -= tag
-                view.toggleAll = false
+                view.toggleAll *= false
+            }
+            setCanAccept()
+        }
+
+        private fun setCanAccept() {
+            view.canAccept *= IsValid {
+                check(view.checkedTags != view.game.tags.toSet()) { "Nothing changed!" }
             }
         }
 
@@ -95,16 +96,17 @@ class TagGamePresenter @Inject constructor(
         }
 
         private fun validateNewTag(name: String) {
-            view.newTagNameIsValid = IsValid.invoke {
+            view.newTagNameIsValid *= IsValid {
                 if (name.isEmpty()) error("Empty Name!")
                 if (view.tags.contains(name)) error("Tag already exists!")
             }
         }
 
         private fun onAddNewTag() {
-            view.tags += view.newTagName
-            view.checkedTags += view.newTagName
-            view.newTagName = ""
+            view.tags += view.newTagName.value
+            view.checkedTags += view.newTagName.value
+            view.newTagName *= ""
+            setCanAccept()
         }
 
         private suspend fun onAccept() {
@@ -113,7 +115,7 @@ class TagGamePresenter @Inject constructor(
                 taskService.execute(gameService.replace(view.game, newRawGame))
             }
 
-            close()
+            finished()
         }
 
         private fun RawGame.withTags(tags: Collection<String>): RawGame {
@@ -127,9 +129,9 @@ class TagGamePresenter @Inject constructor(
         }
 
         private fun onCancel() {
-            close()
+            finished()
         }
 
-        private fun close() = viewManager.closeTagGameView(view)
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

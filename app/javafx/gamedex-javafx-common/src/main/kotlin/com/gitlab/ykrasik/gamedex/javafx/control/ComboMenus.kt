@@ -41,7 +41,7 @@ inline fun <T> EventTarget.popoverComboMenu(
     itemStyleClass: CssRule? = null,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
-    menuOp: VBox.(T) -> Unit = {}
+    menuOp: PopOverContent.(T) -> Unit = {}
 ) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.forEach { item ->
         jfxButton(text?.invoke(item), graphic?.invoke(item), alignment = Pos.CENTER_LEFT) {
@@ -88,7 +88,7 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     itemStyleClass: CssRule? = null,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node)? = null,
-    menuOp: VBox.(T) -> Unit = {}
+    menuOp: PopOverContent.(T) -> Unit = {}
 ) = popoverComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,

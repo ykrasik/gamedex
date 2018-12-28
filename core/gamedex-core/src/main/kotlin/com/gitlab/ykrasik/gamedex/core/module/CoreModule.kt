@@ -27,6 +27,7 @@ import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
 import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
+import com.gitlab.ykrasik.gamedex.core.navigation.presenter.CloseViewPresenter
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
@@ -37,10 +38,10 @@ import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
 import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
-import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithTaskPresenter
+import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithRunningTaskPresenter
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
-import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowserPresenter
+import com.gitlab.ykrasik.gamedex.core.web.presenter.SearchYouTubePresenter
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
@@ -87,8 +88,10 @@ object CoreModule : InternalCoreModule() {
     }
 
     private fun bindPresenters() {
+        bindPresenter(CloseViewPresenter::class)
+
         bindPresenter(TaskPresenter::class)
-        bindPresenter(ViewWithTaskPresenter::class)
+        bindPresenter(ViewWithRunningTaskPresenter::class)
 
         bindPresenter(FilterPresenter::class)
 
@@ -105,7 +108,7 @@ object CoreModule : InternalCoreModule() {
         bindPresenter(ProviderOrderSettingsPresenter::class)
         bindPresenter(ProviderSettingsPresenter::class)
 
-        bindPresenter(BrowserPresenter::class)
+        bindPresenter(SearchYouTubePresenter::class)
         bindPresenter(BrowseUrlPresenter::class)
     }
 

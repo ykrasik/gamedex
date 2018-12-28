@@ -16,9 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
-import com.gitlab.ykrasik.gamedex.app.api.util.and
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.and
 import com.jfoenix.controls.JFXTextField
 import com.jfoenix.skins.JFXTextFieldSkin
 import com.jfoenix.skins.ValidationPane
@@ -26,11 +27,11 @@ import com.jfoenix.validation.base.ValidatorBase
 import javafx.animation.FadeTransition
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.StringProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Pos
-import javafx.scene.Cursor
 import javafx.scene.control.Tooltip
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
@@ -71,7 +72,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     max: Number,
     withButtons: Boolean = true,
     crossinline op: JFXTextField.() -> Unit = {}
-): ObjectProperty<ValueOrError<T>> {
+): ObjectProperty<Try<T>> {
     val (parse: (String) -> T, stringify: (Double) -> String) = when (T::class) {
         Number::class -> Pair({ s: String -> s.toDouble() as T }, { d: Double -> d.toString() })
         BigDecimal::class -> Pair({ s -> BigDecimal(s) as T }, { d -> d.toString() })
@@ -83,7 +84,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
         }
     }
 
-    lateinit var valueOrError: ObjectProperty<ValueOrError<T>>
+    lateinit var value: ObjectProperty<Try<T>>
     defaultHbox(spacing = 2) {
         val minusButton = if (withButtons) minusButton() else null
         val textfield = jfxTextField(stringify(property.value.toDouble())) {
@@ -92,41 +93,39 @@ inline fun <reified T : Number> EventTarget.numberTextField(
         }
         val plusButton = if (withButtons) plusButton() else null
 
-        valueOrError = textfield.bindParser {
+        value = textfield.bindParser {
             try {
-                val value = parse(it)
-                check(min.toDouble() <= value.toDouble() && value.toDouble() <= max.toDouble())
-                value
+                val attempt = parse(it)
+                check(min.toDouble() <= attempt.toDouble() && attempt.toDouble() <= max.toDouble())
+                attempt
             } catch (_: Exception) {
                 kotlin.error("Invalid value!")
             }
         }
-        valueOrError.onChange {
-            if (it!!.isSuccess) {
-                property.value = it.value
-            }
+        value.onChange {
+            it!!.valueOrNull?.let { property.value = it }
         }
 
         minusButton?.run {
-            enableWhen(valueOrError.map { valueOrError ->
-                val canDecrement = ValueOrError {
+            enableWhen(value.map { value ->
+                val canDecrement = IsValid {
                     check(property.value.toDouble() - 1 >= min.toDouble()) { "Limit reached!" }
                 }
-                valueOrError!!.and(canDecrement)
+                value!!.and(canDecrement)
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
         }
         plusButton?.run {
-            enableWhen(valueOrError.map { valueOrError ->
-                val canIncrement = ValueOrError {
+            enableWhen(value.map { value ->
+                val canIncrement = IsValid {
                     check(property.value.toDouble() + 1 <= max.toDouble()) { "Limit reached!" }
                 }
-                valueOrError!!.and(canIncrement)
+                value!!.and(canIncrement)
             })
             action { textfield.text = stringify(parse(textfield.text).toDouble() + 1) }
         }
     }
-    return valueOrError
+    return value
 }
 
 inline fun EventTarget.searchTextField(component: UIComponent, textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = clearableTextField(textProperty) {
@@ -142,12 +141,14 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
     alignment = Pos.CENTER_LEFT
     textProperty.bindBidirectional(textProperty())
 
-    val clearButton = jfxButton(graphic = Icons.clear.size(18)) {
+    val clearButton = jfxButton {
+        addClass(CommonStyle.customHoverable)
         isCancelButton = true
         opacity = 0.0
-        cursor = Cursor.DEFAULT
-        managedWhen { editableProperty() }
-        visibleWhen { editableProperty() }
+        showWhen { editableProperty() }
+        graphicProperty().bind(hoverProperty().objectBinding {
+            (if (it!!) Icons.closeCircle else Icons.close).size(16).color(Color.BLACK)
+        })
         action { clear() }
     }
 
@@ -182,19 +183,20 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
     op()
 }
 
-inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectProperty<ValueOrError<T>> {
-    val valueOrError = textProperty().map { text -> ValueOrError { parser(text ?: "") } }
-    validWhen(valueOrError)
-    return valueOrError
+inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectProperty<Try<T>> {
+    val value = textProperty().map { text -> Try { parser(text ?: "") } }
+    validWhen(value)
+    return value
 }
 
-fun <T> JFXTextField.validWhen(isValid: ObservableValue<ValueOrError<T>>) {
+fun JFXTextField.validWhen(isValid: JavaFxState<IsValid, SimpleObjectProperty<IsValid>>): Unit = validWhen(isValid.property)
+fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
     skinProperty().onChangeOnce {
         // The jfx ValidationPane causes our tooltip to be displayed incorrectly.
         (it as JFXTextFieldSkin<*>).getChildren().removeAll { it is ValidationPane<*> }
     }
 
-    val errorProperty = isValid.stringBinding { it?.error }
+    val errorProperty = isValid.stringBinding { it?.errorOrNull?.message }
 
     val tooltip = Tooltip().apply {
         textProperty().bind(errorProperty)

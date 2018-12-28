@@ -41,7 +41,7 @@ class JavaFxDiscoverGamesView : PresentableView(), ViewCanDiscoverNewGames, View
     override val discoverGamesWithoutProvidersActions = channel<Unit>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = syncButton("Discover") {

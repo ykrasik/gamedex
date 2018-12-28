@@ -17,12 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameDataOverride
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -32,39 +34,42 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Date: 10/05/2018
  * Time: 08:08
  */
-interface EditGameView {
-    var initialScreen: GameDataType
-    var game: Game
+interface EditGameView : ConfirmationView {
+    val initialScreen: GameDataType
+    val game: Game
 
     val fetchThumbnailRequests: ReceiveChannel<FetchThumbnailRequest>
 
-    var nameOverride: GameDataOverrideViewModel<String>
-    var descriptionOverride: GameDataOverrideViewModel<String>
-    var releaseDateOverride: GameDataOverrideViewModel<String>
-    var criticScoreOverride: GameDataOverrideViewModel<Score>
-    var userScoreOverride: GameDataOverrideViewModel<Score>
-    var thumbnailUrlOverride: GameDataOverrideViewModel<String>
-    var posterUrlOverride: GameDataOverrideViewModel<String>
+    val nameOverride: GameDataOverrideState<String>
+    val descriptionOverride: GameDataOverrideState<String>
+    val releaseDateOverride: GameDataOverrideState<String>
+    val criticScoreOverride: GameDataOverrideState<Score>
+    val userScoreOverride: GameDataOverrideState<Score>
+    val thumbnailUrlOverride: GameDataOverrideState<String>
+    val posterUrlOverride: GameDataOverrideState<String>
 
-    val providerOverrideSelectionChanges: ReceiveChannel<Triple<GameDataType, ProviderId, Boolean>>
-    val customOverrideSelectionChanges: ReceiveChannel<Pair<GameDataType, Boolean>>
-    val clearOverrideSelectionChanges: ReceiveChannel<Pair<GameDataType, Boolean>>
-
-    val customOverrideValueChanges: ReceiveChannel<Pair<GameDataType, String>>
-    val customOverrideValueAcceptActions: ReceiveChannel<GameDataType>
-    val customOverrideValueRejectActions: ReceiveChannel<GameDataType>
-
-    val acceptActions: ReceiveChannel<Unit>
-    val clearActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
+    val resetAllToDefaultActions: ReceiveChannel<Unit>
 }
 
-data class GameDataOverrideViewModel<T>(
-    val override: GameDataOverride? = null,
-    val rawCustomValue: String = "",
-    val customValue: T? = null,
-    val isCustomValueValid: IsValid = IsValid.valid
-)
+interface GameDataOverrideState<T> {
+    val type: GameDataType
+    val customValue: State<T?>
+    val providerValues: State<Map<ProviderId, T>>
+    val selection: UserMutableState<OverrideSelectionType?>
+
+    val canSelectCustomOverride: State<IsValid>
+    val rawCustomValue: UserMutableState<String>
+    val isCustomValueValid: State<IsValid>
+    val customValueAcceptActions: ReceiveChannel<Unit>
+    val customValueRejectActions: ReceiveChannel<Unit>
+
+    val resetToDefaultActions: ReceiveChannel<Unit>
+}
+
+sealed class OverrideSelectionType {
+    data class Provider(val providerId: ProviderId) : OverrideSelectionType()
+    object Custom : OverrideSelectionType()
+}
 
 data class FetchThumbnailRequest(
     val url: String,

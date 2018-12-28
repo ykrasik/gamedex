@@ -32,6 +32,17 @@ data class Library(
     val name get() = data.name
     val path get() = data.path
     val platform get() = data.platform
+
+    companion object {
+        val Null = Library(
+            id = 0,
+            data = LibraryData(
+                name = "",
+                path = File(""),
+                platform = Platform.pc
+            )
+        )
+    }
 }
 
 data class LibraryData(

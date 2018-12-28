@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -32,21 +33,21 @@ interface ViewCanChangeGameWallDisplaySettings {
 }
 
 interface GameWallDisplaySettings {
-    var imageDisplayType: ImageDisplayType
-    var showBorder: Boolean
-    var width: Double
-    var height: Double
-    var horizontalSpacing: Double
-    var verticalSpacing: Double
+    val imageDisplayType: State<ImageDisplayType>
+    val showBorder: State<Boolean>
+    val width: State<Double>
+    val height: State<Double>
+    val horizontalSpacing: State<Double>
+    val verticalSpacing: State<Double>
 }
 
-interface MutableGameWallDisplaySettings : GameWallDisplaySettings {
-    val imageDisplayTypeChanges: ReceiveChannel<ImageDisplayType>
-    val showBorderChanges: ReceiveChannel<Boolean>
-    val widthChanges: ReceiveChannel<Double>
-    val heightChanges: ReceiveChannel<Double>
-    val horizontalSpacingChanges: ReceiveChannel<Double>
-    val verticalSpacingChanges: ReceiveChannel<Double>
+interface MutableGameWallDisplaySettings {
+    val imageDisplayType: UserMutableState<ImageDisplayType>
+    val showBorder: UserMutableState<Boolean>
+    val width: UserMutableState<Double>
+    val height: UserMutableState<Double>
+    val horizontalSpacing: UserMutableState<Double>
+    val verticalSpacing: UserMutableState<Double>
 }
 
 enum class ImageDisplayType(val displayName: String) {

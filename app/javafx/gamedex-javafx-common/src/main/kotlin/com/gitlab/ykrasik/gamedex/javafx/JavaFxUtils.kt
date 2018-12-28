@@ -21,13 +21,9 @@ import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
-import javafx.geometry.Pos
 import javafx.geometry.Rectangle2D
 import javafx.scene.Node
-import javafx.scene.control.Separator
-import javafx.scene.control.TableColumnBase
-import javafx.scene.control.ToolBar
-import javafx.scene.layout.HBox
+import javafx.scene.control.*
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.stage.Screen
@@ -35,6 +31,8 @@ import javafx.stage.Stage
 import javafx.util.Duration
 import tornadofx.*
 import kotlin.reflect.KClass
+import kotlin.reflect.full.declaredMemberFunctions
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * User: ykrasik
@@ -56,9 +54,6 @@ fun UIComponent.callOnUndock() {
     onUndock()
     onUndockListeners?.forEach { it.invoke(this) }
 }
-
-fun EventTarget.defaultHbox(spacing: Number = 5, alignment: Pos = Pos.CENTER_LEFT, op: HBox.() -> Unit = {}) =
-    hbox(spacing, alignment, op)
 
 fun Region.printSize(id: String) {
     printWidth(id)
@@ -114,12 +109,6 @@ fun EventTarget.verticalSeparator(padding: Number? = 10, op: Separator.() -> Uni
     }
 }
 
-fun Node.showWhen(expr: () -> ObservableValue<Boolean>) {
-    val shouldShow = expr()
-    managedWhen { shouldShow }
-    visibleWhen { shouldShow }
-}
-
 fun Node.mouseTransparentWhen(expr: () -> ObservableValue<Boolean>) {
     mouseTransparentProperty().cleanBind(expr())
 }
@@ -136,6 +125,37 @@ inline fun <T : UIComponent> Pane.addComponent(component: T, f: T.() -> Unit = {
     f(component)
 }
 
-fun ToolBar.addComponent(component: UIComponent) {
-    items += component.root
+fun Control.doNotConsumeMouseEvents() {
+    val method = SkinBase::class.declaredMemberFunctions.find { it.name == "consumeMouseEvents" }!!
+    method.isAccessible = true
+    skinProperty().perform {
+        if (it is SkinBase) {
+            method.call(it, false)
+        }
+    }
 }
+
+fun Node.makeDraggable() {
+    var mouseX = 0.0
+    var mouseY = 0.0
+
+    setOnMousePressed { event ->
+        mouseX = event.sceneX
+        mouseY = event.sceneY
+    }
+
+    setOnMouseDragged { event ->
+        val deltaX = event.sceneX - mouseX
+        val deltaY = event.sceneY - mouseY
+        relocate(layoutX + deltaX, layoutY + deltaY)
+        mouseX = event.sceneX
+        mouseY = event.sceneY
+    }
+}
+
+val Node.verticalScrollbar: ScrollBar?
+    get() = lookupAll(".scroll-bar")
+        .asSequence()
+        .map { it as ScrollBar }
+        .filter { it.orientation == Orientation.VERTICAL }
+        .firstOrNull()

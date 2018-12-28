@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -29,13 +30,16 @@ import javax.inject.Singleton
  * Time: 10:35
  */
 @Singleton
-class ShowEditLibraryPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditLibrary> {
+class ShowEditLibraryPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : Presenter<ViewCanEditLibrary> {
     override fun present(view: ViewCanEditLibrary) = object : ViewSession() {
         init {
             view.editLibraryActions.forEach { library ->
-                viewManager.showEditLibraryView {
-                    this.library = library
-                }
+                val editLibraryView = viewManager.showEditLibraryView(library)
+                eventBus.awaitViewFinished(editLibraryView)
+                viewManager.closeEditLibraryView(editLibraryView)
             }
         }
     }

@@ -36,12 +36,12 @@ class ChangeGameWallDisplaySettingsPresenter @Inject constructor(
     override fun present(view: ViewCanChangeGameWallDisplaySettings) = object : ViewSession() {
         init {
             with(view.mutableGameWallDisplaySettings) {
-                settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, ::imageDisplayType, imageDisplayTypeChanges) { copy(imageDisplayType = it) }
-                settingsService.cellDisplay.bind({ showBorderChannel }, ::showBorder, showBorderChanges) { copy(showBorder = it) }
-                settingsService.cellDisplay.bind({ widthChannel }, ::width, widthChanges) { copy(width = it) }
-                settingsService.cellDisplay.bind({ heightChannel }, ::height, heightChanges) { copy(height = it) }
-                settingsService.cellDisplay.bind({ horizontalSpacingChannel }, ::horizontalSpacing, horizontalSpacingChanges) { copy(horizontalSpacing = it) }
-                settingsService.cellDisplay.bind({ verticalSpacingChannel }, ::verticalSpacing, verticalSpacingChanges) { copy(verticalSpacing = it) }
+                settingsService.cellDisplay.bind({ imageDisplayTypeChannel }, imageDisplayType) { copy(imageDisplayType = it) }
+                settingsService.cellDisplay.bind({ showBorderChannel }, showBorder) { copy(showBorder = it) }
+                settingsService.cellDisplay.bind({ widthChannel }, width) { copy(width = it) }
+                settingsService.cellDisplay.bind({ heightChannel }, height) { copy(height = it) }
+                settingsService.cellDisplay.bind({ horizontalSpacingChannel }, horizontalSpacing) { copy(horizontalSpacing = it) }
+                settingsService.cellDisplay.bind({ verticalSpacingChannel }, verticalSpacing) { copy(verticalSpacing = it) }
             }
         }
     }
@@ -55,12 +55,12 @@ class GameWallDisplaySettingsPresenter @Inject constructor(
         init {
             val settings = settingsService.cellDisplay
             with(view.gameWallDisplaySettings) {
-                settings.imageDisplayTypeChannel.reportChangesTo(::imageDisplayType)
-                settings.showBorderChannel.reportChangesTo(::showBorder)
-                settings.widthChannel.reportChangesTo(::width)
-                settings.heightChannel.reportChangesTo(::height)
-                settings.horizontalSpacingChannel.reportChangesTo(::horizontalSpacing)
-                settings.verticalSpacingChannel.reportChangesTo(::verticalSpacing)
+                settings.imageDisplayTypeChannel.bind(imageDisplayType)
+                settings.showBorderChannel.bind(showBorder)
+                settings.widthChannel.bind(width)
+                settings.heightChannel.bind(height)
+                settings.horizontalSpacingChannel.bind(horizontalSpacing)
+                settings.verticalSpacingChannel.bind(verticalSpacing)
             }
         }
     }

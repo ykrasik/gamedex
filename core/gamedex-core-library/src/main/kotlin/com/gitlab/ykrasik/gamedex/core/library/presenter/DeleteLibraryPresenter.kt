@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.library.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -37,7 +37,7 @@ class DeleteLibraryPresenter @Inject constructor(
     private val libraryService: LibraryService,
     private val gameService: GameService,
     private val taskService: TaskService,
-    private val viewManager: ViewManager
+    private val eventBus: EventBus
 ) : Presenter<DeleteLibraryView> {
     override fun present(view: DeleteLibraryView) = object : ViewSession() {
         init {
@@ -52,13 +52,13 @@ class DeleteLibraryPresenter @Inject constructor(
         private suspend fun onAccept() {
             taskService.execute(libraryService.delete(view.library))
 
-            close()
+            finished()
         }
 
         private fun onCancel() {
-            close()
+            finished()
         }
 
-        private fun close() = viewManager.closeDeleteLibraryView(view)
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

@@ -18,16 +18,15 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGamesView
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameDownloadService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,28 +46,30 @@ class RedownloadGamesPresenter @Inject constructor(
 ) : Presenter<RedownloadGamesView> {
     override fun present(view: RedownloadGamesView) = object : ViewSession() {
         init {
-            view.redownloadGamesConditionChanges.forEach { onRedownloadGamesConditionChanged(it) }
+            view.redownloadGamesCondition.forEach { setCanAccept() }
+            view.redownloadGamesConditionIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override fun onShow() {
-            view.redownloadGamesCondition = settingsService.game.redownloadGamesCondition
-            onRedownloadGamesConditionChanged(view.redownloadGamesCondition)
+            view.redownloadGamesCondition *= settingsService.game.redownloadGamesCondition
+            setCanAccept()
         }
 
-        private fun onRedownloadGamesConditionChanged(condition: Filter) {
-            view.canAccept = IsValid {
-                check(condition !is Filter.True) { "Please select a condition!" }
+        private fun setCanAccept() {
+            view.canAccept *= IsValid {
+                check(view.redownloadGamesCondition.value !is Filter.True) { "Please select a condition!" }
+                view.redownloadGamesConditionIsValid.value.get()
             }
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.isSuccess) { "Accepting not allowed right now!" }
+            check(view.canAccept.value.isSuccess) { "Accepting not allowed right now!" }
             finished()
 
-            val condition = view.redownloadGamesCondition
-            settingsService.game.modify { copy(redownloadGamesCondition = view.redownloadGamesCondition) }
+            val condition = view.redownloadGamesCondition.value
+            settingsService.game.modify { copy(redownloadGamesCondition = view.redownloadGamesCondition.value) }
 
             val context = filterContextFactory.create(emptyList())
             val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.name }
@@ -79,8 +80,6 @@ class RedownloadGamesPresenter @Inject constructor(
             finished()
         }
 
-        private fun finished() {
-            eventBus.send(ViewFinishedEvent(view))
-        }
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Platform
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -28,6 +28,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface ViewCanSelectPlatform {
     val availablePlatforms: MutableList<Platform>
 
-    var currentPlatform: Platform
-    val currentPlatformChanges: ReceiveChannel<Platform>
+    val currentPlatform: UserMutableState<Platform>
 }

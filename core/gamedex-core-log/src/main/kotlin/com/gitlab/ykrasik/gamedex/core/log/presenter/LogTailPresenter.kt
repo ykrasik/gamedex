@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class LogTailPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanChangeLogTail> {
     override fun present(view: ViewCanChangeLogTail) = object : ViewSession() {
         init {
-            settingsService.general.bind({ logTailChannel }, view::logTail, view.logTailChanges) { copy(logTail = it) }
+            settingsService.general.bind({ logTailChannel }, view.logTail) { copy(logTail = it) }
         }
     }
 }

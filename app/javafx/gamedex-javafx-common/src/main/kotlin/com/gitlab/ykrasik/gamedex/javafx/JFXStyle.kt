@@ -81,5 +81,12 @@ class JFXStyle : Stylesheet() {
                 borderColor = multi(box(c("#bdbdbd")))
             }
         }
+
+        scrollPane {
+            viewport {
+                backgroundColor = multi(Color.TRANSPARENT)
+            }
+            backgroundColor = multi(Color.WHITE)
+        }
     }
 }

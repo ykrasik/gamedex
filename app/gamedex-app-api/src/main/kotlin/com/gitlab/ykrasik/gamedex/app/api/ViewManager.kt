@@ -16,12 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.app.api
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 
@@ -36,44 +40,28 @@ interface ViewManager {
     fun showTaskView(): TaskView
     fun closeTaskView(view: TaskView)
 
-    val editLibraryView: EditLibraryView
-    fun showEditLibraryView(view: EditLibraryView)
-    fun showEditLibraryView(f: EditLibraryView.() -> Unit) = mutateAndShow(editLibraryView, f, this::showEditLibraryView)
+    fun showEditLibraryView(library: Library?): EditLibraryView
     fun closeEditLibraryView(view: EditLibraryView)
 
-    val gameView: GameView
-    fun showGameView(view: GameView)
-    fun showGameView(f: GameView.() -> Unit) = mutateAndShow(gameView, f, this::showGameView)
+    fun showGameView(game: Game): GameView
     fun closeGameView(view: GameView)
 
-    val deleteLibraryView: DeleteLibraryView
-    fun showDeleteLibraryView(view: DeleteLibraryView)
-    fun showDeleteLibraryView(f: DeleteLibraryView.() -> Unit) = mutateAndShow(deleteLibraryView, f, this::showDeleteLibraryView)
+    fun showDeleteLibraryView(library: Library): DeleteLibraryView
     fun closeDeleteLibraryView(view: DeleteLibraryView)
 
-    val editGameView: EditGameView
-    fun showEditGameView(view: EditGameView)
-    fun showEditGameView(f: EditGameView.() -> Unit) = mutateAndShow(editGameView, f, this::showEditGameView)
+    fun showEditGameView(game: Game, initialType: GameDataType): EditGameView
     fun closeEditGameView(view: EditGameView)
 
-    val deleteGameView: DeleteGameView
-    fun showDeleteGameView(view: DeleteGameView)
-    fun showDeleteGameView(f: DeleteGameView.() -> Unit) = mutateAndShow(deleteGameView, f, this::showDeleteGameView)
+    fun showDeleteGameView(game: Game): DeleteGameView
     fun closeDeleteGameView(view: DeleteGameView)
 
-    val renameMoveGameView: RenameMoveGameView
-    fun showRenameMoveGameView(view: RenameMoveGameView)
-    fun showRenameMoveGameView(f: RenameMoveGameView.() -> Unit) = mutateAndShow(renameMoveGameView, f, this::showRenameMoveGameView)
+    fun showRenameMoveGameView(game: Game, initialName: String?): RenameMoveGameView
     fun closeRenameMoveGameView(view: RenameMoveGameView)
 
-    val tagGameView: TagGameView
-    fun showTagGameView(view: TagGameView)
-    fun showTagGameView(f: TagGameView.() -> Unit) = mutateAndShow(tagGameView, f, this::showTagGameView)
+    fun showTagGameView(game: Game): TagGameView
     fun closeTagGameView(view: TagGameView)
 
-    val editReportView: EditReportView
-    fun showEditReportView(view: EditReportView)
-    fun showEditReportView(f: EditReportView.() -> Unit) = mutateAndShow(editReportView, f, this::showEditReportView)
+    fun showEditReportView(report: Report?): EditReportView
     fun closeEditReportView(view: EditReportView)
 
     fun showRedownloadGamesView(): RedownloadGamesView
@@ -82,13 +70,6 @@ interface ViewManager {
     fun showCleanupDatabaseView(staleData: StaleData): CleanupDatabaseView
     fun closeCleanupDatabaseView(view: CleanupDatabaseView)
 
-    val settingsView: SettingsView
-    fun showSettingsView(view: SettingsView)
-    fun showSettingsView(f: SettingsView.() -> Unit) = mutateAndShow(settingsView, f, this::showSettingsView)
+    fun showSettingsView(): SettingsView
     fun closeSettingsView(view: SettingsView)
-
-    private inline fun <V> mutateAndShow(view: V, mutator: (V) -> Unit, show: (V) -> Unit) {
-        mutator(view)
-        show(view)
-    }
 }

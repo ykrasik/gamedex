@@ -16,8 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
+import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.map
+import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import javafx.beans.property.Property
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -37,12 +42,13 @@ class WebBrowser : Fragment() {
 
     override val root = borderpane {
         vgrow = Priority.ALWAYS
-        center {
+        center = stackpane {
             add(webView)
+            clipRectangle(arc = 20)
         }
         top {
             defaultHbox {
-                paddingAll = 5.0
+                paddingAll = 5
 
                 jfxButton(graphic = Icons.arrowLeft) {
                     addClass(CommonStyle.thinBorder)

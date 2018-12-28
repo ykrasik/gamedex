@@ -61,7 +61,7 @@ interface GameProviderService {
 
     val logos: Map<ProviderId, Image>
 
-    fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Boolean>
+    fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit>
 
     // TODO: Split the methods here into GameDiscoveryService & GameDownloadService?
     fun search(name: String, platform: Platform, path: File, excludedProviders: List<ProviderId>): Task<SearchResults?>
@@ -103,7 +103,7 @@ class GameProviderServiceImpl @Inject constructor(
             }
         }
 
-        log.info("Enabled providers: ${unsortedProviders.sortedBy { it.id }}")
+        log.info("Enabled providers: ${unsortedProviders.sortedBy { it.id }.joinToString()}")
     }
 
     private fun Order.toComparator(): Comparator<EnabledGameProvider> = Comparator { o1, o2 -> get(o1.id)!!.compareTo(get(o2.id)!!) }
@@ -118,16 +118,17 @@ class GameProviderServiceImpl @Inject constructor(
             "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
         }
 
-    override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Boolean> {
+    override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit> {
         val provider = allProviders.find { it.id == providerId }!!
         val accountFeature = checkNotNull(provider.accountFeature) { "Provider $providerId does not require an account!" }
         return task("Verifying $providerId account...", initialImage = logos[providerId]!!) {
             try {
                 val providerAccount = accountFeature.createAccount(account)
                 provider.search("TestSearchToVerifyAccount", Platform.pc, providerAccount)
-                true
+                successMessage = { "$providerId: Valid Account." }
             } catch (e: Exception) {
-                false
+                errorMessage = { "$providerId: Invalid Account!" }
+                throw e
             }
         }
     }

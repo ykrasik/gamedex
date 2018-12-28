@@ -19,15 +19,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.control.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.SimpleBooleanProperty
+import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -42,7 +37,7 @@ import tornadofx.*
  * Date: 16/12/2018
  * Time: 09:57
  */
-class JavaFxCleanupDatabaseView : PresentableView("Cleanup Database", Icons.databaseCleanup), CleanupDatabaseView {
+class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.databaseCleanup), CleanupDatabaseView {
     val staleDataProperty = SimpleObjectProperty(StaleData(emptyList(), emptyList(), emptyMap(), emptyMap()))
     override var staleData by staleDataProperty
 
@@ -50,36 +45,21 @@ class JavaFxCleanupDatabaseView : PresentableView("Cleanup Database", Icons.data
     override val images = JavaFxStaleDataCategory()
     override val fileCache = JavaFxStaleDataCategory()
 
-    private val canAcceptProperty = SimpleObjectProperty(IsValid.valid)
-    override var canAccept by canAcceptProperty
-
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
-
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     override val root = borderpane {
         prefWidth = 600.0
         minHeight = 300.0
-        top {
-            toolbar {
-                cancelButton { eventOnAction(cancelActions) }
-                spacer()
-                acceptButton {
-                    enableWhen(canAcceptProperty)
-                    eventOnAction(acceptActions)
-                }
-            }
-        }
+        top = confirmationToolbar()
         center = form {
             paddingAll = 10
             fieldset("Select stale data to delete") {
-                field("Libraries & Games") {
+                horizontalField("Libraries & Games") {
                     label.graphic = Icons.hdd.color(Color.BLACK)
-                    showWhen { librariesAndGames.canDeleteProperty.booleanBinding { it!!.isSuccess } }
-                    jfxCheckBox(librariesAndGames.shouldDeleteProperty)
+                    showWhen { librariesAndGames.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    jfxCheckBox(librariesAndGames.shouldDelete.property)
 
                     viewButton(staleDataProperty.stringBinding { "${it!!.libraries.size} Libraries" }) {
                         jfxListView(staleDataProperty.mapToList { it.libraries.map { it.path } })
@@ -93,16 +73,16 @@ class JavaFxCleanupDatabaseView : PresentableView("Cleanup Database", Icons.data
                         showWhen { staleDataProperty.booleanBinding { it!!.games.isNotEmpty() } }
                     }
                 }
-                field("Images") {
+                horizontalField("Images") {
                     label.graphic = Icons.thumbnail
-                    showWhen { images.canDeleteProperty.booleanBinding { it!!.isSuccess } }
-                    jfxCheckBox(images.shouldDeleteProperty)
+                    showWhen { images.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    jfxCheckBox(images.shouldDelete.property)
                     label(staleDataProperty.stringBinding { "${it!!.images.size} Images: ${it.staleImagesSizeTaken.humanReadable}" })
                 }
-                field("File Cache") {
+                horizontalField("File Cache") {
                     label.graphic = Icons.fileQuestion
-                    showWhen { fileCache.canDeleteProperty.booleanBinding { it!!.isSuccess } }
-                    jfxCheckBox(fileCache.shouldDeleteProperty)
+                    showWhen { fileCache.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    jfxCheckBox(fileCache.shouldDelete.property)
                     label(staleDataProperty.stringBinding { "${it!!.fileStructure.size} File Cache Entries: ${it.staleFileStructureSizeTaken.humanReadable}" })
                 }
             }
@@ -110,7 +90,7 @@ class JavaFxCleanupDatabaseView : PresentableView("Cleanup Database", Icons.data
     }
 
     private inline fun EventTarget.viewButton(textProperty: ObservableValue<String>, crossinline op: VBox.() -> Unit = {}) =
-        buttonWithPopover("", Icons.details, PopOver.ArrowLocation.LEFT_CENTER) { popOver ->
+        buttonWithPopover("", Icons.details, PopOver.ArrowLocation.LEFT_CENTER) {
             (popOver.contentNode as ScrollPane).minWidth = 600.0
             op()
         }.apply {
@@ -119,25 +99,7 @@ class JavaFxCleanupDatabaseView : PresentableView("Cleanup Database", Icons.data
         }
 
     class JavaFxStaleDataCategory : StaleDataCategory {
-        val canDeleteProperty = SimpleObjectProperty(IsValid.valid)
-        override var canDelete by canDeleteProperty
-
-        private var ignoreNextChange = false
-
-        override val shouldDeleteChanges = channel<Boolean>()
-        val shouldDeleteProperty = SimpleBooleanProperty(false).apply {
-            onChange {
-                if (!ignoreNextChange) {
-                    shouldDeleteChanges.offer(it)
-                }
-            }
-        }
-        override var shouldDelete: Boolean
-            get() = shouldDeleteProperty.value
-            set(value) {
-                ignoreNextChange = true
-                shouldDeleteProperty.value = value
-                ignoreNextChange = false
-            }
+        override val canDelete = state(IsValid.valid)
+        override val shouldDelete = userMutableState(false)
     }
 }

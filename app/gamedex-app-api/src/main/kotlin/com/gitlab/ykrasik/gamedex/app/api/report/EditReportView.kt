@@ -17,8 +17,11 @@
 package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -26,21 +29,16 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Date: 24/06/2018
  * Time: 10:33
  */
-interface EditReportView {
-    var report: Report?
+interface EditReportView : ConfirmationView {
+    val report: Report?
 
-    var canAccept: IsValid
+    val name: UserMutableState<String>
+    val nameIsValid: State<IsValid>
 
-    var name: String
-    val nameChanges: ReceiveChannel<String>
-    var nameIsValid: IsValid
-
-    var filter: Filter
-    val filterChanges: ReceiveChannel<Filter>
+    val filter: UserMutableState<Filter>
+    val filterIsValid: UserMutableState<IsValid>
 
     val excludedGames: MutableList<Game>
 
     val unexcludeGameActions: ReceiveChannel<Game>
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
 }

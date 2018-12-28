@@ -33,8 +33,8 @@ import javax.inject.Singleton
 class SearchGamesPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanSearchGames> {
     override fun present(view: ViewCanSearchGames) = object : ViewSession() {
         init {
-            view.searchText = settingsService.currentPlatformSettings.search
-            view.searchTextChanges.debounce().forEach { onSearchTextChanged(it) }
+            view.searchText *= settingsService.currentPlatformSettings.search
+            view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
         }
 
         private fun onSearchTextChanged(searchText: String) {

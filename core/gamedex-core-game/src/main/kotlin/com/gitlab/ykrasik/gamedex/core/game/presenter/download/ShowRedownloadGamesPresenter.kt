@@ -17,9 +17,10 @@
 package com.gitlab.ykrasik.gamedex.core.game.presenter.download
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
-import com.gitlab.ykrasik.gamedex.app.api.game.RedownloadGamesView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGames
-import com.gitlab.ykrasik.gamedex.core.*
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +38,7 @@ class ShowRedownloadGamesPresenter @Inject constructor(
         init {
             view.redownloadGamesActions.forEach {
                 val redownloadGamesView = viewManager.showRedownloadGamesView()
-                eventBus.awaitEvent<ViewFinishedEvent<RedownloadGamesView>> { it.view == redownloadGamesView }
+                eventBus.awaitViewFinished(redownloadGamesView)
                 viewManager.closeRedownloadGamesView(redownloadGamesView)
             }
         }

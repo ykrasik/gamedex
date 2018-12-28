@@ -19,11 +19,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialogContainer
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
 
@@ -32,21 +31,18 @@ import tornadofx.*
  * Date: 30/05/2018
  * Time: 10:03
  */
-class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
-    private val libraryProperty = SimpleObjectProperty<Library>()
+class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteLibraryView {
+    private val libraryProperty = SimpleObjectProperty(Library.Null)
     override var library: Library by libraryProperty
 
     override val gamesToBeDeleted = mutableListOf<Game>().observable()
 
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
-
     init {
-        titleProperty.bind(libraryProperty.stringBinding { "Delete Library '${it?.name}'?"})
-        viewRegistry.onCreate(this)
+        titleProperty.bind(libraryProperty.stringBinding { "Delete Library '${it!!.name}'?" })
+        register()
     }
 
-    override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {
+    override val root = buildAreYouSure {
         gamesToBeDeleted.perform { gamesToBeDeleted ->
             this.replaceChildren {
                 if (gamesToBeDeleted.isNotEmpty()) {
@@ -54,7 +50,6 @@ class JavaFxDeleteLibraryView : PresentableView(), DeleteLibraryView {
                     listview(gamesToBeDeleted.map { it.name }.observable()) { fitAtMost(10) }
                 }
             }
-            modalStage?.sizeToScene()
         }
     }
 }

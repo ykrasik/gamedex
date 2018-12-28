@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -24,11 +24,9 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 17:47
  */
 interface ViewCanChangeGameSort {
-    var sortBy: SortBy
-    val sortByChanges: ReceiveChannel<SortBy>
+    val sortBy: UserMutableState<SortBy>
 
-    var sortOrder: SortOrder
-    val sortOrderChanges: ReceiveChannel<SortOrder>
+    val sortOrder: UserMutableState<SortOrder>
 }
 
 enum class SortBy(val displayName: String) {

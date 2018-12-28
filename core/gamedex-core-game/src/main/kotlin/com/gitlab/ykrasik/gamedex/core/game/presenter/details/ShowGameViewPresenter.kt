@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -29,13 +30,16 @@ import javax.inject.Singleton
  * Time: 09:38
  */
 @Singleton
-class ShowGameViewPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanShowGameDetails> {
+class ShowGameViewPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : Presenter<ViewCanShowGameDetails> {
     override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
         init {
             view.showGameDetailsActions.forEach { game ->
-                viewManager.showGameView {
-                    this.game = game
-                }
+                val gameView = viewManager.showGameView(game)
+                eventBus.awaitViewFinished(gameView)
+                viewManager.closeGameView(gameView)
             }
         }
     }

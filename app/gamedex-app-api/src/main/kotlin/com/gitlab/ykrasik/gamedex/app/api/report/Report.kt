@@ -52,7 +52,6 @@ data class ReportData(
             filter: Filter,
             excludedGames: List<Int> = emptyList(),
             timestamp: Timestamp = Timestamp.now
-        ): ReportData =
-            ReportData(name, filter, excludedGames, timestamp)
+        ): ReportData = ReportData(name, filter, excludedGames, timestamp)
     }
 }

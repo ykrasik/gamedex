@@ -17,7 +17,10 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -25,23 +28,18 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Date: 06/05/2018
  * Time: 18:10
  */
-interface TagGameView {
-    var game: Game
+interface TagGameView : ConfirmationView {
+    val game: Game
 
     val tags: MutableList<String>
     val checkedTags: MutableSet<String>
 
-    var toggleAll: Boolean
-    val checkAllChanges: ReceiveChannel<Boolean>
+    val toggleAll: UserMutableState<Boolean>
 
     val checkTagChanges: ReceiveChannel<Pair<String, Boolean>>
 
-    var newTagName: String
-    val newTagNameChanges: ReceiveChannel<String>
-    var newTagNameIsValid: IsValid
+    val newTagName: UserMutableState<String>
+    val newTagNameIsValid: State<IsValid>
 
     val addNewTagActions: ReceiveChannel<Unit>
-
-    val acceptActions: ReceiveChannel<Unit>
-    val cancelActions: ReceiveChannel<Unit>
 }

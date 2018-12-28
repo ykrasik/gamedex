@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.delete
 
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
@@ -36,7 +36,7 @@ class DeleteGamePresenter @Inject constructor(
     private val taskService: TaskService,
     private val gameService: GameService,
     private val fileSystemService: FileSystemService,
-    private val viewManager: ViewManager
+    private val eventBus: EventBus
 ) : Presenter<DeleteGameView> {
     override fun present(view: DeleteGameView) = object : ViewSession() {
         init {
@@ -45,23 +45,23 @@ class DeleteGamePresenter @Inject constructor(
         }
 
         override fun onShow() {
-            view.fromFileSystem = false
+            view.fromFileSystem *= false
         }
 
         private suspend fun onAccept() {
-            if (view.fromFileSystem) {
+            if (view.fromFileSystem.value) {
                 fileSystemService.delete(view.game.path)
             }
 
             taskService.execute(gameService.delete(view.game))
 
-            close()
+            finished()
         }
 
         private fun onCancel() {
-            close()
+            finished()
         }
 
-        private fun close() = viewManager.closeDeleteGameView(view)
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

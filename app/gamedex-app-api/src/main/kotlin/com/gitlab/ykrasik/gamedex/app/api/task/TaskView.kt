@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.task
 
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -28,25 +29,26 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Supports displaying a single running task, with an optional single sub-task.
  */
 interface TaskView {
-    var job: Job?
+    val job: State<Job?>
 
-    var isCancellable: Boolean
+    val isCancellable: State<Boolean>
     val cancelTaskActions: ReceiveChannel<Unit>
 
     val taskProgress: TaskProgress
     val subTaskProgress: TaskProgress
-    var isRunningSubTask: Boolean
+    val isRunningSubTask: State<Boolean>
 
     fun taskSuccess(message: String)
     fun taskCancelled(message: String)
+    fun taskError(error: Exception, message: String)
 }
 
 interface TaskProgress {
-    var title: String
-    var image: Image?
-    var message: String
+    val title: State<String>
+    val image: State<Image?>
+    val message: State<String>
 
-    var processedItems: Int
-    var totalItems: Int
-    var progress: Double
+    val processedItems: State<Int>
+    val totalItems: State<Int>
+    val progress: State<Double>
 }

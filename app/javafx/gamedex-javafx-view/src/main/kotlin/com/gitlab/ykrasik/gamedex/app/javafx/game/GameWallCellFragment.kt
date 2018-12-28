@@ -85,7 +85,7 @@ class GameWallCellFragment(
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
 
-            if (gameWallDisplaySettings.imageDisplayType == ImageDisplayType.FixedSize) {
+            if (gameWallDisplaySettings.imageDisplayType.value == ImageDisplayType.FixedSize) {
                 maxWidthProperty().cleanBind(root.widthProperty())
                 maxHeightProperty().cleanBind(root.heightProperty())
             } else {
@@ -98,7 +98,7 @@ class GameWallCellFragment(
             metaTagOverlayLabel = overlayLabel(metaTagOverlayDisplaySettings)
             versionOverlayLabel = overlayLabel(versionOverlayDisplaySettings)
 
-            if (gameWallDisplaySettings.showBorder) {
+            if (gameWallDisplaySettings.showBorder.value) {
                 rectangle {
                     x = 1.0
                     y = 1.0
@@ -123,23 +123,23 @@ class GameWallCellFragment(
     private fun Node.overlayLabel(settings: OverlayDisplaySettings) = label {
         addClass(Style.overlayText)
         visibleWhen {
-            val showOnlyWhenActive = settings.showOnlyWhenActive.toProperty()
-            settings.enabled.toProperty().and(textProperty().isNotEmpty).and(
+            val showOnlyWhenActive = settings.showOnlyWhenActive.value.toProperty()
+            settings.enabled.value.toProperty().and(textProperty().isNotEmpty).and(
                 showOnlyWhenActive.and(this@overlayLabel.hoverProperty().or(isSelectedProperty)).or(showOnlyWhenActive.not())
             )
         }
 
         font = run {
-            val weight = if (settings.boldFont) FontWeight.BOLD else null
-            val posture = if (settings.italicFont) FontPosture.ITALIC else null
-            Font.font(null, weight, posture, settings.fontSize.toDouble())
+            val weight = if (settings.boldFont.value) FontWeight.BOLD else null
+            val posture = if (settings.italicFont.value) FontPosture.ITALIC else null
+            Font.font(null, weight, posture, settings.fontSize.value.toDouble())
         }
-        textFill = Color.valueOf(settings.textColor)
-        background = Background(BackgroundFill(Color.valueOf(settings.backgroundColor), null, null))
-        opacity = settings.opacity
+        textFill = Color.valueOf(settings.textColor.value)
+        background = Background(BackgroundFill(Color.valueOf(settings.backgroundColor.value), null, null))
+        opacity = settings.opacity.value
 
-        maxWidth = if (settings.fillWidth) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE
-        StackPane.setAlignment(this, positions[settings.position])
+        maxWidth = if (settings.fillWidth.value) Double.MAX_VALUE else Region.USE_COMPUTED_SIZE
+        StackPane.setAlignment(this, positions[settings.position.value])
     }
 
     fun setImage(image: ObservableValue<Image>) = imageView.imageProperty().cleanBind(image)

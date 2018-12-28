@@ -39,7 +39,6 @@ import tornadofx.*
 // TODO: Show total amount of games and total game size.
 class JavaFxLibraryScreen : PresentableScreen("Libraries", Icons.hdd),
     ViewWithLibraries, ViewCanAddLibrary, ViewCanEditLibrary, ViewCanDeleteLibrary {
-
     override val libraries = mutableListOf<Library>().observable()
     override val addLibraryActions = channel<Unit>()
     override val editLibraryActions = channel<Library>()
@@ -48,10 +47,10 @@ class JavaFxLibraryScreen : PresentableScreen("Libraries", Icons.hdd),
     private val selectedLibrary: Library get() = root.selectedItem!!
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
-    override fun HBox.constructToolbar() {
+    override fun HBox.buildToolbar() {
         spacer()
         verticalSeparator()
         addButton { action { addLibrary() } }

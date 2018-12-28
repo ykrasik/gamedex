@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
 
 /**
  * User: ykrasik
@@ -28,6 +29,6 @@ interface ViewWithGames {
 
     // FIXME: There is an assumption that the view's platform has a more efficient way of representing sort & filter
     // FIXME: than our primitive approach. This is so-so, find a way to handle this on the presenter side.
-    var sort: Comparator<Game>
-    var filter: (Game) -> Boolean
+    val sort: State<Comparator<Game>>
+    val filter: State<(Game) -> Boolean>
 }

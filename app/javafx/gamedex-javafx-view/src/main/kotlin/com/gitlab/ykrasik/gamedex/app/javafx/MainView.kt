@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx
 
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.navigation.ViewCanCloseOtherViews
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameScreen
@@ -29,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
+import com.gitlab.ykrasik.gamedex.javafx.view.ScreenNavigation
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -36,7 +39,6 @@ import javafx.scene.Node
 import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
-import javafx.scene.control.ToolBar
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
@@ -47,7 +49,7 @@ import tornadofx.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanShowSettings {
+class MainView : PresentableView("GameDex"), ViewCanCloseOtherViews, ViewCanShowSettings {
     private val taskView: JavaFxTaskView by inject()
 
     private val gameScreen: GameScreen by inject()
@@ -59,48 +61,44 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
     private val viewGameScreen: JavaFxViewGameScreen by inject()
 
-    private var tabPane: TabPane by singleAssign()
-    private var toolbar: ToolBar by singleAssign()
-
     private lateinit var previousScreen: Tab
-
-    private val fakeScreens = setOf(viewGameScreen)
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
+    override val closeViewActions = channel<Any>()
     override val showSettingsActions = channel<Unit>()
 
     init {
-        viewRegistry.onCreate(this)
+        register()
+    }
+
+    private val toolbar = customToolbar {
+        children.onChange {
+            fade(0.6.seconds, 1.0, play = true) {
+                fromValue = 0.0
+            }
+        }
+    }
+
+    private val tabPane = jfxTabPane {
+        addClass(CommonStyle.hiddenTabPaneHeader)
+
+        previousScreen = screenTab(gameScreen)
+        screenTab(viewGameScreen)
+        screenTab(reportsScreen)
+        screenTab(libraryScreen)
+        screenTab(logScreen)
+
+        selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
+            cleanupClosedTab(oldValue)
+            prepareNewTab(newValue)
+        }
     }
 
     override val root = taskView.init {
         borderpane {
-            top {
-                toolbar = toolbar {
-                    items.onChange {
-                        fade(0.6.seconds, 1.0, play = true) {
-                            fromValue = 0.0
-                        }
-                    }
-                }
-            }
-            center {
-                tabPane = jfxTabPane {
-                    addClass(CommonStyle.hiddenTabPaneHeader)
-
-                    previousScreen = screenTab(gameScreen)
-                    screenTab(viewGameScreen)
-                    screenTab(reportsScreen)
-                    screenTab(libraryScreen)
-                    screenTab(logScreen)
-
-                    selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
-                        cleanupClosedTab(oldValue)
-                        prepareNewTab(newValue)
-                    }
-                }
-            }
+            top = toolbar
+            center = tabPane
         }
     }
 
@@ -109,11 +107,23 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
         graphic = screen.icon
     }
 
-    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
+    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu, closeOnClick = true) {
         tabPane.tabs.forEach { tab ->
             val screen = tab.userData as PresentableScreen
-            if (screen !in fakeScreens) {
-                navigationButton(tab.text, tab.graphic) { tabPane.selectionModel.select(tab) }
+            val navigation = screen.navigation
+            when (navigation) {
+                ScreenNavigation.MainMenu ->
+                    navigationButton(screen.title, screen.icon) {
+                        closeViewActions.event(tabPane.selectionModel.selectedItem.userData as PresentableScreen)
+                        tabPane.selectionModel.select(tab)
+                    }
+                is ScreenNavigation.SubMenu ->
+                    subMenu(screen.title, screen.icon, contentDisplay = ContentDisplay.TOP) {
+                        navigation.builder(this)
+                    }
+                ScreenNavigation.Standalone -> {
+                    // Nothing to do.
+                }
             }
         }
 
@@ -125,7 +135,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
         verticalGap(size = 30)
 
-        navigationButton("Settings", Icons.settings) { }.apply {
+        navigationButton("Settings", Icons.settings).apply {
             eventOnAction(showSettingsActions)
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
@@ -158,31 +168,38 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private fun PresentableScreen.populateToolbar() {
         val screen = this
         toolbar.replaceChildren {
-            if (screen !in fakeScreens) {
+            if (screen.navigation != ScreenNavigation.Standalone) {
                 add(mainNavigationButton)
             } else {
-                backButton { action { showPreviousScreen() } }
+                backButton { eventOnAction(closeViewActions) { screen } }
             }
             gap()
-            items += toolbars.getOrPut(screen) {
+            children += toolbars.getOrPut(screen) {
                 HBox().apply {
                     spacing = 10.0
                     useMaxWidth = true
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_LEFT
-                    constructToolbar()
+                    buildToolbar()
                 }
             }
         }
     }
 
-    private fun EventTarget.navigationButton(text: String, icon: Node, action: () -> Unit) = jfxButton(text, icon, alignment = Pos.CENTER) {
-        useMaxWidth = true
-        contentDisplay = ContentDisplay.TOP
-        action { action() }
-    }
+    private inline fun EventTarget.navigationButton(text: String, icon: Node, crossinline action: () -> Unit = {}) =
+        jfxButton(text, icon, alignment = Pos.CENTER) {
+            useMaxWidth = true
+            contentDisplay = ContentDisplay.TOP
+            action {
+                action()
+            }
+        }
 
-    fun showGameDetails() = selectScreen(viewGameScreen)
+    fun showGameDetails(game: Game): JavaFxViewGameScreen {
+        viewGameScreen.game.valueFromView = game
+        selectScreen(viewGameScreen)
+        return viewGameScreen
+    }
 
     private fun selectScreen(screen: PresentableScreen) =
         tabPane.selectionModel.select(tabPane.tabs.find { it.userData == screen })

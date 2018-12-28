@@ -22,13 +22,17 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.awaitEvent
+import com.gitlab.ykrasik.gamedex.core.task.ExpectedException
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,97 +53,108 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
         }
 
         private suspend fun <T> execute(task: Task<T>) {
-            if (view.job != null) {
+            if (view.job.value != null) {
                 log.warn("Trying to execute a task(${task.title}) when one is already executing(${view.taskProgress.title})")
                 eventBus.awaitEvent<TaskFinishedEvent<T>>()
                 log.warn("Previous task(${view.taskProgress.title}) finished, executing new task(${task.title})")
             }
-            check(view.job == null) { "Already running a job: ${view.taskProgress.title}" }
+            check(view.job.value == null) { "Already running a job: ${view.taskProgress.title}" }
 
-            view.isCancellable = task.isCancellable
-            view.isRunningSubTask = false
+            view.isCancellable *= task.isCancellable
+            view.isRunningSubTask *= false
             bindTaskProgress(task, view.taskProgress)
             // TODO: It's possible that before this coroutine is launched the subtask will send some messages to its message channel that will be lost.
             task.subTaskChannel.forEach { subTask ->
                 if (subTask != null) {
                     bindTaskProgress(subTask, view.subTaskProgress)
                 }
-                view.isRunningSubTask = subTask != null
+                view.isRunningSubTask *= subTask != null
             }
 
             val start = System.currentTimeMillis()
-            val result = async(Dispatchers.IO) {
+            val deferred = GlobalScope.async(Dispatchers.IO) {
                 task.execute()
             }
-            var success = true
-            var cancelled = false
-            try {
-                view.job = result
-                result.await()
-            } catch (e: Exception) {
-                success = false
-                if (e is CancellationException) {
-                    cancelled = true
+            view.job *= deferred
+            val result = Try {
+                deferred.await()
+            }
+            val millisTaken = System.currentTimeMillis() - start
+            view.job *= null
+            view.isCancellable *= false
+            view.isRunningSubTask *= false
+            view.taskProgress.image *= null
+            view.subTaskProgress.image *= null
+
+            var resultToReturn = result
+            when (result) {
+                is Try.Success -> {
+                    view.taskProgress.progress *= 1.0
+                    view.subTaskProgress.progress *= 1.0
+
+                    val successMessage = task.successMessage?.invoke(result.value)
+                    successMessage?.let(view::taskSuccess)
+                    log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.toHumanReadableDuration()}]")
                 }
-            } finally {
-                val millisTaken = System.currentTimeMillis() - start
-                if (success) {
-                    view.taskProgress.progress = 1.0
-                    view.subTaskProgress.progress = 1.0
-                }
-                view.job = null
-                view.isCancellable = false
-                view.isRunningSubTask = false
-                view.taskProgress.image = null
-                view.subTaskProgress.image = null
-                when {
-                    success -> {
-                        val successMessage = task.successMessage?.invoke()
-                        successMessage?.let(view::taskSuccess)
-                        log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.toHumanReadableDuration()}]")
-                    }
-                    cancelled -> {
-                        val cancelMessage = task.cancelMessage?.invoke()
-                        cancelMessage?.let(view::taskCancelled)
-                        log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.toHumanReadableDuration()}]")
+                is Try.Error -> {
+                    val error = result.error
+                    when {
+                        error is CancellationException && error !is ClosedSendChannelException -> {
+                            val cancelMessage = task.cancelMessage?.invoke()
+                            cancelMessage?.let(view::taskCancelled)
+                            log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.toHumanReadableDuration()}]")
+
+                            // Cancellation exceptions should not be treated as unexpected errors.
+                            resultToReturn = Try.error(ExpectedException(error))
+                        }
+                        else -> {
+                            val errorMessage = task.errorMessage?.invoke(error)
+                            if (errorMessage != null) {
+                                // The presence of an error message means the taskView should display this error, and not treat it as an unexpected error.
+                                view.taskError(error, errorMessage)
+                                resultToReturn = Try.error(ExpectedException(error))
+                            }
+                            log.error("${errorMessage ?: "${task.title} Error:"} [${millisTaken.toHumanReadableDuration()}]", error)
+                        }
                     }
                 }
             }
-            eventBus.send(TaskFinishedEvent(task, result))
+
+            eventBus.send(TaskFinishedEvent(task, resultToReturn))
         }
 
         private fun bindTaskProgress(task: Task<*>, taskProgress: TaskProgress) {
-            taskProgress.title = task.title
+            taskProgress.title *= task.title
             message(task.title, taskProgress)
             task.messageChannel.forEach { message(it, taskProgress) }
 
-            taskProgress.totalItems = task.totalItems
-            task.totalItemsChannel.forEach { taskProgress.totalItems = it }
+            taskProgress.totalItems *= task.totalItems
+            task.totalItemsChannel.forEach { taskProgress.totalItems *= it }
 
-            taskProgress.processedItems = task.processedItems
+            taskProgress.processedItems *= task.processedItems
             task.processedItemsChannel.forEach { processedItems ->
-                taskProgress.processedItems = processedItems
+                taskProgress.processedItems *= processedItems
 
                 if (task.totalItems > 1) {
-                    taskProgress.progress = processedItems.toDouble() / task.totalItems
+                    taskProgress.progress *= processedItems.toDouble() / task.totalItems
 //                    log.debug("Progress: $processedItems/${task.totalItems} ${String.format("%.3f", taskProgress.progress * 100)}%")
                 }
             }
 
-            taskProgress.progress = -1.0
+            taskProgress.progress *= -1.0
 
-            taskProgress.image = task.image
-            task.imageChannel.forEach { taskProgress.image = it }
+            taskProgress.image *= task.image
+            task.imageChannel.forEach { taskProgress.image *= it }
         }
 
         private fun message(msg: String, taskProgress: TaskProgress) {
             log.info(msg)
-            taskProgress.message = msg
+            taskProgress.message *= msg
         }
 
         private fun cancelTask() {
-            val job = checkNotNull(view.job) { "Cannot cancel, not running any job!" }
-            check(view.isCancellable) { "Cannot cancel, current job is non-cancellable: ${view.job}" }
+            val job = checkNotNull(view.job.value) { "Cannot cancel, not running any job!" }
+            check(view.isCancellable.value) { "Cannot cancel, current job is non-cancellable: ${view.job}" }
             job.cancel()
         }
     }

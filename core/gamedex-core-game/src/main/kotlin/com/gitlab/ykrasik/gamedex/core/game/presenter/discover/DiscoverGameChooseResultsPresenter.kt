@@ -34,7 +34,7 @@ class DiscoverGameChooseResultsPresenter @Inject constructor(
 ) : Presenter<ViewCanChangeDiscoverGameChooseResults> {
     override fun present(view: ViewCanChangeDiscoverGameChooseResults) = object : ViewSession() {
         init {
-            settingsService.game.bind({ discoverGameChooseResultsChannel }, view::discoverGameChooseResults, view.discoverGameChooseResultsChanges) {
+            settingsService.game.bind({ discoverGameChooseResultsChannel }, view.discoverGameChooseResults) {
                 copy(discoverGameChooseResults = it)
             }
         }

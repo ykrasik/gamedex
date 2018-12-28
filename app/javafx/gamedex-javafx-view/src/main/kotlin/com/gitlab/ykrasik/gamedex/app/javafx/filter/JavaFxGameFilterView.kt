@@ -21,19 +21,18 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
-import com.gitlab.ykrasik.gamedex.app.api.util.IsValid
-import com.gitlab.ykrasik.gamedex.app.api.util.ValueOrError
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import javafx.beans.property.ObjectProperty
+import com.gitlab.ykrasik.gamedex.util.IsValid
+import javafx.beans.property.Property
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -41,9 +40,9 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import kotlinx.coroutines.channels.Channel
+import org.joda.time.DurationFieldType
 import org.joda.time.LocalDate
 import org.joda.time.Period
-import org.joda.time.format.PeriodFormatterBuilder
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import kotlin.reflect.KClass
@@ -54,17 +53,13 @@ import kotlin.reflect.KClass
  * Time: 13:07
  */
 class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), GameFilterView, ViewWithProviderLogos {
+    override var providerLogos = emptyMap<ProviderId, Image>()
+
     override val possibleGenres = mutableListOf<String>()
     override val possibleTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
     override val possibleProviderIds = mutableListOf<ProviderId>()
     override val possibleRules = mutableListOf<KClass<out Filter.Rule>>().observable()
-
-    val filterChanges = channel<Filter>()
-    val filterProperty = SimpleObjectProperty<Filter>(Filter.`true`).eventOnChange(filterChanges)
-    override var filter by filterProperty
-
-    val isValid: ObjectProperty<IsValid> = SimpleObjectProperty(IsValid.valid)
 
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
@@ -75,31 +70,22 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
 
-    override var providerLogos = emptyMap<ProviderId, Image>()
+    override val filter = state<Filter>(Filter.`true`)
+    override val filterIsValid = state(IsValid.valid)
 
     private var indent = 0
 
-    private val periodFormatter = PeriodFormatterBuilder()
-        .appendYears().appendSuffix(" years").appendSeparator(" ")
-        .appendMonths().appendSuffix(" months").appendSeparator(" ")
-        .appendDays().appendSuffix(" days").appendSeparator(" ")
-        .appendHours().appendSuffix(" hours").appendSeparator(" ")
-        .appendMinutes().appendSuffix(" minutes").appendSeparator(" ")
-        .appendSeconds().appendSuffix(" seconds")
-        .toFormatter()
-
     override val root = vbox {
+        // TODO: Re-rendering like this is possibly leaking listeners.
         fun rerender() = replaceChildren {
-            isValid.unbind()
-            isValid.value = IsValid.valid
-            render(filterProperty.value, Filter.`true`)
+            render(filter.property.value, Filter.`true`)
         }
-        filterProperty.onChange { rerender() }
+        filter.property.onChange { rerender() }
         possibleRules.onChange { rerender() }
     }
 
     init {
-        viewRegistry.onCreate(this)
+        register()
     }
 
     private fun EventTarget.render(filter: Filter, parentFilter: Filter) {
@@ -111,23 +97,23 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
             }
             is Filter.UnaryOperator -> render(filter.target, filter)
             is Filter.Rule -> renderBasicRule(filter, parentFilter, possibleRules) {
-                val ruleProperty = when (filter) {
+                when (filter) {
                     is Filter.Platform -> renderPlatformFilter(filter)
                     is Filter.Library -> renderLibraryFilter(filter)
                     is Filter.Genre -> renderGenreFilter(filter)
                     is Filter.Tag -> renderTagFilter(filter)
                     is Filter.Provider -> renderProviderFilter(filter)
                     is Filter.CriticScore -> renderScoreFilter(filter, Filter::CriticScore)
-                    is Filter.NullCriticScore -> renderNullFilter(filter)
+                    is Filter.NullCriticScore -> renderNullFilter()
                     is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
-                    is Filter.NullUserScore -> renderNullFilter(filter)
+                    is Filter.NullUserScore -> renderNullFilter()
                     is Filter.AvgScore -> renderScoreFilter(filter, Filter::AvgScore)
-                    is Filter.NullAvgScore -> renderNullFilter(filter)
+                    is Filter.NullAvgScore -> renderNullFilter()
                     is Filter.MinScore -> renderScoreFilter(filter, Filter::MinScore)
                     is Filter.MaxScore -> renderScoreFilter(filter, Filter::MaxScore)
                     is Filter.TargetReleaseDate -> renderTargetDateFilter(filter, Filter::TargetReleaseDate)
                     is Filter.PeriodReleaseDate -> renderPeriodDateFilter(filter, Filter::PeriodReleaseDate)
-                    is Filter.NullReleaseDate -> renderNullFilter(filter)
+                    is Filter.NullReleaseDate -> renderNullFilter()
                     is Filter.TargetCreateDate -> renderTargetDateFilter(filter, Filter::TargetCreateDate)
                     is Filter.PeriodCreateDate -> renderPeriodDateFilter(filter, Filter::PeriodCreateDate)
                     is Filter.TargetUpdateDate -> renderTargetDateFilter(filter, Filter::TargetUpdateDate)
@@ -135,7 +121,6 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
                     is Filter.FileSize -> renderFileSizeFilter(filter)
                     else -> filter.toProperty()
                 }
-                ruleProperty.eventOnChange(updateFilterActions) { filter to it }
             }
             else -> kotlin.error("Unknown filter: $filter")
         }
@@ -161,7 +146,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         gap(size = indent * 10.0)
 
         val descriptor = filter.descriptor
-        buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), closeOnClick = false) { popOver ->
+        buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), closeOnClick = false) {
             // TODO: As an optimization, can share this popover accross all menus.
             fun EventTarget.conditionButton(descriptor: ConditionDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
@@ -241,13 +226,13 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         }
     }
 
-    private fun HBox.renderPlatformFilter(rule: Filter.Platform) = rule.toProperty().apply {
-        val platform = mapBidirectional(Filter.Platform::platform, Filter::Platform)
+    private fun HBox.renderPlatformFilter(condition: Filter.Platform) {
+        val platform = condition.toProperty(Filter.Platform::platform, Filter::Platform)
         platformComboBox(platform)
     }
 
-    private fun HBox.renderProviderFilter(rule: Filter.Provider) = rule.toProperty().apply {
-        val provider = mapBidirectional(Filter.Provider::providerId, Filter::Provider)
+    private fun HBox.renderProviderFilter(condition: Filter.Provider) {
+        val provider = condition.toProperty(Filter.Provider::providerId, Filter::Provider)
         popoverComboMenu(
             possibleItems = possibleProviderIds,
             selectedItemProperty = provider,
@@ -256,8 +241,11 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         )
     }
 
-    private fun HBox.renderLibraryFilter(rule: Filter.Library) = rule.toProperty().apply {
-        val library = mapBidirectional({ possibleLibraries.find { it.id == id }!! }, { Filter.Library(id) })
+    private fun HBox.renderLibraryFilter(condition: Filter.Library) {
+        val library = condition.toProperty(
+            { checkNotNull(possibleLibraries.find { it.id == id }) { "Library($id) not found!" } },
+            { Filter.Library(it.id) }
+        )
         popoverComboMenu(
             possibleItems = possibleLibraries,
             selectedItemProperty = library,
@@ -266,70 +254,76 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         )
     }
 
-    private fun HBox.renderGenreFilter(rule: Filter.Genre) = rule.toProperty().apply {
-        val genre = mapBidirectional(Filter.Genre::genre, Filter::Genre)
+    private fun HBox.renderGenreFilter(condition: Filter.Genre) {
+        val genre = condition.toProperty(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
             possibleItems = possibleGenres,
             selectedItemProperty = genre
         )
     }
 
-    private fun HBox.renderTagFilter(rule: Filter.Tag) = rule.toProperty().apply {
-        val tag = mapBidirectional(Filter.Tag::tag, Filter::Tag)
+    private fun HBox.renderTagFilter(condition: Filter.Tag) {
+        val tag = condition.toProperty(Filter.Tag::tag, Filter::Tag)
         popoverComboMenu(
             possibleItems = possibleTags,
             selectedItemProperty = tag
         )
     }
 
-    private fun HBox.renderTargetDateFilter(rule: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) = rule.toProperty().apply {
+    private fun HBox.renderTargetDateFilter(condition: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) {
         tooltip("Is after the given date")
-        val date = mapBidirectional(Filter.TargetDate::date, factory)
+        val date = condition.toProperty(Filter.TargetDate::date, factory)
         jfxDatePicker(date)
     }
 
-    private fun HBox.renderPeriodDateFilter(rule: Filter.PeriodDate, factory: (Period) -> Filter.PeriodDate) = rule.toProperty().apply {
+    private fun HBox.renderPeriodDateFilter(condition: Filter.PeriodDate, factory: (Period) -> Filter.PeriodDate) {
         tooltip("Is within a duration ago from now")
-        jfxTextField(periodFormatter.print(rule.period)) {
-            val period = bindParser {
-                try {
-                    periodFormatter.parsePeriod(it)
-                } catch (e: Exception) {
-                    kotlin.error("${e.message} [years months days hours minutes seconds]")
-                }
-            }
-            bindValidation(period)
-            period.onChange {
-                if (it!!.isSuccess) {
-                    this@apply.value = factory(it.value!!)
-                }
-            }
+        val initialPeriodType = PeriodType.values().firstOrNull { it.extractor(condition.period) > 0 } ?: PeriodType.Months
+        val initialAmount = initialPeriodType.extractor(condition.period)
+        val periodTypeProperty = initialPeriodType.toProperty()
+        val amountProperty = initialAmount.toProperty()
+        plusMinusSlider(amountProperty, min = 0, max = 100)
+        enumComboMenu(periodTypeProperty)
+        amountProperty.combineLatest(periodTypeProperty).eventOnChange(updateFilterActions) {
+            val (amount, periodType) = it!!
+            condition to factory(Period().withField(periodType.fieldType, amount.toInt()))
         }
     }
 
-    private fun HBox.renderScoreFilter(rule: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) = rule.toProperty().apply {
-        defaultHbox {
-            val target = mapBidirectional({ target }, factory)
-            bindValidation(numberTextField(target, min = 0, max = 100))
-        }
+    private fun HBox.renderScoreFilter(condition: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
+        val target = condition.toProperty(Filter.TargetScore::target, factory)
+        plusMinusSlider(target, min = 0, max = 100)
     }
 
-    private fun renderNullFilter(rule: Filter.Rule) = rule.toProperty()
-
-    private fun bindValidation(validation: ObservableValue<out ValueOrError<Any>>) {
-        isValid.cleanBind(isValid.and(validation))
-    }
-
-    private fun HBox.renderFileSizeFilter(filter: Filter.FileSize) = filter.toProperty().apply {
-        val (initialAmount, initialScale) = filter.target.scaled
+    private fun HBox.renderFileSizeFilter(condition: Filter.FileSize) {
+        val (initialAmount, initialScale) = condition.target.scaled
         val amountProperty = SimpleIntegerProperty(initialAmount.toInt())
         val scaleProperty = SimpleObjectProperty(initialScale)
         plusMinusSlider(amountProperty, min = 1, max = 999)
         enumComboMenu(scaleProperty)
-        amountProperty.combineLatest(scaleProperty).onChange {
+        amountProperty.combineLatest(scaleProperty).eventOnChange(updateFilterActions) {
             val (amount, scale) = it!!
-            this@apply.value = Filter.FileSize(FileSize(amount, scale))
+            condition to Filter.FileSize(FileSize(amount, scale))
         }
+    }
+
+    private fun renderNullFilter() {}
+
+    private inline fun <Rule : Filter.Rule, T : Any> Rule.toProperty(
+        extractor: Extractor<Rule, T>,
+        crossinline factory: (T) -> Rule
+    ): Property<T> =
+        extractor(this).toProperty().eventOnChange(updateFilterActions) { this to factory(it) }
+
+    enum class PeriodType(val fieldType: DurationFieldType, val extractor: (Period) -> Int) {
+        Years(DurationFieldType.years(), Period::getYears),
+        Months(DurationFieldType.months(), Period::getMonths),
+        Days(DurationFieldType.days(), Period::getDays),
+        Hours(DurationFieldType.hours(), Period::getHours),
+        Minutes(DurationFieldType.minutes(), Period::getMinutes),
+        Seconds(DurationFieldType.seconds(), Period::getSeconds);
+
+        operator fun invoke(period: Period): Int = extractor(period)
     }
 
     private data class ConditionDisplayDescriptor(

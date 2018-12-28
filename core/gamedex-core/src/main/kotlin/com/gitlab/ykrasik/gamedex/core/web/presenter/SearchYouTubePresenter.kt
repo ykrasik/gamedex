@@ -14,40 +14,40 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.util
+package com.gitlab.ykrasik.gamedex.core.web.presenter
+
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import java.net.URLEncoder
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/12/2018
- * Time: 15:40
- *
- * A value or an error message. It is expected that if [error] == null, [value] != null.
- * Can be used, for example, to disable a button and provide an explanation why it's disabled, or
- * show a validation error.
+ * Date: 06/10/2018
+ * Time: 12:14
  */
-data class ValueOrError<out T>(val value: T?, val error: String?) {
-    val isSuccess: Boolean get() = error == null
-    val isError: Boolean get() = error != null
-
-    companion object {
-        fun <T> success(value: T) = ValueOrError(value, error = null)
-        fun <T> error(error: String) = ValueOrError<T>(value = null, error = error)
-
-        val valid: IsValid = success(Unit)
-        fun invalid(error: String): IsValid = error(error)
-
-        fun fromError(error: String?): IsValid = if (error == null) valid else invalid(error)
-
-        inline operator fun <T> invoke(f: () -> T): ValueOrError<T> =
-            try {
-                success(f())
-            } catch (e: Exception) {
-                error(e.message!!)
+@Singleton
+class SearchYouTubePresenter @Inject constructor() : Presenter<ViewCanSearchYouTube> {
+    override fun present(view: ViewCanSearchYouTube) = object : ViewSession() {
+        init {
+            view.displayYouTubeForGameRequests.forEach { game ->
+                searchYouTube(game)
             }
+        }
+
+        override fun onHide() {
+            searchYouTube(null)
+        }
+
+        private fun searchYouTube(game: Game?) {
+            val url = game?.let {
+                val search = URLEncoder.encode("${it.name} gameplay ${it.platform}", "utf-8")
+                "https://www.youtube.com/results?search_query=$search"
+            }
+            view.browseTo(url)
+        }
     }
 }
-
-typealias IsValid = ValueOrError<Any>
-
-fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
-fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this

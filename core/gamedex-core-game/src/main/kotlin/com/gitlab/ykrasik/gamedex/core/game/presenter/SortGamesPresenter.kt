@@ -34,8 +34,8 @@ class SortGamesPresenter @Inject constructor(
 ) : Presenter<ViewCanChangeGameSort> {
     override fun present(view: ViewCanChangeGameSort) = object : ViewSession() {
         init {
-            settingsService.game.bind({ sortByChannel }, view::sortBy, view.sortByChanges) { copy(sortBy = it) }
-            settingsService.game.bind({ sortOrderChannel }, view::sortOrder, view.sortOrderChanges) { copy(sortOrder = it) }
+            settingsService.game.bind({ sortByChannel }, view.sortBy) { copy(sortBy = it) }
+            settingsService.game.bind({ sortOrderChannel }, view.sortOrder) { copy(sortOrder = it) }
         }
     }
 }

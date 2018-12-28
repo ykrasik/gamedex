@@ -18,11 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.delete
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.DeleteGameView
-import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialogContainer
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
-import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import javafx.beans.property.SimpleBooleanProperty
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.getValue
 import tornadofx.setValue
@@ -33,23 +32,18 @@ import tornadofx.stringBinding
  * Date: 02/05/2018
  * Time: 22:08
  */
-class JavaFxDeleteGameView : PresentableView(), DeleteGameView {
-    private val gameProperty = SimpleObjectProperty<Game>()
-    override var game: Game by gameProperty
+class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGameView {
+    private val gameProperty = SimpleObjectProperty(Game.Null)
+    override var game by gameProperty
 
-    override val fromFileSystemChanges = channel<Boolean>()
-    private val fromFileSystemProperty = SimpleBooleanProperty(false).eventOnChange(fromFileSystemChanges)
-    override var fromFileSystem by fromFileSystemProperty
-
-    override val acceptActions = channel<Unit>()
-    override val cancelActions = channel<Unit>()
+    override val fromFileSystem = userMutableState(false)
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it?.name}'?"})
-        viewRegistry.onCreate(this)
+        titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it!!.name}'?" })
+        register()
     }
 
-    override val root = areYouSureDialogContainer(acceptActions, cancelActions, titleProperty) {
-        jfxCheckBox(fromFileSystemProperty, "From File System")
+    override val root = buildAreYouSure {
+        jfxCheckBox(fromFileSystem.property, "From File System")
     }
 }

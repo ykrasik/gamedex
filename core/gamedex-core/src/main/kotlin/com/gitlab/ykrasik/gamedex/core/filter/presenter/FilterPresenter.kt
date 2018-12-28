@@ -106,7 +106,7 @@ class FilterPresenter @Inject constructor(
             view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(it)) }
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
             view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
-            view.clearFilterActions.forEach { replaceFilter(view.filter, Filter.`true`) }
+            view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.`true`) }
             view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.deleteFilterActions.forEach { deleteFilter(it) }
@@ -172,8 +172,15 @@ class FilterPresenter @Inject constructor(
 
         private fun deleteFilter(filter: Filter) = modifyFilter { delete(filter) ?: Filter.`true` }
 
-        private fun modifyFilter(f: Filter.() -> Filter) {
-            view.filter = f(view.filter)
+        private inline fun modifyFilter(f: Modifier<Filter>) {
+            view.filter.modify(f)
+            setIsValid()
+        }
+
+        private fun setIsValid() {
+            view.filterIsValid *= IsValid {
+                check(view.filter.value.find(Filter.True::class) == null) { "Please select a condition!" }
+            }
         }
 
         private fun Filter.replace(target: Filter, with: Filter): Filter {
@@ -205,6 +212,16 @@ class FilterPresenter @Inject constructor(
                 else -> current
             }
             return doDelete(this)
+        }
+
+        private fun Filter.find(target: KClass<out Filter>): Filter? {
+            fun doFind(current: Filter): Filter? = when {
+                current::class == target -> current
+                current is Filter.BinaryOperator -> doFind(current.left) ?: doFind(current.right)
+                current is Filter.UnaryOperator -> doFind(current.target)
+                else -> null
+            }
+            return doFind(this)
         }
 
         private fun newBinaryOperator(
@@ -257,7 +274,9 @@ class FilterPresenter @Inject constructor(
                 crossinline factory: (A, B) -> T,
                 crossinline defaultA: () -> A,
                 crossinline defaultB: () -> B
-            ): ConditionBuilder<T> = ConditionBuilder { param1, param2 -> factory(param1 as? A ?: defaultA(), param2 as? B ?: defaultB()) }
+            ): ConditionBuilder<T> = ConditionBuilder { param1, param2 ->
+                factory(param1 as? A ?: defaultA(), param2 as? B ?: defaultB())
+            }
         }
     }
 }

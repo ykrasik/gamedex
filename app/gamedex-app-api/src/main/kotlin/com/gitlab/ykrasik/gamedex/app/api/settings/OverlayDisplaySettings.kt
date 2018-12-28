@@ -16,7 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
@@ -48,29 +49,29 @@ interface ViewWithVersionOverlayDisplaySettings {
 }
 
 interface OverlayDisplaySettings {
-    var enabled: Boolean
-    var showOnlyWhenActive: Boolean
-    var position: DisplayPosition
-    var fillWidth: Boolean
-    var fontSize: Int
-    var boldFont: Boolean
-    var italicFont: Boolean
-    var textColor: String
-    var backgroundColor: String
-    var opacity: Double
+    val enabled: State<Boolean>
+    val showOnlyWhenActive: State<Boolean>
+    val position: State<DisplayPosition>
+    val fillWidth: State<Boolean>
+    val fontSize: State<Int>
+    val boldFont: State<Boolean>
+    val italicFont: State<Boolean>
+    val textColor: State<String>
+    val backgroundColor: State<String>
+    val opacity: State<Double>
 }
 
-interface MutableOverlayDisplaySettings : OverlayDisplaySettings {
-    val enabledChanges: ReceiveChannel<Boolean>
-    val showOnlyWhenActiveChanges: ReceiveChannel<Boolean>
-    val positionChanges: ReceiveChannel<DisplayPosition>
-    val fillWidthChanges: ReceiveChannel<Boolean>
-    val fontSizeChanges: ReceiveChannel<Int>
-    val boldFontChanges: ReceiveChannel<Boolean>
-    val italicFontChanges: ReceiveChannel<Boolean>
-    val textColorChanges: ReceiveChannel<String>
-    val backgroundColorChanges: ReceiveChannel<String>
-    val opacityChanges: ReceiveChannel<Double>
+interface MutableOverlayDisplaySettings {
+    val enabled: UserMutableState<Boolean>
+    val showOnlyWhenActive: UserMutableState<Boolean>
+    val position: UserMutableState<DisplayPosition>
+    val fillWidth: UserMutableState<Boolean>
+    val fontSize: UserMutableState<Int>
+    val boldFont: UserMutableState<Boolean>
+    val italicFont: UserMutableState<Boolean>
+    val textColor: UserMutableState<String>
+    val backgroundColor: UserMutableState<String>
+    val opacity: UserMutableState<Double>
 }
 
 enum class DisplayPosition(val displayName: String) {

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanEditReport
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -29,13 +30,16 @@ import javax.inject.Singleton
  * Time: 18:05
  */
 @Singleton
-class ShowEditReportPresenter @Inject constructor(private val viewManager: ViewManager) : Presenter<ViewCanEditReport> {
+class ShowEditReportPresenter @Inject constructor(
+    private val eventBus: EventBus,
+    private val viewManager: ViewManager
+) : Presenter<ViewCanEditReport> {
     override fun present(view: ViewCanEditReport) = object : ViewSession() {
         init {
             view.editReportActions.forEach { report ->
-                viewManager.showEditReportView {
-                    this.report = report
-                }
+                val editReportView = viewManager.showEditReportView(report)
+                eventBus.awaitViewFinished(editReportView)
+                viewManager.closeEditReportView(editReportView)
             }
         }
     }
