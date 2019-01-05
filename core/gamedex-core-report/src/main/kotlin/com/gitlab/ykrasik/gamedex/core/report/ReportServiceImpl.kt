@@ -64,28 +64,12 @@ class ReportServiceImpl @Inject constructor(private val repo: ReportSettingsRepo
     fun invalidate() = repo.invalidate()
 
     private companion object {
-        val noCriticScore = Filter.NullCriticScore()
-        val noUserScore = Filter.NullUserScore()
-
         val defaultReports = listOf(
             ReportData("Name Diff", Filter.NameDiff()),
             ReportData("Duplications", Filter.Duplications()),
-            ReportData("Very Low Score",
-                Filter.CriticScore(60.0).not and noCriticScore.not and {
-                    Filter.UserScore(60.0).not and noUserScore.not
-                }
-            ),
-            ReportData("Low Score",
-                Filter.CriticScore(60.0).not and noCriticScore.not or {
-                    Filter.UserScore(60.0).not and noUserScore.not
-                }
-            ),
-            ReportData("Missing Score",
-                noCriticScore or noUserScore and Filter.not {
-                    noCriticScore and noUserScore
-                }
-            ),
-            ReportData("No Score", noCriticScore and noUserScore)
+            ReportData("Low Score", Filter.CriticScore(60.0).not or Filter.UserScore(60.0).not),
+            ReportData("Very Low Score", Filter.CriticScore(60.0).not and Filter.UserScore(60.0).not),
+            ReportData("No Score", Filter.NullCriticScore() and Filter.NullUserScore())
         )
     }
 }

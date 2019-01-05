@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.header
 import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -56,7 +56,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     override val browseToGameActions = channel<Unit>()
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Rename/Move ${it!!.path}" })
+        titleProperty.bind(gameProperty.stringBinding { "Rename/Move '${it!!.name}'" })
         register()
     }
 
@@ -71,7 +71,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                     horizontalField {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it!!.path.toString() })
-                            eventOnAction(browseToGameActions)
+                            action(browseToGameActions)
                         }
                     }
                 }
@@ -93,11 +93,11 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                                 gridpaneConstraints { columnRowIndex(1, 1); hAlignment = HPos.LEFT }
                                 useMaxWidth = true
                                 textProperty().bind(path.property.stringBinding { if (it.isNullOrEmpty()) File.separator else it })
-                                eventOnAction(selectDirectoryActions)
+                                action(selectDirectoryActions)
                             }
 
                             header("Name") { gridpaneConstraints { columnRowIndex(2, 0); hAlignment = HPos.CENTER } }
-                            jfxTextField(name.property) {
+                            jfxTextField(name.property, promptText = "Enter Name...") {
                                 gridpaneConstraints { columnRowIndex(2, 1); hAlignment = HPos.LEFT; hGrow = Priority.ALWAYS }
                                 validWhen(nameIsValid)
                             }

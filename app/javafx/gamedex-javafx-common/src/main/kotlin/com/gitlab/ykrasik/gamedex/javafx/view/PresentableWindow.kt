@@ -19,15 +19,18 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
+import javafx.event.EventTarget
 import javafx.scene.Node
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Region
-import javafx.scene.layout.StackPane
-import javafx.scene.layout.VBox
+import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import tornadofx.*
 
@@ -106,19 +109,19 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
     override val acceptActions = channel<Unit>()
     override val cancelActions = channel<Unit>()
 
-    protected inline fun confirmationToolbar(crossinline toolbarOp: HBox.() -> Unit = { spacer() }) = customToolbar {
-        cancelButton { eventOnAction(cancelActions) }
+    protected inline fun confirmationToolbar(crossinline toolbarOp: HBox.() -> Unit = { centeredWindowHeader() }) = customToolbar {
+        cancelButton { action(cancelActions) }
         toolbarOp()
         acceptButton {
             enableWhen(canAccept)
-            eventOnAction(acceptActions)
+            action(acceptActions)
         }
     }
 
     protected fun buildAreYouSure(minHeight: Number? = 150, minWidth: Number? = 400, op: (VBox.() -> Unit)? = null) = borderpane {
         if (minHeight != null) this.minHeight = minHeight.toDouble()
         if (minWidth != null) this.minWidth = minWidth.toDouble()
-        top = confirmationToolbar()
+        top = confirmationToolbar { spacer() }
         center = vbox(spacing = 10) {
             paddingAll = 20
             defaultHbox {
@@ -137,5 +140,12 @@ abstract class ConfirmationWindow(title: String? = null, icon: Node? = null) : P
                 }
             }
         }
+    }
+
+    fun EventTarget.windowHeader() = header(titleProperty, iconProperty)
+    inline fun EventTarget.centeredWindowHeader(crossinline f: StackPane.() -> Unit = {}) = stackpane {
+        hgrow = Priority.ALWAYS
+        windowHeader()
+        f()
     }
 }

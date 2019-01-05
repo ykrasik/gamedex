@@ -17,15 +17,18 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
+import com.gitlab.ykrasik.gamedex.javafx.control.errorTooltip
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.Pos
 import javafx.scene.Cursor
@@ -41,50 +44,57 @@ import tornadofx.*
  * Time: 15:17
  */
 class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView, ViewWithProviderLogos {
+    override val canChangeProviderOrder = state(IsValid.valid)
+
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override val search = userMutableState<Order>(emptyMap())
-    override val name = userMutableState<Order>(emptyMap())
-    override val description = userMutableState<Order>(emptyMap())
-    override val releaseDate = userMutableState<Order>(emptyMap())
-    override val criticScore = userMutableState<Order>(emptyMap())
-    override val userScore = userMutableState<Order>(emptyMap())
-    override val thumbnail = userMutableState<Order>(emptyMap())
-    override val poster = userMutableState<Order>(emptyMap())
-    override val screenshot = userMutableState<Order>(emptyMap())
+    override val search = userMutableState<Order>(emptyList())
+    override val name = userMutableState<Order>(emptyList())
+    override val description = userMutableState<Order>(emptyList())
+    override val releaseDate = userMutableState<Order>(emptyList())
+    override val criticScore = userMutableState<Order>(emptyList())
+    override val userScore = userMutableState<Order>(emptyList())
+    override val thumbnail = userMutableState<Order>(emptyList())
+    override val poster = userMutableState<Order>(emptyList())
+    override val screenshot = userMutableState<Order>(emptyList())
 
     init {
         register()
     }
 
-    override val root = form {
-        fieldset("Order Priorities") {
-            listOf(
-                Triple("Search", Icons.search, search),
-                Triple("Name", Icons.text, name),
-                Triple("Description", Icons.textbox, description),
-                Triple("Release Date", Icons.date, releaseDate),
-                Triple("Critic Score", Icons.starFull, criticScore),
-                Triple("User Score", Icons.starEmpty, userScore),
-                Triple("Thumbnail", Icons.thumbnail, thumbnail),
-                Triple("Poster", Icons.poster, poster),
-                Triple("Screenshots", Icons.screenshots, screenshot)
-            ).forEach { (name, icon, order) ->
-                horizontalField(name) {
-                    label.graphic = icon.color(Color.BLACK)
-                    providerOrder(order.property)
+    override val root = vbox {
+        // Need to wrap in a vbox because the root's disabledProperty cannot be bound,
+        // it is set by the tabPane which contains this view.
+        errorTooltip(canChangeProviderOrder)
+        form {
+            enableWhen(canChangeProviderOrder, wrapInErrorTooltip = false)
+            fieldset("Order Priorities") {
+                listOf(
+                    Triple("Search", Icons.search, search),
+                    Triple("Name", Icons.text, name),
+                    Triple("Description", Icons.textbox, description),
+                    Triple("Release Date", Icons.date, releaseDate),
+                    Triple("Critic Score", Icons.starFull, criticScore),
+                    Triple("User Score", Icons.starEmpty, userScore),
+                    Triple("Thumbnail", Icons.thumbnail, thumbnail),
+                    Triple("Poster", Icons.poster, poster),
+                    Triple("Screenshots", Icons.screenshots, screenshot)
+                ).forEach { (name, icon, order) ->
+                    horizontalField(name) {
+                        label.graphic = icon.color(Color.BLACK)
+                        providerOrder(order.property)
+                    }
                 }
             }
         }
     }
 
     private fun Pane.providerOrder(orderProperty: SimpleObjectProperty<Order>) {
-        hbox(spacing = 20.0, alignment = Pos.CENTER) {
+        hbox(spacing = 20, alignment = Pos.CENTER) {
             orderProperty.perform { order ->
-                val ordered = order.entries.sortedBy { it.value }.map { it.key }
                 var dragging: ProviderId? = null
                 replaceChildren {
-                    ordered.map { providerId ->
+                    order.map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
                             graphic = providerLogos[providerId]!!.image.toImageView(height = 50.0, width = 100.0)
@@ -96,26 +106,28 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
 
                             var dragX = 0.0
 
-                            setOnMousePressed { mouseEvent ->
+                            setOnMousePressed { e ->
                                 // record a delta distance for the drag and drop operation.
-                                dragX = layoutX - mouseEvent.sceneX
+                                dragX = layoutX - e.sceneX
                                 cursor = Cursor.MOVE
                                 dragging = providerId
                                 this@hbox.children.forEach { it.isManaged = false }
+                                e.consume()
                             }
                             setOnMouseReleased {
                                 cursor = Cursor.HAND
                                 dragging = null
                                 this@hbox.children.forEach { it.isManaged = true }
                             }
-                            setOnMouseDragged { mouseEvent ->
-                                layoutX = mouseEvent.sceneX + dragX
+                            setOnMouseDragged { e ->
+                                layoutX = e.sceneX + dragX
                                 val intersect = this@hbox.children.find { label ->
                                     this@label != label && this@label.boundsInParent.intersects(label.boundsInParent)
                                 }
                                 if (intersect != null) {
-                                    orderProperty.value = order.switch(dragging!!, intersect.userData as ProviderId)
+                                    orderProperty.value = order.swap(dragging!!, intersect.userData as ProviderId)
                                 }
+                                e.consume()
                             }
                             setOnMouseEntered {
                                 cursor = Cursor.HAND
@@ -131,10 +143,12 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
         }
     }
 
-    private fun Order.switch(a: ProviderId, b: ProviderId): Order {
-        val currentA = get(a)!!
-        val currentB = get(b)!!
-        return this + (a to currentB) + (b to currentA)
+    private fun Order.swap(a: ProviderId, b: ProviderId): Order = map {
+        when (it) {
+            a -> b
+            b -> a
+            else -> it
+        }
     }
 
     class Style : Stylesheet() {

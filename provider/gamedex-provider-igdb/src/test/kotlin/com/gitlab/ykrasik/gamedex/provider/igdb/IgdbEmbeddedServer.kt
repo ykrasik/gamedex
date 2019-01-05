@@ -119,7 +119,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : Closeab
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.authorized(body: suspend () -> Unit) {
-        if (call.request.headers["user-key"] == apiKey) {
+        if (call.request.headers["user-key"] == apiKey || System.getProperty("gameDex.provider.skipCredentialValidation") != null) {
             body()
         } else {
             call.respond(HttpStatusCode.Unauthorized)

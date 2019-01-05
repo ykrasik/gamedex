@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
 import com.gitlab.ykrasik.gamedex.core.navigation.presenter.CloseViewPresenter
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
+import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderCoreModule
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
 import com.gitlab.ykrasik.gamedex.core.storage.IntIdJsonStorageFactory
@@ -77,6 +78,7 @@ object CoreModule : InternalCoreModule() {
         install(ImageModule)
         install(LibraryModule)
         install(LogModule)
+        install(ProviderCoreModule)
         install(ReportModule)
 
         // Install all providers detected by classpath scan

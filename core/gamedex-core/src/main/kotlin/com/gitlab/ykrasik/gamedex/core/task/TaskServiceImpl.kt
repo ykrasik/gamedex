@@ -41,7 +41,7 @@ class TaskServiceImpl @Inject constructor(
     private inline fun <T> withTaskView(f: () -> T): T {
         val view = viewManager.showTaskView()
         val result = f()
-        viewManager.closeTaskView(view)
+        viewManager.hide(view)
         return result
     }
 }

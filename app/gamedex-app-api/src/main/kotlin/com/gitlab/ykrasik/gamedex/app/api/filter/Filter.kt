@@ -89,28 +89,42 @@ sealed class Filter {
     infix fun or(right: () -> Filter) = or(right())
     val not get() = Not(this)
 
+    abstract fun isEqual(other: Filter): Boolean
+    protected inline fun <reified T> Filter.ifIs(f: (T) -> Boolean) = (this@ifIs as? T)?.let(f) ?: false
+
+    protected open fun evaluateNot(game: Game, context: Context): Boolean = !evaluate(game, context)
+
     abstract class Operator : Filter()
     abstract class BinaryOperator : Operator() {
         abstract val left: Filter
         abstract val right: Filter
+
+        protected inline fun <reified T : BinaryOperator> isEqual0(other: Filter) =
+            other.ifIs<T> { this.left.isEqual(it.left) && this.right.isEqual(it.right) }
     }
 
     abstract class UnaryOperator : Operator() {
         abstract val target: Filter
     }
 
-    data class And(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
+    class And(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
         override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) && right.evaluate(game, context)
+        override fun evaluateNot(game: Game, context: Context) = left.evaluateNot(game, context) || right.evaluateNot(game, context)
+        override fun isEqual(other: Filter) = isEqual0<And>(other)
         override fun toString() = "($left) and ($right)"
     }
 
-    data class Or(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
+    class Or(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
         override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) || right.evaluate(game, context)
+        override fun evaluateNot(game: Game, context: Context) = left.evaluateNot(game, context) && right.evaluateNot(game, context)
+        override fun isEqual(other: Filter) = isEqual0<Or>(other)
         override fun toString() = "($left) or ($right)"
     }
 
-    data class Not(override val target: Filter = True()) : UnaryOperator() {
-        override fun evaluate(game: Game, context: Context) = !target.evaluate(game, context)
+    class Not(override val target: Filter = True()) : UnaryOperator() {
+        override fun evaluate(game: Game, context: Context) = target.evaluateNot(game, context)
+        override fun evaluateNot(game: Game, context: Context) = target.evaluate(game, context)
+        override fun isEqual(other: Filter) = other.ifIs<Not> { this.target.isEqual(it.target) }
         override fun toString() = "!($target)"
     }
 
@@ -118,8 +132,7 @@ sealed class Filter {
 
     class True : Rule() {
         override fun evaluate(game: Game, context: Context) = true
-//        override fun equals(other: Any?) = other is True
-//        override fun hashCode() = javaClass.hashCode()
+        override fun isEqual(other: Filter) = other is True
     }
 
     abstract class ScoreRule : Rule() {
@@ -127,11 +140,47 @@ sealed class Filter {
     }
 
     abstract class TargetScore : ScoreRule() {
-        abstract val target: Double
-        override fun evaluate(game: Game, context: Context): Boolean {
+        abstract val score: Double
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it >= score }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it < score }
+
+        private inline fun eval(game: Game, context: Context, f: (Double) -> Boolean): Boolean {
             val score = extractScore(game, context)
-            return score != null && score >= target
+            return score != null && f(score)
         }
+
+        protected inline fun <reified T : TargetScore> isEqual0(other: Filter) =
+            other.ifIs<T> { this.score == it.score }
+    }
+
+    class CriticScore(override val score: Double) : TargetScore() {
+        override fun extractScore(game: Game, context: Context) = game.criticScore?.score
+        override fun isEqual(other: Filter) = isEqual0<CriticScore>(other)
+        override fun toString() = "Critic Score >= $score"
+    }
+
+    class UserScore(override val score: Double) : TargetScore() {
+        override fun extractScore(game: Game, context: Context) = game.userScore?.score
+        override fun isEqual(other: Filter) = isEqual0<UserScore>(other)
+        override fun toString() = "User Score >= $score"
+    }
+
+    class AvgScore(override val score: Double) : TargetScore() {
+        override fun extractScore(game: Game, context: Context) = game.avgScore
+        override fun isEqual(other: Filter) = isEqual0<AvgScore>(other)
+        override fun toString() = "Avg Score >= $score"
+    }
+
+    class MinScore(override val score: Double) : TargetScore() {
+        override fun extractScore(game: Game, context: Context) = game.minScore
+        override fun isEqual(other: Filter) = isEqual0<MinScore>(other)
+        override fun toString() = "Min Score >= $score"
+    }
+
+    class MaxScore(override val score: Double) : TargetScore() {
+        override fun extractScore(game: Game, context: Context) = game.maxScore
+        override fun isEqual(other: Filter) = isEqual0<MaxScore>(other)
+        override fun toString() = "Max Score >= $score"
     }
 
     abstract class NullScore : ScoreRule() {
@@ -140,13 +189,7 @@ sealed class Filter {
             return score == null
         }
 
-        override fun equals(other: Any?) = other != null && this::class == other::class
-        override fun hashCode() = javaClass.hashCode()
-    }
-
-    data class CriticScore(override val target: Double) : TargetScore() {
-        override fun extractScore(game: Game, context: Context) = game.criticScore?.score
-        override fun toString() = "Critic Score >= $target"
+        override fun isEqual(other: Filter) = this::class == other::class
     }
 
     class NullCriticScore : NullScore() {
@@ -154,34 +197,14 @@ sealed class Filter {
         override fun toString() = "Critic Score == NULL"
     }
 
-    data class UserScore(override val target: Double) : TargetScore() {
-        override fun extractScore(game: Game, context: Context) = game.userScore?.score
-        override fun toString() = "User Score >= $target"
-    }
-
     class NullUserScore : NullScore() {
         override fun extractScore(game: Game, context: Context) = game.userScore?.score
         override fun toString() = "User Score == NULL"
     }
 
-    data class AvgScore(override val target: Double) : TargetScore() {
-        override fun extractScore(game: Game, context: Context) = game.avgScore
-        override fun toString() = "Avg Score >= $target"
-    }
-
     class NullAvgScore : NullScore() {
         override fun extractScore(game: Game, context: Context) = game.avgScore
         override fun toString() = "Avg Score == NULL"
-    }
-
-    data class MinScore(override val target: Double) : TargetScore() {
-        override fun extractScore(game: Game, context: Context) = game.minScore
-        override fun toString() = "Min Score >= $target"
-    }
-
-    data class MaxScore(override val target: Double) : TargetScore() {
-        override fun extractScore(game: Game, context: Context) = game.maxScore
-        override fun toString() = "Max Score >= $target"
     }
 
     abstract class DateRule : Rule() {
@@ -190,18 +213,66 @@ sealed class Filter {
 
     abstract class TargetDate : DateRule() {
         abstract val date: LocalDate
-        override fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it >= date }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it < date }
+
+        private inline fun eval(game: Game, context: Context, f: (LocalDate) -> Boolean): Boolean {
             val date = extractDate(game, context)
-            return date != null && date.toLocalDate() >= this.date
+            return date != null && f(date.toLocalDate())
         }
+
+        protected inline fun <reified T : TargetDate> isEqual0(other: Filter) =
+            other.ifIs<T> { this.date == it.date }
+    }
+
+    class TargetReleaseDate(override val date: LocalDate) : TargetDate() {
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun isEqual(other: Filter) = isEqual0<TargetReleaseDate>(other)
+        override fun toString() = "Release Date >= $date"
+    }
+
+    class TargetCreateDate(override val date: LocalDate) : TargetDate() {
+        override fun extractDate(game: Game, context: Context) = game.createDate
+        override fun isEqual(other: Filter) = isEqual0<TargetCreateDate>(other)
+        override fun toString() = "Create Date >= $date"
+    }
+
+    class TargetUpdateDate(override val date: LocalDate) : TargetDate() {
+        override fun extractDate(game: Game, context: Context) = game.updateDate
+        override fun isEqual(other: Filter) = isEqual0<TargetUpdateDate>(other)
+        override fun toString() = "Update Date >= $date"
     }
 
     abstract class PeriodDate : DateRule() {
         abstract val period: Period
-        override fun evaluate(game: Game, context: Context): Boolean {
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it >= (context.now - period) }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it < (context.now - period) }
+
+        private inline fun eval(game: Game, context: Context, f: (DateTime) -> Boolean): Boolean {
             val date = extractDate(game, context)
-            return date != null && date >= (now - period)
+            return date != null && f(date)
         }
+
+        protected inline fun <reified T : PeriodDate> isEqual0(other: Filter) =
+            other.ifIs<T> { this.period == it.period }
+    }
+
+    class PeriodReleaseDate(override val period: Period) : PeriodDate() {
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun isEqual(other: Filter) = isEqual0<PeriodReleaseDate>(other)
+        override fun toString() = "Release Date >= (Now - ${period.toHumanReadable()}"
+    }
+
+    class PeriodCreateDate(override val period: Period) : PeriodDate() {
+        override fun extractDate(game: Game, context: Context) = game.createDate
+        override fun isEqual(other: Filter) = isEqual0<PeriodCreateDate>(other)
+        override fun toString() = "Create Date >= (Now - ${period.toHumanReadable()}"
+    }
+
+    class PeriodUpdateDate(override val period: Period) : PeriodDate() {
+        override fun extractDate(game: Game, context: Context) = game.updateDate
+        override fun isEqual(other: Filter) = isEqual0<PeriodUpdateDate>(other)
+        override fun toString() = "Update Date >= (Now - ${period.toHumanReadable()}"
     }
 
     abstract class NullDate : DateRule() {
@@ -210,19 +281,7 @@ sealed class Filter {
             return date == null
         }
 
-        override fun equals(other: Any?) = other != null && this::class == other::class
-        override fun hashCode() = javaClass.hashCode()
-
-    }
-
-    data class TargetReleaseDate(override val date: LocalDate) : TargetDate() {
-        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
-        override fun toString() = "Release Date >= $date"
-    }
-
-    data class PeriodReleaseDate(override val period: Period) : PeriodDate() {
-        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
-        override fun toString() = "Release Date >= (Now - ${period.toHumanReadable()}"
+        override fun isEqual(other: Filter) = this::class == other::class
     }
 
     class NullReleaseDate : NullDate() {
@@ -230,57 +289,51 @@ sealed class Filter {
         override fun toString() = "Release Date == NULL"
     }
 
-    data class TargetCreateDate(override val date: LocalDate) : TargetDate() {
-        override fun extractDate(game: Game, context: Context) = game.createDate
-        override fun toString() = "Create Date >= $date"
-    }
-
-    data class PeriodCreateDate(override val period: Period) : PeriodDate() {
-        override fun extractDate(game: Game, context: Context) = game.createDate
-        override fun toString() = "Create Date >= (Now - ${period.toHumanReadable()}"
-    }
-
-    data class TargetUpdateDate(override val date: LocalDate) : TargetDate() {
-        override fun extractDate(game: Game, context: Context) = game.updateDate
-        override fun toString() = "Update Date >= $date"
-    }
-
-    data class PeriodUpdateDate(override val period: Period) : PeriodDate() {
-        override fun extractDate(game: Game, context: Context) = game.updateDate
-        override fun toString() = "Update Date >= (Now - ${period.toHumanReadable()}"
-    }
-
-    data class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
+    class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
         override fun evaluate(game: Game, context: Context): Boolean {
             val size = context.size(game)
             return size >= target
         }
 
+        override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
         override fun toString() = "File Size >= ${target.humanReadable}"
     }
 
-    data class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
+    class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.platform == platform
+        override fun isEqual(other: Filter) = other.ifIs<Platform> { this.platform == it.platform }
         override fun toString() = "Platform == '$platform'"
     }
 
-    data class Library(val id: Int) : Rule() {
+    class Library(val id: Int) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.library.id == id
+        override fun isEqual(other: Filter) = other.ifIs<Library> { this.id == it.id }
         override fun toString() = "Library == Library($id)"
     }
 
-    data class Genre(val genre: String) : Rule() {
+    class Genre(val genre: String) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.genres.any { it == genre }
+        override fun isEqual(other: Filter) = other.ifIs<Genre> { this.genre == it.genre }
         override fun toString() = "Genre == '$genre'"
     }
 
-    data class Tag(val tag: String) : Rule() {
+    class Tag(val tag: String) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.tags.any { it == tag }
+        override fun isEqual(other: Filter) = other.ifIs<Tag> { this.tag == it.tag }
         override fun toString() = "Tag == '$tag'"
     }
 
-    data class Provider(val providerId: ProviderId) : Rule() {
-        override fun evaluate(game: Game, context: Context) = game.providerHeaders.any { it.id == providerId }
+    class Provider(val providerId: ProviderId) : Rule() {
+        override fun evaluate(game: Game, context: Context) = eval(game, context) { it.any { it.header.id == providerId } }
+        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it.none { it.header.id == providerId } }
+
+        private inline fun eval(game: Game, context: Context, f: (List<ProviderData>) -> Boolean): Boolean {
+            return context.providerSupports(providerId, game.platform) &&
+                !game.isProviderExcluded(providerId) &&
+                f(game.rawGame.providerData)
+        }
+
+        override fun isEqual(other: Filter) = other.ifIs<Provider> { this.providerId == it.providerId }
         override fun toString() = "Provider == '$providerId'"
     }
 
@@ -323,15 +376,14 @@ sealed class Filter {
             }.toMultiMap()
         }
 
-        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp.zero)
+        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp.Null)
 
         data class GameDuplication(
             val providerId: ProviderId,
             val duplicatedGameId: GameId
         )
 
-        override fun equals(other: Any?) = other is Duplications
-        override fun hashCode() = javaClass.hashCode()
+        override fun isEqual(other: Filter) = other is Duplications
     }
 
     class NameDiff : Rule() {
@@ -377,13 +429,15 @@ sealed class Filter {
             val patch: Patch<Char>
         )
 
-        override fun equals(other: Any?) = other is NameDiff
-        override fun hashCode() = javaClass.hashCode()
+        override fun isEqual(other: Filter) = other is NameDiff
     }
 
     interface Context {
         val games: List<Game>
         val additionalData: Map<GameId, Set<AdditionalData>>
+        val now: JodaDateTime
+
+        fun providerSupports(providerId: ProviderId, platform: com.gitlab.ykrasik.gamedex.Platform): Boolean
 
         fun size(game: Game): com.gitlab.ykrasik.gamedex.util.FileSize
         fun toFileName(name: String): String
@@ -396,3 +450,5 @@ sealed class Filter {
         data class AdditionalData(val rule: KClass<out Filter.Rule>, val value: Any?)
     }
 }
+
+fun Filter.isEqual(other: Filter?): Boolean = other != null && isEqual(other)

@@ -16,15 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.forEachWith
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.sun.javafx.scene.control.skin.TableViewSkin
+import com.sun.javafx.scene.control.skin.TreeViewSkin
+import com.sun.javafx.scene.control.skin.VirtualFlow
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.TableCell
-import javafx.scene.control.TableColumn
-import javafx.scene.control.TableRow
-import javafx.scene.control.TableView
+import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
@@ -107,16 +108,16 @@ inline fun <reified S> TableView<S>.customGraphicColumn(title: String, crossinli
 // TODO: Can probably rewrite this using customGraphicColumn
 inline fun <reified S> TableView<S>.imageViewColumn(
     title: String,
-    fitWidth: Double,
-    fitHeight: Double,
+    fitWidth: Number,
+    fitHeight: Number,
     isPreserveRatio: Boolean = true,
     crossinline imageRetriever: (S) -> ObservableValue<Image>
 ): TableColumn<S, S> = customColumn(title) {
     object : TableCell<S, S>() {
         private val imageView = ImageView().apply {
             fadeOnImageChange()
-            this@apply.fitHeight = fitHeight
-            this@apply.fitWidth = fitWidth
+            this@apply.fitHeight = fitHeight.toDouble()
+            this@apply.fitWidth = fitWidth.toDouble()
             this@apply.isPreserveRatio = isPreserveRatio
         }
 
@@ -172,3 +173,21 @@ fun <S> TableView<S>.allowDeselection(onClickAgain: Boolean) {
 }
 
 fun <S> TableView<S>.clearSelection() = selectionModel.clearSelection()
+
+fun <S> TableView<S>.keepSelectionInView() {
+    selectionModel.selectedIndexProperty().forEachWith(skinProperty()) { selectedIndex, skin ->
+        val flow = (skin as TableViewSkin<*>).children[1] as VirtualFlow<*>
+        if (selectedIndex != -1) {
+            flow.show(selectedIndex as Int)
+        }
+    }
+}
+
+fun <S> TreeView<S>.keepSelectionInView() {
+    selectionModel.selectedIndexProperty().forEachWith(skinProperty()) { selectedIndex, skin ->
+        val flow = (skin as TreeViewSkin<*>).children.first() as VirtualFlow<*>
+        if (selectedIndex != -1) {
+            flow.show(selectedIndex as Int)
+        }
+    }
+}

@@ -47,7 +47,7 @@ interface PersistenceService {
     fun deleteLibraries(libraryIds: List<Int>): Int
 
     fun fetchGames(): List<RawGame>
-    fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?): RawGame
+    fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData): RawGame
     fun updateGame(rawGame: RawGame): Boolean
     fun deleteGame(id: Int): Boolean
     fun deleteGames(gameIds: List<Int>): Int
@@ -120,19 +120,19 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
                     libraryId = it[Games.libraryId].value
                 ),
                 providerData = it[Games.providerData].listFromJson(),
-                userData = it[Games.userData]?.fromJson()
+                userData = it[Games.userData]?.fromJson() ?: UserData.Null
             )
         }
     }
 
-    override fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData?) = transaction {
+    override fun insertGame(metadata: Metadata, providerData: List<ProviderData>, userData: UserData) = transaction {
         val id = Games.insertAndGetId {
             it[libraryId] = metadata.libraryId.toLibraryId()
             it[path] = metadata.path
             it[createDate] = metadata.createDate
             it[updateDate] = metadata.updateDate
             it[Games.providerData] = providerData.toJsonStr()
-            it[Games.userData] = userData?.toJsonStr()
+            it[Games.userData] = userData.takeIf { it != UserData.Null }?.toJsonStr()
         }.value
 
         RawGame(id = id, metadata = metadata, providerData = providerData, userData = userData)
@@ -144,7 +144,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
             it[path] = rawGame.metadata.path
             it[updateDate] = rawGame.metadata.updateDate
             it[providerData] = rawGame.providerData.toJsonStr()
-            it[userData] = rawGame.userData?.toJsonStr()
+            it[userData] = rawGame.userData.takeIf { it != UserData.Null }?.toJsonStr()
         } == 1
     }
 

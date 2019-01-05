@@ -24,7 +24,6 @@ import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.getValue
-import tornadofx.onChange
 import tornadofx.setValue
 
 /**
@@ -57,9 +56,9 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
     private var ignoreNextChange = false
 
     init {
-        property.onChange {
+        onChange {
             if (!ignoreNextChange) {
-                changes.offer(it!!)
+                changes.offer(it)
             }
         }
     }
@@ -78,11 +77,15 @@ class JavaFxUserMutableState<T, P : Property<T>>(val property: P) : UserMutableS
 
     override val changes = channel<T>()
 
-    fun onChange(f: (T?) -> Unit) = property.onChange(f)
+    inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
+
+    override fun toString() = value.toString()
 }
 
 class JavaFxState<T, P : Property<T>>(val property: P) : State<T> {
     override var value: T by property
 
-    fun onChange(f: (T?) -> Unit) = property.onChange(f)
+    inline fun onChange(crossinline f: (T) -> Unit) = property.typeSafeOnChange(f)
+
+    override fun toString() = value.toString()
 }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.image.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService

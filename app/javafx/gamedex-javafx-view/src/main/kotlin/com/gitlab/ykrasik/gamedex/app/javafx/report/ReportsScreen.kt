@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
@@ -31,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -97,7 +98,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
             jfxButton(game.path.toString()) {
                 mouseTransparentWhen { isNotSelected(game) }
                 isFocusTraversable = false
-                eventOnAction(browseToFileActions) { game.path }
+                action(browseToFileActions) { game.path }
             }
         }
         customGraphicColumn("Size", { game -> (result.value.fileStructure[game.id] ?: FileStructure.NotAvailable).size.toProperty() }) { size ->
@@ -120,7 +121,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
 
     private val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
 
-    private val additionalInfoProperty = selectedGameProperty.map { result.value.additionalData[it?.id] }
+    private val additionalInfoProperty = selectedGameProperty.binding { result.value.additionalData[it?.id] }
 
     override val browseToFileActions = channel<File>()
 
@@ -128,7 +129,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
 
     private val selection = ToggleGroup()
     private val currentToggle get() = selection.selectedToggleProperty()
-    private val currentReport = currentToggle.map { it?.report }
+    private val currentReport = currentToggle.binding { it?.report }
 
     private var isRenderingReports = false
     private var ignoreNextToggleChange = false
@@ -149,7 +150,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
 
             // Bottom
             container("Additional Info".toProperty()) {
-                showWhen { additionalInfoProperty.map { it?.isNotEmpty() ?: false } }
+                showWhen { additionalInfoProperty.booleanBinding { it?.isNotEmpty() ?: false } }
                 additionalInfoView()
             }
         }
@@ -259,6 +260,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 replaceChildren {
                     gridpane {
                         hgap = 5.0
+                        vgap = 3.0
                         reports.forEach { report ->
                             row {
                                 jfxToggleNode(report.name, Icons.chart, group = selection) {
@@ -268,12 +270,12 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                                 }
                                 editButton {
                                     removeClass(CommonStyle.toolbarButton)
-                                    eventOnAction(editReportActions) { report }
+                                    action(editReportActions) { report }
                                 }
                                 deleteButton {
                                     removeClass(CommonStyle.toolbarButton)
                                     addClass(CommonStyle.dangerButton)
-                                    eventOnAction(deleteReportActions) { report }
+                                    action(deleteReportActions) { report }
                                 }
                             }
                         }
@@ -283,7 +285,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                         useMaxWidth = true
                         alignment = Pos.CENTER
                         addClass(CommonStyle.thinBorder)
-                        eventOnAction(addReportActions)
+                        action(addReportActions)
                     }
                 }
 
@@ -297,7 +299,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
         }.apply {
             addClass(CommonStyle.toolbarButton, CommonStyle.thinBorder)
             alignment = Pos.CENTER_LEFT
-            textProperty().bind(currentReport.map { it?.name ?: "Select Report" })
+            textProperty().bind(currentReport.stringBinding { it?.name ?: "Select Report" })
         }
         gap()
 //    override fun HBox.buildToolbar() {
@@ -306,9 +308,9 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
         spacer()
 
         excludeButton {
-            textProperty().bind(selectedGameProperty.map { if (it != null) "Exclude ${it.name}" else "Exclude" })
+            textProperty().bind(selectedGameProperty.stringBinding { "Exclude ${it?.name ?: ""}" })
             enableWhen { selectedGameProperty.isNotNull }
-            eventOnAction(excludeGameActions) { currentReport.value!! to selectedGameProperty.value }
+            action(excludeGameActions) { currentReport.value!! to selectedGameProperty.value }
         }
     }
 

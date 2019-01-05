@@ -33,19 +33,23 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
     }
 
     open class LibraryScope {
-        fun libraryData(name: String = randomName(),
-                        path: String = randomPath(),
-                        platform: Platform = randomEnum()) =
-            LibraryData(name, path.toFile(), platform)
+        fun libraryData(
+            name: String = randomName(),
+            path: String = randomPath(),
+            platform: Platform = randomEnum()
+        ) = LibraryData(name, path.toFile(), platform)
 
-        fun givenLibrary(path: String = randomPath(),
-                         platform: Platform = randomEnum(),
-                         name: String = randomName()): Library = insertLibrary(path, platform, name)
+        fun givenLibrary(
+            path: String = randomPath(),
+            platform: Platform = randomEnum(),
+            name: String = randomName()
+        ): Library = insertLibrary(path, platform, name)
 
-        fun insertLibrary(path: String = randomPath(),
-                          platform: Platform = randomEnum(),
-                          name: String = randomName()): Library =
-            persistenceService.insertLibrary(libraryData(name, path, platform))
+        fun insertLibrary(
+            path: String = randomPath(),
+            platform: Platform = randomEnum(),
+            name: String = randomName()
+        ): Library = persistenceService.insertLibrary(libraryData(name, path, platform))
 
         fun fetchLibraries() = persistenceService.fetchLibraries()
     }
@@ -114,32 +118,37 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         private fun providerOverride() = GameDataOverride.Provider(randomWord())
         private fun customDataOverride(data: Any) = GameDataOverride.Custom(data)
 
-        fun givenGame(library: Library = this.library,
-                      path: String = randomPath(),
-                      providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-                      userData: UserData? = randomUserData()): RawGame =
-            insertGame(library, path, providerData, userData)
+        fun givenGame(
+            library: Library = this.library,
+            path: String = randomPath(),
+            providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+            userData: UserData = randomUserData()
+        ): RawGame = insertGame(library, path, providerData, userData)
 
-        fun insertGame(library: Library = this.library,
-                       path: String = randomPath(),
-                       providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-                       userData: UserData? = randomUserData()): RawGame =
-            insertGame(randomMetadata(library, path), providerData, userData)
+        fun insertGame(
+            library: Library = this.library,
+            path: String = randomPath(),
+            providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+            userData: UserData = randomUserData()
+        ): RawGame = insertGame(randomMetadata(library, path), providerData, userData)
 
-        fun insertGame(metadata: Metadata = randomMetadata(),
-                       providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
-                       userData: UserData? = randomUserData()): RawGame =
-            persistenceService.insertGame(metadata, providerData, userData)
+        fun insertGame(
+            metadata: Metadata = randomMetadata(),
+            providerData: List<ProviderData> = listOf(randomProviderData(), randomProviderData()),
+            userData: UserData = randomUserData()
+        ): RawGame = persistenceService.insertGame(metadata, providerData, userData)
 
         fun fetchGames() = persistenceService.fetchGames()
     }
 
     companion object {
-        val persistenceService = PersistenceServiceImpl(PersistenceConfig(
-            dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-            driver = "org.h2.Driver",
-            user = "sa",
-            password = ""
-        ))
+        val persistenceService = PersistenceServiceImpl(
+            PersistenceConfig(
+                dbUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
+                driver = "org.h2.Driver",
+                user = "sa",
+                password = ""
+            )
+        )
     }
 }

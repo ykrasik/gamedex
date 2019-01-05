@@ -17,11 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.game.DiscoverGameChooseResults
 import com.gitlab.ykrasik.gamedex.app.api.game.SortBy
 import com.gitlab.ykrasik.gamedex.app.api.game.SortOrder
-import com.gitlab.ykrasik.gamedex.util.months
 
 /**
  * User: ykrasik
@@ -32,18 +29,14 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     data class Data(
         val platform: Platform,
         val sortBy: SortBy,
-        val sortOrder: SortOrder,
-        val discoverGameChooseResults: DiscoverGameChooseResults,
-        val redownloadGamesCondition: Filter
+        val sortOrder: SortOrder
     )
 
     override val storage = factory("game", Data::class) {
         Data(
             platform = Platform.pc,
             sortBy = SortBy.criticScore,
-            sortOrder = SortOrder.desc,
-            discoverGameChooseResults = DiscoverGameChooseResults.chooseIfNonExact,
-            redownloadGamesCondition = Filter.PeriodUpdateDate(2.months).not
+            sortOrder = SortOrder.desc
         )
     }
 
@@ -55,10 +48,4 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
 
     val sortOrderChannel = storage.channel(Data::sortOrder)
     val sortOrder by sortOrderChannel
-
-    val discoverGameChooseResultsChannel = storage.channel(Data::discoverGameChooseResults)
-    val discoverGameChooseResults by discoverGameChooseResultsChannel
-
-    val redownloadGamesConditionChannel = storage.channel(Data::redownloadGamesCondition)
-    val redownloadGamesCondition by redownloadGamesConditionChannel
 }

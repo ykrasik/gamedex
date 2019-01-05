@@ -19,14 +19,15 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.existsOrNull
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
@@ -41,8 +42,8 @@ import javax.inject.Singleton
 class EditLibraryPresenter @Inject constructor(
     private val taskService: TaskService,
     private val libraryService: LibraryService,
-    private val viewManager: ViewManager,
-    private val settingsService: SettingsService
+    private val settingsService: SettingsService,
+    private val eventBus: EventBus
 ) : Presenter<EditLibraryView> {
     override fun present(view: EditLibraryView) = object : ViewSession() {
         init {
@@ -62,6 +63,10 @@ class EditLibraryPresenter @Inject constructor(
             view.platform *= library?.platform ?: Platform.pc
             view.nameIsValid *= IsValid.valid
             view.pathIsValid *= IsValid.valid
+            view.canChangePlatform *= IsValid {
+                check(library == null) { "Changing platform for an existing library is not allowed!" }
+            }
+            setCanAccept()
             if (library == null) {
                 onBrowse()
             }
@@ -76,7 +81,7 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun onPlatformChanged() {
-            check(view.library == null || view.platform == view.library!!.platform) { "Changing library platform for an existing library is not allowed: ${view.library}" }
+            view.canChangePlatform.assert()
             validate()
         }
 
@@ -116,7 +121,13 @@ class EditLibraryPresenter @Inject constructor(
             view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
         private fun setCanAccept() {
-            view.canAccept *= view.pathIsValid.and(view.nameIsValid)
+            view.canAccept *= view.pathIsValid.value.and(view.nameIsValid.value).and(IsValid {
+                check(
+                    view.library?.path?.toString() != view.path.value ||
+                        view.library?.name != view.name.value ||
+                        view.library?.platform != view.platform.value
+                ) { "Nothing changed!" }
+            })
         }
 
         private fun onBrowse() {
@@ -133,7 +144,7 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.value.isSuccess) { "Cannot accept invalid state!" }
+            view.canAccept.assert()
             val libraryData = LibraryData(name = view.name.value, path = view.path.value.toFile(), platform = view.platform.value)
             val task = if (view.library == null) {
                 libraryService.add(libraryData)
@@ -143,13 +154,13 @@ class EditLibraryPresenter @Inject constructor(
 
             taskService.execute(task)
 
-            close()
+            finished()
         }
 
         private fun onCancel() {
-            close()
+            finished()
         }
 
-        private fun close() = viewManager.closeEditLibraryView(view)
+        private fun finished() = eventBus.viewFinished(view)
     }
 }

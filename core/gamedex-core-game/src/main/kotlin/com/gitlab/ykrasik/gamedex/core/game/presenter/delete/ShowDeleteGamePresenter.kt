@@ -39,7 +39,7 @@ class ShowDeleteGamePresenter @Inject constructor(
             view.deleteGameActions.forEach { game ->
                 val deleteGameView = viewManager.showDeleteGameView(game)
                 eventBus.awaitViewFinished(deleteGameView)
-                viewManager.closeDeleteGameView(deleteGameView)
+                viewManager.hide(deleteGameView)
             }
         }
     }

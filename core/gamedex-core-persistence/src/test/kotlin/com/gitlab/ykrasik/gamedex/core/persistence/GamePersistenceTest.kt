@@ -72,8 +72,8 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             }
 
             "insert and retrieve a single game with null userData" test {
-                val game = insertGame(userData = null)
-                game.userData shouldBe null
+                val game = insertGame(userData = UserData.Null)
+                game.userData shouldBe UserData.Null
 
                 fetchGames() shouldBe listOf(game)
             }
@@ -158,7 +158,7 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             "update game user data to null" test {
                 val game = givenGame()
 
-                val updatedGame = game.copy(userData = null)
+                val updatedGame = game.copy(userData = UserData.Null)
                 persistenceService.updateGame(updatedGame) shouldBe true
 
                 fetchGames() shouldBe listOf(updatedGame)
@@ -317,10 +317,10 @@ class GamePersistenceTest : AbstractPersistenceTest() {
 
                 val library2 = givenLibrary()
                 val game3 = givenGame(library = library2, userData = randomUserData())
-                val game4 = givenGame(library = library2, userData = null)
+                val game4 = givenGame(library = library2, userData = UserData.Null)
 
                 persistenceService.clearUserData()
-                fetchGames() shouldBe listOf(game1.copy(userData = null), game2.copy(userData = null), game3.copy(userData = null), game4)
+                fetchGames() shouldBe listOf(game1.copy(userData = UserData.Null), game2.copy(userData = UserData.Null), game3.copy(userData = UserData.Null), game4)
             }
         }
     }

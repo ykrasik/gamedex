@@ -62,11 +62,13 @@ data class Game(
     val posterUrl get() = imageUrls.posterUrl
     val screenshotUrls get() = imageUrls.screenshotUrls
 
-    val tags get() = rawGame.userData?.tags ?: emptyList()
+    val tags get() = rawGame.userData.tags
 
     val providerHeaders get() = rawGame.providerData.map { it.header }
     val existingProviders get() = providerHeaders.map { it.id }
-    val excludedProviders get() = userData?.excludedProviders ?: emptyList()
+    val excludedProviders get() = userData.excludedProviders
+
+    fun isProviderExcluded(providerId: ProviderId) = excludedProviders.contains(providerId)
 
     override fun toString() = "[$platform] Game(id = $id, name = '$name', path = $path)"
 
@@ -77,10 +79,10 @@ data class Game(
                 metadata = Metadata(
                     libraryId = 0,
                     path = "",
-                    timestamp = Timestamp.zero
+                    timestamp = Timestamp.Null
                 ),
                 providerData = emptyList(),
-                userData = null
+                userData = UserData.Null
             ),
             library = Library.Null,
             gameData = GameData(
@@ -112,10 +114,14 @@ data class RawGame(
     val id: GameId,
     val metadata: Metadata,
     val providerData: List<ProviderData>,
-    val userData: UserData?    // TODO: Make this non-nullable?
+    val userData: UserData
 ) {
     fun withMetadata(metadata: Metadata) = copy(metadata = metadata)
     fun withMetadata(f: (Metadata) -> Metadata) = withMetadata(f(metadata))
+
+    fun withProviderData(providerData: List<ProviderData>): RawGame = copy(
+        providerData = this.providerData.filterNot { d -> providerData.any { it.header.id == d.header.id } } + providerData
+    )
 }
 
 data class ProviderData(
@@ -171,6 +177,7 @@ data class Metadata(
     val createDate get() = timestamp.createDate
     val updateDate get() = timestamp.updateDate
     fun withCreateDate(createDate: DateTime) = copy(timestamp = timestamp.withCreateDate(createDate))
+    fun createdNow() = copy(timestamp = timestamp.createdNow())
     fun updatedNow() = copy(timestamp = timestamp.updatedNow())
 }
 
@@ -179,10 +186,11 @@ data class Timestamp(
     val updateDate: DateTime
 ) {
     fun withCreateDate(createDate: DateTime) = copy(createDate = createDate)
+    fun createdNow() = com.gitlab.ykrasik.gamedex.util.now.let { copy(createDate = it, updateDate = it) }
     fun updatedNow() = copy(updateDate = com.gitlab.ykrasik.gamedex.util.now)
 
     companion object {
-        val zero = Timestamp(DateTime(0), DateTime(0))
+        val Null = Timestamp(DateTime(0), DateTime(0))
         val now get() = com.gitlab.ykrasik.gamedex.util.now.let { now -> Timestamp(now, now) }
     }
 }
@@ -240,17 +248,9 @@ data class UserData(
     fun posterOverride() = overrides[GameDataType.poster]
     fun screenshotsOverride() = overrides[GameDataType.screenshots]
 
-    fun merge(other: UserData): UserData = UserData(
-        overrides = this.overrides + other.overrides,
-        tags = (this.tags + other.tags).distinct(),
-        excludedProviders = (this.excludedProviders + other.excludedProviders).distinct()
-    )
-}
-
-fun UserData?.merge(userData: UserData?): UserData? {
-    if (this == null) return userData
-    if (userData == null) return this
-    return merge(userData)
+    companion object {
+        val Null = UserData()
+    }
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")

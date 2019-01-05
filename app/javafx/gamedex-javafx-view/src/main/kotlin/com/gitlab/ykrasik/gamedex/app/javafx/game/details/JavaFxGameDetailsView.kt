@@ -22,15 +22,21 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameFileStructure
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.fixedRating
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.theme.toDisplayString
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
@@ -107,7 +113,7 @@ class JavaFxGameDetailsView(
         jfxButton(game.value.path.toString()) {
             addClass(CommonStyle.hoverable, Style.detailsContent)
             isFocusTraversable = false
-            eventOnAction(browseToFileActions) { game.value.path }
+            action(browseToFileActions) { game.value.path }
         }
     }
 
@@ -171,7 +177,7 @@ class JavaFxGameDetailsView(
                     providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
                         row {
                             children += providerLogos[header.id]!!.image.toImageView(height = 30.0, width = 70.0)
-                            hyperlink(gameData.siteUrl) { eventOnAction(browseToUrlActions) { gameData.siteUrl } }
+                            hyperlink(gameData.siteUrl) { action(browseToUrlActions) { gameData.siteUrl } }
                         }
                     }
                 }

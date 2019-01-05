@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
@@ -76,7 +77,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
 
     private fun EventTarget.addTagButton() {
         label("New Tag:")
-        val newTagName = jfxTextField(newTagName.property, promptText = "Tag Name") {
+        val newTagName = jfxTextField(newTagName.property, promptText = "Enter Tag Name...") {
             setId(Style.newTagTextField)
             isFocusTraversable = false
             validWhen(newTagNameIsValid)
@@ -85,7 +86,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
         plusButton {
             enableWhen(newTagNameIsValid)
             defaultButtonProperty().bind(newTagName.focusedProperty())
-            eventOnAction(addNewTagActions)
+            action(addNewTagActions)
         }
     }
 
@@ -97,7 +98,7 @@ class JavaFxTagGameView : ConfirmationWindow("Tag", Icons.tag), TagGameView {
                     jfxToggleButton {
                         text = tag
                         isSelected = checkedTags.contains(tag)
-                        selectedProperty().eventOnChange(checkTagChanges) { tag to it }
+                        selectedProperty().bindChanges(checkTagChanges) { tag to it }
                     }
                 }
             }

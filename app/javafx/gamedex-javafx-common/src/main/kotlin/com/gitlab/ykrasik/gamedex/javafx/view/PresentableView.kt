@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx.view
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.control.ButtonBase
@@ -24,7 +25,10 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
 import kotlinx.coroutines.channels.Channel
 import org.kordamp.ikonli.javafx.FontIcon
-import tornadofx.*
+import tornadofx.View
+import tornadofx.action
+import tornadofx.whenDocked
+import tornadofx.whenUndocked
 
 /**
  * User: ykrasik
@@ -37,6 +41,7 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
     // This is just how TornadoFx works.
     protected var skipFirstDock = false
+    protected var skipFirstUndock = false
 
     init {
         whenDocked {
@@ -46,9 +51,10 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
             skipFirstDock = false
         }
         whenUndocked {
-            if (!skipFirstDock) {
+            if (!skipFirstUndock) {
                 viewRegistry.onHide(this)
             }
+            skipFirstUndock = false
         }
     }
 
@@ -56,25 +62,15 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     fun <E> Channel<E>.event(e: E) = offer(e)
 
-    fun <T, O : ObservableValue<T>> O.eventOnNullableChange(channel: Channel<T?>): O = eventOnNullableChange(channel) { it }
+    fun <T, O : ObservableValue<T>> O.bindChanges(channel: Channel<T>): O = bindChanges(channel) { it }
 
-    inline fun <T, R, O : ObservableValue<out T>> O.eventOnNullableChange(channel: Channel<R?>, crossinline factory: (T?) -> R?): O = apply {
-        onChange { channel.event(factory(it)) }
+    inline fun <T, R, O : ObservableValue<out T>> O.bindChanges(channel: Channel<R>, crossinline factory: (T) -> R): O = apply {
+        typeSafeOnChange { channel.event(factory(it)) }
     }
 
-    fun <T, O : ObservableValue<T>> O.eventOnChange(channel: Channel<T>): O = eventOnChange(channel) { it }
+    fun ButtonBase.action(channel: Channel<Unit>) = action(channel) { }
 
-    inline fun <T, R, O : ObservableValue<out T>> O.eventOnChange(channel: Channel<R>, crossinline factory: (T) -> R): O = apply {
-        onChange { channel.event(factory(it!!)) }
-    }
-
-    // TODO: Find a better name
-    fun ButtonBase.eventOnAction(channel: Channel<Unit>) = apply {
-        action { channel.event(Unit) }
-    }
-
-    // TODO: Find a better name
-    inline fun <T> ButtonBase.eventOnAction(channel: Channel<T>, crossinline f: () -> T) = apply {
+    inline fun <T> ButtonBase.action(channel: Channel<T>, crossinline f: () -> T) = apply {
         action { channel.event(f()) }
     }
 }

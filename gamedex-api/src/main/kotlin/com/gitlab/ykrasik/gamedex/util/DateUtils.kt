@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.Timestamp
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.LocalDate
@@ -37,12 +36,6 @@ typealias JavaDateTime = java.time.LocalDateTime
 val now: JodaDateTime get() = DateTime.now(DateTimeZone.UTC)
 val today: JodaLocalDate get() = LocalDate.now(DateTimeZone.UTC)
 
-val nowTimestamp: Timestamp
-    get() {
-        val time = now
-        return Timestamp(createDate = time, updateDate = time)
-    }
-
 fun Long.toDateTime(): JodaDateTime = DateTime(this, DateTimeZone.UTC)
 
 fun String.toDate(): JodaLocalDate = LocalDate.parse(this)
@@ -51,8 +44,8 @@ fun String.toDateOrNull(): JodaLocalDate? = runCatching { toDate() }.getOrNull()
 fun String.toDateTime(): JodaDateTime = DateTime.parse(this)
 fun String.toDateTimeOrNull(): JodaDateTime? = runCatching { toDateTime() }.getOrNull()
 
-fun JodaLocalDate.toJava(): JavaLocalDate = java.time.LocalDate.of(year, monthOfYear, dayOfMonth)
-fun JavaLocalDate.toJoda(): JodaLocalDate = LocalDate(year, monthValue, dayOfMonth)
+val JodaLocalDate.java get(): JavaLocalDate = JavaLocalDate.of(year, monthOfYear, dayOfMonth)
+val JavaLocalDate.joda get(): JodaLocalDate = LocalDate(year, monthValue, dayOfMonth)
 
 fun JodaDateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
 fun Period.toHumanReadable(): String = PeriodFormat.getDefault().print(this)

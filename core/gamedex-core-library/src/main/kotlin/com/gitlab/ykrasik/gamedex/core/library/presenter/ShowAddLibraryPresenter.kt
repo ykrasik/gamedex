@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -31,15 +32,20 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowAddLibraryPresenter @Inject constructor(
+    private val commonData: CommonData,
     private val viewManager: ViewManager,
     private val eventBus: EventBus
 ) : Presenter<ViewCanAddLibrary> {
     override fun present(view: ViewCanAddLibrary) = object : ViewSession() {
         init {
+            commonData.isGameSyncRunning.disableWhenTrue(view.canAddLibraries) { "Game sync in progress!" }
+
             view.addLibraryActions.forEach {
+                view.canAddLibraries.assert()
+
                 val editLibraryView = viewManager.showEditLibraryView(library = null)
                 eventBus.awaitViewFinished(editLibraryView)
-                viewManager.closeEditLibraryView(editLibraryView)
+                viewManager.hide(editLibraryView)
             }
         }
     }

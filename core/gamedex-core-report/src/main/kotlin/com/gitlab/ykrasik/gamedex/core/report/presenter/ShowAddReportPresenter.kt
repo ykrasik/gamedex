@@ -39,7 +39,7 @@ class ShowAddReportPresenter @Inject constructor(
             view.addReportActions.forEach {
                 val editReportView = viewManager.showEditReportView(report = null)
                 eventBus.awaitViewFinished(editReportView)
-                viewManager.closeEditReportView(editReportView)
+                viewManager.hide(editReportView)
             }
         }
     }

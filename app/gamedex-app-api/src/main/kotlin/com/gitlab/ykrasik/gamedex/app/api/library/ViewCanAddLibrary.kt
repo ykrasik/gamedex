@@ -16,6 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.library
 
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -24,5 +26,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 10:25
  */
 interface ViewCanAddLibrary {
+    val canAddLibraries: State<IsValid>
+
     val addLibraryActions: ReceiveChannel<Unit>
 }

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.util.logger
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -29,6 +30,8 @@ import kotlin.reflect.full.allSuperclasses
  */
 @Singleton
 class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<*>, Presenter<*>>) : ViewRegistry {
+    private val log = logger()
+
     private val presenters: Map<KClass<*>, Presenter<*>> = initialPresenters
     private val sessions = mutableMapOf<Any, List<ViewSession>>()
 
@@ -49,15 +52,13 @@ class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<
     }
 
     override fun onShow(view: Any) {
-        println("$view: Showing")
-        // TODO: Eventually, make it activePresentations[view]!!
-        sessions[view]?.forEach { it.show() }
+        log.trace("Show: $view")
+        sessions[view]!!.forEach { it.show() }
     }
 
     override fun onHide(view: Any) {
-        println("$view: Hidden")
-        // TODO: Eventually, make it activePresentations[view]!!
-        sessions[view]?.forEach { it.hide() }
+        log.trace("Hide: $view")
+        sessions[view]!!.forEach { it.hide() }
     }
 
 //    init {

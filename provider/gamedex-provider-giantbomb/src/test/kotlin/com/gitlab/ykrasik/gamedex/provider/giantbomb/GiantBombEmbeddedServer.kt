@@ -109,7 +109,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Cl
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.authorized(body: suspend () -> Unit) {
-        if (call.parameters["api_key"] == apiKey) {
+        if (call.parameters["api_key"] == apiKey || System.getProperty("gameDex.provider.skipCredentialValidation") != null) {
             body()
         } else {
             call.respond(HttpStatusCode.Unauthorized, GiantBombClient.SearchResponse(GiantBombClient.Status.InvalidApiKey, emptyList()).toMap().toJsonStr())

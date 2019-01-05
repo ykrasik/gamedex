@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.javafx.preloader.JavaFxPreloaderView
+import com.gitlab.ykrasik.gamedex.javafx.theme.JFXStyle
 import tornadofx.App
 import tornadofx.launch
 

@@ -21,7 +21,6 @@ import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
-import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowseFilePresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
@@ -29,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
-import com.typesafe.config.Config
 import javax.inject.Singleton
 
 /**
@@ -50,9 +48,4 @@ object FileModule : InternalCoreModule() {
     fun fileStructureStorage(): Storage<GameId, FileStructure> = log.time("Reading file system cache...") {
         FileStorage.json<FileStructure>("cache/file_structure").intId().memoryCached()
     }
-
-    @Provides
-    @Singleton
-    fun newDirectoryDetector(config: Config) =
-        Class.forName(config.getString("gameDex.file.newDirectoryDetector.class")).newInstance() as NewDirectoryDetector
 }

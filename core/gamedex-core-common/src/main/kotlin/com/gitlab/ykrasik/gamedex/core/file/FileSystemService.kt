@@ -30,14 +30,10 @@ import java.io.File
  */
 interface FileSystemService {
     fun structure(game: Game): FileStructure
-    fun structure(file: File): FileStructure
     fun allStructure(): Map<GameId, FileStructure>
 
     fun deleteStructure(gameId: GameId)
     fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    // TODO: Make this a channel?
-    fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File>
 
     suspend fun move(from: File, to: File)
     suspend fun delete(file: File)

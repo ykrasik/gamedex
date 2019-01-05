@@ -24,8 +24,11 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesFinishedEvent
+import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesStartedEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.supports
 import com.google.inject.ImplementedBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.map
@@ -52,10 +55,13 @@ interface CommonData {
     val realLibraries: ListObservable<Library>
     val platformLibraries: ListObservable<Library>
 
-    val allProviders: List<GameProvider>
+    val allProviders: ListObservable<GameProvider>
+    val platformProviders: ListObservable<GameProvider>
     val enabledProviders: ListObservable<EnabledGameProvider>
 
     val platformsWithLibraries: ListObservable<Platform>
+
+    val isGameSyncRunning: BroadcastReceiveChannel<Boolean>
 }
 
 @Singleton
@@ -63,7 +69,8 @@ class CommonDataImpl @Inject constructor(
     gameService: GameService,
     libraryService: LibraryService,
     gameProviderService: GameProviderService,
-    settingsService: SettingsService
+    settingsService: SettingsService,
+    eventBus: EventBus
 ) : CommonData {
 
     override val games = gameService.games
@@ -88,8 +95,21 @@ class CommonDataImpl @Inject constructor(
             { library: Library -> library.platform == platform }
         })
 
-    override val allProviders = gameProviderService.allProviders
+    override val allProviders = ListObservableImpl(gameProviderService.allProviders)
+    override val platformProviders =
+        allProviders.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+            { provider: GameProvider -> provider.supports(platform) }
+        })
     override val enabledProviders = gameProviderService.enabledProviders
 
     override val platformsWithLibraries = realLibraries.mapping { it.platform }.distincting()
+
+    override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
+        eventBus.on(SyncGamesStartedEvent::class) {
+            send(true)
+        }
+        eventBus.on(SyncGamesFinishedEvent::class) {
+            send(false)
+        }
+    }
 }

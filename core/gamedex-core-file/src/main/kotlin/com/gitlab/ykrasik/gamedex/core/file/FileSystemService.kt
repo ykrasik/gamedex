@@ -29,7 +29,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,7 +40,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
-    private val newDirectoryDetector: NewDirectoryDetector,
     @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>
 ) : FileSystemService {
     override fun structure(game: Game): FileStructure {
@@ -58,8 +56,6 @@ class FileSystemServiceImpl @Inject constructor(
         // FIXME: This will first return cached result and only on 2nd call return updated result, find a better solution.
         return structure ?: FileStructure.NotAvailable
     }
-
-    override fun structure(file: File) = calcStructure(file) ?: throw IOException("File doesn't exist: $file")
 
     private fun calcStructure(file: File): FileStructure? {
         if (!file.exists()) return null
@@ -95,9 +91,6 @@ class FileSystemServiceImpl @Inject constructor(
             key to FileSize(fileStructureStorage.sizeTaken(key))
         }
     }
-
-    // TODO: Have a reference to libraryRepo & gameRepo and calc the excludedDirectories from it.
-    override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>) = newDirectoryDetector.detectNewDirectories(dir, excludedDirectories)
 
     override suspend fun move(from: File, to: File) = withContext(Dispatchers.IO) {
         to.parentFile.mkdirs()

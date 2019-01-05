@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.RawGame
+import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -43,7 +44,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
     }
 
     fun add(request: AddGameRequest): RawGame {
-        val game = persistenceService.insertGame(request.metadata.updatedNow(), request.providerData, request.userData)
+        val game = persistenceService.insertGame(request.metadata.createdNow(), request.providerData, request.userData)
         games += game
         return game
     }
@@ -80,7 +81,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
 
     fun deleteAllUserData() {
         persistenceService.clearUserData()
-        games.setAll(games.map { it.copy(userData = null) })
+        games.setAll(games.map { it.copy(userData = UserData.Null) })
     }
 
     fun invalidate() {

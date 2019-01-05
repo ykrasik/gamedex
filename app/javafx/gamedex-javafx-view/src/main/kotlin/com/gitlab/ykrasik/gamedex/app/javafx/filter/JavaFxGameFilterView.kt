@@ -17,19 +17,24 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.filter
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Extractor
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import javafx.beans.Observable
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -52,15 +57,16 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), GameFilterView, ViewWithProviderLogos {
+class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val possibleGenres = mutableListOf<String>()
     override val possibleTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
-    override val possibleProviderIds = mutableListOf<ProviderId>()
+    override val possibleProviderIds = mutableListOf<ProviderId>().observable()
     override val possibleRules = mutableListOf<KClass<out Filter.Rule>>().observable()
 
+    override val setFilterActions = channel<Filter>()
     override val wrapInAndActions = channel<Filter>()
     override val wrapInOrActions = channel<Filter>()
     override val wrapInNotActions = channel<Filter>()
@@ -86,6 +92,30 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
 
     init {
         register()
+    }
+
+    val externalMutations = object : UserMutableState<Filter> {
+        private var prevExternalFilter: Filter? = null
+
+        override var value: Filter
+            get() = filter.value
+            set(value) {
+                prevExternalFilter = value
+                filter.value = value
+                setFilterActions.offer(value)
+            }
+
+        override val changes = channel<Filter>()
+
+        init {
+            filter.property.addListener { _: Observable ->
+                val value = filter.value
+                if (value !== prevExternalFilter) {
+                    changes.offer(value)
+                }
+                prevExternalFilter = null
+            }
+        }
     }
 
     private fun EventTarget.render(filter: Filter, parentFilter: Filter) {
@@ -210,7 +240,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         buttonWithPopover(graphic = Icons.siteMap.size(28)) {
             fun operatorButton(name: String, graphic: Node, channel: Channel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
-                eventOnAction(channel) { filter }
+                action(channel) { filter }
             }
 
             operatorButton("And", Icons.and, wrapInAndActions)
@@ -222,7 +252,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
             removeClass(CommonStyle.toolbarButton)
             // Do not allow deleting an empty root
             isDisable = filter === this@JavaFxGameFilterView.filter && filter is Filter.True
-            eventOnAction(deleteFilterActions) { filter }
+            action(deleteFilterActions) { filter }
         }
     }
 
@@ -284,14 +314,13 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         val amountProperty = initialAmount.toProperty()
         plusMinusSlider(amountProperty, min = 0, max = 100)
         enumComboMenu(periodTypeProperty)
-        amountProperty.combineLatest(periodTypeProperty).eventOnChange(updateFilterActions) {
-            val (amount, periodType) = it!!
+        amountProperty.combineLatest(periodTypeProperty).bindChanges(updateFilterActions) { (amount, periodType) ->
             condition to factory(Period().withField(periodType.fieldType, amount.toInt()))
         }
     }
 
     private fun HBox.renderScoreFilter(condition: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
-        val target = condition.toProperty(Filter.TargetScore::target, factory)
+        val target = condition.toProperty(Filter.TargetScore::score, factory)
         plusMinusSlider(target, min = 0, max = 100)
     }
 
@@ -301,8 +330,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         val scaleProperty = SimpleObjectProperty(initialScale)
         plusMinusSlider(amountProperty, min = 1, max = 999)
         enumComboMenu(scaleProperty)
-        amountProperty.combineLatest(scaleProperty).eventOnChange(updateFilterActions) {
-            val (amount, scale) = it!!
+        amountProperty.combineLatest(scaleProperty).bindChanges(updateFilterActions) { (amount, scale) ->
             condition to Filter.FileSize(FileSize(amount, scale))
         }
     }
@@ -312,8 +340,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
     private inline fun <Rule : Filter.Rule, T : Any> Rule.toProperty(
         extractor: Extractor<Rule, T>,
         crossinline factory: (T) -> Rule
-    ): Property<T> =
-        extractor(this).toProperty().eventOnChange(updateFilterActions) { this to factory(it) }
+    ): Property<T> = extractor(this).toProperty().bindChanges(updateFilterActions) { this to factory(it) }
 
     enum class PeriodType(val fieldType: DurationFieldType, val extractor: (Period) -> Int) {
         Years(DurationFieldType.years(), Period::getYears),

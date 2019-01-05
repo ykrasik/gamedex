@@ -33,11 +33,11 @@ interface GameProvider {
 
     val accountFeature: ProviderUserAccountFeature?
 
-    fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
+    fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
     fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData
-
-    fun supports(platform: Platform) = supportedPlatforms.contains(platform)
 }
+
+fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
 
 typealias ProviderId = String
 

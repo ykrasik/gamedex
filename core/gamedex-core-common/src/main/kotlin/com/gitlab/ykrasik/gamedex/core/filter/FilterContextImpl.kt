@@ -18,8 +18,12 @@ package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.supports
 
 /**
  * User: ykrasik
@@ -28,10 +32,16 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
  */
 class FilterContextImpl(
     override val games: List<Game>,
-    private val fileSystemService: FileSystemService
+    private val fileSystemService: FileSystemService,
+    private val gameProviderService: GameProviderService
 ) : Filter.Context {
     private val cache = mutableMapOf<String, Any>()
     override val additionalData = mutableMapOf<GameId, MutableSet<Filter.Context.AdditionalData>>()
+
+    override val now = com.gitlab.ykrasik.gamedex.util.now
+
+    override fun providerSupports(providerId: ProviderId, platform: Platform) =
+        gameProviderService.allProviders.find { it.id == providerId }!!.supports(platform)
 
     override fun size(game: Game) = fileSystemService.structure(game).size
 

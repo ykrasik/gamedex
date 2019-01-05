@@ -23,6 +23,9 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.binding.Bindings
@@ -43,9 +46,9 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     override var report by reportProperty
 
     override val name = userMutableState("")
-    override var nameIsValid = state(IsValid.valid)
+    override val nameIsValid = state(IsValid.valid)
 
-    override val filter = userMutableState(filterView.filter)
+    override val filter = filterView.externalMutations
     override val filterIsValid = userMutableState(filterView.filterIsValid)
 
     override val excludedGames = mutableListOf<Game>().observable()
@@ -53,9 +56,10 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
     override val unexcludeGameActions = channel<Game>()
 
     init {
-        titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report '${it.name}'" })
+        titleProperty.bind(reportProperty.stringBinding { if (it == null) "Add New Report" else "Edit Report" })
+        iconProperty.bind(reportProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         excludedGames.onChange { resizeToContent() }
-        filter.onChange { resizeToContent() }
+        filterView.filter.onChange { resizeToContent() }
         register()
     }
 
@@ -63,11 +67,10 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
         top = confirmationToolbar()
         center = vbox(spacing = 10) {
             paddingAll = 10
-            header(titleProperty)
             defaultHbox(spacing = 10) {
                 header("Name")
 
-                jfxTextField(name.property, promptText = "Report Name") {
+                jfxTextField(name.property, promptText = "Enter Name...") {
                     validWhen(nameIsValid)
                 }
             }
@@ -76,7 +79,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
 
             defaultHbox {
                 vbox(spacing = 10) {
-                    header("Rules")
+                    header("Conditions")
                     addComponent(filterView)
                 }
                 gap { removeWhen { Bindings.isEmpty(excludedGames) } }
@@ -98,7 +101,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
         readonlyColumn("Game", Game::name).apply { addClass(CommonStyle.centered) }
         readonlyColumn("Path", Game::path) { addClass(CommonStyle.centered); remainingWidth() }
         customGraphicColumn("") { game ->
-            minusButton { eventOnAction(unexcludeGameActions) { game } }
+            minusButton { action(unexcludeGameActions) { game } }
         }
 
         excludedGames.perform { resizeColumnsToFitContent() }

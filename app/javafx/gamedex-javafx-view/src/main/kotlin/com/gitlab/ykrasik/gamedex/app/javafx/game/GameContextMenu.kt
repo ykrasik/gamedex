@@ -19,19 +19,21 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.control.dropDownMenu
+import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.VBox
-import org.controlsfx.control.PopOver
 import tornadofx.action
 import tornadofx.addClass
 import tornadofx.useMaxWidth
@@ -43,15 +45,19 @@ import tornadofx.vbox
  * Time: 21:20
  */
 // TODO: Allow adding extra buttons, like for report screen.
-class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRedownloadGame, ViewCanRediscoverGame {
+class GameContextMenu : InstallableContextMenu<Game>(),
+    ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
+    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRedownloadGame, ViewCanResyncGame {
+
     override val showGameDetailsActions = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<Pair<Game, String?>>()
     override val tagGameActions = channel<Game>()
     override val redownloadGameActions = channel<Game>()
-    override val rediscoverGameActions = channel<Game>()
+
+    override val canResyncGame = state(IsValid.valid)
+    override val resyncGameActions = channel<Game>()
 
     init {
         register()
@@ -59,29 +65,27 @@ class GameContextMenu : InstallableContextMenu<Game>(), ViewCanShowGameDetails, 
 
     override val root = vbox {
         addClass(CommonStyle.popoverMenu)
-        item("View", Icons.view) { eventOnAction(showGameDetailsActions) { data } }
+        item("View", Icons.view) { action(showGameDetailsActions) { data } }
         verticalGap()
         item("Edit", Icons.edit) { action { editGame(GameDataType.name_) } }
         item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.thumbnail) } }
         verticalGap()
-        item("Tag", Icons.tag) { eventOnAction(tagGameActions) { data } }
+        item("Tag", Icons.tag) { action(tagGameActions) { data } }
         verticalGap()
         item("Re-Download", Icons.download) {
-            eventOnAction(redownloadGameActions) { data }
+            addClass(CommonStyle.infoButton)
+            action(redownloadGameActions) { data }
         }
         item("Re-Sync", Icons.sync) {
-            dropDownMenu(PopOver.ArrowLocation.LEFT_TOP, closeOnClick = false) {
-                discoverGameChooseResultsMenu()
-            }
-            eventOnAction(rediscoverGameActions) { data }
+            addClass(CommonStyle.infoButton)
+            enableWhen(canResyncGame)
+            action(resyncGameActions) { data }
         }
         verticalGap()
-        item("Rename/Move Folder", Icons.folderEdit) {
-            eventOnAction(renameMoveGameActions) { data to null }
-        }
+        item("Rename/Move Folder", Icons.folderEdit) { action(renameMoveGameActions) { data to null } }
         item("Delete", Icons.delete) {
             addClass(CommonStyle.dangerButton)
-            eventOnAction(deleteGameActions) { data }
+            action(deleteGameActions) { data }
         }
     }
 

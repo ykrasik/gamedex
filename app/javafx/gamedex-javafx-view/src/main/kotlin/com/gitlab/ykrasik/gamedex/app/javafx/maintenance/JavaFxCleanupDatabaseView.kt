@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
@@ -58,7 +59,7 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
             fieldset("Select stale data to delete") {
                 horizontalField("Libraries & Games") {
                     label.graphic = Icons.hdd.color(Color.BLACK)
-                    showWhen { librariesAndGames.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    showWhen(librariesAndGames.canDelete)
                     jfxCheckBox(librariesAndGames.shouldDelete.property)
 
                     viewButton(staleDataProperty.stringBinding { "${it!!.libraries.size} Libraries" }) {
@@ -75,13 +76,13 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
                 }
                 horizontalField("Images") {
                     label.graphic = Icons.thumbnail
-                    showWhen { images.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    showWhen(images.canDelete)
                     jfxCheckBox(images.shouldDelete.property)
                     label(staleDataProperty.stringBinding { "${it!!.images.size} Images: ${it.staleImagesSizeTaken.humanReadable}" })
                 }
                 horizontalField("File Cache") {
                     label.graphic = Icons.fileQuestion
-                    showWhen { fileCache.canDelete.property.booleanBinding { it!!.isSuccess } }
+                    showWhen(fileCache.canDelete)
                     jfxCheckBox(fileCache.shouldDelete.property)
                     label(staleDataProperty.stringBinding { "${it!!.fileStructure.size} File Cache Entries: ${it.staleFileStructureSizeTaken.humanReadable}" })
                 }

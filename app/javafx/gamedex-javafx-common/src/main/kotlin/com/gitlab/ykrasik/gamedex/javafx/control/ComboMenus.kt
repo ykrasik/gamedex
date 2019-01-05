@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.javafx.logo
-import com.gitlab.ykrasik.gamedex.javafx.map
+import com.gitlab.ykrasik.gamedex.javafx.binding
 import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import javafx.beans.property.Property
 import javafx.collections.ObservableList
 import javafx.event.EventTarget
@@ -52,8 +52,8 @@ inline fun <T> EventTarget.popoverComboMenu(
         menuOp(item)
     }
 }.apply {
-    if (text != null) textProperty().bind(selectedItemProperty.map { text(it!!) })
-    if (graphic != null) graphicProperty().bind(selectedItemProperty.map { graphic(it!!) })
+    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { text(it!!) })
+    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { graphic(it) })
 }
 
 inline fun <T> EventTarget.popoverComboMenu(
@@ -78,8 +78,8 @@ inline fun <T> EventTarget.popoverComboMenu(
         }
     }
 }.apply {
-    if (text != null) textProperty().bind(selectedItemProperty.map { if (it != null) text(it) else null })
-    if (graphic != null) graphicProperty().bind(selectedItemProperty.map { if (it != null) graphic(it) else null })
+    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { if (it != null) text(it) else null })
+    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { if (it != null) graphic(it) else null })
 }
 
 inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(

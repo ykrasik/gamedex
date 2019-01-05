@@ -120,7 +120,9 @@ class SettingsStorage<T : Any>(
         }
         return channel.distinctUntilChanged().apply {
             subscribe(settingsHandler) {
-                log.debug("[$displayName] ${extractor.name} = $it")
+                val name = extractor.name
+                val value = if (name in maskedFields) "****" else it.toString()
+                log.debug("[$displayName] $name = $value")
             }
         }
     }
@@ -161,6 +163,8 @@ class SettingsStorage<T : Any>(
         private val settingsHandler = Executors.newSingleThreadScheduledExecutor {
             Thread(it, "SettingsHandler").apply { isDaemon = true }
         }.asCoroutineDispatcher()
+
+        private val maskedFields = listOf("account")
     }
 }
 

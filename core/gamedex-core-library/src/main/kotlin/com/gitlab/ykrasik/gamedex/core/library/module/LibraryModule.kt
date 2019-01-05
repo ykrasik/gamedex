@@ -18,6 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.library.module
 
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryServiceImpl
+import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
+import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryServiceImpl
 import com.gitlab.ykrasik.gamedex.core.library.presenter.*
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 
@@ -29,6 +31,7 @@ import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 object LibraryModule : InternalCoreModule() {
     override fun configure() {
         bind(LibraryService::class.java).to(LibraryServiceImpl::class.java)
+        bind(SyncLibraryService::class.java).to(SyncLibraryServiceImpl::class.java)
 
         bindPresenter(DeleteLibraryPresenter::class)
         bindPresenter(EditLibraryPresenter::class)

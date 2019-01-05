@@ -19,9 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
-import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.JavaFxDiscoverGamesView
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.mouseTransparentWhen
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.event.EventTarget
 import javafx.scene.layout.HBox
@@ -35,7 +39,6 @@ import tornadofx.*
 class GameScreen : PresentableScreen("Games", Icons.games),
     ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort, ViewWithCurrentPlatformFilter {
     private val gameWallView: GameWallView by inject()
-    private val discoverGamesView: JavaFxDiscoverGamesView by inject()
     private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = true)
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
@@ -47,7 +50,8 @@ class GameScreen : PresentableScreen("Games", Icons.games),
     override var sortBy = userMutableState(SortBy.name_)
     override var sortOrder = userMutableState(SortOrder.asc)
 
-    override val currentPlatformFilter = userMutableState(filterView.filter)
+    override val currentPlatformFilter = filterView.externalMutations
+    override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
 
     init {
         register()
@@ -62,10 +66,6 @@ class GameScreen : PresentableScreen("Games", Icons.games),
         filterButton()
         sortButton()
         searchTextField(this@GameScreen, searchText.property)
-
-        spacer()
-
-        addComponent(discoverGamesView)
     }
 
     override val root = gameWallView.root

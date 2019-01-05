@@ -64,30 +64,30 @@ abstract class ViewSession : CoroutineScope {
         coroutineContext.cancel()
     }
 
-    protected operator fun <T> UserMutableState<T>.getValue(thisRef: Any, property: KProperty<*>) = value
-    protected operator fun <T> UserMutableState<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
+    operator fun <T> UserMutableState<T>.getValue(thisRef: Any, property: KProperty<*>) = value
+    operator fun <T> UserMutableState<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
         this.value = value!!
     }
 
-    protected operator fun <T> State<T>.getValue(thisRef: Any, property: KProperty<*>) = value
-    protected operator fun <T> State<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
+    operator fun <T> State<T>.getValue(thisRef: Any, property: KProperty<*>) = value
+    operator fun <T> State<T>.setValue(thisRef: Any, property: KProperty<*>, value: T?) {
         this.value = value!!
     }
 
-    protected fun <T> UserMutableState<T>.forEach(f: suspend (T) -> Unit) = changes.forEach(f)
+    fun <T> UserMutableState<T>.forEach(f: suspend (T) -> Unit) = changes.forEach(f)
 
-    protected operator fun <T> State<T>.timesAssign(value: T) {
+    operator fun <T> State<T>.timesAssign(value: T) {
         this.value = value
     }
 
-    protected inline fun <T> State<T>.modify(f: Modifier<T>) {
+    inline fun <T> State<T>.modify(f: Modifier<T>) {
         this.value = f(value)
     }
 
-    protected fun State<IsValid>.and(other: State<IsValid>) = value.and(other.value)
+    fun State<IsValid>.and(other: State<IsValid>) = value.and(other.value)
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
+    fun <T> ReceiveChannel<T>.forEach(f: suspend (T) -> Unit): Job = launch {
         consumeEach {
             try {
                 f(it)
@@ -97,17 +97,17 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    protected inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit): Job {
+    inline fun <T> ReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit): Job {
         f(poll()!!)
         return forEach { f(it) }
     }
 
     // TODO: This used to be inline, but the kotlin compiler was failing with internal errors. Make inline when solved.
-    protected fun <T> BroadcastReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
+    fun <T> BroadcastReceiveChannel<T>.forEach(f: suspend (T) -> Unit) = subscribe().forEach(f)
 
-    protected inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
+    inline fun <T> BroadcastReceiveChannel<T>.forEachImmediately(crossinline f: (T) -> Unit) = subscribe().forEachImmediately(f)
 
-    protected fun <T> ListObservable<T>.bindTo(list: MutableList<T>) {
+    fun <T> ListObservable<T>.bind(list: MutableList<T>) {
         list.setAll(this)
         changesChannel.forEach { event ->
             when (event) {
@@ -121,7 +121,7 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    protected inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
+    inline fun <S : SettingsRepository<Data>, T, Data : Any> S.bind(
         channelAccessor: S.() -> BroadcastReceiveChannel<T>,
         userMutableState: UserMutableState<T>,
         crossinline f: (Data).(T) -> Data
@@ -133,17 +133,40 @@ abstract class ViewSession : CoroutineScope {
         }
     }
 
-    protected fun <T> BroadcastReceiveChannel<T>.bind(state: State<T>) =
+    fun <T> BroadcastReceiveChannel<T>.bind(state: State<T>) =
         forEachImmediately { state.value = it }
 
-    protected inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
+    inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
         on(E::class) { event ->
             withContext(Dispatchers.Main) {
                 handler(event)
             }
         }
 
-    protected fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
+    inline fun <T> BroadcastReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
+        forEachImmediately { value ->
+            val reason = reason(value)
+            state *= IsValid {
+                check(reason == null) { reason!! }
+            }
+        }
+    }
 
-    protected suspend inline fun <V> EventBus.awaitViewFinished(view: V) = awaitEvent<ViewFinishedEvent<V>> { it.view == view }
+    inline fun BroadcastReceiveChannel<Boolean>.enableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+        bindIsValid(state) {
+            if (!it) reason() else null
+        }
+
+    inline fun BroadcastReceiveChannel<Boolean>.disableWhenTrue(state: State<IsValid>, crossinline reason: () -> String) =
+        bindIsValid(state) {
+            if (it) reason() else null
+        }
+
+    fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
+
+    suspend inline fun <V> EventBus.awaitViewFinished(view: V) = awaitEvent<ViewFinishedEvent<V>> { it.view == view }
+
+    fun State<IsValid>.assert() {
+        value.get()
+    }
 }

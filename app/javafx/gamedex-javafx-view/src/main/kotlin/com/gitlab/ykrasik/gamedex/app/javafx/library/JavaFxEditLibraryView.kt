@@ -47,11 +47,13 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     override val pathIsValid = state(IsValid.valid)
 
     override val platform = userMutableState(Platform.pc)
+    override val canChangePlatform = state(IsValid.valid)
 
     override val browseActions = channel<Unit>()
 
     init {
-        titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library '${it.name}'" })
+        titleProperty.bind(libraryProperty.stringBinding { if (it == null) "Add New Library" else "Edit Library" })
+        iconProperty.bind(libraryProperty.objectBinding { if (it == null) Icons.add else Icons.edit })
         register()
     }
 
@@ -66,28 +68,28 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
                     nameField()
                     verticalGap()
                     platformField()
-                }.apply { textProperty.bind(titleProperty) }
+                }
             }
         }
     }
 
     private fun Fieldset.pathField() = horizontalField("Path") {
-        jfxTextField(path.property, promptText = "Library Path") {
+        jfxTextField(path.property, promptText = "Enter Path...") {
             validWhen(pathIsValid)
         }
         jfxButton("Browse", Icons.folderOpen.size(24)) {
-            eventOnAction(browseActions)
+            action(browseActions)
         }
     }
 
     private fun Fieldset.nameField() = horizontalField("Name") {
-        jfxTextField(name.property, promptText = "Library Name") {
+        jfxTextField(name.property, promptText = "Enter Name...") {
             validWhen(nameIsValid)
         }
     }
 
     private fun Fieldset.platformField() = horizontalField("Platform") {
-        enableWhen { libraryProperty.isNull }
+        enableWhen(canChangePlatform)
         platformComboBox(platform.property)
     }
 

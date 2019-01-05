@@ -39,7 +39,7 @@ class ShowEditGamePresenter @Inject constructor(
             view.editGameActions.forEach { (game, initialType) ->
                 val editGameView = viewManager.showEditGameView(game, initialType)
                 eventBus.awaitViewFinished(editGameView)
-                viewManager.closeEditGameView(editGameView)
+                viewManager.hide(editGameView)
             }
         }
     }

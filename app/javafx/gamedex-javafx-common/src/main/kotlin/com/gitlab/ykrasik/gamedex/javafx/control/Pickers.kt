@@ -16,19 +16,29 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.mapBidirectional
-import com.gitlab.ykrasik.gamedex.util.JavaLocalDate
+import com.gitlab.ykrasik.gamedex.javafx.bindBidirectional
+import com.gitlab.ykrasik.gamedex.javafx.color
+import com.gitlab.ykrasik.gamedex.javafx.hex
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.util.JodaLocalDate
-import com.gitlab.ykrasik.gamedex.util.toJava
-import com.gitlab.ykrasik.gamedex.util.toJoda
+import com.gitlab.ykrasik.gamedex.util.java
+import com.gitlab.ykrasik.gamedex.util.joda
 import com.jfoenix.controls.JFXColorPicker
 import com.jfoenix.controls.JFXDatePicker
+import com.jfoenix.skins.JFXColorPickerSkin
 import javafx.beans.property.Property
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
+import javafx.geometry.Insets
+import javafx.scene.layout.Background
+import javafx.scene.layout.BackgroundFill
+import javafx.scene.layout.CornerRadii
+import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import tornadofx.bind
+import tornadofx.onChangeOnce
 import tornadofx.opcr
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * User: ykrasik
@@ -38,23 +48,35 @@ import tornadofx.opcr
 inline fun EventTarget.jfxDatePicker(op: JFXDatePicker.() -> Unit = {}): JFXDatePicker =
     opcr(this, JFXDatePicker(), op)
 
-inline fun EventTarget.jfxDatePicker(value: JavaLocalDate, op: JFXDatePicker.() -> Unit = {}): JFXDatePicker =
+inline fun EventTarget.jfxDatePicker(property: Property<JodaLocalDate>, op: JFXDatePicker.() -> Unit = {}): JFXDatePicker =
     jfxDatePicker {
-        this.value = value
+        // TODO: Bidirectional bindings didn't work here, for some reason.
+        this.value = property.value.java
+        valueProperty().typeSafeOnChange { property.value = it.joda }
         op()
     }
 
-inline fun EventTarget.jfxDatePicker(value: ObservableValue<JavaLocalDate>, op: JFXDatePicker.() -> Unit = {}): JFXDatePicker =
-    jfxDatePicker { bind(value) }.also(op)
-
-inline fun EventTarget.jfxDatePicker(property: Property<JodaLocalDate>, op: JFXDatePicker.() -> Unit = {}): JFXDatePicker =
-    jfxDatePicker(property.mapBidirectional({ toJava() }, { toJoda() }), op)
-
 inline fun EventTarget.jfxColorPicker(op: JFXColorPicker.() -> Unit = {}) =
-    opcr(this, JFXColorPicker(), op)
+    opcr(this, JFXColorPicker()) {
+        skinProperty().onChangeOnce {
+            setDefaultBackground()
+        }
+        op()
+    }
 
 inline fun EventTarget.jfxColorPicker(value: ObservableValue<Color>, op: JFXColorPicker.() -> Unit = {}) =
     jfxColorPicker { bind(value) }.also(op)
 
 inline fun EventTarget.jfxColorPicker(property: Property<String>, op: JFXColorPicker.() -> Unit = {}) =
-    jfxColorPicker(property.mapBidirectional(Color::valueOf, Any::toString), op)
+    jfxColorPicker {
+        property.bindBidirectional(valueProperty(), Color::hex, String::color)
+        op()
+    }
+
+// Fix for bug in JfxColorPicker that doesn't display the initial color value.
+fun JFXColorPicker.setDefaultBackground() {
+    val colorBoxField = JFXColorPickerSkin::class.members.find { it.name == "colorBox" }!!
+    colorBoxField.isAccessible = true
+    val colorBox = colorBoxField.call(skin as JFXColorPickerSkin) as Pane
+    colorBox.background = Background(BackgroundFill(Color.WHITE, CornerRadii(3.0), Insets.EMPTY))
+}

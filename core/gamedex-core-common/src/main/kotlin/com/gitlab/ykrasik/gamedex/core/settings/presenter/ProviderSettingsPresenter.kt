@@ -18,13 +18,14 @@ package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,18 +39,19 @@ import javax.inject.Singleton
 class ProviderSettingsPresenter @Inject constructor(
     private val settingsService: SettingsService,
     private val gameProviderService: GameProviderService,
+    private val commonData: CommonData,
     private val taskService: TaskService
 ) : Presenter<ProviderSettingsView> {
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
         var lastVerifiedAccount = emptyMap<String, String>()
-        var enabled by view.enabled
         var status by view.status
         var currentAccount by view.currentAccount
-        var canVerifyAccount by view.canVerifyAccount
 
         init {
+            commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderSettings) { "Game sync in progress!" }
+
             // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
-            enabled = settingsService.providers[view.provider.id]!!.enabled
+            view.enabled *= settingsService.providers[view.provider.id]!!.enabled
             view.enabled.forEach { onEnabledChanged(it) }
 
             // This will not update if settings are reset to default - by design.
@@ -76,6 +78,7 @@ class ProviderSettingsPresenter @Inject constructor(
                 currentAccount.any { (_, value) -> value.isBlank() }
 
         private suspend fun onEnabledChanged(enabled: Boolean) {
+            verifyCanChange()
             if (enabled) {
                 if (status == ProviderAccountStatus.Unverified) {
                     verifyAccount()
@@ -83,7 +86,7 @@ class ProviderSettingsPresenter @Inject constructor(
                 if (status == ProviderAccountStatus.Valid || status == ProviderAccountStatus.NotRequired) {
                     modifyProviderSettings { copy(enabled = true, account = currentAccount) }
                 } else {
-                    this.enabled = false
+                    view.enabled *= false
                 }
             } else {
                 modifyProviderSettings { copy(enabled = false) }
@@ -95,19 +98,24 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         private suspend fun verifyAccount() {
-            check(canVerifyAccount.isSuccess) { "Verifying account not allowed!" }
-            val valid = kotlin.runCatching {
+            verifyCanChange()
+            view.canVerifyAccount.assert()
+            val valid = runCatching {
                 taskService.execute(gameProviderService.verifyAccount(view.provider.id, currentAccount))
             }
             if (valid.isSuccess) {
                 status = ProviderAccountStatus.Valid
                 lastVerifiedAccount = currentAccount
+                view.enabled *= true
+                onEnabledChanged(enabled = true)
             } else {
                 status = ProviderAccountStatus.Invalid
             }
+            setCanVerifyAccount()
         }
 
         private fun onCurrentAccountChanged(currentAccount: Map<String, String>) {
+            verifyCanChange()
             status = when {
                 view.provider.accountFeature == null -> ProviderAccountStatus.NotRequired
                 accountHasEmptyFields -> ProviderAccountStatus.Empty
@@ -118,7 +126,7 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         private fun setCanVerifyAccount() {
-            canVerifyAccount = Try {
+            view.canVerifyAccount *= IsValid {
                 check(status != ProviderAccountStatus.NotRequired) { "Provider does not require an account!" }
                 check(status != ProviderAccountStatus.Empty) { "Empty account!" }
                 check(status != ProviderAccountStatus.Valid) { "Account already verified!" }
@@ -128,5 +136,7 @@ class ProviderSettingsPresenter @Inject constructor(
         private fun onGotoAccountUrl() {
             view.provider.accountFeature!!.accountUrl.browseToUrl()
         }
+
+        private fun verifyCanChange() = view.canChangeProviderSettings.assert()
     }
 }

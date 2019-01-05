@@ -25,13 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.DeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.ShowDeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameViewPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameViewPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGameChooseResultsPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverGamesWithoutProvidersPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.DiscoverNewGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.discover.RediscoverGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.download.RedownloadGamesPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.download.ShowRedownloadGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.file.FileStructurePresenter
@@ -67,15 +60,6 @@ object GameModule : InternalCoreModule() {
 
         bindPresenter(GameViewPresenter::class)
         bindPresenter(ShowGameViewPresenter::class)
-
-        bindPresenter(DiscoverGameChooseResultsPresenter::class)
-        bindPresenter(DiscoverGamesWithoutProvidersPresenter::class)
-        bindPresenter(DiscoverNewGamesPresenter::class)
-        bindPresenter(RediscoverGamePresenter::class)
-
-        bindPresenter(RedownloadGamePresenter::class)
-        bindPresenter(ShowRedownloadGamesPresenter::class)
-        bindPresenter(RedownloadGamesPresenter::class)
 
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)

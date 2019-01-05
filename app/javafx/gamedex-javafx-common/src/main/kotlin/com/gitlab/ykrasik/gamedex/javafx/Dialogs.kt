@@ -16,45 +16,45 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import javafx.scene.Node
 import javafx.scene.layout.VBox
 import javafx.stage.StageStyle
-import tornadofx.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.selects.select
 
 /**
  * User: ykrasik
  * Date: 11/06/2017
  * Time: 19:45
  */
-fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = null): Boolean = object : Fragment(text) {
+fun areYouSureDialog(
+    text: String = "Are You Sure?",
+    icon: Node? = null,
+    op: (VBox.() -> Unit)? = null
+): Boolean = AreYouSureDialog(text, icon, op).show()
+
+class AreYouSureDialog(title: String, icon: Node?, op: (VBox.() -> Unit)?) : ConfirmationWindow(title, icon), CoroutineScope {
+    override val coroutineContext = Dispatchers.JavaFx + Job()
+
     private var accept = false
 
-    override val root = borderpane {
-        minWidth = 400.0
-        minHeight = 100.0
-        top {
-            toolbar {
-                cancelButton { action { close(accept = false) } }
-                spacer()
-                acceptButton { action { close(accept = true) } }
+    override val root = buildAreYouSure(op = op)
+
+    init {
+        skipFirstDock = true
+        skipFirstUndock = true
+
+        launch {
+            val accept = select<Boolean> {
+                acceptActions.onReceive { true }
+                cancelActions.onReceive { false }
             }
-        }
-        center {
-            vbox(spacing = 10.0) {
-                defaultHbox {
-                    paddingAll = 20.0
-                    label(text)
-                    spacer()
-                    children += Icons.warning
-                }
-                if (op != null) {
-                    vbox(spacing = 10.0) {
-                        paddingAll = 20.0
-                        paddingRight = 30.0
-                        op(this)
-                    }
-                }
-            }
+            coroutineContext.cancel()
+            acceptActions.close()
+            cancelActions.close()
+            close(accept)
         }
     }
 
@@ -64,7 +64,7 @@ fun areYouSureDialog(text: String = "Are You Sure?", op: (VBox.() -> Unit)? = nu
     }
 
     fun show(): Boolean {
-        openModal(block = true, stageStyle = StageStyle.UNIFIED)
+        openModal(StageStyle.TRANSPARENT, block = true)
         return accept
     }
-}.show()
+}

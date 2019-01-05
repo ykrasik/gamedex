@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.util
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.map
@@ -27,20 +30,20 @@ import kotlinx.coroutines.launch
  * Date: 31/03/2018
  * Time: 10:37
  */
-interface ListObservable<T> : List<T> {
+interface ListObservable<T> : List<T>, CoroutineScope {
     val itemsChannel: BroadcastReceiveChannel<List<T>>
     val changesChannel: BroadcastReceiveChannel<ListChangeEvent<T>>
 
     // Record all changes that happened while executing f() and execute them as a single 'set' operation.
     suspend fun <R> buffered(f: suspend () -> R): R
-
-    // TODO: Add a 'bind'
 }
 
 class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> {
+    override val coroutineContext = Dispatchers.Default + Job()
+
     private var _list: List<T> = initial
-    override val itemsChannel = BroadcastEventChannel.conflated(initial)
-    override val changesChannel = BroadcastEventChannel<ListChangeEvent<T>>()
+    override val itemsChannel = BroadcastEventChannel<List<T>>(Channel.CONFLATED, coroutineContext).apply { offer(initial) }
+    override val changesChannel = BroadcastEventChannel<ListChangeEvent<T>>(coroutineContext = coroutineContext)
 
     private var buffer = false
 
@@ -202,7 +205,7 @@ inline fun <T, R> ListObservable<T>.subscribeTransform(crossinline f: (List<T>) 
 
 fun <T, R> ListObservable<T>.subscribeTransformChannel(channel: ReceiveChannel<(List<T>) -> List<R>>): ListObservable<R> {
     val list = ListObservableImpl<R>()
-    GlobalScope.launch {
+    launch {
         itemsChannel.subscribe().combineLatest(channel).consumeEach { (items, f) ->
             list.setAll(f(items))
         }

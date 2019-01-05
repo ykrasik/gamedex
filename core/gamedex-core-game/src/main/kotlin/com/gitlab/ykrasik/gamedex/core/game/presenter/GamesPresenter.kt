@@ -79,7 +79,7 @@ class GamesPresenter @Inject constructor(
 
     override fun present(view: ViewWithGames) = object : ViewSession() {
         init {
-            commonData.platformGames.bindTo(view.games)
+            commonData.platformGames.bind(view.games)
             sortComparatorChannel.forEach { view.sort *= it }
             filterPredicate.forEach { view.filter *= it }
         }

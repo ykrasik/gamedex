@@ -16,8 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
@@ -25,6 +27,8 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderId
  * Time: 09:25
  */
 interface ProviderOrderSettingsView {
+    val canChangeProviderOrder: State<IsValid>
+
     val search: UserMutableState<Order>
     val name: UserMutableState<Order>
     val description: UserMutableState<Order>
@@ -36,5 +40,5 @@ interface ProviderOrderSettingsView {
     val screenshot: UserMutableState<Order>
 }
 
-typealias Order = Map<ProviderId, Int>
+typealias Order = List<ProviderId>
 val minOrder = -1

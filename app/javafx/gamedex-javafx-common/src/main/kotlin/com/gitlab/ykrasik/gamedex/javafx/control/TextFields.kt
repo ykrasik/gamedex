@@ -17,6 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
@@ -25,7 +28,7 @@ import com.jfoenix.skins.JFXTextFieldSkin
 import com.jfoenix.skins.ValidationPane
 import com.jfoenix.validation.base.ValidatorBase
 import javafx.animation.FadeTransition
-import javafx.beans.property.ObjectProperty
+import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.StringProperty
@@ -72,7 +75,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     max: Number,
     withButtons: Boolean = true,
     crossinline op: JFXTextField.() -> Unit = {}
-): ObjectProperty<Try<T>> {
+): ObjectBinding<Try<T>> {
     val (parse: (String) -> T, stringify: (Double) -> String) = when (T::class) {
         Number::class -> Pair({ s: String -> s.toDouble() as T }, { d: Double -> d.toString() })
         BigDecimal::class -> Pair({ s -> BigDecimal(s) as T }, { d -> d.toString() })
@@ -84,10 +87,10 @@ inline fun <reified T : Number> EventTarget.numberTextField(
         }
     }
 
-    lateinit var value: ObjectProperty<Try<T>>
+    lateinit var value: ObjectBinding<Try<T>>
     defaultHbox(spacing = 2) {
         val minusButton = if (withButtons) minusButton() else null
-        val textfield = jfxTextField(stringify(property.value.toDouble())) {
+        val textfield = jfxTextField(stringify(property.value.toDouble()), promptText = "Enter Value...") {
             alignment = Pos.CENTER
             op()
         }
@@ -102,12 +105,12 @@ inline fun <reified T : Number> EventTarget.numberTextField(
                 kotlin.error("Invalid value!")
             }
         }
-        value.onChange {
-            it!!.valueOrNull?.let { property.value = it }
+        value.typeSafeOnChange {
+            it.valueOrNull?.let { property.value = it }
         }
 
         minusButton?.run {
-            enableWhen(value.map { value ->
+            enableWhen(value.binding { value ->
                 val canDecrement = IsValid {
                     check(property.value.toDouble() - 1 >= min.toDouble()) { "Limit reached!" }
                 }
@@ -116,7 +119,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
             action { textfield.text = stringify(parse(textfield.text).toDouble() - 1) }
         }
         plusButton?.run {
-            enableWhen(value.map { value ->
+            enableWhen(value.binding { value ->
                 val canIncrement = IsValid {
                     check(property.value.toDouble() + 1 <= max.toDouble()) { "Limit reached!" }
                 }
@@ -183,8 +186,8 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
     op()
 }
 
-inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectProperty<Try<T>> {
-    val value = textProperty().map { text -> Try { parser(text ?: "") } }
+inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectBinding<Try<T>> {
+    val value = textProperty().binding { text -> Try { parser(text ?: "") } }
     validWhen(value)
     return value
 }
@@ -200,7 +203,7 @@ fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
 
     val tooltip = Tooltip().apply {
         textProperty().bind(errorProperty)
-        graphic = Icons.warning.color(Color.RED).size(20)
+        graphic = Icons.validationError.size(20)
     }
 
     fun showTooltip() {
@@ -215,9 +218,9 @@ fun <T> JFXTextField.validWhen(isValid: ObservableValue<Try<T>>) {
         if (focused && isValid.value.isError) showTooltip() else tooltip.hide()
     }
 
-    isValid.onChange {
+    isValid.typeSafeOnChange {
         validate()
-        if (it!!.isError) {
+        if (it.isError) {
             this.tooltip = tooltip
             if (isFocused) {
                 showTooltip()

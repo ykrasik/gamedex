@@ -39,7 +39,7 @@ class ShowRenameMoveGamePresenter @Inject constructor(
             view.renameMoveGameActions.forEach { (game, initialName) ->
                 val renameMoveView = viewManager.showRenameMoveGameView(game, initialName)
                 eventBus.awaitViewFinished(renameMoveView)
-                viewManager.closeRenameMoveGameView(renameMoveView)
+                viewManager.hide(renameMoveView)
             }
         }
     }

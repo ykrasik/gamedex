@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameView
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
@@ -42,10 +43,12 @@ class GameViewPresenter @Inject constructor(
 ) : Presenter<GameView> {
     override fun present(view: GameView) = object : ViewSession() {
         init {
-            gameService.games.changesChannel.forEach { event ->
-                if (!isShowing) return@forEach
+            view.game *= Game.Null
 
+            gameService.games.changesChannel.forEach { event ->
                 val game = view.game.value
+                if (game.id == Game.Null.id) return@forEach
+
                 when (event) {
                     is ListItemRemovedEvent -> {
                         if (event.item == game) finished()
@@ -57,14 +60,14 @@ class GameViewPresenter @Inject constructor(
                         if (event.item.id == game.id) {
                             val item = event.item
                             view.game *= item
-                            onShow()
+                            if (isShowing) onShow()
                         }
                     }
                     is ListItemsSetEvent -> {
                         val relevantGame = event.items.find { it.id == game.id }
                         if (relevantGame != null) {
                             view.game *= relevantGame
-                            onShow()
+                            if (isShowing) onShow()
                         }
                     }
                     else -> {
@@ -80,6 +83,9 @@ class GameViewPresenter @Inject constructor(
             }
         }
 
-        private fun finished() = eventBus.viewFinished(view)
+        private fun finished() {
+            view.game *= Game.Null
+            eventBus.viewFinished(view)
+        }
     }
 }

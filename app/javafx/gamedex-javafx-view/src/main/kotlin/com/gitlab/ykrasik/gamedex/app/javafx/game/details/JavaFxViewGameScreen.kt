@@ -18,21 +18,26 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.game.*
+import com.gitlab.ykrasik.gamedex.app.api.game.GameView
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
+import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
-import com.gitlab.ykrasik.gamedex.app.javafx.game.discover.discoverGameChooseResultsMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.ScreenNavigation
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import kotlinx.coroutines.Deferred
-import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -41,7 +46,7 @@ import tornadofx.*
  * Time: 18:17
  */
 class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanTagGame, ViewCanRediscoverGame, ViewCanRedownloadGame, ViewCanSearchYouTube {
+    ViewCanTagGame, ViewCanResyncGame, ViewCanRedownloadGame, ViewCanSearchYouTube {
     override val navigation = ScreenNavigation.Standalone
 
     private val imageLoader: ImageLoader by di()
@@ -57,32 +62,32 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     override val deleteGameActions = channel<Game>()
     override val tagGameActions = channel<Game>()
     override val redownloadGameActions = channel<Game>()
-    override val rediscoverGameActions = channel<Game>()
+
+    override val canResyncGame = state(IsValid.valid)
+    override val resyncGameActions = channel<Game>()
 
     private val gameDetailsView = JavaFxGameDetailsView(evenIfEmpty = true)
 
     init {
         register()
 
-        game.property.eventOnChange(displayYouTubeForGameRequests)
+        game.property.bindChanges(displayYouTubeForGameRequests)
     }
 
     override fun HBox.buildToolbar() {
         editButton("Edit") { action { editGame(GameDataType.name_) } }
         gap()
-        toolbarButton("Tag", graphic = Icons.tag) { eventOnAction(tagGameActions) { game.value } }
+        toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value } }
         gap()
-        deleteButton("Delete") { eventOnAction(deleteGameActions) { game.value } }
+        deleteButton("Delete") { action(deleteGameActions) { game.value } }
 
         spacer()
 
-        toolbarButton("Re-Download", graphic = Icons.download) { eventOnAction(redownloadGameActions) { game.value } }
+        infoButton("Re-Download", graphic = Icons.download) { action(redownloadGameActions) { game.value } }
         gap()
-        syncButton("Re-Sync") {
-            dropDownMenu(PopOver.ArrowLocation.RIGHT_TOP, closeOnClick = false) {
-                discoverGameChooseResultsMenu()
-            }
-            eventOnAction(rediscoverGameActions) { game.value }
+        infoButton("Re-Sync", graphic = Icons.sync) {
+            enableWhen(canResyncGame)
+            action(resyncGameActions) { game.value }
         }
     }
 

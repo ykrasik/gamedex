@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -29,18 +30,25 @@ import javax.inject.Singleton
  * Time: 09:26
  */
 @Singleton
-class ProviderOrderSettingsPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ProviderOrderSettingsView> {
+class ProviderOrderSettingsPresenter @Inject constructor(
+    private val commonData: CommonData,
+    private val settingsService: SettingsService
+) : Presenter<ProviderOrderSettingsView> {
     override fun present(view: ProviderOrderSettingsView) = object : ViewSession() {
         init {
-            settingsService.providerOrder.bind({ searchChannel }, view.search) { copy(search = it) }
-            settingsService.providerOrder.bind({ nameChannel }, view.name) { copy(name = it) }
-            settingsService.providerOrder.bind({ descriptionChannel }, view.description) { copy(description = it) }
-            settingsService.providerOrder.bind({ releaseDateChannel }, view.releaseDate) { copy(releaseDate = it) }
-            settingsService.providerOrder.bind({ criticScoreChannel }, view.criticScore) { copy(criticScore = it) }
-            settingsService.providerOrder.bind({ userScoreChannel }, view.userScore) { copy(userScore = it) }
-            settingsService.providerOrder.bind({ thumbnailChannel }, view.thumbnail) { copy(thumbnail = it) }
-            settingsService.providerOrder.bind({ posterChannel }, view.poster) { copy(poster = it) }
-            settingsService.providerOrder.bind({ screenshotChannel }, view.screenshot) { copy(screenshot = it) }
+            commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderOrder) { "Game sync in progress!" }
+
+            settingsService.providerOrder.bind({ searchChannel }, view.search) { verifyCanChange(); copy(search = it) }
+            settingsService.providerOrder.bind({ nameChannel }, view.name) { verifyCanChange(); copy(name = it) }
+            settingsService.providerOrder.bind({ descriptionChannel }, view.description) { verifyCanChange(); copy(description = it) }
+            settingsService.providerOrder.bind({ releaseDateChannel }, view.releaseDate) { verifyCanChange(); copy(releaseDate = it) }
+            settingsService.providerOrder.bind({ criticScoreChannel }, view.criticScore) { verifyCanChange(); copy(criticScore = it) }
+            settingsService.providerOrder.bind({ userScoreChannel }, view.userScore) { verifyCanChange(); copy(userScore = it) }
+            settingsService.providerOrder.bind({ thumbnailChannel }, view.thumbnail) { verifyCanChange(); copy(thumbnail = it) }
+            settingsService.providerOrder.bind({ posterChannel }, view.poster) { verifyCanChange(); copy(poster = it) }
+            settingsService.providerOrder.bind({ screenshotChannel }, view.screenshot) { verifyCanChange(); copy(screenshot = it) }
         }
+
+        private fun verifyCanChange() = view.canChangeProviderOrder.assert()
     }
 }

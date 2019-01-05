@@ -49,7 +49,7 @@ class ShowCleanupDatabasePresenter @Inject constructor(
 
             val cleanupDatabaseView = viewManager.showCleanupDatabaseView(staleData)
             eventBus.awaitViewFinished(cleanupDatabaseView)
-            viewManager.closeCleanupDatabaseView(cleanupDatabaseView)
+            viewManager.hide(cleanupDatabaseView)
         }
     }
 }

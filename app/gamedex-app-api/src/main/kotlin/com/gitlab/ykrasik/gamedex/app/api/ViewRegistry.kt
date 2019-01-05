@@ -21,7 +21,7 @@ package com.gitlab.ykrasik.gamedex.app.api
  * Date: 26/05/2018
  * Time: 17:16
  *
- * Provided to the view layer to allow views to register themselves.
+ * Provided to the view layer to allow views to send lifecycle hooks.
  */
 interface ViewRegistry {
     fun onCreate(view: Any)

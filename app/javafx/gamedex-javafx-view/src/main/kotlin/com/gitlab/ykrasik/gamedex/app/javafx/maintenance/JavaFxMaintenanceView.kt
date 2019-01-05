@@ -16,15 +16,24 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRedownloadGames
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ClearUserDataView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGames
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.deleteButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.infoButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.warningButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
+import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.geometry.Pos
 import tornadofx.*
@@ -36,13 +45,16 @@ import java.io.File
  * Time: 14:57
  */
 class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
-    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, ViewCanCleanupDatabase, ViewCanRedownloadGames {
+    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, ViewCanCleanupDatabase, ViewCanRedownloadGames, ViewCanResyncGames {
 
     override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
     override val redownloadGamesActions = channel<Unit>()
+
+    override val canResyncGames = state(IsValid.valid)
+    override val resyncGamesActions = channel<Unit>()
 
     init {
         register()
@@ -52,12 +64,12 @@ class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
         confirmButton("Export Database", Icons.export) {
             useMaxWidth = true
             alignment = Pos.CENTER_LEFT
-            eventOnAction(exportDatabaseActions)
+            action(exportDatabaseActions)
         }
         warningButton("Import Database", Icons.import) {
             useMaxWidth = true
             alignment = Pos.CENTER_LEFT
-            eventOnAction(importDatabaseActions)
+            action(importDatabaseActions)
         }
 
         verticalGap()
@@ -65,7 +77,13 @@ class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
         infoButton("Re-Download Games", Icons.download) {
             useMaxWidth = true
             alignment = Pos.CENTER_LEFT
-            eventOnAction(redownloadGamesActions)
+            action(redownloadGamesActions)
+        }
+        infoButton("Re-Sync Games", Icons.sync) {
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            enableWhen(canResyncGames)
+            action(resyncGamesActions)
         }
 
         verticalGap()
@@ -75,14 +93,14 @@ class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
             graphic = Icons.databaseCleanup
             alignment = Pos.CENTER_LEFT
             tooltip("Clear game user data, like tags, excluded providers or custom thumbnails for all games.")
-            eventOnAction(clearUserDataActions)
+            action(clearUserDataActions)
         }
         deleteButton("Cleanup Database") {
             useMaxWidth = true
             graphic = Icons.databaseCleanup
             alignment = Pos.CENTER_LEFT
             tooltip("Cleanup stale data, like games linked to paths that no longer exist, unused images & file structure cache for deleted games.")
-            eventOnAction(cleanupDatabaseActions)
+            action(cleanupDatabaseActions)
         }
     }
 
@@ -96,7 +114,7 @@ class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
 
     override fun browseDirectory(directory: File) = browse(directory)
 
-    override fun confirmImportDatabase() = areYouSureDialog("This will overwrite the existing database.")
+    override fun confirmImportDatabase() = areYouSureDialog("The existing database will be lost!")
 
     override fun confirmClearUserData() = areYouSureDialog("Clear game user data?") {
         text("This will remove tags, excluded providers & any custom information entered (like custom names or thumbnails) from all games.") {

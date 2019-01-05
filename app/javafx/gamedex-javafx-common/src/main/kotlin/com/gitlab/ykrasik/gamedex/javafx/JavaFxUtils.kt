@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
+import com.jfoenix.utils.JFXNodeUtils
 import javafx.animation.FadeTransition
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -26,6 +27,7 @@ import javafx.scene.Node
 import javafx.scene.control.*
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
+import javafx.scene.paint.Color
 import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.util.Duration
@@ -159,3 +161,6 @@ val Node.verticalScrollbar: ScrollBar?
         .map { it as ScrollBar }
         .filter { it.orientation == Orientation.VERTICAL }
         .firstOrNull()
+
+val Color.hex: String get() = JFXNodeUtils.colorToHex(this)
+val String.color: Color get() = Color.valueOf(this)

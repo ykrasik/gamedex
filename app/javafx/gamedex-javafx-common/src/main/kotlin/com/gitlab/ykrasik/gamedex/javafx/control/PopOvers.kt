@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.size
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import javafx.beans.property.Property
 import javafx.geometry.Pos
 import javafx.scene.Node

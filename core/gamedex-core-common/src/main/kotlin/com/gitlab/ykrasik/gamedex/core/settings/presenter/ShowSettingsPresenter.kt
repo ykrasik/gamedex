@@ -39,7 +39,7 @@ class ShowSettingsPresenter @Inject constructor(
             view.showSettingsActions.forEach {
                 val settingsView = viewManager.showSettingsView()
                 eventBus.awaitViewFinished(settingsView)
-                viewManager.closeSettingsView(settingsView)
+                viewManager.hide(settingsView)
             }
         }
     }

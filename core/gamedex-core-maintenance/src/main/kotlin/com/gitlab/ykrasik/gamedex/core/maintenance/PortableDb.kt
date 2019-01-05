@@ -75,7 +75,7 @@ internal data class PortableGame(
             )
         ),
         providerData = providerData.map { it.toProviderData() },
-        userData = userData?.toUserData()
+        userData = userData?.toUserData() ?: UserData.Null
     )
 }
 
@@ -85,7 +85,7 @@ internal fun Game.toPortable() = PortableGame(
     createDate = createDate.millis,
     updateDate = updateDate.millis,
     providerData = rawGame.providerData.map { it.toPortable() },
-    userData = userData?.toPortable()
+    userData = userData.takeIf { it != UserData.Null }?.toPortable()
 )
 
 internal data class PortableProviderData(

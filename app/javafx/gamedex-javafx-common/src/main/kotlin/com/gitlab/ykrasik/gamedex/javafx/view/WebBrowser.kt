@@ -16,14 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.map
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import javafx.beans.property.Property
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
 import javafx.scene.web.WebView
@@ -88,10 +87,10 @@ class WebBrowser : Fragment() {
         prevParent.children += root
     }
 
-    private fun canNavigate(back: Boolean): Property<Boolean> {
+    private fun canNavigate(back: Boolean): ObservableValue<Boolean> {
         val history = webView.engine.history
         val entries = history.entries
-        return history.currentIndexProperty().map { i ->
+        return history.currentIndexProperty().booleanBinding { i ->
             val currentIndex = i!!.toInt()
             entries.size > 1 && (if (back) currentIndex > 0 else currentIndex < entries.size - 1)
         }

@@ -26,7 +26,7 @@ import javax.inject.Singleton
 class LogEntriesPresenter : Presenter<ViewWithLogEntries> {
     override fun present(view: ViewWithLogEntries) = object : ViewSession() {
         init {
-            GameDexLog.entries.bindTo(view.entries)
+            GameDexLog.entries.bind(view.entries)
         }
     }
 }

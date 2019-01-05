@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.jfoenix.controls.JFXCheckBox
 import com.jfoenix.controls.JFXToggleButton
 import com.jfoenix.controls.JFXToggleNode
@@ -71,11 +71,9 @@ inline fun Node.jfxToggleNode(
     value: Any? = null,
     group: ToggleGroup? = getToggleGroup(),
     op: JFXToggleNode.() -> Unit = {}
-): JFXToggleNode {
-    return jfxToggleNode(text, graphic, group) {
-        toggleValue(value)
-        op()
-    }
+): JFXToggleNode = jfxToggleNode(text, graphic, group) {
+    toggleValue(value)
+    op()
 }
 
 fun ToggleButton.toggleValue(value: Any?) = apply {

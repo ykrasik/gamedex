@@ -48,7 +48,7 @@ class CleanupDatabasePresenter @Inject constructor(
 
         override fun onShow() {
             view.librariesAndGames.canDelete *= IsValid {
-                check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale data to delete!" }
+                check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
             }
             view.librariesAndGames.shouldDelete *= view.librariesAndGames.canDelete.value.isSuccess
 
@@ -66,17 +66,17 @@ class CleanupDatabasePresenter @Inject constructor(
         }
 
         private fun onLibrariesAndGamesShouldDeleteChanged() {
-            check(view.librariesAndGames.canDelete.value.isSuccess) { "Cannot change 'delete libraries & games' value!" }
+            view.librariesAndGames.canDelete.assert()
             setCanAccept()
         }
 
         private fun onImagesShouldDeleteChanged() {
-            check(view.images.canDelete.value.isSuccess) { "Cannot change 'delete images' value!" }
+            view.images.canDelete.assert()
             setCanAccept()
         }
 
         private fun onFileCacheShouldDeleteChanged() {
-            check(view.fileCache.canDelete.value.isSuccess) { "Cannot change 'delete file cache' value!" }
+            view.fileCache.canDelete.assert()
             setCanAccept()
         }
 

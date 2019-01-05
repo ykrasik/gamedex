@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.library.presenter
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
+import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -31,15 +32,20 @@ import javax.inject.Singleton
  */
 @Singleton
 class ShowDeleteLibraryPresenter @Inject constructor(
+    private val commonData: CommonData,
     private val viewManager: ViewManager,
     private val eventBus: EventBus
 ) : Presenter<ViewCanDeleteLibrary> {
     override fun present(view: ViewCanDeleteLibrary) = object : ViewSession() {
         init {
+            commonData.isGameSyncRunning.disableWhenTrue(view.canDeleteLibraries) { "Game sync in progress!" }
+
             view.deleteLibraryActions.forEach { library ->
+                view.canDeleteLibraries.assert()
+
                 val deleteLibraryView = viewManager.showDeleteLibraryView(library)
                 eventBus.awaitViewFinished(deleteLibraryView)
-                viewManager.closeDeleteLibraryView(deleteLibraryView)
+                viewManager.hide(deleteLibraryView)
             }
         }
     }

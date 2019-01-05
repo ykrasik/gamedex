@@ -58,4 +58,16 @@ enum class Platform(val displayName: String) {
     excluded("Excluded");
 
     override fun toString() = displayName
+
+    companion object {
+        val realPlatforms = values().toList() - excluded
+    }
+}
+
+data class LibraryPath(val library: Library, val path: File) {
+    val relativePath: File get() = path.relativeTo(library.path)
+
+    companion object {
+        val Null = LibraryPath(Library.Null, File(""))
+    }
 }

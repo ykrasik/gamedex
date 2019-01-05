@@ -16,20 +16,25 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
-import javafx.scene.layout.StackPane
+import javafx.scene.Node
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import tornadofx.*
@@ -39,26 +44,28 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class JavaFxProviderSettingsView(override val provider: GameProvider) : PresentableView(), ProviderSettingsView, ViewWithProviderLogos {
+class JavaFxProviderSettingsView(override val provider: GameProvider, icon: Node) : PresentableView(provider.id, icon), ProviderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override var status = state(ProviderAccountStatus.Empty)
-    override var enabled = userMutableState(false)
+    override val canChangeProviderSettings = state(IsValid.valid)
 
-    override var currentAccount = userMutableState(emptyMap<String, String>())
+    override val status = state(ProviderAccountStatus.Empty)
+    override val enabled = userMutableState(false)
+
+    override val currentAccount = userMutableState(emptyMap<String, String>())
 
     override val gotoAccountUrlActions = channel<Unit>()
 
-    override var canVerifyAccount = state(IsValid.valid)
+    override val canVerifyAccount = state(IsValid.valid)
 
     override val verifyAccountActions = channel<Unit>()
 
-    private var accountLabelFlashContainer: StackPane by singleAssign()
+    private val accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
 
     init {
         register()
 
-        status.property.onChange { status ->
+        status.onChange { status ->
             if (status == ProviderAccountStatus.Invalid) {
                 accountLabelFlashContainer.flash(target = 0.5, reverse = true)
             }
@@ -66,55 +73,66 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
     }
 
     override val root = vbox {
-        defaultHbox(alignment = Pos.TOP_LEFT) {
-            paddingAll = 5
-            label(provider.id) { addClass(Style.providerLabel) }
-            spacer()
-            imageview {
-                fitHeight = 60.0
-                isPreserveRatio = true
-                image = providerLogos[provider.id]!!.image
-            }
-        }
-        verticalGap(size = 40)
-        form {
-            fieldset {
-                horizontalField("Enable") {
-                    hbox(alignment = Pos.BASELINE_CENTER) {
-                        jfxToggleButton(enabled.property)
-                        spacer()
-                        stackpane {
-                            visibleWhen { status.property.isNotEqualTo(ProviderAccountStatus.NotRequired) }
-                            label {
-                                addClass(Style.accountLabel)
-                                textProperty().bind(status.property.map { it!!.text })
-                                graphicProperty().bind(status.property.map { it!!.icon })
-                                textFillProperty().bind(status.property.map { it!!.color })
+        // Need to wrap in another vbox because the root's disabledProperty cannot be bound,
+        // it is set by the tabPane which contains this view.
+        errorTooltip(canChangeProviderSettings)
+        vbox {
+            enableWhen(canChangeProviderSettings, wrapInErrorTooltip = false)
+            defaultHbox(alignment = Pos.TOP_LEFT) {
+                paddingAll = 5
+                label(provider.id) { addClass(Style.providerLabel) }
+                spacer()
+                vbox {
+                    children += providerLogos[provider.id]!!.image.toImageView(height = 80.0)
+                    defaultHbox(alignment = Pos.CENTER_RIGHT) {
+                        provider.supportedPlatforms.reversed().forEach { platform ->
+                            if (platform != Platform.excluded) {
+                                add(platform.logo)
                             }
-                            accountLabelFlashContainer = stackpane { addClass(Style.flashContainer) }
                         }
                     }
                 }
             }
-            val accountFeature = provider.accountFeature
-            if (accountFeature != null) {
-                fieldset("Account") {
-                    accountField(accountFeature.field1)
-                    accountField(accountFeature.field2)
-                    accountField(accountFeature.field3)
-                    accountField(accountFeature.field4)
-                    hbox {
-                        spacer()
-                        confirmButton("Verify Account") {
-                            addClass(CommonStyle.thinBorder)
-                            enableWhen(canVerifyAccount)
-                            isDefaultButton = true
-                            eventOnAction(verifyAccountActions)
+            verticalGap(size = 40)
+            form {
+                fieldset {
+                    horizontalField("Enable") {
+                        hbox(alignment = Pos.BASELINE_CENTER) {
+                            jfxToggleButton(enabled.property)
+                            spacer()
+                            stackpane {
+                                visibleWhen { status.property.isNotEqualTo(ProviderAccountStatus.NotRequired) }
+                                label {
+                                    addClass(Style.accountLabel)
+                                    textProperty().bind(status.property.stringBinding { it!!.text })
+                                    graphicProperty().bind(status.property.binding { it.icon })
+                                    textFillProperty().bind(status.property.binding { it.color })
+                                }
+                                add(accountLabelFlashContainer)
+                            }
                         }
                     }
-                    horizontalField("Create") {
-                        hyperlink(accountFeature.accountUrl) {
-                            eventOnAction(gotoAccountUrlActions)
+                }
+                val accountFeature = provider.accountFeature
+                if (accountFeature != null) {
+                    fieldset("Account") {
+                        accountField(accountFeature.field1)
+                        accountField(accountFeature.field2)
+                        accountField(accountFeature.field3)
+                        accountField(accountFeature.field4)
+                        hbox {
+                            spacer()
+                            confirmButton("Verify Account") {
+                                addClass(CommonStyle.thinBorder)
+                                enableWhen(canVerifyAccount)
+                                isDefaultButton = true
+                                action(verifyAccountActions)
+                            }
+                        }
+                        horizontalField("Create") {
+                            hyperlink(accountFeature.accountUrl) {
+                                action(gotoAccountUrlActions)
+                            }
                         }
                     }
                 }
@@ -125,10 +143,10 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
     private fun Fieldset.accountField(field: String?) {
         if (field == null) return
         horizontalField(field) {
-            val currentValue = currentAccount.property.map { account -> account!![field] ?: "" }
-            jfxTextField(currentValue) {
-                textProperty().onChange {
-                    currentAccount.valueFromView += field to it!!
+            val currentValue = currentAccount.value[field] ?: "" 
+            jfxTextField(currentValue, promptText = "Enter $field...") {
+                textProperty().typeSafeOnChange {
+                    currentAccount.valueFromView += field to it
                 }
             }
         }
@@ -153,9 +171,9 @@ class JavaFxProviderSettingsView(override val provider: GameProvider) : Presenta
 
     private val ProviderAccountStatus.color
         get() = when (this) {
-            ProviderAccountStatus.Valid -> Color.GREEN
-            ProviderAccountStatus.Invalid -> Color.INDIANRED
-            ProviderAccountStatus.Empty, ProviderAccountStatus.Unverified -> Color.ORANGE
+            ProviderAccountStatus.Valid -> Colors.green
+            ProviderAccountStatus.Invalid -> Colors.red
+            ProviderAccountStatus.Empty, ProviderAccountStatus.Unverified -> Colors.orange
             ProviderAccountStatus.NotRequired -> null
         }
 

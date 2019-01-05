@@ -34,7 +34,7 @@ class ReportsPresenter @Inject constructor(
 ) : Presenter<ViewWithReports> {
     override fun present(view: ViewWithReports) = object : ViewSession() {
         init {
-            reportService.reports.bindTo(view.reports)
+            reportService.reports.bind(view.reports)
         }
     }
 }

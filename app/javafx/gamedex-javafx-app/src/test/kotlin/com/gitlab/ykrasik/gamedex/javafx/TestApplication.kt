@@ -17,7 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.core.file.NewDirectoryDetector
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -49,7 +48,6 @@ object TestApplication {
         System.setProperty("gameDex.provider.giantBomb.baseUrl", giantBombServer.baseUrl)
         System.setProperty("gameDex.provider.igdb.baseUrl", igdbServer.baseUrl)
         System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
-        System.setProperty("gameDex.file.newDirectoryDetector.class", StubNewDirectoryDetector::class.qualifiedName)
 
         // Pre-Load test images
         randomImage()
@@ -84,31 +82,31 @@ object TestApplication {
             persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), platform))
         }.filter { it.platform != Platform.excluded }
 
-        val executor = Executors.newFixedThreadPool(10)
-        val context = executor.asCoroutineDispatcher()
-        runBlocking {
-            (0 until numGames).map {
-                async(context) {
-                    val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
-                    val path = randomPath(maxElements = 6, minElements = 3)
-                    persistenceService.insertGame(
-                        metadata = com.gitlab.ykrasik.gamedex.Metadata(
-                            libraryId = libraries.randomElement().id,
-                            path = path,
-                            timestamp = Timestamp.now
-                        ),
-                        providerData = randomList(providerIds.size) {
-                            val providerId = providerIds.randomElement()
-                            providerIds -= providerId
-                            randomProviderData(providerId)
-                        },
-                        userData = null
-                    )
-                }
-            }.forEach { it.await() }
+        Executors.newFixedThreadPool(10).asCoroutineDispatcher().use { context ->
+            runBlocking {
+                (0 until numGames).map {
+                    async(context) {
+                        val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
+                        val path = randomPath(maxElements = 6, minElements = 3)
+                        persistenceService.insertGame(
+                            metadata = com.gitlab.ykrasik.gamedex.Metadata(
+                                libraryId = libraries.randomElement().id,
+                                path = path,
+                                timestamp = Timestamp.now
+                            ),
+                            providerData = randomList(providerIds.size) {
+                                val providerId = providerIds.randomElement()
+                                providerIds -= providerId
+                                randomProviderData(providerId)
+                            },
+                            userData = UserData.Null
+                        )
+                    }
+                }.forEach { it.await() }
+            }
         }
+
         println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).toHumanReadableDuration()}")
-        executor.shutdownNow()
     }
 
     private fun randomProviderData(id: ProviderId) = ProviderData(
@@ -155,11 +153,4 @@ object TestApplication {
 
     // 9/10 chance.
     private fun String.sometimesNull() = if (randomInt(10) < 10) this else null
-}
-
-class StubNewDirectoryDetector : NewDirectoryDetector {
-    override fun detectNewDirectories(dir: File, excludedDirectories: Set<File>): List<File> {
-        val libraries = TestApplication.persistenceService.fetchLibraries().filter { it.platform != Platform.excluded }
-        return randomList(4) { libraries.randomElement().path.resolve(randomFile()) }
-    }
 }

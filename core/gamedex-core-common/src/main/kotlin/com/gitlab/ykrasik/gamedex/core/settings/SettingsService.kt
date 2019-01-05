@@ -44,8 +44,9 @@ interface SettingsService {
     val currentPlatformSettingsChannel: BroadcastReceiveChannel<GamePlatformSettingsRepository>
     val currentPlatformSettings: GamePlatformSettingsRepository
 
-    val providers: Map<ProviderId, ProviderSettingsRepository>
+    val providerGeneral: ProviderGeneralSettingsRepository
     val providerOrder: ProviderOrderSettingsRepository
+    val providers: Map<ProviderId, ProviderSettingsRepository>
 
     fun saveSnapshot()
     fun revertSnapshot()
@@ -77,11 +78,11 @@ class SettingsServiceImpl @Inject constructor(
     override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms[platform]!! }
     override val currentPlatformSettings by currentPlatformSettingsChannel
 
+    override val providerGeneral = repo { ProviderGeneralSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
+    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
     override val providers = gameProviderRepository.allProviders.map { provider ->
         provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
     }.toMap()
-
-    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
 
     private fun settingsStorage(basePath: String = "") = SettingsStorageFactory("conf/$basePath", factory)
 

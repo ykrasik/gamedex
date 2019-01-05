@@ -40,7 +40,9 @@ class CurrentPlatformFilterPresenter @Inject constructor(
             }
 
             view.currentPlatformFilter.forEach {
-                settingsService.currentPlatformSettings.modify { copy(filter = it) }
+                if (view.currentPlatformFilterIsValid.value.isSuccess) {
+                    settingsService.currentPlatformSettings.modify { copy(filter = it) }
+                }
             }
         }
     }

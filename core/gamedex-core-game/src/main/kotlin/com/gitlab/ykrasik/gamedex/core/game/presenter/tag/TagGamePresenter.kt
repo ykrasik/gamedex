@@ -16,8 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.tag
 
-import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.game.TagGameView
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -110,22 +108,12 @@ class TagGamePresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            val newRawGame = view.game.rawGame.withTags(view.checkedTags)
-            if (newRawGame.userData != view.game.rawGame.userData) {
-                taskService.execute(gameService.replace(view.game, newRawGame))
-            }
+            view.canAccept.assert()
+            val newUserData = view.game.rawGame.userData.copy(tags = view.checkedTags.toList().sorted())
+            val newRawGame = view.game.rawGame.copy(userData = newUserData)
+            taskService.execute(gameService.replace(view.game, newRawGame))
 
             finished()
-        }
-
-        private fun RawGame.withTags(tags: Collection<String>): RawGame {
-            // If new tags are empty and userData is null, or userData has empty tags -> nothing to do
-            // If new tags are not empty and userData is not null, but has the same tags -> nothing to do
-            val newTags = tags.toList().sorted()
-            if (newTags == userData?.tags ?: emptyList<String>()) return this
-
-            val userData = this.userData ?: UserData()
-            return copy(userData = userData.copy(tags = newTags))
         }
 
         private fun onCancel() {

@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import javafx.event.EventTarget
 import javafx.geometry.Pos
@@ -74,7 +75,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
                     spacer()
                     cancelButton("Cancel") {
                         addClass(Style.progressText)
-                        eventOnAction(cancelTaskActions)
+                        action(cancelTaskActions)
                     }
                 }
             }
@@ -111,10 +112,10 @@ class JavaFxTaskView : PresentableView(), TaskView {
             useMaxWidth = true
             addClass(if (isMain) Style.mainTaskProgress else Style.subTaskProgress)
         }
-        imageview(taskProgress.javaFxImageProperty) {
+        imageview(taskProgress.javaFxImage) {
             fitHeight = 120.0
             isPreserveRatio = true
-            showWhen { taskProgress.javaFxImageProperty.isNotNull }
+            showWhen { taskProgress.javaFxImage.isNotNull }
         }
     }
 
@@ -122,7 +123,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
         override val title = state("")
 
         override val image = state<Image?>(null)
-        val javaFxImageProperty = image.property.map { it?.image }
+        val javaFxImage = image.property.binding { it?.image }
 
         override val message = state("")
         override val processedItems = state(0)

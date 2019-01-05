@@ -16,10 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.combineLatest
-import com.gitlab.ykrasik.gamedex.javafx.map
-import com.gitlab.ykrasik.gamedex.javafx.minusButton
-import com.gitlab.ykrasik.gamedex.javafx.plusButton
+import com.gitlab.ykrasik.gamedex.javafx.binding
+import com.gitlab.ykrasik.gamedex.javafx.forEachWith
+import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.asPercent
 import com.gitlab.ykrasik.gamedex.util.roundBy
@@ -27,7 +28,10 @@ import com.jfoenix.controls.JFXSlider
 import javafx.beans.property.Property
 import javafx.event.EventTarget
 import javafx.geometry.Orientation
-import tornadofx.*
+import tornadofx.action
+import tornadofx.label
+import tornadofx.opcr
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
@@ -57,13 +61,12 @@ inline fun EventTarget.jfxSlider(
     this.value = property.value.toDouble()
 
     var ignoreNextValueChange = false
-    property.onChange {
+    property.typeSafeOnChange {
         if (!ignoreNextValueChange) {
-            this.value = it!!.toDouble()
+            this.value = it.toDouble()
         }
     }
-    valueProperty().combineLatest(valueChangingProperty()).onChange {
-        val (currentValue, changing) = it!!
+    valueProperty().forEachWith(valueChangingProperty()) { currentValue, changing ->
         if (!changing || !conflateValueChanges) {
             ignoreNextValueChange = true
             property.value = valueProcess(currentValue)
@@ -100,7 +103,7 @@ inline fun EventTarget.plusMinusSlider(
     val plusButton = plusButton()
 
     with(minusButton) {
-        enableWhen(slider.valueProperty().map { value ->
+        enableWhen(slider.valueProperty().binding { value ->
             Try<Any> {
                 check(value!!.toDouble() - step >= min.toDouble()) { "Limit reached!" }
             }
@@ -109,7 +112,7 @@ inline fun EventTarget.plusMinusSlider(
     }
 
     with(plusButton) {
-        enableWhen(slider.valueProperty().map { value ->
+        enableWhen(slider.valueProperty().binding { value ->
             Try<Any> {
                 check(value!!.toDouble() + step <= max.toDouble()) { "Limit reached!" }
             }

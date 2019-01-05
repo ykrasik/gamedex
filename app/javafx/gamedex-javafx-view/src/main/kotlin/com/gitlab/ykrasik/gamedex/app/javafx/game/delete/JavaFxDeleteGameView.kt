@@ -39,7 +39,7 @@ class JavaFxDeleteGameView : ConfirmationWindow(icon = Icons.delete), DeleteGame
     override val fromFileSystem = userMutableState(false)
 
     init {
-        titleProperty.bind(gameProperty.stringBinding { "Delete Game '${it!!.name}'?" })
+        titleProperty.bind(gameProperty.stringBinding { "Delete '${it!!.name}'?" })
         register()
     }
 

@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.nowTimestamp
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.slf4j.Logger
@@ -40,9 +39,9 @@ import javax.inject.Singleton
 class IgdbProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
     private val log = logger()
 
-    override fun search(name: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
-        val results = log.logResult("[$platform] Search '$name'...", { results -> "${results.size} results." }, Logger::debug) {
-            client.search(name, platform, account as IgdbUserAccount).toProviderSearchResults(name, platform)
+    override fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
+        val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
+            client.search(query, platform, account as IgdbUserAccount).toProviderSearchResults(query, platform)
         }
         results.forEach { log.trace(it.toString()) }
         return results
@@ -70,7 +69,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     )
 
     override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData =
-        log.logResult("[$platform] Download $apiUrl...", log = Logger::debug) {
+        log.logResult("[$platform] Downloading $apiUrl...", log = Logger::debug) {
             client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(apiUrl, platform)
         }
 
@@ -78,7 +77,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         header = ProviderHeader(
             id = id,
             apiUrl = apiUrl,
-            timestamp = nowTimestamp
+            timestamp = Timestamp.now
         ),
         gameData = GameData(
             siteUrl = this.url,
@@ -137,7 +136,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
 
     override val id = "Igdb"
     override val logo = getResourceAsByteArray("igdb.png")
-    override val supportedPlatforms = Platform.values().toList()
+    override val supportedPlatforms = Platform.realPlatforms
     override val defaultOrder = config.defaultOrder
     override val accountFeature = object : ProviderUserAccountFeature {
         override val accountUrl = config.accountUrl

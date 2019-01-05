@@ -16,26 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.javafx
 
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.javafx.control.PopOverContent
-import com.gitlab.ykrasik.gamedex.javafx.control.buttonWithPopover
-import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.util.browse
-import com.jfoenix.controls.JFXButton
-import javafx.beans.value.ObservableValue
-import javafx.event.EventTarget
-import javafx.geometry.Pos
-import javafx.scene.Node
-import javafx.scene.control.Label
-import javafx.scene.layout.StackPane
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
-import org.controlsfx.control.PopOver
 import org.kordamp.ikonli.Ikon
 import org.kordamp.ikonli.javafx.FontIcon
 import org.kordamp.ikonli.materialdesign.MaterialDesign
-import tornadofx.*
-import java.io.File
 
 /**
  * User: ykrasik
@@ -43,43 +29,42 @@ import java.io.File
  * Time: 18:42
  */
 object Icons {
-    private val red = Color.DARKRED.brighter()
-    private val green = Color.DARKGREEN
-    private val orange = Color.ORANGE.darker()
-    private val blue = Color.CORNFLOWERBLUE
-
     val menu get() = fontIcon(MaterialDesign.MDI_MENU)
-    val games get() = fontIcon(MaterialDesign.MDI_GAMEPAD_VARIANT, color = red)
+    val games get() = fontIcon(MaterialDesign.MDI_GAMEPAD_VARIANT, color = Colors.red)
     val chart get() = fontIcon(MaterialDesign.MDI_CHART_BAR, color = Color.DARKBLUE)
     val book get() = fontIcon(MaterialDesign.MDI_BOOK_OPEN_OUTLINE, color = Color.BROWN)
-    val hdd get() = fontIcon(MaterialDesign.MDI_HARDDISK, color = green)
+    val hdd get() = fontIcon(MaterialDesign.MDI_HARDDISK, color = Colors.green)
     val settings get() = fontIcon(MaterialDesign.MDI_SETTINGS, color = Color.GRAY)
     val wrench get() = fontIcon(MaterialDesign.MDI_WRENCH, color = Color.GRAY)
     val display get() = fontIcon(MaterialDesign.MDI_MONITOR_DASHBOARD, color = Color.DARKBLUE)
     val grid get() = fontIcon(MaterialDesign.MDI_GRID)
     val quit get() = fontIcon(MaterialDesign.MDI_LOGOUT)
 
-    val accept get() = fontIcon(MaterialDesign.MDI_CHECK_CIRCLE, color = green)
-    val cancel get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = red)
-    val close get() = fontIcon(MaterialDesign.MDI_CLOSE, color = red)
-    val closeCircle get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = red)
-    val stop get() = fontIcon(MaterialDesign.MDI_STOP, color = red)
-    val redo get() = fontIcon(MaterialDesign.MDI_REDO, color = orange)
+    val accept get() = fontIcon(MaterialDesign.MDI_CHECK_CIRCLE, color = Colors.green)
+    val cancel get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = Colors.red)
+    val close get() = fontIcon(MaterialDesign.MDI_CLOSE, color = Colors.red)
+    val closeCircle get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE, color = Colors.red)
+    val stop get() = fontIcon(MaterialDesign.MDI_STOP, color = Colors.red)
+    val redo get() = fontIcon(MaterialDesign.MDI_REDO, color = Colors.orange)
     val clear get() = fontIcon(MaterialDesign.MDI_CLOSE_CIRCLE_OUTLINE)
     val resetToDefault get() = fontIcon(MaterialDesign.MDI_RESTORE)
     val dots get() = fontIcon(MaterialDesign.MDI_DOTS_VERTICAL)
 
-    val check get() = fontIcon(MaterialDesign.MDI_CHECK, color = green)
-    val valid get() = fontIcon(MaterialDesign.MDI_SHIELD_CHECK, color = green)
-    val invalid get() = fontIcon(MaterialDesign.MDI_SHIELD_OFF, color = red)
-    val unverified get() = fontIcon(MaterialDesign.MDI_SHIELD_OUTLINE, color = orange)
-    val excluded get() = fontIcon(MaterialDesign.MDI_CLOSE_OUTLINE, color = red)
-    val checked get() = fontIcon(MaterialDesign.MDI_CHECKBOX_MARKED_OUTLINE, color = green)
-    val checkX get() = fontIcon(MaterialDesign.MDI_CLOSE_BOX_OUTLINE, color = red)
+    val check get() = fontIcon(MaterialDesign.MDI_CHECK, color = Colors.green)
+    val valid get() = fontIcon(MaterialDesign.MDI_SHIELD_CHECK, color = Colors.green)
+    val invalid get() = fontIcon(MaterialDesign.MDI_SHIELD_OFF, color = Colors.red)
+    val unverified get() = fontIcon(MaterialDesign.MDI_SHIELD_OUTLINE, color = Colors.orange)
+    val excluded get() = fontIcon(MaterialDesign.MDI_CLOSE_OUTLINE, color = Colors.red)
+    val checked get() = fontIcon(MaterialDesign.MDI_CHECKBOX_MARKED_OUTLINE, color = Colors.green)
+    val checkX get() = fontIcon(MaterialDesign.MDI_CLOSE_BOX_OUTLINE, color = Colors.red)
 
-    val add get() = fontIcon(MaterialDesign.MDI_PLUS_CIRCLE, color = green)
-    val plus get() = fontIcon(MaterialDesign.MDI_PLUS, color = green)
-    val minus get() = fontIcon(MaterialDesign.MDI_MINUS, color = red)
+    val add get() = fontIcon(MaterialDesign.MDI_PLUS_CIRCLE, color = Colors.green)
+    val plus get() = fontIcon(MaterialDesign.MDI_PLUS, color = Colors.green)
+    val minus get() = fontIcon(MaterialDesign.MDI_MINUS, color = Colors.red)
+    val expand get() = fontIcon(MaterialDesign.MDI_ARROW_EXPAND_VERTICAL)
+    val collapse get() = fontIcon(MaterialDesign.MDI_ARROW_COLLAPSE_VERTICAL)
+    val unfoldMore get() = fontIcon(MaterialDesign.MDI_UNFOLD_MORE_HORIZONTAL)
+    val unfoldLess get() = fontIcon(MaterialDesign.MDI_UNFOLD_LESS_HORIZONTAL)
     val arrowLeft get() = fontIcon(MaterialDesign.MDI_ARROW_LEFT)
     val arrowRight get() = fontIcon(MaterialDesign.MDI_ARROW_RIGHT)
     val chevronRight get() = fontIcon(MaterialDesign.MDI_CHEVRON_RIGHT)
@@ -96,16 +81,16 @@ object Icons {
 
     val view get() = fontIcon(MaterialDesign.MDI_EYE_OUTLINE)
     val details get() = fontIcon(MaterialDesign.MDI_FILE_FIND_OUTLINE)
-    val edit get() = fontIcon(MaterialDesign.MDI_PENCIL, color = orange)
-    val delete get() = fontIcon(MaterialDesign.MDI_DELETE_FOREVER, color = red)
-    val deleteSolid get() = fontIcon(MaterialDesign.MDI_DELETE, color = red)
+    val edit get() = fontIcon(MaterialDesign.MDI_PENCIL, color = Colors.orange)
+    val delete get() = fontIcon(MaterialDesign.MDI_DELETE_FOREVER, color = Colors.red)
+    val deleteSolid get() = fontIcon(MaterialDesign.MDI_DELETE, color = Colors.red)
 
     val tag get() = fontIcon(MaterialDesign.MDI_TAG, color = Color.BLUEVIOLET)
-    val search get() = fontIcon(MaterialDesign.MDI_MAGNIFY, color = blue)
-    val sync get() = fontIcon(MaterialDesign.MDI_SYNC, color = green)
+    val search get() = fontIcon(MaterialDesign.MDI_MAGNIFY, color = Colors.blue)
+    val sync get() = fontIcon(MaterialDesign.MDI_SYNC, color = Colors.green)
 
     val text get() = fontIcon(MaterialDesign.MDI_FORMAT_COLOR_TEXT)
-    val enterText get() = fontIcon(MaterialDesign.MDI_RENAME_BOX, color = orange)
+    val enterText get() = fontIcon(MaterialDesign.MDI_RENAME_BOX, color = Colors.orange)
     val textbox get() = fontIcon(MaterialDesign.MDI_TEXTBOX)
     val documents get() = fontIcon(MaterialDesign.MDI_BOOK_MULTIPLE_VARIANT)
     val date get() = fontIcon(MaterialDesign.MDI_CALENDAR)
@@ -120,9 +105,10 @@ object Icons {
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER)
-    val folderEdit get() = fontIcon(MaterialDesign.MDI_FOLDER_EDIT, color = orange)
-    val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE, color = red)
+    val folderEdit get() = fontIcon(MaterialDesign.MDI_FOLDER_EDIT, color = Colors.orange)
+    val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE, color = Colors.red)
     val folderOpen get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN)
+    val folderSync get() = fontIcon(MaterialDesign.MDI_FOLDER_SYNC_OUTLINE)
     val folderSearch get() = fontIcon(MaterialDesign.MDI_FOLDER_SEARCH_OUTLINE)
     val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
     val fileQuestion get() = fontIcon(MaterialDesign.MDI_FILE_QUESTION)
@@ -138,15 +124,7 @@ object Icons {
     val history get() = fontIcon(MaterialDesign.MDI_HISTORY)
     val clockStart get() = fontIcon(MaterialDesign.MDI_CLOCK_START)
     val clockEnd get() = fontIcon(MaterialDesign.MDI_CLOCK_END)
-    val databaseCleanup
-        get() = StackPane().apply {
-            add(Icons.database)
-            add(Icons.deleteSolid.apply {
-                size(15)
-                color(Color.ORANGERED)
-                stackpaneConstraints { alignment = Pos.BOTTOM_RIGHT }
-            })
-        }
+    val databaseCleanup get() = fontIcon(MaterialDesign.MDI_DATABASE_REMOVE)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)
@@ -155,9 +133,9 @@ object Icons {
 
     val information get() = fontIcon(MaterialDesign.MDI_INFORMATION, color = Color.CADETBLUE)
     val question get() = fontIcon(MaterialDesign.MDI_HELP_CIRCLE_OUTLINE, color = Color.YELLOWGREEN)
-    val warning get() = fontIcon(MaterialDesign.MDI_ALERT_OUTLINE, color = Color.ORANGE)
+    val warning get() = fontIcon(MaterialDesign.MDI_ALERT_OUTLINE, color = Colors.orange)
     val error get() = fontIcon(MaterialDesign.MDI_CLOSE_BOX_OUTLINE, color = Color.INDIANRED)
-    val exclamation get() = fontIcon(MaterialDesign.MDI_EXCLAMATION, color = Color.RED)
+    val exclamation get() = fontIcon(MaterialDesign.MDI_EXCLAMATION, color = Colors.red)
     val or get() = fontIcon(MaterialDesign.MDI_GATE_OR)
     val and get() = fontIcon(MaterialDesign.MDI_GATE_AND)
     val validationError get() = warning.color(Color.RED)
@@ -179,134 +157,10 @@ object Icons {
     val logTrace get() = fontIcon(MaterialDesign.MDI_ALPHA_T_BOX, color = Color.LIGHTGRAY)
     val logDebug get() = fontIcon(MaterialDesign.MDI_ALPHA_D_BOX, color = Color.GRAY)
     val logInfo get() = fontIcon(MaterialDesign.MDI_ALPHA_I_BOX)
-    val logWarn get() = fontIcon(MaterialDesign.MDI_ALPHA_W_BOX, color = orange)
-    val logError get() = fontIcon(MaterialDesign.MDI_ALPHA_E_BOX, color = red)
+    val logWarn get() = fontIcon(MaterialDesign.MDI_ALPHA_W_BOX, color = Colors.orange)
+    val logError get() = fontIcon(MaterialDesign.MDI_ALPHA_E_BOX, color = Colors.red)
 }
 
 fun fontIcon(icon: Ikon, color: Paint = Color.BLACK): FontIcon = FontIcon.of(icon, 30).color(color)
 fun FontIcon.color(color: Paint): FontIcon = apply { iconColor = color }
 fun FontIcon.size(size: Int): FontIcon = apply { iconSize = size }
-
-inline fun EventTarget.toolbarButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    jfxButton(text, graphic) {
-        addClass(CommonStyle.toolbarButton)
-        op()
-    }
-
-inline fun EventTarget.confirmButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, graphic) {
-        addClass(CommonStyle.confirmButton)
-        op()
-    }
-
-inline fun EventTarget.warningButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, graphic) {
-        addClass(CommonStyle.warningButton)
-        op()
-    }
-
-inline fun EventTarget.dangerButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, graphic) {
-        addClass(CommonStyle.dangerButton)
-        op()
-    }
-
-inline fun EventTarget.infoButton(text: String? = null, graphic: Node? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, graphic) {
-        addClass(CommonStyle.infoButton)
-        op()
-    }
-
-inline fun EventTarget.acceptButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    confirmButton(text, Icons.accept) {
-        isDefaultButton = true
-        tooltip("Accept")
-        op()
-    }
-
-inline fun EventTarget.cancelButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    dangerButton(text, Icons.cancel) {
-        isCancelButton = true
-        tooltip("Cancel")
-        op()
-    }
-
-inline fun EventTarget.backButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, Icons.arrowLeft) {
-        isCancelButton = true
-        tooltip("Back")
-        op()
-    }
-
-inline fun EventTarget.resetToDefaultButton(text: String? = "Reset to Default", crossinline op: JFXButton.() -> Unit = {}) =
-    warningButton(text, Icons.resetToDefault) {
-        tooltip("Reset to Default")
-        op()
-    }
-
-inline fun EventTarget.addButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    confirmButton(text, Icons.add) {
-        tooltip("Add")
-        op()
-    }
-
-inline fun EventTarget.deleteButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    dangerButton(text, Icons.delete) {
-        tooltip("Delete")
-        op()
-    }
-
-inline fun EventTarget.plusButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    confirmButton(text, Icons.plus.size(22)) {
-        removeClass(CommonStyle.toolbarButton)
-        op()
-    }
-
-inline fun EventTarget.minusButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    dangerButton(text, Icons.minus.size(22)) {
-        removeClass(CommonStyle.toolbarButton)
-        op()
-    }
-
-inline fun EventTarget.excludeButton(text: String = "Exclude", crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, Icons.warning) {
-        addClass(CommonStyle.warningButton)
-        tooltip(text)
-        op()
-    }
-
-inline fun EventTarget.editButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
-    toolbarButton(text, Icons.edit, op)
-
-inline fun EventTarget.syncButton(text: String, crossinline op: JFXButton.() -> Unit = {}) =
-    infoButton(text, Icons.sync, op)
-
-inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) = buttonWithPopover(
-    graphic = Icons.dots,
-    arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
-    op = op
-)
-
-val Platform.logo
-    get() = when (this) {
-        Platform.pc -> Icons.windows
-        Platform.android -> Icons.android
-        Platform.mac -> Icons.apple
-        Platform.excluded -> Icons.folderRemove
-        else -> kotlin.error("Unknown platform: $this")
-    }.size(26)
-
-@Deprecated("Delegate to presenter for this.")
-inline fun EventTarget.pathButton(path: File, op: JFXButton.() -> Unit = {}) = jfxButton(path.path) {
-    isFocusTraversable = false
-    action { browse(path) }
-    op(this)
-}
-
-inline fun EventTarget.header(text: String, crossinline op: Label.() -> Unit = {}) = header(text.toProperty(), op)
-inline fun EventTarget.header(textProperty: ObservableValue<String>, crossinline op: Label.() -> Unit = {}) = label(textProperty) {
-    addClass(CommonStyle.headerLabel)
-    op(this)
-}
-
-fun Any?.toDisplayString() = this?.toString() ?: "NA"

@@ -58,7 +58,6 @@ class EditGamePresenter @Inject constructor(
             )
         }
 
-        private var canAccept by view.canAccept
         private lateinit var gameWithoutOverrides: Game
 
         init {
@@ -66,7 +65,7 @@ class EditGamePresenter @Inject constructor(
 
             allOverrides.forEach { it.initState() }
 
-            canAccept = IsValid.invalid("Nothing changed!")
+            view.canAccept *= IsValid.invalid("Nothing changed!")
 
             view.acceptActions.forEach { onAccept() }
             view.resetAllToDefaultActions.forEach { onResetAllToDefault() }
@@ -82,14 +81,14 @@ class EditGamePresenter @Inject constructor(
 
         private fun <T> GameDataOverrideState<T>.onSelectionChanged(selection: OverrideSelectionType?) {
             if (selection is OverrideSelectionType.Custom) {
-                check(canSelectCustomOverride.value.isSuccess) { "Selecting custom value not allowed!" }
+                canSelectCustomOverride.assert()
             }
 
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            canAccept = IsValid {
+            view.canAccept *= IsValid {
                 val updatedGame = gameService.buildGame(calcUpdatedGame())
                 check(updatedGame.gameData != view.game.gameData) { "Nothing changed!" }
             }
@@ -99,7 +98,7 @@ class EditGamePresenter @Inject constructor(
             isCustomValueValid *= IsValid {
                 if (rawValue.isEmpty()) error("Empty value!")
                 try {
-                    rawValue.deserializeCustom<Any>(type)
+                    type.deserializeCustomValue<Any>(rawValue)
                 } catch (_: Exception) {
                     error("Invalid $type!")
                 }
@@ -107,8 +106,8 @@ class EditGamePresenter @Inject constructor(
         }
 
         private fun <T> GameDataOverrideState<T>.onCustomValueAccepted() {
-            check(isCustomValueValid.value.isSuccess) { "Invalid custom $type!" }
-            customValue *= rawCustomValue.value.deserializeCustom<T>(type)
+            isCustomValueValid.assert()
+            customValue *= type.deserializeCustomValue(rawCustomValue.value)
             canSelectCustomOverride *= IsValid.valid
             selection *= OverrideSelectionType.Custom
             onSelectionChanged(selection.value)
@@ -128,7 +127,7 @@ class EditGamePresenter @Inject constructor(
         override fun onShow() {
             allOverrides.forEach { it.initStateOnShow() }
 
-            gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = null))
+            gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = UserData.Null))
 
             view.canAccept *= IsValid.invalid("Nothing changed!")
         }
@@ -139,12 +138,12 @@ class EditGamePresenter @Inject constructor(
                 .mapNotNull { type.extractValue<T>(it.gameData)?.let { value -> it.header.id to value } }
                 .toMap()
 
-            val currentOverride = (view.game.rawGame.userData?.overrides ?: emptyMap())[type]
+            val currentOverride = view.game.rawGame.userData.overrides[type]
             when (currentOverride) {
                 is GameDataOverride.Custom -> {
                     selection *= OverrideSelectionType.Custom
                     canSelectCustomOverride *= IsValid.valid
-                    rawCustomValue *= currentOverride.value.serializeCustom(type)
+                    rawCustomValue *= type.serializeCustomValue(currentOverride.value)
                     customValue *= currentOverride.value as T
                     isCustomValueValid *= IsValid.valid
                 }
@@ -179,26 +178,30 @@ class EditGamePresenter @Inject constructor(
         }
 
         @Suppress("UNCHECKED_CAST")
-        private fun <T> String.deserializeCustom(type: GameDataType): T = when (type) {
-            GameDataType.criticScore, GameDataType.userScore -> Score(this.toDouble(), numReviews = 0)
+        private fun <T> GameDataType.deserializeCustomValue(value: String): T = when (this) {
+            GameDataType.criticScore, GameDataType.userScore -> {
+                val score = value.toDouble()
+                check(score in 0.0..100.0) { "Must be in range [0, 100]!" }
+                Score(score, numReviews = 0)
+            }
             GameDataType.releaseDate -> {
-                LocalDate.parse(this)
-                this
+                LocalDate.parse(value)
+                value
             }
             GameDataType.thumbnail, GameDataType.poster -> {
-                URL(this)
-                this
+                URL(value)
+                value
             }
-            else -> this
+            else -> value
         } as T
 
-        private fun Any.serializeCustom(type: GameDataType): String = when (type) {
-            GameDataType.criticScore, GameDataType.userScore -> (this as Score).score.toString()
-            else -> this as String
+        private fun GameDataType.serializeCustomValue(value: Any): String = when (this) {
+            GameDataType.criticScore, GameDataType.userScore -> (value as Score).score.toString()
+            else -> value as String
         }
 
         private suspend fun onAccept() {
-            check(canAccept.isSuccess) { "Cannot accept!" }
+            view.canAccept.assert()
             val newRawGame = calcUpdatedGame()
             taskService.execute(gameService.replace(view.game, newRawGame))
             finished()
@@ -230,7 +233,7 @@ class EditGamePresenter @Inject constructor(
                 }
             }.toMap()
 
-            val userData = (view.game.rawGame.userData ?: UserData()).copy(overrides = overrides)
+            val userData = view.game.rawGame.userData.copy(overrides = overrides)
             return view.game.rawGame.copy(userData = userData)
         }
     }

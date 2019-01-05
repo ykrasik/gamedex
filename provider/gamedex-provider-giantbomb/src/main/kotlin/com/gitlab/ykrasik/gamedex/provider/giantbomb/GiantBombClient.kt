@@ -39,12 +39,12 @@ import javax.inject.Singleton
 open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
+    open fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
         endpoint = config.baseUrl,
         account = account,
-        messagePrefix = "Search [$platform] '$name'",
+        initialMessage = "Searching [$platform] '$query'...",
         params = mapOf(
-            "filter" to "name:$name,platforms:${platform.id}",
+            "filter" to "name:$query,platforms:${platform.id}",
             "field_list" to searchFieldsStr
         )
     )
@@ -52,16 +52,17 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     open fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
         endpoint = apiUrl,
         account = account,
-        messagePrefix = "Fetch '$apiUrl'",
+        initialMessage = "Fetching '$apiUrl'...",
         params = mapOf("field_list" to fetchDetailsFieldsStr)
     )
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
-    private inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, messagePrefix: String, params: Map<String, String>): T {
+    private inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, initialMessage: String, params: Map<String, String>): T {
+        log.trace(initialMessage)
         val response = khttp.get(endpoint, params = params + mapOf("api_key" to account.apiKey, "format" to "json"))
         val text = response.text
-        val message = "$messagePrefix: [${response.statusCode}] $text"
+        val message = "$initialMessage Done: [${response.statusCode}] $text"
         log.trace(message)
         return if (response.isSuccess) {
             text.fromJson()

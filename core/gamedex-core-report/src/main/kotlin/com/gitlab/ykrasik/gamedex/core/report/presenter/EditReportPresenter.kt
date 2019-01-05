@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.filter.isEqual
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -79,10 +80,9 @@ class EditReportPresenter @Inject constructor(
 
         private fun setCanAccept() {
             view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(IsValid {
-                check(view.filter.value != view.report?.filter ||
+                check(!view.filter.value.isEqual(view.report?.filter) ||
                     view.name.value != view.report?.name ||
                     view.excludedGames.map { it.id } != view.report?.excludedGames) { "Nothing changed!" }
-                check(view.filter.value !is Filter.True) { "Please select a condition!"}
             })
         }
 
@@ -92,7 +92,7 @@ class EditReportPresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.value.isSuccess) { "Cannot accept invalid state!" }
+            view.canAccept.assert()
             val newReportData = ReportData(
                 name = view.name.value,
                 filter = view.filter.value,

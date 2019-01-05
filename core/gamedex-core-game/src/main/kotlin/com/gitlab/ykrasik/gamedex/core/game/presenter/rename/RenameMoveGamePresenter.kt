@@ -52,7 +52,7 @@ class RenameMoveGamePresenter @Inject constructor(
         private var name by view.name
 
         init {
-            commonData.realLibraries.bindTo(view.possibleLibraries)
+            commonData.realLibraries.bind(view.possibleLibraries)
             view.library.forEach { validate() }
             view.path.forEach { validate() }
             view.name.forEach { validate() }
@@ -116,7 +116,7 @@ class RenameMoveGamePresenter @Inject constructor(
         }
 
         private suspend fun onAccept() {
-            check(view.canAccept.value.isSuccess) { "Cannot accept invalid state!" }
+            view.canAccept.assert()
             val game = view.game
             val newPath = path.toFile().resolve(name)
             val fullPath = library.path.resolve(newPath)

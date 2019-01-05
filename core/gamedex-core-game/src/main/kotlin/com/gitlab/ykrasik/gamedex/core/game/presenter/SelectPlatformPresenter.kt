@@ -36,7 +36,7 @@ class SelectPlatformPresenter @Inject constructor(
 ) : Presenter<ViewCanSelectPlatform> {
     override fun present(view: ViewCanSelectPlatform) = object : ViewSession() {
         init {
-            commonData.platformsWithLibraries.bindTo(view.availablePlatforms)
+            commonData.platformsWithLibraries.bind(view.availablePlatforms)
             settingsService.game.bind({ platformChannel }, view.currentPlatform) { copy(platform = it) }
         }
     }

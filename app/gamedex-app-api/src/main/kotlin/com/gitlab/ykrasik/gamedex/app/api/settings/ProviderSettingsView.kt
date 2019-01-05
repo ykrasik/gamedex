@@ -30,6 +30,8 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface ProviderSettingsView {
     val provider: GameProvider
 
+    val canChangeProviderSettings: State<IsValid>
+
     val status: State<ProviderAccountStatus>
     val enabled: UserMutableState<Boolean>
 

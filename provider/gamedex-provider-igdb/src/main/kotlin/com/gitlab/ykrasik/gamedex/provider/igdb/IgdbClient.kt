@@ -35,12 +35,12 @@ import javax.inject.Singleton
 open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     private val log = logger()
 
-    open fun search(name: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
+    open fun search(query: String, platform: Platform, account: IgdbUserAccount): List<SearchResult> = get(
         endpoint = "${config.baseUrl}/",
         account = account,
-        messagePrefix = "[$platform] Search '$name'",
+        initialMessage = "[$platform] Searching '$query'...",
         params = mapOf(
-            "search" to name,
+            "search" to query,
             "filter[release_dates.platform][eq]" to platform.id.toString(),
             "limit" to config.maxSearchResults.toString(),
             "fields" to searchFieldsStr
@@ -50,7 +50,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     open fun fetch(apiUrl: String, account: IgdbUserAccount): DetailsResult = get<DetailsResult>(
         endpoint = apiUrl,
         account = account,
-        messagePrefix = "Fetch '$apiUrl'",
+        initialMessage = "Fetching '$apiUrl'...",
         params = mapOf("fields" to fetchDetailsFieldsStr)
     ) {
         // IGDB returns a list, even though we're fetching by id :/
@@ -58,10 +58,11 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
         return result.firstOrNull() ?: throw IllegalStateException("Fetch '$apiUrl': Not Found!")
     }
 
-    private inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, messagePrefix: String, params: Map<String, String>, transform: (String) -> T): T {
+    private inline fun <reified T : Any> get(endpoint: String, account: IgdbUserAccount, initialMessage: String, params: Map<String, String>, transform: (String) -> T): T {
+        log.trace(initialMessage)
         val response = khttp.get(endpoint, params = params, headers = mapOf("Accept" to "application/json", "user-key" to account.apiKey))
         val text = response.text
-        val message = "$messagePrefix: [${response.statusCode}] $text"
+        val message = "$initialMessage Done: [${response.statusCode}] $text"
         log.trace(message)
         return if (response.isSuccess) {
             transform(text)

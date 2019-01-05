@@ -24,12 +24,13 @@ import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -68,13 +69,13 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
     override val fetchThumbnailRequests = channel<FetchThumbnailRequest>()
 
     // TODO: Consider representing this as a CustomProvider in the UserData
-    override var nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.name_, Icons.text)
-    override var descriptionOverride = JavaFxGameDataOverrideState<String>(GameDataType.description, Icons.textbox)
-    override var releaseDateOverride = JavaFxGameDataOverrideState<String>(GameDataType.releaseDate, Icons.date)
-    override var criticScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.criticScore, Icons.starFull)
-    override var userScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.userScore, Icons.starEmpty)
-    override var thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.thumbnail, Icons.thumbnail)
-    override var posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.poster, Icons.poster)
+    override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.name_, Icons.text)
+    override val descriptionOverride = JavaFxGameDataOverrideState<String>(GameDataType.description, Icons.textbox)
+    override val releaseDateOverride = JavaFxGameDataOverrideState<String>(GameDataType.releaseDate, Icons.date)
+    override val criticScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.criticScore, Icons.starFull)
+    override val userScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.userScore, Icons.starEmpty)
+    override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.thumbnail, Icons.thumbnail)
+    override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.poster, Icons.poster)
 
     override val resetAllToDefaultActions = channel<Unit>()
 
@@ -101,8 +102,13 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
     override val root = borderpane {
         top = confirmationToolbar {
             gap()
-            resetToDefaultButton("Reset all to Default") { eventOnAction(resetAllToDefaultActions) }
-            spacer()
+            centeredWindowHeader {
+                resetToDefaultButton("Reset all to Default") {
+                    action(resetAllToDefaultActions)
+                    stackpaneConstraints { alignment = Pos.CENTER_LEFT }
+                }
+            }
+            gap()
         }
         left = vbox(spacing = 5) {
             paddingAll = 5
@@ -146,34 +152,35 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
                         resetToDefaultButton {
                             alignment = Pos.CENTER_LEFT
                             addClass(Style.textData)
-                            eventOnAction(state.resetToDefaultActions)
+                            action(state.resetToDefaultActions)
                         }
                     }
 
                     // Custom
                     defaultHbox {
+                        errorTooltip(state.canSelectCustomOverride.errorText())
                         jfxToggleNode(group = toggleGroup) {
                             useMaxWidth = true
                             hgrow = Priority.ALWAYS
-                            enableWhen { state.canSelectCustomOverride.property.booleanBinding { it?.isSuccess ?: false } }
+                            enableWhen(state.canSelectCustomOverride, wrapInErrorTooltip = false)
 
                             graphic = defaultHbox {
                                 paddingAll = 10
                                 text("Custom") { addClass(Style.textData) }
                                 gap(size = 40)
-                                dataDisplay(state.customValue.property.map { it ?: defaultValue })
+                                dataDisplay(state.customValue.property.binding { it ?: defaultValue })
                             }
                             toggleValue(OverrideSelectionType.Custom)
                         }
                         buttonWithPopover(graphic = Icons.enterText, closeOnClick = false) {
                             defaultHbox {
-                                jfxTextField(state.rawCustomValue.property, promptText = "Custom ${state.type.displayName}") {
+                                jfxTextField(state.rawCustomValue.property, promptText = "Enter ${state.type}...") {
                                     minWidth = 300.0
                                     validWhen(state.isCustomValueValid)
                                 }
                                 cancelButton {
                                     removeClass(CommonStyle.toolbarButton)
-                                    eventOnAction(state.customValueRejectActions) {
+                                    action(state.customValueRejectActions) {
                                         popOver.hide()
                                     }
                                 }
@@ -191,14 +198,14 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
 
                     // Existing provider data
                     providerLogos.forEach { providerId, logo ->
-                        val providerValueProperty = state.providerValues.property.map { it!![providerId] }
+                        val providerValueProperty = state.providerValues.property.binding { it[providerId] }
                         jfxToggleNode(group = toggleGroup) {
                             useMaxWidth = true
                             visibleWhen { providerValueProperty.isNotNull }
                             graphic = defaultHbox(spacing = 10) {
                                 paddingAll = 10
                                 children += logo.image.toImageView(height = 120, width = 100)
-                                dataDisplay(providerValueProperty.map { it ?: defaultValue })
+                                dataDisplay(providerValueProperty.binding { it ?: defaultValue })
                             }
                             toggleValue(OverrideSelectionType.Provider(providerId))
                         }
@@ -222,7 +229,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
         isPreserveRatio = true
         imageProperty().bind(url.flatMap { url ->
             imageLoader.loadImage {
-                if (url.isNullOrEmpty()) {
+                if (url.isEmpty()) {
                     null
                 } else {
                     val response = CompletableDeferred<Deferred<Image>>()

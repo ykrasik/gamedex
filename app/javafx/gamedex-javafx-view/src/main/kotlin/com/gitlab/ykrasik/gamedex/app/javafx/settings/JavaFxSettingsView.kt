@@ -17,22 +17,26 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.image.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
+import com.gitlab.ykrasik.gamedex.javafx.callOnDock
+import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.resetToDefaultButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.jfoenix.controls.JFXSlider
 import com.jfoenix.controls.JFXToggleNode
-import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.control.Tab
-import javafx.scene.control.Toggle
 import tornadofx.*
 
 /**
@@ -59,8 +63,6 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     override val mutableMetaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val mutableVersionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    private var selectedToggleProperty: ReadOnlyObjectProperty<Toggle> by singleAssign()
-
     private val viewProperty = "view"
     private val tabProperty = "tab"
 
@@ -81,35 +83,44 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
 
     override val root = borderpane {
 //        prefHeight = screenBounds.height / 2
-        prefWidth = 800.0
+        prefWidth = 1000.0
         top = confirmationToolbar {
             gap()
-            resetToDefaultButton { eventOnAction(resetDefaultsActions) }
-            spacer()
-
-            // TODO: This is probably a sucky way of doing this, find a better solution.
-            label("Window Opacity")
-            percentSlider(windowOpacityProperty, min = 0.2, conflateValueChanges = false) {
-                indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
-                tooltip("Hold 'shift' to hide temporarily.")
+            centeredWindowHeader {
+                resetToDefaultButton {
+                    action(resetDefaultsActions)
+                    stackpaneConstraints { alignment = Pos.CENTER_LEFT }
+                }
             }
-
-            spacer()
+            gap()
+//            spacer()
+//
+//            label("Window Opacity")
+//            percentSlider(windowOpacityProperty, min = 0.2, conflateValueChanges = false) {
+//                indicatorPosition = JFXSlider.IndicatorPosition.RIGHT
+//                tooltip("Hold 'shift' to hide temporarily.")
+//            }
+//
+//            spacer()
         }
         left = vbox(spacing = 5) {
             paddingAll = 10
             togglegroup {
-                selectedToggleProperty = selectedToggleProperty()
+                var attemptedDeselection = false
                 selectedToggleProperty().addListener { _, oldValue, newValue ->
                     // Disallow de-selection.
                     if (newValue == null) {
+                        attemptedDeselection = true
                         selectToggle(oldValue)
                     } else {
-                        if (oldValue != null) {
-                            (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
+                        if (!attemptedDeselection) {
+                            if (oldValue != null) {
+                                (oldValue.properties[viewProperty] as UIComponent).callOnUndock()
+                            }
+                            (newValue.properties[viewProperty] as UIComponent).callOnDock()
+                            tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
                         }
-                        (newValue.properties[viewProperty] as UIComponent).callOnDock()
-                        tabPane.selectionModel.select(newValue.properties[tabProperty] as Tab)
+                        attemptedDeselection = false
                     }
                 }
 
@@ -123,14 +134,9 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
                 header("Providers")
                 entry(providerOrderView)
                 providers.forEach { provider ->
-                    val view = JavaFxProviderSettingsView(provider)
-                    val tab = tabPane.tab(view)
-                    jfxToggleNode(provider.id, graphic = providerLogos[provider.id]!!.image.toImageView(height = 36, width = 36)) {
-                        addClass(CommonStyle.toolbarButton)
-                        useMaxWidth = true
-                        properties += viewProperty to view
-                        properties += tabProperty to tab
-                    }
+                    val icon = providerLogos[provider.id]!!.image.toImageView(height = 30, width = 30)
+                    val view = JavaFxProviderSettingsView(provider, icon)
+                    entry(view)
                 }
             }
         }
@@ -153,11 +159,17 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
         }
     }
 
-    private fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) = jfxToggleNode(component.title, component.icon) {
-        useMaxWidth = true
-        properties += viewProperty to component
-        properties += tabProperty to tabPane.tab(component)
-        op()
+    private inline fun Node.entry(component: UIComponent, op: JFXToggleNode.() -> Unit = {}) {
+        val icon = component.icon
+        val tab = tabPane.tab(component)
+        tab.graphic = null
+        jfxToggleNode(component.title, icon) {
+            addClass(CommonStyle.toolbarButton)
+            useMaxWidth = true
+            properties += viewProperty to component
+            properties += tabProperty to tab
+            op()
+        }
     }
 
     override fun confirmResetDefaults() = areYouSureDialog("Reset all settings to default?")

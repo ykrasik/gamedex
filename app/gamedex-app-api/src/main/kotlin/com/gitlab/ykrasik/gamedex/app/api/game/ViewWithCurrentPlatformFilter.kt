@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.game
 
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.util.IsValid
 
 /**
  * User: ykrasik
@@ -26,4 +27,5 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
  */
 interface ViewWithCurrentPlatformFilter {
     val currentPlatformFilter: UserMutableState<Filter>
+    val currentPlatformFilterIsValid: UserMutableState<IsValid>
 }

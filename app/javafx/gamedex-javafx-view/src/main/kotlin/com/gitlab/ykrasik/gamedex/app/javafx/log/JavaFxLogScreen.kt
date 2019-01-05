@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.jfoenix.controls.JFXListCell
 import javafx.scene.input.KeyCombination

@@ -18,7 +18,8 @@ package com.gitlab.ykrasik.gamedex.core.filter.presenter
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.app.api.game.GameFilterView
+import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
+import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -39,8 +40,8 @@ import kotlin.reflect.full.superclasses
 class FilterPresenter @Inject constructor(
     private val commonData: CommonData,
     private val settingsService: SettingsService
-) : Presenter<GameFilterView> {
-    override fun present(view: GameFilterView) = object : ViewSession() {
+) : Presenter<FilterView> {
+    override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules =
             if (view.onlyShowConditionsForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
             else emptyList()
@@ -48,6 +49,7 @@ class FilterPresenter @Inject constructor(
         private val libraries = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformLibraries else commonData.realLibraries
         private val genres = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformGenres else commonData.genres
         private val tags = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformTags else commonData.tags
+        private val providers = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformProviders else commonData.allProviders
 
         private val operators = listOf(
             ConditionBuilder.singleParam<Filter.Not, Filter>(Filter::Not) { Filter.True() },
@@ -84,14 +86,14 @@ class FilterPresenter @Inject constructor(
         private val rulesList = rules.keys.toList()
 
         init {
-            genres.bindTo(view.possibleGenres)
+            genres.bind(view.possibleGenres)
             genres.changesChannel.forEach { setPossibleRules() }
 
-            tags.bindTo(view.possibleTags)
+            tags.bind(view.possibleTags)
             tags.changesChannel.forEach { setPossibleRules() }
 
-            // Providers are a static configuration that can't change during runtime, so no need to listen to changes.
-            view.possibleProviderIds.setAll(commonData.allProviders.map { it.id })
+            providers.mapping { it.id }.bind(view.possibleProviderIds)
+            providers.changesChannel.forEach { setPossibleRules() }
 
             setState()
             libraries.changesChannel.forEach { setState() }
@@ -102,6 +104,7 @@ class FilterPresenter @Inject constructor(
                 settingsService.game.platformChannel.forEach { setState() }
             }
 
+            view.setFilterActions.forEach { setFilter(it) }
             view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(it)) }
             view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(it)) }
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
@@ -150,13 +153,15 @@ class FilterPresenter @Inject constructor(
             }
         }
 
+        private fun setFilter(filter: Filter) = replaceFilter(view.filter.value, filter)
+
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
             val conditionBuilder = when {
                 filter is Filter.BinaryOperator && with.superclasses.first() == Filter.BinaryOperator::class ->
                     @Suppress("UNCHECKED_CAST")
                     newBinaryOperator(from = filter, to = with as KClass<out Filter.BinaryOperator>) { it }
                 filter is Filter.TargetScore && with.superclasses.first() == Filter.TargetScore::class ->
-                    rules[with]!!.withParams(filter.target)
+                    rules[with]!!.withParams(filter.score)
                 filter is Filter.TargetDate && with.superclasses.first() == Filter.TargetDate::class ->
                     rules[with]!!.withParams(filter.date)
                 filter is Filter.PeriodDate && with.superclasses.first() == Filter.PeriodDate::class ->
@@ -179,7 +184,7 @@ class FilterPresenter @Inject constructor(
 
         private fun setIsValid() {
             view.filterIsValid *= IsValid {
-                check(view.filter.value.find(Filter.True::class) == null) { "Please select a condition!" }
+                check(view.filter.value is Filter.True || view.filter.value.find(Filter.True::class) == null) { "Please select a condition!" }
             }
         }
 

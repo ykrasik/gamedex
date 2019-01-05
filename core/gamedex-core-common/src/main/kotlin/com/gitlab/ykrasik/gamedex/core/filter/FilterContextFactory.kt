@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.filter
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,7 +36,9 @@ interface FilterContextFactory {
 
 @Singleton
 class FilterContextFactoryImpl @Inject constructor(
-    private val fileSystemService: FileSystemService
+    private val fileSystemService: FileSystemService,
+    private val gameProviderService: GameProviderService
 ) : FilterContextFactory {
-    override fun create(games: List<Game>): Filter.Context = FilterContextImpl(games, fileSystemService)
+    override fun create(games: List<Game>) =
+        FilterContextImpl(games, fileSystemService, gameProviderService)
 }

@@ -39,7 +39,7 @@ class ShowTagGamePresenter @Inject constructor(
             view.tagGameActions.forEach { game ->
                 val tagGameView = viewManager.showTagGameView(game)
                 eventBus.awaitViewFinished(tagGameView)
-                viewManager.closeTagGameView(tagGameView)
+                viewManager.hide(tagGameView)
             }
         }
     }

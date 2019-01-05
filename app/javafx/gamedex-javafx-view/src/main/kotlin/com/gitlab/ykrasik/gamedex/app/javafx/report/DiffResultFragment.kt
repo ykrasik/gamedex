@@ -20,11 +20,11 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanRenameMoveGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import difflib.Chunk
 import difflib.Delta
@@ -121,7 +121,7 @@ class DiffResultContextMenu : InstallableContextMenu<Pair<Game, Filter.NameDiff.
 
     override val root = vbox {
         jfxButton("Rename to Expected", Icons.folderEdit) {
-            eventOnAction(renameMoveGameActions) { data.first to data.second.expectedName }
+            action(renameMoveGameActions) { data.first to data.second.expectedName }
         }
         // TODO: Add a 'search only this provider' option
     }

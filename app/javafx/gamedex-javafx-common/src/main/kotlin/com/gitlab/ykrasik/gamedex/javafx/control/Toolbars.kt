@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox

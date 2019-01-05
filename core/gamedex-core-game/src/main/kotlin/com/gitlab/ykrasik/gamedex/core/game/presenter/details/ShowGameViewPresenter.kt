@@ -39,7 +39,7 @@ class ShowGameViewPresenter @Inject constructor(
             view.showGameDetailsActions.forEach { game ->
                 val gameView = viewManager.showGameView(game)
                 eventBus.awaitViewFinished(gameView)
-                viewManager.closeGameView(gameView)
+                viewManager.hide(gameView)
             }
         }
     }

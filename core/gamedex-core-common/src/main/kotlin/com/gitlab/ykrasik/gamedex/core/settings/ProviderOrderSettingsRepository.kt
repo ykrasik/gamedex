@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.util.Extractor
  * Date: 24/06/2018
  * Time: 10:36
  */
-class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private val gameProviderRepository: GameProviderRepository) :
+class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, gameProviderRepository: GameProviderRepository) :
     SettingsRepository<ProviderOrderSettingsRepository.Data>() {
     data class Data(
         val search: Order,
@@ -41,6 +41,13 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private v
     )
 
     override val storage = factory("order", Data::class) {
+        fun defaultOrder(extractor: Extractor<ProviderOrderPriorities, Int>) =
+            gameProviderRepository.allProviders
+                .asSequence()
+                .sortedBy { extractor(it.defaultOrder) }
+                .map { it.id }
+                .toList()
+
         Data(
             search = defaultOrder { search },
             name = defaultOrder { name },
@@ -53,9 +60,6 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, private v
             screenshot = defaultOrder { screenshot }
         )
     }
-
-    private inline fun defaultOrder(crossinline extractor: Extractor<ProviderOrderPriorities, Int>) =
-        gameProviderRepository.allProviders.sortedBy { extractor(it.defaultOrder) }.mapIndexed { i, provider -> provider.id to i }.toMap()
 
     val searchChannel = storage.channel(Data::search)
     val search by searchChannel
