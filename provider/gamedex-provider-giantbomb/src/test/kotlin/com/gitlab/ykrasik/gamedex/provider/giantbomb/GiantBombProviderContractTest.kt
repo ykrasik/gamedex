@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.typesafe.config.ConfigFactory
@@ -39,6 +42,7 @@ class GiantBombProviderContractTest : ScopedWordSpec() {
                     ProviderSearchResult(
                         apiUrl = apiUrl,
                         name = name,
+                        description = deck,
                         releaseDate = releaseDate,
                         criticScore = null,
                         userScore = null,
@@ -48,14 +52,8 @@ class GiantBombProviderContractTest : ScopedWordSpec() {
             }
 
             "download game details" {
-                provider.download(apiUrl, Platform.pc, account) shouldBe ProviderData(
-                    header = ProviderHeader(
-                        id = "GiantBomb",
-                        apiUrl = apiUrl,
-                        timestamp = nowMock
-                    ),
+                provider.download(apiUrl, Platform.pc, account) shouldBe ProviderDownloadData(
                     gameData = GameData(
-                        siteUrl = url,
                         name = name,
                         description = deck,
                         releaseDate = releaseDate,
@@ -67,7 +65,8 @@ class GiantBombProviderContractTest : ScopedWordSpec() {
                             posterUrl = posterUrl,
                             screenshotUrls = screenshotUrls
                         )
-                    )
+                    ),
+                    siteUrl = url
                 )
             }
         }

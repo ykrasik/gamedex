@@ -90,10 +90,9 @@ internal fun Game.toPortable() = PortableGame(
 
 internal data class PortableProviderData(
     val providerId: ProviderId,
-    val apiUrl: String,
     val createDate: Long,
     val updateDate: Long,
-    val siteUrl: String,
+    val apiUrl: String,
     val name: String,
     val description: String?,
     val releaseDate: String?,
@@ -104,19 +103,15 @@ internal data class PortableProviderData(
     val genres: List<String>,
     val thumbnailUrl: String?,
     val posterUrl: String?,
-    val screenshotUrls: List<String>
+    val screenshotUrls: List<String>,
+    val siteUrl: String
 ) {
     fun toProviderData() = ProviderData(
         header = ProviderHeader(
             id = providerId,
-            apiUrl = apiUrl,
-            timestamp = Timestamp(
-                createDate = createDate.toDateTime(),
-                updateDate = updateDate.toDateTime()
-            )
+            apiUrl = apiUrl
         ),
         gameData = GameData(
-            siteUrl = siteUrl,
             name = name,
             description = description,
             releaseDate = releaseDate,
@@ -128,6 +123,11 @@ internal data class PortableProviderData(
                 posterUrl = posterUrl,
                 screenshotUrls = screenshotUrls
             )
+        ),
+        siteUrl = siteUrl,
+        timestamp = Timestamp(
+            createDate = createDate.toDateTime(),
+            updateDate = updateDate.toDateTime()
         )
     )
 
@@ -136,10 +136,9 @@ internal data class PortableProviderData(
 
 internal fun ProviderData.toPortable() = PortableProviderData(
     providerId = header.id,
+    createDate = timestamp.createDate.millis,
+    updateDate = timestamp.updateDate.millis,
     apiUrl = header.apiUrl,
-    createDate = header.createDate.millis,
-    updateDate = header.updateDate.millis,
-    siteUrl = gameData.siteUrl,
     name = gameData.name,
     description = gameData.description,
     releaseDate = gameData.releaseDate,
@@ -150,7 +149,8 @@ internal fun ProviderData.toPortable() = PortableProviderData(
     genres = gameData.genres,
     thumbnailUrl = gameData.imageUrls.thumbnailUrl,
     posterUrl = gameData.imageUrls.posterUrl,
-    screenshotUrls = gameData.imageUrls.screenshotUrls
+    screenshotUrls = gameData.imageUrls.screenshotUrls,
+    siteUrl = siteUrl
 )
 
 internal data class PortableUserData(

@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -62,25 +62,20 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private fun IgdbClient.SearchResult.toSearchResult(platform: Platform) = ProviderSearchResult(
         apiUrl = "${config.baseUrl}/$id",
         name = name,
+        description = summary,
         releaseDate = releaseDates?.findReleaseDate(platform),
         criticScore = toScore(aggregatedRating, aggregatedRatingCount),
         userScore = toScore(rating, ratingCount),
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
     )
 
-    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData =
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData =
         log.logResult("[$platform] Downloading $apiUrl...", log = Logger::debug) {
-            client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(apiUrl, platform)
+            client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(platform)
         }
 
-    private fun IgdbClient.DetailsResult.toProviderData(apiUrl: String, platform: Platform) = ProviderData(
-        header = ProviderHeader(
-            id = id,
-            apiUrl = apiUrl,
-            timestamp = Timestamp.now
-        ),
+    private fun IgdbClient.DetailsResult.toProviderData(platform: Platform) = ProviderDownloadData(
         gameData = GameData(
-            siteUrl = this.url,
             name = this.name,
             description = this.summary,
             releaseDate = this.releaseDates?.findReleaseDate(platform),
@@ -92,7 +87,8 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
                 posterUrl = this.cover?.cloudinaryId?.toPosterUrl(),
                 screenshotUrls = this.screenshots?.mapNotNull { it.cloudinaryId?.toScreenshotUrl() } ?: emptyList()
             )
-        )
+        ),
+        siteUrl = this.url
     )
 
     private fun toScore(score: Double?, numReviews: Int?): Score? = score?.let { Score(it, numReviews!!) }

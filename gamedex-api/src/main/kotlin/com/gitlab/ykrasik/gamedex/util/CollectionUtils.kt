@@ -55,6 +55,8 @@ inline fun <K, V, K2, V2> Map<K, V>.mapNotNullToMap(crossinline f: (K, V) -> Pai
     return map
 }
 
+fun <K, V> Map<K, V?>.filterNullValues(): Map<K, V> = mapNotNullToMap { key, value -> value?.let { key to it } }
+
 fun <T> List<T>.replace(source: T, target: T): List<T> {
     var replaced = false
     return map { elem ->

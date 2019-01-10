@@ -86,7 +86,6 @@ data class Game(
             ),
             library = Library.Null,
             gameData = GameData(
-                siteUrl = "",
                 name = "",
                 description = null,
                 releaseDate = null,
@@ -118,21 +117,18 @@ data class RawGame(
 ) {
     fun withMetadata(metadata: Metadata) = copy(metadata = metadata)
     fun withMetadata(f: (Metadata) -> Metadata) = withMetadata(f(metadata))
-
-    fun withProviderData(providerData: List<ProviderData>): RawGame = copy(
-        providerData = this.providerData.filterNot { d -> providerData.any { it.header.id == d.header.id } } + providerData
-    )
 }
 
 data class ProviderData(
     val header: ProviderHeader,
-    val gameData: GameData
+    val gameData: GameData,
+    val siteUrl: String,
+    val timestamp: Timestamp
 ) {
-    fun withCreateDate(createDate: DateTime) = copy(header = header.withCreateDate(createDate))
+    fun updatedNow() = copy(timestamp = timestamp.updatedNow())
 }
 
 data class GameData(
-    val siteUrl: String,
     val name: String,
     val description: String?,
     val releaseDate: String?,
@@ -155,13 +151,8 @@ data class Score(
 
 data class ProviderHeader(
     val id: ProviderId,
-    val apiUrl: String,
-    val timestamp: Timestamp
-) {
-    val createDate get() = timestamp.createDate
-    val updateDate get() = timestamp.updateDate
-    fun withCreateDate(createDate: DateTime) = copy(timestamp = timestamp.withCreateDate(createDate))
-}
+    val apiUrl: String
+)
 
 data class ImageUrls(
     val thumbnailUrl: String?,

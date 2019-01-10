@@ -85,6 +85,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     private companion object {
         val searchFields = listOf(
             "name",
+            "summary",
             "aggregated_rating",
             "aggregated_rating_count",
             "rating",
@@ -98,7 +99,6 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
 
         val fetchDetailsFields = searchFields + listOf(
             "url",
-            "summary",
             "screenshots.cloudinary_id",
             "genres"
         )
@@ -109,6 +109,7 @@ open class IgdbClient @Inject constructor(private val config: IgdbConfig) {
     data class SearchResult(
         val id: Int,
         val name: String,
+        val summary: String?,
         val aggregatedRating: Double?,
         val aggregatedRatingCount: Int?,
         val rating: Double?,

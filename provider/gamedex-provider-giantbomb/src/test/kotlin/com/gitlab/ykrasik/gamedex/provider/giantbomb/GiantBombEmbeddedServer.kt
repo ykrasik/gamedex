@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.filterNullValues
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import io.ktor.application.ApplicationCall
@@ -58,12 +59,14 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
         }
     }
 
+    @Suppress("ClassName")
     inner class anySearchRequest : BaseRequest() {
         infix fun willReturn(response: GiantBombClient.SearchResponse) {
             wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(response.toMap())))
         }
     }
 
+    @Suppress("ClassName")
     inner class aFetchRequest(private val path: String) : BaseRequest() {
         infix fun willReturn(response: GiantBombClient.DetailsResponse) {
             wiremock.givenThat(get(urlPathEqualTo("/$path")).willReturn(aJsonResponse(response.toMap())))
@@ -124,6 +127,7 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Cl
             GiantBombClient.SearchResult(
                 apiDetailUrl = apiDetailsUrl,
                 name = randomName(),
+                deck = randomParagraph(),
                 originalReleaseDate = randomLocalDate(),
                 image = randomImage()
             )
@@ -168,19 +172,13 @@ private fun GiantBombClient.SearchResponse.toMap() = mapOf(
     "version" to "1.0"
 )
 
-private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> {
-    val map = mutableMapOf<String, Any>(
-        "api_detail_url" to apiDetailUrl,
-        "name" to name
-    )
-    if (originalReleaseDate != null) {
-        map += ("original_release_date" to "$originalReleaseDate 00:00:00")
-    }
-    if (image != null) {
-        map += ("image" to image!!.toMap())
-    }
-    return map
-}
+private fun GiantBombClient.SearchResult.toMap(): Map<String, Any> = mapOf(
+    "api_detail_url" to apiDetailUrl,
+    "name" to name,
+    "deck" to deck,
+    "original_release_date" to originalReleaseDate?.let { "$it 00:00:00" },
+    "image" to image?.toMap()
+).filterNullValues()
 
 private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
     "error" to statusCode.asString(),
@@ -193,26 +191,15 @@ private fun GiantBombClient.DetailsResponse.toMap() = mapOf(
     "version" to "1.0"
 )
 
-private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> {
-    val map = mutableMapOf(
-        "site_detail_url" to siteDetailUrl,
-        "name" to name,
-        "images" to images
-    )
-    if (deck != null) {
-        map += ("deck" to deck!!)
-    }
-    if (originalReleaseDate != null) {
-        map += ("original_release_date" to "$originalReleaseDate 00:00:00")
-    }
-    if (image != null) {
-        map += ("image" to image!!.toMap())
-    }
-    if (genres != null) {
-        map += ("genres" to genres!!.map { it.toMap() })
-    }
-    return map.toMap()
-}
+private fun GiantBombClient.DetailsResult.toMap(): Map<String, Any> = mapOf(
+    "site_detail_url" to siteDetailUrl,
+    "name" to name,
+    "images" to images,
+    "deck" to deck,
+    "original_release_date" to originalReleaseDate?.let { "$it 00:00:00" },
+    "image" to image?.toMap(),
+    "genres" to genres?.map { it.toMap() }
+).filterNullValues()
 
 private fun GiantBombClient.Image.toMap() = mapOf(
     "icon_url" to randomUrl(),

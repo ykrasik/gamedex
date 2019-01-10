@@ -66,11 +66,9 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
         fun randomProviderData() = ProviderData(
             header = ProviderHeader(
                 id = randomWord(),
-                apiUrl = randomUrl(),
-                timestamp = randomTimestamp()
+                apiUrl = randomUrl()
             ),
             gameData = GameData(
-                siteUrl = randomUrl(),
                 name = randomName(),
                 description = randomParagraph(),
                 releaseDate = randomLocalDateString(),
@@ -82,7 +80,9 @@ abstract class AbstractPersistenceTest : ScopedWordSpec() {
                     posterUrl = randomUrl(),
                     screenshotUrls = listOf(randomUrl(), randomUrl())
                 )
-            )
+            ),
+            siteUrl = randomUrl(),
+            timestamp = randomTimestamp()
         )
 
         fun randomUserData() = UserData(

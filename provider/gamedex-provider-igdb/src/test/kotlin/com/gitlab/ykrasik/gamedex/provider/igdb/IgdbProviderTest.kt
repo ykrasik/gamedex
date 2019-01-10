@@ -16,7 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
@@ -41,6 +45,7 @@ class IgdbProviderTest : ScopedWordSpec() {
                     ProviderSearchResult(
                         apiUrl = "$baseUrl/${searchResult.id}",
                         name = name,
+                        description = searchResult.summary,
                         releaseDate = releaseDate,
                         criticScore = Score(searchResult.aggregatedRating!!, searchResult.aggregatedRatingCount!!),
                         userScore = Score(searchResult.rating!!, searchResult.ratingCount!!),
@@ -86,6 +91,14 @@ class IgdbProviderTest : ScopedWordSpec() {
                 search(name) should have2SearchResultsThat { first, second ->
                     first.name shouldBe searchResult5.name
                     second.name shouldBe searchResult6.name
+                }
+            }
+
+            "handle null summary" test {
+                givenClientSearchReturns(listOf(searchResult().copy(summary = null)))
+
+                search() should haveASingleSearchResultThat {
+                    it.description shouldBe null
                 }
             }
 
@@ -160,14 +173,8 @@ class IgdbProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
 
-                download(baseUrl) shouldBe ProviderData(
-                    header = ProviderHeader(
-                        id = "Igdb",
-                        apiUrl = baseUrl,
-                        timestamp = nowMock
-                    ),
+                download(baseUrl) shouldBe ProviderDownloadData(
                     gameData = GameData(
-                        siteUrl = detailsResult.url,
                         name = detailsResult.name,
                         description = detailsResult.summary,
                         releaseDate = releaseDate,
@@ -179,7 +186,8 @@ class IgdbProviderTest : ScopedWordSpec() {
                             posterUrl = posterUrl(detailsResult.cover!!.cloudinaryId!!),
                             screenshotUrls = detailsResult.screenshots!!.map { screenshotUrl(it.cloudinaryId!!) }
                         )
-                    )
+                    ),
+                    siteUrl = detailsResult.url
                 )
             }
 
@@ -289,6 +297,7 @@ class IgdbProviderTest : ScopedWordSpec() {
         ) = IgdbClient.SearchResult(
             id = randomInt(),
             name = name,
+            summary = randomParagraph(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
             rating = randomScore().score,

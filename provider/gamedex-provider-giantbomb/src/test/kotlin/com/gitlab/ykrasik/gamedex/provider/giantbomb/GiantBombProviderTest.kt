@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
@@ -37,14 +40,17 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
                 givenClientSearchReturns(listOf(searchResult), name = name)
 
-                search(name) shouldBe listOf(ProviderSearchResult(
-                    apiUrl = searchResult.apiDetailUrl,
-                    name = name,
-                    releaseDate = searchResult.originalReleaseDate?.toString(),
-                    criticScore = null,
-                    userScore = null,
-                    thumbnailUrl = searchResult.image!!.thumbUrl
-                ))
+                search(name) shouldBe listOf(
+                    ProviderSearchResult(
+                        apiUrl = searchResult.apiDetailUrl,
+                        name = name,
+                        description = description,
+                        releaseDate = searchResult.originalReleaseDate?.toString(),
+                        criticScore = null,
+                        userScore = null,
+                        thumbnailUrl = searchResult.image!!.thumbUrl
+                    )
+                )
             }
 
             "be able to return empty search results" test {
@@ -61,6 +67,14 @@ class GiantBombProviderTest : ScopedWordSpec() {
                 search(name) should have2SearchResultsThat { first, second ->
                     first.name shouldBe searchResult1.name
                     second.name shouldBe searchResult2.name
+                }
+            }
+
+            "handle null deck" test {
+                givenClientSearchReturns(listOf(searchResult().copy(deck = null)))
+
+                search() should haveASingleSearchResultThat {
+                    it.description shouldBe null
                 }
             }
 
@@ -103,14 +117,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                download(apiDetailUrl) shouldBe ProviderData(
-                    header = ProviderHeader(
-                        id = "GiantBomb",
-                        apiUrl = apiDetailUrl,
-                        timestamp = nowMock
-                    ),
+                download(apiDetailUrl) shouldBe ProviderDownloadData(
                     gameData = GameData(
-                        siteUrl = detailsResult.siteDetailUrl,
                         name = detailsResult.name,
                         description = detailsResult.deck,
                         releaseDate = detailsResult.originalReleaseDate?.toString(),
@@ -122,7 +130,8 @@ class GiantBombProviderTest : ScopedWordSpec() {
                             posterUrl = detailsResult.image!!.superUrl,
                             screenshotUrls = detailsResult.images.map { it.superUrl }
                         )
-                    )
+                    ),
+                    siteUrl = detailsResult.siteDetailUrl
                 )
             }
 
@@ -183,6 +192,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
     class Scope {
         val platform = randomEnum<Platform>()
         val name = randomName()
+        val description = randomParagraph()
         val apiDetailUrl = randomUrl()
         val account = GiantBombUserAccount(apiKey = randomWord())
         val noImage = randomWord()
@@ -192,6 +202,7 @@ class GiantBombProviderTest : ScopedWordSpec() {
         fun searchResult(name: String = this.name) = GiantBombClient.SearchResult(
             apiDetailUrl = randomUrl(),
             name = name,
+            deck = description,
             originalReleaseDate = randomLocalDate(),
             image = randomImage()
         )

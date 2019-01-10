@@ -112,6 +112,7 @@ class IgdbClientIT : ScopedWordSpec() {
         val searchResult = IgdbClient.SearchResult(
             id = randomInt(),
             name = randomName(),
+            summary = randomParagraph(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
             rating = randomScore().score,
@@ -162,6 +163,7 @@ class IgdbClientIT : ScopedWordSpec() {
 
     val searchFields = listOf(
         "name",
+        "summary",
         "aggregated_rating",
         "aggregated_rating_count",
         "rating",
@@ -174,7 +176,6 @@ class IgdbClientIT : ScopedWordSpec() {
 
     val fetchDetailsFields = searchFields + listOf(
         "url",
-        "summary",
         "screenshots.cloudinary_id",
         "genres"
     )

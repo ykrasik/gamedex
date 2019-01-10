@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -69,4 +71,9 @@ class RedownloadGameServiceImpl @Inject constructor(
             executeSubTask(gameService.replace(game, newRawGame))
         }
     }
+
+    private fun RawGame.withProviderData(providerData: List<ProviderData>): RawGame = copy(
+        providerData = this.providerData.filterNot { d -> providerData.any { it.header.id == d.header.id } } +
+            providerData.map { it.updatedNow() }
+    )
 }

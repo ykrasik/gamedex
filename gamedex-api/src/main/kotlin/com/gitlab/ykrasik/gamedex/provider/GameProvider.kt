@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.provider
 
+import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.Score
 
 /**
@@ -34,7 +34,7 @@ interface GameProvider {
     val accountFeature: ProviderUserAccountFeature?
 
     fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
-    fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData
+    fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData
 }
 
 fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
@@ -85,9 +85,15 @@ data class ProviderOrderPriorities(
 
 data class ProviderSearchResult(
     val name: String,
+    val description: String?,
     val releaseDate: String?,
     val criticScore: Score?,
     val userScore: Score?,
     val thumbnailUrl: String?,
     val apiUrl: String
+)
+
+data class ProviderDownloadData(
+    val gameData: GameData,
+    val siteUrl: String
 )

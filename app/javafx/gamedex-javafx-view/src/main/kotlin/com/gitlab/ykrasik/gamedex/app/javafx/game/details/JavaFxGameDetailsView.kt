@@ -174,10 +174,10 @@ class JavaFxGameDetailsView(
                 gridpane {
                     hgap = 7.0
                     vgap = 3.0
-                    providerData.sortedBy { it.header.id }.forEach { (header, gameData) ->
+                    providerData.sortedBy { it.header.id }.forEach { data ->
                         row {
-                            children += providerLogos[header.id]!!.image.toImageView(height = 30.0, width = 70.0)
-                            hyperlink(gameData.siteUrl) { action(browseToUrlActions) { gameData.siteUrl } }
+                            children += providerLogos[data.header.id]!!.image.toImageView(height = 30, width = 70)
+                            hyperlink(data.siteUrl) { action(browseToUrlActions) { data.siteUrl } }
                         }
                     }
                 }

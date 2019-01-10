@@ -16,7 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.provider.igdb
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.Score
+import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.assertScore
@@ -45,6 +49,7 @@ class IgdbProviderContractTest : ScopedWordSpec() {
                 result shouldBe ProviderSearchResult(
                     apiUrl = apiUrl,
                     name = name,
+                    description = description,
                     releaseDate = releaseDate,
                     criticScore = result.criticScore.verifiedCriticScore,
                     userScore = result.userScore.verifiedUserScore,
@@ -54,14 +59,8 @@ class IgdbProviderContractTest : ScopedWordSpec() {
 
             "download game details" {
                 val result = provider.download(apiUrl, Platform.pc, account)
-                result shouldBe ProviderData(
-                    header = ProviderHeader(
-                        id = "Igdb",
-                        apiUrl = apiUrl,
-                        timestamp = nowMock
-                    ),
+                result shouldBe ProviderDownloadData(
                     gameData = GameData(
-                        siteUrl = url,
                         name = name,
                         description = description,
                         releaseDate = releaseDate,
@@ -73,7 +72,8 @@ class IgdbProviderContractTest : ScopedWordSpec() {
                             posterUrl = posterUrl,
                             screenshotUrls = screenshotUrls
                         )
-                    )
+                    ),
+                    siteUrl = url
                 )
             }
         }

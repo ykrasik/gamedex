@@ -75,6 +75,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         val searchFields = listOf(
             "api_detail_url",
             "name",
+            "deck",
             "original_release_date",
             "image"
         )
@@ -82,7 +83,6 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
 
         val fetchDetailsFields = searchFields - "api_detail_url" + listOf(
             "site_detail_url",
-            "deck",
             "genres",
             "images"
         )
@@ -100,6 +100,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
     data class SearchResult(
         val apiDetailUrl: String,
         val name: String,
+        val deck: String?,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")   // TODO: Can I just use a string and split by space?
         val originalReleaseDate: LocalDate?,
         val image: Image?

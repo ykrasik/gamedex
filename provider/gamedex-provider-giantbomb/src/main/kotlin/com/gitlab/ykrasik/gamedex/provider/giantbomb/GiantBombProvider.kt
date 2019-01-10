@@ -16,11 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
-import com.gitlab.ykrasik.gamedex.*
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccountFeature
+import com.gitlab.ykrasik.gamedex.GameData
+import com.gitlab.ykrasik.gamedex.ImageUrls
+import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.getResourceAsByteArray
 import com.gitlab.ykrasik.gamedex.util.logResult
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -49,6 +48,7 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
 
     private fun GiantBombClient.SearchResult.toProviderSearchResult() = ProviderSearchResult(
         name = name,
+        description = deck,
         releaseDate = originalReleaseDate?.toString(),
         criticScore = null,
         userScore = null,
@@ -56,36 +56,31 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         apiUrl = apiDetailUrl
     )
 
-    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderData =
+    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData =
         log.logResult("[$platform] Downloading $apiUrl...", log = Logger::debug) {
             val response = client.fetch(apiUrl, account as GiantBombUserAccount)
             assertOk(response.statusCode)
             // When result is found - GiantBomb returns a Json object.
             // When result is not found, GiantBomb returns an empty Json array [].
             // So 'results' can contain at most a single value.
-            response.results.first().toProviderData(apiUrl)
+            response.results.first().toProviderData()
         }
 
-    private fun GiantBombClient.DetailsResult.toProviderData(apiUrl: String) = ProviderData(
-        header = ProviderHeader(
-            id = id,
-            apiUrl = apiUrl,
-            timestamp = Timestamp.now
-        ),
+    private fun GiantBombClient.DetailsResult.toProviderData() = ProviderDownloadData(
         gameData = GameData(
-            siteUrl = this.siteDetailUrl,
-            name = this.name,
-            description = this.deck,
-            releaseDate = this.originalReleaseDate?.toString(),
+            name = name,
+            description = deck,
+            releaseDate = originalReleaseDate?.toString(),
             criticScore = null,
             userScore = null,
-            genres = this.genres?.map { it.name } ?: emptyList(),
+            genres = genres?.map { it.name } ?: emptyList(),
             imageUrls = ImageUrls(
-                thumbnailUrl = this.image?.thumbUrl?.filterEmptyImage(),
-                posterUrl = this.image?.superUrl?.filterEmptyImage(),
-                screenshotUrls = this.images.mapNotNull { it.superUrl.filterEmptyImage() }
+                thumbnailUrl = image?.thumbUrl?.filterEmptyImage(),
+                posterUrl = image?.superUrl?.filterEmptyImage(),
+                screenshotUrls = images.mapNotNull { it.superUrl.filterEmptyImage() }
             )
-        )
+        ),
+        siteUrl = siteDetailUrl
     )
 
     private fun String.filterEmptyImage(): String? = if (endsWith(config.noImageFileName)) null else this

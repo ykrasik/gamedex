@@ -249,7 +249,7 @@ class ProviderSearchPresenter @Inject constructor(
             val acceptedResults = state.choicesOfType<ProviderSearchChoice.Accept>().map { (providerId, choice) -> providerId to choice.result }
             val excludedProviders = state.choicesOfType<ProviderSearchChoice.Exclude>().map { (providerId, _) -> providerId }.toList()
             val name = acceptedResults.map { (_, result) -> result.name }.firstOrNull() ?: libraryPath.path.name
-            val providerHeaders = acceptedResults.map { (providerId, result) -> ProviderHeader(providerId, result.apiUrl, timestamp = Timestamp.now) }.toList()
+            val providerHeaders = acceptedResults.map { (providerId, result) -> ProviderHeader(providerId, result.apiUrl) }.toList()
             val providerData = taskService.execute(gameProviderService.download(name, libraryPath.library.platform, providerHeaders))
             val task = state.game.let { existingGame ->
                 if (existingGame == null) {

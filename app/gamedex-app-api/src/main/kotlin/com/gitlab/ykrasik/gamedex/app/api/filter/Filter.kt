@@ -18,7 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.FolderNameMetadata
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import difflib.DiffUtils
@@ -352,7 +355,7 @@ sealed class Filter {
 
         private fun calcDuplications(context: Context): MultiMap<GameId, GameDuplication> = context.cache("Duplications.result") {
             val headerToGames = context.games.asSequence()
-                .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it.withoutTimestamp() to checkedGame } }
+                .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it to checkedGame } }
                 .toMultiMap()
 
             // Only detect duplications in the same platform.
@@ -376,7 +379,6 @@ sealed class Filter {
             }.toMultiMap()
         }
 
-        private fun ProviderHeader.withoutTimestamp() = copy(timestamp = Timestamp.Null)
 
         data class GameDuplication(
             val providerId: ProviderId,

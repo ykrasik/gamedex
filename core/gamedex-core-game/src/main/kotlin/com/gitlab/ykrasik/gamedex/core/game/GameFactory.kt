@@ -53,7 +53,6 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        siteUrl = "", // Not used.
         name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name }
             ?: metadata.path.toFile().name,
         description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },

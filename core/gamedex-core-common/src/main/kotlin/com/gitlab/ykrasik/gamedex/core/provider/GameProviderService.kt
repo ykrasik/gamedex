@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.provider
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
@@ -28,10 +29,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.sortingWith
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.provider.ProviderUserAccount
+import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -146,12 +144,14 @@ class GameProviderServiceImpl @Inject constructor(
         headers.map { header ->
             // TODO: Link to task scope.
             GlobalScope.async {
-                val providerData = enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
+                val data = enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
                 incProgress()
-
-                // FIXME: Maybe this logic belongs to the calling class.
-                // Retain the original header's createDate.
-                providerData.withCreateDate(header.createDate)
+                ProviderData(
+                    header = header,
+                    siteUrl = data.siteUrl,
+                    gameData = data.gameData,
+                    timestamp = Timestamp.now
+                )
             }
         }.map { it.await() }
     }
@@ -159,7 +159,7 @@ class GameProviderServiceImpl @Inject constructor(
 
 class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
     fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    fun download(apiUrl: String, platform: Platform): ProviderData = provider.download(apiUrl, platform, account)
+    fun download(apiUrl: String, platform: Platform): ProviderDownloadData = provider.download(apiUrl, platform, account)
 
     override fun toString() = provider.toString()
 }

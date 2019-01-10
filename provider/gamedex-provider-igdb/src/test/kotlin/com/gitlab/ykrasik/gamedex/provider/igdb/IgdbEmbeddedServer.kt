@@ -58,12 +58,14 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
         }
     }
 
+    @Suppress("ClassName")
     inner class anySearchRequest : BaseRequest() {
         infix fun willReturn(results: List<IgdbClient.SearchResult>) {
             wiremock.givenThat(get(urlPathEqualTo("/")).willReturn(aJsonResponse(results)))
         }
     }
 
+    @Suppress("ClassName")
     inner class aFetchRequest(private val gameId: Int) : BaseRequest() {
         infix fun willReturn(response: IgdbClient.DetailsResult) = willReturn(listOf(response))
 
@@ -132,6 +134,7 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : Closeab
         IgdbClient.SearchResult(
             id = randomInt(),
             name = "$name ${randomName()}",
+            summary = randomParagraph(),
             aggregatedRating = randomScore().score,
             aggregatedRatingCount = randomScore().numReviews,
             rating = randomScore().score,

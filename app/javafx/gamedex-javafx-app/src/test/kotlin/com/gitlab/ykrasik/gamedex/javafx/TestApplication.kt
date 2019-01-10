@@ -112,11 +112,9 @@ object TestApplication {
     private fun randomProviderData(id: ProviderId) = ProviderData(
         header = ProviderHeader(
             id = id,
-            apiUrl = apiUrl(id),
-            timestamp = Timestamp.now
+            apiUrl = apiUrl(id)
         ),
         gameData = GameData(
-            siteUrl = randomUrl(),
             name = randomName(),
             description = randomParagraph(),
             releaseDate = randomLocalDateString(),
@@ -124,7 +122,9 @@ object TestApplication {
             userScore = randomScore(),
             genres = randomList(4) { randomGenre() },
             imageUrls = imageUrls(id)
-        )
+        ),
+        siteUrl = randomUrl(),
+        timestamp = Timestamp.now
     )
 
     private fun apiUrl(id: ProviderId) = when (id) {
