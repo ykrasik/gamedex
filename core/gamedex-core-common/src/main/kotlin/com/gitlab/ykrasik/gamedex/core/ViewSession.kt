@@ -18,7 +18,9 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
+import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Modifier
@@ -111,12 +113,13 @@ abstract class ViewSession : CoroutineScope {
         list.setAll(this)
         changesChannel.forEach { event ->
             when (event) {
-                is ListItemAddedEvent -> list += event.item
-                is ListItemsAddedEvent -> list += event.items
-                is ListItemRemovedEvent -> list.removeAt(event.index)
-                is ListItemsRemovedEvent -> list.removeAll(event.items)
-                is ListItemSetEvent -> list[event.index] = event.item
-                is ListItemsSetEvent -> list.setAll(event.items)
+                is ListEvent.ItemAdded -> list += event.item
+                is ListEvent.ItemsAdded -> list += event.items
+                is ListEvent.ItemRemoved -> list.removeAt(event.index)
+                is ListEvent.ItemsRemoved -> list.removeAll(event.items)
+                is ListEvent.ItemSet -> list[event.index] = event.item
+                is ListEvent.ItemsSet -> list.setAll(event.items)
+                else -> Unit
             }
         }
     }
@@ -145,9 +148,9 @@ abstract class ViewSession : CoroutineScope {
 
     inline fun <T> BroadcastReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
         forEachImmediately { value ->
-            val reason = reason(value)
+            val reasonMessage = reason(value)
             state *= IsValid {
-                check(reason == null) { reason!! }
+                check(reasonMessage == null) { reasonMessage!! }
             }
         }
     }

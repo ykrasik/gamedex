@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.library
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.task.task
 import java.io.File
 import javax.inject.Inject
@@ -30,8 +32,14 @@ import javax.inject.Singleton
  * Time: 19:34
  */
 @Singleton
-class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository) : LibraryService {
+class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository, eventBus: EventBus) : LibraryService {
     override val libraries = repo.libraries
+
+    init {
+        eventBus.on(DatabaseInvalidatedEvent::class) {
+            repo.invalidate()
+        }
+    }
 
     override fun get(id: Int) = libraries.find { it.id == id }
         ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
@@ -64,6 +72,4 @@ class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository
         successMessage = { "Deleted ${libraries.size} Libraries." }
         repo.deleteAll(libraries)
     }
-
-    override fun invalidate() = repo.invalidate()
 }

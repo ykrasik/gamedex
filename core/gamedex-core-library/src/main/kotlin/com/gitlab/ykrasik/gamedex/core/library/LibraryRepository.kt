@@ -84,7 +84,9 @@ class LibraryRepository @Inject constructor(private val persistenceService: Pers
 
     fun invalidate() {
         // Re-fetch from persistence
-        libraries.setAll(fetchLibraries())
+        log.debug("Invalidating libraries...")
+        libraries.clear()
+        libraries.addAll(fetchLibraries())
     }
 
     private fun Library.verifySuccess(f: () -> Boolean) = require(f()) { "Library doesn't exist: $this" }

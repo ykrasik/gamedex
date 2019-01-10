@@ -23,6 +23,7 @@ import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
@@ -59,7 +60,8 @@ class MaintenanceServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val imageService: ImageService,
     private val fileSystemService: FileSystemService,
-    private val persistenceService: PersistenceService
+    private val persistenceService: PersistenceService,
+    private val eventBus: EventBus
 ) : MaintenanceService {
     private val objectMapper = ObjectMapper()
         .registerModule(KotlinModule())
@@ -73,9 +75,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         message = "Deleting existing database..."
         persistenceService.dropDb()   // TODO: Is it possible to hide all access to persistenceService somehow?
-        gameService.invalidate()
-        libraryService.invalidate()
-        fileSystemService.invalidate()
+        eventBus.send(DatabaseInvalidatedEvent).join()
 
         message = "Importing database..."
         val libraries: Map<Int, Library> = executeSubTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))

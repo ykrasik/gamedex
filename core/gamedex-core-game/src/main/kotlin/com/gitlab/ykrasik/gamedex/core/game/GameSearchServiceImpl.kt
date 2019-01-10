@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import com.miguelfonseca.completely.AutocompleteEngine
@@ -52,20 +52,21 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
         }
         gameService.games.changesChannel.subscribe { event ->
             when (event) {
-                is ListItemAddedEvent -> addGame(event.item)
-                is ListItemsAddedEvent -> addGames(event.items)
-                is ListItemRemovedEvent -> removeGame(event.item)
-                is ListItemsRemovedEvent -> removeGames(event.items)
-                is ListItemSetEvent -> {
+                is ListEvent.ItemAdded -> addGame(event.item)
+                is ListEvent.ItemsAdded -> addGames(event.items)
+                is ListEvent.ItemRemoved -> removeGame(event.item)
+                is ListEvent.ItemsRemoved -> removeGames(event.items)
+                is ListEvent.ItemSet -> {
                     removeGame(event.prevItem)
                     addGame(event.item)
                 }
-                is ListItemsSetEvent -> {
+                is ListEvent.ItemsSet -> {
                     if (event.prevItems.isNotEmpty()) {
                         removeGames(event.prevItems)
                     }
                     addGames(event.items)
                 }
+                else -> Unit
             }
         }
     }

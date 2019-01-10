@@ -19,9 +19,12 @@ package com.gitlab.ykrasik.gamedex.core.file
 import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
+import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.mapNotNullToMap
 import com.google.inject.BindingAnnotation
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +43,18 @@ import javax.inject.Singleton
  */
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
-    @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>
+    @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>,
+    eventBus: EventBus
 ) : FileSystemService {
+    private val log = logger()
+
+    init {
+        eventBus.on(DatabaseInvalidatedEvent::class) {
+            log.debug("Invalidating file structure...")
+            fileStructureStorage.deleteAll(fileStructureStorage.ids())
+        }
+    }
+
     override fun structure(game: Game): FileStructure {
         val structure = fileStructureStorage[game.id]
 
@@ -112,10 +125,6 @@ class FileSystemServiceImpl @Inject constructor(
     override fun toFileName(name: String) = FileNameHandler.toFileName(name)
 
     // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
-
-    override fun invalidate() {
-        fileStructureStorage.deleteAll(fileStructureStorage.ids())
-    }
 }
 
 @BindingAnnotation

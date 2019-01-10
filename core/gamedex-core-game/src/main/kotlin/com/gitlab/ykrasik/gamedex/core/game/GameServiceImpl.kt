@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.app.api.util.ListChangeType
+import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
 import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
@@ -46,10 +46,10 @@ class GameServiceImpl @Inject constructor(
 
     init {
         libraryService.libraries.changesChannel.subscribe {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
-            when (it.type) {
-                ListChangeType.Remove -> repo.invalidate()
-                ListChangeType.Set -> rebuildGames()
+            when (it) {
+                is ListEvent.RemoveEvent -> repo.invalidate()
+                is ListEvent.SetEvent -> rebuildGames()
+                else -> Unit
             }
         }
         settingsService.providerOrder.dataChannel.subscribe {
@@ -107,8 +107,6 @@ class GameServiceImpl @Inject constructor(
         successMessage = { "Deleted all user data." }
         repo.deleteAllUserData()
     }
-
-    override fun invalidate() = repo.invalidate()
 
     override fun buildGame(rawGame: RawGame) = rawGame.toGame()
 

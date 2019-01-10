@@ -119,7 +119,6 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
     }
 
     private fun EventTarget.render(filter: Filter, parentFilter: Filter) {
-        @Suppress("NON_EXHAUSTIVE_WHEN")
         when (filter) {
             is Filter.BinaryOperator -> renderOperator(filter, parentFilter) {
                 render(filter.left, filter)

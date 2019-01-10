@@ -18,10 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameView
-import com.gitlab.ykrasik.gamedex.app.api.util.ListItemRemovedEvent
-import com.gitlab.ykrasik.gamedex.app.api.util.ListItemSetEvent
-import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsRemovedEvent
-import com.gitlab.ykrasik.gamedex.app.api.util.ListItemsSetEvent
+import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -50,20 +47,20 @@ class GameViewPresenter @Inject constructor(
                 if (game.id == Game.Null.id) return@forEach
 
                 when (event) {
-                    is ListItemRemovedEvent -> {
+                    is ListEvent.ItemRemoved -> {
                         if (event.item == game) finished()
                     }
-                    is ListItemsRemovedEvent -> {
+                    is ListEvent.ItemsRemoved -> {
                         if (event.items.contains(game)) finished()
                     }
-                    is ListItemSetEvent -> {
+                    is ListEvent.ItemSet -> {
                         if (event.item.id == game.id) {
                             val item = event.item
                             view.game *= item
                             if (isShowing) onShow()
                         }
                     }
-                    is ListItemsSetEvent -> {
+                    is ListEvent.ItemsSet -> {
                         val relevantGame = event.items.find { it.id == game.id }
                         if (relevantGame != null) {
                             view.game *= relevantGame

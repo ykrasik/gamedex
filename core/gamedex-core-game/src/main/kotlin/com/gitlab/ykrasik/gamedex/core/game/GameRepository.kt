@@ -86,6 +86,7 @@ class GameRepository @Inject constructor(private val persistenceService: Persist
 
     fun invalidate() {
         // Re-fetch all games from persistence
+        log.debug("Invalidating games...")
         games.setAll(fetchGames())
     }
 

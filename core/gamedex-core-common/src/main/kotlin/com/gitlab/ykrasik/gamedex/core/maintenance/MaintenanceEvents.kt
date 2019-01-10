@@ -14,32 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.library
+package com.gitlab.ykrasik.gamedex.core.maintenance
 
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.core.task.Task
-import java.io.File
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik
- * Date: 26/04/2018
- * Time: 19:34
+ * Date: 09/01/2019
+ * Time: 08:33
  */
-interface LibraryService {
-    val libraries: ListObservable<Library>
-
-    operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library?
-    operator fun get(path: File): Library?
-
-    fun add(data: LibraryData): Task<Library>
-    fun addAll(data: List<LibraryData>): Task<List<Library>>
-
-    fun replace(library: Library, data: LibraryData): Task<Unit>
-
-    fun delete(library: Library): Task<Unit>
-    fun deleteAll(libraries: List<Library>): Task<Unit>
-}
+object DatabaseInvalidatedEvent : CoreEvent

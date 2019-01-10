@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -33,6 +35,8 @@ import javax.inject.Singleton
 @Singleton
 class ImportDatabasePresenter @Inject constructor(
     private val maintenanceService: MaintenanceService,
+    private val gameService: GameService,
+    private val libraryService: LibraryService,
     private val taskService: TaskService,
     private val settingsService: SettingsService
 ) : Presenter<ImportDatabaseView> {
@@ -43,7 +47,7 @@ class ImportDatabasePresenter @Inject constructor(
 
         private suspend fun importDatabase() {
             val file = view.selectDatabaseImportFile(settingsService.general.exportDbDirectory) ?: return
-            if (view.confirmImportDatabase()) {
+            if ((gameService.games.isEmpty() && libraryService.libraries.isEmpty()) || view.confirmImportDatabase()) {
                 // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
                 settingsService.platforms.forEach { _, settings ->
                     settings.resetDefaults()

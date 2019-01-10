@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Singleton
 import kotlin.reflect.KClass
 
@@ -44,7 +41,7 @@ class EventBusImpl : EventBus, CoroutineScope {
         }
     }
 
-    override fun <E : CoreEvent> send(event: E) {
+    override fun <E : CoreEvent> send(event: E) = launch(Job()) {
         handlersFor(event::class).forEach { handler ->
             launch {
                 handler(event)
