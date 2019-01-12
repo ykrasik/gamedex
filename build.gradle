@@ -374,11 +374,24 @@ task versions(dependsOn: dependencyUpdates)
 dependencyUpdates.resolutionStrategy {
     componentSelection { rules ->
         rules.all { ComponentSelection selection ->
-            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview'].any { qualifier ->
+            boolean notRelease = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview'].any { qualifier ->
                 selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
             }
-            if (rejected) {
+            if (notRelease) {
                 selection.reject('Release candidate')
+            }
+
+            boolean ignored = [
+                'com.github.jkcclemens:khttp:.*',
+                'org.kordamp.ikonli:ikonli-javafx:11.*',
+                'org.controlsfx:controlsfx:9.*',
+                'com.jfoenix:jfoenix:9.*',
+                'com.h2database:h2:1.4.197'
+            ].any { regex ->
+                selection.candidate.toString() ==~ regex
+            }
+            if (ignored) {
+                selection.reject('Ignored')
             }
         }
     }
