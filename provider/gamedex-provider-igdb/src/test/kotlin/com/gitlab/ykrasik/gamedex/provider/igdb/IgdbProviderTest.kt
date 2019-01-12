@@ -25,15 +25,17 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
-import io.kotlintest.mock.`when`
-import io.kotlintest.mock.mock
+import io.mockk.coEvery
+import io.mockk.mockk
 
 /**
  * User: ykrasik
  * Date: 16/04/2017
  * Time: 15:41
  */
-class IgdbProviderTest : ScopedWordSpec() {
+class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
+    override fun scope() = Scope()
+
     init {
         "search" should {
             "be able to return a single search result" test {
@@ -332,18 +334,17 @@ class IgdbProviderTest : ScopedWordSpec() {
         fun image(cloudinaryId: String? = randomWord()) = IgdbClient.Image(cloudinaryId = cloudinaryId)
 
         fun givenClientSearchReturns(results: List<IgdbClient.SearchResult>, name: String = this.name) {
-            `when`(client.search(name, platform, account)).thenReturn(results)
+            coEvery { client.search(name, platform, account) } returns results
         }
 
         fun givenClientFetchReturns(result: IgdbClient.DetailsResult, apiUrl: String = baseUrl) {
-            `when`(client.fetch(apiUrl, account)).thenReturn(result)
+            coEvery { client.fetch(apiUrl, account) } returns result
         }
 
-        fun search(name: String = this.name) = provider.search(name, platform, account)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account)
+        suspend fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform, account)
 
-        fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform, account)
-
-        private val client = mock<IgdbClient>()
+        private val client = mockk<IgdbClient>()
         val provider = IgdbProvider(
             IgdbConfig(
                 baseUrl = baseUrl,
@@ -375,6 +376,4 @@ class IgdbProviderTest : ScopedWordSpec() {
             }
         }
     }
-
-    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

@@ -14,19 +14,16 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider
+package com.gitlab.ykrasik.gamedex.test
 
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import javax.inject.Inject
-import javax.inject.Singleton
+import io.ktor.client.HttpClient
+import io.ktor.client.features.UserAgent
 
 /**
  * User: ykrasik
- * Date: 07/04/2017
- * Time: 21:30
+ * Date: 12/01/2019
+ * Time: 09:50
  */
-// FIXME: Hide this.
-@Singleton
-class GameProviderRepository @Inject constructor(providers: MutableSet<GameProvider>) {
-    val allProviders: List<GameProvider> = providers.sortedBy { it.id }
+val testHttpClient = HttpClient {
+    install(UserAgent)
 }

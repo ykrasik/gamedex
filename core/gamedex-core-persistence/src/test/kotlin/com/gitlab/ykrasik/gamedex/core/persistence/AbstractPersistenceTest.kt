@@ -26,7 +26,7 @@ import io.kotlintest.TestCaseContext
  * Date: 23/04/2017
  * Time: 13:48
  */
-abstract class AbstractPersistenceTest : ScopedWordSpec() {
+abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
     override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
         persistenceService.dropDb()
         test()

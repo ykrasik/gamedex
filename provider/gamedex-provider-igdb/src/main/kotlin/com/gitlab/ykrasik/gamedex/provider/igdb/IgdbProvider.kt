@@ -39,7 +39,7 @@ import javax.inject.Singleton
 class IgdbProvider @Inject constructor(private val config: IgdbConfig, private val client: IgdbClient) : GameProvider {
     private val log = logger()
 
-    override fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
+    override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             client.search(query, platform, account as IgdbUserAccount).toProviderSearchResults(query, platform)
         }
@@ -69,7 +69,7 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
         thumbnailUrl = cover?.cloudinaryId?.toImageUrl(config.thumbnailImageType)
     )
 
-    override fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData =
+    override suspend fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData =
         log.logResult("[$platform] Downloading $apiUrl...", log = Logger::debug) {
             client.fetch(apiUrl, account as IgdbUserAccount).toProviderData(platform)
         }

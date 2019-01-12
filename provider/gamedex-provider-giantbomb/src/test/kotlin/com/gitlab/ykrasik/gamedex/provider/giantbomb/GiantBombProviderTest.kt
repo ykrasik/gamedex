@@ -24,15 +24,17 @@ import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
 import io.kotlintest.matchers.*
-import io.kotlintest.mock.`when`
-import io.kotlintest.mock.mock
+import io.mockk.coEvery
+import io.mockk.mockk
 
 /**
  * User: ykrasik
  * Date: 19/04/2017
  * Time: 09:21
  */
-class GiantBombProviderTest : ScopedWordSpec() {
+class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
+    override fun scope() = Scope()
+
     init {
         "search" should {
             "be able to return a single search result" test {
@@ -221,22 +223,21 @@ class GiantBombProviderTest : ScopedWordSpec() {
             givenClientSearchReturns(GiantBombClient.SearchResponse(GiantBombClient.Status.OK, results), name)
 
         fun givenClientSearchReturns(response: GiantBombClient.SearchResponse, name: String = this.name) {
-            `when`(client.search(name, platform, account)).thenReturn(response)
+            coEvery { client.search(name, platform, account) } returns response
         }
 
         fun givenClientFetchReturns(result: GiantBombClient.DetailsResult, apiUrl: String = apiDetailUrl) =
             givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.OK, listOf(result)), apiUrl)
 
         fun givenClientFetchReturns(response: GiantBombClient.DetailsResponse, apiUrl: String = apiDetailUrl) {
-            `when`(client.fetch(apiUrl, account)).thenReturn(response)
+            coEvery { client.fetch(apiUrl, account) } returns response
         }
 
-        fun search(name: String = this.name) = provider.search(name, platform, account)
-
-        fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform, account)
+        suspend fun search(name: String = this.name) = provider.search(name, platform, account)
+        suspend fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform, account)
 
         private val config = GiantBombConfig("", noImage, "", ProviderOrderPriorities.default, emptyMap())
-        private val client = mock<GiantBombClient>()
+        private val client = mockk<GiantBombClient>()
         val provider = GiantBombProvider(config, client)
 
         fun haveASingleSearchResultThat(f: (ProviderSearchResult) -> Unit) = object : Matcher<List<ProviderSearchResult>> {
@@ -255,6 +256,4 @@ class GiantBombProviderTest : ScopedWordSpec() {
             }
         }
     }
-
-    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

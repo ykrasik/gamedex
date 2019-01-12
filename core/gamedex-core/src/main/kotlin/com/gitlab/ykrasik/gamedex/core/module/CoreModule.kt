@@ -49,6 +49,9 @@ import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.UserAgent
 import javax.inject.Singleton
 
 /**
@@ -125,5 +128,18 @@ object CoreModule : InternalCoreModule() {
         configurationFiles.fold(ConfigFactory.load()) { current, url ->
             current.withFallback(ConfigFactory.parseURL(url))
         }
+    }
+
+    @Provides
+    @Singleton
+    fun httpClient(): HttpClient = HttpClient(Apache) {
+        install(UserAgent)
+//        install(Logging) {
+//            logger = object : Logger {
+//                private val log = com.gitlab.ykrasik.gamedex.util.logger("HttpClient")
+//                override fun log(message: String) = log.trace(message)
+//            }
+//            level = LogLevel.BODY
+//        }
     }
 }

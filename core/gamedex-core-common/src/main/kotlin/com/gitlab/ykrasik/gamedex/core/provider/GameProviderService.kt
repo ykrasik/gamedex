@@ -158,8 +158,8 @@ class GameProviderServiceImpl @Inject constructor(
 }
 
 class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
-    fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    fun download(apiUrl: String, platform: Platform): ProviderDownloadData = provider.download(apiUrl, platform, account)
+    suspend fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
+    suspend fun download(apiUrl: String, platform: Platform): ProviderDownloadData = provider.download(apiUrl, platform, account)
 
     override fun toString() = provider.toString()
 }

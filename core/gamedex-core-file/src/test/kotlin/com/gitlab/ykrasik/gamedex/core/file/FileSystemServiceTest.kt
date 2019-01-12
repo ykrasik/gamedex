@@ -25,24 +25,24 @@ import io.kotlintest.mock.mock
  * Date: 12/06/2017
  * Time: 20:56
  */
-class FileSystemServiceTest : ScopedWordSpec() {
-    val fileSystemService = FileSystemServiceImpl(mock(), mock())
+class FileSystemServiceTest : ScopedWordSpec<FileSystemServiceTest.Scope>() {
+    override fun scope() = Scope()
 
     init {
         "analyzeFileName" should {
             "order" should {
-                "correctly extract order" {
+                "correctly extract order" test {
                     analyze("[1] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe 1
                     analyze("[99999] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe 99999
                 }
 
-                "only consider integers eclosed in square brackets as order" {
+                "only consider integers eclosed in square brackets as order" test {
                     analyze("[1a] Some Name").order shouldBe null
                     analyze("[1.2] Some Name").order shouldBe null
                     analyze("1 Some Name").order shouldBe null
                 }
 
-                "only extract order from the beginning of the string" {
+                "only extract order from the beginning of the string" test {
                     analyze("t[1] Some Name [2]").order shouldBe null
                     analyze("t [1] Some [2] Name").order shouldBe null
                     analyze("Some [2] Name").order shouldBe null
@@ -51,7 +51,7 @@ class FileSystemServiceTest : ScopedWordSpec() {
             }
 
             "version" should {
-                "correctly handle all possible variations of version" {
+                "correctly handle all possible variations of version" test {
                     testAnalyzeVersion("123")
                     testAnalyzeVersion("1.2.3")
                     testAnalyzeVersion("v 1.2.3")
@@ -81,14 +81,14 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     testAnalyzeVersion("Beta")
                 }
 
-                "correctly extract version when order & metaTag are present" {
+                "correctly extract version when order & metaTag are present" test {
                     analyze("[1] Some Name [Some Metatag] [1.2.3]").version shouldBe "1.2.3"
                     analyze("[1] Some Name [1.2.3] [Some Metatag]").version shouldBe "1.2.3"
                     analyze("[1] Some [1.2.3] Name [Some Metatag]").version shouldBe "1.2.3"
                     analyze("[1] [1.2.3] Some Name [Some Metatag]").version shouldBe "1.2.3"
                 }
 
-                "correctly extract version when order & metaTag are absent" {
+                "correctly extract version when order & metaTag are absent" test {
                     analyze("[1.2.3] Some Name More Text").version shouldBe "1.2.3"
                     analyze("Some [1.2.3] Name More Text").version shouldBe "1.2.3"
                     analyze("Some Name [1.2.3] More Text").version shouldBe "1.2.3"
@@ -96,31 +96,31 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     analyze("Some Name More Text [1.2.3]").version shouldBe "1.2.3"
                 }
 
-                "correctly extract version when only order is present" {
+                "correctly extract version when only order is present" test {
                     analyze("[1] Some Name [1.2.3]").version shouldBe "1.2.3"
                     analyze("[1] Some [1.2.3] Name").version shouldBe "1.2.3"
                     analyze("[1] [1.2.3] Some Name").version shouldBe "1.2.3"
                 }
 
-                "correctly extract version when only metaTag is present" {
+                "correctly extract version when only metaTag is present" test {
                     analyze("Some Name [Some Metatag] [1.2.3]").version shouldBe "1.2.3"
                     analyze("Some Name [1.2.3] [Some Metatag]").version shouldBe "1.2.3"
                     analyze("Some [1.2.3] Name [Some Metatag]").version shouldBe "1.2.3"
                     analyze("[1.2.3] Some Name [Some Metatag]").version shouldBe "1.2.3"
                 }
 
-                "ignore version not in square brackets" {
+                "ignore version not in square brackets" test {
                     analyze("Game v 1.2.3").version shouldBe null
                 }
             }
 
             "metaTag" should {
-                "correctly extract metaTag in it's variations" {
+                "correctly extract metaTag in it's variations" test {
                     analyze("[1] Some name [Collector's Edition] [1.2.3] More Text").metaTag shouldBe "Collector's Edition"
                     analyze("[2] Some name [Redux] [1.2.3] More Text").metaTag shouldBe "Redux"
                 }
 
-                "correctly extract metaTag when order & version are present" {
+                "correctly extract metaTag when order & version are present" test {
                     analyze("[1] [metaTag] Some Name [1.2.3] More Text").metaTag shouldBe "metaTag"
                     analyze("[1] Some [metaTag] Name [1.2.3] More Text").metaTag shouldBe "metaTag"
                     analyze("[1] Some Name [metaTag] [1.2.3] More Text").metaTag shouldBe "metaTag"
@@ -129,7 +129,7 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     analyze("[1] Some Name [1.2.3] More Text [metaTag]").metaTag shouldBe "metaTag"
                 }
 
-                "correctly extract metaTag when order & version are absent" {
+                "correctly extract metaTag when order & version are absent" test {
                     analyze("[metaTag] Some Name More Text").metaTag shouldBe "metaTag"
                     analyze("Some [metaTag] Name More Text").metaTag shouldBe "metaTag"
                     analyze("Some Name [metaTag] More Text").metaTag shouldBe "metaTag"
@@ -137,13 +137,13 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     analyze("Some Name More Text [metaTag]").metaTag shouldBe "metaTag"
                 }
 
-                "correctly extract metaTag when only order is present" {
+                "correctly extract metaTag when only order is present" test {
                     analyze("[1] Some Name [metaTag]").metaTag shouldBe "metaTag"
                     analyze("[1] Some [metaTag] Name").metaTag shouldBe "metaTag"
                     analyze("[1] [metaTag] Some Name").metaTag shouldBe "metaTag"
                 }
 
-                "correctly extract metaTag when only version is present" {
+                "correctly extract metaTag when only version is present" test {
                     analyze("Some Name [1.2.3] [metaTag]").metaTag shouldBe "metaTag"
                     analyze("Some Name [metaTag] [1.2.3]").metaTag shouldBe "metaTag"
                     analyze("Some [metaTag] Name [1.2.3]").metaTag shouldBe "metaTag"
@@ -152,14 +152,14 @@ class FileSystemServiceTest : ScopedWordSpec() {
             }
 
             "gameName" should {
-                "correctly extract game name with spaces trimmed & collapsed" {
+                "correctly extract game name with spaces trimmed & collapsed" test {
                     analyze("One [asd] Two [1.2.3] Three").gameName shouldBe "One Two Three"
                     analyze(" One  [asd]  Two  [1.2.3]  Three ").gameName shouldBe "One Two Three"
                     analyze(" One  Two [1.2.3]   [Four]  Three  Five").gameName shouldBe "One Two Three Five"
                     analyze("  [asd] One  Two Three  4 [1.2.3]  ").gameName shouldBe "One Two Three 4"
                 }
 
-                "replace all instances of ' - ' with ': ' and collapse spaces in game name" {
+                "replace all instances of ' - ' with ': ' and collapse spaces in game name" test {
                     analyze("Test - Game").gameName shouldBe "Test: Game"
                     analyze("Test - Game - More").gameName shouldBe "Test: Game: More"
                     analyze("Test  -  Game").gameName shouldBe "Test: Game"
@@ -169,7 +169,7 @@ class FileSystemServiceTest : ScopedWordSpec() {
                     analyze("[1.2.3]  Test  -  Game  -  More  [asd]").gameName shouldBe "Test: Game: More"
                 }
 
-                "only replace exact matches of ' - ' with ': '" {
+                "only replace exact matches of ' - ' with ': '" test {
                     analyze("Test-Game").gameName shouldBe "Test-Game"
                     analyze("Test- Game").gameName shouldBe "Test- Game"
                     analyze("Test -Game").gameName shouldBe "Test -Game"
@@ -179,8 +179,12 @@ class FileSystemServiceTest : ScopedWordSpec() {
         }
     }
 
-    fun testAnalyzeVersion(version: String) =
-        analyze("[2] Some Name [Some MetaTag] [$version] More Text").version shouldBe version
+    class Scope {
+        val fileSystemService = FileSystemServiceImpl(mock(), mock())
 
-    fun analyze(name: String) = fileSystemService.analyzeFolderName(name)
+        fun testAnalyzeVersion(version: String) =
+            analyze("[2] Some Name [Some MetaTag] [$version] More Text").version shouldBe version
+
+        fun analyze(name: String) = fileSystemService.analyzeFolderName(name)
+    }
 }

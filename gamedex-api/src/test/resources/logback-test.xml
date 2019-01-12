@@ -14,4 +14,6 @@
     <logger name="javafx.scene.control" level="off"/>
     <logger name="io.netty" level="off"/>
     <logger name="ktor.application" level="off"/>
+    <logger name="org.eclipse.jetty" level="off"/>
+    <logger name="io.mockk" level="off"/>
 </configuration>

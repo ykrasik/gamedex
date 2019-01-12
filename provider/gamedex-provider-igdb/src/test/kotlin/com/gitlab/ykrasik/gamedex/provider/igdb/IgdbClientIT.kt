@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.test.*
+import com.gitlab.ykrasik.gamedex.util.urlEncoded
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.shouldBe
@@ -34,8 +35,10 @@ import io.ktor.http.HttpStatusCode
  * Date: 02/04/2017
  * Time: 21:02
  */
-class IgdbClientIT : ScopedWordSpec() {
+class IgdbClientIT : ScopedWordSpec<IgdbClientIT.Scope>() {
     val server = IgdbMockServer()
+
+    override fun scope() = Scope()
 
     init {
         "search" should {
@@ -49,7 +52,7 @@ class IgdbClientIT : ScopedWordSpec() {
                         .withHeader("Accept", "application/json")
                         .withHeader("user-key", apiKey)
                         .withQueryParam("search", name)
-                        .withQueryParam("filter[release_dates.platform][eq]", platformId.toString())
+                        .withQueryParam("filter[release_dates.platform][eq]".urlEncoded(), platformId.toString())
                         .withQueryParam("limit", maxSearchResults.toString())
                         .withQueryParam("fields", searchFields.joinToString(","))
                 )
@@ -157,7 +160,8 @@ class IgdbClientIT : ScopedWordSpec() {
                 defaultOrder = ProviderOrderPriorities.default,
                 platforms = mapOf(platform.name to platformId),
                 genres = emptyMap()
-            )
+            ),
+            testHttpClient
         )
     }
 
@@ -190,6 +194,4 @@ class IgdbClientIT : ScopedWordSpec() {
         server.reset()
         test()
     }
-
-    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

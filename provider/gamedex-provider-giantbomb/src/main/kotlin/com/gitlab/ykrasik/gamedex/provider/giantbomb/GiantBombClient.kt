@@ -23,8 +23,12 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.util.fromJson
-import com.gitlab.ykrasik.gamedex.util.isSuccess
 import com.gitlab.ykrasik.gamedex.util.logger
+import io.ktor.client.HttpClient
+import io.ktor.client.call.call
+import io.ktor.client.request.parameter
+import io.ktor.client.response.readText
+import io.ktor.http.isSuccess
 import org.joda.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,10 +40,10 @@ import javax.inject.Singleton
  */
 // TODO: GiantBomb can return a number of user reviews
 @Singleton
-open class GiantBombClient @Inject constructor(private val config: GiantBombConfig) {
+open class GiantBombClient @Inject constructor(private val config: GiantBombConfig, private val client: HttpClient) {
     private val log = logger()
 
-    open fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
+    open suspend fun search(query: String, platform: Platform, account: GiantBombUserAccount): SearchResponse = get(
         endpoint = config.baseUrl,
         account = account,
         initialMessage = "Searching [$platform] '$query'...",
@@ -49,7 +53,7 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
         )
     )
 
-    open fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
+    open suspend fun fetch(apiUrl: String, account: GiantBombUserAccount): DetailsResponse = get(
         endpoint = apiUrl,
         account = account,
         initialMessage = "Fetching '$apiUrl'...",
@@ -58,13 +62,17 @@ open class GiantBombClient @Inject constructor(private val config: GiantBombConf
 
     private val Platform.id: Int get() = config.getPlatformId(this)
 
-    private inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, initialMessage: String, params: Map<String, String>): T {
+    private suspend inline fun <reified T : Any> get(endpoint: String, account: GiantBombUserAccount, initialMessage: String, params: Map<String, String>): T {
         log.trace(initialMessage)
-        val response = khttp.get(endpoint, params = params + mapOf("api_key" to account.apiKey, "format" to "json"))
-        val text = response.text
-        val message = "$initialMessage Done: [${response.statusCode}] $text"
+        val response = client.call(endpoint) {
+            parameter("api_key", account.apiKey)
+            parameter("format", "json")
+            params.forEach { parameter(it.key, it.value) }
+        }.response
+        val text = response.readText()
+        val message = "$initialMessage Done: [${response.status}] $text"
         log.trace(message)
-        return if (response.isSuccess) {
+        return if (response.status.isSuccess()) {
             text.fromJson()
         } else {
             throw IllegalStateException(message)

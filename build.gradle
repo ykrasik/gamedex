@@ -79,17 +79,18 @@ buildscript {
         completely = [group: 'com.miguelfonseca.completely', name: 'completely-core', version: '0.8.0']
 
         kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
+        mockK = [group: 'io.mockk', name: 'mockk', version: '1.9']
         junit = [group: 'junit', name: 'junit', version: '4.12']
-        mockito = [:].with {
-            core = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
-            kotlin = [group: 'com.nhaarman', name: 'mockito-kotlin', version: '1.6.0']
-            delegate
-        }
+        mockito = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
 
         ktor = [:].with {
             v = '1.1.1'
             core = [group: 'io.ktor', name: 'ktor-server-core', version: v]
             netty = [group: 'io.ktor', name: 'ktor-server-netty', version: v]
+            clientCore = [group: 'io.ktor', name: 'ktor-client-core-jvm', version: v]
+//            clientLogging = [group: 'io.ktor', name: 'ktor-client-logging-jvm', version: v]
+            clientApache = [group: 'io.ktor', name: 'ktor-client-apache', version: v]
+            clientJackson = [group: 'io.ktor', name: 'ktor-client-jackson', version: v]
             delegate
         }
         wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.20.0']
@@ -132,6 +133,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "http://dl.bintray.com/kotlin/exposed" }
         maven { url "http://dl.bintray.com/kotlin/ktor" }
+        maven { url "https://kotlin.bintray.com/kotlinx" }
     }
 }
 
@@ -149,10 +151,8 @@ subprojects {
 
         compile guice
 
-        testCompile junit
         testCompile kotlinTest
-        testCompile mockito.core
-        testCompile mockito.kotlin
+        testCompile mockK
 
         testCompile coroutines.debug
         testCompile coroutines.test
@@ -181,10 +181,8 @@ project("gamedex-api") {
 
         compile jodaTime
 
-        compile(khttp) {
-            exclude module: 'spek-api'
-            exclude module: 'spek-junit-platform-engine'
-        }
+        compile ktor.clientCore
+        testCompile ktor.clientApache
 
         compile jackson.core
         compile jackson.kotlin
@@ -194,6 +192,7 @@ project("gamedex-api") {
         testCompile ktor.core
         testCompile ktor.netty
         testCompile reflections
+        testCompile logback
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -326,7 +325,7 @@ project("core:gamedex-core") {
         fullDependency ":core:gamedex-core-report"
 
         compile slf4j.julBridge
-
+        compile ktor.clientApache
         compile reflections
     }
 }

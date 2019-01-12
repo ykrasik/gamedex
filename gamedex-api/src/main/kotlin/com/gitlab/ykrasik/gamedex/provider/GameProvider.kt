@@ -33,8 +33,8 @@ interface GameProvider {
 
     val accountFeature: ProviderUserAccountFeature?
 
-    fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
-    fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData
+    suspend fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
+    suspend fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData
 }
 
 fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)

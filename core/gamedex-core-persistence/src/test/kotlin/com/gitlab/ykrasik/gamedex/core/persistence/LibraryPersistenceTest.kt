@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
+import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.LibraryScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import com.gitlab.ykrasik.gamedex.util.toFile
 import io.kotlintest.matchers.shouldBe
@@ -30,7 +31,9 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
  * Date: 23/04/2017
  * Time: 13:50
  */
-class LibraryPersistenceTest : AbstractPersistenceTest() {
+class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
+    override fun scope() = LibraryScope()
+
     init {
         "Insert" should {
             "insert and retrieve a single library" test {
@@ -148,6 +151,4 @@ class LibraryPersistenceTest : AbstractPersistenceTest() {
             }
         }
     }
-
-    private infix fun String.test(test: LibraryScope.() -> Unit) = inScope(::LibraryScope, test)
 }

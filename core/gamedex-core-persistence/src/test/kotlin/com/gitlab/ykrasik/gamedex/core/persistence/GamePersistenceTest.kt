@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.UserData
+import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.GameScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
@@ -28,7 +29,9 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
  * Date: 23/04/2017
  * Time: 13:49
  */
-class GamePersistenceTest : AbstractPersistenceTest() {
+class GamePersistenceTest : AbstractPersistenceTest<GameScope>() {
+    override fun scope() = GameScope()
+
     init {
         "Insert" should {
             "insert and retrieve a single game with userData" test {
@@ -324,6 +327,4 @@ class GamePersistenceTest : AbstractPersistenceTest() {
             }
         }
     }
-
-    private infix fun String.test(test: GameScope.() -> Unit) = inScope(::GameScope, test)
 }

@@ -34,8 +34,10 @@ import io.ktor.http.HttpStatusCode
  * Date: 19/04/2017
  * Time: 21:06
  */
-class GiantBombClientIT : ScopedWordSpec() {
+class GiantBombClientIT : ScopedWordSpec<GiantBombClientIT.Scope>() {
     val server = GiantBombMockServer()
+
+    override fun scope() = Scope()
 
     init {
         "search" should {
@@ -134,7 +136,8 @@ class GiantBombClientIT : ScopedWordSpec() {
                 accountUrl = "",
                 defaultOrder = ProviderOrderPriorities.default,
                 platforms = mapOf(platform.name to platformId)
-            )
+            ),
+            testHttpClient
         )
     }
 
@@ -151,6 +154,4 @@ class GiantBombClientIT : ScopedWordSpec() {
         server.reset()
         test()
     }
-
-    private infix fun String.test(test: Scope.() -> Unit) = inScope(::Scope, test)
 }

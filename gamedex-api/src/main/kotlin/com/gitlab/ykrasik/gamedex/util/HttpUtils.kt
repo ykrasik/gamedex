@@ -17,12 +17,15 @@
 package com.gitlab.ykrasik.gamedex.util
 
 import com.google.common.net.UrlEscapers
-import khttp.get
-import khttp.responses.Response
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.response.HttpResponse
+import io.ktor.client.response.readBytes
+import io.ktor.http.contentLength
+import io.ktor.http.isSuccess
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.ServerSocket
-import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLDecoder
 import java.util.*
@@ -32,32 +35,25 @@ import java.util.*
  * Date: 10/02/2017
  * Time: 10:24
  */
-inline val Response.isSuccess get() = statusCode in 200..299
-
-fun download(
-    url: String,
-    stream: Boolean = false,
-    progress: (downloaded: Int, total: Int) -> Unit = { _, _ -> }
-): ByteArray =
-    try {
-        val response = get(url, params = emptyMap(), headers = emptyMap(), stream = stream)
-        if (!response.isSuccess) {
-            throw IllegalStateException("Download '$url': [${response.statusCode}] ${response.text}")
+suspend fun HttpClient.download(url: String, progressHandler: ((downloaded: Int, total: Int) -> Unit)? = null): ByteArray {
+    val response = get<HttpResponse>(url)
+    if (!response.status.isSuccess()) throw IllegalStateException("Download '$url': ${response.status}")
+    return if (progressHandler != null) {
+        val total = response.contentLength()?.toInt() ?: -1
+        val contentLength = if (total != -1) total else 32.kb
+        val os = ByteArrayOutputStream(contentLength)
+        response.content.consumeEachBufferRange { buffer, last ->
+            val array = ByteArray(buffer.remaining())
+            buffer.get(array)
+            os.write(array)
+            progressHandler(os.size(), total)
+            !last
         }
-        if (stream) {
-            val contentLength = response.headers["Content-Length"]?.toInt() ?: 32.kb
-            val os = ByteArrayOutputStream(contentLength)
-            for (chunk in response.contentIterator(8.kb)) {
-                os.write(chunk)
-                progress(os.size(), contentLength)
-            }
-            os.toByteArray()
-        } else {
-            response.content
-        }
-    } catch (e: SocketTimeoutException) {
-        throw SocketTimeoutException("Timed out downloading: $url")
+        os.toByteArray()
+    } else {
+        response.readBytes()
     }
+}
 
 fun String.urlEncoded() = UrlEscapers.urlFragmentEscaper().escape(this)
 fun String.urlDecoded() = URLDecoder.decode(this, "utf-8")
