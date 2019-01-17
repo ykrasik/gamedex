@@ -42,13 +42,13 @@ abstract class ViewSession : CoroutineScope {
     private var _isShowing = false
     protected val isShowing get() = _isShowing
 
-    fun show() {
+    suspend fun show() {
         check(!_isShowing) { "Presenter already showing: $this" }
         _isShowing = true
         onShow()
     }
 
-    protected open fun onShow() {}
+    protected open suspend fun onShow() {}
 
     fun hide() {
         check(_isShowing) { "Presenter wasn't showing: $this" }
@@ -144,7 +144,7 @@ abstract class ViewSession : CoroutineScope {
     inline fun <T> BroadcastReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {
         forEachImmediately { value ->
             val reasonMessage = reason(value)
-            state *= IsValid {
+            state *= Try {
                 check(reasonMessage == null) { reasonMessage!! }
             }
         }

@@ -74,7 +74,7 @@ class GameViewPresenter @Inject constructor(
             }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             view.poster *= view.game.value.posterUrl?.let { posterUrl ->
                 imageService.fetchImage(posterUrl, persistIfAbsent = false)
             }

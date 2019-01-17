@@ -46,7 +46,7 @@ class SettingsPresenter @Inject constructor(
             view.resetDefaultsActions.forEach { onResetDefaults() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             settingsService.saveSnapshot()
         }
 

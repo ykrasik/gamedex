@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
 import com.gitlab.ykrasik.gamedex.util.setAll
@@ -57,7 +56,7 @@ class EditReportPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             val report = view.report
             view.name *= report?.name ?: ""
             view.filter *= report?.filter ?: Filter.`true`
@@ -79,7 +78,7 @@ class EditReportPresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(IsValid {
+            view.canAccept *= view.nameIsValid.and(view.filterIsValid).and(Try {
                 check(!view.filter.value.isEqual(view.report?.filter) ||
                     view.name.value != view.report?.name ||
                     view.excludedGames.map { it.id } != view.report?.excludedGames) { "Nothing changed!" }

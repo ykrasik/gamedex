@@ -46,7 +46,7 @@ class ResyncGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             view.resyncGamesCondition *= settingsService.providerGeneral.resyncGamesCondition
             setCanAccept()
         }

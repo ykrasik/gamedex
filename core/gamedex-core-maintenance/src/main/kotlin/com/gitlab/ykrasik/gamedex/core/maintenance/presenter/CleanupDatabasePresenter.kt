@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,18 +46,18 @@ class CleanupDatabasePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
-            view.librariesAndGames.canDelete *= IsValid {
+        override suspend fun onShow() {
+            view.librariesAndGames.canDelete *= Try {
                 check(view.staleData.libraries.isNotEmpty() || view.staleData.games.isNotEmpty()) { "No stale libraries or games to delete!" }
             }
             view.librariesAndGames.shouldDelete *= view.librariesAndGames.canDelete.value.isSuccess
 
-            view.images.canDelete *= IsValid {
+            view.images.canDelete *= Try {
                 check(view.staleData.images.isNotEmpty()) { "No stale images to delete!" }
             }
             view.images.shouldDelete *= view.images.canDelete.value.isSuccess
 
-            view.fileCache.canDelete *= IsValid {
+            view.fileCache.canDelete *= Try {
                 check(view.staleData.fileStructure.isNotEmpty()) { "No stale file cache to delete!" }
             }
             view.fileCache.shouldDelete *= view.fileCache.canDelete.value.isSuccess
@@ -81,7 +81,7 @@ class CleanupDatabasePresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= IsValid {
+            view.canAccept *= Try {
                 check(view.librariesAndGames.shouldDelete.value || view.images.shouldDelete.value || view.fileCache.shouldDelete.value) {
                     "Please select stale data to delete!"
                 }

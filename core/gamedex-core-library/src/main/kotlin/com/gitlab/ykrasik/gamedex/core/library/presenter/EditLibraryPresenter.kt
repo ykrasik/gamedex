@@ -26,10 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.and
-import com.gitlab.ykrasik.gamedex.util.existsOrNull
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,14 +53,14 @@ class EditLibraryPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             val library = view.library
             view.name *= library?.name ?: ""
             view.path *= library?.path?.toString() ?: ""
             view.platform *= library?.platform ?: Platform.pc
             view.nameIsValid *= IsValid.valid
             view.pathIsValid *= IsValid.valid
-            view.canChangePlatform *= IsValid {
+            view.canChangePlatform *= Try {
                 check(library == null) { "Changing platform for an existing library is not allowed!" }
             }
             setCanAccept()
@@ -91,7 +88,7 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun validateName() {
-            view.nameIsValid *= IsValid {
+            view.nameIsValid *= Try {
                 val name = view.name.value
                 if (name.isEmpty()) error("Name is required!")
                 if (!isAvailableNewLibrary { libraryService[view.platform.value, name] } &&
@@ -102,7 +99,7 @@ class EditLibraryPresenter @Inject constructor(
         }
 
         private fun validatePath() {
-            view.pathIsValid *= IsValid {
+            view.pathIsValid *= Try {
                 if (view.path.value.isEmpty()) error("Path is required!")
 
                 val file = view.path.value.toFile()
@@ -121,7 +118,7 @@ class EditLibraryPresenter @Inject constructor(
             view.library?.let { library -> (findExisting(library) ?: library) == library } ?: false
 
         private fun setCanAccept() {
-            view.canAccept *= view.pathIsValid.value.and(view.nameIsValid.value).and(IsValid {
+            view.canAccept *= view.pathIsValid.value.and(view.nameIsValid.value).and(Try {
                 check(
                     view.library?.path?.toString() != view.path.value ||
                         view.library?.name != view.name.value ||

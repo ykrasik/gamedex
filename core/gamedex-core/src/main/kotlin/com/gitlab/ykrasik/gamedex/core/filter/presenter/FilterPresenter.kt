@@ -183,7 +183,7 @@ class FilterPresenter @Inject constructor(
         }
 
         private fun setIsValid() {
-            view.filterIsValid *= IsValid {
+            view.filterIsValid *= Try {
                 check(view.filter.value is Filter.True || view.filter.value.find(Filter.True::class) == null) { "Please select a condition!" }
             }
         }

@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.core.library.SyncLibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesRequestedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,7 +46,7 @@ class SyncLibrariesPresenter @Inject constructor(
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
             commonData.realLibraries.itemsChannel.combineLatest(gameProviderService.enabledProviders.itemsChannel).forEach { (libraries, enabledProviders) ->
-                view.canSyncLibraries *= IsValid {
+                view.canSyncLibraries *= Try {
                     check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
                     check(enabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
                 }

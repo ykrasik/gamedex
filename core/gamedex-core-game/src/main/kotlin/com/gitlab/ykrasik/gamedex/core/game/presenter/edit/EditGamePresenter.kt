@@ -28,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import org.joda.time.LocalDate
 import java.net.URL
 import javax.inject.Inject
@@ -88,14 +89,14 @@ class EditGamePresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= IsValid {
+            view.canAccept *= Try {
                 val updatedGame = gameService.buildGame(calcUpdatedGame())
                 check(updatedGame.gameData != view.game.gameData) { "Nothing changed!" }
             }
         }
 
         private fun GameDataOverrideState<*>.onRawCustomValueChanged(rawValue: String) {
-            isCustomValueValid *= IsValid {
+            isCustomValueValid *= Try {
                 if (rawValue.isEmpty()) error("Empty value!")
                 try {
                     type.deserializeCustomValue<Any>(rawValue)
@@ -124,7 +125,7 @@ class EditGamePresenter @Inject constructor(
             allOverrides.forEach { it.onResetStateToDefault() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             allOverrides.forEach { it.initStateOnShow() }
 
             gameWithoutOverrides = gameService.buildGame(view.game.rawGame.copy(userData = UserData.Null))

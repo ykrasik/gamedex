@@ -46,7 +46,7 @@ class RedownloadGamesPresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             view.redownloadGamesCondition *= settingsService.providerGeneral.redownloadGamesCondition
             setCanAccept()
         }

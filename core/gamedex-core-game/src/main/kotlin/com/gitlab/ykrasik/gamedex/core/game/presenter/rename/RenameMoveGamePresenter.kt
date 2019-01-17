@@ -24,7 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
@@ -63,7 +63,7 @@ class RenameMoveGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             val game = view.game
             library = game.library
             name = view.initialName ?: game.rawGame.metadata.path.toFile().name
@@ -84,7 +84,7 @@ class RenameMoveGamePresenter @Inject constructor(
         private fun onBrowseToGame() = view.browseTo(view.game.path)
 
         private fun validate() {
-            view.nameIsValid *= IsValid {
+            view.nameIsValid *= Try {
                 val basePath = library.path.resolve(path).normalize()
                 val validBasePath = basePath.startsWith(library.path) &&
                     (commonData.realLibraries - library).none { basePath.startsWith(it.path) }

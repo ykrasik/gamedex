@@ -60,7 +60,7 @@ class ReportPresenter @Inject constructor(
             }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             // Send the existing 'reportDirty' value to the channel again, to cause the consumer to re-run
             reportDirty = reportDirty
         }

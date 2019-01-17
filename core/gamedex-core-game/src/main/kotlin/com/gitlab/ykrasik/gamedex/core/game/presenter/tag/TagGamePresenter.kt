@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +51,7 @@ class TagGamePresenter @Inject constructor(
             view.cancelActions.forEach { onCancel() }
         }
 
-        override fun onShow() {
+        override suspend fun onShow() {
             val game = view.game
             view.tags.setAll(commonData.tags)
             view.checkedTags.setAll(game.tags)
@@ -84,7 +84,7 @@ class TagGamePresenter @Inject constructor(
         }
 
         private fun setCanAccept() {
-            view.canAccept *= IsValid {
+            view.canAccept *= Try {
                 check(view.checkedTags != view.game.tags.toSet()) { "Nothing changed!" }
             }
         }
@@ -94,7 +94,7 @@ class TagGamePresenter @Inject constructor(
         }
 
         private fun validateNewTag(name: String) {
-            view.newTagNameIsValid *= IsValid {
+            view.newTagNameIsValid *= Try {
                 if (name.isEmpty()) error("Empty Name!")
                 if (view.tags.contains(name)) error("Tag already exists!")
             }

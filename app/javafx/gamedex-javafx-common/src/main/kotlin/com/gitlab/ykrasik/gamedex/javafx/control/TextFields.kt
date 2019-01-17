@@ -111,7 +111,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
 
         minusButton?.run {
             enableWhen(value.binding { value ->
-                val canDecrement = IsValid {
+                val canDecrement = Try {
                     check(property.value.toDouble() - 1 >= min.toDouble()) { "Limit reached!" }
                 }
                 value!!.and(canDecrement)
@@ -120,7 +120,7 @@ inline fun <reified T : Number> EventTarget.numberTextField(
         }
         plusButton?.run {
             enableWhen(value.binding { value ->
-                val canIncrement = IsValid {
+                val canIncrement = Try {
                     check(property.value.toDouble() + 1 <= max.toDouble()) { "Limit reached!" }
                 }
                 value!!.and(canIncrement)
