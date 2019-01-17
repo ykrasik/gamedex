@@ -14,31 +14,41 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.javafx.report
 
+import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.color
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
-import javafx.geometry.Pos
-import javafx.scene.paint.Color
-import org.controlsfx.control.Notifications
-import tornadofx.UIComponent
-import tornadofx.seconds
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import javafx.beans.property.SimpleObjectProperty
+import tornadofx.getValue
+import tornadofx.setValue
+import tornadofx.stringBinding
 
 /**
  * User: ykrasik
- * Date: 21/11/2018
- * Time: 08:46
+ * Date: 13/01/2019
+ * Time: 13:13
  */
-fun UIComponent.notification(text: String): Notifications =
-    Notifications.create()
-        .owner(currentStage!!)
-        .text(text)
-        .darkStyle()
-        .hideAfter(4.seconds)
-        .hideCloseButton()
-        .position(Pos.BOTTOM_RIGHT)
+class JavaFxDeleteReportView : ConfirmationWindow(icon = Icons.delete), DeleteReportView {
+    private val reportProperty = SimpleObjectProperty(Report.Null)
+    override var report: Report by reportProperty
 
-val Notifications.info get() = graphic(Icons.information.size(50).color(Color.WHITE))
-val Notifications.warn get() = graphic(Icons.warning.size(50))
-val Notifications.error get() = graphic(Icons.error.size(50))
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
+
+    init {
+        titleProperty.bind(reportProperty.stringBinding { "Delete report '${it!!.name}'?" })
+        register()
+
+        reportProperty.typeSafeOnChange {
+            filterView.externalMutations.value = it.filter
+        }
+    }
+
+    override val root = buildAreYouSure {
+        isDisable = true
+        add(filterView.root)
+    }
+}

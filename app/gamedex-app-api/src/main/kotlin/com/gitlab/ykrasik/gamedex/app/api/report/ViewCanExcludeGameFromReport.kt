@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -25,5 +26,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:32
  */
 interface ViewCanExcludeGameFromReport {
-    val excludeGameActions: ReceiveChannel<Pair<Report, Game>>
+    val report: UserMutableState<Report>
+
+    val excludeGameActions: ReceiveChannel<Game>
 }

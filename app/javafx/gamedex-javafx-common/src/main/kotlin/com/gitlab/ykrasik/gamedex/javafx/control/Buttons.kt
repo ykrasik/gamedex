@@ -50,9 +50,9 @@ inline fun EventTarget.buttonWithPopover(
     text: String? = null,
     graphic: Node? = null,
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    closeOnClick: Boolean = true,
+    onClickBehavior: PopOverOnClickBehavior = PopOverOnClickBehavior.Close(),
     op: PopOverContent.() -> Unit = {}
 ) = jfxButton(text = text, graphic = graphic, alignment = Pos.CENTER_LEFT) {
-    val popover = popOver(arrowLocation, closeOnClick, op)
+    val popover = popOver(arrowLocation, onClickBehavior, op)
     action { popover.toggle(this) }
 }

@@ -20,12 +20,16 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.binding.Bindings
@@ -40,7 +44,7 @@ import tornadofx.*
  * Time: 16:56
  */
 class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
-    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
 
     private val reportProperty = SimpleObjectProperty<Report?>(null)
     override var report by reportProperty

@@ -25,6 +25,4 @@ import kotlinx.coroutines.channels.ReceiveChannel
  */
 interface ViewCanDeleteReport {
     val deleteReportActions: ReceiveChannel<Report>
-
-    fun confirmDelete(report: Report): Boolean
 }

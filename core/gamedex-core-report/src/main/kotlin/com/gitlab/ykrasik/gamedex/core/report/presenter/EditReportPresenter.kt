@@ -59,7 +59,7 @@ class EditReportPresenter @Inject constructor(
         override suspend fun onShow() {
             val report = view.report
             view.name *= report?.name ?: ""
-            view.filter *= report?.filter ?: Filter.`true`
+            view.filter *= report?.filter ?: Filter.Null
             view.excludedGames.setAll(report?.excludedGames?.map { gameService[it] } ?: emptyList())
             validateName()
         }

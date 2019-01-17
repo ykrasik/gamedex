@@ -16,10 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.JavaFxState
 import com.gitlab.ykrasik.gamedex.javafx.perform
-import com.gitlab.ykrasik.gamedex.javafx.size
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ObservableValue

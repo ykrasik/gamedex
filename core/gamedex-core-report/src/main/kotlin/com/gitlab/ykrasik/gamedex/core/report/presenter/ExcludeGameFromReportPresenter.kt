@@ -36,7 +36,8 @@ class ExcludeGameFromReportPresenter @Inject constructor(
 ) : Presenter<ViewCanExcludeGameFromReport> {
     override fun present(view: ViewCanExcludeGameFromReport) = object : ViewSession() {
         init {
-            view.excludeGameActions.forEach { (report, game) ->
+            view.excludeGameActions.forEach { game ->
+                val report = view.report.value
                 taskService.execute(
                     reportService.update(report, report.data.copy(excludedGames = report.data.excludedGames + game.id))
                 )

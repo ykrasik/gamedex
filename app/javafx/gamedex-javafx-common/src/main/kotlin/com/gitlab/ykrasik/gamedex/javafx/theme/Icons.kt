@@ -14,9 +14,8 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.javafx.theme
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
 import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
 import org.kordamp.ikonli.Ikon
@@ -30,7 +29,7 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign
  */
 object Icons {
     val menu get() = fontIcon(MaterialDesign.MDI_MENU)
-    val games get() = fontIcon(MaterialDesign.MDI_GAMEPAD_VARIANT, color = Colors.red)
+    val games get() = fontIcon(MaterialDesign.MDI_GAMEPAD_VARIANT)
     val chart get() = fontIcon(MaterialDesign.MDI_CHART_BAR, color = Color.DARKBLUE)
     val book get() = fontIcon(MaterialDesign.MDI_BOOK_OPEN_OUTLINE, color = Color.BROWN)
     val hdd get() = fontIcon(MaterialDesign.MDI_HARDDISK, color = Colors.green)
@@ -93,6 +92,7 @@ object Icons {
     val enterText get() = fontIcon(MaterialDesign.MDI_RENAME_BOX, color = Colors.orange)
     val textbox get() = fontIcon(MaterialDesign.MDI_TEXTBOX)
     val documents get() = fontIcon(MaterialDesign.MDI_BOOK_MULTIPLE_VARIANT)
+    val script get() = fontIcon(MaterialDesign.MDI_SCRIPT_TEXT_OUTLINE)
     val date get() = fontIcon(MaterialDesign.MDI_CALENDAR)
     val createDate get() = fontIcon(MaterialDesign.MDI_CALENDAR_PLUS)
     val updateDate get() = fontIcon(MaterialDesign.MDI_CALENDAR_EDIT)
@@ -104,11 +104,12 @@ object Icons {
     val select get() = fontIcon(MaterialDesign.MDI_SELECT)
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
+    val folders get() = fontIcon(MaterialDesign.MDI_FOLDER_MULTIPLE_OUTLINE, color = Colors.green)
     val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER)
     val folderEdit get() = fontIcon(MaterialDesign.MDI_FOLDER_EDIT, color = Colors.orange)
     val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE, color = Colors.red)
     val folderOpen get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN)
-    val folderSync get() = fontIcon(MaterialDesign.MDI_FOLDER_SYNC_OUTLINE)
+    val folderSync get() = fontIcon(MaterialDesign.MDI_FOLDER_SYNC_OUTLINE, color = Colors.green)
     val folderSearch get() = fontIcon(MaterialDesign.MDI_FOLDER_SEARCH_OUTLINE)
     val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
     val fileQuestion get() = fontIcon(MaterialDesign.MDI_FILE_QUESTION)

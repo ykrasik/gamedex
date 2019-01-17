@@ -35,6 +35,17 @@ data class Report(
     val excludedGames get() = data.excludedGames
     val createDate get() = data.timestamp.createDate
     val updateDate get() = data.timestamp.updateDate
+
+    companion object {
+        val Null = Report(
+            id = 0,
+            data = ReportData(
+                name = "",
+                filter = Filter.Null,
+                excludedGames = emptyList()
+            )
+        )
+    }
 }
 
 data class ReportData(

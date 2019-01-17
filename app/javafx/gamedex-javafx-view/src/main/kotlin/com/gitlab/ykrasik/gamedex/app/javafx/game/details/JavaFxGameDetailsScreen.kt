@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
-import com.gitlab.ykrasik.gamedex.app.api.game.GameView
+import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
@@ -32,7 +32,6 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.javafx.view.ScreenNavigation
 import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.scene.layout.HBox
@@ -45,15 +44,23 @@ import tornadofx.*
  * Date: 30/03/2017
  * Time: 18:17
  */
-class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanTagGame, ViewCanResyncGame, ViewCanRedownloadGame, ViewCanSearchYouTube {
-    override val navigation = ScreenNavigation.Standalone
+class JavaFxGameDetailsScreen : PresentableScreen(),
+    GameDetailsView,
+    ViewCanEditGame,
+    ViewCanDeleteGame,
+    ViewCanTagGame,
+    ViewCanResyncGame,
+    ViewCanRedownloadGame,
+    ViewCanSearchYouTube {
 
     private val imageLoader: ImageLoader by di()
 
     private val browser = WebBrowser()
 
     override val game = userMutableState(Game.Null)
+
+    override val hideViewActions = channel<Unit>()
+    override val customNavigationButton = backButton { action(hideViewActions) }
 
     override val poster = state<Deferred<Image>?>(null)
 
@@ -71,6 +78,7 @@ class JavaFxViewGameScreen : PresentableScreen(), GameView, ViewCanEditGame, Vie
     init {
         register()
 
+        titleProperty.bind(game.property.stringBinding { it?.name })
         game.property.bindChanges(displayYouTubeForGameRequests)
     }
 

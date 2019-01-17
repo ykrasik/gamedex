@@ -27,7 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
 import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
-import com.gitlab.ykrasik.gamedex.core.navigation.presenter.CloseViewPresenter
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderCoreModule
@@ -93,8 +92,6 @@ object CoreModule : InternalCoreModule() {
     }
 
     private fun bindPresenters() {
-        bindPresenter(CloseViewPresenter::class)
-
         bindPresenter(TaskPresenter::class)
         bindPresenter(ViewWithRunningTaskPresenter::class)
 

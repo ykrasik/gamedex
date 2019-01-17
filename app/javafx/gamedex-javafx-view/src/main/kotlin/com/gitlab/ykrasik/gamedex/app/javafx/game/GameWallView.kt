@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
+import com.gitlab.ykrasik.gamedex.javafx.control.PopOverOnClickBehavior
 import com.gitlab.ykrasik.gamedex.javafx.control.determineArrowLocation
 import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
@@ -66,7 +67,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
 
     private val gameDetailsView = JavaFxGameDetailsView(withDescription = false)
 
-    private val popOver = popOver(closeOnClick = false).apply {
+    private val popOver = popOver(onClickBehavior = PopOverOnClickBehavior.Ignore).apply {
         gameDetailsView.root.addClass(Style.quickDetails)
         contentNode = gameDetailsView.root
     }

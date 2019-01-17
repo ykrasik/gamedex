@@ -25,10 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId

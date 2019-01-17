@@ -19,13 +19,9 @@ package com.gitlab.ykrasik.gamedex.javafx.view
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.cancelButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.header
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventTarget
@@ -88,15 +84,12 @@ abstract class PresentableWindow(title: String? = null, icon: Node? = null) : Pr
 
         var prevOpacity = windowOpacity
         isRunningTask.property.onChange { isRunningTask ->
-            val showing = modalStage?.isShowing ?: false
-            if (showing) {
-                // Make the window invisible while running any task.
-                if (isRunningTask) {
-                    prevOpacity = windowOpacity
-                    windowOpacity = 0.0
-                } else {
-                    windowOpacity = prevOpacity
-                }
+            // Make the window invisible while running any task.
+            if (isRunningTask) {
+                prevOpacity = windowOpacity
+                windowOpacity = 0.0
+            } else {
+                windowOpacity = prevOpacity
             }
         }
     }

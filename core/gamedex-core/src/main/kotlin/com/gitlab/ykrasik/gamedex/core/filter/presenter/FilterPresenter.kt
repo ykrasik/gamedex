@@ -109,7 +109,7 @@ class FilterPresenter @Inject constructor(
             view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(it)) }
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
             view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
-            view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.`true`) }
+            view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.Null) }
             view.updateFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.replaceFilterActions.forEach { (filter, with) -> replaceFilter(filter, with) }
             view.deleteFilterActions.forEach { deleteFilter(it) }
@@ -175,7 +175,7 @@ class FilterPresenter @Inject constructor(
 
         private fun replaceFilter(filter: Filter, with: Filter) = modifyFilter { replace(filter, with) }
 
-        private fun deleteFilter(filter: Filter) = modifyFilter { delete(filter) ?: Filter.`true` }
+        private fun deleteFilter(filter: Filter) = modifyFilter { delete(filter) ?: Filter.Null }
 
         private inline fun modifyFilter(f: Modifier<Filter>) {
             view.filter.modify(f)

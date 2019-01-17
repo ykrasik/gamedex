@@ -16,11 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.theme
 
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverContent
 import com.gitlab.ykrasik.gamedex.javafx.control.buttonWithPopover
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
-import com.gitlab.ykrasik.gamedex.javafx.size
 import com.jfoenix.controls.JFXButton
 import javafx.event.EventTarget
 import javafx.scene.Node

@@ -17,8 +17,6 @@
 package com.gitlab.ykrasik.gamedex.javafx.theme
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.size
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
 import javafx.scene.Node
@@ -50,7 +48,7 @@ inline fun EventTarget.header(
 
 inline fun EventTarget.header(
     textProperty: ObservableValue<String>,
-    graphic: ObservableValue<Node>? = null,
+    graphic: ObservableValue<out Node>? = null,
     crossinline op: Label.() -> Unit = {}
 ) = label(textProperty) {
     addClass(CommonStyle.headerLabel)

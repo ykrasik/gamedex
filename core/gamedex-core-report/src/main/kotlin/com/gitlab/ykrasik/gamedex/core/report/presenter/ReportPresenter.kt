@@ -21,12 +21,15 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
+import com.gitlab.ykrasik.gamedex.core.report.ReportService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.util.flatMapIndexed
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,34 +42,70 @@ import javax.inject.Singleton
 @Singleton
 class ReportPresenter @Inject constructor(
     private val gameService: GameService,
+    private val reportService: ReportService,
     private val filterContextFactory: FilterContextFactory,
-    private val taskService: TaskService
+    private val taskService: TaskService,
+    private val eventBus: EventBus
 ) : Presenter<ReportView> {
     override fun present(view: ReportView) = object : ViewSession() {
-        private val reportDirtyChannel = BroadcastEventChannel.conflated(false)
-        private var reportDirty by reportDirtyChannel
+        private val isReportDirtyChannel = BroadcastEventChannel.conflated(false)
+        private var isReportDirty by isReportDirtyChannel
 
         init {
-            view.report.forEach { reportDirty = true }
-            gameService.games.itemsChannel.forEach { reportDirty = true }
+            view.report.forEach { isReportDirty = true }
+            gameService.games.itemsChannel.forEach { isReportDirty = true }
 
-            reportDirtyChannel.forEach { isReportDirty ->
-                if (isReportDirty && isShowing) {
-                    view.report.value?.let { report ->
-                        calculate(gameService.games, report)
-                        reportDirty = false
+            isReportDirtyChannel.forEach { isReportDirty ->
+                val report = view.report.value
+                if (isReportDirty && isShowing && report != Report.Null) {
+                    calculate(gameService.games, report)
+                    this.isReportDirty = false
+                }
+            }
+
+            reportService.reports.changesChannel.forEach { e ->
+                val report = view.report.value
+                if (report == Report.Null) return@forEach
+
+                when (e) {
+                    is ListEvent.ItemRemoved -> {
+                        if (e.item == report) finished()
+                    }
+                    is ListEvent.ItemsRemoved -> {
+                        if (e.items.contains(report)) finished()
+                    }
+                    is ListEvent.ItemSet -> {
+                        if (e.item.id == report.id) {
+                            changeReport(e.item)
+                        }
+                    }
+                    is ListEvent.ItemsSet -> {
+                        val relevantReport = e.items.find { it.id == report.id }
+                        if (relevantReport != null) {
+                            changeReport(relevantReport)
+                        }
+                    }
+                    else -> {
+                        // Ignored
                     }
                 }
             }
         }
 
+        private fun changeReport(report: Report) {
+            if (view.report.value != report) {
+                view.report *= report
+                isReportDirty = true
+            }
+        }
+
         override suspend fun onShow() {
             // Send the existing 'reportDirty' value to the channel again, to cause the consumer to re-run
-            reportDirty = reportDirty
+            isReportDirty = isReportDirty
         }
 
         private suspend fun calculate(games: List<Game>, report: Report) {
-            view.result *= taskService.execute(task("Calculating '${report.name}' report...") {
+            view.result *= taskService.execute(task("Calculating report '${report.name}'...") {
                 val context = filterContextFactory.create(games)
 
                 totalItems = games.size
@@ -84,6 +123,11 @@ class ReportPresenter @Inject constructor(
                     additionalData = context.additionalData
                 )
             })
+        }
+
+        private fun finished() {
+            view.report *= Report.Null
+            eventBus.viewFinished(view)
         }
     }
 }

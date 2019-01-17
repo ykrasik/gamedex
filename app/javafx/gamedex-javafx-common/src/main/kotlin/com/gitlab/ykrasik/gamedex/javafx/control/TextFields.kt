@@ -16,10 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.minusButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.plusButton
+import com.gitlab.ykrasik.gamedex.javafx.JavaFxState
+import com.gitlab.ykrasik.gamedex.javafx.binding
+import com.gitlab.ykrasik.gamedex.javafx.padding
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and

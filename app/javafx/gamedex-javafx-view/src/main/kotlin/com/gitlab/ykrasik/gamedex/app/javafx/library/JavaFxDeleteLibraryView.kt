@@ -19,9 +19,9 @@ package com.gitlab.ykrasik.gamedex.app.javafx.library
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.fitAtMost
 import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import javafx.beans.property.SimpleObjectProperty
 import tornadofx.*
@@ -38,7 +38,7 @@ class JavaFxDeleteLibraryView : ConfirmationWindow(icon = Icons.delete), DeleteL
     override val gamesToBeDeleted = mutableListOf<Game>().observable()
 
     init {
-        titleProperty.bind(libraryProperty.stringBinding { "Delete '${it!!.name}'?" })
+        titleProperty.bind(libraryProperty.stringBinding { "Delete library '${it!!.name}'?" })
         register()
     }
 

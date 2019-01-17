@@ -19,9 +19,13 @@ package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleDataCategory
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.mapToList
+import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.color
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.beans.property.SimpleObjectProperty

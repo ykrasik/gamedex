@@ -80,7 +80,7 @@ import kotlin.reflect.KClass
 // TODO: What if al the logic is moved into the context, and this will just be the structure?
 sealed class Filter {
     companion object {
-        val `true` = True()
+        val Null = True()
         fun not(delegate: () -> Filter) = delegate().not
     }
 
@@ -93,7 +93,7 @@ sealed class Filter {
     val not get() = Not(this)
 
     abstract fun isEqual(other: Filter): Boolean
-    protected inline fun <reified T> Filter.ifIs(f: (T) -> Boolean) = (this@ifIs as? T)?.let(f) ?: false
+    protected inline fun <reified T> Filter.ifIs(f: (T) -> Boolean) = (this as? T)?.let(f) ?: false
 
     protected open fun evaluateNot(game: Game, context: Context): Boolean = !evaluate(game, context)
 

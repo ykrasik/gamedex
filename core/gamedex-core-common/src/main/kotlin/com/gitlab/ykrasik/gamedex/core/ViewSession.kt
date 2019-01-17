@@ -163,6 +163,11 @@ abstract class ViewSession : CoroutineScope {
     fun <V> EventBus.viewFinished(view: V) = send(ViewFinishedEvent(view))
 
     suspend inline fun <V> EventBus.awaitViewFinished(view: V) = awaitEvent<ViewFinishedEvent<V>> { it.view == view }
+    inline fun <reified V> EventBus.onViewFinished(crossinline handler: (V) -> Unit) = forEach<ViewFinishedEvent<*>> {
+        if (it.view is V) {
+            handler(it.view)
+        }
+    }
 
     fun State<IsValid>.assert() {
         value.get()

@@ -14,21 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.report.presenter
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import kotlinx.coroutines.Deferred
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanDeleteReport
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 29/04/2018
- * Time: 20:09
+ * Date: 13/01/2019
+ * Time: 09:49
  */
-interface GameView {
-    val game: UserMutableState<Game>
-
-    val poster: State<Deferred<Image>?>
+@Singleton
+class ShowDeleteReportPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : Presenter<ViewCanDeleteReport> {
+    override fun present(view: ViewCanDeleteReport) = object : ViewSession() {
+        init {
+            view.deleteReportActions.forEach { report ->
+                val deleteReportView = viewManager.showDeleteReportView(report)
+                eventBus.awaitViewFinished(deleteReportView)
+                viewManager.hide(deleteReportView)
+            }
+        }
+    }
 }

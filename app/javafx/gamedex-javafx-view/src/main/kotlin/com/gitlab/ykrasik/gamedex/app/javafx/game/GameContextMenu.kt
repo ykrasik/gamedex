@@ -22,12 +22,12 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.InstallableContextMenu
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.jfoenix.controls.JFXButton

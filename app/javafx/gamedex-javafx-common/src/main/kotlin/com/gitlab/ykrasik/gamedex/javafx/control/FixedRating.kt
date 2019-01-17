@@ -26,8 +26,8 @@
  */
 package com.gitlab.ykrasik.gamedex.javafx.control
 
-import com.gitlab.ykrasik.gamedex.javafx.Icons
-import com.gitlab.ykrasik.gamedex.javafx.color
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.color
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase
 import impl.org.controlsfx.behavior.RatingBehavior
 import javafx.event.EventTarget

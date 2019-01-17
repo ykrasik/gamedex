@@ -23,8 +23,8 @@ import com.gitlab.ykrasik.gamedex.core.game.presenter.SelectPlatformPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.SortGamesPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.DeleteGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.delete.ShowDeleteGamePresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameViewPresenter
-import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameViewPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.details.GameDetailsViewPresenter
+import com.gitlab.ykrasik.gamedex.core.game.presenter.details.ShowGameDetailsViewPresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.EditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.edit.ShowEditGamePresenter
 import com.gitlab.ykrasik.gamedex.core.game.presenter.filter.CurrentPlatformFilterPresenter
@@ -57,8 +57,8 @@ object GameModule : InternalCoreModule() {
         bindPresenter(DeleteGamePresenter::class)
         bindPresenter(ShowDeleteGamePresenter::class)
 
-        bindPresenter(GameViewPresenter::class)
-        bindPresenter(ShowGameViewPresenter::class)
+        bindPresenter(GameDetailsViewPresenter::class)
+        bindPresenter(ShowGameDetailsViewPresenter::class)
 
         bindPresenter(EditGamePresenter::class)
         bindPresenter(ShowEditGamePresenter::class)

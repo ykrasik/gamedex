@@ -27,8 +27,10 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 
@@ -46,11 +48,11 @@ interface ViewManager {
     fun showSyncGamesView(): SyncGamesView
     fun hide(view: SyncGamesView)
 
+    fun showGameDetailsView(game: Game): GameDetailsView
+    fun hide(view: GameDetailsView)
+
     fun showEditLibraryView(library: Library?): EditLibraryView
     fun hide(view: EditLibraryView)
-
-    fun showGameView(game: Game): GameView
-    fun hide(view: GameView)
 
     fun showDeleteLibraryView(library: Library): DeleteLibraryView
     fun hide(view: DeleteLibraryView)
@@ -67,8 +69,14 @@ interface ViewManager {
     fun showTagGameView(game: Game): TagGameView
     fun hide(view: TagGameView)
 
+    fun showReportView(report: Report): ReportView
+    fun hide(view: ReportView)
+
     fun showEditReportView(report: Report?): EditReportView
     fun hide(view: EditReportView)
+
+    fun showDeleteReportView(report: Report): DeleteReportView
+    fun hide(view: DeleteReportView)
 
     fun showRedownloadGamesView(): RedownloadGamesView
     fun hide(view: RedownloadGamesView)

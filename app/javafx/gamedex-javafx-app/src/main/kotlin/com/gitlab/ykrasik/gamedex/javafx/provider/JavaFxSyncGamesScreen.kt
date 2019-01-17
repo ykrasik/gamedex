@@ -19,22 +19,15 @@ package com.gitlab.ykrasik.gamedex.javafx.provider
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
-import com.gitlab.ykrasik.gamedex.app.api.library.ViewWithLibraries
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchStatus
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanSyncLibraries
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.game.search.SearchResultsFragment
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.control.TreeItem
 import javafx.scene.layout.HBox
@@ -48,17 +41,7 @@ import java.io.File
  * Date: 17/10/2018
  * Time: 09:18
  */
-class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync),
-    ViewCanSyncLibraries,
-    SyncGamesView,
-    ViewWithLibraries,
-    ViewCanAddLibrary,
-    ViewCanEditLibrary,
-    ViewCanDeleteLibrary,
-    ViewCanBrowseFile {
-
-    override val canSyncLibraries = state(IsValid.valid)
-    override val syncLibrariesActions = channel<Unit>()
+class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanBrowseFile {
     override val cancelActions = channel<Unit>()
 
     override val isAllowSmartChooseResults = state(false)
@@ -74,20 +57,14 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync),
     override val currentLibraryPath = userMutableState<LibraryPath?>(null)
     override val restartLibraryPathActions = channel<LibraryPath>()
 
-    override val libraries = mutableListOf<Library>().observable()
-
-    override val canAddLibraries = state(IsValid.valid)
-    override val addLibraryActions = channel<Unit>()
-
-    override val canEditLibraries = state(IsValid.valid)
-    override val editLibraryActions = channel<Library>()
-
-    override val canDeleteLibraries = state(IsValid.valid)
-    override val deleteLibraryActions = channel<Library>()
-
     override val browseToFileActions = channel<File>()
 
     private val providerSearchView: SearchResultsFragment by inject()
+
+    override val customNavigationButton = dangerButton("Stop", graphic = Icons.stop) {
+        isCancelButton = false
+        action(cancelActions)
+    }
 
     init {
         register()
@@ -212,62 +189,6 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync),
     }
 
     override fun HBox.buildToolbar() {
-        librariesMenu()
-        gap()
-        syncLibrariesSection()
-    }
-
-    private fun EventTarget.librariesMenu() = buttonWithPopover(graphic = Icons.hdd) {
-        libraries.perform { libraries ->
-            replaceChildren {
-                gridpane {
-                    hgap = 5.0
-                    vgap = 3.0
-                    libraries.forEach { library ->
-                        row {
-                            children += library.platform.logo
-                            text(library.name)
-                            jfxButton(library.path.toString()) {
-                                useMaxWidth = true
-                                addClass(CommonStyle.toolbarButton)
-                                action(browseToFileActions) { library.path }
-                            }
-                            editButton {
-                                removeClass(CommonStyle.toolbarButton)
-                                enableWhen(canEditLibraries)
-                                tooltip("Edit library '${library.name}'")
-                                action(editLibraryActions) { library }
-                            }
-                            deleteButton {
-                                removeClass(CommonStyle.toolbarButton)
-                                enableWhen(canDeleteLibraries)
-                                tooltip("Delete library '${library.name}'")
-                                action(deleteLibraryActions) { library }
-                            }
-                        }
-                    }
-                }
-                verticalGap()
-                addButton {
-                    useMaxWidth = true
-                    hgrow = Priority.ALWAYS
-                    alignment = Pos.CENTER
-                    addClass(CommonStyle.thinBorder)
-                    tooltip("Add a new library")
-                    enableWhen(canAddLibraries)
-                    action(addLibraryActions)
-                }
-            }
-        }
-    }.apply {
-        addClass(CommonStyle.thinBorder)
-        textProperty().bind(libraries.sizeProperty.stringBinding { "Libraries: $it" })
-    }
-
-    private fun EventTarget.syncLibrariesSection() = defaultHbox(spacing = 20) {
-        useMaxWidth = true
-        hgrow = Priority.ALWAYS
-
         val resultsAndNumProcessed = pathsToProcessSize.combineLatest(numProcessed.property)
         val numProcessedLabelProperty = resultsAndNumProcessed.stringBinding {
             val (numResults, numProcessed) = it!!
@@ -277,28 +198,11 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync),
             val (numResults, numProcessed) = it!!
             numProcessed.toDouble() / numResults.toDouble()
         }
-
-        isGameSyncRunning.property.perform { isGameSyncRunning ->
-            replaceChildren {
-                if (isGameSyncRunning) {
-                    dangerButton("Stop Sync", graphic = Icons.stop) {
-                        isCancelButton = false
-                        action(cancelActions)
-                    }
-                    label(numProcessedLabelProperty)
-                    jfxProgressBar(progressProperty) {
-                        hgrow = Priority.ALWAYS
-                        useMaxWidth = true
-                        paddingRight = 20
-                    }
-                } else {
-                    infoButton("Sync Libraries", graphic = Icons.folderSync) {
-                        tooltip("Scan all libraries for new games")
-                        enableWhen(canSyncLibraries)
-                        action(syncLibrariesActions)
-                    }
-                }
-            }
+        label(numProcessedLabelProperty)
+        jfxProgressBar(progressProperty) {
+            hgrow = Priority.ALWAYS
+            useMaxWidth = true
+            paddingRight = 20
         }
     }
 

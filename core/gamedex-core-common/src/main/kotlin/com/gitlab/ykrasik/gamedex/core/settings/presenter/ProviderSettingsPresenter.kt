@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -126,7 +126,7 @@ class ProviderSettingsPresenter @Inject constructor(
         }
 
         private fun setCanVerifyAccount() {
-            view.canVerifyAccount *= IsValid {
+            view.canVerifyAccount *= Try {
                 check(status != ProviderAccountStatus.NotRequired) { "Provider does not require an account!" }
                 check(status != ProviderAccountStatus.Empty) { "Empty account!" }
                 check(status != ProviderAccountStatus.Valid) { "Account already verified!" }

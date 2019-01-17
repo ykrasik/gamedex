@@ -174,3 +174,5 @@ inline fun EventTarget.jfxSpinner(op: JFXSpinner.() -> Unit = {}): JFXSpinner =
 
 inline fun <T> EventTarget.jfxTreeView(op: JFXTreeView<T>.() -> Unit): JFXTreeView<T> =
     opcr(this, JFXTreeView(), op)
+
+fun <T : Node> EventTarget.add(child: T, op: T.() -> Unit) = add(child.apply { op() })

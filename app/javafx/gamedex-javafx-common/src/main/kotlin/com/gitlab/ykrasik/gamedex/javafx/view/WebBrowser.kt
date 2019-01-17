@@ -16,12 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority

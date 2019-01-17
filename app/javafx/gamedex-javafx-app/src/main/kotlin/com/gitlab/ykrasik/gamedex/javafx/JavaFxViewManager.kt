@@ -28,8 +28,10 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
+import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.EditReportView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
@@ -41,9 +43,9 @@ import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRedownloadGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxDeleteReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxSettingsView
-import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import javafx.stage.StageStyle
 import tornadofx.Controller
 import tornadofx.View
@@ -57,11 +59,9 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     private val mainView: MainView by inject()
 
-    private val taskView: JavaFxTaskView by inject()
-
     override fun showTaskView(): TaskView {
         // Nothing to show, the taskView is always shown (actually, everything else is shown INSIDE the task view)
-        return taskView
+        return mainView.taskView
     }
 
     override fun hide(view: TaskView) {
@@ -71,12 +71,12 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showSyncGamesView() = mainView.showSyncGamesView()
     override fun hide(view: SyncGamesView) = mainView.showPreviousScreen()
 
+    override fun showGameDetailsView(game: Game) = mainView.showGameDetails(game)
+    override fun hide(view: GameDetailsView) = mainView.showPreviousScreen()
+
     private val editLibraryView: JavaFxEditLibraryView by inject()
     override fun showEditLibraryView(library: Library?) = editLibraryView.showModal { this.library = library }
     override fun hide(view: EditLibraryView) = view.close()
-
-    override fun showGameView(game: Game) = mainView.showGameDetails(game)
-    override fun hide(view: GameView) = mainView.showPreviousScreen()
 
     private val deleteLibraryView: JavaFxDeleteLibraryView by inject()
     override fun showDeleteLibraryView(library: Library) = deleteLibraryView.showModal { this.library = library }
@@ -87,7 +87,6 @@ class JavaFxViewManager : Controller(), ViewManager {
         this.game = game
         this.initialScreen = initialType
     }
-
     override fun hide(view: EditGameView) = view.close()
 
     private val deleteGameView: JavaFxDeleteGameView by inject()
@@ -105,9 +104,16 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showTagGameView(game: Game) = tagGameView.showModal { this.game = game }
     override fun hide(view: TagGameView) = view.close()
 
+    override fun showReportView(report: Report) = mainView.showReportView(report)
+    override fun hide(view: ReportView) = mainView.showPreviousScreen()
+
     private val editReportView: JavaFxEditReportView by inject()
     override fun showEditReportView(report: Report?) = editReportView.showModal { this.report = report }
     override fun hide(view: EditReportView) = view.close()
+
+    private val deleteReportView: JavaFxDeleteReportView by inject()
+    override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
+    override fun hide(view: DeleteReportView) = view.close()
 
     private val settingsView: JavaFxSettingsView by inject()
     override fun showSettingsView() = settingsView.showModal()
@@ -129,6 +135,6 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     private inline fun <V : View> V.showModal(f: V.() -> Unit = {}): V = apply {
         f()
-        openModal(StageStyle.TRANSPARENT)
+        openModal(StageStyle.TRANSPARENT, owner = mainView.currentStage)
     }
 }

@@ -23,15 +23,11 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.state
-import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.deleteButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.infoButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.warningButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.browse
@@ -44,7 +40,7 @@ import java.io.File
  * Date: 05/06/2017
  * Time: 14:57
  */
-class JavaFxMaintenanceView : PresentableTabView("Maintain", Icons.wrench),
+class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ExportDatabaseView, ImportDatabaseView, ClearUserDataView, ViewCanCleanupDatabase, ViewCanRedownloadGames, ViewCanResyncGames {
 
     override val exportDatabaseActions = channel<Unit>()

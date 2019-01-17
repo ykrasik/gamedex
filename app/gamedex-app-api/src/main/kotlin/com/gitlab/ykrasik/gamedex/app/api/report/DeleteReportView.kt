@@ -14,15 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.navigation
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 
 /**
  * User: ykrasik
- * Date: 23/12/2018
- * Time: 09:06
+ * Date: 13/01/2019
+ * Time: 13:04
  */
-interface ViewCanCloseOtherViews {
-    val closeViewActions: ReceiveChannel<Any>
+interface DeleteReportView : ConfirmationView {
+    val report: Report
 }

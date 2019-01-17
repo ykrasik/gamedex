@@ -172,7 +172,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
                             }
                             toggleValue(OverrideSelectionType.Custom)
                         }
-                        buttonWithPopover(graphic = Icons.enterText, closeOnClick = false) {
+                        buttonWithPopover(graphic = Icons.enterText, onClickBehavior = PopOverOnClickBehavior.Ignore) {
                             defaultHbox {
                                 jfxTextField(state.rawCustomValue.property, promptText = "Enter ${state.type}...") {
                                     minWidth = 300.0

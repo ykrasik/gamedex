@@ -20,9 +20,9 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
+import javafx.scene.control.Button
 import javafx.scene.control.ButtonBase
 import javafx.scene.layout.HBox
-import javafx.scene.layout.VBox
 import kotlinx.coroutines.channels.Channel
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.View
@@ -84,13 +84,7 @@ abstract class PresentableTabView(title: String? = null, icon: FontIcon? = null)
 }
 
 abstract class PresentableScreen(title: String = "", icon: FontIcon? = null) : PresentableTabView(title, icon) {
-    open val navigation: ScreenNavigation = ScreenNavigation.MainMenu
+    open val customNavigationButton: Button? = null
 
     abstract fun HBox.buildToolbar()
-}
-
-sealed class ScreenNavigation {
-    object MainMenu : ScreenNavigation()
-    class SubMenu(val builder: VBox.() -> Unit) : ScreenNavigation()
-    object Standalone : ScreenNavigation()
 }

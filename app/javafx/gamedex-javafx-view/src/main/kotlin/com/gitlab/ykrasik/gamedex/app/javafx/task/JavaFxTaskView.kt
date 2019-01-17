@@ -83,12 +83,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
     }
 
     override fun taskSuccess(message: String) {
-//        javaFx {
-        // This is OMFG. Showing the notification as part of the regular flow (not in a new coroutine)
-        // causes an issue with modal windows not reporting that they are being hidden.
-//            delay(1)
         notification(message).info.show()
-//        }
     }
 
     override fun taskCancelled(message: String) = notification(message).warn.show()

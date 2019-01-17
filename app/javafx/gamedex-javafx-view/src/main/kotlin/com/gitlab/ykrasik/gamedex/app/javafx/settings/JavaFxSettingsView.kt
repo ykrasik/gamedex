@@ -22,12 +22,12 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.resetToDefaultButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow

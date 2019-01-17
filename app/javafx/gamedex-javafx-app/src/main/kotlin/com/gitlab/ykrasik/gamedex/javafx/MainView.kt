@@ -17,61 +17,59 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.navigation.ViewCanCloseOtherViews
+import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.game.GameScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxViewGameScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
-import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxMaintenanceView
-import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportsScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
+import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSyncGamesScreen
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.backButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.javafx.view.ScreenNavigation
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
-import javafx.event.EventTarget
+import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.control.ContentDisplay
 import javafx.scene.control.Tab
 import javafx.scene.control.TabPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.text.FontWeight
 import tornadofx.*
+import java.util.*
 
 /**
  * User: ykrasik
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanCloseOtherViews, ViewCanShowSettings {
-    private val taskView: JavaFxTaskView by inject()
+class MainView : PresentableView("GameDex"), ViewCanShowSettings {
+    val taskView: JavaFxTaskView by inject()
 
-    private val gameScreen: GameScreen by inject()
-    private val reportsScreen: ReportsScreen by inject()
+    private val gameScreen: JavaFxGameScreen by inject()
+    private val libraryMenu: LibraryMenu by inject()
+    private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
+    private val reportMenu: ReportMenu by inject()
+    private val reportScreen: JavaFxReportScreen by inject()
+    private val maintenanceMenu: MaintenanceMenu by inject()
     private val logScreen: JavaFxLogScreen by inject()
 
-    private val maintenanceView: JavaFxMaintenanceView by inject()
-
-    private val viewGameScreen: JavaFxViewGameScreen by inject()
-    private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
-
-    private lateinit var previousScreen: Tab
+    private val gameDetailsScreen: JavaFxGameDetailsScreen by inject()
 
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
-    override val closeViewActions = channel<Any>()
     override val showSettingsActions = channel<Unit>()
 
-    init {
-        register()
-    }
+    private val maxNavigationHistory = 5
+    private val navigationHistory = ArrayDeque<Tab>(maxNavigationHistory)
 
     private val toolbar = customToolbar {
         children.onChange {
@@ -83,12 +81,13 @@ class MainView : PresentableView("GameDex"), ViewCanCloseOtherViews, ViewCanShow
 
     private val tabPane = jfxTabPane {
         addClass(CommonStyle.hiddenTabPaneHeader)
+        isDisableAnimation = true   // Too slow by default
 
-        previousScreen = screenTab(gameScreen)
-        screenTab(syncGamesScreen)
-        screenTab(reportsScreen)
-        screenTab(logScreen)
-        screenTab(viewGameScreen)
+        tab(gameScreen)
+        tab(syncGamesScreen)
+        tab(reportScreen)
+        tab(logScreen)
+        tab(gameDetailsScreen)
 
         selectionModel.selectedItemProperty().addListener { _, oldValue, newValue ->
             cleanupClosedTab(oldValue)
@@ -103,77 +102,62 @@ class MainView : PresentableView("GameDex"), ViewCanCloseOtherViews, ViewCanShow
         }
     }
 
-    private fun TabPane.screenTab(screen: PresentableScreen) = tab(screen) {
-        userData = screen
-        graphic = screen.icon
-    }
+    private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
-    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu, closeOnClick = true) {
-        tabPane.tabs.forEach { tab ->
-            val screen = tab.userData as PresentableScreen
-            val navigation = screen.navigation
-            when (navigation) {
-                ScreenNavigation.MainMenu ->
-                    navigationButton(screen.title, screen.icon) {
-                        closeViewActions.event(tabPane.selectionModel.selectedItem.userData as PresentableScreen)
-                        tabPane.selectionModel.select(tab)
-                    }
-                is ScreenNavigation.SubMenu ->
-                    subMenu(screen.title, screen.icon, contentDisplay = ContentDisplay.TOP) {
-                        navigation.builder(this)
-                    }
-                ScreenNavigation.Standalone -> {
-                    // Nothing to do.
-                }
-            }
-        }
+    private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
+        navigationButton(gameScreen)
+        subMenu(libraryMenu)
+        subMenu(reportMenu)
+        subMenu(maintenanceMenu)
 
-        verticalGap(size = 30)
+        verticalGap(size = 15)
 
-        subMenu("Maintain", Icons.wrench, contentDisplay = ContentDisplay.TOP) {
-            add(maintenanceView.root)
-        }
-
-        verticalGap(size = 30)
-
-        navigationButton("Settings", Icons.settings).apply {
+        navigationButton(logScreen)
+        navigationButton("Settings", Icons.settings) {
             action(showSettingsActions)
             shortcut("ctrl+o")
             tooltip("Settings (ctrl+o)")
         }
 
-        verticalGap(size = 30)
+        verticalGap(size = 15)
 
-        navigationButton("Quit", Icons.quit) { System.exit(0) }
+        navigationButton("Quit", Icons.quit) {
+            action {
+                System.exit(0)
+            }
+        }
     }.apply {
         addClass(CommonStyle.toolbarButton, Style.navigationButton)
         textProperty().bind(tabPane.selectionModel.selectedItemProperty().stringBinding { it!!.text })
     }
 
     init {
+        register()
         prepareNewTab(tabPane.selectionModel.selectedItem)
     }
 
     private fun cleanupClosedTab(tab: Tab) {
-        previousScreen = tab
-        val screen = tab.userData as PresentableScreen
+        val screen = tab.screen
         screen.callOnUndock()
     }
 
     private fun prepareNewTab(tab: Tab) {
-        val screen = tab.userData as PresentableScreen
+        addToHistory(tab)
+        val screen = tab.screen
         screen.callOnDock()
-        screen.populateToolbar()
+        populateToolbar(screen)
     }
 
-    private fun PresentableScreen.populateToolbar() {
-        val screen = this
+    private fun addToHistory(tab: Tab) {
+        navigationHistory.push(tab)
+        if (navigationHistory.size > maxNavigationHistory) {
+            navigationHistory.pollLast()
+        }
+    }
+
+    private fun populateToolbar(screen: PresentableScreen) {
         toolbar.replaceChildren {
-            if (screen.navigation != ScreenNavigation.Standalone) {
-                add(mainNavigationButton)
-            } else {
-                backButton { action(closeViewActions) { screen } }
-            }
+            children += screen.customNavigationButton ?: mainNavigationButton
             gap()
             children += toolbars.getOrPut(screen) {
                 HBox().apply {
@@ -181,36 +165,50 @@ class MainView : PresentableView("GameDex"), ViewCanCloseOtherViews, ViewCanShow
                     useMaxWidth = true
                     hgrow = Priority.ALWAYS
                     alignment = Pos.CENTER_LEFT
-                    buildToolbar()
+                    with(screen) { buildToolbar() }
                 }
             }
         }
     }
 
-    private inline fun EventTarget.navigationButton(text: String, icon: Node, crossinline action: () -> Unit = {}) =
-        jfxButton(text, icon, alignment = Pos.CENTER) {
-            useMaxWidth = true
-            contentDisplay = ContentDisplay.TOP
+    private fun PopOverContent.navigationButton(screen: PresentableScreen) =
+        navigationButton(screen.title, screen.icon) {
             action {
-                action()
+                selectScreen(screen)
             }
         }
 
-    fun showGameDetails(game: Game): JavaFxViewGameScreen {
-        viewGameScreen.game.valueFromView = game
-        selectScreen(viewGameScreen)
-        return viewGameScreen
+    private inline fun PopOverContent.navigationButton(text: String, icon: Node, crossinline op: JFXButton.() -> Unit = {}) =
+        jfxButton(text, icon, alignment = Pos.CENTER_LEFT) {
+            useMaxWidth = true
+            op()
+        }
+
+    private fun PopOverContent.subMenu(view: PresentableView): HBox = subMenu(view.title, view.icon) { children += view.root }
+
+    fun showGameDetails(game: Game): JavaFxGameDetailsScreen = selectScreen(gameDetailsScreen) {
+        this.game.valueFromView = game
     }
 
-    fun showSyncGamesView(): JavaFxSyncGamesScreen {
-        selectScreen(syncGamesScreen)
-        return syncGamesScreen
+    fun showSyncGamesView(): JavaFxSyncGamesScreen = selectScreen(syncGamesScreen)
+
+    fun showReportView(report: Report): JavaFxReportScreen = selectScreen(reportScreen) {
+        this.report.valueFromView = report
     }
 
-    private fun selectScreen(screen: PresentableScreen) =
-        tabPane.selectionModel.select(tabPane.tabs.find { it.userData == screen })
+    fun showPreviousScreen() {
+        navigationHistory.pop()   // The current screen being shown is at the top of the stack.
+        tabPane.selectionModel.select(navigationHistory.pop()) // Pop again, because the selection change will push it right back in.
+    }
 
-    fun showPreviousScreen() = tabPane.selectionModel.select(previousScreen)
+    private inline fun <V : PresentableScreen> selectScreen(screen: V, op: V.() -> Unit = {}): V {
+        op(screen)
+        tabPane.selectionModel.select(screen.tab)
+        return screen
+    }
+
+    private val Tab.screen: PresentableScreen get() = userData as PresentableScreen
+    private val PresentableScreen.tab: Tab get() = tabPane.tabs.find { it.screen == this }!!
 
     override fun onDock() {
         val applicationStartTime = System.currentTimeMillis() - params[StartTimeParam] as Long

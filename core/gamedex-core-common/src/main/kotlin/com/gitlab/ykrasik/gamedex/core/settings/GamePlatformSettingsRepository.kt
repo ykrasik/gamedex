@@ -32,7 +32,7 @@ class GamePlatformSettingsRepository(factory: SettingsStorageFactory, platform: 
 
     override val storage = factory(platform.toString().toLowerCase(), Data::class) {
         Data(
-            filter = Filter.`true`,
+            filter = Filter.Null,
             search = ""
         )
     }

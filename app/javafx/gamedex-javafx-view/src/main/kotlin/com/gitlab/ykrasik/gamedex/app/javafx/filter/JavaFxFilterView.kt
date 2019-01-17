@@ -24,11 +24,11 @@ import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.*
+import com.gitlab.ykrasik.gamedex.javafx.combineLatest
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.deleteButton
-import com.gitlab.ykrasik.gamedex.javafx.theme.logo
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.Extractor
@@ -57,7 +57,7 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView, ViewWithProviderLogos {
+class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val possibleGenres = mutableListOf<String>()
@@ -76,7 +76,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
     override val replaceFilterActions = channel<Pair<Filter, KClass<out Filter>>>()
     override val deleteFilterActions = channel<Filter>()
 
-    override val filter = state<Filter>(Filter.`true`)
+    override val filter = state<Filter>(Filter.Null)
     override val filterIsValid = state(IsValid.valid)
 
     private var indent = 0
@@ -84,7 +84,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
     override val root = vbox {
         // TODO: Re-rendering like this is possibly leaking listeners.
         fun rerender() = replaceChildren {
-            render(filter.property.value, Filter.`true`)
+            render(filter.property.value, Filter.Null)
         }
         filter.property.onChange { rerender() }
         possibleRules.onChange { rerender() }
@@ -175,7 +175,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         gap(size = indent * 10.0)
 
         val descriptor = filter.descriptor
-        buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), closeOnClick = false) {
+        buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), onClickBehavior = PopOverOnClickBehavior.Ignore) {
             // TODO: As an optimization, can share this popover accross all menus.
             fun EventTarget.conditionButton(descriptor: ConditionDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
@@ -250,7 +250,7 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
         deleteButton {
             removeClass(CommonStyle.toolbarButton)
             // Do not allow deleting an empty root
-            isDisable = filter === this@JavaFxGameFilterView.filter && filter is Filter.True
+            isDisable = filter === this@JavaFxFilterView.filter && filter is Filter.True
             action(deleteFilterActions) { filter }
         }
     }
@@ -396,8 +396,8 @@ class JavaFxGameFilterView(override val onlyShowConditionsForCurrentPlatform: Bo
             ConditionDisplayDescriptor(Filter.Or::class, "Or", Icons::or),
             ConditionDisplayDescriptor(Filter.True::class, "Select Condition", Icons::select),
             ConditionDisplayDescriptor(Filter.Platform::class, "Platform", Icons::computer, gap = true),
-            ConditionDisplayDescriptor(Filter.Library::class, "Library", { Icons.hdd.color(Color.BLACK) }),
-            ConditionDisplayDescriptor(Filter.Genre::class, "Genre", Icons::documents),
+            ConditionDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
+            ConditionDisplayDescriptor(Filter.Genre::class, "Genre", Icons::script),
             ConditionDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
             ConditionDisplayDescriptor(Filter.Provider::class, "Provider", Icons::database, gap = true),
             score<Filter.CriticScore>(criticScoreSubMenu),

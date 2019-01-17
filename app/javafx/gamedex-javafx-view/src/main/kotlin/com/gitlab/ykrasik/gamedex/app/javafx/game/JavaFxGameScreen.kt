@@ -18,12 +18,12 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
-import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
 import com.gitlab.ykrasik.gamedex.javafx.addComponent
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.mouseTransparentWhen
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
@@ -36,10 +36,10 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class GameScreen : PresentableScreen("Games", Icons.games),
+class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort, ViewWithCurrentPlatformFilter {
     private val gameWallView: GameWallView by inject()
-    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = true)
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = true)
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
@@ -65,7 +65,7 @@ class GameScreen : PresentableScreen("Games", Icons.games),
 
         filterButton()
         sortButton()
-        searchTextField(this@GameScreen, searchText.property)
+        searchTextField(this@JavaFxGameScreen, searchText.property)
     }
 
     override val root = gameWallView.root
@@ -81,7 +81,7 @@ class GameScreen : PresentableScreen("Games", Icons.games),
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, closeOnClick = false) {
+    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, onClickBehavior = PopOverOnClickBehavior.Ignore) {
         defaultHbox {
             paddingAll = 5
             popoverComboMenu(
@@ -106,7 +106,7 @@ class GameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Sort")
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, closeOnClick = false) {
+    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, onClickBehavior = PopOverOnClickBehavior.Ignore) {
         addComponent(filterView)
     }.apply {
         tooltip("Filter")

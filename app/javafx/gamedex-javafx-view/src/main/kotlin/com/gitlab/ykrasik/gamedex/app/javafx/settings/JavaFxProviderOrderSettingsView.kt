@@ -21,11 +21,16 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
 import com.gitlab.ykrasik.gamedex.app.javafx.image.image
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.errorTooltip
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.perform
+import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.color
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid

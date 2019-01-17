@@ -28,7 +28,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
  * Time: 10:29
  */
 interface ReportView {
-    val report: UserMutableState<Report?>
+    val report: UserMutableState<Report>
 
     val result: State<ReportResult>
 }

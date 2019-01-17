@@ -51,7 +51,7 @@ class ResyncGameServiceImpl @Inject constructor(
     override fun resyncGames(condition: Filter) = task("Detecting games to re-sync...") {
         val context = filterContextFactory.create(emptyList())
         val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.path }
-        if (games.isEmpty()) {
+        if (games.isNotEmpty()) {
             resyncGames(games)
         } else {
             successMessage = { "No games matching re-sync condition detected!" }

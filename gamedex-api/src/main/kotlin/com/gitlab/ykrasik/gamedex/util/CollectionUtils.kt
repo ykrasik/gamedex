@@ -85,3 +85,6 @@ inline fun <T> List<T>.modify(index: Int, modifier: Modifier<T>): List<T> =
     mapIndexed { i, elem -> if (index == i) modifier(elem) else elem }
 
 inline fun <T> List<T>.modifyLast(modifier: Modifier<T>): List<T> = modify(size - 1, modifier)
+
+fun <T> MutableList<T>.push(t: T) = add(t)
+fun <T> MutableList<T>.pop() = removeAt(size - 1)

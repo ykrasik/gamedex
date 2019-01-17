@@ -14,27 +14,20 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.navigation.presenter
+package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.app.api.navigation.ViewCanCloseOtherViews
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
  * User: ykrasik
- * Date: 23/12/2018
- * Time: 09:07
+ * Date: 07/10/2018
+ * Time: 09:51
  */
-@Singleton
-class CloseViewPresenter @Inject constructor(private val eventBus: EventBus) : Presenter<ViewCanCloseOtherViews> {
-    override fun present(view: ViewCanCloseOtherViews) = object : ViewSession() {
-        init {
-            view.closeViewActions.forEach {
-                eventBus.viewFinished(it)
-            }
-        }
-    }
+interface ViewCanSearchReportResult {
+    val result: State<ReportResult>
+
+    val searchText: UserMutableState<String>
+    val matchingGame: State<Game?>
 }

@@ -14,31 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
+package com.gitlab.ykrasik.gamedex.app.api.game
 
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.color
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
-import javafx.geometry.Pos
-import javafx.scene.paint.Color
-import org.controlsfx.control.Notifications
-import tornadofx.UIComponent
-import tornadofx.seconds
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 21/11/2018
- * Time: 08:46
+ * Date: 29/04/2018
+ * Time: 20:09
  */
-fun UIComponent.notification(text: String): Notifications =
-    Notifications.create()
-        .owner(currentStage!!)
-        .text(text)
-        .darkStyle()
-        .hideAfter(4.seconds)
-        .hideCloseButton()
-        .position(Pos.BOTTOM_RIGHT)
+interface GameDetailsView {
+    val game: UserMutableState<Game>
 
-val Notifications.info get() = graphic(Icons.information.size(50).color(Color.WHITE))
-val Notifications.warn get() = graphic(Icons.warning.size(50))
-val Notifications.error get() = graphic(Icons.error.size(50))
+    val poster: State<Deferred<Image>?>
+
+    val hideViewActions: ReceiveChannel<Unit>
+}

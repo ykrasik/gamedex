@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
-import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import tornadofx.borderpane
@@ -31,7 +31,7 @@ import tornadofx.scrollpane
  * Time: 16:25
  */
 class JavaFxResyncGamesView : ConfirmationWindow("Re-Sync Games", Icons.sync), ResyncGamesView {
-    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
 
     override val resyncGamesCondition = filterView.externalMutations
     override val resyncGamesConditionIsValid = userMutableState(filterView.filterIsValid)

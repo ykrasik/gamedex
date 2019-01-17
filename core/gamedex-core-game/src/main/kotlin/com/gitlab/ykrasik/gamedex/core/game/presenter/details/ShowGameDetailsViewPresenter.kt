@@ -30,14 +30,14 @@ import javax.inject.Singleton
  * Time: 09:38
  */
 @Singleton
-class ShowGameViewPresenter @Inject constructor(
+class ShowGameDetailsViewPresenter @Inject constructor(
     private val viewManager: ViewManager,
     private val eventBus: EventBus
 ) : Presenter<ViewCanShowGameDetails> {
     override fun present(view: ViewCanShowGameDetails) = object : ViewSession() {
         init {
             view.showGameDetailsActions.forEach { game ->
-                val gameView = viewManager.showGameView(game)
+                val gameView = viewManager.showGameDetailsView(game)
                 eventBus.awaitViewFinished(gameView)
                 viewManager.hide(gameView)
             }

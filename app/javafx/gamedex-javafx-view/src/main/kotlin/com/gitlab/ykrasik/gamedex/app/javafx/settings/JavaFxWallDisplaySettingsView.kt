@@ -16,9 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.javafx.Icons
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.size
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import tornadofx.Fragment
 import tornadofx.action
 import tornadofx.fieldset

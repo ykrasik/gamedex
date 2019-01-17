@@ -18,11 +18,15 @@ package com.gitlab.ykrasik.gamedex.app.javafx.log
 
 import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.*
-import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxListView
+import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
+import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.size
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.jfoenix.controls.JFXListCell
 import javafx.scene.input.KeyCombination

@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.report.presenter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReports
+import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReportResult
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
@@ -30,8 +30,8 @@ import javax.inject.Singleton
  * Time: 09:52
  */
 @Singleton
-class SearchReportsPresenter @Inject constructor() : Presenter<ViewCanSearchReports> {
-    override fun present(view: ViewCanSearchReports) = object : ViewSession() {
+class SearchReportResultPresenter @Inject constructor() : Presenter<ViewCanSearchReportResult> {
+    override fun present(view: ViewCanSearchReportResult) = object : ViewSession() {
         init {
             view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
         }

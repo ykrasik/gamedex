@@ -17,8 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
-import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxGameFilterView
-import com.gitlab.ykrasik.gamedex.javafx.Icons
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import tornadofx.borderpane
@@ -31,7 +31,7 @@ import tornadofx.scrollpane
  * Time: 10:57
  */
 class JavaFxRedownloadGamesView : ConfirmationWindow("Re-Download Games", Icons.download), RedownloadGamesView {
-    private val filterView = JavaFxGameFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
 
     override val redownloadGamesCondition = filterView.externalMutations
     override val redownloadGamesConditionIsValid = userMutableState(filterView.filterIsValid)
