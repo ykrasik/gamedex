@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.report
 
-import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.State
@@ -36,14 +35,12 @@ interface ReportView {
 
 data class ReportResult(
     val games: List<Game>,
-    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>,
-    val fileStructure: Map<GameId, FileStructure>
+    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>
 ) {
     companion object {
         val Null = ReportResult(
             games = emptyList(),
-            additionalData = emptyMap(),
-            fileStructure = emptyMap()
+            additionalData = emptyMap()
         )
     }
 }

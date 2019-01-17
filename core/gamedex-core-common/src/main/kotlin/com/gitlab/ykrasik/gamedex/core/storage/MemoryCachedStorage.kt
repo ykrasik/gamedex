@@ -58,14 +58,20 @@ class MemoryCachedStorage<K, V>(private val delegate: Storage<K, V>) : Storage<K
 
     override fun getAll() = cache
 
-    override fun delete(key: K) {
-        delegate.delete(key)
+    override fun delete(key: K): Boolean {
+        val deleted = delegate.delete(key)
         cache -= key
+        return deleted
     }
 
-    override fun deleteAll(keys: Iterable<K>) {
-        delegate.deleteAll(keys)
+    override fun delete(keys: Iterable<K>) {
+        delegate.delete(keys)
         cache -= keys
+    }
+
+    override fun clear() {
+        delegate.clear()
+        cache.clear()
     }
 
     override fun ids() = cache.keys

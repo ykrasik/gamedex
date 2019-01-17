@@ -22,6 +22,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.ResyncGameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +35,7 @@ import javax.inject.Singleton
 class ResyncGamesPresenter @Inject constructor(
     private val settingsService: SettingsService,
     private val resyncGameService: ResyncGameService,
+    private val taskService: TaskService,
     private val eventBus: EventBus
 ) : Presenter<ResyncGamesView> {
     override fun present(view: ResyncGamesView) = object : ViewSession() {
@@ -59,7 +61,7 @@ class ResyncGamesPresenter @Inject constructor(
             val condition = view.resyncGamesCondition.value
             settingsService.providerGeneral.modify { copy(resyncGamesCondition = condition) }
 
-            resyncGameService.resyncGames(condition)
+            taskService.execute(resyncGameService.resyncGames(condition))
 
             finished()
         }

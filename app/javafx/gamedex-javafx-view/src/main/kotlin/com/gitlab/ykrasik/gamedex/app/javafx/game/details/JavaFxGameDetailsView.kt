@@ -16,11 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
-import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameFileStructure
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -31,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.javafx.control.fixedRating
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
 import com.gitlab.ykrasik.gamedex.javafx.control.toImageView
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
-import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
@@ -58,17 +55,10 @@ import java.io.File
 class JavaFxGameDetailsView(
     private val withDescription: Boolean = true,
     private val evenIfEmpty: Boolean = false
-) : PresentableView(), ViewWithProviderLogos, ViewWithGameFileStructure, ViewCanBrowseFile, ViewCanBrowseUrl {
+) : PresentableView(), ViewWithProviderLogos, ViewCanBrowseFile, ViewCanBrowseUrl {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
-    override val game = userMutableState(Game.Null)
-
-    override val fileStructure = state(FileStructure.NotAvailable)
-
-    private val fileStructurePlaceholder = label {
-        minWidth = 60.0
-        textProperty().bind(fileStructure.property.stringBinding { it!!.size.humanReadable })
-    }
+    val game = userMutableState(Game.Null)
 
     override val browseToFileActions = channel<File>()
     override val browseToUrlActions = channel<String>()
@@ -105,7 +95,9 @@ class JavaFxGameDetailsView(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        children += fileStructurePlaceholder
+        label(game.value.fileStructure.value.size.humanReadable) {
+            minWidth = 60.0
+        }
     }
 
     private fun GridPane.path() = row {

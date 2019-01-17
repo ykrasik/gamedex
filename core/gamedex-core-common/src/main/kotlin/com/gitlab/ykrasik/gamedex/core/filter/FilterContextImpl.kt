@@ -43,8 +43,6 @@ class FilterContextImpl(
     override fun providerSupports(providerId: ProviderId, platform: Platform) =
         gameProviderService.allProviders.find { it.id == providerId }!!.supports(platform)
 
-    override fun size(game: Game) = fileSystemService.structure(game).size
-
     override fun toFileName(name: String): String = fileSystemService.toFileName(name)
 
     @Suppress("UNCHECKED_CAST")

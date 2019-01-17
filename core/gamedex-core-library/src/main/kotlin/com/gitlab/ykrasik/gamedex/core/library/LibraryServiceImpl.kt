@@ -21,7 +21,10 @@ import com.gitlab.ykrasik.gamedex.LibraryData
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
+import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,13 +35,15 @@ import javax.inject.Singleton
  * Time: 19:34
  */
 @Singleton
-class LibraryServiceImpl @Inject constructor(private val repo: LibraryRepository, eventBus: EventBus) : LibraryService {
+class LibraryServiceImpl @Inject constructor(
+    private val repo: LibraryRepository,
+    eventBus: EventBus
+) : LibraryService {
     override val libraries = repo.libraries
 
     init {
-        eventBus.on(DatabaseInvalidatedEvent::class) {
-            repo.invalidate()
-        }
+        libraries.broadcastTo(eventBus, Library::id, ::LibrariesAddedEvent, ::LibrariesDeletedEvent, ::LibrariesUpdatedEvent)
+        eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { repo.invalidate() }
     }
 
     override fun get(id: Int) = libraries.find { it.id == id }

@@ -19,13 +19,17 @@ package com.gitlab.ykrasik.gamedex.core.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.RawGame
-import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.app.api.util.mapping
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.ListEvent
+import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
+import com.gitlab.ykrasik.gamedex.core.util.mapping
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.gitlab.ykrasik.gamedex.util.time
 import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,12 +43,19 @@ import javax.inject.Singleton
 class GameServiceImpl @Inject constructor(
     private val repo: GameRepository,
     private val gameFactory: GameFactory,
+    eventBus: EventBus,
     libraryService: LibraryService,
     settingsService: SettingsService
 ) : GameService {
-    override val games = repo.games.mapping { it.toGame() }
+    private val log = logger()
+
+    override val games = log.time("Processing games...") {
+        repo.games.mapping { it.toGame() } as ListObservableImpl<Game>
+    }
 
     init {
+        games.broadcastTo(eventBus, Game::id, ::GamesAddedEvent, ::GamesDeletedEvent, ::GamesUpdatedEvent)
+
         libraryService.libraries.changesChannel.subscribe {
             when (it) {
                 is ListEvent.RemoveEvent -> repo.invalidate()
@@ -52,8 +63,7 @@ class GameServiceImpl @Inject constructor(
                 else -> Unit
             }
         }
-        settingsService.providerOrder.dataChannel.subscribe {
-            // This gets called immediately when the object is created, in effect twice.
+        settingsService.providerOrder.dataChannel.drop(1).subscribe {
             rebuildGames()
         }
     }
@@ -110,8 +120,7 @@ class GameServiceImpl @Inject constructor(
 
     override fun buildGame(rawGame: RawGame) = rawGame.toGame()
 
-    // ugly cast, whatever.
-    private fun rebuildGames() = (games as ListObservableImpl<Game>).setAll(games.map { it.rawGame.toGame() })
+    private fun rebuildGames() = repo.games.touch()
 
     // FIXME: ineffective for large collections
     override fun get(id: GameId): Game = games.find { it.id == id }

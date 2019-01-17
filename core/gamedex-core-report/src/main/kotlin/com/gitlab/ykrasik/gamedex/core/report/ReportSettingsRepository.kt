@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.report
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
+import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
 import javax.inject.Inject

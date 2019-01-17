@@ -18,12 +18,12 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameView
-import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
+import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,26 +42,26 @@ class GameViewPresenter @Inject constructor(
         init {
             view.game *= Game.Null
 
-            gameService.games.changesChannel.forEach { event ->
+            gameService.games.changesChannel.forEach { e ->
                 val game = view.game.value
                 if (game.id == Game.Null.id) return@forEach
 
-                when (event) {
+                when (e) {
                     is ListEvent.ItemRemoved -> {
-                        if (event.item == game) finished()
+                        if (e.item == game) finished()
                     }
                     is ListEvent.ItemsRemoved -> {
-                        if (event.items.contains(game)) finished()
+                        if (e.items.contains(game)) finished()
                     }
                     is ListEvent.ItemSet -> {
-                        if (event.item.id == game.id) {
-                            val item = event.item
+                        if (e.item.id == game.id) {
+                            val item = e.item
                             view.game *= item
                             if (isShowing) onShow()
                         }
                     }
                     is ListEvent.ItemsSet -> {
-                        val relevantGame = event.items.find { it.id == game.id }
+                        val relevantGame = e.items.find { it.id == game.id }
                         if (relevantGame != null) {
                             view.game *= relevantGame
                             if (isShowing) onShow()

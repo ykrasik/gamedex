@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
@@ -40,7 +39,6 @@ import javax.inject.Singleton
 @Singleton
 class ReportPresenter @Inject constructor(
     private val gameService: GameService,
-    private val fileSystemService: FileSystemService,
     private val filterContextFactory: FilterContextFactory,
     private val taskService: TaskService
 ) : Presenter<ReportView> {
@@ -83,8 +81,7 @@ class ReportPresenter @Inject constructor(
                 }
                 ReportResult(
                     games = matchingGames.sortedBy { it.name },
-                    additionalData = context.additionalData,
-                    fileStructure = fileSystemService.allStructure()
+                    additionalData = context.additionalData
                 )
             })
         }

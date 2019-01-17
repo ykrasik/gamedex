@@ -20,12 +20,12 @@ import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.game.GamesDeletedEvent
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
+import com.gitlab.ykrasik.gamedex.core.on
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.deleteWithChildren
-import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.mapNotNullToMap
+import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
+import com.gitlab.ykrasik.gamedex.util.*
 import com.google.inject.BindingAnnotation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -43,31 +43,33 @@ import javax.inject.Singleton
  */
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
-    @FileStructureStorage private val fileStructureStorage: Storage<GameId, FileStructure>,
+    @FileStructureStorage initialStorage: Storage<GameId, FileStructure>,
     eventBus: EventBus
 ) : FileSystemService {
     private val log = logger()
 
-    init {
-        eventBus.on(DatabaseInvalidatedEvent::class) {
-            log.debug("Invalidating file structure...")
-            fileStructureStorage.deleteAll(fileStructureStorage.ids())
-        }
+    private val storage = log.time("Reading file system cache...") {
+        initialStorage.memoryCached()
     }
 
-    override fun structure(game: Game): FileStructure {
-        val structure = fileStructureStorage[game.id]
+    init {
+        eventBus.on<GamesDeletedEvent>(Dispatchers.IO) { it.games.forEach(::onGameDeleted) }
+        eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { onDbInvalidated() }
+    }
+
+    override fun fileStructure(gameId: GameId, path: File): Ref<FileStructure> {
+        val structure = storage[gameId]
+        val ref = ref(structure ?: FileStructure.NotAvailable)
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {
-            val newStructure = calcStructure(game.path)
+            val newStructure = calcStructure(path)
             if (newStructure != null && newStructure != structure) {
-                fileStructureStorage[game.id] = newStructure
+                storage[gameId] = newStructure
+                ref.value = newStructure
             }
         }
-
-        // FIXME: This will first return cached result and only on 2nd call return updated result, find a better solution.
-        return structure ?: FileStructure.NotAvailable
+        return ref
     }
 
     private fun calcStructure(file: File): FileStructure? {
@@ -91,17 +93,15 @@ class FileSystemServiceImpl @Inject constructor(
         }
     }
 
-    override fun allStructure() = fileStructureStorage.getAll()
-
-    override fun deleteStructure(gameId: GameId) {
-        fileStructureStorage.delete(gameId)
+    override fun deleteFileStructure(gameId: GameId) {
+        storage.delete(gameId)
     }
 
     override fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize> {
         val excudedKeys = excludedGames.mapTo(mutableSetOf()) { it.id }
-        return fileStructureStorage.getAll().mapNotNullToMap { key, _ ->
+        return storage.getAll().mapNotNullToMap { key, _ ->
             if (key in excudedKeys) return@mapNotNullToMap null
-            key to FileSize(fileStructureStorage.sizeTaken(key))
+            key to FileSize(storage.sizeTaken(key))
         }
     }
 
@@ -123,6 +123,13 @@ class FileSystemServiceImpl @Inject constructor(
     override fun analyzeFolderName(rawName: String) = FileNameHandler.analyze(rawName)
 
     override fun toFileName(name: String) = FileNameHandler.toFileName(name)
+
+    private fun onGameDeleted(game: Game) = deleteFileStructure(game.id)
+
+    private fun onDbInvalidated() {
+        log.debug("Invalidating file structure...")
+        storage.clear()
+    }
 
     // FIXME: Allow syncing cache to existing games, should be called on each game change by... someone.
 }

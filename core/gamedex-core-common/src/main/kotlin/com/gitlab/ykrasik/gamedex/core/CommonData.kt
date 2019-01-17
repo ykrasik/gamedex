@@ -19,7 +19,8 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.util.*
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.provider.EnabledGameProvider
@@ -27,6 +28,7 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.provider.SyncGamesStartedEvent
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.google.inject.ImplementedBy
@@ -105,10 +107,10 @@ class CommonDataImpl @Inject constructor(
     override val platformsWithLibraries = realLibraries.mapping { it.platform }.distincting()
 
     override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
-        eventBus.on(SyncGamesStartedEvent::class) {
+        eventBus.on<SyncGamesStartedEvent> {
             send(true)
         }
-        eventBus.on(SyncGamesFinishedEvent::class) {
+        eventBus.on<SyncGamesFinishedEvent> {
             send(false)
         }
     }

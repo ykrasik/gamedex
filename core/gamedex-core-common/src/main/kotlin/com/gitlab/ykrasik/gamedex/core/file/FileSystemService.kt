@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.FolderNameMetadata
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.util.FileSize
+import com.gitlab.ykrasik.gamedex.util.Ref
 import java.io.File
 
 /**
@@ -29,10 +30,8 @@ import java.io.File
  * Time: 14:04
  */
 interface FileSystemService {
-    fun structure(game: Game): FileStructure
-    fun allStructure(): Map<GameId, FileStructure>
-
-    fun deleteStructure(gameId: GameId)
+    fun fileStructure(gameId: GameId, path: File): Ref<FileStructure>
+    fun deleteFileStructure(gameId: GameId)    // FIXME: This exposes the fact that we persist this data.
     fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 
     suspend fun move(from: File, to: File)

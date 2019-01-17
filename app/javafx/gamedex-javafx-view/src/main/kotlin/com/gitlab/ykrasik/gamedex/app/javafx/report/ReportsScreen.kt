@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.report
 
-import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
@@ -101,7 +100,7 @@ class ReportsScreen : PresentableScreen("Reports", Icons.chart),
                 action(browseToFileActions) { game.path }
             }
         }
-        customGraphicColumn("Size", { game -> (result.value.fileStructure[game.id] ?: FileStructure.NotAvailable).size.toProperty() }) { size ->
+        customGraphicColumn("Size", { game -> game.fileStructure.value.size.toProperty() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 

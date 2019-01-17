@@ -17,29 +17,14 @@
 package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.core.task.Task
-import com.gitlab.ykrasik.gamedex.core.util.ListObservable
-import java.io.File
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik
- * Date: 26/04/2018
- * Time: 19:34
+ * Date: 17/01/2019
+ * Time: 09:31
  */
-interface LibraryService {
-    val libraries: ListObservable<Library>
 
-    operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library?
-    operator fun get(path: File): Library?
-
-    fun add(data: LibraryData): Task<Library>
-    fun addAll(data: List<LibraryData>): Task<List<Library>>
-
-    fun replace(library: Library, data: LibraryData): Task<Unit>
-
-    fun delete(library: Library): Task<Unit>
-    fun deleteAll(libraries: List<Library>): Task<Unit>
-}
+data class LibrariesAddedEvent(val libraries: List<Library>) : CoreEvent
+data class LibrariesDeletedEvent(val libraries: List<Library>) : CoreEvent
+data class LibrariesUpdatedEvent(val libraries: List<Pair<Library, Library>>) : CoreEvent

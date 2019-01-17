@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @ImplementedBy(ResyncGameServiceImpl::class)
 interface ResyncGameService {
     fun resyncGame(game: Game)
-    suspend fun resyncGames(condition: Filter)
+    fun resyncGames(condition: Filter): Task<Unit>
 }
 
 @Singleton
@@ -44,22 +44,17 @@ class ResyncGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterContextFactory: FilterContextFactory,
-    private val taskService: TaskService,
     private val eventBus: EventBus
 ) : ResyncGameService {
     override fun resyncGame(game: Game) = resyncGames(listOf(game))
 
-    override suspend fun resyncGames(condition: Filter) {
-        val games = taskService.execute(task("Detecting games to re-sync...") {
-            val context = filterContextFactory.create(emptyList())
-            val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.path }
-            if (games.isEmpty()) {
-                successMessage = { "No games matching re-sync condition detected!" }
-            }
-            games
-        })
-        if (games.isNotEmpty()) {
+    override fun resyncGames(condition: Filter) = task("Detecting games to re-sync...") {
+        val context = filterContextFactory.create(emptyList())
+        val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.path }
+        if (games.isEmpty()) {
             resyncGames(games)
+        } else {
+            successMessage = { "No games matching re-sync condition detected!" }
         }
     }
 

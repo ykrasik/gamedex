@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core
 
 import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.reflect.KClass
 
 /**
@@ -25,11 +27,21 @@ import kotlin.reflect.KClass
  * Time: 09:07
  */
 interface EventBus {
-    fun <E : CoreEvent> on(event: KClass<E>, handler: suspend (E) -> Unit): EventSubscription
+    fun <E : CoreEvent> on(
+        event: KClass<E>,
+        context: CoroutineContext = EmptyCoroutineContext,
+        handler: suspend (E) -> Unit
+    ): EventSubscription
+
     fun <E : CoreEvent> send(event: E): Job
 
     suspend fun <E : CoreEvent> awaitEvent(event: KClass<E>, predicate: (E) -> Boolean = { true }): E
 }
+
+inline fun <reified E : CoreEvent> EventBus.on(
+    context: CoroutineContext = EmptyCoroutineContext,
+    noinline handler: suspend (E) -> Unit
+) = on(E::class, context, handler)
 
 suspend inline fun <reified E : CoreEvent> EventBus.awaitEvent(noinline predicate: (E) -> Boolean = { true }) = awaitEvent(E::class, predicate)
 

@@ -14,20 +14,17 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.game
+package com.gitlab.ykrasik.gamedex.core.game
 
-import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.State
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
 
 /**
  * User: ykrasik
- * Date: 11/10/2018
- * Time: 09:11
+ * Date: 16/01/2019
+ * Time: 08:46
  */
-interface ViewWithGameFileStructure {
-    val game: UserMutableState<Game>  // FIXME: This solution is meh, a better one would be to send an onShow to the presenter.
 
-    val fileStructure: State<FileStructure>
-}
+data class GamesAddedEvent(val games: List<Game>) : CoreEvent
+data class GamesDeletedEvent(val games: List<Game>) : CoreEvent
+data class GamesUpdatedEvent(val games: List<Pair<Game, Game>>) : CoreEvent

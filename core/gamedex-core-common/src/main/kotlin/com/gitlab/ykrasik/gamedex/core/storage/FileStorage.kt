@@ -84,15 +84,9 @@ class FileStorage<K, V>(
         }.toMap()
     } ?: emptyMap()
 
-    override fun delete(key: K) {
-        val file = fileFor(key)
-        check(file.isFile) { "File doesn't exist: $file" }
-        file.delete()
-    }
-
-    override fun deleteAll(keys: Iterable<K>) {
-        ids().forEach { delete(it) }
-    }
+    override fun delete(key: K) = fileFor(key).delete()
+    override fun delete(keys: Iterable<K>) = keys.forEach { delete(it) }
+    override fun clear() = delete(ids())
 
     override fun ids() = streamFiles { stream -> stream.map { namingStrategy.toKey(it) }.toList() } ?: emptyList()
 

@@ -23,8 +23,8 @@ import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory.getLogger
 

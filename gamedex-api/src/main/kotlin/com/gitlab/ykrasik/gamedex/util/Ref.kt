@@ -14,27 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.game.presenter.file
+package com.gitlab.ykrasik.gamedex.util
 
-import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGameFileStructure
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.atomicfu.atomic
 
 /**
  * User: ykrasik
- * Date: 11/10/2018
- * Time: 09:27
+ * Date: 16/01/2019
+ * Time: 20:05
  */
-@Singleton
-class FileStructurePresenter @Inject constructor(private val fileSystemService: FileSystemService) : Presenter<ViewWithGameFileStructure> {
-    override fun present(view: ViewWithGameFileStructure) = object : ViewSession() {
-        init {
-            view.game.forEach {
-                view.fileStructure *= fileSystemService.structure(it)
-            }
-        }
-    }
+interface Ref<T> {
+    val value: T
 }
+
+class MutableAtomicRef<T>(initial: T) : Ref<T> {
+    private val ref = atomic(initial)
+
+    override var value
+        get() = ref.value
+        set(value) {
+            ref.value = value
+        }
+
+    override fun toString() = value.toString()
+}
+
+fun <T> ref(initial: T) = MutableAtomicRef(initial)

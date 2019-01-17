@@ -35,10 +35,9 @@ interface Storage<K, V> {
     operator fun get(key: K): V?
     fun getAll(): Map<K, V>
 
-    @Throws(IllegalStateException::class)
-    fun delete(key: K)
-
-    fun deleteAll(keys: Iterable<K>)
+    fun delete(key: K): Boolean
+    fun delete(keys: Iterable<K>)
+    fun clear()
 
     fun ids(): Iterable<K>
 

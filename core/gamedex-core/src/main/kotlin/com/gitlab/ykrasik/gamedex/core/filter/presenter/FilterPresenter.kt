@@ -19,11 +19,11 @@ package com.gitlab.ykrasik.gamedex.core.filter.presenter
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
-import com.gitlab.ykrasik.gamedex.app.api.util.mapping
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.core.util.mapping
 import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton

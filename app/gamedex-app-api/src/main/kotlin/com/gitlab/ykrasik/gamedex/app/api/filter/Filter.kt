@@ -294,8 +294,7 @@ sealed class Filter {
 
     class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
         override fun evaluate(game: Game, context: Context): Boolean {
-            val size = context.size(game)
-            return size >= target
+            return game.fileStructure.value.size >= target
         }
 
         override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
@@ -441,7 +440,6 @@ sealed class Filter {
 
         fun providerSupports(providerId: ProviderId, platform: com.gitlab.ykrasik.gamedex.Platform): Boolean
 
-        fun size(game: Game): com.gitlab.ykrasik.gamedex.util.FileSize
         fun toFileName(name: String): String
 
         fun addAdditionalInfo(game: Game, rule: Rule, values: List<Any>)

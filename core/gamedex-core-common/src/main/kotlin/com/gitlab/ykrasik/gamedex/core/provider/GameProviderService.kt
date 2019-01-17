@@ -23,12 +23,12 @@ import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.app.api.util.sortingWith
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
+import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
+import com.gitlab.ykrasik.gamedex.core.util.sortingWith
 import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope

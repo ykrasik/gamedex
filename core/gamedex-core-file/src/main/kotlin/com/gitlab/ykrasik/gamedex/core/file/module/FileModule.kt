@@ -25,8 +25,6 @@ import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowseFilePresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
-import com.gitlab.ykrasik.gamedex.core.storage.memoryCached
-import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
 import javax.inject.Singleton
 
@@ -45,7 +43,6 @@ object FileModule : InternalCoreModule() {
     @Provides
     @Singleton
     @FileStructureStorage
-    fun fileStructureStorage(): Storage<GameId, FileStructure> = log.time("Reading file system cache...") {
-        FileStorage.json<FileStructure>("cache/file_structure").intId().memoryCached()
-    }
+    fun fileStructureStorage(): Storage<GameId, FileStructure> =
+        FileStorage.json<FileStructure>("cache/file_structure").intId()
 }

@@ -61,9 +61,9 @@ class RedownloadGamesPresenter @Inject constructor(
             val condition = view.redownloadGamesCondition.value
             settingsService.providerGeneral.modify { copy(redownloadGamesCondition = condition) }
 
-            taskService.execute(redownloadGameService.redownloadGames(condition))
-
             finished()
+
+            taskService.execute(redownloadGameService.redownloadGames(condition))
         }
 
         private fun onCancel() {

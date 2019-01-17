@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import kotlinx.coroutines.*
 import javax.inject.Singleton
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 /**
@@ -29,21 +30,23 @@ import kotlin.reflect.KClass
 class EventBusImpl : EventBus, CoroutineScope {
     override val coroutineContext = Dispatchers.Default
 
-    private var handlers = emptyMap<KClass<out CoreEvent>, List<suspend (CoreEvent) -> Unit>>()
+    // TODO: Consider serializing all access to this with a special dispatcher.
+    private var handlers = emptyMap<KClass<out CoreEvent>, List<EventHandler>>()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <E : CoreEvent> on(event: KClass<E>, handler: suspend (E) -> Unit): EventSubscription {
-        handlers += event to (handlersFor(event) + handler as (suspend (CoreEvent) -> Unit))
+    override fun <E : CoreEvent> on(event: KClass<E>, context: CoroutineContext, handler: suspend (E) -> Unit): EventSubscription {
+        val eventHandler = EventHandler(context, handler as (suspend (CoreEvent) -> Unit))
+        handlers += event to (handlersFor(event) + eventHandler)
         return object : EventSubscription {
             override fun cancel() {
-                handlers += event to (handlersFor(event) - handler)
+                handlers += event to (handlersFor(event) - eventHandler)
             }
         }
     }
 
     override fun <E : CoreEvent> send(event: E) = launch(Job()) {
-        handlersFor(event::class).forEach { handler ->
-            launch {
+        handlersFor(event::class).forEach { (context, handler) ->
+            launch(context) {
                 handler(event)
             }
         }
@@ -60,4 +63,9 @@ class EventBusImpl : EventBus, CoroutineScope {
     }
 
     private fun handlersFor(event: KClass<out CoreEvent>) = handlers.getOrDefault(event, emptyList())
+
+    private data class EventHandler(
+        val context: CoroutineContext,
+        val handler: suspend (CoreEvent) -> Unit
+    )
 }

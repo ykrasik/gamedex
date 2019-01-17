@@ -142,7 +142,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         staleData.fileStructure.toList().emptyToNull()?.let { fileStructure ->
             message = "Deleting stale file structure..."
-            fileStructure.forEach { fileSystemService.deleteStructure(it.first) }
+            fileStructure.forEach { fileSystemService.deleteFileStructure(it.first) }
         }
         incProgress()
 

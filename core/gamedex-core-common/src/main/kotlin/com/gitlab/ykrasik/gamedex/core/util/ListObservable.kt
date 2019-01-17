@@ -14,8 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.util
+package com.gitlab.ykrasik.gamedex.core.util
 
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.util.combineLatest
+import com.gitlab.ykrasik.gamedex.core.CoreEvent
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.util.Extractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -120,6 +126,8 @@ class ListObservableImpl<T>(initial: List<T> = emptyList()) : ListObservable<T> 
 
     fun clear() = removeAll(_list)
 
+    fun touch() = setAll(_list)
+
     private fun notifyChange(event: ListEvent<T>) {
         if (!buffer) {
             itemsChannel.offer(_list)
@@ -218,4 +226,51 @@ fun <T, R> ListObservable<T>.subscribeTransformChannel(channel: ReceiveChannel<(
         }
     }
     return list
+}
+
+inline fun <T> ListObservable<T>.broadcastTo(
+    eventBus: EventBus,
+    crossinline idExtractor: Extractor<T, Int>,
+    crossinline itemsAddedEvent: (List<T>) -> CoreEvent,
+    crossinline itemsDeletedEvent: (List<T>) -> CoreEvent,
+    crossinline itemsUpdatedEvent: (List<Pair<T, T>>) -> CoreEvent
+) {
+    changesChannel.subscribe { e ->
+        val broadcastEvents = when (e) {
+            is ListEvent.ItemAdded -> listOf(itemsAddedEvent(listOf(e.item)))
+            is ListEvent.ItemsAdded -> listOf(itemsAddedEvent(e.items))
+            is ListEvent.ItemRemoved -> listOf(itemsDeletedEvent(listOf(e.item)))
+            is ListEvent.ItemsRemoved -> listOf(itemsDeletedEvent(e.items))
+            is ListEvent.ItemSet -> listOf(itemsUpdatedEvent(listOf(e.prevItem to e.item)))
+            is ListEvent.ItemsSet -> when {
+                e.prevItems.isEmpty() -> listOf(itemsAddedEvent(e.items))
+                e.items.isEmpty() -> listOf(itemsDeletedEvent(e.prevItems))
+                else -> {
+                    val prevItemsById = e.prevItems.associateBy(idExtractor)
+                    val updatedItemsById = e.items.associateBy(idExtractor)
+                    val updatedIds = prevItemsById.keys.intersect(updatedItemsById.keys)
+
+                    val events = mutableListOf<CoreEvent>()
+
+                    val addedItems = e.items.filter { idExtractor(it) !in updatedIds }
+                    if (addedItems.isNotEmpty()) {
+                        events += itemsAddedEvent(addedItems)
+                    }
+
+                    val deletedItems = e.prevItems.filter { idExtractor(it) !in updatedIds }
+                    if (deletedItems.isNotEmpty()) {
+                        events += itemsDeletedEvent(deletedItems)
+                    }
+
+                    val updatedItems = updatedIds.map { prevItemsById[it]!! to updatedItemsById[it]!! }
+                    if (updatedItems.isNotEmpty()) {
+                        events += itemsUpdatedEvent(updatedItems)
+                    }
+                    events
+                }
+            }
+            else -> emptyList()
+        }
+        broadcastEvents.forEach { eventBus.send(it) }
+    }
 }

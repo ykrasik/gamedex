@@ -23,7 +23,6 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
@@ -38,7 +37,6 @@ import javax.inject.Singleton
 @Singleton
 class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
-    private val fileSystemService: FileSystemService,
     private val filterContextFactory: FilterContextFactory,
     private val gameSearchService: GameSearchService,
     settingsService: SettingsService
@@ -55,7 +53,7 @@ class GamesPresenter @Inject constructor(
             SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.maxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            SortBy.size -> compareBy<Game> { fileSystemService.structure(it).size }.then(nameComparator)
+            SortBy.size -> compareBy<Game> { it.fileStructure.value.size }.then(nameComparator)
             SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
             SortBy.createDate -> compareBy(Game::createDate)
             SortBy.updateDate -> compareBy(Game::updateDate)

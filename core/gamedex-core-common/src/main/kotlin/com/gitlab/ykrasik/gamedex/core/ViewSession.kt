@@ -19,13 +19,10 @@ package com.gitlab.ykrasik.gamedex.core
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.app.api.util.ListEvent
-import com.gitlab.ykrasik.gamedex.app.api.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsRepository
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Modifier
-import com.gitlab.ykrasik.gamedex.util.and
-import com.gitlab.ykrasik.gamedex.util.setAll
+import com.gitlab.ykrasik.gamedex.core.util.ListEvent
+import com.gitlab.ykrasik.gamedex.core.util.ListObservable
+import com.gitlab.ykrasik.gamedex.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -140,10 +137,8 @@ abstract class ViewSession : CoroutineScope {
         forEachImmediately { state.value = it }
 
     inline fun <reified E : CoreEvent> EventBus.forEach(crossinline handler: suspend (E) -> Unit) =
-        on(E::class) { event ->
-            withContext(Dispatchers.Main) {
-                handler(event)
-            }
+        on<E>(Dispatchers.Main) { event ->
+            handler(event)
         }
 
     inline fun <T> BroadcastReceiveChannel<T>.bindIsValid(state: State<IsValid>, crossinline reason: (value: T) -> String?) {

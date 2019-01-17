@@ -18,6 +18,10 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.util.logger
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KClass
@@ -52,8 +56,10 @@ class ViewRegistryImpl @Inject constructor(initialPresenters: MutableMap<KClass<
     }
 
     override fun onShow(view: Any) {
-        log.trace("Show: $view")
-        sessions[view]!!.forEach { it.show() }
+        GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED) {
+            log.trace("Show: $view")
+            sessions[view]!!.forEach { it.show() }
+        }
     }
 
     override fun onHide(view: Any) {
