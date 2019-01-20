@@ -52,8 +52,6 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.NullUserScore::class, name = "nullUserScore"),
 
     JsonSubTypes.Type(value = Filter.AvgScore::class, name = "avgScore"),
-    JsonSubTypes.Type(value = Filter.NullAvgScore::class, name = "nullAvgScore"),
-
     JsonSubTypes.Type(value = Filter.MinScore::class, name = "minScore"),
     JsonSubTypes.Type(value = Filter.MaxScore::class, name = "maxScore"),
 
@@ -203,11 +201,6 @@ sealed class Filter {
     class NullUserScore : NullScore() {
         override fun extractScore(game: Game, context: Context) = game.userScore?.score
         override fun toString() = "User Score == NULL"
-    }
-
-    class NullAvgScore : NullScore() {
-        override fun extractScore(game: Game, context: Context) = game.avgScore
-        override fun toString() = "Avg Score == NULL"
     }
 
     abstract class DateRule : Rule() {

@@ -135,7 +135,6 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
                     is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
                     is Filter.NullUserScore -> renderNullFilter()
                     is Filter.AvgScore -> renderScoreFilter(filter, Filter::AvgScore)
-                    is Filter.NullAvgScore -> renderNullFilter()
                     is Filter.MinScore -> renderScoreFilter(filter, Filter::MinScore)
                     is Filter.MaxScore -> renderScoreFilter(filter, Filter::MaxScore)
                     is Filter.TargetReleaseDate -> renderTargetDateFilter(filter, Filter::TargetReleaseDate)
@@ -371,7 +370,6 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
     private companion object {
         private val criticScoreSubMenu = ConditionDisplaySubMenu("Critic Score", Icons::starFull)
         private val userScoreSubMenu = ConditionDisplaySubMenu("User Score", Icons::starEmpty)
-        private val avgScoreSubMenu = ConditionDisplaySubMenu("Average Score", Icons::starHalf)
         private val releaseDateSubMenu = ConditionDisplaySubMenu("Release Date", Icons::date)
         private val createDateSubMenu = ConditionDisplaySubMenu("Create Date", Icons::createDate)
         private val updateDateSubMenu = ConditionDisplaySubMenu("Update Date", Icons::updateDate)
@@ -402,8 +400,7 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
             nullCondition<Filter.NullCriticScore>(criticScoreSubMenu),
             score<Filter.UserScore>(userScoreSubMenu),
             nullCondition<Filter.NullUserScore>(userScoreSubMenu),
-            score<Filter.AvgScore>(avgScoreSubMenu),
-            nullCondition<Filter.NullAvgScore>(avgScoreSubMenu),
+            ConditionDisplayDescriptor(Filter.AvgScore::class, "Average Score", Icons::starHalf, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
             ConditionDisplayDescriptor(Filter.MinScore::class, "Min Score", Icons::min, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
             ConditionDisplayDescriptor(Filter.MaxScore::class, "Max Score", Icons::max, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
             targetDate<Filter.TargetReleaseDate>(releaseDateSubMenu),

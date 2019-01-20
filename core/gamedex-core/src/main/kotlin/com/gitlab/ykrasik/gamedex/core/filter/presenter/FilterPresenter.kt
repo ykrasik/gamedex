@@ -68,7 +68,6 @@ class FilterPresenter @Inject constructor(
             ConditionBuilder.singleParam(Filter::UserScore) { 60.0 },
             ConditionBuilder.noParams(Filter::NullUserScore),
             ConditionBuilder.singleParam(Filter::AvgScore) { 60.0 },
-            ConditionBuilder.noParams(Filter::NullAvgScore),
             ConditionBuilder.singleParam(Filter::MinScore) { 60.0 },
             ConditionBuilder.singleParam(Filter::MaxScore) { 60.0 },
             ConditionBuilder.singleParam(Filter::TargetReleaseDate) { "2014-01-01".toDate() },
