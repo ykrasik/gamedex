@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
-import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -32,13 +31,12 @@ interface SyncGamesView {
     val isAllowSmartChooseResults: State<Boolean>
 
     val isGameSyncRunning: State<Boolean>
-    val pathsToProcess: MutableList<LibraryPath>
     val numProcessed: State<Int>
 
-    val state: MutableMap<LibraryPath, GameSearchState>
+    val state: MutableList<GameSearchState>
 
-    val currentLibraryPath: UserMutableState<LibraryPath?>
-    val restartLibraryPathActions: ReceiveChannel<LibraryPath>
+    val currentState: UserMutableState<GameSearchState?>
+    val restartStateActions: ReceiveChannel<GameSearchState>
 
     fun successMessage(message: String)
     fun cancelledMessage(message: String)

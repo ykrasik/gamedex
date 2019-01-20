@@ -20,13 +20,11 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.Timestamp
-import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.core.util.sortingWith
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope
@@ -48,9 +46,7 @@ class GameProviderServiceImpl @Inject constructor(
     private val log = logger()
 
     override val allProviders = repo.allProviders
-    private val unsortedProviders = ListObservableImpl<EnabledGameProvider>()
-    override val enabledProviders = unsortedProviders
-        .sortingWith(settingsService.providerOrder.searchChannel.map { it.toComparator() }.subscribe())
+    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
 
     init {
         log.info("Detected providers: ${allProviders.joinToString()}")
@@ -58,10 +54,10 @@ class GameProviderServiceImpl @Inject constructor(
         allProviders.forEach { provider ->
             val providerSettingsRepo = settingsService.providers[provider.id]!!
             providerSettingsRepo.perform { data ->
-                val enabledProvider = unsortedProviders.find { it.id == provider.id }
+                val enabledProvider = enabledProviders.find { it.id == provider.id }
                 when {
                     !data.enabled && enabledProvider != null -> {
-                        unsortedProviders -= enabledProvider
+                        enabledProviders -= enabledProvider
                         log.trace("Provider disabled: ${provider.id}")
                     }
 
@@ -70,10 +66,10 @@ class GameProviderServiceImpl @Inject constructor(
                         val newProvider = EnabledGameProvider(provider, account)
                         if (enabledProvider != null) {
                             log.trace("Provider re-enabled: $enabledProvider")
-                            unsortedProviders.replace(enabledProvider, newProvider)
+                            enabledProviders.replace(enabledProvider, newProvider)
                         } else {
                             log.trace("Provider enabled: ${provider.id}")
-                            unsortedProviders += newProvider
+                            enabledProviders += newProvider
                         }
                     }
                 }
@@ -84,8 +80,6 @@ class GameProviderServiceImpl @Inject constructor(
             log.info("Enabled providers: ${enabledProviders.sortedBy { it.id }.joinToString()}")
         }
     }
-
-    private fun Order.toComparator(): Comparator<EnabledGameProvider> = Comparator { o1, o2 -> indexOf(o1.id).compareTo(indexOf(o2.id)) }
 
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
 

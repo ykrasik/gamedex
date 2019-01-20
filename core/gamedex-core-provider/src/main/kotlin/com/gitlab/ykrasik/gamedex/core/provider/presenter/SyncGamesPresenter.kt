@@ -23,7 +23,9 @@ import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.*
+import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.supports
+import com.gitlab.ykrasik.gamedex.util.findCircular
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
@@ -37,6 +39,7 @@ import javax.inject.Singleton
 @Singleton
 class SyncGamesPresenter @Inject constructor(
     private val gameProviderService: GameProviderService,
+    private val settingsService: SettingsService,
     private val eventBus: EventBus
 ) : Presenter<SyncGamesView> {
     private val log = logger()
@@ -46,8 +49,8 @@ class SyncGamesPresenter @Inject constructor(
             // TODO: Consider launching a job here that can be cancelled.
             eventBus.forEach<SyncGamesRequestedEvent> { onSyncGamesStarted(it.paths, it.isAllowSmartChooseResults) }
             eventBus.forEach<GameSearchUpdatedEvent> { onGameSearchStateUpdated(it.state) }
-            view.currentLibraryPath.forEach { onCurrentPathChanged(it!!) }
-            view.restartLibraryPathActions.forEach { onRestart(it) }
+            view.currentState.forEach { onCurrentStateChanged(it) }
+            view.restartStateActions.forEach { onRestart(it) }
             view.cancelActions.forEach { onCancel() }
         }
 
@@ -59,85 +62,70 @@ class SyncGamesPresenter @Inject constructor(
             start()
             view.isAllowSmartChooseResults *= isAllowSmartChooseResults
             view.numProcessed *= 0
-            view.pathsToProcess.setAll(pathsWithEnabledProviders.map { it.first })
-            view.state.clear()
-            view.state.putAll(pathsWithEnabledProviders.map { (path, game) -> path to initState(path, game) })
-            view.currentLibraryPath *= null
-            startGameSearch(paths.first().first)
+            view.state.setAll(pathsWithEnabledProviders.mapIndexed { i, (path, game) -> initState(i, path, game) })
+            view.currentState *= null
+            startGameSearch(view.state.first())
         }
 
         private fun onGameSearchStateUpdated(newState: GameSearchState) {
             check(view.isGameSyncRunning.value || newState.isFinished) { "Received search update event when not syncing games" }
-            val prevState = view.state.put(newState.libraryPath, newState)
+            val prevState = view.state[newState.index]
+            view.state[newState.index] = newState
 
             // This can be called for already finished states (for example, viewing results of previous completed searches).
             // Only do this when the state transitions to 'finished' for the first time.
-            if (prevState?.isFinished != true && newState.isFinished) {
-                view.numProcessed.value += 1
-                val nextLibraryPath = findNextUnfinishedPath(from = newState.libraryPath)
-                if (nextLibraryPath != null) {
-                    startGameSearch(nextLibraryPath)
+            if (prevState.isFinished || !newState.isFinished) return
+
+            view.numProcessed.value += 1
+            val nextUnfinishedState = view.state.findCircular(startIndex = newState.index) { !it.isFinished }
+            if (nextUnfinishedState != null) {
+                startGameSearch(nextUnfinishedState)
+            } else {
+                if (view.state.size == 1 && newState.status == GameSearchStatus.Cancelled) {
+                    onCancel()
                 } else {
-                    if (view.pathsToProcess.size == 1 && newState.status == GameSearchStatus.Cancelled) {
-                        onCancel()
-                    } else {
-                        finish(success = true)
-                        val message = finishedMessage()
-                        log.info("Done: $message")
-                        if (view.pathsToProcess.size != 1) {
-                            view.successMessage(message)
-                        }
+                    finish(success = true)
+                    val message = finishedMessage()
+                    log.info("Done: $message")
+                    if (view.state.size != 1) {
+                        view.successMessage(message)
                     }
                 }
             }
         }
 
-        private fun findNextUnfinishedPath(from: LibraryPath): LibraryPath? {
-            val fromIndex = view.pathsToProcess.indexOf(from)
-            check(fromIndex != -1) { "Path not found: $from" }
-            var iter = fromIndex
-            do {
-                iter = (iter + 1) % view.pathsToProcess.size
-                val currentPath = view.pathsToProcess[iter]
-                val currentState = view.state[currentPath]
-                if (currentState == null || !currentState.isFinished) {
-                    return currentPath
-                }
-            } while (iter != fromIndex)
-            return null
+        private fun onCurrentStateChanged(currentState: GameSearchState?) {
+            if (currentState != null) {
+                startGameSearch(currentState)
+            }
         }
 
-        private fun onCurrentPathChanged(currentLibraryPath: LibraryPath) {
-            startGameSearch(currentLibraryPath)
-        }
-
-        private fun onRestart(libraryPath: LibraryPath) {
+        private fun onRestart(state: GameSearchState) {
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
-            val currentState = view.state[libraryPath]!!
-            val newState = currentState.providerOrder.fold(
-                currentState.copy(
+            val newState = state.providerOrder.fold(
+                state.copy(
                     status = GameSearchStatus.Running,
-                    currentProvider = currentState.providerOrder.first()
+                    currentProvider = null
                 )
-            ) { state, providerId ->
+            ) { accState, providerId ->
                 // Set the choice of all provider searches to null
-                val search = state.lastSearchFor(providerId)
-                if (search != null) {
-                    state.modifyHistory(providerId) { this + search.copy(choice = null) }
+                val search = accState.lastSearchFor(providerId)
+                if (search != null && state.game?.isProviderExcluded(providerId) != true) {
+                    accState.modifyHistory(providerId) { this + search.copy(choice = null) }
                 } else {
-                    state
+                    accState
                 }
             }
-            view.state += libraryPath to newState
+            view.state[state.index] = newState
             view.numProcessed.value -= 1
-            startGameSearch(libraryPath)
+            startGameSearch(newState)
         }
 
         private fun onCancel() {
             finish(success = false)
             val message = finishedMessage()
             log.info("Cancelled: $message")
-            if (view.pathsToProcess.size != 1) {
+            if (view.state.size != 1) {
                 view.cancelledMessage(message)
             }
         }
@@ -152,32 +140,23 @@ class SyncGamesPresenter @Inject constructor(
             check(view.isGameSyncRunning.value) { "Game sync not running!" }
             view.isGameSyncRunning *= false
 
-            // TODO: This is probably unnecessary.
-            if (!success) {
-                view.state.forEach { libraryPath, state ->
-                    if (!state.isFinished) {
-                        view.state += libraryPath to state.copy(status = GameSearchStatus.Cancelled)
-                    }
-                }
-            }
-            view.currentLibraryPath.value?.let { currentLibraryPath ->
+            view.currentState.value?.let { currentState ->
                 // This will update the current search that it's finished.
-                startGameSearch(currentLibraryPath)
+                startGameSearch(currentState.copy(status = if (success) GameSearchStatus.Success else GameSearchStatus.Cancelled))
             }
             eventBus.send(SyncGamesFinishedEvent)
         }
 
-        private fun startGameSearch(libraryPath: LibraryPath) {
-            view.currentLibraryPath *= libraryPath
-            val state = view.state[libraryPath]!!
+        private fun startGameSearch(state: GameSearchState) {
+            view.currentState *= state
             eventBus.send(GameSearchStartedEvent(state, view.isAllowSmartChooseResults.value))
         }
 
-        private fun initState(libraryPath: LibraryPath, game: Game?): GameSearchState {
+        private fun initState(index: Int, libraryPath: LibraryPath, game: Game?): GameSearchState {
             // TODO: Move this logic inside GameProviderService?
             val providersToSearch = gameProviderService.enabledProviders
-//                .sortedBy { settingsService.providerOrder.search.indexOf(it.id) }
-                .filter { provider -> provider.supports(libraryPath.library.platform) }//&& !excludedProviders.contains(provider.id) }
+                .sortedBy { settingsService.providerOrder.search.indexOf(it.id) }
+                .filter { provider -> provider.supports(libraryPath.library.platform) }
                 .map { it.id }
 
             val initialHistory = (game?.excludedProviders ?: emptyList()).map { providerId ->
@@ -192,6 +171,7 @@ class SyncGamesPresenter @Inject constructor(
             }.toMap()
 
             return GameSearchState(
+                index = index,
                 libraryPath = libraryPath,
                 providerOrder = providersToSearch,
                 currentProvider = null,
@@ -202,8 +182,8 @@ class SyncGamesPresenter @Inject constructor(
         }
 
         private fun finishedMessage(): String {
-            val numSuccessful = view.state.count { (_, state) -> state.status == GameSearchStatus.Success }
-            return "Successfully synced $numSuccessful / ${view.pathsToProcess.size} games."
+            val numSuccessful = view.state.count { it.status == GameSearchStatus.Success }
+            return "Successfully synced $numSuccessful / ${view.state.size} games."
         }
     }
 }

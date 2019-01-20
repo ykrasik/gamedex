@@ -45,12 +45,19 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            commonData.realLibraries.itemsChannel.combineLatest(gameProviderService.enabledProviders.itemsChannel).forEach { (libraries, enabledProviders) ->
-                view.canSyncLibraries *= Try {
-                    check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
-                    check(enabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
+            commonData.realLibraries.itemsChannel
+                .combineLatest(gameProviderService.enabledProviders.itemsChannel)
+                .combineLatest(commonData.isGameSyncRunning)
+                .forEach {
+                    val (libraries, enabledProviders) = it.first
+                    val isGameSyncRunning = it.second
+                    view.canSyncLibraries *= Try {
+                        check(!isGameSyncRunning) { "Game sync in progress!" }
+                        check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
+                        check(enabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
+                        check(libraries.any { it.platform in gameProviderService.platformsWithEnabledProviders() }) { "Please enable a provider that supports your platform!" }
+                    }
                 }
-            }
             view.syncLibrariesActions.forEach { onSyncLibrariesStarted() }
         }
 

@@ -55,5 +55,6 @@ fun String.md5(): String {
     return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
 }
 
-fun Double.asPercent() = "${Math.min((this * 100).toInt(), 100)}%"
+fun Double.toString(decimalDigits: Int) = String.format("%.${decimalDigits}f", this)
+fun Double.asPercent() = "${Math.max(Math.min((this * 100).toInt(), 100), 0)}%"
 fun Double.roundBy(step: Double) = Math.round(this / step) * step

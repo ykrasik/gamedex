@@ -57,6 +57,7 @@ interface ProviderSearchView {
 }
 
 data class GameSearchState(
+    val index: Int,
     val libraryPath: LibraryPath,
     val providerOrder: List<ProviderId>,
     val currentProvider: ProviderId?,
@@ -87,6 +88,7 @@ data class GameSearchState(
 
     companion object {
         val Null = GameSearchState(
+            index = -1,
             libraryPath = LibraryPath.Null,
             providerOrder = emptyList(),
             currentProvider = "",

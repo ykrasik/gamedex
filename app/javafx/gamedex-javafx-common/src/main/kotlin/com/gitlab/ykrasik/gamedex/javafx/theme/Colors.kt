@@ -32,19 +32,33 @@ object Colors {
     val green = Color.DARKGREEN
     val orange = Color.ORANGE.darker()
     val blue = Color.CORNFLOWERBLUE
+    val niceBlue = c("#93ADCA")
+    val niceBlueDarker = c("#6e85a0")
+    val prettyLightGray = c("#cfd9df")
+    val anotherPrettyLightGray = c("#bfc4cc")
+    val blueGrey = c("#afbbce")
+    val transparentDark = c(0, 0, 0, 0.6)
+    val transparentWhite = c("#e8eaed", 0.72)
 
     // Taken from [https://digitalsynopsis.com/design/beautiful-color-gradients-backgrounds/]
 
     val heavyRain = linearGradient("#cfd9df", "#e2ebf0")
     val cloudyKnoxville = linearGradient("#fdfbfb", "#ebedee")
+    val winterNeva = linearGradient("#a1c4fd", "#c2e9fb")
+    val stPeteresberg = linearGradient("#f5f7fa", "#c3cfe2")
     val everlastingSky = linearGradient("#fdfcfb", "#e2d1c3")
+    val greatWhale = linearGradient("#a3bded", "#6991c7")
     val cleanMirror = linearGradient("#93a5cf", "#e4efe9")
-    val mountainRock = linearGradient("#596164", "#868f96", "#596164")
+    val premiumDark = linearGradient("#434343", "#000000")
+    val cochitiLake = linearGradient("#93a5cf", "#e4efe9")
+    val mountainRock = linearGradient("#596164", "#868f96")
     val eternalConstance = linearGradient("#09203f", "#537895", "#09203f", direction = GradientDirection.Right)
     val viciousStance = linearGradient("#29323c", "#485563")
     val nightSky = linearGradient("#1e3c72", "#2a5298")
-    val shadesOfGrey = linearGradient("#bdc3c7", "#2c3e50", direction = GradientDirection.Down)
+    val shadesOfGrey = linearGradient("#2c3e50", "#bdc3c7", "#2c3e50", direction = GradientDirection.Right)
     val decent = linearGradient("#4ca1af", "#c4e0e5", direction = GradientDirection.Down)
+    val paleWood = linearGradient("#eacda3", "#d6ae7b")
+    val desertHump = linearGradient("#c79081", "#dfa579")
 }
 
 fun linearGradient(vararg colors: String, direction: GradientDirection = GradientDirection.Down): LinearGradient {

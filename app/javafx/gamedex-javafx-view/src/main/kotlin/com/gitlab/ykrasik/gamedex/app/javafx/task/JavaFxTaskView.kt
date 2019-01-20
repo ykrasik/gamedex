@@ -99,7 +99,7 @@ class JavaFxTaskView : PresentableView(), TaskView {
             }
             spacer()
             label(taskProgress.progress.property.asPercent()) {
-                visibleWhen { taskProgress.totalItems.property.isNotEqualTo(0) }
+                visibleWhen { taskProgress.totalItems.property.booleanBinding { it!! > 1 } }
                 addClass(Style.progressText, textStyle)
             }
         }

@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.javafx.control
 
 import com.gitlab.ykrasik.gamedex.javafx.forEachWith
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
+import com.sun.javafx.scene.control.skin.ListViewSkin
 import com.sun.javafx.scene.control.skin.TableViewSkin
 import com.sun.javafx.scene.control.skin.TreeViewSkin
 import com.sun.javafx.scene.control.skin.VirtualFlow
@@ -186,6 +187,15 @@ fun <S> TableView<S>.keepSelectionInView() {
 fun <S> TreeView<S>.keepSelectionInView() {
     selectionModel.selectedIndexProperty().forEachWith(skinProperty()) { selectedIndex, skin ->
         val flow = (skin as TreeViewSkin<*>).children.first() as VirtualFlow<*>
+        if (selectedIndex != -1) {
+            flow.show(selectedIndex as Int)
+        }
+    }
+}
+
+fun <S> ListView<S>.keepSelectionInView() {
+    selectionModel.selectedIndexProperty().forEachWith(skinProperty()) { selectedIndex, skin ->
+        val flow = (skin as ListViewSkin<*>).children.first() as VirtualFlow<*>
         if (selectedIndex != -1) {
             flow.show(selectedIndex as Int)
         }

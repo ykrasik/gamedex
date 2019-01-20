@@ -65,6 +65,9 @@ class CommonStyle : Stylesheet() {
 
         val customHoverable by cssclass()
 
+        val customList by cssclass()
+        val customListCellContent by cssclass()
+
         init {
             importStylesheetSafe(CommonStyle::class)
         }
@@ -91,10 +94,13 @@ class CommonStyle : Stylesheet() {
             }
         }
 
-        jfxHoverable {
+        val jfxHoverableMixin = mixin {
             and(hover) {
-                backgroundColor = multi(Color.LIGHTBLUE)
+                backgroundColor = multi(Colors.blueGrey)
             }
+        }
+        jfxHoverable {
+            +jfxHoverableMixin
         }
 
         jfxToggleNodeLabel {
@@ -197,6 +203,27 @@ class CommonStyle : Stylesheet() {
             and(selected) {
                 backgroundColor = multi(Color.TRANSPARENT)
             }
+        }
+
+        customList {
+            padding = box(0.px)
+            backgroundInsets = multi(box(0.px))
+            backgroundColor = multi(Color.TRANSPARENT) // removes default white background
+            listCell {
+                backgroundColor = multi(Color.TRANSPARENT) // removes alternating list gray cells.
+                and(selected) {
+                    backgroundColor = multi(Colors.prettyLightGray)
+                    textFill = Color.BLACK
+                    label {
+                        textFill = Color.BLACK
+                    }
+                }
+                +jfxHoverableMixin
+            }
+        }
+
+        customListCellContent {
+            padding = box(8.px, 5.px)
         }
 
         // TODO: Experiment with code in comments to see what can be done with css

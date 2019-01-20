@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.Metadata
+import com.gitlab.ykrasik.gamedex.ProviderHeader
+import com.gitlab.ykrasik.gamedex.Timestamp
+import com.gitlab.ykrasik.gamedex.UserData
 import com.gitlab.ykrasik.gamedex.app.api.provider.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
@@ -30,10 +33,7 @@ import com.gitlab.ykrasik.gamedex.core.provider.GameSearchUpdatedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
-import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.Modifier
-import com.gitlab.ykrasik.gamedex.util.and
-import com.gitlab.ykrasik.gamedex.util.setAll
+import com.gitlab.ykrasik.gamedex.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -156,23 +156,25 @@ class ProviderSearchPresenter @Inject constructor(
                 }
             }
 
-            val currentSearch = state.currentSearch!!
-            val newSearch = currentSearch.copy(choice = choice)
             modifyState {
-                if (currentSearch.choice == null) {
-                    // No result for this provider yet, we can safely assume last history entry belongs to this provider.
+                val currentSearch = state.currentSearch!!
+                val newSearch = currentSearch.copy(choice = choice)
+                val stateWithChoice = if (currentSearch.choice == null) {
+                    // No result for this provider yet, add the choice to the provider's last search.
                     modifyCurrentSearch { newSearch }
                 } else {
                     // There's already a result for this provider, which means this is an attempt to replace the existing result.
                     // Add a new history entry with the new choice.
                     modifyCurrentProviderHistory { this + newSearch }
                 }
+                if (shouldCancel) {
+                    stateWithChoice.copy(status = GameSearchStatus.Cancelled)
+                } else {
+                    stateWithChoice
+                }
             }
 
-            if (shouldCancel) {
-                finishSearch(game = state.game, success = false)
-                return
-            }
+            if (shouldCancel) return
 
             val nextProvider = if (shouldAdvanceToNextProvider) state.nextPossibleProviderWithoutChoice else state.currentProvider
             if (nextProvider != null) {
@@ -187,7 +189,7 @@ class ProviderSearchPresenter @Inject constructor(
             onQueryChanged(gameSearch.query)
 
             setSearchResults(gameSearch, isFilterPreviouslyDiscardedResults)
-            view.canToggleFilterPreviouslyDiscardedResults *= IsValid {
+            view.canToggleFilterPreviouslyDiscardedResults *= Try {
                 check(view.searchResults != gameSearch.results) { "No previous results to filter!" }
             }
             view.isFilterPreviouslyDiscardedResults *= isFilterPreviouslyDiscardedResults && view.canToggleFilterPreviouslyDiscardedResults.value.isSuccess
@@ -274,21 +276,17 @@ class ProviderSearchPresenter @Inject constructor(
             }
 
             val game = taskService.execute(task)
-            finishSearch(game, success = true)
-        }
-
-        private fun finishSearch(game: Game?, success: Boolean) = modifyState {
-            copy(game = game, status = if (success) GameSearchStatus.Success else GameSearchStatus.Cancelled)
+            modifyState { copy(game = game, status = GameSearchStatus.Success) }
         }
 
         private fun onQueryChanged(query: String) {
-            view.canSearchCurrentQuery *= view.canChangeState.value.and(IsValid {
+            view.canSearchCurrentQuery *= view.canChangeState.value.and(Try {
                 check(query != state.currentSearch?.query) { "Same query!" }
             })
         }
 
         private fun onSelectedSearchResultChanged(selectedResult: ProviderSearchResult?) {
-            view.canAcceptSearchResult *= view.canChangeState.value.and(IsValid {
+            view.canAcceptSearchResult *= view.canChangeState.value.and(Try {
                 check(selectedResult != null) { "No result selected!" }
             })
         }

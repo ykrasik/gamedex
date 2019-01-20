@@ -86,5 +86,15 @@ inline fun <T> List<T>.modify(index: Int, modifier: Modifier<T>): List<T> =
 
 inline fun <T> List<T>.modifyLast(modifier: Modifier<T>): List<T> = modify(size - 1, modifier)
 
+inline fun <T> List<T>.findCircular(startIndex: Int = 0, predicate: (T) -> Boolean): T? {
+    var i = startIndex
+    do {
+        i = (i + 1) % size
+        val element = this[i]
+        if (predicate(element)) return element
+    } while (i != startIndex)
+    return null
+}
+
 fun <T> MutableList<T>.push(t: T) = add(t)
 fun <T> MutableList<T>.pop() = removeAt(size - 1)
