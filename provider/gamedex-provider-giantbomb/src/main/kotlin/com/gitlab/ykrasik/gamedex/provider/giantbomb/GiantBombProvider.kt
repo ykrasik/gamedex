@@ -91,17 +91,19 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         }
     }
 
-    override val id = "GiantBomb"
-    override val logo = getResourceAsByteArray("giantbomb.png")
-    override val supportedPlatforms = Platform.realPlatforms
-    override val defaultOrder = config.defaultOrder
-    override val accountFeature = object : ProviderUserAccountFeature {
-        override val accountUrl = config.accountUrl
-        override val field1 = "Api Key"
-        override fun createAccount(fields: Map<String, String>) = GiantBombUserAccount(
-            apiKey = fields[field1]!!
-        )
-    }
+    override val metadata = GameProviderMetadata(
+        id = "GiantBomb",
+        logo = getResourceAsByteArray("giantbomb.png"),
+        supportedPlatforms = Platform.realPlatforms,
+        defaultOrder = config.defaultOrder,
+        accountFeature = object : ProviderUserAccountFeature {
+            override val accountUrl = config.accountUrl
+            override val field1 = "Api Key"
+            override fun createAccount(fields: Map<String, String>) = GiantBombUserAccount(
+                apiKey = fields[field1]!!
+            )
+        }
+    )
 
     override fun toString() = id
 }

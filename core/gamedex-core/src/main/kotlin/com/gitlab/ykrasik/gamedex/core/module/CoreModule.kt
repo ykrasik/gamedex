@@ -27,8 +27,6 @@ import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
 import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderCoreModule
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
@@ -66,8 +64,6 @@ object CoreModule : InternalCoreModule() {
         bind(TaskService::class.java).to(TaskServiceImpl::class.java)
         bind(EventBus::class.java).to(EventBusImpl::class.java)
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
-
-        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
 
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)

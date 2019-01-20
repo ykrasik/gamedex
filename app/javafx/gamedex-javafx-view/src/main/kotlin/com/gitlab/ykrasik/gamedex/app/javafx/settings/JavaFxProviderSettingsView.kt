@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
@@ -41,7 +41,7 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class JavaFxProviderSettingsView(override val provider: GameProvider, icon: Node) : PresentableView(provider.id, icon), ProviderSettingsView, ViewWithProviderLogos {
+class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, icon: Node) : PresentableView(provider.id, icon), ProviderSettingsView, ViewWithProviderLogos {
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val canChangeProviderSettings = state(IsValid.valid)
@@ -140,7 +140,7 @@ class JavaFxProviderSettingsView(override val provider: GameProvider, icon: Node
     private fun Fieldset.accountField(field: String?) {
         if (field == null) return
         horizontalField(field) {
-            val currentValue = currentAccount.value[field] ?: "" 
+            val currentValue = currentAccount.value[field] ?: ""
             jfxTextField(currentValue, promptText = "Enter $field...") {
                 textProperty().typeSafeOnChange {
                     currentAccount.valueFromView += field to it

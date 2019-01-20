@@ -130,17 +130,19 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     private val Platform.platformId: Int get() = config.getPlatformId(this)
     private val Int.genreName: String get() = config.getGenreName(this)
 
-    override val id = "Igdb"
-    override val logo = getResourceAsByteArray("igdb.png")
-    override val supportedPlatforms = Platform.realPlatforms
-    override val defaultOrder = config.defaultOrder
-    override val accountFeature = object : ProviderUserAccountFeature {
-        override val accountUrl = config.accountUrl
-        override val field1 = "Api Key"
-        override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
-            apiKey = fields[field1]!!
-        )
-    }
+    override val metadata = GameProviderMetadata(
+        id = "Igdb",
+        logo = getResourceAsByteArray("igdb.png"),
+        supportedPlatforms = Platform.realPlatforms,
+        defaultOrder = config.defaultOrder,
+        accountFeature = object : ProviderUserAccountFeature {
+            override val accountUrl = config.accountUrl
+            override val field1 = "Api Key"
+            override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
+                apiKey = fields[field1]!!
+            )
+        }
+    )
 
     override fun toString() = id
 }

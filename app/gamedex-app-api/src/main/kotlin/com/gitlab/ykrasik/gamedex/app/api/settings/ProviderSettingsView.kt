@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import kotlinx.coroutines.channels.ReceiveChannel
 
@@ -28,7 +28,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:44
  */
 interface ProviderSettingsView {
-    val provider: GameProvider
+    val provider: GameProviderMetadata
 
     val canChangeProviderSettings: State<IsValid>
 

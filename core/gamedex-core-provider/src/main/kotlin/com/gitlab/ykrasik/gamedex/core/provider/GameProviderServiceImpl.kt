@@ -20,16 +20,14 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.Timestamp
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.util.sortingWith
-import com.gitlab.ykrasik.gamedex.provider.*
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -41,24 +39,6 @@ import javax.inject.Singleton
  * Date: 13/10/2016
  * Time: 13:29
  */
-interface GameProviderService {
-    val allProviders: List<GameProvider>
-    val enabledProviders: ListObservable<EnabledGameProvider>
-
-    fun checkAtLeastOneProviderEnabled()
-    fun platformsWithEnabledProviders(): Set<Platform>
-
-    fun isEnabled(id: ProviderId): Boolean
-
-    val logos: Map<ProviderId, Image>
-
-    fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit>
-
-    fun search(providerId: ProviderId, query: String, platform: Platform): Task<List<ProviderSearchResult>>
-
-    fun download(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
-}
-
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     repo: GameProviderRepository,
@@ -155,11 +135,4 @@ class GameProviderServiceImpl @Inject constructor(
             }
         }.map { it.await() }
     }
-}
-
-class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
-    suspend fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    suspend fun download(apiUrl: String, platform: Platform): ProviderDownloadData = provider.download(apiUrl, platform, account)
-
-    override fun toString() = provider.toString()
 }

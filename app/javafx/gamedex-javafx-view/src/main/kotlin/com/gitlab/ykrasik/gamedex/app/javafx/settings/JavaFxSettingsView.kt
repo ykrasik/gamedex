@@ -31,7 +31,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.resetToDefaultButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
+import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.jfoenix.controls.JFXToggleNode
 import javafx.geometry.Pos
@@ -53,7 +53,7 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     ViewCanChangeMetaTagOverlayDisplaySettings,
     ViewCanChangeVersionOverlayDisplaySettings {
 
-    override val providers = mutableListOf<GameProvider>()
+    override val providers = mutableListOf<GameProviderMetadata>()
     override var providerLogos = emptyMap<ProviderId, Image>()
 
     override val resetDefaultsActions = channel<Unit>()

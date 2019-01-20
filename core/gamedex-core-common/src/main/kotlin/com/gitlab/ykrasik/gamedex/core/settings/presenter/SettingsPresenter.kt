@@ -39,7 +39,7 @@ class SettingsPresenter @Inject constructor(
 ) : Presenter<SettingsView> {
     override fun present(view: SettingsView) = object : ViewSession() {
         init {
-            view.providers.setAll(gameProviderService.allProviders)
+            view.providers.setAll(gameProviderService.allProviders.map { it.metadata })
 
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }

@@ -17,6 +17,8 @@
 package com.gitlab.ykrasik.gamedex.core.provider.module
 
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
 import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
 
 /**
@@ -26,6 +28,8 @@ import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
  */
 object ProviderCoreModule : InternalCoreModule() {
     override fun configure() {
+        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
+
         bindPresenter(SyncLibrariesPresenter::class)
         bindPresenter(SyncGamesPresenter::class)
         bindPresenter(ProviderSearchPresenter::class)

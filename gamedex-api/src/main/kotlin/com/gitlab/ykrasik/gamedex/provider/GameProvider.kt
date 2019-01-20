@@ -25,21 +25,29 @@ import com.gitlab.ykrasik.gamedex.Score
  * Date: 29/05/2016
  * Time: 10:42
  */
-interface GameProvider {
-    val id: ProviderId
-    val logo: ByteArray
-    val supportedPlatforms: List<Platform>
-    val defaultOrder: ProviderOrderPriorities
+typealias ProviderId = String
 
-    val accountFeature: ProviderUserAccountFeature?
+interface GameProvider {
+    val metadata: GameProviderMetadata
+    val id get() = metadata.id
+    val logo get() = metadata.logo
+    val supportedPlatforms get() = metadata.supportedPlatforms
+    val defaultOrder get() = metadata.defaultOrder
+    val accountFeature get() = metadata.accountFeature
 
     suspend fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
     suspend fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData
 }
 
-fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
+data class GameProviderMetadata(
+    val id: ProviderId,
+    val logo: ByteArray,
+    val supportedPlatforms: List<Platform>,
+    val defaultOrder: ProviderOrderPriorities,
+    val accountFeature: ProviderUserAccountFeature?
+)
 
-typealias ProviderId = String
+fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
 
 /**
  * Can have up to 4 fields (username, password, apikey etc).
