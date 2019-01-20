@@ -39,7 +39,6 @@ class ExportDatabasePresenter @Inject constructor(
     private val taskService: TaskService,
     private val settingsService: SettingsService
 ) : Presenter<ExportDatabaseView> {
-
     override fun present(view: ExportDatabaseView) = object : ViewSession() {
         init {
             view.exportDatabaseActions.forEach { exportDatabase() }

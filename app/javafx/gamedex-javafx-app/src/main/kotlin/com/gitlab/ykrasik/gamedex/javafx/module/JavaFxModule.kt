@@ -30,6 +30,6 @@ import com.google.inject.AbstractModule
 object JavaFxModule : AbstractModule() {
     override fun configure() {
         bind(ViewManager::class.java).to(JavaFxViewManager::class.java)
-        bind(ImageFactory::class.java).toInstance(JavaFxImageFactory)
+        bind(ImageFactory::class.java).to(JavaFxImageFactory::class.java)
     }
 }

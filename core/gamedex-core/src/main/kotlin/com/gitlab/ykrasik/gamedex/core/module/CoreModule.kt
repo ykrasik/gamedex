@@ -17,9 +17,11 @@
 package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.EventBusImpl
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
+import com.gitlab.ykrasik.gamedex.core.common.ViewCommonOpsImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
 import com.gitlab.ykrasik.gamedex.core.game.module.GameModule
@@ -39,7 +41,6 @@ import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
 import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithRunningTaskPresenter
 import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
-import com.gitlab.ykrasik.gamedex.core.web.presenter.SearchYouTubePresenter
 import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.time
 import com.google.inject.Provides
@@ -63,7 +64,9 @@ object CoreModule : InternalCoreModule() {
 
         bind(TaskService::class.java).to(TaskServiceImpl::class.java)
         bind(EventBus::class.java).to(EventBusImpl::class.java)
+
         bind(ViewRegistry::class.java).to(ViewRegistryImpl::class.java)
+        bind(ViewCommonOps::class.java).to(ViewCommonOpsImpl::class.java)
 
         bind(object : TypeLiteral<JsonStorageFactory<Int>>() {}).toInstance(IntIdJsonStorageFactory)
         bind(object : TypeLiteral<JsonStorageFactory<String>>() {}).toInstance(StringIdJsonStorageFactory)
@@ -106,7 +109,6 @@ object CoreModule : InternalCoreModule() {
         bindPresenter(ProviderOrderSettingsPresenter::class)
         bindPresenter(ProviderSettingsPresenter::class)
 
-        bindPresenter(SearchYouTubePresenter::class)
         bindPresenter(BrowseUrlPresenter::class)
     }
 

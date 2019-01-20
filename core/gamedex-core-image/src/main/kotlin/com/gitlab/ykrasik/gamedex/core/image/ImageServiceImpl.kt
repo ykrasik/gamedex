@@ -43,31 +43,39 @@ class ImageServiceImpl @Inject constructor(
     private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
     private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)
 
-    // Only meant to be accessed by the ui thread.
+    override fun createImage(data: ByteArray) = imageFactory(data)
+
     // We disregard the value of persistIfAbsent when we get a cache hit, because
     // if it's already in the cache then it was already called with the exact same 'persistIfAbsent'.
     // A situation where this method is called once with persistIfAbsent=false and again
     // with the same url but persistIfAbsent=true simply doesn't exist.
-    override fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image> = persistedImageCache.getOrPut(url) {
-        async {
-            val persistedBytes = repo[url]
-            if (persistedBytes != null) {
-                imageFactory(persistedBytes)
-            } else {
-                val downloadedImage = downloadImage(url).await()
-                if (persistIfAbsent) {
-                    // Save downloaded image as a fire-and-forget operation.
-                    launch {
-                        repo[url] = downloadedImage.raw
+    override suspend fun fetchImage(url: String, persistIfAbsent: Boolean): Image = withContext(Dispatchers.Main) {
+        persistedImageCache.getOrPut(url) {
+            async {
+                val persistedBytes = repo[url]
+                if (persistedBytes != null) {
+                    createImage(persistedBytes)
+                } else {
+                    val downloadedImage = downloadImage(url)
+                    if (persistIfAbsent) {
+                        // Save downloaded image
+                        launch {
+                            repo[url] = downloadedImage.raw
+                        }
                     }
+                    downloadedImage
                 }
-                downloadedImage
             }
-        }
+        }.await()
     }
 
-    override fun downloadImage(url: String): Deferred<Image> = downloadedImageCache.getOrPut(url) {
-        async { imageFactory(httpClient.download(url)) }
+    override suspend fun downloadImage(url: String): Image = withContext(Dispatchers.Main) {
+        downloadedImageCache.getOrPut(url) {
+            async {
+                val downloadedBytes = httpClient.download(url)
+                createImage(downloadedBytes)
+            }
+        }.await()
     }
 
     override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> =

@@ -18,21 +18,18 @@ package com.gitlab.ykrasik.gamedex.core.image
 
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.util.FileSize
-import kotlinx.coroutines.Deferred
 
 /**
  * User: ykrasik
  * Date: 05/04/2018
  * Time: 11:05
- *
- * [fetchImage] and [downloadImage] are only meant to be called by the ui thread.
  */
 interface ImageService {
-    /** Only meant to be called by the UI thread. */
-    fun fetchImage(url: String, persistIfAbsent: Boolean): Deferred<Image>
+    fun createImage(data: ByteArray): Image
 
-    /** Only meant to be called by the UI thread. */
-    fun downloadImage(url: String): Deferred<Image>
+    suspend fun fetchImage(url: String, persistIfAbsent: Boolean): Image
+
+    suspend fun downloadImage(url: String): Image
 
     fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
 

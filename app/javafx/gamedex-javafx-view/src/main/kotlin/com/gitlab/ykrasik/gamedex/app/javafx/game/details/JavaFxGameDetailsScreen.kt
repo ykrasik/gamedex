@@ -22,21 +22,18 @@ import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
+import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import kotlinx.coroutines.Deferred
 import tornadofx.*
 
 /**
@@ -50,21 +47,17 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     ViewCanDeleteGame,
     ViewCanTagGame,
     ViewCanResyncGame,
-    ViewCanRedownloadGame,
-    ViewCanSearchYouTube {
+    ViewCanRedownloadGame {
 
-    private val imageLoader: ImageLoader by di()
+    private val commonOps: JavaFxCommonOps by di()
 
     private val browser = WebBrowser()
 
-    override val game = userMutableState(Game.Null)
+    override val game = userMutableState<Game?>(null)
 
     override val hideViewActions = channel<Unit>()
     override val customNavigationButton = backButton { action(hideViewActions) }
 
-    override val poster = state<Deferred<Image>?>(null)
-
-    override val displayYouTubeForGameRequests = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val tagGameActions = channel<Game>()
@@ -79,23 +72,25 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
         register()
 
         titleProperty.bind(game.property.stringBinding { it?.name })
-        game.property.bindChanges(displayYouTubeForGameRequests)
+        game.property.typeSafeOnChange { game ->
+            browser.loadYoutubeGameplay(game)
+        }
     }
 
     override fun HBox.buildToolbar() {
         editButton("Edit") { action { editGame(GameDataType.name_) } }
         gap()
-        toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value } }
+        toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value!! } }
         gap()
-        deleteButton("Delete") { action(deleteGameActions) { game.value } }
+        deleteButton("Delete") { action(deleteGameActions) { game.value!! } }
 
         spacer()
 
-        infoButton("Re-Download", graphic = Icons.download) { action(redownloadGameActions) { game.value } }
+        infoButton("Re-Download", graphic = Icons.download) { action(redownloadGameActions) { game.value!! } }
         gap()
         infoButton("Re-Sync", graphic = Icons.sync) {
             enableWhen(canResyncGame)
-            action(resyncGameActions) { game.value }
+            action(resyncGameActions) { game.value!! }
         }
     }
 
@@ -112,7 +107,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
                 }
             }
 
-            imageViewResizingPane(poster.property.flatMap { imageLoader.loadImage(it) }) {
+            imageViewResizingPane(game.property.flatMap { commonOps.fetchPoster(it) }) {
                 maxWidth = screenBounds.width * maxPosterWidthPercent
                 clipRectangle(arc = 20)
             }
@@ -129,7 +124,9 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
             // Top
             addComponent(gameDetailsView)
             game.onChange {
-                gameDetailsView.game.valueFromView = it
+                if (it != null) {
+                    gameDetailsView.game.valueFromView = it
+                }
             }
 
             verticalGap(size = 30)
@@ -139,9 +136,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
         }
     }
 
-    private fun editGame(initialTab: GameDataType) = editGameActions.event(game.value to initialTab)
-
-    override fun browseTo(url: String?) = browser.load(url)
+    private fun editGame(initialTab: GameDataType) = editGameActions.event(game.value!! to initialTab)
 
     companion object {
         private val maxPosterWidthPercent = 0.44

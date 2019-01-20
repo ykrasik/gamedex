@@ -21,8 +21,8 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverOnClickBehavior
@@ -45,14 +45,18 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGameDetails,
-    ViewWithGameWallDisplaySettings, ViewWithNameOverlayDisplaySettings, ViewWithMetaTagOverlayDisplaySettings,
+class GameWallView : PresentableView("Games Wall"),
+    ViewWithGames,
+    ViewCanShowGameDetails,
+    ViewWithGameWallDisplaySettings,
+    ViewWithNameOverlayDisplaySettings,
+    ViewWithMetaTagOverlayDisplaySettings,
     ViewWithVersionOverlayDisplaySettings {
 
     override val games = mutableListOf<Game>().sortedFiltered()
 
     override var sort = state(Comparator.comparing(Game::name))
-    override val filter = state { _: Game -> true}
+    override val filter = state { _: Game -> true }
 
     override val showGameDetailsActions = channel<Game>()
 
@@ -61,14 +65,15 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
     override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
-    private val imageLoader: ImageLoader by di()
+    private val commonOps: JavaFxCommonOps by di()
 
     private val gameContextMenu: GameContextMenu by inject()
 
-    private val gameDetailsView = JavaFxGameDetailsView(withDescription = false)
+    private val gameDetailsView = JavaFxGameDetailsView(withDescription = false).apply {
+        root.addClass(Style.quickDetails)
+    }
 
     private val popOver = popOver(onClickBehavior = PopOverOnClickBehavior.Ignore).apply {
-        gameDetailsView.root.addClass(Style.quickDetails)
         contentNode = gameDetailsView.root
     }
 
@@ -154,7 +159,7 @@ class GameWallView : PresentableView("Games Wall"), ViewWithGames, ViewCanShowGa
                 fragment.nameOverlay = item.name
                 fragment.metaTagOverlay = item.folderNameMetadata.metaTag
                 fragment.versionOverlay = item.folderNameMetadata.version
-                fragment.setImage(imageLoader.fetchImage(item.thumbnailUrl, persistIfAbsent = true))
+                fragment.setImage(commonOps.fetchThumbnail(item))
             } else {
                 fragment.nameOverlay = null
                 fragment.metaTagOverlay = null

@@ -18,14 +18,14 @@ package com.gitlab.ykrasik.gamedex.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryPath
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchStatus
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxProviderSearchView
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.game.search.SearchResultsFragment
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.geometry.Pos
@@ -41,7 +41,7 @@ import java.io.File
  * Date: 17/10/2018
  * Time: 09:18
  */
-class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanBrowseFile {
+class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesView, ViewCanBrowsePath {
     override val cancelActions = channel<Unit>()
 
     override val isAllowSmartChooseResults = state(false)
@@ -57,9 +57,9 @@ class JavaFxSyncGamesScreen : PresentableScreen("Sync", Icons.sync), SyncGamesVi
     override val currentLibraryPath = userMutableState<LibraryPath?>(null)
     override val restartLibraryPathActions = channel<LibraryPath>()
 
-    override val browseToFileActions = channel<File>()
+    override val browsePathActions = channel<File>()
 
-    private val providerSearchView: SearchResultsFragment by inject()
+    private val providerSearchView: JavaFxProviderSearchView by inject()
 
     override val customNavigationButton = dangerButton("Stop", graphic = Icons.stop) {
         isCancelButton = false

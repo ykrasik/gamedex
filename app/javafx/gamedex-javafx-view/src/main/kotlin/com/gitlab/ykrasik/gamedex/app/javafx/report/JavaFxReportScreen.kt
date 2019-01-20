@@ -17,29 +17,23 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanSearchYouTube
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
+import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
 import com.gitlab.ykrasik.gamedex.app.javafx.game.GameContextMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.javafx.view.WebBrowser
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import javafx.beans.value.ObservableValue
-import javafx.event.EventTarget
 import javafx.geometry.Pos
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.VBox
 import tornadofx.*
 import java.io.File
 
@@ -54,21 +48,15 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     ViewCanSearchReportResult,
     ViewCanShowGameDetails,
     ViewCanEditReport,
-    ViewWithProviderLogos,
-    ViewCanSearchYouTube,
-    ViewCanBrowseFile {
+    ViewCanBrowsePath,
+    ViewCanBrowseUrl {
 
     private val gameContextMenu: GameContextMenu by inject()
     private val browser = WebBrowser()
 
-    override var providerLogos = emptyMap<ProviderId, Image>()
-
-    override val report = userMutableState(Report.Null)
-    override val result = state(ReportResult.Null)
+    private val commonOps: JavaFxCommonOps by di()
 
     override val excludeGameActions = channel<Game>()
-
-    private val games = result.property.mapToList { it.games }
 
     override val showGameDetailsActions = channel<Game>()
     override val editReportActions = channel<Report>()
@@ -77,7 +65,12 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 
     override val matchingGame = state<Game?>(null)
 
-    override val displayYouTubeForGameRequests = channel<Game>()
+    override val browsePathActions = channel<File>()
+    override val browseUrlActions = channel<String>()
+
+    override val report = userMutableState(Report.Null)
+    override val result = state(ReportResult.Null)
+    private val games = result.property.mapToList { it.games }
 
     private val gamesTable = tableview(games) {
         vgrow = Priority.ALWAYS
@@ -89,7 +82,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
             jfxButton(game.path.toString()) {
                 mouseTransparentWhen { isNotSelected(game) }
                 isFocusTraversable = false
-                action(browseToFileActions) { game.path }
+                action(browsePathActions) { game.path }
             }
         }
         customGraphicColumn("Size", { game -> game.fileStructure.value.size.toProperty() }) { size ->
@@ -102,77 +95,19 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         result.property.onChange { resizeColumnsToFitContent() }
 
         minWidthFitContent(indexColumn)
-
-        selectionModel.selectedItemProperty().onChange {
-            if (it != null) {
-                displayYouTubeForGameRequests.event(it)
-            }
-        }
     }
 
-    private val selectedGameProperty = gamesTable.selectionModel.selectedItemProperty()
+    private val selectedGame = gamesTable.selectionModel.selectedItemProperty()
+    private val additionalInfoProperty = selectedGame.binding { result.value.additionalData[it?.id] }
+    private val additionalInfo = additionalInfoProperty.mapToList { it?.toList() ?: emptyList() }
 
-    private val additionalInfoProperty = selectedGameProperty.binding { result.value.additionalData[it?.id] }
-
-    override val browseToFileActions = channel<File>()
-
-    private val gameDetailsView = JavaFxGameDetailsView()
-
-    override val root = hbox {
-        vgrow = Priority.ALWAYS
-        useMaxSize = true
-
-        // Left
-        vbox {
-            hgrow = Priority.ALWAYS
-            // Top
-            add(gamesTable)
-
-            // Bottom
-            container("Additional Info".toProperty()) {
-                showWhen { additionalInfoProperty.booleanBinding { it?.isNotEmpty() ?: false } }
-                additionalInfoView()
-            }
-        }
-
-        gap()
-
-        // Right
-        vbox {
-            hgrow = Priority.ALWAYS
-
-            // Top
-            addComponent(gameDetailsView) {
-                root.paddingAll = 5.0
-            }
-            selectedGameProperty.perform { game ->
-                game?.let { gameDetailsView.game.valueFromView = it }
-            }
-
-            verticalGap(size = 30)
-
-            // Bottom
-            addComponent(browser)
-        }
-    }
-
-    init {
-        register()
-
-        matchingGame.property.onChange { match ->
-            if (match != null) {
-                gamesTable.selectionModel.select(match)
-            }
-        }
-    }
-
-    private fun EventTarget.additionalInfoView() = tableview<Filter.Context.AdditionalData> {
+    private val additionalInfoView = tableview(additionalInfo) {
         makeIndexColumn().apply { addClass(CommonStyle.centered) }
 //        simpleColumn("Rule") { result -> result.rule.name }
         customGraphicColumn("Value") {
             val result = it.value
             when (result) {
-                is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGameProperty.value).root
+                is Filter.NameDiff.GameNameFolderDiff -> DiffResultFragment(result, selectedGame.value!!).root
                 is Filter.Duplications.GameDuplication -> {
                     jfxButton {
                         useMaxSize = true
@@ -189,8 +124,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         customGraphicColumn("Extra") {
             val result = it.value
             when (result) {
-                is Filter.NameDiff.GameNameFolderDiff -> providerLogos[result.providerId]!!.image.toImageView(height = 80.0, width = 160.0)
-                is Filter.Duplications.GameDuplication -> providerLogos[result.providerId]!!.image.toImageView(height = 80.0, width = 160.0)
+                is Filter.NameDiff.GameNameFolderDiff -> commonOps.providerLogo(result.providerId).toImageView(height = 80.0, width = 160.0)
+                is Filter.Duplications.GameDuplication -> commonOps.providerLogo(result.providerId).toImageView(height = 80.0, width = 160.0)
                 else -> label()
             }
         }
@@ -202,13 +137,62 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         }
     }
 
-    private fun EventTarget.container(text: ObservableValue<String>, op: VBox.() -> Unit) = vbox {
-        alignment = Pos.CENTER
-        header(text)
-        op(this)
+    private val gameDetailsView = JavaFxGameDetailsView()
+
+    override val root = hbox {
+        vgrow = Priority.ALWAYS
+        useMaxSize = true
+
+        // Left
+        vbox {
+            hgrow = Priority.ALWAYS
+            // Top
+            add(gamesTable)
+
+            // Bottom
+            vbox(alignment = Pos.TOP_CENTER) {
+                showWhen { additionalInfoProperty.booleanBinding { it?.isNotEmpty() ?: false } }
+                header("Additional Info")
+                add(additionalInfoView)
+            }
+        }
+
+        gap()
+
+        // Right
+        vbox {
+            hgrow = Priority.ALWAYS
+
+            // Top
+            addComponent(gameDetailsView) {
+                root.paddingAll = 5.0
+            }
+            selectedGame.perform { game ->
+                if (game != null) {
+                    gameDetailsView.game.valueFromView = game
+                }
+            }
+
+            verticalGap(size = 30)
+
+            // Bottom
+            addComponent(browser)
+        }
     }
 
-    override fun browseTo(url: String?) = browser.load(url)
+    init {
+        register()
+
+        matchingGame.property.typeSafeOnChange { match ->
+            if (match != null) {
+                gamesTable.selectionModel.select(match)
+            }
+        }
+
+        selectedGame.onChange {
+            browser.loadYoutubeGameplay(it)
+        }
+    }
 
     override fun HBox.buildToolbar() {
         jfxButton {
@@ -224,9 +208,9 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         spacer()
 
         excludeButton {
-            textProperty().bind(selectedGameProperty.stringBinding { "Exclude ${it?.name ?: ""}" })
-            enableWhen { selectedGameProperty.isNotNull }
-            action(excludeGameActions) { selectedGameProperty.value }
+            textProperty().bind(selectedGame.stringBinding { "Exclude ${it?.name ?: ""}" })
+            enableWhen { selectedGame.isNotNull }
+            action(excludeGameActions) { selectedGame.value!! }
         }
     }
 }

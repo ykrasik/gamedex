@@ -104,6 +104,7 @@ class TagGamePresenter @Inject constructor(
             view.tags += view.newTagName.value
             view.checkedTags += view.newTagName.value
             view.newTagName *= ""
+            validateNewTag("")
             setCanAccept()
         }
 

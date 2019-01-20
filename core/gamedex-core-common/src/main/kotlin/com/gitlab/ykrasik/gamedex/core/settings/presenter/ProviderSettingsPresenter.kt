@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.core.settings.ProviderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
-import com.gitlab.ykrasik.gamedex.util.browseToUrl
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,7 +68,6 @@ class ProviderSettingsPresenter @Inject constructor(
             }
             setCanVerifyAccount()
 
-            view.gotoAccountUrlActions.forEach { onGotoAccountUrl() }
             view.verifyAccountActions.forEach { verifyAccount() }
         }
 
@@ -131,10 +129,6 @@ class ProviderSettingsPresenter @Inject constructor(
                 check(status != ProviderAccountStatus.Empty) { "Empty account!" }
                 check(status != ProviderAccountStatus.Valid) { "Account already verified!" }
             }
-        }
-
-        private fun onGotoAccountUrl() {
-            view.provider.accountFeature!!.accountUrl.browseToUrl()
         }
 
         private fun verifyCanChange() = view.canChangeProviderSettings.assert()

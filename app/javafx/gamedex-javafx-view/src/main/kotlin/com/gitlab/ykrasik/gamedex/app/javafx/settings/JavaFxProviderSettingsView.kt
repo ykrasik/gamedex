@@ -17,18 +17,16 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -41,8 +39,11 @@ import tornadofx.*
  * Date: 06/03/2018
  * Time: 10:02
  */
-class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, icon: Node) : PresentableView(provider.id, icon), ProviderSettingsView, ViewWithProviderLogos {
-    override var providerLogos = emptyMap<ProviderId, Image>()
+class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, icon: Node) : PresentableView(provider.id, icon),
+    ProviderSettingsView,
+    ViewCanBrowseUrl {
+
+    private val commonOps: JavaFxCommonOps by di()
 
     override val canChangeProviderSettings = state(IsValid.valid)
 
@@ -51,7 +52,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
 
     override val currentAccount = userMutableState(emptyMap<String, String>())
 
-    override val gotoAccountUrlActions = channel<Unit>()
+    override val browseUrlActions = channel<String>()
 
     override val canVerifyAccount = state(IsValid.valid)
 
@@ -80,7 +81,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                 label(provider.id) { addClass(Style.providerLabel) }
                 spacer()
                 vbox {
-                    children += providerLogos[provider.id]!!.image.toImageView(height = 80.0)
+                    children += commonOps.providerLogo(provider.id).toImageView(height = 80.0)
                     defaultHbox(alignment = Pos.CENTER_RIGHT) {
                         provider.supportedPlatforms.reversed().forEach { platform ->
                             if (platform != Platform.excluded) {
@@ -128,7 +129,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                         }
                         horizontalField("Create") {
                             hyperlink(accountFeature.accountUrl) {
-                                action(gotoAccountUrlActions)
+                                action(browseUrlActions) { accountFeature.accountUrl }
                             }
                         }
                     }

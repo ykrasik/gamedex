@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.rename
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.RenameMoveGameView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
@@ -27,7 +28,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.HPos
 import javafx.scene.layout.Priority
@@ -39,7 +39,7 @@ import java.io.File
  * Date: 11/06/2017
  * Time: 19:47
  */
-class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView {
+class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), RenameMoveGameView, ViewCanBrowsePath {
     override var initialName: String? = null
 
     private val gameProperty = SimpleObjectProperty(Game.Null)
@@ -53,7 +53,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     override val nameIsValid = state(IsValid.valid)
 
     override val selectDirectoryActions = channel<Unit>()
-    override val browseToGameActions = channel<Unit>()
+    override val browsePathActions = channel<File>()
 
     init {
         titleProperty.bind(gameProperty.stringBinding { "Rename/Move '${it!!.name}'" })
@@ -71,7 +71,7 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
                     horizontalField {
                         jfxButton {
                             textProperty().bind(gameProperty.stringBinding { it!!.path.toString() })
-                            action(browseToGameActions)
+                            action(browsePathActions) { game.path }
                         }
                     }
                 }
@@ -109,6 +109,4 @@ class JavaFxRenameMoveGameView : ConfirmationWindow(icon = Icons.folderEdit), Re
     }
 
     override fun selectDirectory(initialDirectory: File): File? = chooseDirectory("Browse Path...", initialDirectory)
-
-    override fun browseTo(dir: File) = browse(dir)
 }

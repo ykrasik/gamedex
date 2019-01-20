@@ -338,8 +338,7 @@ project("app:javafx:ikonli-material-design-pack") {
 
 project("app:javafx:gamedex-javafx-common") {
     dependencies {
-        fullDependency ":gamedex-api"
-        compile project(":core:gamedex-core")   // FIXME: Remove when all views have presenters
+        fullDependency ":app:gamedex-app-api"
         compile project(":app:javafx:ikonli-material-design-pack")
 
         compile tornadoFx.core
@@ -356,7 +355,6 @@ project("app:javafx:gamedex-javafx-common") {
 project("app:javafx:gamedex-javafx-view") {
     dependencies {
         fullDependency ":app:javafx:gamedex-javafx-common"
-        compile project(":app:gamedex-app-api")
     }
 }
 

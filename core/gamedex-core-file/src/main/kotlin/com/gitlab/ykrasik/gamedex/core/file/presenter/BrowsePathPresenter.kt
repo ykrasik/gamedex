@@ -14,16 +14,28 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.core.file.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import java.awt.Desktop
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 05/10/2018
- * Time: 21:21
+ * Date: 12/10/2018
+ * Time: 09:30
  */
-interface ViewWithProviderLogos {
-    var providerLogos: Map<ProviderId, Image>
+@Singleton
+class BrowsePathPresenter @Inject constructor() : Presenter<ViewCanBrowsePath> {
+    override fun present(view: ViewCanBrowsePath) = object : ViewSession() {
+        init {
+            view.browsePathActions.forEach {
+                // TODO: This is actually more like view-specific logic.
+                Desktop.getDesktop().open(it)
+            }
+        }
+    }
 }

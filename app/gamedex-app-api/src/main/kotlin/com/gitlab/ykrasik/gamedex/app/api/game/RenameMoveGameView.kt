@@ -44,7 +44,4 @@ interface RenameMoveGameView : ConfirmationView {
 
     val selectDirectoryActions: ReceiveChannel<Unit>
     fun selectDirectory(initialDirectory: File): File?
-
-    val browseToGameActions: ReceiveChannel<Unit>
-    fun browseTo(dir: File)
 }

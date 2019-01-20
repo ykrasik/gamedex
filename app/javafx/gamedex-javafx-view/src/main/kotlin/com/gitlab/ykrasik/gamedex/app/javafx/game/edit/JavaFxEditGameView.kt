@@ -20,14 +20,10 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
@@ -44,8 +40,6 @@ import javafx.scene.control.Tab
 import javafx.scene.control.ToggleGroup
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import tornadofx.*
 
 /**
@@ -55,18 +49,14 @@ import tornadofx.*
  */
 // TODO: Consider allowing to delete provider data.
 // TODO: Add a way to clear provider excludes.
-class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, ViewWithProviderLogos {
-    private val imageLoader: ImageLoader by di()
-
-    override var providerLogos = emptyMap<ProviderId, Image>()
+class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
+    private val commonOps: JavaFxCommonOps by di()
 
     private val initialScreenProperty = SimpleObjectProperty(GameDataType.name_)
     override var initialScreen: GameDataType by initialScreenProperty
 
     private val gameProperty = SimpleObjectProperty(Game.Null)
     override var game by gameProperty
-
-    override val fetchThumbnailRequests = channel<FetchThumbnailRequest>()
 
     // TODO: Consider representing this as a CustomProvider in the UserData
     override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.name_, Icons.text)
@@ -197,14 +187,14 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
                     }
 
                     // Existing provider data
-                    providerLogos.forEach { providerId, logo ->
+                    commonOps.providerLogos.forEach { providerId, logo ->
                         val providerValueProperty = state.providerValues.property.binding { it[providerId] }
                         jfxToggleNode(group = toggleGroup) {
                             useMaxWidth = true
                             visibleWhen { providerValueProperty.isNotNull }
                             graphic = defaultHbox(spacing = 10) {
                                 paddingAll = 10
-                                children += logo.image.toImageView(height = 120, width = 100)
+                                children += logo.toImageView(height = 120, width = 100)
                                 dataDisplay(providerValueProperty.binding { it ?: defaultValue })
                             }
                             toggleValue(OverrideSelectionType.Provider(providerId))
@@ -228,15 +218,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView, 
         fitWidth = 200.0
         isPreserveRatio = true
         imageProperty().bind(url.flatMap { url ->
-            imageLoader.loadImage {
-                if (url.isEmpty()) {
-                    null
-                } else {
-                    val response = CompletableDeferred<Deferred<Image>>()
-                    fetchThumbnailRequests.event(FetchThumbnailRequest(url, response))
-                    response
-                }
-            }
+            commonOps.downloadImage(url)
         })
     }
 

@@ -20,11 +20,16 @@ package com.gitlab.ykrasik.gamedex.app.api.image
  * User: ykrasik
  * Date: 01/05/2018
  * Time: 12:52
+ *
+ * A required implementation from the view layer.
  */
 interface ImageFactory {
     operator fun invoke(data: ByteArray): Image
 }
 
+/**
+ * A required implementation from the view layer.
+ */
 interface Image {
     val raw: ByteArray
 }

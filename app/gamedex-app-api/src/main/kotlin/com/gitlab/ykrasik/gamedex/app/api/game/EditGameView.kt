@@ -22,11 +22,8 @@ import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
@@ -37,8 +34,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 interface EditGameView : ConfirmationView {
     val initialScreen: GameDataType
     val game: Game
-
-    val fetchThumbnailRequests: ReceiveChannel<FetchThumbnailRequest>
 
     val nameOverride: GameDataOverrideState<String>
     val descriptionOverride: GameDataOverrideState<String>
@@ -70,8 +65,3 @@ sealed class OverrideSelectionType {
     data class Provider(val providerId: ProviderId) : OverrideSelectionType()
     object Custom : OverrideSelectionType()
 }
-
-data class FetchThumbnailRequest(
-    val url: String,
-    val response: CompletableDeferred<Deferred<Image>>
-)

@@ -14,8 +14,9 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.view
+package com.gitlab.ykrasik.gamedex.app.javafx.common
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
@@ -34,6 +35,7 @@ import tornadofx.*
  * Time: 22:29
  */
 class WebBrowser : Fragment() {
+    private val commonOps: JavaFxCommonOps by di()
     private var webView: WebView = webview()
 
     private val fullscreenBrowser = StandaloneBrowserFragment()
@@ -68,6 +70,9 @@ class WebBrowser : Fragment() {
             }
         }
     }
+
+    fun loadYoutubeGameplay(game: Game?) =
+        load(game?.let { commonOps.youtubeGameplayUrl(it) })
 
     // TODO: Find a way to clear browsing history on stop.
     // TODO: Don't stop if in standalone mode.

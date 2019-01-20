@@ -18,14 +18,12 @@ package com.gitlab.ykrasik.gamedex.core.game.presenter.edit
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.app.api.game.EditGameView
-import com.gitlab.ykrasik.gamedex.app.api.game.FetchThumbnailRequest
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDataOverrideState
 import com.gitlab.ykrasik.gamedex.app.api.game.OverrideSelectionType
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.IsValid
 import com.gitlab.ykrasik.gamedex.util.Try
@@ -41,7 +39,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class EditGamePresenter @Inject constructor(
-    private val imageService: ImageService,
     private val gameService: GameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
@@ -62,8 +59,6 @@ class EditGamePresenter @Inject constructor(
         private lateinit var gameWithoutOverrides: Game
 
         init {
-            view.fetchThumbnailRequests.forEach { fetchThumbnail(it) }
-
             allOverrides.forEach { it.initState() }
 
             view.canAccept *= IsValid.invalid("Nothing changed!")
@@ -172,10 +167,6 @@ class EditGamePresenter @Inject constructor(
             return providerValues.value.entries
                 .find { it.value == value }
                 ?.let { OverrideSelectionType.Provider(it.key) }
-        }
-
-        private fun fetchThumbnail(request: FetchThumbnailRequest) {
-            request.response.complete(imageService.fetchImage(request.url, persistIfAbsent = false))
         }
 
         @Suppress("UNCHECKED_CAST")

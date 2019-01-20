@@ -18,12 +18,10 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
 import com.gitlab.ykrasik.gamedex.javafx.control.fixedRating
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
@@ -35,7 +33,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.theme.toDisplayString
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
 import javafx.event.EventTarget
 import javafx.geometry.HPos
@@ -55,13 +52,13 @@ import java.io.File
 class JavaFxGameDetailsView(
     private val withDescription: Boolean = true,
     private val evenIfEmpty: Boolean = false
-) : PresentableView(), ViewWithProviderLogos, ViewCanBrowseFile, ViewCanBrowseUrl {
-    override var providerLogos = emptyMap<ProviderId, Image>()
+) : PresentableView(), ViewCanBrowsePath, ViewCanBrowseUrl {
+    private val commonOps: JavaFxCommonOps by di()
 
     val game = userMutableState(Game.Null)
 
-    override val browseToFileActions = channel<File>()
-    override val browseToUrlActions = channel<String>()
+    override val browsePathActions = channel<File>()
+    override val browseUrlActions = channel<String>()
 
     init {
         register()
@@ -105,7 +102,7 @@ class JavaFxGameDetailsView(
         jfxButton(game.value.path.toString()) {
             addClass(CommonStyle.hoverable, Style.detailsContent)
             isFocusTraversable = false
-            action(browseToFileActions) { game.value.path }
+            action(browsePathActions) { game.value.path }
         }
     }
 
@@ -168,8 +165,8 @@ class JavaFxGameDetailsView(
                     vgap = 3.0
                     providerData.sortedBy { it.header.id }.forEach { data ->
                         row {
-                            children += providerLogos[data.header.id]!!.image.toImageView(height = 30, width = 70)
-                            hyperlink(data.siteUrl) { action(browseToUrlActions) { data.siteUrl } }
+                            children += commonOps.providerLogo(data.header.id).toImageView(height = 30, width = 70)
+                            hyperlink(data.siteUrl) { action(browseUrlActions) { data.siteUrl } }
                         }
                     }
                 }

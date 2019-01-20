@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ClearUserDataView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
@@ -30,7 +31,6 @@ import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableTabView
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import com.gitlab.ykrasik.gamedex.util.browse
 import javafx.geometry.Pos
 import tornadofx.*
 import java.io.File
@@ -41,7 +41,13 @@ import java.io.File
  * Time: 14:57
  */
 class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
-    ExportDatabaseView, ImportDatabaseView, ClearUserDataView, ViewCanCleanupDatabase, ViewCanRedownloadGames, ViewCanResyncGames {
+    ExportDatabaseView,
+    ImportDatabaseView,
+    ClearUserDataView,
+    ViewCanCleanupDatabase,
+    ViewCanRedownloadGames,
+    ViewCanResyncGames,
+    ViewCanBrowsePath {
 
     override val exportDatabaseActions = channel<Unit>()
     override val importDatabaseActions = channel<Unit>()
@@ -51,6 +57,8 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
     override val canResyncGames = state(IsValid.valid)
     override val resyncGamesActions = channel<Unit>()
+
+    override val browsePathActions = channel<File>()
 
     init {
         register()
@@ -108,7 +116,10 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             this@chooseFile.initialDirectory = initialDirectory
         }.firstOrNull()
 
-    override fun browseDirectory(directory: File) = browse(directory)
+    override fun browseDirectory(directory: File) {
+        // TODO: This kinda sucks. a presenter is telling the view to browse, but the view is delegating to another presenter.
+        browsePathActions.offer(directory)
+    }
 
     override fun confirmImportDatabase() = areYouSureDialog("The existing database will be lost!")
 

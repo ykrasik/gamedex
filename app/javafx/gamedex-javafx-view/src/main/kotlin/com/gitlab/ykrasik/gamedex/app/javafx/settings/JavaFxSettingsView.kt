@@ -16,12 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.task.ViewWithRunningTask
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
 import com.gitlab.ykrasik.gamedex.javafx.callOnDock
 import com.gitlab.ykrasik.gamedex.javafx.callOnUndock
@@ -31,8 +29,6 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.theme.resetToDefaultButton
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.jfoenix.controls.JFXToggleNode
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -46,15 +42,13 @@ import tornadofx.*
  */
 class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
     SettingsView,
-    ViewWithProviderLogos,
     ViewWithRunningTask,
     ViewCanChangeGameWallDisplaySettings,
     ViewCanChangeNameOverlayDisplaySettings,
     ViewCanChangeMetaTagOverlayDisplaySettings,
     ViewCanChangeVersionOverlayDisplaySettings {
 
-    override val providers = mutableListOf<GameProviderMetadata>()
-    override var providerLogos = emptyMap<ProviderId, Image>()
+    private val commonOps: JavaFxCommonOps by di()
 
     override val resetDefaultsActions = channel<Unit>()
 
@@ -133,8 +127,8 @@ class JavaFxSettingsView : ConfirmationWindow("Settings", Icons.settings),
 
                 header("Providers")
                 entry(providerOrderView)
-                providers.forEach { provider ->
-                    val icon = providerLogos[provider.id]!!.image.toImageView(height = 30, width = 30)
+                commonOps.providers.forEach { provider ->
+                    val icon = commonOps.providerLogo(provider.id).toImageView(height = 30, width = 30)
                     val view = JavaFxProviderSettingsView(provider, icon)
                     entry(view)
                 }

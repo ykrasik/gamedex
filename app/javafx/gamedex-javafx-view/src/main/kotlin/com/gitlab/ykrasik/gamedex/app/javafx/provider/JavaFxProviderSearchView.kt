@@ -14,17 +14,14 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx.game.search
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchChoice
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.ImageLoader
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
@@ -45,8 +42,8 @@ import tornadofx.*
  * Date: 02/01/2017
  * Time: 15:54
  */
-class SearchResultsFragment : PresentableView(), ProviderSearchView, ViewWithProviderLogos/*, ViewCanBrowseFile*/ {
-    override var providerLogos = emptyMap<ProviderId, Image>()
+class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
+    private val commonOps: JavaFxCommonOps by di()
 
     override val state = state(GameSearchState.Null)
     private val currentProviderId = state.property.stringBinding { it!!.currentProvider ?: "" }
@@ -71,15 +68,13 @@ class SearchResultsFragment : PresentableView(), ProviderSearchView, ViewWithPro
     override val choiceActions = channel<ProviderSearchChoice>()
     override val changeProviderActions = channel<ProviderId>()
 
-    private val imageLoader: ImageLoader by di()
-
     private val resultsView = tableview(searchResults) {
         vgrow = Priority.ALWAYS
         keepSelectionInView()
         enableWhen(canChangeState, wrapInErrorTooltip = false)
         val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
         imageViewColumn("Thumbnail", fitWidth = 200, fitHeight = 200, isPreserveRatio = true) { result ->
-            imageLoader.downloadImage(result.thumbnailUrl)
+            commonOps.downloadImage(result.thumbnailUrl)
         }
         // TODO: Limit the size of this column and make it wrap.
         readonlyColumn("Name", ProviderSearchResult::name)
@@ -185,7 +180,7 @@ class SearchResultsFragment : PresentableView(), ProviderSearchView, ViewWithPro
                             fun providerLogoView(height: Int): Node {
                                 return HBox(5.0).apply {
                                     alignment = Pos.CENTER_LEFT
-                                    children += providerLogos[providerId]!!.image.toImageView(height = height) {
+                                    children += commonOps.providerLogo(providerId).toImageView(height = height) {
                                         if (!isCurrentProvider) {
                                             opacity = 0.6
                                         }

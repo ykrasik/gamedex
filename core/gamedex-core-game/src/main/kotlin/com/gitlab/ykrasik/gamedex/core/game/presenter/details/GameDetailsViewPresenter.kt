@@ -16,13 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.game.presenter.details
 
-import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.game.GameService
-import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,18 +33,15 @@ import javax.inject.Singleton
 @Singleton
 class GameDetailsViewPresenter @Inject constructor(
     private val gameService: GameService,
-    private val imageService: ImageService,
     private val eventBus: EventBus
 ) : Presenter<GameDetailsView> {
     override fun present(view: GameDetailsView) = object : ViewSession() {
         init {
-            view.game *= Game.Null
+            view.game *= null
             view.hideViewActions.forEach { finished() }
 
             gameService.games.changesChannel.forEach { e ->
-                val game = view.game.value
-                if (game.id == Game.Null.id) return@forEach
-
+                val game = view.game.value ?: return@forEach
                 when (e) {
                     is ListEvent.ItemRemoved -> {
                         if (e.item == game) finished()
@@ -58,14 +53,12 @@ class GameDetailsViewPresenter @Inject constructor(
                         if (e.item.id == game.id) {
                             val item = e.item
                             view.game *= item
-                            if (isShowing) onShow()
                         }
                     }
                     is ListEvent.ItemsSet -> {
                         val relevantGame = e.items.find { it.id == game.id }
                         if (relevantGame != null) {
                             view.game *= relevantGame
-                            if (isShowing) onShow()
                         }
                     }
                     else -> {
@@ -75,14 +68,8 @@ class GameDetailsViewPresenter @Inject constructor(
             }
         }
 
-        override suspend fun onShow() {
-            view.poster *= view.game.value.posterUrl?.let { posterUrl ->
-                imageService.fetchImage(posterUrl, persistIfAbsent = false)
-            }
-        }
-
         private fun finished() {
-            view.game *= Game.Null
+            view.game *= null
             eventBus.viewFinished(view)
         }
     }

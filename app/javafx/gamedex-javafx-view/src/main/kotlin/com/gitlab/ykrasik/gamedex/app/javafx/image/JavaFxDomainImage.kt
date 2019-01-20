@@ -14,25 +14,26 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file.presenter
+package com.gitlab.ykrasik.gamedex.app.javafx.image
 
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.util.browse
-import javax.inject.Inject
+import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.javafx.control.toImage
+import javafx.scene.image.Image
 import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 12/10/2018
- * Time: 09:30
+ * Date: 11/04/2018
+ * Time: 11:10
  */
+class JavaFxDomainImage(override val raw: ByteArray, val image: Image) : DomainImage
+
+val DomainImage.image get() = (this as JavaFxDomainImage).image
+
 @Singleton
-class BrowseFilePresenter @Inject constructor() : Presenter<ViewCanBrowseFile> {
-    override fun present(view: ViewCanBrowseFile) = object : ViewSession() {
-        init {
-            view.browseToFileActions.forEach { browse(it) }
-        }
-    }
+class JavaFxImageFactory : ImageFactory {
+    override fun invoke(data: ByteArray) = JavaFxDomainImage(data, data.toImage())
 }
+
+typealias DomainImage = com.gitlab.ykrasik.gamedex.app.api.image.Image
+typealias JavaFxImage = javafx.scene.image.Image

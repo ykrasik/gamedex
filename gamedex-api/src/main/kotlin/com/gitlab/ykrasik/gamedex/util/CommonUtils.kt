@@ -16,9 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.util
 
-import java.awt.Desktop
 import java.math.BigInteger
-import java.net.URI
 import java.security.MessageDigest
 import java.util.function.Predicate
 
@@ -35,8 +33,6 @@ fun Any.getResourceAsByteArray(path: String): ByteArray = this::class.java.getRe
 val Int.kb: Int get() = this * 1024
 val Int.mb: Int get() = kb * 1024
 val Int.gb: Long get() = mb * 1024L
-
-fun String.browseToUrl() = Desktop.getDesktop().browse(URI(this))
 
 inline fun <T> millisTaken(block: () -> T): Pair<T, Long> {
     val start = System.currentTimeMillis()

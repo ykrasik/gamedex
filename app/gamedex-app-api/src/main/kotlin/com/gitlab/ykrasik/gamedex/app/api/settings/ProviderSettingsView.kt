@@ -37,8 +37,6 @@ interface ProviderSettingsView {
 
     val currentAccount: UserMutableState<Map<String, String>>
 
-    val gotoAccountUrlActions: ReceiveChannel<Unit>
-
     val canVerifyAccount: State<IsValid>
     val verifyAccountActions: ReceiveChannel<Unit>
 }

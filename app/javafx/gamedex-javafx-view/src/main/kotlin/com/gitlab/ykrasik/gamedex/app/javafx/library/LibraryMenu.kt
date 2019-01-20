@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanEditLibrary
@@ -47,7 +47,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     ViewCanAddLibrary,
     ViewCanEditLibrary,
     ViewCanDeleteLibrary,
-    ViewCanBrowseFile {
+    ViewCanBrowsePath {
 
     override val canSyncLibraries = state(IsValid.valid)
     override val syncLibrariesActions = channel<Unit>()
@@ -63,7 +63,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
     override val canDeleteLibraries = state(IsValid.valid)
     override val deleteLibraryActions = channel<Library>()
 
-    override val browseToFileActions = channel<File>()
+    override val browsePathActions = channel<File>()
 
     init {
         register()
@@ -99,7 +99,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                                 jfxButton(library.path.toString()) {
                                     useMaxWidth = true
                                     addClass(CommonStyle.toolbarButton)
-                                    action(browseToFileActions) { library.path }
+                                    action(browsePathActions) { library.path }
                                 }
                                 editButton {
                                     removeClass(CommonStyle.toolbarButton)

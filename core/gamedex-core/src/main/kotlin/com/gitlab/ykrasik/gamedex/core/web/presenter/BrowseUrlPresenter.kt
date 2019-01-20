@@ -19,7 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.web.presenter
 import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.util.browseToUrl
+import java.awt.Desktop
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,8 +33,8 @@ import javax.inject.Singleton
 class BrowseUrlPresenter @Inject constructor() : Presenter<ViewCanBrowseUrl> {
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
-            view.browseToUrlActions.forEach {
-                it.browseToUrl()
+            view.browseUrlActions.forEach {
+                Desktop.getDesktop().browse(URI(it))
             }
         }
     }

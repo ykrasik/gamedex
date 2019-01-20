@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.util
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonValue
-import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
@@ -47,8 +46,6 @@ fun File.deleteWithChildren() {
 fun File.existsOrNull(): File? = if (exists()) this else null
 
 fun File.assertExists() = existsOrNull() ?: throw IOException("File doesn't exist: $this")
-
-fun browse(path: File) = Desktop.getDesktop().open(path)
 
 // FIXME: Make this an inline class when they are available.
 @JsonIgnoreProperties("humanReadable")

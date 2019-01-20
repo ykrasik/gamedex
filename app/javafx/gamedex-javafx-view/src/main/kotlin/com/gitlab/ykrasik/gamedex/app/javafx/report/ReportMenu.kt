@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.report
 
-import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowseFile
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
@@ -39,7 +39,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
     ViewCanAddReport,
     ViewCanEditReport,
     ViewCanDeleteReport,
-    ViewCanBrowseFile {
+    ViewCanBrowsePath {
 
     override val reports = mutableListOf<Report>().observable()
 
@@ -50,7 +50,7 @@ class ReportMenu : PresentableView("Reports", Icons.chart),
     override val editReportActions = channel<Report>()
     override val deleteReportActions = channel<Report>()
 
-    override val browseToFileActions = channel<File>()
+    override val browsePathActions = channel<File>()
 
     init {
         register()

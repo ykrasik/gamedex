@@ -20,9 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
-import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,13 +32,10 @@ import javax.inject.Singleton
 @Singleton
 class SettingsPresenter @Inject constructor(
     private val settingsService: SettingsService,
-    private val gameProviderService: GameProviderService,
     private val eventBus: EventBus
 ) : Presenter<SettingsView> {
     override fun present(view: SettingsView) = object : ViewSession() {
         init {
-            view.providers.setAll(gameProviderService.allProviders.map { it.metadata })
-
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
             view.resetDefaultsActions.forEach { onResetDefaults() }

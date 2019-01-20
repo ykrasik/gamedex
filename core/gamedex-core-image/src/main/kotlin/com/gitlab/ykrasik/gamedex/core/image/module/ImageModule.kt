@@ -20,7 +20,6 @@ import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.image.ImageServiceImpl
 import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
-import com.gitlab.ykrasik.gamedex.core.image.presenter.ProviderLogosPresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
@@ -41,8 +40,6 @@ import javax.inject.Singleton
 object ImageModule : InternalCoreModule() {
     override fun configure() {
         bind(ImageService::class.java).to(ImageServiceImpl::class.java)
-
-        bindPresenter(ProviderLogosPresenter::class)
     }
 
     @Provides

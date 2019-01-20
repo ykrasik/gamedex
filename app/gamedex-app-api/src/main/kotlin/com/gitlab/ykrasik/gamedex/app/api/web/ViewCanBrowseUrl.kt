@@ -24,5 +24,5 @@ import kotlinx.coroutines.channels.ReceiveChannel
  * Time: 09:46
  */
 interface ViewCanBrowseUrl {
-    val browseToUrlActions: ReceiveChannel<String>
+    val browseUrlActions: ReceiveChannel<String>
 }

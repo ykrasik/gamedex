@@ -14,18 +14,31 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.web
+package com.gitlab.ykrasik.gamedex.app.api.common
 
+import com.gitlab.ykrasik.gamedex.FileStructure
 import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.image.Image
+import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.util.Ref
 
 /**
  * User: ykrasik
- * Date: 06/10/2018
- * Time: 12:13
+ * Date: 19/01/2019
+ * Time: 22:23
+ *
+ * Provided to the view layer through DI, as a more natural way of getting common data than through implementing interfaces.
  */
-interface ViewCanSearchYouTube {
-    val displayYouTubeForGameRequests: ReceiveChannel<Game>
+interface ViewCommonOps {
+    suspend fun fetchThumbnail(game: Game): Image?
+    suspend fun fetchPoster(game: Game): Image?
+    suspend fun downloadImage(url: String): Image?
 
-    fun browseTo(url: String?)
+    fun fetchFileStructure(game: Game): Ref<FileStructure>
+
+    val providers: List<GameProviderMetadata>
+    val providerLogos: Map<ProviderId, Image>
+
+    fun youtubeGameplayUrl(game: Game): String
 }

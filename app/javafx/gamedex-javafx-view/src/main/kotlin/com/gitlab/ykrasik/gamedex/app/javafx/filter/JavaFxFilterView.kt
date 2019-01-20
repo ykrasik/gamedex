@@ -20,10 +20,8 @@ import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.filter.FilterView
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.combineLatest
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
@@ -57,9 +55,7 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView, ViewWithProviderLogos {
-    override var providerLogos = emptyMap<ProviderId, Image>()
-
+class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView {
     override val possibleGenres = mutableListOf<String>()
     override val possibleTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
@@ -78,6 +74,8 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
 
     override val filter = state<Filter>(Filter.Null)
     override val filterIsValid = state(IsValid.valid)
+
+    private val commonOps: JavaFxCommonOps by di()
 
     private var indent = 0
 
@@ -266,7 +264,7 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
             possibleItems = possibleProviderIds,
             selectedItemProperty = provider,
             text = { it },
-            graphic = { providerLogos[it]!!.image.toImageView(height = 28) }
+            graphic = { commonOps.providerLogo(it).toImageView(height = 28) }
         )
     }
 

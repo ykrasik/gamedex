@@ -58,7 +58,6 @@ class RenameMoveGamePresenter @Inject constructor(
             view.name.forEach { validate() }
 
             view.selectDirectoryActions.forEach { onSelectDirectory() }
-            view.browseToGameActions.forEach { onBrowseToGame() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
@@ -80,8 +79,6 @@ class RenameMoveGamePresenter @Inject constructor(
                 path = newPath.relativeTo(library.path).path
             }
         }
-
-        private fun onBrowseToGame() = view.browseTo(view.game.path)
 
         private fun validate() {
             view.nameIsValid *= Try {

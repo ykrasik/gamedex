@@ -16,11 +16,9 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewWithProviderLogos
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderOrderSettingsView
-import com.gitlab.ykrasik.gamedex.app.javafx.image.image
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
 import com.gitlab.ykrasik.gamedex.javafx.control.errorTooltip
 import com.gitlab.ykrasik.gamedex.javafx.control.horizontalField
@@ -48,10 +46,10 @@ import tornadofx.*
  * Date: 05/06/2017
  * Time: 15:17
  */
-class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView, ViewWithProviderLogos {
-    override val canChangeProviderOrder = state(IsValid.valid)
+class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAlphabetical), ProviderOrderSettingsView {
+    private val commonOps: JavaFxCommonOps by di()
 
-    override var providerLogos = emptyMap<ProviderId, Image>()
+    override val canChangeProviderOrder = state(IsValid.valid)
 
     override val search = userMutableState<Order>(emptyList())
     override val name = userMutableState<Order>(emptyList())
@@ -102,7 +100,7 @@ class JavaFxProviderOrderSettingsView : PresentableTabView("Order", Icons.sortAl
                     order.map { providerId ->
                         label {
                             addClass(Style.providerOrderLabel)
-                            graphic = providerLogos[providerId]!!.image.toImageView(height = 50.0, width = 100.0)
+                            graphic = commonOps.providerLogo(providerId).toImageView(height = 50.0, width = 100.0)
                             userData = providerId
 
                             val dropShadow = DropShadow()

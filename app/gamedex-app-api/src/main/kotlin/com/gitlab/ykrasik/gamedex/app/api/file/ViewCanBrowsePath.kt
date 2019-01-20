@@ -24,6 +24,6 @@ import java.io.File
  * Date: 12/10/2018
  * Time: 09:27
  */
-interface ViewCanBrowseFile {
-    val browseToFileActions: ReceiveChannel<File>
+interface ViewCanBrowsePath {
+    val browsePathActions: ReceiveChannel<File>
 }

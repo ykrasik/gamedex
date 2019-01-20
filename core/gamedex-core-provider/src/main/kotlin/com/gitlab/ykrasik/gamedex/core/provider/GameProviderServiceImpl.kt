@@ -20,8 +20,8 @@ import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.Timestamp
-import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
+import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
     repo: GameProviderRepository,
-    private val imageFactory: ImageFactory,
+    private val imageService: ImageService,
     private val settingsService: SettingsService
 ) : GameProviderService {
     private val log = logger()
@@ -89,7 +89,7 @@ class GameProviderServiceImpl @Inject constructor(
 
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }
 
-    override val logos = allProviders.map { it.id to imageFactory(it.logo) }.toMap()
+    override val logos = allProviders.map { it.id to imageService.createImage(it.logo) }.toMap()
 
     override fun checkAtLeastOneProviderEnabled() =
         check(enabledProviders.isNotEmpty()) {

@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.log
 
-import ch.qos.logback.classic.Level
 import com.gitlab.ykrasik.gamedex.app.api.log.*
 import com.gitlab.ykrasik.gamedex.javafx.control.enumComboMenu
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxCheckBox
@@ -48,7 +47,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
     override var logTail = userMutableState(false)
 
     init {
-        entries.predicate = { entry -> entry.level.toLevel().isGreaterOrEqual(level.value.toLevel()) }
+        entries.predicate = { entry -> entry.level.canLog(level.value) }
         level.onChange { entries.refilter() }
 //        observableEntries.predicateProperty.bind(levelProperty.toPredicateF { level, entry ->
 //            entry.level.toLevel().isGreaterOrEqual(level!!.toLevel())
@@ -103,12 +102,12 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
                     text = "${item.timestamp.toString("HH:mm:ss.SSS")} [${item.loggerName}] $message"
                     graphic = item.level.icon.size(20)
 
-                    when (item.level.toLevel()) {
-                        Level.TRACE -> toggleClass(Style.trace, true)
-                        Level.DEBUG -> toggleClass(Style.debug, true)
-                        Level.INFO -> toggleClass(Style.info, true)
-                        Level.WARN -> toggleClass(Style.warn, true)
-                        Level.ERROR -> toggleClass(Style.error, true)
+                    when (item.level) {
+                        LogLevel.Trace -> toggleClass(Style.trace, true)
+                        LogLevel.Debug -> toggleClass(Style.debug, true)
+                        LogLevel.Info -> toggleClass(Style.info, true)
+                        LogLevel.Warn -> toggleClass(Style.warn, true)
+                        LogLevel.Error -> toggleClass(Style.error, true)
                     }
                 }
             }
@@ -120,8 +119,6 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
             }
         }
     }
-
-    private fun LogLevel.toLevel() = Level.toLevel(this.toString())
 
     private val LogLevel.icon
         get() = when (this) {

@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
-import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowseFilePresenter
+import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowsePathPresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
@@ -37,7 +37,7 @@ object FileModule : InternalCoreModule() {
     override fun configure() {
         bind(FileSystemService::class.java).to(FileSystemServiceImpl::class.java)
 
-        bindPresenter(BrowseFilePresenter::class)
+        bindPresenter(BrowsePathPresenter::class)
     }
 
     @Provides
