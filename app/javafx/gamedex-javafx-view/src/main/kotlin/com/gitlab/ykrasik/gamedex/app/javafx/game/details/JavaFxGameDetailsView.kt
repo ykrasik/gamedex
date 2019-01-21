@@ -92,7 +92,7 @@ class JavaFxGameDetailsView(
             setId(Style.nameLabel)
             gridpaneConstraints { hAlignment = HPos.CENTER; hGrow = Priority.ALWAYS }
         }
-        label(game.value.fileStructure.value.size.humanReadable) {
+        label(game.value.fileTree.value.size.humanReadable) {
             minWidth = 60.0
         }
     }

@@ -103,7 +103,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             useMaxWidth = true
             graphic = Icons.databaseCleanup
             alignment = Pos.CENTER_LEFT
-            tooltip("Cleanup stale data, like games linked to paths that no longer exist, unused images & file structure cache for deleted games.")
+            tooltip("Cleanup stale data, like games linked to paths that no longer exist, unused images & file tree cache for deleted games.")
             action(cleanupDatabaseActions)
         }
     }

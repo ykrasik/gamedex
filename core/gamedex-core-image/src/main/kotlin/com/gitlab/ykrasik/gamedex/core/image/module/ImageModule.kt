@@ -16,10 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.image.module
 
-import com.gitlab.ykrasik.gamedex.core.image.ImageConfig
-import com.gitlab.ykrasik.gamedex.core.image.ImageService
-import com.gitlab.ykrasik.gamedex.core.image.ImageServiceImpl
-import com.gitlab.ykrasik.gamedex.core.image.ImageStorage
+import com.gitlab.ykrasik.gamedex.core.image.*
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
 import com.gitlab.ykrasik.gamedex.core.storage.Storage
@@ -48,8 +45,15 @@ object ImageModule : InternalCoreModule() {
 
     @Provides
     @Singleton
-    @ImageStorage
-    fun imageStorage(): Storage<String, ByteArray> = FileStorage.binary("cache/images").stringId(
+    @ThumbnailStorage
+    fun thumbnailRepository() = imageStorage("cache/thumbnails")
+
+    @Provides
+    @Singleton
+    @PosterStorage
+    fun posterRepository() = imageStorage("cache/posters")
+
+    private fun imageStorage(basePath: String): Storage<String, ByteArray> = FileStorage.binary(basePath).stringId(
         keyTransform = { url -> "${url.base64Encoded()}.${url.toUrl().filePath.extension}" },
         reverseKeyTransform = { fileName -> fileName.substringBeforeLast(".").base64Decoded() }
     )

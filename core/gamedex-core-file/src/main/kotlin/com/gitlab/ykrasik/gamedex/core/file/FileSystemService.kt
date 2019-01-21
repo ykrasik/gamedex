@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.core.EventBus
@@ -43,7 +43,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class FileSystemServiceImpl @Inject constructor(
-    @FileStructureStorage initialStorage: Storage<GameId, FileStructure>,
+    @FileTreeStorage initialStorage: Storage<GameId, FileTree>,
     eventBus: EventBus
 ) : FileSystemService {
     private val log = logger()
@@ -57,34 +57,34 @@ class FileSystemServiceImpl @Inject constructor(
         eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { onDbInvalidated() }
     }
 
-    override fun fileStructure(gameId: GameId, path: File): Ref<FileStructure> {
-        val structure = storage[gameId]
-        val ref = ref(structure ?: FileStructure.NotAvailable)
+    override fun fileTree(gameId: GameId, path: File): Ref<FileTree> {
+        val fileTree = storage[gameId]
+        val ref = ref(fileTree ?: FileTree.NotAvailable)
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {
-            val newStructure = calcStructure(path)
-            if (newStructure != null && newStructure != structure) {
-                storage[gameId] = newStructure
-                ref.value = newStructure
+            val newFileTree = calcFileTree(path)
+            if (newFileTree != null && newFileTree != fileTree) {
+                storage[gameId] = newFileTree
+                ref.value = newFileTree
             }
         }
         return ref
     }
 
-    private fun calcStructure(file: File): FileStructure? {
+    private fun calcFileTree(file: File): FileTree? {
         if (!file.exists()) return null
 
         return if (file.isDirectory) {
-            val children = file.listFiles().asSequence().filter { !it.isHidden }.map { calcStructure(it)!! }.toList()
-            FileStructure(
+            val children = file.listFiles().asSequence().filter { !it.isHidden }.map { calcFileTree(it)!! }.toList()
+            FileTree(
                 name = file.name,
                 size = children.fold(FileSize.Empty) { acc, f -> acc + f.size },
                 isDirectory = true,
                 children = children
             )
         } else {
-            FileStructure(
+            FileTree(
                 name = file.name,
                 size = FileSize(file.length()),
                 isDirectory = false,
@@ -93,11 +93,11 @@ class FileSystemServiceImpl @Inject constructor(
         }
     }
 
-    override fun deleteFileStructure(gameId: GameId) {
+    override fun deleteCachedFileTree(gameId: GameId) {
         storage.delete(gameId)
     }
 
-    override fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize> {
+    override fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize> {
         val excudedKeys = excludedGames.mapTo(mutableSetOf()) { it.id }
         return storage.getAll().mapNotNullToMap { key, _ ->
             if (key in excudedKeys) return@mapNotNullToMap null
@@ -124,10 +124,10 @@ class FileSystemServiceImpl @Inject constructor(
 
     override fun toFileName(name: String) = FileNameHandler.toFileName(name)
 
-    private fun onGameDeleted(game: Game) = deleteFileStructure(game.id)
+    private fun onGameDeleted(game: Game) = deleteCachedFileTree(game.id)
 
     private fun onDbInvalidated() {
-        log.debug("Invalidating file structure...")
+        log.debug("Invalidating file tree cache...")
         storage.clear()
     }
 
@@ -137,4 +137,4 @@ class FileSystemServiceImpl @Inject constructor(
 @BindingAnnotation
 @Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class FileStructureStorage
+annotation class FileTreeStorage

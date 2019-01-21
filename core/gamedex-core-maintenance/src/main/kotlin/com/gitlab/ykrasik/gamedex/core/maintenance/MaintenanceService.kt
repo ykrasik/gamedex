@@ -110,9 +110,9 @@ class MaintenanceServiceImpl @Inject constructor(
             imageService.fetchImageSizesExcept(usedImages)
         }
 
-        val fileStructure = fileSystemService.getFileStructureSizeTakenExcept(gameService.games)
+        val fileTree = fileSystemService.getFileTreeSizeTakenExcept(gameService.games)
 
-        val staleData = StaleData(libraries, games, images, fileStructure)
+        val staleData = StaleData(libraries, games, images, fileTree)
         if (staleData.isEmpty) {
             successMessage = { "No stale data detected." }
         }
@@ -140,9 +140,9 @@ class MaintenanceServiceImpl @Inject constructor(
         }
         incProgress()
 
-        staleData.fileStructure.toList().emptyToNull()?.let { fileStructure ->
-            message = "Deleting stale file structure..."
-            fileStructure.forEach { fileSystemService.deleteFileStructure(it.first) }
+        staleData.fileTrees.toList().emptyToNull()?.let { fileTrees ->
+            message = "Deleting stale file cache..."
+            fileTrees.forEach { fileSystemService.deleteCachedFileTree(it.first) }
         }
         incProgress()
 
@@ -150,7 +150,7 @@ class MaintenanceServiceImpl @Inject constructor(
     }
 
     private fun StaleData.toFormattedString() =
-        listOf(games.size to "Games", libraries.size to "Libraries", images.size to "Images", fileStructure.size to "File Cache")
+        listOf(games.size to "Games", libraries.size to "Libraries", images.size to "Images", fileTrees.size to "File Cache")
             .asSequence()
             .filter { it.first != 0 }
             .joinToString("\n") { "${it.first} ${it.second}" }

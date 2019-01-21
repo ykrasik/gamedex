@@ -42,12 +42,12 @@ data class StaleData(
     val libraries: List<Library>,
     val games: List<Game>,
     val images: Map<String, FileSize>,
-    val fileStructure: Map<GameId, FileSize>
+    val fileTrees: Map<GameId, FileSize>
 ) {
-    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty() && fileStructure.isEmpty()
+    val isEmpty = libraries.isEmpty() && games.isEmpty() && images.isEmpty() && fileTrees.isEmpty()
 
     val staleImagesSizeTaken get() = images.values.fold(FileSize(0)) { acc, next -> acc + next }
-    val staleFileStructureSizeTaken get() = fileStructure.values.fold(FileSize(0)) { acc, next -> acc + next }
+    val staleFileTreesSizeTaken get() = fileTrees.values.fold(FileSize(0)) { acc, next -> acc + next }
 }
 
 interface StaleDataCategory {

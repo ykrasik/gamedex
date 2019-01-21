@@ -85,7 +85,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                 action(browsePathActions) { game.path }
             }
         }
-        customGraphicColumn("Size", { game -> game.fileStructure.value.size.toProperty() }) { size ->
+        customGraphicColumn("Size", { game -> game.fileTree.value.size.toProperty() }) { size ->
             label(size.humanReadable)
         }.apply { minWidth = 60.0 }
 

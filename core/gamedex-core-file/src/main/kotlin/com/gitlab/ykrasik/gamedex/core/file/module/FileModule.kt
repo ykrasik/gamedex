@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.file.module
 
-import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.core.file.FileStructureStorage
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemServiceImpl
+import com.gitlab.ykrasik.gamedex.core.file.FileTreeStorage
 import com.gitlab.ykrasik.gamedex.core.file.presenter.BrowsePathPresenter
 import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
 import com.gitlab.ykrasik.gamedex.core.storage.FileStorage
@@ -42,7 +42,7 @@ object FileModule : InternalCoreModule() {
 
     @Provides
     @Singleton
-    @FileStructureStorage
-    fun fileStructureStorage(): Storage<GameId, FileStructure> =
-        FileStorage.json<FileStructure>("cache/file_structure").intId()
+    @FileTreeStorage
+    fun fileTreeStorage(): Storage<GameId, FileTree> =
+        FileStorage.json<FileTree>("cache/files").intId()
 }

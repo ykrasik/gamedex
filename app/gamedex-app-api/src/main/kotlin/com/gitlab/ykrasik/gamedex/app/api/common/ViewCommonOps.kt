@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.common
 
-import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
@@ -35,7 +35,7 @@ interface ViewCommonOps {
     suspend fun fetchPoster(game: Game): Image?
     suspend fun downloadImage(url: String): Image?
 
-    fun fetchFileStructure(game: Game): Ref<FileStructure>
+    fun fetchFileTree(game: Game): Ref<FileTree>
 
     val providers: List<GameProviderMetadata>
     val providerLogos: Map<ProviderId, Image>

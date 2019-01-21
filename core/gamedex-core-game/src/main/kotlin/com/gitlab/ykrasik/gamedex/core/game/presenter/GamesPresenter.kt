@@ -53,7 +53,7 @@ class GamesPresenter @Inject constructor(
             SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.maxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
             SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-            SortBy.size -> compareBy<Game> { it.fileStructure.value.size }.then(nameComparator)
+            SortBy.size -> compareBy<Game> { it.fileTree.value.size }.then(nameComparator)
             SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
             SortBy.createDate -> compareBy(Game::createDate)
             SortBy.updateDate -> compareBy(Game::updateDate)

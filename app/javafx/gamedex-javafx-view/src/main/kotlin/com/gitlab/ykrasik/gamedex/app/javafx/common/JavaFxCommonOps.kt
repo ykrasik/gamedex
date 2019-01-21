@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.common
 
-import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
@@ -81,7 +81,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
         return p
     }
 
-    fun fetchFileStructure(game: Game): Ref<FileStructure> = ops.fetchFileStructure(game)
+    fun fetchFileTree(game: Game): Ref<FileTree> = ops.fetchFileTree(game)
 
     val providers: List<GameProviderMetadata> = ops.providers
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }

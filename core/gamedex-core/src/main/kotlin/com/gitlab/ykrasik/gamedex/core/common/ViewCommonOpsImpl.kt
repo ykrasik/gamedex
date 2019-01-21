@@ -18,11 +18,9 @@ package com.gitlab.ykrasik.gamedex.core.common
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.util.logger
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,32 +37,13 @@ class ViewCommonOpsImpl @Inject constructor(
     gameProviderService: GameProviderService,
     private val fileSystemService: FileSystemService
 ) : ViewCommonOps {
-    private val log = logger()
+    override suspend fun fetchThumbnail(game: Game) = imageService.fetchThumbnail(game)
 
-    override suspend fun fetchThumbnail(game: Game) = tryFetchImage({ "Error fetching thumbnail for Game($game) from ${game.thumbnailUrl}:" }) {
-        game.thumbnailUrl?.let { thumbnailUrl ->
-            imageService.fetchImage(thumbnailUrl, persistIfAbsent = true)
-        }
-    }
+    override suspend fun fetchPoster(game: Game) = imageService.fetchPoster(game)
 
-    override suspend fun fetchPoster(game: Game) = tryFetchImage({ "Error fetching poster for Game($game) from ${game.posterUrl}:" }) {
-        game.posterUrl?.let { posterUrl ->
-            imageService.fetchImage(posterUrl, persistIfAbsent = false)
-        }
-    }
+    override suspend fun downloadImage(url: String) = imageService.downloadImage(url)
 
-    override suspend fun downloadImage(url: String) = tryFetchImage({ "Error downloading image from $url:" }) {
-        imageService.downloadImage(url)
-    }
-
-    private inline fun tryFetchImage(errorMessage: () -> String, f: () -> Image?): Image? = try {
-        f()
-    } catch (e: Exception) {
-        log.error(errorMessage(), e)
-        null
-    }
-
-    override fun fetchFileStructure(game: Game) = fileSystemService.fileStructure(game.id, game.path)
+    override fun fetchFileTree(game: Game) = fileSystemService.fileTree(game.id, game.path)
 
     override val providers = gameProviderService.allProviders.map { it.metadata }
     override val providerLogos = gameProviderService.logos

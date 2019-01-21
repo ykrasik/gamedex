@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.image
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.util.FileSize
 
@@ -27,9 +28,10 @@ import com.gitlab.ykrasik.gamedex.util.FileSize
 interface ImageService {
     fun createImage(data: ByteArray): Image
 
-    suspend fun fetchImage(url: String, persistIfAbsent: Boolean): Image
+    suspend fun fetchThumbnail(game: Game): Image?
+    suspend fun fetchPoster(game: Game): Image?
 
-    suspend fun downloadImage(url: String): Image
+    suspend fun downloadImage(url: String): Image?
 
     fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize>
 

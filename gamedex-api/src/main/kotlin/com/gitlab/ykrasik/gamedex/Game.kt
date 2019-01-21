@@ -36,7 +36,7 @@ data class Game(
     val library: Library,
     val gameData: GameData,
     val folderNameMetadata: FolderNameMetadata,
-    val fileStructure: Ref<FileStructure>
+    val fileTree: Ref<FileTree>
 ) {
     val id get() = rawGame.id
     val path by lazy { library.path.resolve(metadata.path) }
@@ -108,7 +108,7 @@ data class Game(
                 metaTag = null,
                 version = null
             ),
-            fileStructure = ref(FileStructure.NotAvailable)
+            fileTree = ref(FileTree.NotAvailable)
         )
     }
 }
@@ -190,14 +190,14 @@ data class Timestamp(
     }
 }
 
-data class FileStructure(
+data class FileTree(
     val name: String,
     val size: FileSize,
     val isDirectory: Boolean,
-    val children: List<FileStructure>
+    val children: List<FileTree>
 ) {
     companion object {
-        val NotAvailable = FileStructure(
+        val NotAvailable = FileTree(
             name = "Not Available",
             size = FileSize.Empty,
             isDirectory = true,

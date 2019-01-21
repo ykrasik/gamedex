@@ -58,7 +58,7 @@ class CleanupDatabasePresenter @Inject constructor(
             view.images.shouldDelete *= view.images.canDelete.value.isSuccess
 
             view.fileCache.canDelete *= Try {
-                check(view.staleData.fileStructure.isNotEmpty()) { "No stale file cache to delete!" }
+                check(view.staleData.fileTrees.isNotEmpty()) { "No stale file cache to delete!" }
             }
             view.fileCache.shouldDelete *= view.fileCache.canDelete.value.isSuccess
 
@@ -95,7 +95,7 @@ class CleanupDatabasePresenter @Inject constructor(
                 libraries = if (view.librariesAndGames.shouldDelete.value) view.staleData.libraries else emptyList(),
                 games = if (view.librariesAndGames.shouldDelete.value) view.staleData.games else emptyList(),
                 images = if (view.images.shouldDelete.value) view.staleData.images else emptyMap(),
-                fileStructure = if (view.fileCache.shouldDelete.value) view.staleData.fileStructure else emptyMap()
+                fileTrees = if (view.fileCache.shouldDelete.value) view.staleData.fileTrees else emptyMap()
             )
             taskService.execute(maintenanceService.deleteStaleData(staleData))
         }

@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.FileStructure
+import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.FolderNameMetadata
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameId
@@ -30,9 +30,9 @@ import java.io.File
  * Time: 14:04
  */
 interface FileSystemService {
-    fun fileStructure(gameId: GameId, path: File): Ref<FileStructure>
-    fun deleteFileStructure(gameId: GameId)    // FIXME: This exposes the fact that we persist this data.
-    fun getFileStructureSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
+    fun fileTree(gameId: GameId, path: File): Ref<FileTree>
+    fun deleteCachedFileTree(gameId: GameId)
+    fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 
     suspend fun move(from: File, to: File)
     suspend fun delete(file: File)

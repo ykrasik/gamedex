@@ -16,10 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.image
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.app.api.image.ImageFactory
+import com.gitlab.ykrasik.gamedex.core.storage.Storage
 import com.gitlab.ykrasik.gamedex.util.FileSize
 import com.gitlab.ykrasik.gamedex.util.download
+import com.gitlab.ykrasik.gamedex.util.logger
+import com.google.inject.BindingAnnotation
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.*
 import java.util.*
@@ -33,11 +37,14 @@ import javax.inject.Singleton
  */
 @Singleton
 class ImageServiceImpl @Inject constructor(
-    private val repo: ImageRepository,
+    @ThumbnailStorage private val thumbnailStorage: Storage<String, ByteArray>,
+    @PosterStorage private val posterStorage: Storage<String, ByteArray>,
     private val imageFactory: ImageFactory,
     private val httpClient: HttpClient,
     config: ImageConfig
 ) : ImageService, CoroutineScope {
+    private val log = logger()
+
     override val coroutineContext = Dispatchers.IO
 
     private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
@@ -45,50 +52,83 @@ class ImageServiceImpl @Inject constructor(
 
     override fun createImage(data: ByteArray) = imageFactory(data)
 
-    // We disregard the value of persistIfAbsent when we get a cache hit, because
-    // if it's already in the cache then it was already called with the exact same 'persistIfAbsent'.
-    // A situation where this method is called once with persistIfAbsent=false and again
-    // with the same url but persistIfAbsent=true simply doesn't exist.
-    override suspend fun fetchImage(url: String, persistIfAbsent: Boolean): Image = withContext(Dispatchers.Main) {
-        persistedImageCache.getOrPut(url) {
-            async {
-                val persistedBytes = repo[url]
-                if (persistedBytes != null) {
-                    createImage(persistedBytes)
-                } else {
-                    val downloadedImage = downloadImage(url)
-                    if (persistIfAbsent) {
+    override suspend fun fetchThumbnail(game: Game) = game.thumbnailUrl?.let { fetchImage(it, thumbnailStorage) }
+    override suspend fun fetchPoster(game: Game) = game.posterUrl?.let { fetchImage(it, posterStorage) }
+
+    private suspend fun fetchImage(url: String, storage: Storage<String, ByteArray>): Image? = withContext(Dispatchers.Main) {
+        try {
+            persistedImageCache.getOrPut(url) {
+                async {
+                    val persistedBytes = storage[url]
+                    if (persistedBytes != null) {
+                        createImage(persistedBytes)
+                    } else {
+                        val downloadedImage = downloadImage0(url)
                         // Save downloaded image
                         launch {
-                            repo[url] = downloadedImage.raw
+                            storage[url] = downloadedImage.raw
                         }
+                        downloadedImage
                     }
-                    downloadedImage
                 }
-            }
-        }.await()
+            }.await()
+        } catch (e: Exception) {
+            log.error("Error fetching image $url", e)
+            persistedImageCache -= url
+            null
+        }
     }
 
-    override suspend fun downloadImage(url: String): Image = withContext(Dispatchers.Main) {
-        downloadedImageCache.getOrPut(url) {
-            async {
-                val downloadedBytes = httpClient.download(url)
-                createImage(downloadedBytes)
-            }
-        }.await()
+    override suspend fun downloadImage(url: String) = withContext(Dispatchers.Main) {
+        try {
+            downloadImage0(url)
+        } catch (e: Exception) {
+            log.error("Error downloading image $url", e)
+            downloadedImageCache -= url
+            null
+        }
     }
 
-    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> =
-        repo.fetchImageSizesExcept(exceptUrls)
+    private suspend fun downloadImage0(url: String) = downloadedImageCache.getOrPut(url) {
+        async {
+            val downloadedBytes = httpClient.download(url)
+            createImage(downloadedBytes)
+        }
+    }.await()
+
+    override fun fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
+        return listOf(thumbnailStorage, posterStorage)
+            .map { it.fetchImageSizesExcept(exceptUrls) }
+            .reduce { acc, map -> acc + map }
+    }
+
+    private fun Storage<String, ByteArray>.fetchImageSizesExcept(exceptUrls: List<String>): Map<String, FileSize> {
+        val excudedKeys = exceptUrls.toSet()
+        return ids().asSequence()
+            .filter { it !in excudedKeys }
+            .map { it to FileSize(sizeTaken(it)) }
+            .toMap()
+    }
 
     override fun deleteImages(imageUrls: List<String>) {
-        repo.deleteImages(imageUrls)
+        thumbnailStorage.delete(imageUrls)
+        posterStorage.delete(imageUrls)
     }
 
-    // Only meant to be accessed by the ui thread.
+    // Not thread-safe.
     private class Cache<K, V>(private val maxSize: Int) : LinkedHashMap<K, V>(maxSize, 1f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
             return size > maxSize
         }
     }
 }
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ThumbnailStorage
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class PosterStorage

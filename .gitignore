@@ -114,7 +114,5 @@ db/
 cache/thumbnails
 cache/posters
 cache/files
-cache/images
-cache/file_structure
 *.iss
 db*.json

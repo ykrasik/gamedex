@@ -88,7 +88,7 @@ class JavaFxCleanupDatabaseView : ConfirmationWindow("Cleanup Database", Icons.d
                     label.graphic = Icons.fileQuestion
                     showWhen(fileCache.canDelete)
                     jfxCheckBox(fileCache.shouldDelete.property)
-                    label(staleDataProperty.stringBinding { "${it!!.fileStructure.size} File Cache Entries: ${it.staleFileStructureSizeTaken.humanReadable}" })
+                    label(staleDataProperty.stringBinding { "${it!!.fileTrees.size} File Cache Entries: ${it.staleFileTreesSizeTaken.humanReadable}" })
                 }
             }
         }
