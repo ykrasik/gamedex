@@ -87,5 +87,5 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }
     fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos[providerId]!!
 
-    fun youtubeGameplayUrl(game: Game): String = ops.youtubeGameplayUrl(game)
+    fun youTubeGameplayUrl(game: Game): String = ops.youTubeGameplayUrl(game)
 }

@@ -14,31 +14,63 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.common
+package com.gitlab.ykrasik.gamedex.test
 
-import com.gitlab.ykrasik.gamedex.FileStructure
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Ref
+import com.gitlab.ykrasik.gamedex.util.freePort
+import io.ktor.application.Application
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import java.io.Closeable
+import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
- * Date: 19/01/2019
- * Time: 22:23
- *
- * Provided to the view layer through DI, as a more natural way of getting common data than through implementing interfaces.
+ * Date: 21/01/2019
+ * Time: 09:29
  */
-interface ViewCommonOps {
-    suspend fun fetchThumbnail(game: Game): Image?
-    suspend fun fetchPoster(game: Game): Image?
-    suspend fun downloadImage(url: String): Image?
+interface FakeServer : Closeable {
+    val port: Int
 
-    fun fetchFileStructure(game: Game): Ref<FileStructure>
+    fun setupEnv()
 
-    val providers: List<GameProviderMetadata>
-    val providerLogos: Map<ProviderId, Image>
+    fun start()
+}
 
-    fun youTubeGameplayUrl(game: Game): String
+interface GameProviderFakeServer : FakeServer {
+    val id: ProviderId
+    val apiDetailsUrl: String
+    val thumbnailUrl: String?
+    val posterUrl: String?
+    val screenshotUrl: String?
+}
+
+abstract class KtorFakeServer(final override val port: Int = freePort) : FakeServer {
+    val baseUrl = "http://localhost:$port"
+
+    protected val ktor = embeddedServer(Netty, port) {
+        setupServer()
+    }
+
+    protected abstract fun Application.setupServer()
+
+    override fun start() {
+        ktor.start()
+    }
+
+    override fun close() = ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+}
+
+interface FakeServerProvider {
+    val preferredPort: Int? get() = null
+
+    fun create(port: Int): FakeServer
+}
+
+inline fun FakeServer.using(f: () -> Unit) {
+    setupEnv()
+    use {
+        start()
+        f()
+    }
 }

@@ -25,9 +25,7 @@ import io.ktor.http.contentLength
 import io.ktor.http.isSuccess
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.ServerSocket
-import java.net.URL
-import java.net.URLDecoder
+import java.net.*
 import java.util.*
 
 /**
@@ -67,3 +65,14 @@ val URL.filePath get() = File(path)
 val URL.fileName get() = File(path).name
 
 val freePort get() = ServerSocket(0).use { it.localPort }
+fun isPortAvailable(port: Int): Boolean = try {
+    ServerSocket().use { serverSocket ->
+        // setReuseAddress(false) is required only on OSX,
+        // otherwise the code will not work correctly on that platform
+        serverSocket.reuseAddress = false
+        serverSocket.bind(InetSocketAddress(InetAddress.getByName("localhost"), port), 1)
+        true
+    }
+} catch (ex: Exception) {
+    false
+}

@@ -71,8 +71,8 @@ class WebBrowser : Fragment() {
         }
     }
 
-    fun loadYoutubeGameplay(game: Game?) =
-        load(game?.let { commonOps.youtubeGameplayUrl(it) })
+    fun loadYouTubeGameplay(game: Game?) =
+        load(game?.let { commonOps.youTubeGameplayUrl(it) })
 
     // TODO: Find a way to clear browsing history on stop.
     // TODO: Don't stop if in standalone mode.

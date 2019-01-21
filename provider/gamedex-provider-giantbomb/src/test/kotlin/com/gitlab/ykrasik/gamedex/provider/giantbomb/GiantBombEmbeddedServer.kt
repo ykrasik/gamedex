@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.filterNullValues
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -31,12 +32,9 @@ import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import java.io.Closeable
-import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
@@ -74,19 +72,19 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
     }
 }
 
-class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Closeable {
+@Suppress("unused")
+class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : KtorFakeServer(port), GameProviderFakeServer {
     private val apiDetailPath = "details"
     private val thumbnailPath = "images/thumbnail"
     private val superPath = "images/super"
 
-    val providerId = "GiantBomb"
-    val baseUrl = "http://localhost:$port"
-    val apiDetailsUrl = "$baseUrl/$apiDetailPath"
-    val thumbnailUrl = "$baseUrl/$thumbnailPath"
-    val superUrl = "$baseUrl/$superPath"
-    val screenshotUrl = superUrl
+    override val id = "GiantBomb"
+    override val apiDetailsUrl = "$baseUrl/$apiDetailPath"
+    override val thumbnailUrl = "$baseUrl/$thumbnailPath"
+    override val posterUrl = "$baseUrl/$superPath"
+    override val screenshotUrl = posterUrl
 
-    private val ktor = embeddedServer(Netty, port) {
+    override fun Application.setupServer() {
         routing {
             get("/") {
                 authorized {
@@ -151,14 +149,18 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Cl
 
     private fun randomImage() = GiantBombClient.Image(
         thumbUrl = "$thumbnailUrl/${randomWord()}",
-        superUrl = "$superUrl/${randomWord()}"
+        superUrl = "$posterUrl/${randomWord()}"
     )
 
-    fun start() = apply {
-        ktor.start()
+    override fun setupEnv() {
+        System.setProperty("gameDex.provider.giantBomb.baseUrl", baseUrl)
     }
 
-    override fun close() = ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+    @Suppress("unused")
+    object GiantBombFakeServerProvider : FakeServerProvider {
+        override val preferredPort = 9001
+        override fun create(port: Int) = GiantBombFakeServer(port, apiKey = "valid")
+    }
 }
 
 private fun GiantBombClient.SearchResponse.toMap() = mapOf(

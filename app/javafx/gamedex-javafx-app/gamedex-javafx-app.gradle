@@ -3,7 +3,7 @@ mainClassName = "com.gitlab.ykrasik.gamedex.javafx.Main"
 apply plugin: 'javafx-gradle-plugin'
 
 dependencies {
-    compile project(":core:gamedex-core")
+    fullDependency ":core:gamedex-core"
     fullDependency ":app:javafx:gamedex-javafx-view"
 
     project(":provider").subprojects {

@@ -190,7 +190,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         }
 
         selectedGame.onChange {
-            browser.loadYoutubeGameplay(it)
+            browser.loadYouTubeGameplay(it)
         }
     }
 

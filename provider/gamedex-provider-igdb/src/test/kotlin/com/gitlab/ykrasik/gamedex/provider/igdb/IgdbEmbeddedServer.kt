@@ -22,6 +22,7 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -30,12 +31,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.*
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import java.io.Closeable
-import java.util.concurrent.TimeUnit
 
 /**
  * User: ykrasik
@@ -75,20 +73,20 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     }
 }
 
-class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : Closeable {
+@Suppress("unused")
+class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFakeServer(port), GameProviderFakeServer {
     private val imagePath = "images"
+    private val baseImageUrl = "$baseUrl/$imagePath"
     private val thumbnailPath = "t_thumb_2x"
     private val posterPath = "t_screenshot_huge"
 
-    val providerId = "Igdb"
-    val baseUrl = "http://localhost:$port"
-    fun detailsUrl(id: Int) = "$baseUrl/$id"
-    val baseImageUrl = "$baseUrl/$imagePath"
-    val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
-    val posterUrl = "$baseImageUrl/$posterPath"
-    val screenshotUrl = posterUrl
+    override val id = "Igdb"
+    override val apiDetailsUrl get() = "$baseUrl/${randomInt()}"
+    override val thumbnailUrl = "$baseImageUrl/$thumbnailPath"
+    override val posterUrl = "$baseImageUrl/$posterPath"
+    override val screenshotUrl = posterUrl
 
-    private val ktor = embeddedServer(Netty, port) {
+    override fun Application.setupServer() {
         routing {
             route("/") {
                 method(HttpMethod.Get) {
@@ -187,11 +185,14 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : Closeab
 
     private fun randomImage() = IgdbClient.Image(cloudinaryId = randomWord())
 
-    fun start() = apply {
-        ktor.start(wait = false)
+    override fun setupEnv() {
+        System.setProperty("gameDex.provider.igdb.baseUrl", baseUrl)
+        System.setProperty("gameDex.provider.igdb.baseImageUrl", baseImageUrl)
     }
 
-    override fun close() {
-        ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
+    @Suppress("unused")
+    object IgdbFakeServerProvider : FakeServerProvider {
+        override val preferredPort = 9002
+        override fun create(port: Int) = IgdbFakeServer(port, apiKey = "valid")
     }
 }

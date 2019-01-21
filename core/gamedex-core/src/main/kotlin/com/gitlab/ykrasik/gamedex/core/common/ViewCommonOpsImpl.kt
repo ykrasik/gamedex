@@ -34,6 +34,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ViewCommonOpsImpl @Inject constructor(
+    private val config: CommonOpsConfig,
     private val imageService: ImageService,
     gameProviderService: GameProviderService,
     private val fileSystemService: FileSystemService
@@ -68,8 +69,12 @@ class ViewCommonOpsImpl @Inject constructor(
     override val providers = gameProviderService.allProviders.map { it.metadata }
     override val providerLogos = gameProviderService.logos
 
-    override fun youtubeGameplayUrl(game: Game): String {
+    override fun youTubeGameplayUrl(game: Game): String {
         val search = URLEncoder.encode("${game.name} gameplay ${game.platform}", "utf-8")
-        return "https://www.youtube.com/results?search_query=$search"
+        return "${config.youTubeBaseUrl}/results?search_query=$search"
     }
 }
+
+data class CommonOpsConfig(
+    val youTubeBaseUrl: String
+)

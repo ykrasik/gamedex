@@ -17,11 +17,9 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.core.common.FakeServerManager
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombFakeServer
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbFakeServer
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -36,33 +34,25 @@ import java.util.concurrent.Executors
  * Time: 21:59
  */
 object TestApplication {
-    val giantBombServer = GiantBombFakeServer(9001, apiKey = "valid")
-    val igdbServer = IgdbFakeServer(9002, apiKey = "valid")
-
     val dbUrl = "jdbc:h2:./test"
     val persistenceService by lazy { PersistenceServiceImpl(PersistenceConfig(dbUrl, "org.h2.Driver", "sa", "")) }
 
     @JvmStatic
     fun main(args: Array<String>) {
         System.setProperty("gameDex.persistence.dbUrl", dbUrl)
-        System.setProperty("gameDex.provider.giantBomb.baseUrl", giantBombServer.baseUrl)
-        System.setProperty("gameDex.provider.igdb.baseUrl", igdbServer.baseUrl)
-        System.setProperty("gameDex.provider.igdb.baseImageUrl", igdbServer.baseImageUrl)
 
         // Pre-Load test images
         randomImage()
 
-        giantBombServer.start().use {
-            igdbServer.start().use {
-                if (System.getProperty("gameDex.persistence.noGenerateDb") == null) {
-                    generateDb(
-                        numGames = 5000
-//                        numGames = null
-                    )
-                }
-
-                Main.main(args)
+        FakeServerManager.using {
+            if (System.getProperty("gameDex.persistence.noGenerateDb") == null) {
+                generateDb(
+                    numGames = 5000
+//                    numGames = null
+                )
             }
+
+            Main.main(args)
         }
     }
 
@@ -86,7 +76,7 @@ object TestApplication {
             runBlocking {
                 (0 until numGames).map {
                     async(context) {
-                        val providerIds = mutableListOf(giantBombServer.providerId, igdbServer.providerId)
+                        val providerServers = FakeServerManager.providerFakeServers.toMutableList()
                         val path = randomPath(maxElements = 6, minElements = 3)
                         persistenceService.insertGame(
                             metadata = com.gitlab.ykrasik.gamedex.Metadata(
@@ -94,10 +84,10 @@ object TestApplication {
                                 path = path,
                                 timestamp = Timestamp.now
                             ),
-                            providerData = randomList(providerIds.size) {
-                                val providerId = providerIds.randomElement()
-                                providerIds -= providerId
-                                randomProviderData(providerId)
+                            providerData = randomList(providerServers.size) {
+                                val provider = providerServers.randomElement()
+                                providerServers -= provider
+                                randomProviderData(provider)
                             },
                             userData = UserData.Null
                         )
@@ -109,10 +99,10 @@ object TestApplication {
         println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).toHumanReadableDuration()}")
     }
 
-    private fun randomProviderData(id: ProviderId) = ProviderData(
+    private fun randomProviderData(provider: GameProviderFakeServer) = ProviderData(
         header = ProviderHeader(
-            id = id,
-            apiUrl = apiUrl(id)
+            id = provider.id,
+            apiUrl = provider.apiDetailsUrl
         ),
         gameData = GameData(
             name = randomName(),
@@ -121,34 +111,16 @@ object TestApplication {
             criticScore = randomScore(),
             userScore = randomScore(),
             genres = randomList(4) { randomGenre() },
-            imageUrls = imageUrls(id)
+            imageUrls = imageUrls(provider)
         ),
         siteUrl = randomUrl(),
         timestamp = Timestamp.now
     )
 
-    private fun apiUrl(id: ProviderId) = when (id) {
-        giantBombServer.providerId -> giantBombServer.apiDetailsUrl
-        igdbServer.providerId -> igdbServer.detailsUrl(randomInt())
-        else -> error("Invalid providerId: $id")
-    }
-
-    private fun imageUrls(id: ProviderId) = when (id) {
-        giantBombServer.providerId -> randomGiantBombImageUrls()
-        igdbServer.providerId -> randomIgdbImageUrls()
-        else -> error("Invalid providerId: $id")
-    }
-
-    private fun randomGiantBombImageUrls() = ImageUrls(
-        thumbnailUrl = "${giantBombServer.thumbnailUrl}/${randomWord()}.jpg".sometimesNull(),
-        posterUrl = "${giantBombServer.superUrl}/${randomWord()}.jpg".sometimesNull(),
-        screenshotUrls = randomList(10) { "${giantBombServer.screenshotUrl}/${randomWord()}.jpg" }
-    )
-
-    private fun randomIgdbImageUrls() = ImageUrls(
-        thumbnailUrl = "${igdbServer.thumbnailUrl}/${randomWord()}.png".sometimesNull(),
-        posterUrl = "${igdbServer.posterUrl}/${randomWord()}.png".sometimesNull(),
-        screenshotUrls = randomList(10) { "${igdbServer.screenshotUrl}/${randomWord()}.png" }
+    private fun imageUrls(server: GameProviderFakeServer) = ImageUrls(
+        thumbnailUrl = server.thumbnailUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
+        posterUrl = server.posterUrl?.let { "$it/${randomWord()}.jpg".sometimesNull() },
+        screenshotUrls = if (server.screenshotUrl != null) randomList(10) { "${server.screenshotUrl}/${randomWord()}.jpg" } else emptyList()
     )
 
     // 9/10 chance.

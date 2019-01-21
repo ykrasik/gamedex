@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.EventBusImpl
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
+import com.gitlab.ykrasik.gamedex.core.common.CommonOpsConfig
 import com.gitlab.ykrasik.gamedex.core.common.ViewCommonOpsImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
@@ -47,6 +48,7 @@ import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import io.github.config4k.extract
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.UserAgent
@@ -137,4 +139,8 @@ object CoreModule : InternalCoreModule() {
 //            level = LogLevel.BODY
 //        }
     }
+
+    @Provides
+    @Singleton
+    fun commonConfig(config: Config) = config.extract<CommonOpsConfig>("gameDex.common")
 }

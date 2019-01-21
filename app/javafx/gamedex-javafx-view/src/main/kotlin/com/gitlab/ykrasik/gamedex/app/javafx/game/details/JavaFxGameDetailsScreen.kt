@@ -73,7 +73,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
 
         titleProperty.bind(game.property.stringBinding { it?.name })
         game.property.typeSafeOnChange { game ->
-            browser.loadYoutubeGameplay(game)
+            browser.loadYouTubeGameplay(game)
         }
     }
 
