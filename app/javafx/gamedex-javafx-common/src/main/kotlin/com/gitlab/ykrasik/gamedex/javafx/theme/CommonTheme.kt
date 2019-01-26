@@ -55,5 +55,3 @@ inline fun EventTarget.header(
     if (graphic != null) this.graphicProperty().bind(graphic)
     op(this)
 }
-
-fun Any?.toDisplayString() = this?.toString() ?: "NA"

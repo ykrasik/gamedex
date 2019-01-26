@@ -63,7 +63,7 @@ class GameOverlayDisplaySettingsRepository(name: String, factory: SettingsStorag
                 boldFont = true,
                 italicFont = false,
                 textColor = "#ffffff",
-                backgroundColor = "#4d66cc",
+                backgroundColor = "#62728C",
                 opacity = 0.85
             )
         }

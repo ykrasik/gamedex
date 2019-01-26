@@ -33,8 +33,12 @@ class BrowsePathPresenter @Inject constructor() : Presenter<ViewCanBrowsePath> {
     override fun present(view: ViewCanBrowsePath) = object : ViewSession() {
         init {
             view.browsePathActions.forEach {
-                // TODO: This is actually more like view-specific logic.
-                Desktop.getDesktop().open(it)
+                try {
+                    // TODO: This is actually more like view-specific logic.
+                    Desktop.getDesktop().open(it)
+                } catch (e: Exception) {
+                    view.onError(e, "Path doesn't exist: $it")
+                }
             }
         }
     }

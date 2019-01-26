@@ -123,11 +123,7 @@ class ImageViewResizingPane(private val imageView: ImageView) : Pane() {
 
     override fun getContentBias(): Orientation = Orientation.VERTICAL
 
-    private val imageRatio: Double
-        get() {
-            val image = imageView.image
-            return image.height / image.width
-        }
+    private val imageRatio: Double get() = imageView.image.let { it.height / it.width }
 
     private fun limitByMaxWidth(width: Double) = limitIfApplicable(width, maxWidth)
     private fun limitByMaxHeight(height: Double) = limitIfApplicable(height, maxHeight)

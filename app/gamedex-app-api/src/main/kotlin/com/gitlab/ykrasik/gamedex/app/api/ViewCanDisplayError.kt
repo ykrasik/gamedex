@@ -14,31 +14,13 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.javafx
-
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
-import com.gitlab.ykrasik.gamedex.javafx.theme.color
-import com.gitlab.ykrasik.gamedex.javafx.theme.size
-import javafx.geometry.Pos
-import javafx.scene.paint.Color
-import org.controlsfx.control.Notifications
-import tornadofx.UIComponent
-import tornadofx.seconds
+package com.gitlab.ykrasik.gamedex.app.api
 
 /**
  * User: ykrasik
- * Date: 21/11/2018
- * Time: 08:46
+ * Date: 26/01/2019
+ * Time: 18:01
  */
-fun UIComponent.notification(text: String): Notifications =
-    Notifications.create()
-        .owner(currentStage!!)
-        .text(text)
-        .darkStyle()
-        .hideAfter(5.seconds)
-        .hideCloseButton()
-        .position(Pos.BOTTOM_RIGHT)
-
-val Notifications.info get() = graphic(Icons.information.size(50).color(Color.WHITE))
-val Notifications.warn get() = graphic(Icons.warning.size(50))
-val Notifications.error get() = graphic(Icons.error.size(50))
+interface ViewCanDisplayError {
+    fun onError(e: Exception, message: String)
+}

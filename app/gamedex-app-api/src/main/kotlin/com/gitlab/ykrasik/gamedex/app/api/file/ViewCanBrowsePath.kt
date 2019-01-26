@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.file
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import kotlinx.coroutines.channels.ReceiveChannel
 import java.io.File
 
@@ -24,6 +25,6 @@ import java.io.File
  * Date: 12/10/2018
  * Time: 09:27
  */
-interface ViewCanBrowsePath {
+interface ViewCanBrowsePath : ViewCanDisplayError {
     val browsePathActions: ReceiveChannel<File>
 }

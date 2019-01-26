@@ -34,7 +34,8 @@ class BrowseUrlPresenter @Inject constructor() : Presenter<ViewCanBrowseUrl> {
     override fun present(view: ViewCanBrowseUrl) = object : ViewSession() {
         init {
             view.browseUrlActions.forEach {
-                Desktop.getDesktop().browse(URI(it))
+                val uri = URI(it)
+                Desktop.getDesktop().browse(uri)
             }
         }
     }

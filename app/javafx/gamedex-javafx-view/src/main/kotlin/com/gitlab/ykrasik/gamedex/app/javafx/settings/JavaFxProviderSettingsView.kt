@@ -24,7 +24,10 @@ import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.theme.*
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.confirmButton
+import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.util.IsValid
@@ -121,14 +124,14 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                         hbox {
                             spacer()
                             confirmButton("Verify Account") {
-                                addClass(CommonStyle.thinBorder)
+                                setId(Style.verifyAccountButton)
                                 enableWhen(canVerifyAccount)
                                 isDefaultButton = true
                                 action(verifyAccountActions)
                             }
                         }
-                        horizontalField("Create") {
-                            hyperlink(accountFeature.accountUrl) {
+                        horizontalField {
+                            hyperlink(accountFeature.accountUrl, graphic = Icons.link) {
                                 action(browseUrlActions) { accountFeature.accountUrl }
                             }
                         }
@@ -180,6 +183,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
             val providerLabel by cssclass()
             val accountLabel by cssclass()
             val flashContainer by cssclass()
+            val verifyAccountButton by cssid()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -203,6 +207,12 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                 backgroundRadius = multi(box(5.px))
                 borderRadius = multi(box(5.px))
                 opacity = 0.0
+            }
+
+            verifyAccountButton {
+                borderColor = multi(box(Color.BLACK))
+                borderRadius = multi(box(3.px))
+                borderWidth = multi(box(0.5.px))
             }
         }
     }

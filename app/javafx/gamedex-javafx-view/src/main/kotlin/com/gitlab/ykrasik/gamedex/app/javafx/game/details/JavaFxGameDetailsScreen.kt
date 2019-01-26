@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game.details
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
@@ -27,14 +28,22 @@ import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.common.WebBrowser
+import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Priority
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.geometry.Pos
+import javafx.scene.layout.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.javafx.JavaFx
+import kotlinx.coroutines.launch
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
@@ -47,11 +56,15 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     ViewCanDeleteGame,
     ViewCanTagGame,
     ViewCanResyncGame,
-    ViewCanRedownloadGame {
+    ViewCanRedownloadGame,
+    ViewCanBrowsePath {
 
     private val commonOps: JavaFxCommonOps by di()
 
     private val browser = WebBrowser()
+
+    private val isBrowserVisibleProperty = SimpleBooleanProperty(false)
+    private var isBrowserVisible by isBrowserVisibleProperty
 
     override val game = userMutableState<Game?>(null)
 
@@ -66,79 +79,116 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
 
-    private val gameDetailsView = JavaFxGameDetailsView(evenIfEmpty = true)
+    override val browsePathActions = channel<File>()
+    private val browseUrlActions = channel<String>()
 
     init {
         register()
 
         titleProperty.bind(game.property.stringBinding { it?.name })
         game.property.typeSafeOnChange { game ->
+            isBrowserVisible = game != null
             browser.loadYouTubeGameplay(game)
+        }
+
+        GlobalScope.launch(Dispatchers.JavaFx) {
+            browseUrlActions.consumeEach { url ->
+                browser.load(url)
+            }
         }
     }
 
     override fun HBox.buildToolbar() {
+        jfxToggleNode("Browser") {
+            selectedProperty().bindBidirectional(isBrowserVisibleProperty)
+            graphicProperty().bind(selectedProperty().binding { if (it) Icons.earthOff else Icons.earth })
+            tooltip(selectedProperty().binding { "${if (it) "Hide" else "Show"} Browser" })
+        }
+        jfxButton("YouTube", Icons.youTube) {
+            tooltip(game.property.stringBinding { "Search YouTube for gameplay videos of '${it?.name}'" })
+            action {
+                isBrowserVisible = true
+                browser.loadYouTubeGameplay(game.value)
+            }
+        }
+
+        spacer()
         editButton("Edit") { action { editGame(GameDataType.name_) } }
         gap()
         toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value!! } }
         gap()
-        deleteButton("Delete") { action(deleteGameActions) { game.value!! } }
-
-        spacer()
-
-        infoButton("Re-Download", graphic = Icons.download) { action(redownloadGameActions) { game.value!! } }
-        gap()
-        infoButton("Re-Sync", graphic = Icons.sync) {
-            enableWhen(canResyncGame)
-            action(resyncGameActions) { game.value!! }
+        extraMenu {
+            deleteButton("Delete") {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(deleteGameActions) { game.value!! }
+            }
+            infoButton("Re-Download", graphic = Icons.download) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(redownloadGameActions) { game.value!! }
+            }
+            infoButton("Re-Sync", graphic = Icons.sync) {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                enableWhen(canResyncGame)
+                action(resyncGameActions) { game.value!! }
+            }
         }
     }
 
-    override val root = hbox {
-        paddingAll = 8
-
-        // Left
+    override val root = stackpane {
+        vgrow = Priority.ALWAYS
         stackpane {
-            addClass(CommonStyle.card)
-
-            popoverContextMenu {
-                jfxButton("Change Poster", graphic = Icons.poster) {
-                    action { editGame(GameDataType.poster) }
+            backgroundProperty().bind(game.property.flatMap { game ->
+                val image = commonOps.fetchPoster(game)
+                image.binding {
+                    Background(
+                        BackgroundImage(
+                            it,
+                            BackgroundRepeat.NO_REPEAT,
+                            BackgroundRepeat.NO_REPEAT,
+                            BackgroundPosition.CENTER,
+                            BackgroundSize(1.0, 1.0, true, true, true, false)
+                        )
+                    )
                 }
-            }
-
-            imageViewResizingPane(game.property.flatMap { commonOps.fetchPoster(it) }) {
-                maxWidth = screenBounds.width * maxPosterWidthPercent
-                clipRectangle(arc = 20)
-            }
+            })
         }
-
-        gap(size = 8)
-
-        // Right
         vbox {
-            addClass(CommonStyle.card)
-            paddingAll = 10
-            hgrow = Priority.ALWAYS
+            paddingAll = 40.0
+            vgrow = Priority.ALWAYS
+            alignment = Pos.TOP_CENTER
+            addClass(JavaFxReportScreen.Style.detailsViewContent)
 
             // Top
-            addComponent(gameDetailsView)
-            game.onChange {
-                if (it != null) {
-                    gameDetailsView.game.valueFromView = it
+            stackpane {
+                paddingAll = 5.0
+                game.property.onChange { game ->
+                    replaceChildren {
+                        if (game != null) {
+                            children += GameDetailsPaneBuilder(game, commonOps) {
+                                browsePathActions = this@JavaFxGameDetailsScreen.browsePathActions
+                                browseUrlActions = this@JavaFxGameDetailsScreen.browseUrlActions
+                                fillWidth = false
+                                imageFitWidth = 400
+                                imageFitHeight = 400
+                            }.build {
+                                alignment = Pos.TOP_CENTER
+                            }
+                        }
+                    }
                 }
             }
 
             verticalGap(size = 30)
 
             // Bottom
-            addComponent(browser)
+            addComponent(browser) {
+                root.visibleWhen { isBrowserVisibleProperty }
+            }
         }
     }
 
     private fun editGame(initialTab: GameDataType) = editGameActions.event(game.value!! to initialTab)
-
-    companion object {
-        private val maxPosterWidthPercent = 0.44
-    }
 }

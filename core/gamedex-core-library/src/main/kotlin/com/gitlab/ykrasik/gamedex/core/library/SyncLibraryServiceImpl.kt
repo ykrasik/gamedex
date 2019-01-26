@@ -38,12 +38,14 @@ class SyncLibraryServiceImpl @Inject constructor(
     private val log = logger()
 
     override fun detectNewPaths() = task("Detecting new directories...") {
+        errorMessage = { it.message!! }
         val newPaths = mutableListOf<LibraryPath>()
         val excludedDirectories = commonData.libraries.map(Library::path).toSet() + commonData.games.map(Game::path)
 
         fun detectNewPaths(library: Library, dir: File) {
             // The first iteration of this method is called with parent == null
-            check(dir.isDirectory) { "Not a directory: $dir" }
+            check(dir.exists()) { "Path doesn't exist: $dir" }
+            check(dir.isDirectory) { "Path isn't a directory: $dir" }
             if (dir != library.path && dir in excludedDirectories) return
 
             val children = dir.listFiles().filter { !it.isHidden }

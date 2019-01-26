@@ -124,8 +124,11 @@ inline fun EventTarget.excludeButton(text: String = "Exclude", crossinline op: J
 inline fun EventTarget.editButton(text: String? = null, crossinline op: JFXButton.() -> Unit = {}) =
     toolbarButton(text, Icons.edit, op)
 
-inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) = buttonWithPopover(
-    graphic = Icons.dots,
-    arrowLocation = PopOver.ArrowLocation.TOP_RIGHT,
-    op = op
-)
+inline fun EventTarget.extraMenu(op: PopOverContent.() -> Unit = {}) =
+    buttonWithPopover(
+        graphic = Icons.dots,
+        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
+    ) {
+        popOver.isAutoFix = false
+        op()
+    }

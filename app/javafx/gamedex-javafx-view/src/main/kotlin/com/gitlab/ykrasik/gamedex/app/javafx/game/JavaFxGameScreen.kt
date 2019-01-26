@@ -37,7 +37,11 @@ import tornadofx.*
  * Time: 22:14
  */
 class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
-    ViewCanSelectPlatform, ViewCanSearchGames, ViewCanChangeGameSort, ViewWithCurrentPlatformFilter {
+    ViewCanSelectPlatform,
+    ViewCanSearchGames,
+    ViewCanChangeGameSort,
+    ViewWithCurrentPlatformFilter {
+
     private val gameWallView: GameWallView by inject()
     private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = true)
 

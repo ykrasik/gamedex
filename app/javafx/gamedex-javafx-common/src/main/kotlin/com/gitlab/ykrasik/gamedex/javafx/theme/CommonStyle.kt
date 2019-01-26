@@ -57,8 +57,6 @@ class CommonStyle : Stylesheet() {
 
         val headerLabel by cssclass()
 
-        val thinBorder by cssclass()
-
         val gamedexWindow by cssclass()
 
         val customToolbar by cssclass()
@@ -164,12 +162,6 @@ class CommonStyle : Stylesheet() {
         headerLabel {
             fontSize = 18.px
             fontWeight = FontWeight.BOLD
-        }
-
-        thinBorder {
-            borderColor = multi(box(Color.BLACK))
-            borderRadius = multi(box(3.px))
-            borderWidth = multi(box(0.5.px))
         }
 
         gamedexWindow {

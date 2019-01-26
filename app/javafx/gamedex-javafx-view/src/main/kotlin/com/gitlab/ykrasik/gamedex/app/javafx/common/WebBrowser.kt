@@ -18,11 +18,11 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.javafx.control.clipRectangle
-import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
+import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
 import com.gitlab.ykrasik.gamedex.javafx.control.jfxButton
+import com.gitlab.ykrasik.gamedex.javafx.control.jfxTextField
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
-import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
-import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import javafx.beans.value.ObservableValue
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Priority
@@ -36,38 +36,45 @@ import tornadofx.*
  */
 class WebBrowser : Fragment() {
     private val commonOps: JavaFxCommonOps by di()
-    private var webView: WebView = webview()
+    private val webView: WebView = webview()
 
     private val fullscreenBrowser = StandaloneBrowserFragment()
     private lateinit var prevParent: Pane
 
     override val root = borderpane {
         vgrow = Priority.ALWAYS
-        center = stackpane {
-            add(webView)
-            clipRectangle(arc = 20)
-        }
-        top {
-            defaultHbox {
-                paddingAll = 5
-
-                jfxButton(graphic = Icons.arrowLeft) {
-                    addClass(CommonStyle.thinBorder)
-                    enableWhen { canNavigate(back = true) }
-                    action { navigate(back = true) }
+        clipRectangle(arc = 20)
+        top = customToolbar {
+            jfxButton(graphic = Icons.arrowLeft) {
+                enableWhen { canNavigate(back = true) }
+                action { navigate(back = true) }
+            }
+            jfxButton(graphic = Icons.arrowRight) {
+                enableWhen { canNavigate(back = false) }
+                action { navigate(back = false) }
+            }
+            val textField = jfxTextField {
+                useMaxSize = true
+                hgrow = Priority.ALWAYS
+                webView.engine.locationProperty().onChange {
+                    text = it
                 }
-                jfxButton(graphic = Icons.arrowRight) {
-                    addClass(CommonStyle.thinBorder)
-                    enableWhen { canNavigate(back = false) }
-                    action { navigate(back = false) }
-                }
-                spacer()
-                jfxButton {
-                    addClass(CommonStyle.thinBorder)
-                    graphicProperty().bind(fullscreenBrowser.isDockedProperty.objectBinding { if (it == true) Icons.exitFullscreen else Icons.fullscreen })
-                    action { toggleStandalone() }
+                setOnAction {
+                    load(text)
+                    this@customToolbar.requestFocus()
                 }
             }
+            confirmButton(graphic = Icons.arrowRightCircle.color(Colors.green)) {
+                removeClass(CommonStyle.toolbarButton)
+                action { load(textField.text) }
+            }
+            jfxButton {
+                graphicProperty().bind(fullscreenBrowser.isDockedProperty.objectBinding { if (it == true) Icons.exitFullscreen else Icons.fullscreen })
+                action { toggleStandalone() }
+            }
+        }
+        center = stackpane {
+            add(webView)
         }
     }
 

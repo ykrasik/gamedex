@@ -47,7 +47,7 @@ fun String.toDateTimeOrNull(): JodaDateTime? = runCatching { toDateTime() }.getO
 val JodaLocalDate.java get(): JavaLocalDate = JavaLocalDate.of(year, monthOfYear, dayOfMonth)
 val JavaLocalDate.joda get(): JodaLocalDate = LocalDate(year, monthValue, dayOfMonth)
 
-fun JodaDateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm:ss")
+fun JodaDateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm")
 fun Period.toHumanReadable(): String = PeriodFormat.getDefault().print(this)
 fun Long.toHumanReadableDuration(): String = Period(this).toHumanReadable()
 

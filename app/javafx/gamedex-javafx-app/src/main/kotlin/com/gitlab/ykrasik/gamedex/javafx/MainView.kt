@@ -134,6 +134,11 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     init {
         register()
         prepareNewTab(tabPane.selectionModel.selectedItem)
+
+        whenDockedOnce {
+            val applicationStartTime = System.currentTimeMillis() - params[StartTimeParam] as Long
+            log.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
+        }
     }
 
     private fun cleanupClosedTab(tab: Tab) {
@@ -209,11 +214,6 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
     private val Tab.screen: PresentableScreen get() = userData as PresentableScreen
     private val PresentableScreen.tab: Tab get() = tabPane.tabs.find { it.screen == this }!!
-
-    override fun onDock() {
-        val applicationStartTime = System.currentTimeMillis() - params[StartTimeParam] as Long
-        log.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
-    }
 
     class Style : Stylesheet() {
         companion object {

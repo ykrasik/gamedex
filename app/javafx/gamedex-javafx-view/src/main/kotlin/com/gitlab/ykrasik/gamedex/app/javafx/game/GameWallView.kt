@@ -17,12 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.app.api.settings.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
-import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsView
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxGameWallDisplaySettings
 import com.gitlab.ykrasik.gamedex.app.javafx.settings.JavaFxOverlayDisplaySettings
 import com.gitlab.ykrasik.gamedex.javafx.control.PopOverOnClickBehavior
@@ -31,14 +33,17 @@ import com.gitlab.ykrasik.gamedex.javafx.control.popOver
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.sortedFiltered
 import com.gitlab.ykrasik.gamedex.javafx.state
+import com.gitlab.ykrasik.gamedex.javafx.theme.Colors
+import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.util.toPredicate
+import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.input.MouseButton
-import javafx.scene.paint.Color
 import javafx.util.Callback
 import org.controlsfx.control.GridCell
 import org.controlsfx.control.GridView
 import tornadofx.*
+import java.io.File
 
 /**
  * User: ykrasik
@@ -51,7 +56,9 @@ class GameWallView : PresentableView("Games Wall"),
     ViewWithGameWallDisplaySettings,
     ViewWithNameOverlayDisplaySettings,
     ViewWithMetaTagOverlayDisplaySettings,
-    ViewWithVersionOverlayDisplaySettings {
+    ViewWithVersionOverlayDisplaySettings,
+    ViewCanBrowseUrl,
+    ViewCanBrowsePath {
 
     override val games = mutableListOf<Game>().sortedFiltered()
 
@@ -65,16 +72,28 @@ class GameWallView : PresentableView("Games Wall"),
     override val metaTagOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
     override val versionOverlayDisplaySettings = JavaFxOverlayDisplaySettings()
 
+    override val browseUrlActions = channel<String>()
+    override val browsePathActions = channel<File>()
+
     private val commonOps: JavaFxCommonOps by di()
 
     private val gameContextMenu: GameContextMenu by inject()
 
-    private val gameDetailsView = JavaFxGameDetailsView(withDescription = false).apply {
-        root.addClass(Style.quickDetails)
-    }
+    private val gameProperty = SimpleObjectProperty<Game>(Game.Null)
 
     private val popOver = popOver(onClickBehavior = PopOverOnClickBehavior.Ignore).apply {
-        contentNode = gameDetailsView.root
+        contentNode = stackpane {
+            addClass(Style.quickDetails)
+            gameProperty.typeSafeOnChange { game ->
+                replaceChildren {
+                    children += GameDetailsPaneBuilder(game, commonOps) {
+                        browsePathActions = this@GameWallView.browsePathActions
+                        browseUrlActions = this@GameWallView.browseUrlActions
+                        image = null
+                    }.build()
+                }
+            }
+        }
     }
 
     private var popOverShowing = false
@@ -117,7 +136,7 @@ class GameWallView : PresentableView("Games Wall"),
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
                             determineArrowLocation(e.screenX, e.screenY)
-                            gameDetailsView.game.valueFromView = cell.item
+                            gameProperty.value = cell.item
                             cell.markSelected(true)
                             show(cell)
                             popOverShowing = true
@@ -210,11 +229,7 @@ class GameWallView : PresentableView("Games Wall"),
         init {
             quickDetails {
                 padding = box(20.px)
-                backgroundColor = multi(Color.LIGHTGRAY)
-
-                label {
-                    textFill = Color.BLACK
-                }
+                backgroundColor = multi(Colors.cloudyKnoxville)
             }
         }
     }

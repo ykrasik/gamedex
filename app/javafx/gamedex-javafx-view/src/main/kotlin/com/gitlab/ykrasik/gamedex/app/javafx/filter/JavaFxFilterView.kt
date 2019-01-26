@@ -233,7 +233,7 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
 
     private fun HBox.renderAdditionalButtons(filter: Filter) {
         // FIXME: Use a NodeList
-        buttonWithPopover(graphic = Icons.siteMap.size(28)) {
+        buttonWithPopover(graphic = Icons.lan.size(28)) {
             fun operatorButton(name: String, graphic: Node, channel: Channel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
                 action(channel) { filter }

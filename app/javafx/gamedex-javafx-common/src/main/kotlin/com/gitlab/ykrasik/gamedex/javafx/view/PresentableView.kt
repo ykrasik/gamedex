@@ -16,7 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.view
 
+import com.gitlab.ykrasik.gamedex.app.api.ViewCanDisplayError
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
+import com.gitlab.ykrasik.gamedex.javafx.error
+import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
@@ -35,7 +38,7 @@ import tornadofx.whenUndocked
  * Date: 21/04/2018
  * Time: 07:13
  */
-abstract class PresentableView(title: String? = null, icon: Node? = null) : View(title, icon) {
+abstract class PresentableView(title: String? = null, icon: Node? = null) : View(title, icon), ViewCanDisplayError {
     private val viewRegistry: ViewRegistry by di()
 
     // All tabs (which we use as screens) will have 'onDock' called even though they're not actually showing.
@@ -56,6 +59,10 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
             }
             skipFirstUndock = false
         }
+    }
+
+    override fun onError(e: Exception, message: String) {
+        notification(message).error.show()
     }
 
     protected fun register() = viewRegistry.onCreate(this)

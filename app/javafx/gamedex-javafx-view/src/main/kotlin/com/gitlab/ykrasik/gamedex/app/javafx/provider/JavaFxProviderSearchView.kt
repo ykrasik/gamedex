@@ -16,12 +16,12 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.Score
 import com.gitlab.ykrasik.gamedex.app.api.provider.GameSearchState
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchChoice
 import com.gitlab.ykrasik.gamedex.app.api.provider.ProviderSearchView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
+import com.gitlab.ykrasik.gamedex.app.javafx.game.details.GameDetailsPaneBuilder
 import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
@@ -29,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.util.IsValid
-import javafx.beans.value.ObservableValue
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.layout.HBox
@@ -51,7 +50,6 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val query = userMutableState("")
     override val searchResults = mutableListOf<ProviderSearchResult>().observable()
 
-//    private var ignoreNextSelectionChange = false
     override val selectedSearchResult = userMutableState<ProviderSearchResult?>(null)
 
     override val canChangeState = state(IsValid.valid)
@@ -68,55 +66,51 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
     override val choiceActions = channel<ProviderSearchChoice>()
     override val changeProviderActions = channel<ProviderId>()
 
-    private val resultsView = tableview(searchResults) {
+    private val resultsView = customListView(searchResults) {
+//        useMaxWidth = true
+//        hgrow = Priority.ALWAYS
         vgrow = Priority.ALWAYS
-        keepSelectionInView()
         enableWhen(canChangeState, wrapInErrorTooltip = false)
-        val indexColumn = makeIndexColumn().apply { addClass(CommonStyle.centered) }
-        imageViewColumn("Thumbnail", fitWidth = 200, fitHeight = 200, isPreserveRatio = true) { result ->
-            commonOps.downloadImage(result.thumbnailUrl)
-        }
-        // TODO: Limit the size of this column and make it wrap.
-        readonlyColumn("Name", ProviderSearchResult::name)
-        readonlyColumn("Release Date", ProviderSearchResult::releaseDate) { addClass(CommonStyle.centered) }
-        column<ProviderSearchResult, String>("Critic Score") { score(it.value.criticScore) }.apply {
-            addClass(CommonStyle.centered)
-        }
-        column<ProviderSearchResult, String>("User Score") { score(it.value.userScore) }.apply {
-            addClass(CommonStyle.centered)
-        }
+//        maxWidth = screenBounds.width / 2
+        customListCell { result ->
+            maxWidth = 800.0
+            text = null
+            graphic = GameDetailsPaneBuilder(
+                name = result.name,
+                description = result.description,
+                releaseDate = result.releaseDate,
+                criticScore = result.criticScore,
+                userScore = result.userScore,
+                image = commonOps.downloadImage(result.thumbnailUrl)
+            ).build()
 
-        minWidthFitContent(indexColumn)
+//            val cellMinWidth = prefWidth(-1.0) + (verticalScrollbar?.width ?: 0.0) + insets.left + insets.right
+//            if (cellMinWidth > this@customListView.minWidth) {
+//                this@customListView.minWidth = cellMinWidth
+//            }
+        }
 
         onUserSelect(clickCount = 2) {
             if (canAcceptSearchResult.value.isSuccess) {
                 choiceActions.event(ProviderSearchChoice.Accept(selectedSearchResult.value!!))
             }
         }
-
         searchResults.onChange {
-            resizeColumnsToFitContent()
             fade(0.6.seconds, 1.0, play = true) {
                 fromValue = 0.0
             }
         }
 
         selectionModel.selectedItemProperty().onChange {
-//            ignoreNextSelectionChange = true
             selectedSearchResult.valueFromView = it
-//            ignoreNextSelectionChange = false
         }
     }
-
-//    override val browseToFileActions = channel<File>()
 
     init {
         register()
 
         selectedSearchResult.onChange {
-//            if (!ignoreNextSelectionChange) {
             resultsView.selectionModel.select(it)
-//            }
         }
     }
 
@@ -151,8 +145,8 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         }
 
         vbox(spacing = 10) {
-            useMaxSize = true
-            vgrow = Priority.ALWAYS
+//            useMaxSize = true
+//            vgrow = Priority.ALWAYS
             paddingAll = 10
 
             // Providers
@@ -226,12 +220,6 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
             // Search input
             defaultHbox(spacing = 10) {
                 enableWhen(canChangeState, wrapInErrorTooltip = false)
-//            jfxButton {
-//                setId(Style.pathLabel)
-//                textProperty().bind(gamePathProperty.stringBinding { it?.path?.toString() ?: "" })
-//                isWrapText = true
-//                eventOnAction(browseToFileActions) { gamePath.path }
-//            }
                 header("Search:")
                 val newSearch = jfxTextField(query.property, promptText = "Enter Search Query...") {
                     addClass(Style.searchText)
@@ -261,16 +249,16 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
                 }
                 header(searchResults.sizeProperty.stringBinding { "Results: $it" })
             }
-            children += resultsView
         }
+        children += resultsView
     }
-
-    private fun score(score: Score?): ObservableValue<String> =
-        (score?.let { "${it.score} | ${it.numReviews} votes" } ?: "").toProperty()
 
     class Style : Stylesheet() {
         companion object {
             val searchText by cssclass()
+            val searchResults by cssclass()
+            val searchResult by cssclass()
+            val descriptionText by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -280,6 +268,21 @@ class JavaFxProviderSearchView : PresentableView(), ProviderSearchView {
         init {
             searchText {
                 fontSize = 18.px
+            }
+
+            searchResults {
+            }
+
+            searchResult {
+//                maxWidth = 500.px
+//                padding = box(5.px)
+//                backgroundColor = multi(Colors.cloudyKnoxville)
+//                backgroundRadius = multi(box(7.px))
+            }
+
+            descriptionText {
+                wrapText = true
+                maxWidth = 600.px
             }
         }
     }

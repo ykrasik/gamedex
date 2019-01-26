@@ -38,7 +38,7 @@ object Colors {
     val anotherPrettyLightGray = c("#bfc4cc")
     val blueGrey = c("#afbbce")
     val transparentDark = c(0, 0, 0, 0.6)
-    val transparentWhite = c("#e8eaed", 0.72)
+    val transparentWhite = c("#e8eaed", 0.8)
 
     // Taken from [https://digitalsynopsis.com/design/beautiful-color-gradients-backgrounds/]
 
