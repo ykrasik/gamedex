@@ -32,6 +32,7 @@ import javafx.beans.value.ObservableValue
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.javafx.JavaFx
 import kotlinx.coroutines.launch
 import tornadofx.toProperty
 import javax.inject.Inject
@@ -74,7 +75,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     private inline fun loadImage(crossinline f: suspend () -> DomainImage?): ObservableValue<JavaFxImage> {
         val p = SimpleObjectProperty(loading)
-        GlobalScope.launch(Dispatchers.Main, CoroutineStart.UNDISPATCHED) {
+        GlobalScope.launch(Dispatchers.JavaFx, CoroutineStart.UNDISPATCHED) {
             val image = f()
             p.value = image?.image ?: noImage
         }
@@ -85,7 +86,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
 
     val providers: List<GameProviderMetadata> = ops.providers
     val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }
-    fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos[providerId]!!
+    fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos.getValue(providerId)
 
     fun youTubeGameplayUrl(game: Game): String = ops.youTubeGameplayUrl(game)
 }

@@ -42,10 +42,8 @@ class ImageServiceImpl @Inject constructor(
     private val imageFactory: ImageFactory,
     private val httpClient: HttpClient,
     config: ImageConfig
-) : ImageService, CoroutineScope {
+) : ImageService {
     private val log = logger()
-
-    override val coroutineContext = Dispatchers.IO
 
     private val persistedImageCache = Cache<String, Deferred<Image>>(config.fetchCacheSize)
     private val downloadedImageCache = Cache<String, Deferred<Image>>(config.downloadCacheSize)
@@ -55,10 +53,10 @@ class ImageServiceImpl @Inject constructor(
     override suspend fun fetchThumbnail(game: Game) = game.thumbnailUrl?.let { fetchImage(it, thumbnailStorage) }
     override suspend fun fetchPoster(game: Game) = game.posterUrl?.let { fetchImage(it, posterStorage) }
 
-    private suspend fun fetchImage(url: String, storage: Storage<String, ByteArray>): Image? = withContext(Dispatchers.Main) {
+    private suspend fun fetchImage(url: String, storage: Storage<String, ByteArray>): Image? =
         try {
             persistedImageCache.getOrPut(url) {
-                async {
+                GlobalScope.async(Dispatchers.IO) {
                     val persistedBytes = storage[url]
                     if (persistedBytes != null) {
                         createImage(persistedBytes)
@@ -77,9 +75,8 @@ class ImageServiceImpl @Inject constructor(
             persistedImageCache -= url
             null
         }
-    }
 
-    override suspend fun downloadImage(url: String) = withContext(Dispatchers.Main) {
+    override suspend fun downloadImage(url: String) =
         try {
             downloadImage0(url)
         } catch (e: Exception) {
@@ -87,10 +84,9 @@ class ImageServiceImpl @Inject constructor(
             downloadedImageCache -= url
             null
         }
-    }
 
     private suspend fun downloadImage0(url: String) = downloadedImageCache.getOrPut(url) {
-        async {
+        GlobalScope.async(Dispatchers.IO) {
             val downloadedBytes = httpClient.download(url)
             createImage(downloadedBytes)
         }

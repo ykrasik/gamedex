@@ -218,7 +218,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
         fitWidth = 200.0
         isPreserveRatio = true
         imageProperty().bind(url.flatMap { url ->
-            commonOps.downloadImage(url)
+            commonOps.downloadImage(if (url.isNotEmpty()) url else null)
         })
     }
 
