@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanSearchGames
 import com.gitlab.ykrasik.gamedex.app.api.util.debounce
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +31,10 @@ import javax.inject.Singleton
  * Time: 10:24
  */
 @Singleton
-class SearchGamesPresenter @Inject constructor(private val settingsService: SettingsService) : Presenter<ViewCanSearchGames> {
+class SearchGamesPresenter @Inject constructor(
+    private val settingsService: SettingsService,
+    private val gameSearchService: GameSearchService
+) : Presenter<ViewCanSearchGames> {
     override fun present(view: ViewCanSearchGames) = object : ViewSession() {
         init {
             view.searchText *= settingsService.currentPlatformSettings.search
@@ -39,6 +43,10 @@ class SearchGamesPresenter @Inject constructor(private val settingsService: Sett
 
         private fun onSearchTextChanged(searchText: String) {
             settingsService.currentPlatformSettings.modify { copy(search = searchText) }
+            view.autoCompleteSuggestions *= gameSearchService.suggest(searchText, settingsService.game.platform, maxResults = 6)
+            view.isShowAutoCompleteSuggestions *= view.autoCompleteSuggestions.value.let { suggestions ->
+                suggestions.isNotEmpty() && (suggestions.size > 1 || suggestions.first() != view.searchText.value)
+            }
         }
     }
 }

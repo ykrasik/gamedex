@@ -26,22 +26,28 @@ import com.gitlab.ykrasik.gamedex.util.Try
 import com.gitlab.ykrasik.gamedex.util.and
 import com.jfoenix.controls.JFXTextField
 import com.jfoenix.skins.JFXTextFieldSkin
+import com.jfoenix.skins.PromptLinesWrapper
 import com.jfoenix.skins.ValidationPane
 import com.jfoenix.validation.base.ValidatorBase
+import com.sun.javafx.scene.text.HitInfo
 import javafx.animation.FadeTransition
 import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.StringProperty
 import javafx.beans.value.ObservableValue
+import javafx.css.PseudoClass
 import javafx.event.EventTarget
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Tooltip
+import javafx.scene.input.KeyCode
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import org.controlsfx.control.textfield.CustomTextField
 import tornadofx.*
 import java.math.BigDecimal
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * User: ykrasik
@@ -132,15 +138,15 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     return value
 }
 
-inline fun EventTarget.searchTextField(component: UIComponent, textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = clearableTextField(textProperty) {
+inline fun EventTarget.searchTextField(component: UIComponent, textProperty: StringProperty, op: CustomJFXTextField.() -> Unit = {}) = clearableTextField(textProperty) {
     promptText = "Search"
-    left = Icons.search
+    left = Icons.search.size(20)
     tooltip("Ctrl+f")
     component.shortcut("ctrl+f") { requestFocus() }
     op()
 }
 
-inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: CustomTextField.() -> Unit = {}) = opcr(this, CustomTextField()) {
+inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: CustomJFXTextField.() -> Unit = {}) = opcr(this, CustomJFXTextField()) {
     useMaxWidth = true
     alignment = Pos.CENTER_LEFT
     textProperty.bindBidirectional(textProperty())
@@ -184,8 +190,135 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
         }
     }
 
+    setOnKeyPressed {
+        if (it.code == KeyCode.ESCAPE) {
+            clear()
+            clearButton.requestFocus()
+        }
+    }
+
     op()
 }
+
+/**
+ * A copy of [com.jfoenix.controls.JFXTextField] which allows setting a left & right node, like [org.controlsfx.control.textfield.CustomTextField]
+ */
+class CustomJFXTextField : JFXTextField() {
+    val leftProperty = SimpleObjectProperty<Node>(this, "left") //$NON-NLS-1$
+    var left: Node? by leftProperty
+
+    val rightProperty = SimpleObjectProperty<Node>(this, "right") //$NON-NLS-1$
+    var right: Node? by rightProperty
+
+    override fun createDefaultSkin() = CustomTextFieldSkin()
+
+    inner class CustomTextFieldSkin : JFXTextFieldSkin<CustomJFXTextField>(this) {
+        private var leftPane: StackPane? = null
+        private var rightPane: StackPane? = null
+
+        private val linesWrapper = JFXTextFieldSkin::class.declaredMemberProperties.find { it.name == "linesWrapper" }!!.apply {
+            isAccessible = true
+        }.get(this) as PromptLinesWrapper<*>
+
+        init {
+            updateChildren()
+
+            registerChangeListener(leftProperty, "LEFT_NODE") //$NON-NLS-1$
+            registerChangeListener(rightProperty, "RIGHT_NODE") //$NON-NLS-1$
+            registerChangeListener(focusedProperty(), "FOCUSED") //$NON-NLS-1$
+        }
+
+        override fun handleControlPropertyChanged(p: String?) {
+            super.handleControlPropertyChanged(p)
+
+            if (p === "LEFT_NODE" || p === "RIGHT_NODE") { //$NON-NLS-1$ //$NON-NLS-2$
+                updateChildren()
+            }
+        }
+
+        private fun updateChildren() {
+            val newLeft = left
+            if (newLeft != null) {
+                children.remove(leftPane)
+                leftPane = StackPane(newLeft)
+                leftPane!!.alignment = Pos.CENTER_LEFT
+                leftPane!!.styleClass.add("left-pane") //$NON-NLS-1$
+                children.add(leftPane)
+                left = newLeft
+            }
+
+            val newRight = right
+            if (newRight != null) {
+                children.remove(rightPane)
+                rightPane = StackPane(newRight)
+                rightPane!!.alignment = Pos.CENTER_RIGHT
+                rightPane!!.styleClass.add("right-pane") //$NON-NLS-1$
+                children.add(rightPane)
+                right = newRight
+            }
+
+            pseudoClassStateChanged(HAS_LEFT_NODE, left != null)
+            pseudoClassStateChanged(HAS_RIGHT_NODE, right != null)
+            pseudoClassStateChanged(HAS_NO_SIDE_NODE, left == null && right == null)
+        }
+
+        override fun layoutChildren(x: Double, y: Double, w: Double, h: Double) {
+            val fullHeight = h + snappedTopInset() + snappedBottomInset()
+
+            val leftWidth = if (leftPane == null) 0.0 else snapSize(leftPane!!.prefWidth(fullHeight))
+            val rightWidth = if (rightPane == null) 0.0 else snapSize(rightPane!!.prefWidth(fullHeight))
+
+            val textFieldStartX = snapPosition(x) + snapSize(leftWidth)
+            val textFieldWidth = w - snapSize(leftWidth) - snapSize(rightWidth)
+
+            super.layoutChildren(textFieldStartX, 0.0, textFieldWidth, fullHeight)
+            linesWrapper.focusedLine.resizeRelocate(x, skinnable.height, w, linesWrapper.focusedLine.prefHeight(-1.0))
+            linesWrapper.line.resizeRelocate(x, skinnable.height, w, linesWrapper.line.prefHeight(-1.0))
+
+            if (leftPane != null) {
+                val leftStartX = 0.0
+                leftPane!!.resizeRelocate(leftStartX, 0.0, leftWidth, fullHeight)
+            }
+
+            if (rightPane != null) {
+                val rightStartX = if (rightPane == null) 0.0 else w - rightWidth + snappedLeftInset()
+                rightPane!!.resizeRelocate(rightStartX, 0.0, rightWidth, fullHeight)
+            }
+        }
+
+        override fun getIndex(x: Double, y: Double): HitInfo {
+            /**
+             * This resolves https://bitbucket.org/controlsfx/controlsfx/issue/476
+             * when we have a left Node and the click point is badly returned
+             * because we weren't considering the shift induced by the leftPane.
+             */
+            val leftWidth = if (leftPane == null) 0.0 else snapSize(leftPane!!.prefWidth(skinnable.height))
+            return super.getIndex(x - leftWidth, y)
+        }
+
+        override fun computePrefWidth(h: Double, topInset: Double, rightInset: Double, bottomInset: Double, leftInset: Double): Double {
+            val pw = super.computePrefWidth(h, topInset, rightInset, bottomInset, leftInset)
+            val leftWidth = if (leftPane == null) 0.0 else snapSize(leftPane!!.prefWidth(h))
+            val rightWidth = if (rightPane == null) 0.0 else snapSize(rightPane!!.prefWidth(h))
+
+            return pw + leftWidth + rightWidth
+        }
+
+        override fun computePrefHeight(w: Double, topInset: Double, rightInset: Double, bottomInset: Double, leftInset: Double): Double {
+            val ph = super.computePrefHeight(w, topInset, rightInset, bottomInset, leftInset)
+            val leftHeight = if (leftPane == null) 0.0 else snapSize(leftPane!!.prefHeight(-1.0))
+            val rightHeight = if (rightPane == null) 0.0 else snapSize(rightPane!!.prefHeight(-1.0))
+
+            return Math.max(ph, Math.max(leftHeight, rightHeight))
+        }
+
+
+        private val HAS_NO_SIDE_NODE = PseudoClass.getPseudoClass("no-side-nodes") //$NON-NLS-1$
+        private val HAS_LEFT_NODE = PseudoClass.getPseudoClass("left-node-visible") //$NON-NLS-1$
+        private val HAS_RIGHT_NODE = PseudoClass.getPseudoClass("right-node-visible") //$NON-NLS-1$
+    }
+}
+
 
 inline fun <T> JFXTextField.bindParser(crossinline parser: (String) -> T): ObjectBinding<Try<T>> {
     val value = textProperty().binding { text -> Try { parser(text ?: "") } }

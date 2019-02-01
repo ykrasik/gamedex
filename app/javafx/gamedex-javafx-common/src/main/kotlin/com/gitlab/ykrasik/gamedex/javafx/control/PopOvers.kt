@@ -90,6 +90,8 @@ inline fun popOver(
     }
 }
 
+val PopOver.content: PopOverContent get() = (contentNode as ScrollPane).content as PopOverContent
+
 class ObservableMouseEvent(e: MouseEvent, private val consumedProperty: Property<Boolean>) : MouseEvent(
     e.source, e.target, e.eventType, e.x, e.y, e.screenX, e.screenY, e.button, e.clickCount, e.isShiftDown, e.isControlDown, e.isAltDown, e.isMetaDown, e.isPrimaryButtonDown,
     e.isMiddleButtonDown, e.isSecondaryButtonDown, e.isSynthesized, e.isPopupTrigger, e.isStillSincePress, e.pickResult

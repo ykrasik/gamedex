@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 
 /**
  * User: ykrasik
@@ -24,5 +25,7 @@ import com.gitlab.ykrasik.gamedex.Game
  * Time: 22:04
  */
 interface GameSearchService {
-    fun search(query: String): List<Game>
+    fun search(query: String, platform: Platform): List<Game>
+
+    fun suggest(query: String, platform: Platform, maxResults: Int): List<String>
 }

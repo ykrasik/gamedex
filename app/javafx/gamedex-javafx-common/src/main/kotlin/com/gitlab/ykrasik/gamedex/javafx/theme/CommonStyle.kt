@@ -211,6 +211,11 @@ class CommonStyle : Stylesheet() {
                     }
                 }
                 +jfxHoverableMixin
+                and(hover) {
+                    and(empty) {
+                        backgroundColor = multi(Color.TRANSPARENT)
+                    }
+                }
             }
         }
 

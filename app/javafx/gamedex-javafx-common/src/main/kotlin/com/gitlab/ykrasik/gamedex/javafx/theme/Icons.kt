@@ -86,7 +86,7 @@ object Icons {
     val deleteSolid get() = fontIcon(MaterialDesign.MDI_DELETE, color = Colors.red)
 
     val tag get() = fontIcon(MaterialDesign.MDI_TAG, color = Color.BLUEVIOLET)
-    val search get() = fontIcon(MaterialDesign.MDI_MAGNIFY, color = Colors.blue)
+    val search get() = fontIcon(MaterialDesign.MDI_MAGNIFY)
     val sync get() = fontIcon(MaterialDesign.MDI_SYNC, color = Colors.green)
 
     val text get() = fontIcon(MaterialDesign.MDI_FORMAT_COLOR_TEXT)

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.game
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
@@ -41,14 +42,16 @@ import javax.inject.Singleton
 class GameSearchServiceImpl @Inject constructor(private val gameService: GameService) : GameSearchService {
     private val log = logger()
 
-    private val engine = AutocompleteEngine.Builder<IndexableGame>()
-        .setIndex(GameAdapter())
-        .setAnalyzers(LowerCaseTransformer(), WordTokenizer())
-        .build()
+    private val platformEngines = Platform.realPlatforms.associate { platform ->
+        platform to AutocompleteEngine.Builder<IndexableGame>()
+            .setIndex(GameAdapter())
+            .setAnalyzers(LowerCaseTransformer(), WordTokenizer())
+            .build()
+    }
 
     init {
         log.time("Building search index...") {
-            engine.addAll(gameService.games.map { IndexableGame(it) })
+            addGames(gameService.games)
         }
         gameService.games.changesChannel.subscribe { event ->
             when (event) {
@@ -71,39 +74,62 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
         }
     }
 
-    private fun addGame(game: Game) = engine.add(game.toIndexable())
-    private fun addGames(games: List<Game>) = engine.addAll(games.map { it.toIndexable() })
-    private fun removeGame(game: Game) = check(engine.remove(game.toIndexable())) { "Search index did not contain removed game: $game" }
-    private fun removeGames(games: List<Game>) = check(engine.removeAll(games.map { it.toIndexable() })) { "Search index did not contain any removed games: $games" }
-
-    override fun search(query: String) =
-        if (query.isBlank())
-            gameService.games
-        else log.time("Searching '$query'...", { timeTaken, results -> "${results.size} matches in $timeTaken" }, Logger::trace) {
-            engine.search(query).map { it.game }
+    private fun addGame(game: Game) = game.platform.engine.add(game.toIndexable())
+    private fun addGames(games: List<Game>) {
+        val gamesByPlatform = games.groupBy { it.platform }
+        gamesByPlatform.forEach { platform, platformGames ->
+            platform.engine.addAll(platformGames.map { it.toIndexable() })
         }
-}
-
-private fun Game.toIndexable() = IndexableGame(this)
-
-private class GameAdapter : IndexAdapter<IndexableGame> {
-    private val index = PatriciaTrie<IndexableGame>()
-
-    override fun get(token: String): Collection<ScoredObject<IndexableGame>> {
-        // Set threshold according to the token length
-        val threshold = Math.log(Math.max(token.length - 1, 1).toDouble())
-        return index.getAny(EditDistanceAutomaton(token, threshold))
     }
 
-    override fun put(token: String, value: IndexableGame?): Boolean {
-        return index.put(token, value)
+    private fun removeGame(game: Game) = check(game.platform.engine.remove(game.toIndexable())) { "Search index did not contain removed game: $game" }
+    private fun removeGames(games: List<Game>) {
+        val gamesByPlatform = games.groupBy { it.platform }
+        gamesByPlatform.forEach { platform, platformGames ->
+            check(platform.engine.removeAll(platformGames.map { it.toIndexable() })) { "Search index did not contain any removed games: $games" }
+        }
     }
 
-    override fun remove(value: IndexableGame): Boolean {
-        return index.remove(value)
-    }
-}
+    override fun search(query: String, platform: Platform) =
+        if (query.isBlank()) {
+            gameService.games
+        } else {
+            log.time("Searching '$query'...", { timeTaken, results -> "${results.size} matches in $timeTaken" }, Logger::trace) {
+                platform.engine.search(query).map { it.game }
+            }
+        }
 
-private data class IndexableGame(val game: Game) : Indexable {
-    override fun getFields() = listOf(game.name)
+    override fun suggest(query: String, platform: Platform, maxResults: Int) =
+        if (query.isBlank()) {
+            emptyList()
+        } else {
+            // TODO: For better results, should hold an index per platform.
+            platform.engine.search(query, maxResults).mapNotNull { it.game.takeIf { it.platform == platform }?.name }
+        }
+
+    private val Platform.engine get() = platformEngines.getValue(this)
+
+    private class GameAdapter : IndexAdapter<IndexableGame> {
+        private val index = PatriciaTrie<IndexableGame>()
+
+        override fun get(token: String): Collection<ScoredObject<IndexableGame>> {
+            // Set threshold according to the token length
+            val threshold = Math.log(Math.max(token.length - 1, 1).toDouble())
+            return index.getAny(EditDistanceAutomaton(token, threshold))
+        }
+
+        override fun put(token: String, value: IndexableGame?): Boolean {
+            return index.put(token, value)
+        }
+
+        override fun remove(value: IndexableGame): Boolean {
+            return index.remove(value)
+        }
+    }
+
+    private fun Game.toIndexable() = IndexableGame(this)
+
+    private data class IndexableGame(val game: Game) : Indexable {
+        override fun getFields() = listOf(game.name)
+    }
 }

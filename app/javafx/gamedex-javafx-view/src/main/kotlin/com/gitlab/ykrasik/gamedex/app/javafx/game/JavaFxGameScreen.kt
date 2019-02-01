@@ -19,16 +19,19 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
-import com.gitlab.ykrasik.gamedex.javafx.addComponent
+import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.mouseTransparentWhen
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
-import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.event.EventTarget
+import javafx.scene.control.ContentDisplay
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.HBox
+import javafx.scene.text.FontWeight
+import org.controlsfx.control.PopOver
 import tornadofx.*
 
 /**
@@ -47,12 +50,14 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
-    override var currentPlatform = userMutableState(Platform.pc)
+    override val currentPlatform = userMutableState(Platform.pc)
 
     override val searchText = userMutableState("")
+    override val autoCompleteSuggestions = state<List<String>>(emptyList())
+    override val isShowAutoCompleteSuggestions = state(false)
 
-    override var sortBy = userMutableState(SortBy.name_)
-    override var sortOrder = userMutableState(SortOrder.asc)
+    override val sortBy = userMutableState(SortBy.name_)
+    override val sortOrder = userMutableState(SortOrder.asc)
 
     override val currentPlatformFilter = filterView.externalMutations
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
@@ -61,15 +66,14 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         register()
     }
 
-    // FIXME: Change search -> sync, refresh maybe to download?
     override fun HBox.buildToolbar() {
-        platformButton()
-
-        gap()
-
         filterButton()
         sortButton()
-        searchTextField(this@JavaFxGameScreen, searchText.property)
+        searchField()
+
+        spacer()
+
+        platformButton()
     }
 
     override val root = gameWallView.root
@@ -78,10 +82,12 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         possibleItems = availablePlatforms,
         selectedItemProperty = currentPlatform.property,
         text = Platform::displayName,
-        graphic = { it.logo }
+        graphic = { it.logo },
+        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT
     ).apply {
-        addClass(CommonStyle.toolbarButton)
-        textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: $it" })
+        addClass(CommonStyle.toolbarButton, Style.platformButton)
+        contentDisplay = ContentDisplay.RIGHT
+        textProperty().cleanBind(gameWallView.games.sizeProperty.stringBinding { "Games: ${"%4d".format(it)}" })
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
@@ -116,6 +122,43 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Filter")
     }
 
+    private fun EventTarget.searchField() = searchTextField(this@JavaFxGameScreen, searchText.property) {
+        val textField = this
+        val suggestions = mutableListOf<String>().observable()
+        autoCompleteSuggestions.onChange {
+            suggestions.setAll(it)
+        }
+        popOver(PopOver.ArrowLocation.LEFT_TOP) {
+            customListView(suggestions) {
+                maxHeight = 6 * 23.0
+                prefWidth = 400.0
+                selectionModel.selectedItemProperty().onChange {
+                    if (it != null) {
+                        text = it
+                    }
+                }
+            }
+        }.apply {
+            addEventFilter(KeyEvent.KEY_PRESSED) { e ->
+                if (e.code == KeyCode.ESCAPE) {
+                    clear()
+                }
+            }
+            isShowAutoCompleteSuggestions.onChange {
+                if (it) {
+                    show(textField)
+                } else {
+                    hide()
+                }
+            }
+            textField.focusedProperty().onChange {
+                if (it && suggestions.isNotEmpty()) {
+                    show(textField)
+                }
+            }
+        }
+    }
+
     private val SortBy.icon
         get() = when (this) {
             SortBy.name_ -> Icons.text
@@ -129,4 +172,21 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             SortBy.createDate -> Icons.createDate
             SortBy.updateDate -> Icons.updateDate
         }
+
+    class Style : Stylesheet() {
+        companion object {
+            val platformButton by cssclass()
+
+            init {
+                importStylesheetSafe(Style::class)
+            }
+        }
+
+        init {
+            platformButton {
+                fontSize = 15.px
+                fontWeight = FontWeight.BOLD
+            }
+        }
+    }
 }

@@ -66,10 +66,10 @@ class GamesPresenter @Inject constructor(
     }
 
     private val filterPredicate = settingsService.game.platformChannel.flatMap { platform ->
-        settingsService.platforms[platform]!!.dataChannel.subscribe()
+        settingsService.platforms.getValue(platform).dataChannel.subscribe()
     }.map { settings ->
         val context = filterContextFactory.create(emptyList())
-        val matches = gameSearchService.search(settings.search).map { it.id }
+        val matches = gameSearchService.search(settings.search, settingsService.game.platform).map { it.id }
         return@map { game: Game ->
             (settings.search.isBlank() || matches.contains(game.id)) && settings.filter.evaluate(game, context)
         }

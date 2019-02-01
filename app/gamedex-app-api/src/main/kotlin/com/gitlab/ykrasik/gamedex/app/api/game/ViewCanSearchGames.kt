@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.game
 
+import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 
 /**
@@ -26,5 +27,6 @@ import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
 interface ViewCanSearchGames {
     val searchText: UserMutableState<String>
 
-    // TODO: Add auto-complete suggestions.
+    val autoCompleteSuggestions: State<List<String>>
+    val isShowAutoCompleteSuggestions: State<Boolean>
 }
