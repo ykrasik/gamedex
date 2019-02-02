@@ -37,12 +37,16 @@ class SearchGamesPresenter @Inject constructor(
 ) : Presenter<ViewCanSearchGames> {
     override fun present(view: ViewCanSearchGames) = object : ViewSession() {
         init {
-            view.searchText *= settingsService.currentPlatformSettings.search
             view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
+
+            settingsService.currentPlatformSettingsChannel.forEachImmediately {
+                view.searchText *= it.search
+                onSearchTextChanged(it.search)
+            }
         }
 
         private fun onSearchTextChanged(searchText: String) {
-            settingsService.currentPlatformSettings.modify { copy(search = searchText) }
+            settingsService.currentPlatformSettings.search = searchText
             view.autoCompleteSuggestions *= gameSearchService.suggest(searchText, settingsService.game.platform, maxResults = 6)
             view.isShowAutoCompleteSuggestions *= view.autoCompleteSuggestions.value.let { suggestions ->
                 suggestions.isNotEmpty() && (suggestions.size > 1 || suggestions.first() != view.searchText.value)

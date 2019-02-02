@@ -18,28 +18,27 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
+import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 
 /**
  * User: ykrasik
  * Date: 18/06/2018
  * Time: 18:24
  */
-class GamePlatformSettingsRepository(factory: SettingsStorageFactory, platform: Platform) : SettingsRepository<GamePlatformSettingsRepository.Data>() {
+class GamePlatformSettingsRepository(factory: SettingsStorageFactory, val platform: Platform) : SettingsRepository<GamePlatformSettingsRepository.Data>() {
     data class Data(
-        val filter: Filter,
-        val search: String
+        val filter: Filter
     )
 
     override val storage = factory(platform.toString().toLowerCase(), Data::class) {
         Data(
-            filter = Filter.Null,
-            search = ""
+            filter = Filter.Null
         )
     }
 
     val filterChannel = storage.channel(Data::filter)
     val filter by filterChannel
 
-    val searchChannel = storage.channel(Data::search)
-    val search by searchChannel
+    val searchChannel = BroadcastEventChannel.conflated("")
+    var search by searchChannel
 }

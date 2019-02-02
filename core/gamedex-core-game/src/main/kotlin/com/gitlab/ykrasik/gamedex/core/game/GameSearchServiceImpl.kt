@@ -103,7 +103,6 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
         if (query.isBlank()) {
             emptyList()
         } else {
-            // TODO: For better results, should hold an index per platform.
             platform.engine.search(query, maxResults).mapNotNull { it.game.takeIf { it.platform == platform }?.name }
         }
 

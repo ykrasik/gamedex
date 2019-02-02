@@ -71,11 +71,11 @@ class SettingsServiceImpl @Inject constructor(
     override val metaTagDisplay = repo { GameOverlayDisplaySettingsRepository.metaTag(settingsStorage("display")) }
     override val versionDisplay = repo { GameOverlayDisplaySettingsRepository.version(settingsStorage("display")) }
 
-    override val platforms = Platform.values().filter { it != Platform.excluded }.map { platform ->
+    override val platforms = Platform.realPlatforms.associate { platform ->
         platform to repo { GamePlatformSettingsRepository(settingsStorage("platform"), platform) }
-    }.toMap()
+    }
 
-    override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms[platform]!! }
+    override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms.getValue(platform) }
     override val currentPlatformSettings by currentPlatformSettingsChannel
 
     override val providerGeneral = repo { ProviderGeneralSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
