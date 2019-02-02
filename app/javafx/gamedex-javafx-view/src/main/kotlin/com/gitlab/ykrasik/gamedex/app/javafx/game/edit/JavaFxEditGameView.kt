@@ -195,7 +195,7 @@ class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
                             graphic = defaultHbox(spacing = 10) {
                                 paddingAll = 10
                                 children += logo.toImageView(height = 120, width = 100)
-                                dataDisplay(providerValueProperty.binding { it ?: defaultValue })
+                                dataDisplay(providerValueProperty.map { it ?: defaultValue })
                             }
                             toggleValue(OverrideSelectionType.Provider(providerId))
                         }

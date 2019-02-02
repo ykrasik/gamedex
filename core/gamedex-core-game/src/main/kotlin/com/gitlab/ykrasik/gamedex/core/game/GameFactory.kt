@@ -120,7 +120,9 @@ class GameFactory @Inject constructor(
             if (providerId == override?.provider) {
                 minOrder
             } else {
-                order.indexOf(providerId)
+                order.indexOf(providerId).let {
+                    if (it == -1) 99999 else it
+                }
             }
         }
 

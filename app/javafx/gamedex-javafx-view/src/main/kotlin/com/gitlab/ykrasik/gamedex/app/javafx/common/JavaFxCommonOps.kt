@@ -85,7 +85,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     fun fetchFileTree(game: Game): Ref<FileTree> = ops.fetchFileTree(game)
 
     val providers: List<GameProviderMetadata> = ops.providers
-    val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }
+    val providerLogos: Map<ProviderId, JavaFxImage> = ops.providerLogos.mapValues { it.value.image }.withDefault { noImage }
     fun providerLogo(providerId: ProviderId): JavaFxImage = providerLogos.getValue(providerId)
 
     fun youTubeGameplayUrl(game: Game): String = ops.youTubeGameplayUrl(game)
