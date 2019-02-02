@@ -39,6 +39,11 @@ jfx {
 //    alternativePathToJarFile = null // String
 }
 
+task runDemo(dependsOn: 'classes', type: JavaExec) {
+    main = 'com.gitlab.ykrasik.gamedex.javafx.TestApplication'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
 task customizeWindowsInstaller(type: Copy) {
     from 'src/main/deploy/package/windows/'
     into 'src/main/deploy/package/windows/'
