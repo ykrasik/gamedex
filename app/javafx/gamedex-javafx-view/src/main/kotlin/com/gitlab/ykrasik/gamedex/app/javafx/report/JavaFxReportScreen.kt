@@ -87,7 +87,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     private val gamesView = customListView(games) {
         vgrow = Priority.ALWAYS
         useMaxSize = true
-        fun isNotSelected(game: Game) = selectionModel.selectedItemProperty().isNotEqualTo(game)
 
         customListCell { game ->
             text = null
@@ -103,7 +102,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                 fileTree = game.fileTree,
                 image = commonOps.fetchThumbnail(game),
                 browsePathActions = browsePathActions,
-                pathOp = { mouseTransparentWhen { isNotSelected(game) } },
+                pathOp = { isMouseTransparent = true },
                 imageFitHeight = 70,
                 imageFitWidth = 70,
                 orientation = Orientation.HORIZONTAL

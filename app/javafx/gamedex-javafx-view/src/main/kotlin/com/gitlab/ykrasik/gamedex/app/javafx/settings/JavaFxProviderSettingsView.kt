@@ -83,7 +83,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                 paddingAll = 5
                 label(provider.id) { addClass(Style.providerLabel) }
                 spacer()
-                vbox {
+                vbox(spacing = 5) {
                     children += commonOps.providerLogo(provider.id).toImageView(height = 80.0)
                     defaultHbox(alignment = Pos.CENTER_RIGHT) {
                         provider.supportedPlatforms.reversed().forEach { platform ->

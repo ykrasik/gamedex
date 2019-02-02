@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.util.JodaDateTime
 import com.gitlab.ykrasik.gamedex.util.Ref
 import com.gitlab.ykrasik.gamedex.util.toHumanReadable
 import com.gitlab.ykrasik.gamedex.util.toString
+import com.jfoenix.controls.JFXButton
 import javafx.animation.Interpolator
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -87,7 +88,7 @@ class GameDetailsPaneBuilder(
     var browseUrlActions: Channel<String>? = null,
 
     var path: File? = null,
-    var pathOp: (Label.() -> Unit)? = null,
+    var pathOp: (JFXButton.() -> Unit)? = null,
     var fileTree: Ref<FileTree>? = null,
     var fileTreeOp: (Label.() -> Unit)? = null,
     var browsePathActions: Channel<File>? = null,
@@ -135,8 +136,8 @@ class GameDetailsPaneBuilder(
                 row {
                     children += Icons.folder.size(16)
                     defaultHbox {
-                        label(path.toString()) {
-                            addClass(CommonStyle.jfxHoverable, CommonStyle.hoverable, Style.path)
+                        jfxButton(path.toString()) {
+                            addClass(Style.path)
                             isFocusTraversable = false
                             browsePathActions?.let { browsePathActions ->
                                 setOnMouseClicked { browsePathActions.offer(path) }
@@ -216,7 +217,7 @@ class GameDetailsPaneBuilder(
                                 stackpane {
                                     minWidth = 70.0
                                     alignment = Pos.CENTER_LEFT
-                                    children += providerLogos[providerId]!!.toImageView(height = 30, width = 70)
+                                    children += providerLogos.getValue(providerId).toImageView(height = 30, width = 70)
                                 }
                                 if (browseUrlActions != null) {
                                     hyperlink(url) {
@@ -364,9 +365,8 @@ class GameDetailsPaneBuilder(
 
         init {
             path {
-                and(hover) {
-                    padding = box(5.px)
-                }
+//                padding = box(4.px, 8.px, 4.px, 8.px)
+//                backgroundRadius = multi(box(3.px))
             }
             descriptionText {
                 wrapText = true
