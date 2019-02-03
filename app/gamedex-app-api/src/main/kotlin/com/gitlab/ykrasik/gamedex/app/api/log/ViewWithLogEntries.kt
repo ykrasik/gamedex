@@ -36,7 +36,5 @@ enum class LogLevel(val displayName: String) {
     Warn("Warn"),
     Error("Error");
 
-    override fun toString() = displayName
-
     fun canLog(level: LogLevel) = this.ordinal >= level.ordinal
 }

@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.settings.DisplayPosition
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import tornadofx.Fragment
@@ -38,7 +39,7 @@ class JavaFxGameDisplaySettingsView(settings: JavaFxOverlayDisplaySettings, name
         }
         fieldset("Position") {
             showWhen { settings.enabled.property }
-            horizontalField("Position") { enumComboMenu(settings.position.property) }
+            horizontalField("Position") { enumComboMenu(settings.position.property, text = DisplayPosition::displayName) }
             horizontalField("Fill Width") { jfxCheckBox(settings.fillWidth.property) }
         }
         fieldset("Font") {

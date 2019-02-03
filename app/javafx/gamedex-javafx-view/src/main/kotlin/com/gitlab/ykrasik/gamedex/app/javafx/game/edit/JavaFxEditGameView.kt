@@ -52,20 +52,20 @@ import tornadofx.*
 class JavaFxEditGameView : ConfirmationWindow(icon = Icons.edit), EditGameView {
     private val commonOps: JavaFxCommonOps by di()
 
-    private val initialScreenProperty = SimpleObjectProperty(GameDataType.name_)
+    private val initialScreenProperty = SimpleObjectProperty(GameDataType.Name)
     override var initialScreen: GameDataType by initialScreenProperty
 
     private val gameProperty = SimpleObjectProperty(Game.Null)
     override var game by gameProperty
 
     // TODO: Consider representing this as a CustomProvider in the UserData
-    override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.name_, Icons.text)
-    override val descriptionOverride = JavaFxGameDataOverrideState<String>(GameDataType.description, Icons.textbox)
-    override val releaseDateOverride = JavaFxGameDataOverrideState<String>(GameDataType.releaseDate, Icons.date)
-    override val criticScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.criticScore, Icons.starFull)
-    override val userScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.userScore, Icons.starEmpty)
-    override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.thumbnail, Icons.thumbnail)
-    override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.poster, Icons.poster)
+    override val nameOverride = JavaFxGameDataOverrideState<String>(GameDataType.Name, Icons.text)
+    override val descriptionOverride = JavaFxGameDataOverrideState<String>(GameDataType.Description, Icons.textbox)
+    override val releaseDateOverride = JavaFxGameDataOverrideState<String>(GameDataType.ReleaseDate, Icons.date)
+    override val criticScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.CriticScore, Icons.starFull)
+    override val userScoreOverride = JavaFxGameDataOverrideState<Score>(GameDataType.UserScore, Icons.starEmpty)
+    override val thumbnailUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Thumbnail, Icons.thumbnail)
+    override val posterUrlOverride = JavaFxGameDataOverrideState<String>(GameDataType.Poster, Icons.poster)
 
     override val resetAllToDefaultActions = channel<Unit>()
 

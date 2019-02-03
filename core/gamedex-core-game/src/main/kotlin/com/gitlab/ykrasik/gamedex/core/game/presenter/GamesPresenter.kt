@@ -53,19 +53,19 @@ class GamesPresenter @Inject constructor(
 
             settingsService.game.sortByChannel.combineLatest(settingsService.game.sortOrderChannel).forEach { (sortBy, sortOrder) ->
                 val comparator = when (sortBy) {
-                    SortBy.name_ -> nameComparator
-                    SortBy.criticScore -> criticScoreComparator.then(nameComparator)
-                    SortBy.userScore -> userScoreComparator.then(nameComparator)
-                    SortBy.minScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.maxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.avgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
-                    SortBy.size -> compareBy<Game> { it.fileTree.value.size }.then(nameComparator)
-                    SortBy.releaseDate -> compareBy(Game::releaseDate).then(nameComparator)
-                    SortBy.createDate -> compareBy(Game::createDate)
-                    SortBy.updateDate -> compareBy(Game::updateDate)
+                    SortBy.Name -> nameComparator
+                    SortBy.CriticScore -> criticScoreComparator.then(nameComparator)
+                    SortBy.UserScore -> userScoreComparator.then(nameComparator)
+                    SortBy.MinScore -> compareBy<Game> { it.minScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                    SortBy.MaxScore -> compareBy<Game> { it.maxScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                    SortBy.AvgScore -> compareBy<Game> { it.avgScore }.then(criticScoreComparator).then(userScoreComparator).then(nameComparator)
+                    SortBy.Size -> compareBy<Game> { it.fileTree.value.size }.then(nameComparator)
+                    SortBy.ReleaseDate -> compareBy(Game::releaseDate).then(nameComparator)
+                    SortBy.CreateDate -> compareBy(Game::createDate)
+                    SortBy.UpdateDate -> compareBy(Game::updateDate)
                 }
 
-                view.sort *= if (sortOrder == SortOrder.asc) {
+                view.sort *= if (sortOrder == SortOrder.Asc) {
                     comparator
                 } else {
                     comparator.reversed()

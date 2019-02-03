@@ -85,7 +85,7 @@ class GameWallCellFragment(
             minWidthProperty().bind(maxWidthProperty())
             minHeightProperty().bind(maxHeightProperty())
 
-            if (gameWallDisplaySettings.imageDisplayType.value == ImageDisplayType.FixedSize) {
+            if (gameWallDisplaySettings.imageDisplayType.value == ImageDisplayType.Fixed) {
                 maxWidthProperty().cleanBind(root.widthProperty())
                 maxHeightProperty().cleanBind(root.heightProperty())
             } else {

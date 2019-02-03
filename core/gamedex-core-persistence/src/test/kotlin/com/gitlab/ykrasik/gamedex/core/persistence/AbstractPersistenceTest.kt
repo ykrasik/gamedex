@@ -95,27 +95,27 @@ abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
         )
 
         fun randomProviderOverrides() = mapOf(
-            GameDataType.name_ to providerOverride(),
-            GameDataType.description to providerOverride(),
-            GameDataType.releaseDate to providerOverride(),
-            GameDataType.criticScore to providerOverride(),
-            GameDataType.userScore to providerOverride(),
-            GameDataType.genres to providerOverride(),
-            GameDataType.thumbnail to providerOverride(),
-            GameDataType.poster to providerOverride(),
-            GameDataType.screenshots to providerOverride()
+            GameDataType.Name to providerOverride(),
+            GameDataType.Description to providerOverride(),
+            GameDataType.ReleaseDate to providerOverride(),
+            GameDataType.CriticScore to providerOverride(),
+            GameDataType.UserScore to providerOverride(),
+            GameDataType.Genres to providerOverride(),
+            GameDataType.Thumbnail to providerOverride(),
+            GameDataType.Poster to providerOverride(),
+            GameDataType.Screenshots to providerOverride()
         )
 
         fun randomCustomOverrides() = mapOf(
-            GameDataType.name_ to customDataOverride(randomName()),
-            GameDataType.description to customDataOverride(randomParagraph()),
-            GameDataType.releaseDate to customDataOverride(randomLocalDateString()),
-            GameDataType.criticScore to customDataOverride(randomScore().score),
-            GameDataType.userScore to customDataOverride(randomScore().score),
-            GameDataType.genres to customDataOverride(listOf(randomWord(), randomWord(), randomWord())),
-            GameDataType.thumbnail to customDataOverride(randomUrl()),
-            GameDataType.poster to customDataOverride(randomUrl()),
-            GameDataType.screenshots to customDataOverride(listOf(randomUrl(), randomUrl()))
+            GameDataType.Name to customDataOverride(randomName()),
+            GameDataType.Description to customDataOverride(randomParagraph()),
+            GameDataType.ReleaseDate to customDataOverride(randomLocalDateString()),
+            GameDataType.CriticScore to customDataOverride(randomScore().score),
+            GameDataType.UserScore to customDataOverride(randomScore().score),
+            GameDataType.Genres to customDataOverride(listOf(randomWord(), randomWord(), randomWord())),
+            GameDataType.Thumbnail to customDataOverride(randomUrl()),
+            GameDataType.Poster to customDataOverride(randomUrl()),
+            GameDataType.Screenshots to customDataOverride(listOf(randomUrl(), randomUrl()))
         )
 
         private fun providerOverride() = GameDataOverride.Provider(randomWord())

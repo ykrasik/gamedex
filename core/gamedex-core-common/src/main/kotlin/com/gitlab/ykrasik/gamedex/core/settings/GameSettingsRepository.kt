@@ -35,8 +35,8 @@ class GameSettingsRepository(factory: SettingsStorageFactory) : SettingsReposito
     override val storage = factory("game", Data::class) {
         Data(
             platform = Platform.Windows,
-            sortBy = SortBy.criticScore,
-            sortOrder = SortOrder.desc
+            sortBy = SortBy.CriticScore,
+            sortOrder = SortOrder.Desc
         )
     }
 

@@ -57,18 +57,14 @@ data class LibraryData(
 
 enum class LibraryType(val displayName: String) {
     Digital("Digital"),
-    Excluded("Excluded");
-
-    override fun toString() = displayName
+    Excluded("Excluded")
 }
 
 enum class Platform(val displayName: String) {
     Windows("Windows"),
     Linux("Linux"),
     Mac("Mac"),
-    Android("Android");
-
-    override fun toString() = displayName
+    Android("Android")
 }
 
 data class LibraryPath(val library: Library, val path: File) {

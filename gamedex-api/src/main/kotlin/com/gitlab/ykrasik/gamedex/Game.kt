@@ -215,17 +215,15 @@ data class FolderNameMetadata(
 )
 
 enum class GameDataType(val displayName: String) {
-    name_("Name"),
-    description("Description"),
-    releaseDate("Release Date"),
-    criticScore("Critic Score"),
-    userScore("User Score"),
-    genres("Genres"),
-    thumbnail("Thumbnail"),
-    poster("Poster"),
-    screenshots("Screenshots");
-
-    override fun toString() = displayName
+    Name("Name"),
+    Description("Description"),
+    ReleaseDate("Release Date"),
+    CriticScore("Critic Score"),
+    UserScore("User Score"),
+    Genres("Genres"),
+    Thumbnail("Thumbnail"),
+    Poster("Poster"),
+    Screenshots("Screenshots")
 }
 
 data class UserData(
@@ -233,15 +231,15 @@ data class UserData(
     val tags: List<String> = emptyList(),
     val excludedProviders: List<ProviderId> = emptyList()
 ) {
-    fun nameOverride() = overrides[GameDataType.name_]
-    fun descriptionOverride() = overrides[GameDataType.description]
-    fun releaseDateOverride() = overrides[GameDataType.releaseDate]
-    fun criticScoreOverride() = overrides[GameDataType.criticScore]
-    fun userScoreOverride() = overrides[GameDataType.userScore]
-    fun genresOverride() = overrides[GameDataType.genres]
-    fun thumbnailOverride() = overrides[GameDataType.thumbnail]
-    fun posterOverride() = overrides[GameDataType.poster]
-    fun screenshotsOverride() = overrides[GameDataType.screenshots]
+    fun nameOverride() = overrides[GameDataType.Name]
+    fun descriptionOverride() = overrides[GameDataType.Description]
+    fun releaseDateOverride() = overrides[GameDataType.ReleaseDate]
+    fun criticScoreOverride() = overrides[GameDataType.CriticScore]
+    fun userScoreOverride() = overrides[GameDataType.UserScore]
+    fun genresOverride() = overrides[GameDataType.Genres]
+    fun thumbnailOverride() = overrides[GameDataType.Thumbnail]
+    fun posterOverride() = overrides[GameDataType.Poster]
+    fun screenshotsOverride() = overrides[GameDataType.Screenshots]
 
     companion object {
         val Null = UserData()

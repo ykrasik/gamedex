@@ -56,8 +56,8 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     override val autoCompleteSuggestions = state<List<String>>(emptyList())
     override val isShowAutoCompleteSuggestions = state(false)
 
-    override val sortBy = userMutableState(SortBy.name_)
-    override val sortOrder = userMutableState(SortOrder.asc)
+    override val sortBy = userMutableState(SortBy.Name)
+    override val sortOrder = userMutableState(SortOrder.Asc)
 
     override val currentPlatformFilter = filterView.externalMutations
     override val currentPlatformFilterIsValid = userMutableState(filterView.filterIsValid)
@@ -97,13 +97,13 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
             popoverComboMenu(
                 possibleItems = SortBy.values().toList().observable(),
                 selectedItemProperty = sortBy.property,
-                text = { it.displayName },
+                text = SortBy::displayName,
                 graphic = { it.icon }
             ).apply {
                 addClass(CommonStyle.toolbarButton)
             }
             jfxButton {
-                graphicProperty().bind(sortOrder.property.objectBinding { if (it == SortOrder.asc) Icons.ascending else Icons.descending })
+                graphicProperty().bind(sortOrder.property.objectBinding { if (it == SortOrder.Asc) Icons.ascending else Icons.descending })
                 tooltip {
                     textProperty().bind(sortOrder.property.stringBinding { it!!.displayName })
                 }
@@ -161,16 +161,16 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     private val SortBy.icon
         get() = when (this) {
-            SortBy.name_ -> Icons.text
-            SortBy.criticScore -> Icons.starFull
-            SortBy.userScore -> Icons.starEmpty
-            SortBy.avgScore -> Icons.starHalf
-            SortBy.minScore -> Icons.min
-            SortBy.maxScore -> Icons.max
-            SortBy.size -> Icons.fileQuestion
-            SortBy.releaseDate -> Icons.date
-            SortBy.createDate -> Icons.createDate
-            SortBy.updateDate -> Icons.updateDate
+            SortBy.Name -> Icons.text
+            SortBy.CriticScore -> Icons.starFull
+            SortBy.UserScore -> Icons.starEmpty
+            SortBy.AvgScore -> Icons.starHalf
+            SortBy.MinScore -> Icons.min
+            SortBy.MaxScore -> Icons.max
+            SortBy.Size -> Icons.fileQuestion
+            SortBy.ReleaseDate -> Icons.date
+            SortBy.CreateDate -> Icons.createDate
+            SortBy.UpdateDate -> Icons.updateDate
         }
 
     class Style : Stylesheet() {

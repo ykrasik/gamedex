@@ -57,7 +57,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
     }
 
     override fun HBox.buildToolbar() {
-        enumComboMenu(level.property, graphic = { it.icon }).apply {
+        enumComboMenu(level.property, text = LogLevel::displayName, graphic = { it.icon }).apply {
             addClass(CommonStyle.toolbarButton)
         }
         jfxCheckBox(logTail.property, "Tail")

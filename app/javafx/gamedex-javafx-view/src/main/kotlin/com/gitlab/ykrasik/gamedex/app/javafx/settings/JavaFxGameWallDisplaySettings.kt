@@ -28,7 +28,7 @@ import tornadofx.onChange
  * Time: 12:08
  */
 class JavaFxGameWallDisplaySettings : MutableGameWallDisplaySettings, GameWallDisplaySettings {
-    override val imageDisplayType = userMutableState(ImageDisplayType.FixedSize)
+    override val imageDisplayType = userMutableState(ImageDisplayType.Fixed)
     override val showBorder = userMutableState(false)
     override val width = userMutableState(0.0)
     override val height = userMutableState(0.0)

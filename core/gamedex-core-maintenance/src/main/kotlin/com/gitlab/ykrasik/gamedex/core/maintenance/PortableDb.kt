@@ -175,15 +175,15 @@ internal data class PortableUserData(
 ) {
     fun toUserData(): UserData {
         val overrides = mutableMapOf<GameDataType, GameDataOverride>()
-        nameOverride?.toOverride()?.let { overrides += GameDataType.name_ to it }
-        descriptionOverride?.toOverride()?.let { overrides += GameDataType.description to it }
-        releaseDateOverride?.toOverride()?.let { overrides += GameDataType.releaseDate to it }
-        criticScoreOverride?.toOverride()?.let { overrides += GameDataType.criticScore to it }
-        userScoreOverride?.toOverride()?.let { overrides += GameDataType.userScore to it }
-        genresOverride?.toOverride()?.let { overrides += GameDataType.genres to it }
-        thumbnailOverride?.toOverride()?.let { overrides += GameDataType.thumbnail to it }
-        posterOverride?.toOverride()?.let { overrides += GameDataType.poster to it }
-        screenshotsOverride?.toOverride()?.let { overrides += GameDataType.screenshots to it }
+        nameOverride?.toOverride()?.let { overrides += GameDataType.Name to it }
+        descriptionOverride?.toOverride()?.let { overrides += GameDataType.Description to it }
+        releaseDateOverride?.toOverride()?.let { overrides += GameDataType.ReleaseDate to it }
+        criticScoreOverride?.toOverride()?.let { overrides += GameDataType.CriticScore to it }
+        userScoreOverride?.toOverride()?.let { overrides += GameDataType.UserScore to it }
+        genresOverride?.toOverride()?.let { overrides += GameDataType.Genres to it }
+        thumbnailOverride?.toOverride()?.let { overrides += GameDataType.Thumbnail to it }
+        posterOverride?.toOverride()?.let { overrides += GameDataType.Poster to it }
+        screenshotsOverride?.toOverride()?.let { overrides += GameDataType.Screenshots to it }
 
         return UserData(
             overrides = overrides,
@@ -194,15 +194,15 @@ internal data class PortableUserData(
 }
 
 internal fun UserData.toPortable() = PortableUserData(
-    nameOverride = overrides[GameDataType.name_]?.toPortable(),
-    descriptionOverride = overrides[GameDataType.description]?.toPortable(),
-    releaseDateOverride = overrides[GameDataType.releaseDate]?.toPortable(),
-    criticScoreOverride = overrides[GameDataType.criticScore]?.toPortable(),
-    userScoreOverride = overrides[GameDataType.userScore]?.toPortable(),
-    genresOverride = overrides[GameDataType.genres]?.toPortable(),
-    thumbnailOverride = overrides[GameDataType.thumbnail]?.toPortable(),
-    posterOverride = overrides[GameDataType.poster]?.toPortable(),
-    screenshotsOverride = overrides[GameDataType.screenshots]?.toPortable(),
+    nameOverride = overrides[GameDataType.Name]?.toPortable(),
+    descriptionOverride = overrides[GameDataType.Description]?.toPortable(),
+    releaseDateOverride = overrides[GameDataType.ReleaseDate]?.toPortable(),
+    criticScoreOverride = overrides[GameDataType.CriticScore]?.toPortable(),
+    userScoreOverride = overrides[GameDataType.UserScore]?.toPortable(),
+    genresOverride = overrides[GameDataType.Genres]?.toPortable(),
+    thumbnailOverride = overrides[GameDataType.Thumbnail]?.toPortable(),
+    posterOverride = overrides[GameDataType.Poster]?.toPortable(),
+    screenshotsOverride = overrides[GameDataType.Screenshots]?.toPortable(),
     tags = tags,
     excludedProviders = excludedProviders
 )

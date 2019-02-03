@@ -186,7 +186,7 @@ class GameWallView : PresentableView("Games Wall"),
 
         override fun resize(width: Double, height: Double) {
             fragment.preserveRatio = when (gameWallDisplaySettings.imageDisplayType.value) {
-                ImageDisplayType.Fit, ImageDisplayType.FixedSize -> true
+                ImageDisplayType.Fit, ImageDisplayType.Fixed -> true
                 ImageDisplayType.Stretch -> isPreserveImageRatio()
                 else -> kotlin.error("Invalid ImageDisplayType: ${gameWallDisplaySettings.imageDisplayType.value}")
             }

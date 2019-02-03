@@ -113,7 +113,6 @@ class EditGamePresenter @Inject constructor(
             val defaultValue = type.extractValue<T>(gameWithoutOverrides.gameData)
             selection *= if (defaultValue != null) findProviderWithValue(defaultValue) else null
             onSelectionChanged(selection.value)
-
         }
 
         private fun onResetAllToDefault() {
@@ -139,8 +138,8 @@ class EditGamePresenter @Inject constructor(
                 is GameDataOverride.Custom -> {
                     selection *= OverrideSelectionType.Custom
                     canSelectCustomOverride *= IsValid.valid
-                    rawCustomValue *= type.serializeCustomValue(currentOverride.value)
-                    customValue *= currentOverride.value as T
+                    rawCustomValue *= currentOverride.value.toString()
+                    customValue *= type.deserializeCustomValue(rawCustomValue.value)
                     isCustomValueValid *= IsValid.valid
                 }
                 else -> {
@@ -171,26 +170,21 @@ class EditGamePresenter @Inject constructor(
 
         @Suppress("UNCHECKED_CAST")
         private fun <T> GameDataType.deserializeCustomValue(value: String): T = when (this) {
-            GameDataType.criticScore, GameDataType.userScore -> {
+            GameDataType.CriticScore, GameDataType.UserScore -> {
                 val score = value.toDouble()
                 check(score in 0.0..100.0) { "Must be in range [0, 100]!" }
                 Score(score, numReviews = 0)
             }
-            GameDataType.releaseDate -> {
+            GameDataType.ReleaseDate -> {
                 LocalDate.parse(value)
                 value
             }
-            GameDataType.thumbnail, GameDataType.poster -> {
+            GameDataType.Thumbnail, GameDataType.Poster -> {
                 URL(value)
                 value
             }
             else -> value
         } as T
-
-        private fun GameDataType.serializeCustomValue(value: Any): String = when (this) {
-            GameDataType.criticScore, GameDataType.userScore -> (value as Score).score.toString()
-            else -> value as String
-        }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
@@ -210,7 +204,10 @@ class EditGamePresenter @Inject constructor(
                 val selection = override.selection.value
                 val (value, gameDataOverride) = when (selection) {
                     is OverrideSelectionType.Custom -> {
-                        val value = override.customValue.value as Any
+                        val value = when (override.type) {
+                            GameDataType.CriticScore, GameDataType.UserScore -> (override.customValue.value as Score).score
+                            else -> override.customValue.value as Any
+                        }
                         value to GameDataOverride.Custom(value)
                     }
                     is OverrideSelectionType.Provider ->
@@ -233,15 +230,15 @@ class EditGamePresenter @Inject constructor(
     private companion object {
         @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
         fun <T> GameDataType.extractValue(gameData: GameData): T? = when (this) {
-            GameDataType.name_ -> gameData.name
-            GameDataType.description -> gameData.description
-            GameDataType.releaseDate -> gameData.releaseDate
-            GameDataType.criticScore -> gameData.criticScore
-            GameDataType.userScore -> gameData.userScore
-            GameDataType.genres -> gameData.genres
-            GameDataType.thumbnail -> gameData.thumbnailUrl
-            GameDataType.poster -> gameData.posterUrl
-            GameDataType.screenshots -> gameData.screenshotUrls
+            GameDataType.Name -> gameData.name
+            GameDataType.Description -> gameData.description
+            GameDataType.ReleaseDate -> gameData.releaseDate
+            GameDataType.CriticScore -> gameData.criticScore
+            GameDataType.UserScore -> gameData.userScore
+            GameDataType.Genres -> gameData.genres
+            GameDataType.Thumbnail -> gameData.thumbnailUrl
+            GameDataType.Poster -> gameData.posterUrl
+            GameDataType.Screenshots -> gameData.screenshotUrls
         } as T?
     }
 }

@@ -51,9 +51,7 @@ interface MutableGameWallDisplaySettings {
 }
 
 enum class ImageDisplayType(val displayName: String) {
-    FixedSize("Fixed Size"),
+    Fixed("Fixed"),
     Fit("Fit"),
-    Stretch("Stretch");
-
-    override fun toString() = displayName
+    Stretch("Stretch")
 }

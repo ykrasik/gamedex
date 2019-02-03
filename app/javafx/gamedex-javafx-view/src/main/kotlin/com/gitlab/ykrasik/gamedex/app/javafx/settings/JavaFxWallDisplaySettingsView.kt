@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
+import com.gitlab.ykrasik.gamedex.app.api.settings.ImageDisplayType
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -32,7 +33,7 @@ import tornadofx.form
 class JavaFxWallDisplaySettingsView(settings: JavaFxGameWallDisplaySettings) : Fragment("Game Wall", Icons.grid) {
     override val root = form {
         fieldset {
-            horizontalField("Fixed Size") { enumComboMenu(settings.imageDisplayType.property) }
+            horizontalField("Cell Size") { enumComboMenu(settings.imageDisplayType.property, text = ImageDisplayType::displayName) }
             horizontalField("Border") { jfxToggleButton(settings.showBorder.property) }
             horizontalField("Width") {
                 defaultHbox {

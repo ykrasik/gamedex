@@ -83,7 +83,5 @@ enum class DisplayPosition(val displayName: String) {
     CenterRight("Center Right"),
     BottomLeft("Bottom Left"),
     BottomCenter("Bottom Center"),
-    BottomRight("Bottom Right");
-
-    override fun toString() = displayName
+    BottomRight("Bottom Right")
 }

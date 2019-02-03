@@ -113,7 +113,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
         }
 
         spacer()
-        editButton("Edit") { action { editGame(GameDataType.name_) } }
+        editButton("Edit") { action { editGame(GameDataType.Name) } }
         gap()
         toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value!! } }
         gap()

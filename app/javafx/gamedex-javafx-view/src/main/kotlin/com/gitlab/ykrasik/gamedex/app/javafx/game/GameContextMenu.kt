@@ -67,8 +67,8 @@ class GameContextMenu : InstallableContextMenu<Game>(),
         addClass(CommonStyle.popoverMenu)
         item("View", Icons.view) { action(showGameDetailsActions) { data } }
         verticalGap()
-        item("Edit", Icons.edit) { action { editGame(GameDataType.name_) } }
-        item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.thumbnail) } }
+        item("Edit", Icons.edit) { action { editGame(GameDataType.Name) } }
+        item("Change Thumbnail", Icons.thumbnail) { action { editGame(GameDataType.Thumbnail) } }
         verticalGap()
         item("Tag", Icons.tag) { action(tagGameActions) { data } }
         verticalGap()

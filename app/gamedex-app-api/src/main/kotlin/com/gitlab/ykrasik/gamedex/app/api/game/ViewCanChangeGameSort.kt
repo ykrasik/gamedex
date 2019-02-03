@@ -30,28 +30,24 @@ interface ViewCanChangeGameSort {
 }
 
 enum class SortBy(val displayName: String) {
-    name_("Name"),
-    criticScore("Critic Score"),
-    userScore("User Score"),
-    avgScore("Average Score"),
-    minScore("Min Score"),
-    maxScore("Max Score"),
-    size("Size"),
-    releaseDate("Release Date"),
-    createDate("Create Date"),
-    updateDate("Update Date");
-
-    override fun toString() = displayName
+    Name("Name"),
+    CriticScore("Critic Score"),
+    UserScore("User Score"),
+    AvgScore("Average Score"),
+    MinScore("Min Score"),
+    MaxScore("Max Score"),
+    Size("Size"),
+    ReleaseDate("Release Date"),
+    CreateDate("Create Date"),
+    UpdateDate("Update Date")
 }
 
 enum class SortOrder(val displayName: String) {
-    asc("Ascending"),
-    desc("Descending");
+    Asc("Ascending"),
+    Desc("Descending");
 
     fun toggle(): SortOrder = when (this) {
-        asc -> desc
-        desc -> asc
+        Asc -> Desc
+        Desc -> Asc
     }
-
-    override fun toString() = displayName
 }

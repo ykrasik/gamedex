@@ -59,16 +59,17 @@ class GameFactory @Inject constructor(
         description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.
-        criticScore = firstBy(settingsService.providerOrder.criticScore, userData.criticScoreOverride()) {
+        criticScore = firstBy(settingsService.providerOrder.criticScore, userData.criticScoreOverride(), converter = ::asCustomScore) {
             it.gameData.criticScore.minOrNull()
         },
-        userScore = firstBy(settingsService.providerOrder.userScore, userData.userScoreOverride()) {
+        userScore = firstBy(settingsService.providerOrder.userScore, userData.userScoreOverride(), converter = ::asCustomScore) {
             it.gameData.userScore.minOrNull()
         },
         genres = unsortedListBy(userData.genresOverride()) { it.gameData.genres }.flatMap(config::mapGenre).distinct().take(config.maxGenres),
         imageUrls = toImageUrls()
     )
 
+    private fun asCustomScore(value: Any) = Score(value as Double, numReviews = 0)
     private fun Score?.minOrNull() = this?.let { if (it.numReviews >= 4) it else null }
 
     private fun RawGame.toImageUrls(): ImageUrls {
