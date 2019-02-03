@@ -59,7 +59,7 @@ class GameWallView : PresentableView("Games Wall"),
 
     override val games = mutableListOf<Game>().sortedFiltered()
 
-    override var sort = state(Comparator.comparing(Game::name))
+    override val sort = state(Comparator.comparing(Game::name))
     override val filter = state { _: Game -> true }
 
     override val showGameDetailsActions = channel<Game>()

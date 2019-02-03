@@ -36,20 +36,23 @@ abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
         fun libraryData(
             name: String = randomName(),
             path: String = randomPath(),
+            type: LibraryType = LibraryType.Digital,
             platform: Platform = randomEnum()
-        ) = LibraryData(name, path.toFile(), platform)
+        ) = LibraryData(name, path.toFile(), type, platform)
 
         fun givenLibrary(
             path: String = randomPath(),
             platform: Platform = randomEnum(),
-            name: String = randomName()
-        ): Library = insertLibrary(path, platform, name)
+            name: String = randomName(),
+            type: LibraryType = LibraryType.Digital
+        ): Library = insertLibrary(path, platform, name, type)
 
         fun insertLibrary(
             path: String = randomPath(),
             platform: Platform = randomEnum(),
-            name: String = randomName()
-        ): Library = persistenceService.insertLibrary(libraryData(name, path, platform))
+            name: String = randomName(),
+            type: LibraryType = LibraryType.Digital
+        ): Library = persistenceService.insertLibrary(libraryData(name, path, type, platform))
 
         fun fetchLibraries() = persistenceService.fetchLibraries()
     }

@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.maintenance.DatabaseInvalidatedEvent
 import com.gitlab.ykrasik.gamedex.core.on
@@ -49,7 +48,7 @@ class LibraryServiceImpl @Inject constructor(
     override fun get(id: Int) = libraries.find { it.id == id }
         ?: throw IllegalArgumentException("Library doesn't exist: id=$id")
 
-    override fun get(platform: Platform, name: String) = libraries.find { it.platform == platform && it.name == name }
+    override fun get(name: String) = libraries.find { it.name == name }
     override fun get(path: File) = libraries.find { it.path == path }
 
     override fun add(data: LibraryData) = task("Adding Library '${data.name}'...") {

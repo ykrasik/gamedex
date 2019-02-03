@@ -16,7 +16,6 @@
 
 package com.gitlab.ykrasik.gamedex.app.javafx.settings
 
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderAccountStatus
 import com.gitlab.ykrasik.gamedex.app.api.settings.ProviderSettingsView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -87,9 +86,7 @@ class JavaFxProviderSettingsView(override val provider: GameProviderMetadata, ic
                     children += commonOps.providerLogo(provider.id).toImageView(height = 80.0)
                     defaultHbox(alignment = Pos.CENTER_RIGHT) {
                         provider.supportedPlatforms.reversed().forEach { platform ->
-                            if (platform != Platform.excluded) {
-                                add(platform.logo)
-                            }
+                            add(platform.logo)
                         }
                     }
                 }

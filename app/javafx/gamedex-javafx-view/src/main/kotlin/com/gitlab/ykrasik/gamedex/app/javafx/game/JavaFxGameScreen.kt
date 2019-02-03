@@ -50,7 +50,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 
-    override val currentPlatform = userMutableState(Platform.pc)
+    override val currentPlatform = userMutableState(Platform.Windows)
 
     override val searchText = userMutableState("")
     override val autoCompleteSuggestions = state<List<String>>(emptyList())

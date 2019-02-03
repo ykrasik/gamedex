@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.LibraryScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
@@ -67,12 +68,13 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
 
         "Update" should {
             "update a library's data" test {
-                val library = givenLibrary(platform = Platform.pc)
+                val library = givenLibrary(platform = Platform.Windows)
                 val updatedLibrary = library.copy(
                     data = library.data.copy(
                         name = library.name + "a",
                         path = (library.path.toString() + "b").toFile(),
-                        platform = Platform.android
+                        type = LibraryType.Excluded,
+                        platform = Platform.Android
                     )
                 )
 

@@ -44,8 +44,14 @@ class SyncLibraryServiceImpl @Inject constructor(
 
         fun detectNewPaths(library: Library, dir: File) {
             // The first iteration of this method is called with parent == null
-            check(dir.exists()) { "Path doesn't exist: $dir" }
-            check(dir.isDirectory) { "Path isn't a directory: $dir" }
+            if (!dir.exists()) {
+                log.warn("Path doesn't exist: $dir")
+                return
+            }
+            if (!dir.isDirectory) {
+                log.warn("Path isn't a directory: $dir")
+                return
+            }
             if (dir != library.path && dir in excludedDirectories) return
 
             val children = dir.listFiles().filter { !it.isHidden }
@@ -65,7 +71,7 @@ class SyncLibraryServiceImpl @Inject constructor(
             }
         }
 
-        commonData.realLibraries.forEach { library ->
+        commonData.contentLibraries.forEach { library ->
             detectNewPaths(library, library.path)
         }
 

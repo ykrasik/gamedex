@@ -133,13 +133,13 @@ class IgdbProvider @Inject constructor(private val config: IgdbConfig, private v
     override val metadata = GameProviderMetadata(
         id = "Igdb",
         logo = getResourceAsByteArray("igdb.png"),
-        supportedPlatforms = Platform.realPlatforms,
+        supportedPlatforms = Platform.values().toList(),
         defaultOrder = config.defaultOrder,
         accountFeature = object : ProviderUserAccountFeature {
             override val accountUrl = config.accountUrl
             override val field1 = "Api Key"
             override fun createAccount(fields: Map<String, String>) = IgdbUserAccount(
-                apiKey = fields[field1]!!
+                apiKey = fields.getValue(field1)
             )
         }
     )

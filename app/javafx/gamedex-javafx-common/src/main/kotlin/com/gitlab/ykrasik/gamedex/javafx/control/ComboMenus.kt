@@ -36,24 +36,22 @@ import tornadofx.*
  */
 inline fun <T> EventTarget.popoverComboMenu(
     possibleItems: List<T>,
-    selectedItemProperty: Property<T>,
+    selectedItemProperty: Property<out T?>,
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    itemStyleClass: CssRule? = null,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node?)? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
 ) = buttonWithPopover(arrowLocation = arrowLocation) {
     possibleItems.forEach { item ->
         jfxButton(text?.invoke(item), graphic?.invoke(item), alignment = Pos.CENTER_LEFT) {
-            if (itemStyleClass != null) addClass(itemStyleClass)
             useMaxWidth = true
             action { selectedItemProperty.value = item }
         }
         menuOp(item)
     }
 }.apply {
-    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { text(it!!) })
-    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { graphic(it) })
+    if (text != null) textProperty().bind(selectedItemProperty.stringBinding { it?.let(text) })
+    if (graphic != null) graphicProperty().bind(selectedItemProperty.binding { it?.let(graphic) })
 }
 
 inline fun <T> EventTarget.popoverComboMenu(
@@ -83,9 +81,8 @@ inline fun <T> EventTarget.popoverComboMenu(
 }
 
 inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
-    selectedItemProperty: Property<T>,
+    selectedItemProperty: Property<out T?>,
     arrowLocation: PopOver.ArrowLocation = PopOver.ArrowLocation.TOP_LEFT,
-    itemStyleClass: CssRule? = null,
     noinline text: ((T) -> String)? = Any?::toString,
     noinline graphic: ((T) -> Node)? = null,
     menuOp: PopOverContent.(T) -> Unit = {}
@@ -93,13 +90,12 @@ inline fun <reified T : Enum<T>> EventTarget.enumComboMenu(
     possibleItems = T::class.java.enumConstants.asList(),
     selectedItemProperty = selectedItemProperty,
     arrowLocation = arrowLocation,
-    itemStyleClass = itemStyleClass,
     text = text,
     graphic = graphic,
     menuOp = menuOp
 )
 
-fun EventTarget.platformComboBox(selected: Property<Platform>) = enumComboMenu(
+fun EventTarget.platformComboBox(selected: Property<out Platform?>) = enumComboMenu(
     selectedItemProperty = selected,
     text = Platform::displayName,
     graphic = { it.logo }

@@ -79,7 +79,7 @@ class MaintenanceServiceImpl @Inject constructor(
 
         message = "Importing database..."
         val libraries: Map<Int, Library> = executeSubTask(libraryService.addAll(portableDb.libraries.map { it.toLibraryData() }))
-            .associateBy { library -> portableDb.findLib(library.path, library.platform).id }
+            .associateBy { library -> portableDb.findLib(library.path, library.type, library.platformOrNull).id }
 
         executeSubTask(gameService.addAll(portableDb.games.map { it.toGameRequest(libraries) }))
 

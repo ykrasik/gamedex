@@ -134,6 +134,7 @@ object Icons {
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)
+    val linux get() = fontIcon(MaterialDesign.MDI_UBUNTU, Color.ORANGERED)
     val android get() = fontIcon(MaterialDesign.MDI_ANDROID, Color.FORESTGREEN)
     val apple get() = fontIcon(MaterialDesign.MDI_APPLE, Color.GRAY)
     val youTube get() = fontIcon(MaterialDesign.MDI_YOUTUBE, Color.RED)

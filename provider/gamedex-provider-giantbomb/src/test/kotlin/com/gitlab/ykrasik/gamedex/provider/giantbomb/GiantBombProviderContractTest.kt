@@ -41,7 +41,7 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
     init {
         "GiantBombProvider" should {
             "search & retrieve a single search result" test {
-                provider.search(name, Platform.pc, account) shouldBe listOf(
+                provider.search(name, Platform.Windows, account) shouldBe listOf(
                     ProviderSearchResult(
                         apiUrl = apiUrl,
                         name = name,
@@ -55,7 +55,7 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
             }
 
             "download game details" test {
-                provider.download(apiUrl, Platform.pc, account) shouldBe ProviderDownloadData(
+                provider.download(apiUrl, Platform.Windows, account) shouldBe ProviderDownloadData(
                     gameData = GameData(
                         name = name,
                         description = deck,

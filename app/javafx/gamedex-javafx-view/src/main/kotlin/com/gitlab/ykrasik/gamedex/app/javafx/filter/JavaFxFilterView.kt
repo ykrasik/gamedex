@@ -268,15 +268,21 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
     }
 
     private fun HBox.renderLibraryFilter(condition: Filter.Library) {
+        // There is a race condition when switching platforms with a library filter active -
+        // The actual filter & the possible rules are updated by different presenters, which can lead
+        // to situations where the possible libraries already point to platform specific libraries
+        // but the filter is still the filter for the old platform, which will mean the library isn't found.
+        // Currently there's no other solution but to tolerate this situation, as the presenter in charge of
+        // the platform filter will call us just a bit later and fix it.
         val library = condition.toProperty(
-            { checkNotNull(possibleLibraries.find { it.id == id }) { "Library($id) not found!" } },
+            { possibleLibraries.find { it.id == id } ?: Library.Null },
             { Filter.Library(it.id) }
         )
         popoverComboMenu(
             possibleItems = possibleLibraries,
             selectedItemProperty = library,
             text = { it.name },
-            graphic = { it.platform.logo }
+            graphic = { it.platformOrNull?.logo }
         )
     }
 

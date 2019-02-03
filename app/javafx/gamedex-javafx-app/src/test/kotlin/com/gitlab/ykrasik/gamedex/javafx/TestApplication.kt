@@ -63,14 +63,14 @@ object TestApplication {
         val start = System.currentTimeMillis()
         val basePath = File(".").absoluteFile.normalize()
         val libraries = listOf(
-            Platform.pc to "app",
-            Platform.android to "build",
-            Platform.mac to "conf",
-            Platform.excluded to "core",
-            Platform.pc to "provider"
-        ).map { (platform, name) ->
-            persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), platform))
-        }.filter { it.platform != Platform.excluded }
+            Triple(LibraryType.Digital, Platform.Windows, "app"),
+            Triple(LibraryType.Digital, Platform.Android, "build"),
+            Triple(LibraryType.Digital, Platform.Mac, "conf"),
+            Triple(LibraryType.Excluded, null, "core"),
+            Triple(LibraryType.Digital, Platform.Windows, "provider")
+        ).map { (type, platform, name) ->
+            persistenceService.insertLibrary(LibraryData(name, basePath.resolve(name), type, platform))
+        }.filter { it.type != LibraryType.Excluded }
 
         Executors.newFixedThreadPool(10).asCoroutineDispatcher().use { context ->
             runBlocking {

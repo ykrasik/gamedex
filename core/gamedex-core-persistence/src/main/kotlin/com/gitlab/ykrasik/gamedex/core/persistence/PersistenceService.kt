@@ -165,7 +165,7 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     private fun Int.toLibraryId() = EntityID(this, Libraries)
     private fun Int.toGameId() = EntityID(this, Games)
 
-    private fun LibraryData.toPersistedData() = PersistedLibraryData(name, platform)
-    private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.toFile(), platform)
-    private data class PersistedLibraryData(val name: String, val platform: Platform)
+    private fun LibraryData.toPersistedData() = PersistedLibraryData(name, type, platform)
+    private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.toFile(), type, platform)
+    private data class PersistedLibraryData(val name: String, val type: LibraryType, val platform: Platform?)
 }

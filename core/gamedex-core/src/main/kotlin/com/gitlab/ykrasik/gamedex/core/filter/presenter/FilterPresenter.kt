@@ -46,7 +46,7 @@ class FilterPresenter @Inject constructor(
             if (view.onlyShowConditionsForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
             else emptyList()
 
-        private val libraries = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformLibraries else commonData.realLibraries
+        private val libraries = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
         private val genres = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformGenres else commonData.genres
         private val tags = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformTags else commonData.tags
         private val providers = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformProviders else commonData.allProviders
@@ -58,7 +58,7 @@ class FilterPresenter @Inject constructor(
         ).associateBy { it.klass }.toMap()
 
         private val rules = listOf(
-            ConditionBuilder.singleParam(Filter::Platform) { Platform.pc },
+            ConditionBuilder.singleParam(Filter::Platform) { Platform.Windows },
             ConditionBuilder.singleParam(Filter::Library) { libraries.first().id },
             ConditionBuilder.singleParam(Filter::Genre) { genres.firstOrNull() ?: "" },
             ConditionBuilder.singleParam(Filter::Tag) { tags.firstOrNull() ?: "" },
@@ -100,7 +100,7 @@ class FilterPresenter @Inject constructor(
             if (view.onlyShowConditionsForCurrentPlatform) {
 //            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
                 // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
-                settingsService.game.platformChannel.forEach { setState() }
+                settingsService.currentPlatformSettingsChannel.forEach { setState() }
             }
 
             view.setFilterActions.forEach { setFilter(it) }

@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.api.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
 import com.gitlab.ykrasik.gamedex.app.api.State
@@ -39,7 +40,10 @@ interface EditLibraryView : ConfirmationView {
     val path: UserMutableState<String>
     val pathIsValid: State<IsValid>
 
-    val platform: UserMutableState<Platform>
+    val type: UserMutableState<LibraryType>
+    val canChangeType: State<IsValid>
+
+    val platform: UserMutableState<Platform?>
     val canChangePlatform: State<IsValid>
 
     val browseActions: ReceiveChannel<Unit>

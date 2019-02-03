@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanAddLibrary
 import com.gitlab.ykrasik.gamedex.app.api.library.ViewCanDeleteLibrary
@@ -94,7 +95,7 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                         vgap = 3.0
                         libraries.forEach { library ->
                             row {
-                                children += library.platform.logo
+                                children += if (library.type == LibraryType.Excluded) library.type.icon else library.platform.logo
                                 text(library.name)
                                 jfxButton(library.path.toString()) {
                                     useMaxWidth = true

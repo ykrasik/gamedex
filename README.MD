@@ -1,5 +1,6 @@
 # GameDex
-GameDex is an open source digital game collection management tool, similar to Kodi, but for games.
+GameDex is an open source digital game collection management tool,
+written in Kotlin and powered by [TornadoFX](https://github.com/edvin/tornadofx) & [JFoenix](https://github.com/jfoenixadmin/JFoenix)
 
 It is currently in alpha, so there is no tutorial or binary distribution (yet), however you can [build it yourself](#build-distribution).
 
@@ -11,6 +12,7 @@ Here's how it looks like:
 * Digital game collection - define folders as game libraries and sync them with online game database providers. The sync process automatically determines newly added games.
 * Currently integrated with IGDB.com & GiantBomb.com as providers - fill in your api key and fetch data about your games.
 * Designed from the ground up to support multiple providers - as more provider plugins become available, GameDex will have access to more sources of game information.
+* Supports multiple game platforms - Windows, Linux, Mac, Android.
 * A beautiful game wall display to proudly show off your collection.
 * A rich filter system that allows you to filter your games by various parameters and combine filters using boolean `and`, `or` & `not` operators for ultimate control.
 * Create reports on your game collection to easily see all games that answer certain criteria in one place.

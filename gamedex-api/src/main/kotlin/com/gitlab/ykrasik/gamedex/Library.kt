@@ -31,7 +31,9 @@ data class Library(
 ) {
     val name get() = data.name
     val path get() = data.path
-    val platform get() = data.platform
+    val type get() = data.type
+    val platform get() = if (type != LibraryType.Excluded) data.platform!! else throw IllegalStateException("Library($id) has no platform because it is of type($type)!")
+    val platformOrNull get() = data.platform
 
     companion object {
         val Null = Library(
@@ -39,7 +41,8 @@ data class Library(
             data = LibraryData(
                 name = "",
                 path = File(""),
-                platform = Platform.pc
+                type = LibraryType.Excluded,
+                platform = null
             )
         )
     }
@@ -48,20 +51,24 @@ data class Library(
 data class LibraryData(
     val name: String,
     val path: File,
-    val platform: Platform
+    val type: LibraryType,
+    val platform: Platform?
 )
 
-enum class Platform(val displayName: String) {
-    pc("PC"),
-    mac("Mac"),
-    android("Android"),
-    excluded("Excluded");
+enum class LibraryType(val displayName: String) {
+    Digital("Digital"),
+    Excluded("Excluded");
 
     override fun toString() = displayName
+}
 
-    companion object {
-        val realPlatforms = values().toList() - excluded
-    }
+enum class Platform(val displayName: String) {
+    Windows("Windows"),
+    Linux("Linux"),
+    Mac("Mac"),
+    Android("Android");
+
+    override fun toString() = displayName
 }
 
 data class LibraryPath(val library: Library, val path: File) {

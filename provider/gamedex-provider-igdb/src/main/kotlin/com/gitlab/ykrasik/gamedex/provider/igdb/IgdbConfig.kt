@@ -39,10 +39,10 @@ data class IgdbConfig(
     private val genres: Map<String, String>
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
-    fun getPlatformId(platform: Platform) = _platforms[platform]!!
+    fun getPlatformId(platform: Platform) = _platforms.getValue(platform)
 
     private val _genres = genres.mapKeys { it.key.toInt() }
-    fun getGenreName(genreId: Int): String = _genres[genreId]!!
+    fun getGenreName(genreId: Int): String = _genres.getValue(genreId)
 
     companion object {
         operator fun invoke(config: Config): IgdbConfig = config.extract("gameDex.provider.igdb")

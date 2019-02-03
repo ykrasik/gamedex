@@ -45,7 +45,7 @@ class SyncLibrariesPresenter @Inject constructor(
 ) : Presenter<ViewCanSyncLibraries> {
     override fun present(view: ViewCanSyncLibraries) = object : ViewSession() {
         init {
-            commonData.realLibraries.itemsChannel
+            commonData.contentLibraries.itemsChannel
                 .combineLatest(gameProviderService.enabledProviders.itemsChannel)
                 .combineLatest(commonData.isGameSyncRunning)
                 .forEach {

@@ -34,26 +34,33 @@ internal data class PortableDb(
     val libraries: List<PortableLibrary>,
     val games: List<PortableGame>
 ) {
-    fun findLib(path: File, platform: Platform) = libraries.find { it.path == path.path && it.platform == platform.name }!!
+    fun findLib(path: File, type: LibraryType, platform: Platform?) = libraries.find { lib ->
+        lib.path == path.path &&
+            lib.type == type.name &&
+            lib.platform == platform?.name
+    }!!
 }
 
 internal data class PortableLibrary(
     val id: Int,
     val path: String,
-    val platform: String,
+    val type: String,
+    val platform: String?,
     val name: String
 ) {
     fun toLibraryData() = LibraryData(
         name = name,
         path = path.toFile(),
-        platform = Platform.valueOf(platform)
+        type = LibraryType.valueOf(type),
+        platform = platform?.let(Platform::valueOf)
     )
 }
 
 internal fun Library.toPortable() = PortableLibrary(
     id = id,
     path = path.toString(),
-    platform = platform.name,
+    type = type.name,
+    platform = platformOrNull?.name,
     name = name
 )
 

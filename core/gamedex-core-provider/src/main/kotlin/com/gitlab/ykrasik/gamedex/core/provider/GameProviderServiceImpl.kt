@@ -99,7 +99,7 @@ class GameProviderServiceImpl @Inject constructor(
         return task("Verifying $providerId account...", initialImage = logos[providerId]!!) {
             try {
                 val providerAccount = accountFeature.createAccount(account)
-                provider.search("TestSearchToVerifyAccount", Platform.pc, providerAccount)
+                provider.search("TestSearchToVerifyAccount", Platform.Windows, providerAccount)
                 successMessage = { "$providerId: Valid Account." }
             } catch (e: Exception) {
                 errorMessage = { "$providerId: Invalid Account!" }

@@ -52,7 +52,7 @@ class RenameMoveGamePresenter @Inject constructor(
         private var name by view.name
 
         init {
-            commonData.realLibraries.bind(view.possibleLibraries)
+            commonData.contentLibraries.bind(view.possibleLibraries)
             view.library.forEach { validate() }
             view.path.forEach { validate() }
             view.name.forEach { validate() }
@@ -84,7 +84,7 @@ class RenameMoveGamePresenter @Inject constructor(
             view.nameIsValid *= Try {
                 val basePath = library.path.resolve(path).normalize()
                 val validBasePath = basePath.startsWith(library.path) &&
-                    (commonData.realLibraries - library).none { basePath.startsWith(it.path) }
+                    (commonData.contentLibraries - library).none { basePath.startsWith(it.path) }
                 if (!validBasePath) {
                     error("Path is not in library '${library.name}'!")
                 }

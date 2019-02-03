@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.library
 
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.LibraryData
-import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import java.io.File
@@ -32,7 +31,7 @@ interface LibraryService {
     val libraries: ListObservable<Library>
 
     operator fun get(id: Int): Library
-    operator fun get(platform: Platform, name: String): Library?
+    operator fun get(name: String): Library?
     operator fun get(path: File): Library?
 
     fun add(data: LibraryData): Task<Library>

@@ -35,6 +35,7 @@ fun Stage.draggableResizable(border: Int = 4) {
     var dragging = false
 
     scene.setOnMouseMoved { e ->
+        if (scene == null) return@setOnMouseMoved
         scene.cursor = when {
             e.sceneX < border && e.sceneY < border -> Cursor.NW_RESIZE
             e.sceneX < border && e.sceneY > scene.height - border -> Cursor.SW_RESIZE
@@ -50,6 +51,7 @@ fun Stage.draggableResizable(border: Int = 4) {
     }
 
     scene.setOnMousePressed { e ->
+        if (scene == null) return@setOnMousePressed
         if (aboutToResize) {
             resizing = true
             resizeStartX = width - e.sceneX
@@ -63,6 +65,7 @@ fun Stage.draggableResizable(border: Int = 4) {
     }
 
     scene.addEventFilter(MouseEvent.MOUSE_DRAGGED) { e ->
+        if (scene == null) return@addEventFilter
         if (resizing) {
             if (scene.cursor != Cursor.W_RESIZE && scene.cursor != Cursor.E_RESIZE) {
                 val minHeight = if (minHeight > border * 2) minHeight else border.toDouble() * 2
@@ -98,6 +101,7 @@ fun Stage.draggableResizable(border: Int = 4) {
     }
 
     scene.setOnMouseReleased {
+        if (scene == null) return@setOnMouseReleased
         dragging = false
         resizing = false
         if (!aboutToResize) {

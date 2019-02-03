@@ -42,7 +42,7 @@ import javax.inject.Singleton
 class GameSearchServiceImpl @Inject constructor(private val gameService: GameService) : GameSearchService {
     private val log = logger()
 
-    private val platformEngines = Platform.realPlatforms.associate { platform ->
+    private val platformEngines = Platform.values().associate { platform ->
         platform to AutocompleteEngine.Builder<IndexableGame>()
             .setIndex(GameAdapter())
             .setAnalyzers(LowerCaseTransformer(), WordTokenizer())

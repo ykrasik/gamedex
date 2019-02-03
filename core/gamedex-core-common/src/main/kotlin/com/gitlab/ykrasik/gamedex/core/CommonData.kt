@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.core
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastEventChannel
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
@@ -54,7 +55,7 @@ interface CommonData {
     val platformTags: ListObservable<String>
 
     val libraries: ListObservable<Library>
-    val realLibraries: ListObservable<Library>
+    val contentLibraries: ListObservable<Library>
     val platformLibraries: ListObservable<Library>
 
     val allProviders: ListObservable<GameProvider>
@@ -91,9 +92,9 @@ class CommonDataImpl @Inject constructor(
     private fun ListObservable<Game>.tags() = flatMapping { it.tags }.distincting().sortingBy { it }
 
     override val libraries = libraryService.libraries
-    override val realLibraries = libraries.filtering { it.platform != Platform.excluded }
+    override val contentLibraries = libraries.filtering { it.type != LibraryType.Excluded }
     override val platformLibraries =
-        realLibraries.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
+        contentLibraries.filtering(settingsService.game.platformChannel.subscribe().map(Dispatchers.Default) { platform ->
             { library: Library -> library.platform == platform }
         })
 
@@ -104,7 +105,7 @@ class CommonDataImpl @Inject constructor(
         })
     override val enabledProviders = gameProviderService.enabledProviders
 
-    override val platformsWithLibraries = realLibraries.mapping { it.platform }.distincting()
+    override val platformsWithLibraries = contentLibraries.mapping { it.platform }.distincting()
 
     override val isGameSyncRunning = BroadcastEventChannel.conflated(false).apply {
         eventBus.on<SyncGamesStartedEvent> {

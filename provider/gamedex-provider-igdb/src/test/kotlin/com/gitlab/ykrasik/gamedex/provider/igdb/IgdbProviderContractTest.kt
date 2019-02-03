@@ -45,7 +45,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
     init {
         "IgdbProvider" should {
             "search & retrieve a single search result" test {
-                val results = provider.search(name, Platform.pc, account)
+                val results = provider.search(name, Platform.Windows, account)
                 results should haveSize(1)
 
                 val result = results.first()
@@ -61,7 +61,7 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
             }
 
             "download game details" test {
-                val result = provider.download(apiUrl, Platform.pc, account)
+                val result = provider.download(apiUrl, Platform.Windows, account)
                 result shouldBe ProviderDownloadData(
                     gameData = GameData(
                         name = name,

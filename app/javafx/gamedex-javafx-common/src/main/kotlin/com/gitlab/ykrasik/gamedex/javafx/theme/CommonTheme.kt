@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.theme
 
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
@@ -33,11 +34,16 @@ import tornadofx.toProperty
 
 val Platform.logo
     get() = when (this) {
-        Platform.pc -> Icons.windows
-        Platform.android -> Icons.android
-        Platform.mac -> Icons.apple
-        Platform.excluded -> Icons.folderRemove
-        else -> kotlin.error("Unknown platform: $this")
+        Platform.Windows -> Icons.windows
+        Platform.Linux -> Icons.linux
+        Platform.Android -> Icons.android
+        Platform.Mac -> Icons.apple
+    }.size(26)
+
+val LibraryType.icon
+    get() = when (this) {
+        LibraryType.Digital -> Icons.folder
+        LibraryType.Excluded -> Icons.folderRemove
     }.size(26)
 
 inline fun EventTarget.header(

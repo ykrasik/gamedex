@@ -17,12 +17,14 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.library
 
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.icon
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
 import com.gitlab.ykrasik.gamedex.javafx.userMutableState
 import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
@@ -42,11 +44,14 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
 
     override val name = userMutableState("")
     override val nameIsValid = state(IsValid.valid)
-    
+
     override val path = userMutableState("")
     override val pathIsValid = state(IsValid.valid)
 
-    override val platform = userMutableState(Platform.pc)
+    override val type = userMutableState(LibraryType.Digital)
+    override val canChangeType = state(IsValid.valid)
+
+    override val platform = userMutableState<Platform?>(null)
     override val canChangePlatform = state(IsValid.valid)
 
     override val browseActions = channel<Unit>()
@@ -66,6 +71,8 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
                     pathField()
                     verticalGap()
                     nameField()
+                    verticalGap()
+                    typeField()
                     verticalGap()
                     platformField()
                 }
@@ -88,7 +95,17 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
         }
     }
 
+    private fun Fieldset.typeField() = horizontalField("Type") {
+        enableWhen(canChangeType)
+        enumComboMenu(
+            type.property,
+            text = LibraryType::displayName,
+            graphic = { it.icon }
+        )
+    }
+
     private fun Fieldset.platformField() = horizontalField("Platform") {
+        showWhen { platform.property.isNotNull }
         enableWhen(canChangePlatform)
         platformComboBox(platform.property)
     }
