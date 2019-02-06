@@ -287,6 +287,7 @@ project("core:gamedex-core-log") {
         fullDependency ":core:gamedex-core-common"
 
         compile logback
+        compile slf4j.julBridge
     }
 }
 
@@ -324,7 +325,6 @@ project("core:gamedex-core") {
         fullDependency ":core:gamedex-core-provider"
         fullDependency ":core:gamedex-core-report"
 
-        compile slf4j.julBridge
         compile ktor.clientApache
         compile reflections
     }

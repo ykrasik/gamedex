@@ -42,6 +42,7 @@ class ProviderSettingsPresenter @Inject constructor(
     private val taskService: TaskService
 ) : Presenter<ProviderSettingsView> {
     override fun present(view: ProviderSettingsView) = object : ViewSession() {
+        val settings get() = settingsService.providers.getValue(view.provider.id)
         var lastVerifiedAccount = emptyMap<String, String>()
         var status by view.status
         var currentAccount by view.currentAccount
@@ -50,11 +51,11 @@ class ProviderSettingsPresenter @Inject constructor(
             commonData.isGameSyncRunning.disableWhenTrue(view.canChangeProviderSettings) { "Game sync in progress!" }
 
             // FIXME: This doesn't update when settings are updated outside of this scope, like the settings screen being closed with a cancel.
-            view.enabled *= settingsService.providers[view.provider.id]!!.enabled
+            view.enabled *= settings.enabled
             view.enabled.forEach { onEnabledChanged(it) }
 
             // This will not update if settings are reset to default - by design.
-            val account = settingsService.providers[view.provider.id]!!.account
+            val account = settings.account
             currentAccount = account
             view.currentAccount.forEach { onCurrentAccountChanged(it) }
 
@@ -82,17 +83,17 @@ class ProviderSettingsPresenter @Inject constructor(
                     verifyAccount()
                 }
                 if (status == ProviderAccountStatus.Valid || status == ProviderAccountStatus.NotRequired) {
-                    modifyProviderSettings { copy(enabled = true, account = currentAccount) }
+                    modifySettings { copy(enabled = true, account = currentAccount) }
                 } else {
                     view.enabled *= false
                 }
             } else {
-                modifyProviderSettings { copy(enabled = false) }
+                modifySettings { copy(enabled = false) }
             }
         }
 
-        private inline fun modifyProviderSettings(crossinline f: ProviderSettingsRepository.Data.() -> ProviderSettingsRepository.Data) {
-            settingsService.providers[view.provider.id]!!.modify { f() }
+        private inline fun modifySettings(crossinline f: ProviderSettingsRepository.Data.() -> ProviderSettingsRepository.Data) {
+            settings.modify { f() }
         }
 
         private suspend fun verifyAccount() {

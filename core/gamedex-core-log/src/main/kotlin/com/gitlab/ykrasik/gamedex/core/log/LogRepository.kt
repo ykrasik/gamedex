@@ -16,25 +16,16 @@
 
 package com.gitlab.ykrasik.gamedex.core.log
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.spi.ThrowableProxy
-import ch.qos.logback.core.UnsynchronizedAppenderBase
 import com.gitlab.ykrasik.gamedex.app.api.log.LogEntry
-import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
-import org.joda.time.DateTime
-import org.slf4j.LoggerFactory.getLogger
 
 /**
  * User: ykrasik
  * Date: 13/04/2018
  * Time: 20:47
  */
-object GameDexLog {
-    private val maxLogEntries = 100000
+class LogRepository(private val maxLogEntries: Int) {
     private val _entries = ListObservableImpl<LogEntry>()
     val entries: ListObservable<LogEntry> = _entries
 
@@ -43,27 +34,6 @@ object GameDexLog {
 
         if (entries.size > maxLogEntries) {
             _entries -= _entries.subList(0, entries.size - maxLogEntries)
-        }
-    }
-}
-
-class GameDexLogAppender : UnsynchronizedAppenderBase<ILoggingEvent>() {
-    override fun append(e: ILoggingEvent) {
-        GameDexLog += LogEntry(
-            level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
-            timestamp = DateTime(e.timeStamp),
-            loggerName = e.loggerName.substringAfterLast('.'),
-            message = e.message,
-            throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
-        )
-    }
-
-    companion object {
-        fun init() {
-            with(getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger) {
-                addAppender(GameDexLogAppender().apply { start() })
-                level = Level.TRACE
-            }
         }
     }
 }

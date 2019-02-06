@@ -19,8 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.preloader
 import com.gitlab.ykrasik.gamedex.app.api.log.LogLevel
 import com.gitlab.ykrasik.gamedex.app.api.preloader.Preloader
 import com.gitlab.ykrasik.gamedex.app.api.preloader.PreloaderView
-import com.gitlab.ykrasik.gamedex.core.log.GameDexLog
-import com.gitlab.ykrasik.gamedex.core.log.GameDexLogAppender
+import com.gitlab.ykrasik.gamedex.core.log.LogService
+import com.gitlab.ykrasik.gamedex.core.log.LogServiceImpl
 import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
@@ -34,7 +34,6 @@ import com.google.inject.spi.ProvisionListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.slf4j.bridge.SLF4JBridgeHandler
 
 /**
  * User: ykrasik
@@ -46,9 +45,8 @@ class PreloaderImpl : Preloader {
 
     override suspend fun load(view: PreloaderView, vararg extraModules: Module): Injector = withContext(Dispatchers.IO) {
         val (injector, millisTaken) = millisTaken {
-            SLF4JBridgeHandler.removeHandlersForRootLogger()
-            SLF4JBridgeHandler.install()
-            GameDexLogAppender.init()
+            val logService = LogServiceImpl()
+            logService.init()
 
             withContext(Dispatchers.Main) {
                 view.progress = 0.0
@@ -56,7 +54,7 @@ class PreloaderImpl : Preloader {
             }
 
             // While loading, display all log messages in the task
-            val subscription = GameDexLog.entries.itemsChannel.subscribe(Dispatchers.Main) {
+            val subscription = logService.entries.itemsChannel.subscribe(Dispatchers.Main) {
                 it.lastOrNull()?.let {
                     if (it.level.canLog(LogLevel.Info)) {
                         view.message = it.message
@@ -78,6 +76,8 @@ class PreloaderImpl : Preloader {
                             }
                         }
                     })
+
+                    bind(LogService::class.java).toInstance(logService)
                 }
             }
             val injector = Guice.createInjector(Stage.PRODUCTION, CoreModule, loadProgressModule, *extraModules)

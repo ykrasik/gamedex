@@ -19,14 +19,15 @@ package com.gitlab.ykrasik.gamedex.core.log.presenter
 import com.gitlab.ykrasik.gamedex.app.api.log.ViewWithLogEntries
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.log.GameDexLog
+import com.gitlab.ykrasik.gamedex.core.log.LogService
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LogEntriesPresenter : Presenter<ViewWithLogEntries> {
+class LogEntriesPresenter @Inject constructor(private val logService: LogService) : Presenter<ViewWithLogEntries> {
     override fun present(view: ViewWithLogEntries) = object : ViewSession() {
         init {
-            GameDexLog.entries.bind(view.entries)
+            logService.entries.bind(view.entries)
         }
     }
 }
