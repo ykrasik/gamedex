@@ -116,3 +116,5 @@ cache/posters
 cache/files
 *.iss
 db*.json
+
+RawVersion.kt

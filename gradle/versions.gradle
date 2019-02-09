@@ -1,0 +1,29 @@
+apply plugin: 'com.github.ben-manes.versions'
+
+// Easier to remember alias
+task versions(dependsOn: dependencyUpdates)
+
+dependencyUpdates.resolutionStrategy {
+    componentSelection { rules ->
+        rules.all { ComponentSelection selection ->
+            boolean notRelease = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview'].any { qualifier ->
+                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+            }
+            if (notRelease) {
+                selection.reject('Release candidate')
+            }
+
+            boolean ignored = [
+                'org.kordamp.ikonli:ikonli-javafx:11.*',
+                'org.controlsfx:controlsfx:9.*',
+                'com.jfoenix:jfoenix:9.*',
+                'com.h2database:h2:1.4.197'
+            ].any { regex ->
+                selection.candidate.toString() ==~ regex
+            }
+            if (ignored) {
+                selection.reject('Ignored')
+            }
+        }
+    }
+}

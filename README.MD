@@ -52,5 +52,10 @@ systemProp.gameDex.igdb.apiKey={yourApiKey}
 ```
 This is because contract tests for providers require real credentials to work.
 
-### Check for library version updates
+# Maintenance Tasks
+
+#### Create release tag
+`gradlew tag -Prelease`
+
+#### Check for library version updates
 `gradlew versions`

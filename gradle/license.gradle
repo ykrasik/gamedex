@@ -38,6 +38,7 @@ license {
     exclude '**/*.IkonHandler'
 
     exclude '**/MaterialDesign*.kt'
+    exclude '**/RawVersion.kt'
 
     mapping {
         kt = 'javaDocBox'
@@ -45,4 +46,4 @@ license {
 }
 
 task applyLicense(dependsOn: [licenseFormatMain, licenseFormatTest])
-build.dependsOn applyLicense
+compileKotlin.dependsOn applyLicense
