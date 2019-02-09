@@ -86,8 +86,8 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
         val name = "No Man's Sky"
         val apiUrl = "https://api-endpoint.igdb.com/games/3225"
         val releaseDate = "2016-08-12"
-        val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 30)
-        val Score?.verifiedUserScore get() = assertScore(min = 62, max = 66, numReviews = 80)
+        val Score?.verifiedCriticScore get() = assertScore(min = 72, max = 74, numReviews = 42)
+        val Score?.verifiedUserScore get() = assertScore(min = 62, max = 67, numReviews = 142)
         val thumbnailUrl = "http://images.igdb.com/igdb/image/upload/t_thumb_2x/ppt92xozmp6fcaxfce0h.jpg"
         val posterUrl = "http://images.igdb.com/igdb/image/upload/t_screenshot_huge/ppt92xozmp6fcaxfce0h.jpg"
         val url = "https://www.igdb.com/games/no-man-s-sky"
