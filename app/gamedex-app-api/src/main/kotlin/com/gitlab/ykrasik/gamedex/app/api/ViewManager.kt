@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.api
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Library
+import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
@@ -89,4 +90,7 @@ interface ViewManager {
 
     fun showSettingsView(): SettingsView
     fun hide(view: SettingsView)
+
+    fun showAboutView(): AboutView
+    fun hide(view: AboutView)
 }

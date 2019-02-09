@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.core.common.FakeServerManager
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -96,7 +96,7 @@ object TestApplication {
             }
         }
 
-        println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).toHumanReadableDuration()}")
+        println("Initialized test db with $numGames games in ${(System.currentTimeMillis() - start).humanReadableDuration}")
     }
 
     private fun randomProviderData(provider: GameProviderFakeServer) = ProviderData(

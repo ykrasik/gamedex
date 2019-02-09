@@ -37,6 +37,8 @@ class ViewCommonOpsImpl @Inject constructor(
     gameProviderService: GameProviderService,
     private val fileSystemService: FileSystemService
 ) : ViewCommonOps {
+    override val version = com.gitlab.ykrasik.gamedex.core.version.version
+
     override suspend fun fetchThumbnail(game: Game) = imageService.fetchThumbnail(game)
 
     override suspend fun fetchPoster(game: Game) = imageService.fetchPoster(game)

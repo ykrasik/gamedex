@@ -26,10 +26,7 @@ import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.JodaDateTime
-import com.gitlab.ykrasik.gamedex.util.Ref
-import com.gitlab.ykrasik.gamedex.util.toHumanReadable
-import com.gitlab.ykrasik.gamedex.util.toString
+import com.gitlab.ykrasik.gamedex.util.*
 import com.jfoenix.controls.JFXButton
 import javafx.animation.Interpolator
 import javafx.beans.value.ObservableValue
@@ -43,7 +40,6 @@ import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.channels.Channel
-import org.joda.time.DateTimeZone
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.io.File
@@ -272,7 +268,7 @@ class GameDetailsPaneBuilder(
 
     private fun EventTarget.dateDisplay(date: JodaDateTime?, icon: FontIcon, styleClass: CssRule, tooltip: String, op: (Label.() -> Unit)?) =
         date?.let {
-            label(it.withZone(DateTimeZone.getDefault()).toHumanReadable(), graphic = icon.size(16)) {
+            label(it.defaultTimeZone.humanReadable, graphic = icon.size(16)) {
                 addClass(styleClass)
                 tooltip(tooltip)
                 op?.invoke(this)

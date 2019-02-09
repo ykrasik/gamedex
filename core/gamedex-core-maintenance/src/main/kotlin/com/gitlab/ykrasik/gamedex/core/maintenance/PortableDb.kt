@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.toDateTime
+import com.gitlab.ykrasik.gamedex.util.dateTime
 import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
 
@@ -77,8 +77,8 @@ internal data class PortableGame(
             libraryId = libraries.getOrElse(libraryId) { throw IllegalArgumentException("Invalid library id: $libraryId") }.id,
             path = path,
             timestamp = Timestamp(
-                createDate = createDate.toDateTime(),
-                updateDate = updateDate.toDateTime()
+                createDate = createDate.dateTime,
+                updateDate = updateDate.dateTime
             )
         ),
         providerData = providerData.map { it.toProviderData() },
@@ -133,8 +133,8 @@ internal data class PortableProviderData(
         ),
         siteUrl = siteUrl,
         timestamp = Timestamp(
-            createDate = createDate.toDateTime(),
-            updateDate = updateDate.toDateTime()
+            createDate = createDate.dateTime,
+            updateDate = updateDate.dateTime
         )
     )
 

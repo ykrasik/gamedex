@@ -25,9 +25,9 @@ import com.gitlab.ykrasik.gamedex.core.module.CoreModule
 import com.gitlab.ykrasik.gamedex.core.settings.PreloaderSettingsRepository
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsStorageFactory
 import com.gitlab.ykrasik.gamedex.core.storage.StringIdJsonStorageFactory
+import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.millisTaken
-import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import com.google.inject.*
 import com.google.inject.matcher.Matchers
 import com.google.inject.spi.ProvisionListener
@@ -93,7 +93,7 @@ class PreloaderImpl : Preloader {
 
             injector
         }
-        log.info("Application loading took ${millisTaken.toHumanReadableDuration()}")
+        log.info("Application loading took ${millisTaken.humanReadableDuration}")
 
         return@withContext injector
     }

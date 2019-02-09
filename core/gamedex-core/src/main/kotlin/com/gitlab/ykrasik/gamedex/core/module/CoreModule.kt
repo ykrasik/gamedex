@@ -21,7 +21,9 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.EventBusImpl
 import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
+import com.gitlab.ykrasik.gamedex.core.common.AboutViewPresenter
 import com.gitlab.ykrasik.gamedex.core.common.CommonOpsConfig
+import com.gitlab.ykrasik.gamedex.core.common.ShowAboutViewPresenter
 import com.gitlab.ykrasik.gamedex.core.common.ViewCommonOpsImpl
 import com.gitlab.ykrasik.gamedex.core.file.module.FileModule
 import com.gitlab.ykrasik.gamedex.core.filter.presenter.FilterPresenter
@@ -112,6 +114,9 @@ object CoreModule : InternalCoreModule() {
         bindPresenter(ProviderSettingsPresenter::class)
 
         bindPresenter(BrowseUrlPresenter::class)
+
+        bindPresenter(ShowAboutViewPresenter::class)
+        bindPresenter(AboutViewPresenter::class)
     }
 
     @Provides

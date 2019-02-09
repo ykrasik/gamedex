@@ -14,33 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.common
+package com.gitlab.ykrasik.gamedex.core.common
 
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Ref
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 19/01/2019
- * Time: 22:23
- *
- * Provided to the view layer through DI, as a more natural way of getting common data than through implementing interfaces.
+ * Date: 09/02/2019
+ * Time: 17:43
  */
-interface ViewCommonOps {
-    val version: Version
-
-    suspend fun fetchThumbnail(game: Game): Image?
-    suspend fun fetchPoster(game: Game): Image?
-    suspend fun downloadImage(url: String): Image?
-
-    fun fetchFileTree(game: Game): Ref<FileTree>
-
-    val providers: List<GameProviderMetadata>
-    val providerLogos: Map<ProviderId, Image>
-
-    fun youTubeGameplayUrl(game: Game): String
+@Singleton
+class ShowAboutViewPresenter @Inject constructor(
+    private val eventBus: EventBus,
+    private val viewManager: ViewManager
+) : Presenter<ViewCanShowAboutView> {
+    override fun present(view: ViewCanShowAboutView) = object : ViewSession() {
+        init {
+            view.showAboutActions.forEach {
+                val aboutView = viewManager.showAboutView()
+                eventBus.awaitViewFinished(aboutView)
+                viewManager.hide(aboutView)
+            }
+        }
+    }
 }

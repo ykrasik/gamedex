@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.maintenance.MaintenanceService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import com.gitlab.ykrasik.gamedex.util.defaultTimeZone
 import com.gitlab.ykrasik.gamedex.util.now
-import org.joda.time.DateTimeZone
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,7 +47,7 @@ class ExportDatabasePresenter @Inject constructor(
         private suspend fun exportDatabase() {
             val selectedDirectory = view.selectDatabaseExportDirectory(settingsService.general.exportDbDirectory) ?: return
             settingsService.general.modify { copy(exportDbDirectory = selectedDirectory) }
-            val timestamp = now.withZone(DateTimeZone.getDefault())
+            val timestamp = now.defaultTimeZone
             val timestampedPath = Paths.get(
                 selectedDirectory.toString(),
                 "db ${timestamp.toString("yyyy-MM-dd HH_mm_ss")}.json"

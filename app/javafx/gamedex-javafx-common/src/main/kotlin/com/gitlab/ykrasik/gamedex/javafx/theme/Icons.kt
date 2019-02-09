@@ -147,6 +147,7 @@ object Icons {
     val or get() = fontIcon(MaterialDesign.MDI_GATE_OR)
     val and get() = fontIcon(MaterialDesign.MDI_GATE_AND)
     val validationError get() = warning.color(Color.RED)
+    val copyright get() = fontIcon(MaterialDesign.MDI_COPYRIGHT)
 
     val equal get() = fontIcon(MaterialDesign.MDI_EQUAL)
     val notEqual get() = fontIcon(MaterialDesign.MDI_NOT_EQUAL_VARIANT)

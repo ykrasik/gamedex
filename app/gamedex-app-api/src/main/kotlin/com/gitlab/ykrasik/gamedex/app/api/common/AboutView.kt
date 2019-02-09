@@ -16,31 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.common
 
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.image.Image
-import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.Ref
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 19/01/2019
- * Time: 22:23
- *
- * Provided to the view layer through DI, as a more natural way of getting common data than through implementing interfaces.
+ * Date: 09/02/2019
+ * Time: 17:34
  */
-interface ViewCommonOps {
-    val version: Version
-
-    suspend fun fetchThumbnail(game: Game): Image?
-    suspend fun fetchPoster(game: Game): Image?
-    suspend fun downloadImage(url: String): Image?
-
-    fun fetchFileTree(game: Game): Ref<FileTree>
-
-    val providers: List<GameProviderMetadata>
-    val providerLogos: Map<ProviderId, Image>
-
-    fun youTubeGameplayUrl(game: Game): String
+interface AboutView {
+    val acceptActions: ReceiveChannel<Unit>
 }

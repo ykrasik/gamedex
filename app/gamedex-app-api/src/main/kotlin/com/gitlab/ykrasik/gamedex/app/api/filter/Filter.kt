@@ -222,7 +222,7 @@ sealed class Filter {
     }
 
     class TargetReleaseDate(override val date: LocalDate) : TargetDate() {
-        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.dateTimeOrNull
         override fun isEqual(other: Filter) = isEqual0<TargetReleaseDate>(other)
         override fun toString() = "Release Date >= $date"
     }
@@ -254,21 +254,21 @@ sealed class Filter {
     }
 
     class PeriodReleaseDate(override val period: Period) : PeriodDate() {
-        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.dateTimeOrNull
         override fun isEqual(other: Filter) = isEqual0<PeriodReleaseDate>(other)
-        override fun toString() = "Release Date >= (Now - ${period.toHumanReadable()}"
+        override fun toString() = "Release Date >= (Now - ${period.humanReadable}"
     }
 
     class PeriodCreateDate(override val period: Period) : PeriodDate() {
         override fun extractDate(game: Game, context: Context) = game.createDate
         override fun isEqual(other: Filter) = isEqual0<PeriodCreateDate>(other)
-        override fun toString() = "Create Date >= (Now - ${period.toHumanReadable()}"
+        override fun toString() = "Create Date >= (Now - ${period.humanReadable}"
     }
 
     class PeriodUpdateDate(override val period: Period) : PeriodDate() {
         override fun extractDate(game: Game, context: Context) = game.updateDate
         override fun isEqual(other: Filter) = isEqual0<PeriodUpdateDate>(other)
-        override fun toString() = "Update Date >= (Now - ${period.toHumanReadable()}"
+        override fun toString() = "Update Date >= (Now - ${period.humanReadable}"
     }
 
     abstract class NullDate : DateRule() {
@@ -281,7 +281,7 @@ sealed class Filter {
     }
 
     class NullReleaseDate : NullDate() {
-        override fun extractDate(game: Game, context: Context) = game.releaseDate?.toDateTimeOrNull()
+        override fun extractDate(game: Game, context: Context) = game.releaseDate?.dateTimeOrNull
         override fun toString() = "Release Date == NULL"
     }
 

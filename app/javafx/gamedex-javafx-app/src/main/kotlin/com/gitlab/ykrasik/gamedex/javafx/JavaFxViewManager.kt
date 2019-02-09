@@ -20,6 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.Library
 import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
@@ -34,6 +35,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportView
 import com.gitlab.ykrasik.gamedex.app.api.settings.SettingsView
 import com.gitlab.ykrasik.gamedex.app.api.task.TaskView
+import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxAboutView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.delete.JavaFxDeleteGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.edit.JavaFxEditGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.game.rename.JavaFxRenameMoveGameView
@@ -115,10 +117,6 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
     override fun hide(view: DeleteReportView) = view.close()
 
-    private val settingsView: JavaFxSettingsView by inject()
-    override fun showSettingsView() = settingsView.showModal()
-    override fun hide(view: SettingsView) = view.close()
-
     private val redownloadGamesView: JavaFxRedownloadGamesView by inject()
     override fun showRedownloadGamesView() = redownloadGamesView.showModal()
     override fun hide(view: RedownloadGamesView) = view.close()
@@ -130,6 +128,14 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
     override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
     override fun hide(view: CleanupDatabaseView) = view.close()
+
+    private val settingsView: JavaFxSettingsView by inject()
+    override fun showSettingsView() = settingsView.showModal()
+    override fun hide(view: SettingsView) = view.close()
+
+    private val aboutView: JavaFxAboutView by inject()
+    override fun showAboutView() = aboutView.showModal()
+    override fun hide(view: AboutView) = view.close()
 
     private fun Any.close() = (this as View).close()
 

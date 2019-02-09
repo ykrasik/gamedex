@@ -36,20 +36,21 @@ typealias JavaDateTime = java.time.LocalDateTime
 val now: JodaDateTime get() = DateTime.now(DateTimeZone.UTC)
 val today: JodaLocalDate get() = LocalDate.now(DateTimeZone.UTC)
 
-fun Long.toDateTime(): JodaDateTime = DateTime(this, DateTimeZone.UTC)
+val Long.dateTime: JodaDateTime get() = DateTime(this, DateTimeZone.UTC)
 
-fun String.toDate(): JodaLocalDate = LocalDate.parse(this)
-fun String.toDateOrNull(): JodaLocalDate? = runCatching { toDate() }.getOrNull()
+val String.date: JodaLocalDate get() = LocalDate.parse(this)
+val String.dateOrNull: JodaLocalDate? get() = runCatching { date }.getOrNull()
 
-fun String.toDateTime(): JodaDateTime = DateTime.parse(this)
-fun String.toDateTimeOrNull(): JodaDateTime? = runCatching { toDateTime() }.getOrNull()
+val String.dateTime: JodaDateTime get() = DateTime.parse(this)
+val String.dateTimeOrNull: JodaDateTime? get() = runCatching { dateTime }.getOrNull()
 
 val JodaLocalDate.java get(): JavaLocalDate = JavaLocalDate.of(year, monthOfYear, dayOfMonth)
 val JavaLocalDate.joda get(): JodaLocalDate = LocalDate(year, monthValue, dayOfMonth)
 
-fun JodaDateTime.toHumanReadable(): String = toString("yyyy-MM-dd HH:mm")
-fun Period.toHumanReadable(): String = PeriodFormat.getDefault().print(this)
-fun Long.toHumanReadableDuration(): String = Period(this).toHumanReadable()
+val JodaDateTime.defaultTimeZone: JodaDateTime get() = withZone(DateTimeZone.getDefault())
+val JodaDateTime.humanReadable: String get() = toString("yyyy-MM-dd HH:mm")
+val Period.humanReadable: String get() = PeriodFormat.getDefault().print(this)
+val Long.humanReadableDuration: String get() = Period(this).humanReadable
 
 val Int.years get() = Period.years(this)
 val Int.months get() = Period.months(this)

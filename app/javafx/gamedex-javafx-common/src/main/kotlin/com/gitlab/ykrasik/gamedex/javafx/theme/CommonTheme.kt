@@ -61,3 +61,19 @@ inline fun EventTarget.header(
     if (graphic != null) this.graphicProperty().bind(graphic)
     op(this)
 }
+
+inline fun EventTarget.subHeader(
+    text: String,
+    graphic: Node? = null,
+    crossinline op: Label.() -> Unit = {}
+) = subHeader(text.toProperty(), graphic?.toProperty(), op)
+
+inline fun EventTarget.subHeader(
+    textProperty: ObservableValue<String>,
+    graphic: ObservableValue<out Node>? = null,
+    crossinline op: Label.() -> Unit = {}
+) = label(textProperty) {
+    addClass(CommonStyle.subHeaderLabel)
+    if (graphic != null) this.graphicProperty().bind(graphic)
+    op(this)
+}

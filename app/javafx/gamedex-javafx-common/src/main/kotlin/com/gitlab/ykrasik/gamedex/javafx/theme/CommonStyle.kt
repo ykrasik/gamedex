@@ -56,6 +56,7 @@ class CommonStyle : Stylesheet() {
         val popoverMenu by cssclass()
 
         val headerLabel by cssclass()
+        val subHeaderLabel by cssclass()
 
         val gamedexWindow by cssclass()
 
@@ -161,6 +162,11 @@ class CommonStyle : Stylesheet() {
 
         headerLabel {
             fontSize = 18.px
+            fontWeight = FontWeight.BOLD
+        }
+
+        subHeaderLabel {
+            fontSize = 15.px
             fontWeight = FontWeight.BOLD
         }
 

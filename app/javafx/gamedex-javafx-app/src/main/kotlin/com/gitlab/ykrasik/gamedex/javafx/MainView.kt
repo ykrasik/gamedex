@@ -17,6 +17,7 @@
 package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -34,7 +35,7 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableView
-import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
+import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import com.jfoenix.controls.JFXButton
 import javafx.geometry.Pos
 import javafx.scene.Node
@@ -51,7 +52,7 @@ import java.util.*
  * Date: 08/10/2016
  * Time: 22:44
  */
-class MainView : PresentableView("GameDex"), ViewCanShowSettings {
+class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAboutView {
     val taskView: JavaFxTaskView by inject()
 
     private val gameScreen: JavaFxGameScreen by inject()
@@ -67,6 +68,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     private val toolbars = mutableMapOf<PresentableScreen, HBox>()
 
     override val showSettingsActions = channel<Unit>()
+    override val showAboutActions = channel<Unit>()
 
     private val maxNavigationHistory = 5
     private val navigationHistory = ArrayDeque<Tab>(maxNavigationHistory)
@@ -121,6 +123,9 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
         verticalGap(size = 15)
 
+        navigationButton("About", Icons.information) {
+            action(showAboutActions)
+        }
         navigationButton("Quit", Icons.quit) {
             action {
                 System.exit(0)
@@ -137,7 +142,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
 
         whenDockedOnce {
             val applicationStartTime = System.currentTimeMillis() - params[StartTimeParam] as Long
-            log.info("Total application start time: ${applicationStartTime.toHumanReadableDuration()}")
+            log.info("Total application start time: ${applicationStartTime.humanReadableDuration}")
         }
     }
 
@@ -232,6 +237,6 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings {
     }
 
     companion object {
-        val StartTimeParam = "GameDex.startTime"
+        const val StartTimeParam = "GameDex.startTime"
     }
 }

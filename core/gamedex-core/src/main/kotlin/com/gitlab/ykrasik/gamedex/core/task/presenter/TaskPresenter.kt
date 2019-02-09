@@ -27,8 +27,8 @@ import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.TaskFinishedEvent
 import com.gitlab.ykrasik.gamedex.core.task.TaskStartedEvent
 import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.toHumanReadableDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -94,7 +94,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
 
                     val successMessage = task.successMessage?.invoke(result.value)
                     successMessage?.let(view::taskSuccess)
-                    log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.toHumanReadableDuration()}]")
+                    log.info("${successMessage ?: "${task.title} Done:"} [${millisTaken.humanReadableDuration}]")
                 }
                 is Try.Error -> {
                     val error = result.error
@@ -102,7 +102,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                         error is CancellationException && error !is ClosedSendChannelException -> {
                             val cancelMessage = task.cancelMessage?.invoke()
                             cancelMessage?.let(view::taskCancelled)
-                            log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.toHumanReadableDuration()}]")
+                            log.info("${cancelMessage ?: "${task.title} Cancelled:"} [${millisTaken.humanReadableDuration}]")
 
                             // Cancellation exceptions should not be treated as unexpected errors.
                             resultToReturn = Try.error(ExpectedException(error))
@@ -114,7 +114,7 @@ class TaskPresenter @Inject constructor(private val eventBus: EventBus) : Presen
                                 view.taskError(error, errorMessage)
                                 resultToReturn = Try.error(ExpectedException(error))
                             }
-                            log.error("${errorMessage ?: "${task.title} Error:"} [${millisTaken.toHumanReadableDuration()}]", error)
+                            log.error("${errorMessage ?: "${task.title} Error:"} [${millisTaken.humanReadableDuration}]", error)
                         }
                     }
                 }

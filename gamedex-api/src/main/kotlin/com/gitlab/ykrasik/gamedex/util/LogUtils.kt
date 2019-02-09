@@ -138,6 +138,6 @@ inline fun <T> Logger.time(
 ): T {
     log(beforeMessage)
     val (result, millisTaken) = millisTaken(f)
-    log("$beforeMessage Done: ${afterMessage(millisTaken.toHumanReadableDuration(), result)}")
+    log("$beforeMessage Done: ${afterMessage(millisTaken.humanReadableDuration, result)}")
     return result
 }

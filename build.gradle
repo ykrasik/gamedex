@@ -253,6 +253,8 @@ project("gamedex-api") {
 project("app:gamedex-app-api") {
     dependencies {
         fullDependency ":gamedex-api"
+
+        compile semVer
         compile diff
     }
 }
@@ -260,8 +262,6 @@ project("app:gamedex-app-api") {
 project("core:gamedex-core-common") {
     dependencies {
         fullDependency ":app:gamedex-app-api"
-        
-        compile semVer
     }
 
     compileKotlin.dependsOn(createVersionFile)
