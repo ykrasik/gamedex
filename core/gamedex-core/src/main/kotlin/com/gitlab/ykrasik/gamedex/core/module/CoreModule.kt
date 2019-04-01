@@ -18,9 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.module
 
 import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
-import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.EventBusImpl
-import com.gitlab.ykrasik.gamedex.core.ViewRegistryImpl
+import com.gitlab.ykrasik.gamedex.core.*
 import com.gitlab.ykrasik.gamedex.core.common.AboutViewPresenter
 import com.gitlab.ykrasik.gamedex.core.common.CommonOpsConfig
 import com.gitlab.ykrasik.gamedex.core.common.ShowAboutViewPresenter
@@ -32,6 +30,11 @@ import com.gitlab.ykrasik.gamedex.core.image.module.ImageModule
 import com.gitlab.ykrasik.gamedex.core.library.module.LibraryModule
 import com.gitlab.ykrasik.gamedex.core.log.module.LogModule
 import com.gitlab.ykrasik.gamedex.core.maintenance.module.MaintenanceModule
+import com.gitlab.ykrasik.gamedex.core.persistence.module.PersistenceModule
+import com.gitlab.ykrasik.gamedex.core.plugin.ClasspathPluginScanner
+import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
+import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
+import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
 import com.gitlab.ykrasik.gamedex.core.provider.module.ProviderCoreModule
 import com.gitlab.ykrasik.gamedex.core.report.module.ReportModule
 import com.gitlab.ykrasik.gamedex.core.settings.presenter.*
@@ -42,10 +45,9 @@ import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.core.task.TaskServiceImpl
 import com.gitlab.ykrasik.gamedex.core.task.presenter.TaskPresenter
 import com.gitlab.ykrasik.gamedex.core.task.presenter.ViewWithRunningTaskPresenter
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.core.web.presenter.BrowseUrlPresenter
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
 import com.gitlab.ykrasik.gamedex.util.time
+import com.google.inject.Injector
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import com.typesafe.config.Config
@@ -62,6 +64,8 @@ import javax.inject.Singleton
  * Time: 21:55
  */
 object CoreModule : InternalCoreModule() {
+    val configFile = "/com/gitlab/ykrasik/gamedex/core/core.conf"
+
     override fun configure() {
         installModules()
         bindPresenters()
@@ -83,15 +87,9 @@ object CoreModule : InternalCoreModule() {
         install(ImageModule)
         install(LibraryModule)
         install(LogModule)
+        install(PersistenceModule)
         install(ProviderCoreModule)
         install(ReportModule)
-
-        // Install all providers detected by classpath scan
-        log.time("Detecting providers...", { time, providers -> "${providers.size} providers in $time" }) {
-            val providers = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex.provider", ProviderModule::class)
-            providers.forEach { install(it.kotlin.objectInstance!!) }
-            providers
-        }
     }
 
     private fun bindPresenters() {
@@ -121,15 +119,23 @@ object CoreModule : InternalCoreModule() {
 
     @Provides
     @Singleton
-    fun config(): Config = log.time("Loading configuration...") {
-        val configurationFiles = ClassPathScanner.scanResources("com.gitlab.ykrasik.gamedex") {
-            it.endsWith(".conf") && it != "application.conf" && it != "reference.conf"
+    fun pluginManager(injector: Injector): PluginManager {
+        val scanners = listOf(DirectoryPluginScanner("plugins")).let {
+            // In dev scan the plugins dir & classpath
+            // In prod scan only the plugins dir
+            if (env == Environment.Dev) it + ClasspathPluginScanner() else it
         }
+        return PluginManagerImpl(injector, scanners)
+    }
 
-        // Use the default config as a baseline and apply 'withFallback' on it for every custom .conf file encountered.
-        configurationFiles.fold(ConfigFactory.load()) { current, url ->
-            current.withFallback(ConfigFactory.parseURL(url))
-        }
+    @Provides
+    @Singleton
+    fun config(): Config = log.time("Loading configuration...") {
+        listOf(GameModule.configFile, ImageModule.configFile, PersistenceModule.configFile, configFile)
+            .fold(ConfigFactory.load()) { config, file ->
+                val resource = checkNotNull(javaClass.getResource(file)) { "Config file not found: $file" }
+                config.withFallback(ConfigFactory.parseURL(resource))
+            }
     }
 
     @Provides
@@ -143,6 +149,14 @@ object CoreModule : InternalCoreModule() {
 //            }
 //            level = LogLevel.BODY
 //        }
+        engine {
+            followRedirects = true  // Follow HTTP Location redirects - default false. It uses the default number of redirects defined by Apache's HttpClient that is 50.
+
+            // For timeouts: 0 means infinite, while negative value mean to use the system's default value
+            socketTimeout = 30_000  // Max time between TCP packets - default 10 seconds
+            connectTimeout = 30_000 // Max time to establish an HTTP connection - default 10 seconds
+            connectionRequestTimeout = 30_000 // Max time for the connection manager to start a request - 20 seconds
+        }
     }
 
     @Provides

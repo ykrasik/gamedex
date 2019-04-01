@@ -59,15 +59,15 @@ class JavaFxAboutView : PresentableWindow("About"), AboutView {
                 alignment = Pos.CENTER_LEFT
                 row {
                     subHeader("Version")
-                    label(commonOps.version.version.toString())
+                    label(commonOps.applicationVersion.version)
                 }
                 row {
                     subHeader("Built On")
-                    label(commonOps.version.buildDate.defaultTimeZone.humanReadable)
+                    label(commonOps.applicationVersion.buildDate!!.defaultTimeZone.humanReadable)
                 }
                 row {
                     subHeader("Commit")
-                    label(commonOps.version.commitHash)
+                    label(commonOps.applicationVersion.commitHash!!)
                 }
             }
             defaultHbox {

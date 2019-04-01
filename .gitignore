@@ -85,7 +85,6 @@ proguard/
 # Package Files #
 *.jar
 !gradle-wrapper.jar
-gradle.properties
 *.war
 *.ear
 
@@ -116,5 +115,4 @@ cache/posters
 cache/files
 *.iss
 db*.json
-
-RawVersion.kt
+dist/

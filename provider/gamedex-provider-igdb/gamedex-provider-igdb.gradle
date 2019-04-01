@@ -1,0 +1,20 @@
+version = gitVersion('igdb-')
+
+ext {
+    pluginJsonDir = "com/gitlab/ykrasik/gamedex/provider/igdb"
+    pluginClass = "com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderPlugin"
+    pluginId = "provider.igdb"
+    pluginDescription = "IGDB integration"
+    pluginAuthor = "Yevgeny Krasik"
+    pluginApiDependencies = [
+        "Plugin"  : 0,
+        "Provider": 0
+    ]
+}
+
+apply from: gradleFile('plugin.gradle')
+
+dependencies {
+    compileOnly project(":gamedex-api")
+    testCompile project(path: ":gamedex-api", configuration: 'testArtifacts')
+}

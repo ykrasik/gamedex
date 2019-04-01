@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.common.Version
+import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.app.javafx.image.DomainImage
 import com.gitlab.ykrasik.gamedex.app.javafx.image.JavaFxImage
@@ -49,7 +49,7 @@ class JavaFxCommonOps @Inject constructor(private val ops: ViewCommonOps) {
     private val loading = getResourceAsByteArray("spinner.gif").toImage()
     private val noImage = getResourceAsByteArray("no-image-available.png").toImage()
 
-    val version: Version = ops.version
+    val applicationVersion: Version = ops.applicationVersion
 
     fun fetchThumbnail(game: Game?): ObservableValue<JavaFxImage> = game.ifNotNull {
         loadImage {

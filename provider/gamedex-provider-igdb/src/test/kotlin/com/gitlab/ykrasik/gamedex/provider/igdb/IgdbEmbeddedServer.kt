@@ -19,9 +19,12 @@ package com.gitlab.ykrasik.gamedex.provider.igdb
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
+import com.gitlab.ykrasik.gamedex.plugin.PluginDescriptor
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import com.google.inject.Provides
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -34,6 +37,7 @@ import io.ktor.routing.*
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import java.io.Closeable
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -73,7 +77,6 @@ class IgdbMockServer(port: Int = freePort) : Closeable {
     }
 }
 
-@Suppress("unused")
 class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFakeServer(port), GameProviderFakeServer {
     private val imagePath = "images"
     private val baseImageUrl = "$baseUrl/$imagePath"
@@ -189,9 +192,19 @@ class IgdbFakeServer(port: Int = freePort, private val apiKey: String) : KtorFak
         System.setProperty("gameDex.provider.igdb.baseUrl", baseUrl)
         System.setProperty("gameDex.provider.igdb.baseImageUrl", baseImageUrl)
     }
+}
 
-    @Suppress("unused")
-    object IgdbFakeServerProvider : FakeServerProvider {
+@Suppress("unused")
+object IgdbProviderTestkitPlugin : DefaultPlugin() {
+    override val descriptor = PluginDescriptor(
+        id = "provider.igdb.testkit",
+        author = "Yevgeny Krasik",
+        version = "0.1.0"
+    )
+
+    @Provides
+    @Singleton
+    fun igdbFakeServerFactory() = object : FakeServerFactory {
         override val preferredPort = 9002
         override fun create(port: Int) = IgdbFakeServer(port, apiKey = "valid")
     }

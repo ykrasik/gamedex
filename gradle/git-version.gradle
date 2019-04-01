@@ -1,0 +1,40 @@
+ext {
+    gitVersion = { String prefix = "" ->
+        return new ByteArrayOutputStream().withStream { os ->
+            exec {
+                commandLine 'git', 'describe', '--dirty', '--match', "$prefix[0-9].[0-9].[0-9]*"
+                ignoreExitValue true
+                standardOutput = os
+            }
+            String version = os.size() > 0 ? os.toString().trim() : '0.0.0-dirty'
+            boolean dirty = version.endsWith('-dirty')
+            if (dirty) {
+                version = version.substring(0, version.length() - 6)
+            }
+            if (!prefix.empty && version.startsWith(prefix)) {
+                version = version.drop(prefix.length())
+            }
+            return getNextVersion(version, dirty)
+        }
+    }
+}
+
+String getNextVersion(String version, boolean dirty) {
+    def v = parseVersion(version)
+    if (dirty || v[3] != null) {
+        v[1] += 1
+        v[2] = 0
+        v[3] = 'SNAPSHOT'
+    }
+    return "${v[0]}.${v[1]}.${v[2]}${(v[3] != null ? "-${v[3]}" : "")}"
+}
+
+Object[] parseVersion(String version) {
+    def pattern = /^([0-9]+)\.([0-9]+)\.([0-9]+)(-([a-zA-Z0-9.-]+))?$/
+    def matcher = version =~ pattern
+    def arr = matcher.collect { it }[0]
+    if (arr == null) {
+        throw new IllegalArgumentException("Invalid version: '$version'".toString())
+    }
+    return [arr[1].toInteger(), arr[2].toInteger(), arr[3].toInteger(), arr[5]]
+}

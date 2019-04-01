@@ -19,10 +19,13 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
+import com.gitlab.ykrasik.gamedex.plugin.PluginDescriptor
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.filterNullValues
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
+import com.google.inject.Provides
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -35,6 +38,7 @@ import io.ktor.routing.routing
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import java.io.Closeable
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
@@ -72,7 +76,6 @@ class GiantBombMockServer(port: Int = freePort) : Closeable {
     }
 }
 
-@Suppress("unused")
 class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : KtorFakeServer(port), GameProviderFakeServer {
     private val apiDetailPath = "details"
     private val thumbnailPath = "images/thumbnail"
@@ -155,9 +158,19 @@ class GiantBombFakeServer(port: Int = freePort, private val apiKey: String) : Kt
     override fun setupEnv() {
         System.setProperty("gameDex.provider.giantBomb.baseUrl", baseUrl)
     }
+}
 
-    @Suppress("unused")
-    object GiantBombFakeServerProvider : FakeServerProvider {
+@Suppress("unused")
+object GiantBombProviderTestkitPlugin : DefaultPlugin() {
+    override val descriptor = PluginDescriptor(
+        id = "provider.giantbomb.testkit",
+        author = "Yevgeny Krasik",
+        version = "0.1.0"
+    )
+
+    @Provides
+    @Singleton
+    fun giantBombFakeServerFactory() = object : FakeServerFactory {
         override val preferredPort = 9001
         override fun create(port: Int) = GiantBombFakeServer(port, apiKey = "valid")
     }

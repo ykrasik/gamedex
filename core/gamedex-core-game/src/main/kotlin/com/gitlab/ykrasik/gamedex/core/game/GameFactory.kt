@@ -22,8 +22,8 @@ import com.gitlab.ykrasik.gamedex.app.api.settings.minOrder
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.firstNotNull
-import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,7 +42,7 @@ class GameFactory @Inject constructor(
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
-        val folderNameMetadata = fileSystemService.analyzeFolderName(rawGame.metadata.path.toFile().name)
+        val folderNameMetadata = fileSystemService.analyzeFolderName(rawGame.metadata.path.file.name)
         val fileTree = fileSystemService.fileTree(rawGame.id, library.path.resolve(rawGame.metadata.path))
 
         return Game(
@@ -55,7 +55,7 @@ class GameFactory @Inject constructor(
     }
 
     private fun RawGame.toGameData(): GameData = GameData(
-        name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.toFile().name,
+        name = firstBy(settingsService.providerOrder.name, userData.nameOverride()) { it.gameData.name } ?: metadata.path.file.name,
         description = firstBy(settingsService.providerOrder.description, userData.descriptionOverride()) { it.gameData.description },
         releaseDate = firstBy(settingsService.providerOrder.releaseDate, userData.releaseDateOverride()) { it.gameData.releaseDate },
         // TODO: Choose score with most votes.

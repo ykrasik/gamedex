@@ -16,9 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.common
 
-import com.gitlab.ykrasik.gamedex.core.util.ClassPathScanner
 import com.gitlab.ykrasik.gamedex.test.FakeServer
-import com.gitlab.ykrasik.gamedex.test.FakeServerProvider
+import com.gitlab.ykrasik.gamedex.test.FakeServerFactory
 import com.gitlab.ykrasik.gamedex.test.GameProviderFakeServer
 import com.gitlab.ykrasik.gamedex.util.freePort
 import com.gitlab.ykrasik.gamedex.util.isPortAvailable
@@ -29,15 +28,14 @@ import java.net.ServerSocket
  * Date: 21/01/2019
  * Time: 10:07
  */
-object FakeServerManager : FakeServer {
+class FakeServerManager(fakeServerFactories: List<FakeServerFactory>) : FakeServer {
     private val promisedPorts = mutableMapOf<Int, ServerSocket>()
 
-    private val fakeServers = ClassPathScanner.scanSubTypes("com.gitlab.ykrasik.gamedex", FakeServerProvider::class).map { providerClass ->
-        val provider = providerClass.kotlin.objectInstance!!
-        val preferredPort = provider.preferredPort
+    private val fakeServers = fakeServerFactories.map { factory ->
+        val preferredPort = factory.preferredPort
         val port = if (preferredPort != null && isPortAvailable(preferredPort)) preferredPort else freePort
         promisedPorts += port to ServerSocket(port)
-        provider.create(port)
+        factory.create(port)
     }
 
     val providerFakeServers = fakeServers.mapNotNull { it as? GameProviderFakeServer }
@@ -59,4 +57,12 @@ object FakeServerManager : FakeServer {
     }
 
     override val port = 0
+}
+
+inline fun FakeServerManager.using(f: FakeServerManager.() -> Unit) {
+    setupEnv()
+    use {
+        start()
+        f()
+    }
 }

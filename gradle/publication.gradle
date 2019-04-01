@@ -1,0 +1,28 @@
+publishing {
+    publications {
+        if (project.hasProperty('publishJar')) {
+            main(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+            }
+        }
+
+        if (project.hasProperty('publishTestKit')) {
+            test(MavenPublication) {
+                artifactId "${project.name}-testkit"
+                artifact testJar
+                artifact testSourcesJar
+
+                pom.withXml {
+                    def dependencies = asNode().appendNode('dependencies')
+                    configurations.testArtifacts.getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', it.moduleGroup)
+                        dependency.appendNode('artifactId', it.moduleName)
+                        dependency.appendNode('version', it.moduleVersion)
+                    }
+                }
+            }
+        }
+    }
+}

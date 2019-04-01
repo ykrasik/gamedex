@@ -1,0 +1,59 @@
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task testJar(type: Jar, dependsOn: testClasses) {
+    archiveAppendix = 'testkit'
+    from sourceSets.test.output
+}
+
+task testSourcesJar(type: Jar) {
+    archiveAppendix = 'testkit'
+    archiveClassifier = 'sources'
+    from sourceSets.test.allSource
+}
+
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+
+artifacts {
+    testArtifacts testJar
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir "${buildDir}/generated/src/main/kotlin/"
+        }
+        resources {
+            srcDir "${buildDir}/generated/src/main/resources/"
+        }
+    }
+}
+
+ext {
+    fullDependency = { String dep ->
+        dependencies {
+            compile project(dep)
+            testCompile project(path: dep, configuration: 'testArtifacts')
+        }
+    }
+
+    testDependency = { String dep ->
+        dependencies {
+            testCompile project(path: dep, configuration: 'testArtifacts')
+        }
+    }
+
+    externalTestDependency = { Map dep ->
+        dependencies {
+            testCompile dep + [classifier: 'tests']
+            testCompile dep + [classifier: 'tests-sources']
+        }
+    }
+
+    generatedSources = sourceSets.main.kotlin.srcDirs.find { (it as File).absolutePath.contains('generated') }
+    generatedResources = sourceSets.main.resources.srcDirs.find { (it as File).absolutePath.contains('generated') }
+}

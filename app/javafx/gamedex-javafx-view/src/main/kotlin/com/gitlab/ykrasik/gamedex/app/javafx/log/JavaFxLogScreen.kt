@@ -94,6 +94,7 @@ class JavaFxLogScreen : PresentableScreen("Log", Icons.book), ViewWithLogEntries
 
                     val message = if (item.throwable != null) {
                         val sw = StringWriter()
+                        sw.appendln(item.message)
                         item.throwable!!.printStackTrace(PrintWriter(sw))
                         sw.toString()
                     } else {

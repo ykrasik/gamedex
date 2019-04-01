@@ -14,36 +14,19 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider.igdb.module
+package com.gitlab.ykrasik.gamedex.core.plugin
 
-import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
-import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbConfig
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbProvider
-import com.google.inject.Provides
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.plugin.Plugin
+import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
- * Date: 05/02/2017
- * Time: 21:51
+ * Date: 26/03/2018
+ * Time: 09:57
  */
-@Suppress("unused")
-object IgdbProviderPlugin : DefaultPlugin() {
-    override val descriptor = readPluginDescriptor("/com/gitlab/ykrasik/gamedex/provider/igdb/plugin.json")
+interface PluginManager {
+    val allPlugins: List<Plugin>
+    val compatiblePlugins: List<Plugin>
 
-    override fun configure() {
-        bind(GameProvider::class.java).to(IgdbProvider::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun igdbConfig(config: Config) =
-        IgdbConfig(
-            config.withFallback(
-                ConfigFactory.load(javaClass.classLoader, "com/gitlab/ykrasik/gamedex/provider/igdb/igdb.conf")
-            )
-        )
+    fun <T : Any> getImplementations(klass: KClass<T>): List<T>
 }

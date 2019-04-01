@@ -28,9 +28,9 @@ import com.gitlab.ykrasik.gamedex.core.util.ListEvent
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
 import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
 import com.gitlab.ykrasik.gamedex.core.util.mapping
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
-import com.gitlab.ykrasik.gamedex.util.toFile
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,7 +69,7 @@ class GameServiceImpl @Inject constructor(
     }
 
     override fun add(request: AddGameRequest): Task<Game> {
-        val nameBestEffort = request.providerData.firstOrNull()?.gameData?.name ?: request.metadata.path.toFile().name
+        val nameBestEffort = request.providerData.firstOrNull()?.gameData?.name ?: request.metadata.path.file.name
         return task("Adding Game '$nameBestEffort'...") {
             val game = repo.add(request).toGame()
             successMessage = { "Added Game: '${game.name}'." }

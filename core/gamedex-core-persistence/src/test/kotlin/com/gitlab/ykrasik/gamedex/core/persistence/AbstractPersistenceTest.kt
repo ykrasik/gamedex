@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.test.*
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.file
 import io.kotlintest.TestCaseContext
 
 /**
@@ -38,7 +38,7 @@ abstract class AbstractPersistenceTest<Scope> : ScopedWordSpec<Scope>() {
             path: String = randomPath(),
             type: LibraryType = LibraryType.Digital,
             platform: Platform = randomEnum()
-        ) = LibraryData(name, path.toFile(), type, platform)
+        ) = LibraryData(name, path.file, type, platform)
 
         fun givenLibrary(
             path: String = randomPath(),

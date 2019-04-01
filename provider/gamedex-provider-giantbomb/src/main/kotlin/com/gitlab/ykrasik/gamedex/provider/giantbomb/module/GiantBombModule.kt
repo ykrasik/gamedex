@@ -16,11 +16,13 @@
 
 package com.gitlab.ykrasik.gamedex.provider.giantbomb.module
 
-import com.gitlab.ykrasik.gamedex.provider.ProviderModule
+import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombConfig
 import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombProvider
 import com.google.inject.Provides
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import javax.inject.Singleton
 
 /**
@@ -29,12 +31,19 @@ import javax.inject.Singleton
  * Time: 10:56
  */
 @Suppress("unused")
-object GiantBombModule : ProviderModule() {
+object GiantBombProviderPlugin : DefaultPlugin() {
+    override val descriptor = readPluginDescriptor("/com/gitlab/ykrasik/gamedex/provider/giantbomb/plugin.json")
+
     override fun configure() {
-        bindProvider<GiantBombProvider>()
+        bind(GameProvider::class.java).to(GiantBombProvider::class.java)
     }
 
     @Provides
     @Singleton
-    fun giantBombConfig(config: Config) = GiantBombConfig(config)
+    fun giantBombConfig(config: Config) =
+        GiantBombConfig(
+            config.withFallback(
+                ConfigFactory.load(javaClass.classLoader, "com/gitlab/ykrasik/gamedex/provider/giantbomb/giantbomb.conf")
+            )
+        )
 }

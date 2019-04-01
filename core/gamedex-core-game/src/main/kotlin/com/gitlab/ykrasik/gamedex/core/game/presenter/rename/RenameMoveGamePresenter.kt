@@ -25,8 +25,8 @@ import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import com.gitlab.ykrasik.gamedex.util.Try
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
-import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -65,8 +65,8 @@ class RenameMoveGamePresenter @Inject constructor(
         override suspend fun onShow() {
             val game = view.game
             library = game.library
-            name = view.initialName ?: game.rawGame.metadata.path.toFile().name
-            path = game.rawGame.metadata.path.toFile().let { it.parentFile?.path ?: "" }
+            name = view.initialName ?: game.rawGame.metadata.path.file.name
+            path = game.rawGame.metadata.path.file.let { it.parentFile?.path ?: "" }
             validate()
         }
 
@@ -115,7 +115,7 @@ class RenameMoveGamePresenter @Inject constructor(
         private suspend fun onAccept() {
             view.canAccept.assert()
             val game = view.game
-            val newPath = path.toFile().resolve(name)
+            val newPath = path.file.resolve(name)
             val fullPath = library.path.resolve(newPath)
             log.info("Renaming/Moving: ${game.path} -> $fullPath")
 

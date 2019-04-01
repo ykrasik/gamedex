@@ -17,9 +17,9 @@
 package com.gitlab.ykrasik.gamedex.core.persistence
 
 import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.fromJson
 import com.gitlab.ykrasik.gamedex.util.listFromJson
-import com.gitlab.ykrasik.gamedex.util.toFile
 import com.gitlab.ykrasik.gamedex.util.toJsonStr
 import com.google.inject.ImplementedBy
 import org.jetbrains.exposed.dao.EntityID
@@ -166,6 +166,6 @@ class PersistenceServiceImpl @Inject constructor(config: PersistenceConfig) : Pe
     private fun Int.toGameId() = EntityID(this, Games)
 
     private fun LibraryData.toPersistedData() = PersistedLibraryData(name, type, platform)
-    private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.toFile(), type, platform)
+    private fun PersistedLibraryData.toLibraryData(path: String) = LibraryData(name, path.file, type, platform)
     private data class PersistedLibraryData(val name: String, val type: LibraryType, val platform: Platform?)
 }

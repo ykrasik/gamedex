@@ -121,7 +121,7 @@ class EditLibraryPresenter @Inject constructor(
             view.pathIsValid *= Try {
                 if (view.path.value.isEmpty()) error("Path is required!")
 
-                val file = view.path.value.toFile()
+                val file = view.path.value.file
                 if (!file.isDirectory) error("Path doesn't exist!")
                 if (!isAvailableNewLibrary { libraryService[file] } &&
                     !isAvailableUpdatedLibrary { libraryService[file] })
@@ -168,7 +168,7 @@ class EditLibraryPresenter @Inject constructor(
             view.canAccept.assert()
             val libraryData = LibraryData(
                 name = view.name.value,
-                path = view.path.value.toFile(),
+                path = view.path.value.file,
                 type = view.type.value,
                 platform = if (view.type.value != LibraryType.Excluded) view.platform.value else null
             )

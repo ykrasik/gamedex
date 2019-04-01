@@ -52,7 +52,7 @@ class GameProviderServiceImpl @Inject constructor(
         log.info("Detected providers: ${allProviders.joinToString()}")
 
         allProviders.forEach { provider ->
-            val providerSettingsRepo = settingsService.providers[provider.id]!!
+            val providerSettingsRepo = settingsService.providers.getValue(provider.id)
             providerSettingsRepo.perform { data ->
                 val enabledProvider = enabledProviders.find { it.id == provider.id }
                 when {

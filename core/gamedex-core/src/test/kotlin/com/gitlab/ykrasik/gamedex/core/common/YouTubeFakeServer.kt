@@ -16,22 +16,25 @@
 
 package com.gitlab.ykrasik.gamedex.core.common
 
-import com.gitlab.ykrasik.gamedex.test.FakeServerProvider
+import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
+import com.gitlab.ykrasik.gamedex.plugin.PluginDescriptor
+import com.gitlab.ykrasik.gamedex.test.FakeServerFactory
 import com.gitlab.ykrasik.gamedex.test.KtorFakeServer
 import com.gitlab.ykrasik.gamedex.util.freePort
+import com.google.inject.Provides
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
  * Date: 21/01/2019
  * Time: 08:19
  */
-@Suppress("unused")
 class YouTubeFakeServer(port: Int = freePort) : KtorFakeServer(port) {
     override fun Application.setupServer() {
         routing {
@@ -53,9 +56,19 @@ class YouTubeFakeServer(port: Int = freePort) : KtorFakeServer(port) {
     override fun setupEnv() {
         System.setProperty("gameDex.common.youTubeBaseUrl", baseUrl)
     }
+}
 
-    @Suppress("unused")
-    object YouTubeFakeServerProvider : FakeServerProvider {
+@Suppress("unused")
+object YouTubeTestkitPlugin : DefaultPlugin() {
+    override val descriptor = PluginDescriptor(
+        id = "youtube.testkit",
+        author = "Yevgeny Krasik",
+        version = "0.1.0"
+    )
+
+    @Provides
+    @Singleton
+    fun youTubeFakeServerFactory() = object : FakeServerFactory {
         override fun create(port: Int) = YouTubeFakeServer(port)
     }
 }

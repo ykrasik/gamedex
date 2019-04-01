@@ -16,28 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.core.persistence
 
-import com.google.inject.ProvidedBy
-import com.typesafe.config.Config
-import io.github.config4k.extract
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
-
 /**
  * User: ykrasik
  * Date: 26/05/2016
  * Time: 15:56
  */
-@ProvidedBy(PersistenceConfigProvider::class)
 data class PersistenceConfig(
     val dbUrl: String,
     val driver: String,
     val user: String,
     val password: String
 )
-
-@Singleton
-class PersistenceConfigProvider @Inject constructor(config: Config) : Provider<PersistenceConfig> {
-    private val config = config.extract<PersistenceConfig>("gameDex.persistence")
-    override fun get() = config
-}

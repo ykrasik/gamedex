@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.LibraryType
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.core.persistence.AbstractPersistenceTest.LibraryScope
 import com.gitlab.ykrasik.gamedex.test.randomPath
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.file
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldThrow
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -72,7 +72,7 @@ class LibraryPersistenceTest : AbstractPersistenceTest<LibraryScope>() {
                 val updatedLibrary = library.copy(
                     data = library.data.copy(
                         name = library.name + "a",
-                        path = (library.path.toString() + "b").toFile(),
+                        path = (library.path.toString() + "b").file,
                         type = LibraryType.Excluded,
                         platform = Platform.Android
                     )

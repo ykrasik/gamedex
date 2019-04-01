@@ -95,6 +95,6 @@ class PreloaderImpl : Preloader {
         }
         log.info("Application loading took ${millisTaken.humanReadableDuration}")
 
-        return@withContext injector
+        injector
     }
 }

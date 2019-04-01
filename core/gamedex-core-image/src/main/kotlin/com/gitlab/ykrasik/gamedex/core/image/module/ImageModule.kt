@@ -35,6 +35,8 @@ import javax.inject.Singleton
  * Time: 10:24
  */
 object ImageModule : InternalCoreModule() {
+    val configFile = "/com/gitlab/ykrasik/gamedex/core/image/image.conf"
+
     override fun configure() {
         bind(ImageService::class.java).to(ImageServiceImpl::class.java)
     }

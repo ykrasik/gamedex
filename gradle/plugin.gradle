@@ -1,0 +1,48 @@
+import groovy.json.*
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+ext {
+    isPlugin = true
+}
+
+jar {
+    enabled = false
+    manifest {
+        attributes 'Plugin-Class': pluginClass
+    }
+}
+
+assemble.dependsOn shadowJar
+
+task generatePluginJsonFile() {
+    def destDir = new File(generatedResources, pluginJsonDir)
+    def destFile = new File(destDir, "plugin.json")
+    outputs.dir(destDir)
+    outputs.file(destFile)
+    inputs.properties([
+        id             : pluginId,
+        description    : pluginDescription,
+        author         : pluginAuthor,
+        version        : version,
+        apiDependencies: pluginApiDependencies,
+        commitHash     : commitHash,
+        commitDate     : commitDate
+    ])
+
+    doLast {
+        println("Generating $destFile")
+        destFile.write(JsonOutput.prettyPrint(JsonOutput.toJson([
+            id             : pluginId,
+            description    : pluginDescription,
+            author         : pluginAuthor,
+            version        : version,
+            apiDependencies: pluginApiDependencies,
+            buildDate      : buildDate,
+            commitHash     : commitHash,
+            commitDate     : commitDate
+        ])))
+    }
+}
+
+compileKotlin.dependsOn generatePluginJsonFile

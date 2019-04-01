@@ -18,10 +18,20 @@ package com.gitlab.ykrasik.gamedex.javafx
 
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.common.FakeServerManager
+import com.gitlab.ykrasik.gamedex.core.common.using
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceServiceImpl
+import com.gitlab.ykrasik.gamedex.core.plugin.ClasspathPluginScanner
+import com.gitlab.ykrasik.gamedex.core.plugin.DirectoryPluginScanner
+import com.gitlab.ykrasik.gamedex.core.plugin.PluginManagerImpl
 import com.gitlab.ykrasik.gamedex.test.*
 import com.gitlab.ykrasik.gamedex.util.humanReadableDuration
+import com.google.inject.AbstractModule
+import com.google.inject.Guice
+import com.google.inject.Provides
+import com.google.inject.Singleton
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -39,12 +49,21 @@ object TestApplication {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        if (System.getProperty("gameDex.env") == null) {
+            System.setProperty("gameDex.env", "dev")
+        }
         System.setProperty("gameDex.persistence.dbUrl", dbUrl)
 
         // Pre-Load test images
         randomImage()
 
-        FakeServerManager.using {
+        val pluginManager = PluginManagerImpl(
+            Guice.createInjector(TestModule),
+            listOf(DirectoryPluginScanner("plugin-testkits"), ClasspathPluginScanner())
+        )
+
+        val fakeServerManager = FakeServerManager(pluginManager.getImplementations(FakeServerFactory::class))
+        fakeServerManager.using {
             if (System.getProperty("gameDex.persistence.noGenerateDb") == null) {
                 generateDb(
                     numGames = 5000
@@ -56,7 +75,7 @@ object TestApplication {
         }
     }
 
-    private fun generateDb(numGames: Int?) {
+    private fun FakeServerManager.generateDb(numGames: Int?) {
         persistenceService.dropDb()
         if (numGames == null) return
 
@@ -76,7 +95,7 @@ object TestApplication {
             runBlocking {
                 (0 until numGames).map {
                     async(context) {
-                        val providerServers = FakeServerManager.providerFakeServers.toMutableList()
+                        val providerServers = providerFakeServers.toMutableList()
                         val path = randomPath(maxElements = 6, minElements = 3)
                         persistenceService.insertGame(
                             metadata = com.gitlab.ykrasik.gamedex.Metadata(
@@ -125,4 +144,14 @@ object TestApplication {
 
     // 9/10 chance.
     private fun String.sometimesNull() = if (randomInt(10) < 10) this else null
+
+    private object TestModule : AbstractModule() {
+        @Provides
+        @Singleton
+        fun config(): Config = ConfigFactory.load()
+
+        @Provides
+        @Singleton
+        fun httpClient() = testHttpClient
+    }
 }

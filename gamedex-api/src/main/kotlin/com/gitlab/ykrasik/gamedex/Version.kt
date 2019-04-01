@@ -14,18 +14,18 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider
+package com.gitlab.ykrasik.gamedex
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
+import org.joda.time.DateTime
 
 /**
  * User: ykrasik
- * Date: 26/03/2018
- * Time: 09:57
+ * Date: 09/02/2019
+ * Time: 15:31
  */
-abstract class ProviderModule : AbstractModule() {
-    protected inline fun <reified T : GameProvider> bindProvider() {
-        Multibinder.newSetBinder(binder(), GameProvider::class.java).addBinding().to(T::class.java)
-    }
-}
+data class Version(
+    val version: String,
+    val buildDate: DateTime?,
+    val commitHash: String?,
+    val commitDate: DateTime?
+)

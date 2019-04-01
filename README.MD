@@ -23,16 +23,16 @@ Here's how it looks like:
 # Build Distribution:
 Prerequisites: JDK 8 only, does not support any of the later JDKs. In root folder:
 
-`gradlew jfxNative`
+`gradlew dist`
 
-The distribution will be under `app\javafx\gamedex-javafx-app\build\jfx\native`
+The distribution will be under project root in `dist` folder
 and will contain a standalone copy of your JRE.
 On windows, if you also have InnoSetup installed, it will generate a native windows setup file.
 
 You can copy the distribution anywhere you like, it's portable.
 
 # Run Distribution
-On windows: `app\javafx\gamedex-javafx-app\build\jfx\native\GameDex\GameDex.exe`
+On windows: `dist\GameDex\GameDex.exe`
 
 # Run Demo Application
 The demo application is intended for development purposes,

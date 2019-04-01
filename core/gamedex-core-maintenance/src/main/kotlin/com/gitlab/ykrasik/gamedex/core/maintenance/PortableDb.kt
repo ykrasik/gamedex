@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.core.game.AddGameRequest
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.dateTime
-import com.gitlab.ykrasik.gamedex.util.toFile
+import com.gitlab.ykrasik.gamedex.util.file
 import java.io.File
 
 /**
@@ -50,7 +50,7 @@ internal data class PortableLibrary(
 ) {
     fun toLibraryData() = LibraryData(
         name = name,
-        path = path.toFile(),
+        path = path.file,
         type = LibraryType.valueOf(type),
         platform = platform?.let(Platform::valueOf)
     )

@@ -18,7 +18,13 @@ package com.gitlab.ykrasik.gamedex.test
 
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.freePort
+import com.gitlab.ykrasik.gamedex.util.logger
 import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.StatusPages
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import java.io.Closeable
@@ -46,9 +52,18 @@ interface GameProviderFakeServer : FakeServer {
 }
 
 abstract class KtorFakeServer(final override val port: Int = freePort) : FakeServer {
+    private val log = logger()
+
     val baseUrl = "http://localhost:$port"
 
     protected val ktor = embeddedServer(Netty, port) {
+        install(StatusPages) {
+            exception<Throwable> { cause ->
+                log.error("Error", cause)
+                call.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
+                throw cause
+            }
+        }
         setupServer()
     }
 
@@ -61,16 +76,8 @@ abstract class KtorFakeServer(final override val port: Int = freePort) : FakeSer
     override fun close() = ktor.stop(gracePeriod = 100, timeout = 100, timeUnit = TimeUnit.MILLISECONDS)
 }
 
-interface FakeServerProvider {
+interface FakeServerFactory {
     val preferredPort: Int? get() = null
 
     fun create(port: Int): FakeServer
-}
-
-inline fun FakeServer.using(f: () -> Unit) {
-    setupEnv()
-    use {
-        start()
-        f()
-    }
 }

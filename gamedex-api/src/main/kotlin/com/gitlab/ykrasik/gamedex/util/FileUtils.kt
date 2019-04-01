@@ -23,15 +23,19 @@ import java.io.IOException
 import java.math.BigDecimal
 import java.net.URI
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * User: ykrasik
  * Date: 02/10/2016
  * Time: 19:52
  */
-fun String.toFile(): File = File(this)
 
-fun URI.toFile(): File = File(this)
+val String.path: Path get() = Paths.get(this)
+val String.file: File get() = File(this)
+
+val URI.file: File get() = File(this)
 
 fun File.create() {
     parentFile?.mkdirs()

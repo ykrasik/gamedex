@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider
 
+import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +28,6 @@ import javax.inject.Singleton
  */
 // FIXME: Hide this.
 @Singleton
-class GameProviderRepository @Inject constructor(providers: MutableSet<GameProvider>) {
-    val allProviders: List<GameProvider> = providers.sortedBy { it.id }
+class GameProviderRepository @Inject constructor(pluginManager: PluginManager) {
+    val allProviders: List<GameProvider> = pluginManager.getImplementations(GameProvider::class).sortedBy { it.id }
 }

@@ -34,7 +34,7 @@ data class GiantBombConfig(
     private val platforms: Map<String, Int>
 ) {
     private val _platforms = platforms.mapKeys { Platform.valueOf(it.key) }
-    fun getPlatformId(platform: Platform) = _platforms[platform]!!
+    fun getPlatformId(platform: Platform) = _platforms.getValue(platform)
 
     companion object {
         operator fun invoke(config: Config): GiantBombConfig = config.extract("gameDex.provider.giantBomb")

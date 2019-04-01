@@ -1,0 +1,36 @@
+import java.text.SimpleDateFormat
+
+ext {
+    commitHash = getCommitHash()
+    commitDate = getCommitDate()
+    buildDate = getBuildDate()
+}
+
+String getCommitHash() {
+    return new ByteArrayOutputStream().withStream { os ->
+        exec {
+            commandLine 'git', 'rev-parse', 'HEAD'
+            standardOutput = os
+        }
+        os.toString().subSequence(0, os.size() - 1)
+    }
+}
+
+String getCommitDate() {
+    return new ByteArrayOutputStream().withStream { os ->
+        exec {
+            commandLine 'git', 'show', '-s', '--format=%cI', 'HEAD'
+            standardOutput = os
+        }
+        def format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+        def date = format.parse(os.toString().subSequence(0, os.size() - 1))
+        format.setTimeZone(TimeZone.getTimeZone("UTC"))
+        return format.format(date)
+    }
+}
+
+String getBuildDate() {
+    def format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+    format.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return format.format(new Date())
+}

@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.storage
 
+import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.objectMapper
-import com.gitlab.ykrasik.gamedex.util.toFile
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
@@ -110,10 +110,10 @@ class FileStorage<K, V>(
         inline fun <reified V : Any> json(basePath: String): JsonBuilder<V> = json(basePath, V::class)
 
         fun <V : Any> json(basePath: String, klass: KClass<V>): JsonBuilder<V> =
-            JsonBuilder(basePath.toFile().normalize(), JsonFileStorageFormat(klass))
+            JsonBuilder(basePath.file.normalize(), JsonFileStorageFormat(klass))
 
         fun binary(basePath: String): BinaryBuilder =
-            BinaryBuilder(basePath.toFile().normalize(), BinaryFileStorageFormat)
+            BinaryBuilder(basePath.file.normalize(), BinaryFileStorageFormat)
 
         class JsonBuilder<V>(
             private val basePath: File,

@@ -60,7 +60,7 @@ class LogServiceImpl(maxLogEntries: Int = 100000) : LogService {
                 level = LogLevel.valueOf(e.level.toString().toLowerCase().capitalize()),
                 timestamp = DateTime(e.timeStamp),
                 loggerName = e.loggerName.substringAfterLast('.'),
-                message = e.message,
+                message = e.formattedMessage,
                 throwable = (e.throwableProxy as? ThrowableProxy)?.throwable
             )
         }

@@ -1,0 +1,20 @@
+version = gitVersion('giantbomb-')
+
+ext {
+    pluginJsonDir = "com/gitlab/ykrasik/gamedex/provider/giantbomb"
+    pluginClass = "com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderPlugin"
+    pluginId = "provider.giantbomb"
+    pluginDescription = "GiantBomb integration"
+    pluginAuthor = "Yevgeny Krasik"
+    pluginApiDependencies = [
+        "Plugin"  : 0,
+        "Provider": 0
+    ]
+}
+
+apply from: gradleFile('plugin.gradle')
+
+dependencies {
+    compileOnly project(":gamedex-api")
+    testCompile project(path: ":gamedex-api", configuration: 'testArtifacts')
+}

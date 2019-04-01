@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCommonOps
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
+import com.gitlab.ykrasik.gamedex.core.version.ApplicationVersion
 import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,7 +38,7 @@ class ViewCommonOpsImpl @Inject constructor(
     gameProviderService: GameProviderService,
     private val fileSystemService: FileSystemService
 ) : ViewCommonOps {
-    override val version = com.gitlab.ykrasik.gamedex.core.version.version
+    override val applicationVersion = ApplicationVersion
 
     override suspend fun fetchThumbnail(game: Game) = imageService.fetchThumbnail(game)
 

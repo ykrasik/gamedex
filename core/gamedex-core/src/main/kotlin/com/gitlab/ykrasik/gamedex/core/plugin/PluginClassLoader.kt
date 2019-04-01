@@ -14,25 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.util
+package com.gitlab.ykrasik.gamedex.core.plugin
 
-import org.reflections.Reflections
-import org.reflections.scanners.ResourcesScanner
-import org.reflections.scanners.SubTypesScanner
 import java.net.URL
-import kotlin.reflect.KClass
+import java.net.URLClassLoader
 
-/**
- * User: ykrasik
- * Date: 07/10/2016
- * Time: 16:23
- */
-object ClassPathScanner {
-    fun scanResources(basePackage: String, predicate: (String) -> Boolean): List<URL> {
-        return Reflections(basePackage, ResourcesScanner()).getResources { predicate(it!!) }
-            .map { this::class.java.getResource("/$it") }
+class PluginClassLoader(url: URL, parent: ClassLoader) : URLClassLoader(arrayOf(url), parent) {
+    override fun loadClass(className: String): Class<*>? = synchronized(getClassLoadingLock(className)) {
+        if (className.startsWith("java.")) {
+            return findSystemClass(className)
+        }
+
+        val loadedClass = findLoadedClass(className)
+        if (loadedClass != null) {
+            return loadedClass
+        }
+
+        return try {
+            findClass(className)
+        } catch (_: ClassNotFoundException) {
+            super.loadClass(className)
+        }
     }
 
-    fun <T : Any> scanSubTypes(basePackage: String, type: KClass<T>): Set<Class<out T>> =
-        Reflections(basePackage, SubTypesScanner()).getSubTypesOf(type.java)
+    override fun getResource(name: String): URL? =
+        findResource(name) ?: super.getResource(name)
 }

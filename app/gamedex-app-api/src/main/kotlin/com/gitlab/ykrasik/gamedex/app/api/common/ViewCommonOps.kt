@@ -18,6 +18,7 @@ package com.gitlab.ykrasik.gamedex.app.api.common
 
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.Version
 import com.gitlab.ykrasik.gamedex.app.api.image.Image
 import com.gitlab.ykrasik.gamedex.provider.GameProviderMetadata
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
@@ -31,7 +32,7 @@ import com.gitlab.ykrasik.gamedex.util.Ref
  * Provided to the view layer through DI, as a more natural way of getting common data than through implementing interfaces.
  */
 interface ViewCommonOps {
-    val version: Version
+    val applicationVersion: Version
 
     suspend fun fetchThumbnail(game: Game): Image?
     suspend fun fetchPoster(game: Game): Image?

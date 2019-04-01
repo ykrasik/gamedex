@@ -16,8 +16,8 @@
 
 package com.gitlab.ykrasik.gamedex.core.version
 
-import com.gitlab.ykrasik.gamedex.app.api.common.Version
-import com.gitlab.ykrasik.gamedex.util.dateTime
+import com.gitlab.ykrasik.gamedex.Version
+import com.gitlab.ykrasik.gamedex.util.fromJson
 import net.swiftzer.semver.SemVer
 
 /**
@@ -25,9 +25,9 @@ import net.swiftzer.semver.SemVer
  * Date: 09/02/2019
  * Time: 14:18
  */
-val version = Version(
-    version = SemVer.parse(VERSION),
-    buildDate = BUILD_DATE.dateTime,
-    commitHash = GIT_SHA,
-    commitDate = GIT_DATE.dateTime
-)
+val ApplicationVersion = Version::class.java.getResource("/version.json")
+    .readBytes()
+    .fromJson<Version>()
+
+val String.semVer: SemVer get() = SemVer.parse(this)
+fun SemVer.isCompatible(other: SemVer) = this.major == other.major

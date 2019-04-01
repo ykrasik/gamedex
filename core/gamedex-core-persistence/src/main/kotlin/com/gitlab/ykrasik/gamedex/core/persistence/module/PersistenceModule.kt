@@ -14,19 +14,24 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.common
+package com.gitlab.ykrasik.gamedex.core.persistence.module
 
-import net.swiftzer.semver.SemVer
-import org.joda.time.DateTime
+import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceConfig
+import com.google.inject.AbstractModule
+import com.google.inject.Provides
+import com.typesafe.config.Config
+import io.github.config4k.extract
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 09/02/2019
- * Time: 15:31
+ * Date: 16/02/2019
+ * Time: 12:44
  */
-data class Version(
-    val version: SemVer,
-    val buildDate: DateTime,
-    val commitHash: String,
-    val commitDate: DateTime
-)
+object PersistenceModule : AbstractModule() {
+    val configFile = "/com/gitlab/ykrasik/gamedex/core/persistence/persistence.conf"
+
+    @Provides
+    @Singleton
+    fun persistenceConfig(config: Config): PersistenceConfig = config.extract("gameDex.persistence")
+}

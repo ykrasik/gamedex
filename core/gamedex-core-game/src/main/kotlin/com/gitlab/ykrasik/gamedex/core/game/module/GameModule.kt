@@ -44,6 +44,8 @@ import javax.inject.Singleton
  * Time: 09:47
  */
 object GameModule : InternalCoreModule() {
+    val configFile = "/com/gitlab/ykrasik/gamedex/core/game/game.conf"
+
     override fun configure() {
         bind(GameService::class.java).to(GameServiceImpl::class.java)
         bind(GameSearchService::class.java).to(GameSearchServiceImpl::class.java)

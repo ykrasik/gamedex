@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 buildscript {
     ext {
         appVersion = '0.1.0'
@@ -21,7 +23,7 @@ buildscript {
         }
 
         guice = [group: 'com.google.inject', name: 'guice', version: '4.2.2']
-        reflections = [group: 'org.reflections', name: 'reflections', version: '0.9.11']
+        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.22']
 
         slf4j = [:].with {
             v = '1.7.25'
@@ -32,7 +34,7 @@ buildscript {
         logback = [group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3']
 
         semVer = 'net.swiftzer.semver:semver:1.1.1'
-        
+
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.3.3']
         config4k = [group: 'io.github.config4k', name: 'config4k', version: '0.4.1']
 
@@ -77,8 +79,6 @@ buildscript {
 
         kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
         mockK = [group: 'io.mockk', name: 'mockk', version: '1.9']
-        junit = [group: 'junit', name: 'junit', version: '4.12']
-        mockito = [group: 'org.mockito', name: 'mockito-all', version: '1.10.19']
 
         ktor = [:].with {
             v = '1.1.2'
@@ -109,28 +109,18 @@ buildscript {
 plugins {
     id 'com.github.hierynomus.license' version '0.15.0'
     id 'com.github.ben-manes.versions' version '0.20.0'
-    id 'com.peterabeles.gversion' version '1.4.1'
-    id 'net.vivin.gradle-semantic-build-versioning' version '4.0.0' apply false
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 // Equivalent to calling --continue from the command line.
 // Will run all tests and produce a report of all failed tests at the end.
 gradle.startParameter.continueOnFailure = true
 
-apply gradleFile('versions.gradle')
+apply from: gradleFile('build-metadata.gradle')
+apply from: gradleFile('git-version.gradle')
+apply from: gradleFile('versions.gradle')
 
-gversion {
-    srcDir = rootProject.rootDir.relativePath(project(":core:gamedex-core-common").file("src/main/kotlin/")).normalize()
-    classPackage = "com.gitlab.ykrasik.gamedex.core.version"
-    className = "RawVersion"
-    language = "kotlin"
-}
-
-tag {
-    message {
-        "version: ${version}"
-    }
-}
+version = gitVersion()
 
 allprojects {
     apply plugin: 'java'
@@ -139,7 +129,7 @@ allprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    group 'com.gitlab.ykrasik'
+    group 'com.gitlab.ykrasik.gamedex'
 
     repositories {
         mavenLocal()
@@ -154,9 +144,47 @@ allprojects {
 
 subprojects {
     apply plugin: 'kotlin'
-    apply gradleFile('test.gradle')
-    apply gradleFile('license.gradle')
-    version = rootProject.version
+    if (subprojects.isEmpty()) {
+        apply from: gradleFile('license.gradle')
+        apply from: gradleFile('artifacts.gradle')
+    }
+    if (!project.hasProperty('isPlugin')) {
+        version = rootProject.version
+    }
+
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = '1.8'
+            apiVersion = ktlin.majorV
+            languageVersion = ktlin.majorV
+        }
+    }
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = '1.8'
+            apiVersion = ktlin.majorV
+            languageVersion = ktlin.majorV
+        }
+    }
+    kotlin {
+    }
+
+    test {
+        testLogging {
+            events 'failed'
+        }
+
+        systemProperties System.getProperties() + ['gameDex.env': 'dev']
+    }
+}
+
+project("gamedex-api") {
+    ext {
+        publishJar = true
+        publishTestKit = true
+    }
+
+    apply from: gradleFile('publication.gradle')
 
     dependencies {
         compile ktlin.std
@@ -167,29 +195,6 @@ subprojects {
 
         compile guice
 
-        testCompile kotlinTest
-        testCompile mockK
-
-        testCompile coroutines.debug
-        testCompile coroutines.test
-    }
-
-    compileKotlin {
-        kotlinOptions.jvmTarget = '1.8'
-        kotlinOptions.apiVersion = ktlin.majorV
-        kotlinOptions.languageVersion = ktlin.majorV
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = '1.8'
-        kotlinOptions.apiVersion = ktlin.majorV
-        kotlinOptions.languageVersion = ktlin.majorV
-    }
-    kotlin {
-    }
-}
-
-project("gamedex-api") {
-    dependencies {
         compile typesafeConfig
         compile config4k
 
@@ -198,55 +203,29 @@ project("gamedex-api") {
         compile jodaTime
 
         compile ktor.clientCore
-        testCompile ktor.clientApache
 
         compile jackson.core
         compile jackson.kotlin
         compile jackson.joda
 
+        testCompile kotlinTest
+        testCompile mockK
+
+        testCompile coroutines.debug
+        testCompile coroutines.test
+
+        testCompile ktor.clientApache
+
         testCompile wiremock
         testCompile ktor.core
         testCompile ktor.netty
-        testCompile reflections
         testCompile logback
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier 'sources'
-        from sourceSets.main.allSource
-    }
-
-    task testSourcesJar(type: Jar, dependsOn: classes) {
-        appendix 'testkit'
-        classifier 'sources'
-        from sourceSets.test.allSource
+    testSourcesJar {
         exclude '**/*.jpg'
         exclude '**/words.txt'
         exclude '**/genres.txt'
-    }
-
-    publishing {
-        publications {
-            main(MavenPublication) {
-                from components.java
-                artifact sourcesJar
-            }
-            test(MavenPublication) {
-                artifactId 'gamedex-api-testkit'
-                artifact testJar
-                artifact testSourcesJar
-
-                pom.withXml {
-                    def dependencies = asNode().appendNode('dependencies')
-                    configurations.testArtifacts.getResolvedConfiguration().getFirstLevelModuleDependencies().each {
-                        def dependency = dependencies.appendNode('dependency')
-                        dependency.appendNode('groupId', it.moduleGroup)
-                        dependency.appendNode('artifactId', it.moduleName)
-                        dependency.appendNode('version', it.moduleVersion)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -260,11 +239,32 @@ project("app:gamedex-app-api") {
 }
 
 project("core:gamedex-core-common") {
+    task createVersionJsonFile() {
+        def destFile = new File(generatedResources, "version.json")
+        outputs.dir(generatedResources)
+        outputs.file(destFile)
+        inputs.properties([
+            version   : version,
+            commitHash: commitHash,
+            commitDate: commitDate
+        ])
+        
+        doLast {
+            println("Generating $destFile")
+            destFile.write(JsonOutput.prettyPrint(JsonOutput.toJson([
+                version   : version,
+                buildDate : buildDate,
+                commitHash: commitHash,
+                commitDate: commitDate
+            ])))
+        }
+    }
+
+    compileKotlin.dependsOn(createVersionJsonFile)
+
     dependencies {
         fullDependency ":app:gamedex-app-api"
     }
-
-    compileKotlin.dependsOn(createVersionFile)
 }
 
 project("core:gamedex-core-file") {
@@ -314,11 +314,11 @@ project("core:gamedex-core-log") {
 project("core:gamedex-core-persistence") {
     dependencies {
         fullDependency ":gamedex-api"
+
         compile h2
         compile exposed
     }
 }
-
 
 project("core:gamedex-core-provider") {
     dependencies {
@@ -346,12 +346,13 @@ project("core:gamedex-core") {
         fullDependency ":core:gamedex-core-report"
 
         compile ktor.clientApache
-        compile reflections
+        compile classGraph
     }
 }
 
 project("app:javafx:ikonli-material-design-pack") {
     dependencies {
+        compile ktlin.std
         compile ikonli.javaFx
     }
 }
@@ -378,10 +379,5 @@ project("app:javafx:gamedex-javafx-view") {
     }
 }
 
-project("provider") {
-    subprojects.each {
-        it.fullDependency ":gamedex-api"
-    }
-}
-
-def gradleFile(String fileName) { [from: file("gradle/$fileName")] }
+def gradleFile(String fileName) { file("gradle/$fileName") }
+def pluginProjects() { rootProject.allprojects.findAll { it.hasProperty('isPlugin') } }

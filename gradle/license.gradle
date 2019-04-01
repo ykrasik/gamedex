@@ -20,6 +20,7 @@ license {
     strictCheck = true
 //    ignoreFailures = true
 
+    exclude '**/*.gradle'
     exclude '**/*.ttf'
     exclude '**/*.eot'
     exclude '**/*.svg'
@@ -34,11 +35,11 @@ license {
     exclude '**/*.png'
     exclude '**/*.jpg'
     exclude '**/*.conf'
+    exclude '**/*.json'
     exclude '**/*.Preloader'
     exclude '**/*.IkonHandler'
 
     exclude '**/MaterialDesign*.kt'
-    exclude '**/RawVersion.kt'
 
     mapping {
         kt = 'javaDocBox'
