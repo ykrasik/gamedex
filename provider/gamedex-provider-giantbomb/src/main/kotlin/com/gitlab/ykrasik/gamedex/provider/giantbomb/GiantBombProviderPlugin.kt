@@ -14,12 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider.giantbomb.module
+package com.gitlab.ykrasik.gamedex.provider.giantbomb
 
 import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombConfig
-import com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombProvider
 import com.google.inject.Provides
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory

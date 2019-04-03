@@ -14,12 +14,10 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.provider.igdb.module
+package com.gitlab.ykrasik.gamedex.provider.igdb
 
 import com.gitlab.ykrasik.gamedex.plugin.DefaultPlugin
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbConfig
-import com.gitlab.ykrasik.gamedex.provider.igdb.IgdbProvider
 import com.google.inject.Provides
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory

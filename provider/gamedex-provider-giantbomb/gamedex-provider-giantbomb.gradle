@@ -2,7 +2,7 @@ version = gitVersion('giantbomb-')
 
 ext {
     pluginJsonDir = "com/gitlab/ykrasik/gamedex/provider/giantbomb"
-    pluginClass = "com.gitlab.ykrasik.gamedex.provider.giantbomb.module.GiantBombProviderPlugin"
+    pluginClass = "com.gitlab.ykrasik.gamedex.provider.giantbomb.GiantBombProviderPlugin"
     pluginId = "provider.giantbomb"
     pluginDescription = "GiantBomb integration"
     pluginAuthor = "Yevgeny Krasik"

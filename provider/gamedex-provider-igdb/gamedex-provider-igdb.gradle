@@ -2,7 +2,7 @@ version = gitVersion('igdb-')
 
 ext {
     pluginJsonDir = "com/gitlab/ykrasik/gamedex/provider/igdb"
-    pluginClass = "com.gitlab.ykrasik.gamedex.provider.igdb.module.IgdbProviderPlugin"
+    pluginClass = "com.gitlab.ykrasik.gamedex.provider.igdb.IgdbProviderPlugin"
     pluginId = "provider.igdb"
     pluginDescription = "IGDB integration"
     pluginAuthor = "Yevgeny Krasik"
