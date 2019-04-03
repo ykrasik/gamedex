@@ -47,13 +47,6 @@ ext {
         }
     }
 
-    externalTestDependency = { Map dep ->
-        dependencies {
-            testCompile dep + [classifier: 'tests']
-            testCompile dep + [classifier: 'tests-sources']
-        }
-    }
-
     generatedSources = sourceSets.main.kotlin.srcDirs.find { (it as File).absolutePath.contains('generated') }
     generatedResources = sourceSets.main.resources.srcDirs.find { (it as File).absolutePath.contains('generated') }
 }

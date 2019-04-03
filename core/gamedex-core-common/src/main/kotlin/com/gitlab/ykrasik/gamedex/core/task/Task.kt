@@ -156,5 +156,3 @@ fun <T> task(
     initialImage: Image? = null,
     run: suspend Task<*>.() -> T
 ): Task<T> = Task(title, isCancellable, initialImage, run)
-
-class ExpectedException(cause: Exception) : RuntimeException(cause)

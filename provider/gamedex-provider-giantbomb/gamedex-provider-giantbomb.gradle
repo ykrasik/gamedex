@@ -16,5 +16,6 @@ apply from: gradleFile('plugin.gradle')
 
 dependencies {
     compileOnly project(":gamedex-api")
+    testCompile project(":gamedex-api")
     testCompile project(path: ":gamedex-api", configuration: 'testArtifacts')
 }

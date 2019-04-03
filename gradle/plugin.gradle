@@ -13,6 +13,10 @@ jar {
     }
 }
 
+shadowJar {
+    archiveClassifier = null
+}
+
 assemble.dependsOn shadowJar
 
 task generatePluginJsonFile() {

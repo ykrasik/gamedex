@@ -45,3 +45,5 @@ class TaskServiceImpl @Inject constructor(
         return result
     }
 }
+
+class ExpectedException(cause: Exception) : RuntimeException(cause)

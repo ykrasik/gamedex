@@ -2,7 +2,6 @@ import groovy.json.JsonOutput
 
 buildscript {
     ext {
-        appVersion = '0.1.0'
         javaMaxHeap = '3g'
 
         ktlin = [:].with {
@@ -23,10 +22,10 @@ buildscript {
         }
 
         guice = [group: 'com.google.inject', name: 'guice', version: '4.2.2']
-        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.22']
+        classGraph = [group: 'io.github.classgraph', name: 'classgraph', version: '4.8.23']
 
         slf4j = [:].with {
-            v = '1.7.25'
+            v = '1.7.26'
             api = [group: 'org.slf4j', name: 'slf4j-api', version: v]
             julBridge = [group: 'org.slf4j', name: 'jul-to-slf4j', version: v]
             delegate
@@ -38,7 +37,7 @@ buildscript {
         typesafeConfig = [group: 'com.typesafe', name: 'config', version: '1.3.3']
         config4k = [group: 'io.github.config4k', name: 'config4k', version: '0.4.1']
 
-        guava = [group: 'com.google.guava', name: 'guava', version: '27.0.1-jre']
+        guava = [group: 'com.google.guava', name: 'guava', version: '27.1-jre']
 
         jodaTime = [group: 'joda-time', name: 'joda-time', version: '2.10.1']
 
@@ -53,18 +52,11 @@ buildscript {
         }
 
         h2 = [group: 'com.h2database', name: 'h2', version: '1.4.196']
-        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.12.1']
+        exposed = [group: 'org.jetbrains.exposed', name: 'exposed', version: '0.13.5']
 
         controlsFx = [group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14']
-        jFoenix = [:].with {
-            core = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.8']
-            delegate
-        }
-        tornadoFx = [:].with {
-            core = [group: 'no.tornado', name: 'tornadofx', version: '1.7.18']
-            controls = [group: 'no.tornado', name: 'tornadofx-controls', version: '1.0.6']
-            delegate
-        }
+        jFoenix = [group: 'com.jfoenix', name: 'jfoenix', version: '8.0.8']
+        tornadoFx = [group: 'no.tornado', name: 'tornadofx', version: '1.7.18']
         ikonli = [:].with {
             v = '2.4.0'
             javaFx = [group: 'org.kordamp.ikonli', name: 'ikonli-javafx', version: v]
@@ -78,7 +70,7 @@ buildscript {
         completely = [group: 'com.miguelfonseca.completely', name: 'completely-core', version: '0.8.0']
 
         kotlinTest = [group: 'io.kotlintest', name: 'kotlintest', version: '2.0.7']
-        mockK = [group: 'io.mockk', name: 'mockk', version: '1.9']
+        mockK = [group: 'io.mockk', name: 'mockk', version: '1.9.3']
 
         ktor = [:].with {
             v = '1.1.2'
@@ -90,7 +82,7 @@ buildscript {
             clientJackson = [group: 'io.ktor', name: 'ktor-client-jackson', version: v]
             delegate
         }
-        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.20.0']
+        wiremock = [group: 'com.github.tomakehurst', name: 'wiremock', version: '2.22.0']
     }
 
     repositories {
@@ -108,8 +100,8 @@ buildscript {
 
 plugins {
     id 'com.github.hierynomus.license' version '0.15.0'
-    id 'com.github.ben-manes.versions' version '0.20.0'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.ben-manes.versions' version '0.21.0'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
 // Equivalent to calling --continue from the command line.
@@ -123,12 +115,6 @@ apply from: gradleFile('versions.gradle')
 version = gitVersion()
 
 allprojects {
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
     group 'com.gitlab.ykrasik.gamedex'
 
     repositories {
@@ -143,7 +129,13 @@ allprojects {
 }
 
 subprojects {
+    apply plugin: 'java-library'
     apply plugin: 'kotlin'
+    apply plugin: 'maven-publish'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
     if (subprojects.isEmpty()) {
         apply from: gradleFile('license.gradle')
         apply from: gradleFile('artifacts.gradle')
@@ -187,26 +179,26 @@ project("gamedex-api") {
     apply from: gradleFile('publication.gradle')
 
     dependencies {
-        compile ktlin.std
-        compile ktlin.reflect
-        compile coroutines.core
+        api ktlin.std
+        api ktlin.reflect
+        api coroutines.core
 
-        compile slf4j.api
+        api slf4j.api
 
-        compile guice
+        api guice
 
-        compile typesafeConfig
-        compile config4k
+        api typesafeConfig
+        api config4k
 
-        compile guava
+        api guava
 
-        compile jodaTime
+        api jodaTime
 
-        compile ktor.clientCore
+        api ktor.clientCore
 
-        compile jackson.core
-        compile jackson.kotlin
-        compile jackson.joda
+        api jackson.core
+        api jackson.kotlin
+        api jackson.joda
 
         testCompile kotlinTest
         testCompile mockK
@@ -233,8 +225,8 @@ project("app:gamedex-app-api") {
     dependencies {
         fullDependency ":gamedex-api"
 
-        compile semVer
-        compile diff
+        api semVer
+        api diff
     }
 }
 
@@ -248,7 +240,7 @@ project("core:gamedex-core-common") {
             commitHash: commitHash,
             commitDate: commitDate
         ])
-        
+
         doLast {
             println("Generating $destFile")
             destFile.write(JsonOutput.prettyPrint(JsonOutput.toJson([
@@ -260,7 +252,7 @@ project("core:gamedex-core-common") {
         }
     }
 
-    compileKotlin.dependsOn(createVersionJsonFile)
+    compileKotlin.dependsOn createVersionJsonFile
 
     dependencies {
         fullDependency ":app:gamedex-app-api"
@@ -276,16 +268,16 @@ project("core:gamedex-core-file") {
 project("core:gamedex-core-game") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
-        fullDependency ":core:gamedex-core-persistence"
+        implementation project(":core:gamedex-core-persistence")
 
-        compile completely
+        implementation completely
     }
 }
 
 project("core:gamedex-core-maintenance") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
-        fullDependency ":core:gamedex-core-persistence"
+        implementation project(":core:gamedex-core-persistence")
     }
 }
 
@@ -298,7 +290,7 @@ project("core:gamedex-core-image") {
 project("core:gamedex-core-library") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
-        fullDependency ":core:gamedex-core-persistence"
+        implementation project(":core:gamedex-core-persistence")
     }
 }
 
@@ -306,8 +298,8 @@ project("core:gamedex-core-log") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
 
-        compile logback
-        compile slf4j.julBridge
+        implementation logback
+        implementation slf4j.julBridge
     }
 }
 
@@ -315,8 +307,8 @@ project("core:gamedex-core-persistence") {
     dependencies {
         fullDependency ":gamedex-api"
 
-        compile h2
-        compile exposed
+        implementation h2
+        implementation exposed
     }
 }
 
@@ -335,41 +327,38 @@ project("core:gamedex-core-report") {
 project("core:gamedex-core") {
     dependencies {
         fullDependency ":core:gamedex-core-common"
-        fullDependency ":core:gamedex-core-file"
-        fullDependency ":core:gamedex-core-image"
-        fullDependency ":core:gamedex-core-game"
-        fullDependency ":core:gamedex-core-maintenance"
-        fullDependency ":core:gamedex-core-library"
-        fullDependency ":core:gamedex-core-log"
-        fullDependency ":core:gamedex-core-persistence"
-        fullDependency ":core:gamedex-core-provider"
-        fullDependency ":core:gamedex-core-report"
 
-        compile ktor.clientApache
-        compile classGraph
+        implementation project(":core:gamedex-core-file")
+        implementation project(":core:gamedex-core-image")
+        implementation project(":core:gamedex-core-game")
+        implementation project(":core:gamedex-core-maintenance")
+        implementation project(":core:gamedex-core-library")
+        implementation project(":core:gamedex-core-log")
+        implementation project(":core:gamedex-core-persistence")
+        implementation project(":core:gamedex-core-provider")
+        implementation project(":core:gamedex-core-report")
+
+        implementation ktor.clientApache
+        implementation classGraph
     }
 }
 
 project("app:javafx:ikonli-material-design-pack") {
     dependencies {
-        compile ktlin.std
-        compile ikonli.javaFx
+        implementation ktlin.std
+        api ikonli.javaFx
     }
 }
 
 project("app:javafx:gamedex-javafx-common") {
     dependencies {
         fullDependency ":app:gamedex-app-api"
-        compile project(":app:javafx:ikonli-material-design-pack")
+        api project(":app:javafx:ikonli-material-design-pack")
 
-        compile tornadoFx.core
-        compile tornadoFx.controls
-
-        compile jFoenix.core
-
-        compile controlsFx
-
-        compile coroutines.javaFx
+        api tornadoFx
+        api jFoenix
+        api controlsFx
+        api coroutines.javaFx
     }
 }
 
