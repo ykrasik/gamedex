@@ -138,6 +138,8 @@ object Icons {
     val android get() = fontIcon(MaterialDesign.MDI_ANDROID, Color.FORESTGREEN)
     val apple get() = fontIcon(MaterialDesign.MDI_APPLE, Color.GRAY)
     val youTube get() = fontIcon(MaterialDesign.MDI_YOUTUBE, Color.RED)
+    val github get() = fontIcon(MaterialDesign.MDI_GITHUB_CIRCLE)
+    val gitlab get() = fontIcon(MaterialDesign.MDI_GITLAB)
 
     val information get() = fontIcon(MaterialDesign.MDI_INFORMATION, color = Color.CADETBLUE)
     val question get() = fontIcon(MaterialDesign.MDI_HELP_CIRCLE_OUTLINE, color = Color.YELLOWGREEN)

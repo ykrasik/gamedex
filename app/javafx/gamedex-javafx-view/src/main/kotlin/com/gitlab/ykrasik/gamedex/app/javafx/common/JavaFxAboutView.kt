@@ -18,9 +18,9 @@ package com.gitlab.ykrasik.gamedex.app.javafx.common
 
 import com.gitlab.ykrasik.gamedex.app.api.common.AboutView
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
+import com.gitlab.ykrasik.gamedex.app.api.web.ViewCanBrowseUrl
 import com.gitlab.ykrasik.gamedex.javafx.control.customToolbar
-import com.gitlab.ykrasik.gamedex.javafx.control.defaultHbox
-import com.gitlab.ykrasik.gamedex.javafx.control.gap
+import com.gitlab.ykrasik.gamedex.javafx.control.verticalGap
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.acceptButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.size
@@ -36,15 +36,15 @@ import tornadofx.*
  * Date: 09/02/2019
  * Time: 17:30
  */
-class JavaFxAboutView : PresentableWindow("About"), AboutView {
+class JavaFxAboutView : PresentableWindow("About"), AboutView, ViewCanBrowseUrl {
     private val commonOps: JavaFxCommonOps by di()
 
     override val acceptActions = channel<Unit>()
 
+    override val browseUrlActions = channel<String>()
+
     override val root = borderpane {
         top = customToolbar {
-            gap(size = 10)
-            children += Icons.information.size(30)
             spacer()
             acceptButton {
                 isCancelButton = true
@@ -67,13 +67,33 @@ class JavaFxAboutView : PresentableWindow("About"), AboutView {
                 }
                 row {
                     subHeader("Commit")
-                    label(commonOps.applicationVersion.commitHash!!)
+                    label(commonOps.applicationVersion.commitHash!!.take(12))
+                }
+                row {
+                    verticalGap(size = 20)
                 }
             }
-            defaultHbox {
-                paddingTop = 40
-                spacer()
-                label("Copyright 2016-2019 Yevgeny Krasik", graphic = Icons.copyright.size(20))
+
+            gridpane {
+                hgap = 10.0
+                vgap = 3.0
+                alignment = Pos.CENTER_LEFT
+                row {
+                    children += Icons.github.size(20)
+                    hyperlink("https://github.com/ykrasik/gamedex") {
+                        action(browseUrlActions) { "https://github.com/ykrasik/gamedex" }
+                    }
+                }
+                row {
+                    children += Icons.gitlab.size(20)
+                    hyperlink("https://gitlab.com/ykrasik/gamedex") {
+                        action(browseUrlActions) { "https://gitlab.com/ykrasik/gamedex" }
+                    }
+                }
+                row {
+                    children += Icons.copyright.size(20)
+                    label("Copyright 2016-2019 Yevgeny Krasik")
+                }
             }
         }
     }
