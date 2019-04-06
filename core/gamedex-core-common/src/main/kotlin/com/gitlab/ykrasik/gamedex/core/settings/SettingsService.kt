@@ -18,7 +18,7 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.util.BroadcastReceiveChannel
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.core.storage.JsonStorageFactory
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
@@ -58,7 +58,7 @@ interface SettingsService {
 @Singleton
 class SettingsServiceImpl @Inject constructor(
     private val factory: JsonStorageFactory<String>,
-    gameProviderRepository: GameProviderRepository
+    gameProviderService: GameProviderService
 ) : SettingsService {
     private val log = logger()
     private val all = mutableListOf<SettingsRepository<*>>()
@@ -79,9 +79,9 @@ class SettingsServiceImpl @Inject constructor(
     override val currentPlatformSettingsChannel = game.platformChannel.map { platform -> platforms.getValue(platform) }
     override val currentPlatformSettings by currentPlatformSettingsChannel
 
-    override val providerGeneral = repo { ProviderGeneralSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
-    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderRepository) }
-    override val providers = gameProviderRepository.allProviders.map { provider ->
+    override val providerGeneral = repo { ProviderGeneralSettingsRepository(settingsStorage("provider"), gameProviderService.allProviders) }
+    override val providerOrder = repo { ProviderOrderSettingsRepository(settingsStorage("provider"), gameProviderService.allProviders) }
+    override val providers = gameProviderService.allProviders.map { provider ->
         provider.id to repo { ProviderSettingsRepository(settingsStorage("provider"), provider) }
     }.toMap()
 
