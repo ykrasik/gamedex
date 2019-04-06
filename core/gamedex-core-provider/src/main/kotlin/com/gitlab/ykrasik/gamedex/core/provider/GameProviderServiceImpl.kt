@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.ProviderHeader
 import com.gitlab.ykrasik.gamedex.Timestamp
 import com.gitlab.ykrasik.gamedex.core.image.ImageService
+import com.gitlab.ykrasik.gamedex.core.plugin.PluginManager
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -39,18 +40,22 @@ import javax.inject.Singleton
  */
 @Singleton
 class GameProviderServiceImpl @Inject constructor(
-    repo: GameProviderRepository,
-    private val imageService: ImageService,
-    private val settingsService: SettingsService
+    pluginManager: PluginManager,
+    private val imageService: ImageService
 ) : GameProviderService {
     private val log = logger()
 
-    override val allProviders = repo.allProviders
-    override val enabledProviders = ListObservableImpl<EnabledGameProvider>()
+    override val allProviders = pluginManager.getImplementations(GameProvider::class).sortedBy { it.id }
 
     init {
         log.info("Detected providers: ${allProviders.joinToString()}")
+    }
 
+    @Inject
+    private lateinit var settingsService: SettingsService
+
+    override val enabledProviders by lazy {
+        val enabledProviders = ListObservableImpl<EnabledGameProvider>()
         allProviders.forEach { provider ->
             val providerSettingsRepo = settingsService.providers.getValue(provider.id)
             providerSettingsRepo.perform { data ->
@@ -79,6 +84,8 @@ class GameProviderServiceImpl @Inject constructor(
         enabledProviders.itemsChannel.subscribe {
             log.info("Enabled providers: ${it.sortedBy { it.id }.joinToString()}")
         }
+
+        enabledProviders
     }
 
     override fun isEnabled(id: ProviderId) = enabledProviders.any { it.id == id }

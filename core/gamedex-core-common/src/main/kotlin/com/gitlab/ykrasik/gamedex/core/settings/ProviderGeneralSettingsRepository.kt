@@ -17,7 +17,7 @@
 package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
+import com.gitlab.ykrasik.gamedex.provider.GameProvider
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.months
@@ -27,7 +27,7 @@ import com.gitlab.ykrasik.gamedex.util.months
  * Date: 31/12/2018
  * Time: 15:12
  */
-class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, gameProviderRepository: GameProviderRepository) : SettingsRepository<ProviderGeneralSettingsRepository.Data>() {
+class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, providers: List<GameProvider>) : SettingsRepository<ProviderGeneralSettingsRepository.Data>() {
     data class Data(
         val refetchGamesCondition: Filter,
         val resyncGamesCondition: Filter
@@ -36,8 +36,8 @@ class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, gamePro
     override val storage = factory("general", Data::class) {
         Data(
             refetchGamesCondition = Filter.PeriodUpdateDate(2.months).not,
-            resyncGamesCondition = if (gameProviderRepository.allProviders.isNotEmpty()) {
-                val providerIds = gameProviderRepository.allProviders.map { it.id }
+            resyncGamesCondition = if (providers.isNotEmpty()) {
+                val providerIds = providers.map { it.id }
                 providerIds.drop(1).fold(providerIds.first().missingProviderCondition) { condition, providerId ->
                     condition or providerId.missingProviderCondition
                 }
