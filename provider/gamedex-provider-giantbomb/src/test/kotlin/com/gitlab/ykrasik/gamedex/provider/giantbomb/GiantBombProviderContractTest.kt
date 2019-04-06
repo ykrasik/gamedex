@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.testHttpClient
@@ -54,8 +54,8 @@ class GiantBombProviderContractTest : ScopedWordSpec<GiantBombProviderContractTe
                 )
             }
 
-            "download game details" test {
-                provider.download(apiUrl, Platform.Windows, account) shouldBe ProviderDownloadData(
+            "fetch game details" test {
+                provider.fetch(apiUrl, Platform.Windows, account) shouldBe ProviderFetchData(
                     gameData = GameData(
                         name = name,
                         description = deck,

@@ -16,13 +16,14 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.provider
 
+import com.gitlab.ykrasik.gamedex.Game
 import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 15/12/2018
- * Time: 18:44
+ * Date: 06/05/2018
+ * Time: 14:23
  */
-interface ViewCanRedownloadGames {
-    val redownloadGamesActions: ReceiveChannel<Unit>
+interface ViewCanRefetchGame {
+    val refetchGameActions: ReceiveChannel<Game>
 }

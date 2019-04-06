@@ -33,11 +33,9 @@ interface BroadcastReceiveChannel<T> {
 
     fun subscribe(context: CoroutineContext = EmptyCoroutineContext, f: suspend (T) -> Unit): ReceiveChannel<T>
 
-    fun peek(): T? = subscribe().let { subscription ->
-        subscription.poll().apply { subscription.cancel() }
-    }
+    fun peek(): T = subscribe().consume { poll()!! }
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()!!
+    operator fun getValue(thisRef: Any, property: KProperty<*>) = peek()
 
     fun <R> map(transform: suspend (T) -> R): BroadcastReceiveChannel<R>
 

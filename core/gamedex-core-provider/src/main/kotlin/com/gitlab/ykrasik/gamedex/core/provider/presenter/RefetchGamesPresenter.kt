@@ -16,11 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.provider.RedownloadGameService
+import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.TaskService
 import javax.inject.Inject
@@ -32,38 +32,38 @@ import javax.inject.Singleton
  * Time: 13:08
  */
 @Singleton
-class RedownloadGamesPresenter @Inject constructor(
+class RefetchGamesPresenter @Inject constructor(
     private val settingsService: SettingsService,
-    private val redownloadGameService: RedownloadGameService,
+    private val refetchGameService: RefetchGameService,
     private val taskService: TaskService,
     private val eventBus: EventBus
-) : Presenter<RedownloadGamesView> {
-    override fun present(view: RedownloadGamesView) = object : ViewSession() {
+) : Presenter<RefetchGamesView> {
+    override fun present(view: RefetchGamesView) = object : ViewSession() {
         init {
-//            view.redownloadGamesCondition.forEach { setCanAccept() }
-            view.redownloadGamesConditionIsValid.forEach { setCanAccept() }
+//            view.refetchGamesCondition.forEach { setCanAccept() }
+            view.refetchGamesConditionIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShow() {
-            view.redownloadGamesCondition *= settingsService.providerGeneral.redownloadGamesCondition
+            view.refetchGamesCondition *= settingsService.providerGeneral.refetchGamesCondition
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.redownloadGamesConditionIsValid.value
+            view.canAccept *= view.refetchGamesConditionIsValid.value
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val condition = view.redownloadGamesCondition.value
-            settingsService.providerGeneral.modify { copy(redownloadGamesCondition = condition) }
+            val condition = view.refetchGamesCondition.value
+            settingsService.providerGeneral.modify { copy(refetchGamesCondition = condition) }
 
             finished()
 
-            taskService.execute(redownloadGameService.redownloadGames(condition))
+            taskService.execute(refetchGameService.refetchGames(condition))
         }
 
         private fun onCancel() {

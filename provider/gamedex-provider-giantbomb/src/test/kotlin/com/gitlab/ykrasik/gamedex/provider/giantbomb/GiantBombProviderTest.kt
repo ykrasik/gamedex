@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.provider.giantbomb
 import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
-import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
@@ -113,13 +113,13 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             }
         }
 
-        "download" should {
-            "download details" test {
+        "fetch" should {
+            "fetch details" test {
                 val detailsResult = detailsResult()
 
                 givenClientFetchReturns(detailsResult, apiUrl = apiDetailUrl)
 
-                download(apiDetailUrl) shouldBe ProviderDownloadData(
+                fetch(apiDetailUrl) shouldBe ProviderFetchData(
                     gameData = GameData(
                         name = detailsResult.name,
                         description = detailsResult.deck,
@@ -140,52 +140,52 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
             "handle null deck" test {
                 givenClientFetchReturns(detailsResult().copy(deck = null))
 
-                download().gameData.description shouldBe null
+                fetch().gameData.description shouldBe null
             }
 
             "handle null originalReleaseDate" test {
                 givenClientFetchReturns(detailsResult().copy(originalReleaseDate = null))
 
-                download().gameData.releaseDate shouldBe null
+                fetch().gameData.releaseDate shouldBe null
             }
 
             "handle null genres" test {
                 givenClientFetchReturns(detailsResult().copy(genres = null))
 
-                download().gameData.genres shouldBe emptyList<String>()
+                fetch().gameData.genres shouldBe emptyList<String>()
             }
 
             "handle null image" test {
                 givenClientFetchReturns(detailsResult().copy(image = null))
 
-                download().gameData.imageUrls.thumbnailUrl shouldBe null
-                download().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "consider GiantBomb logo url as absent thumbnail" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(thumbUrl = "${randomUrl()}/$noImage")))
 
-                download().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
             }
 
             "consider GiantBomb logo url as absent poster" test {
                 givenClientFetchReturns(detailsResult().copy(image = randomImage().copy(superUrl = "${randomUrl()}/$noImage")))
 
-                download().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "filter out GiantBomb logo url from screenshots" test {
                 val screenshot1 = randomImage()
                 givenClientFetchReturns(detailsResult().copy(images = listOf(randomImage().copy(superUrl = "${randomUrl()}/$noImage"), screenshot1)))
 
-                download().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
+                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshot1.superUrl)
             }
 
             "throw IllegalStateException on invalid response status" test {
                 givenClientFetchReturns(GiantBombClient.DetailsResponse(GiantBombClient.Status.BadFormat, emptyList()))
 
                 shouldThrow<IllegalStateException> {
-                    download()
+                    fetch()
                 }
             }
         }
@@ -234,7 +234,7 @@ class GiantBombProviderTest : ScopedWordSpec<GiantBombProviderTest.Scope>() {
         }
 
         suspend fun search(name: String = this.name) = provider.search(name, platform, account)
-        suspend fun download(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.download(apiUrl, platform, account)
+        suspend fun fetch(apiUrl: String = apiDetailUrl, platform: Platform = this.platform) = provider.fetch(apiUrl, platform, account)
 
         private val config = GiantBombConfig("", noImage, "", ProviderOrderPriorities.default, emptyMap())
         private val client = mockk<GiantBombClient>()

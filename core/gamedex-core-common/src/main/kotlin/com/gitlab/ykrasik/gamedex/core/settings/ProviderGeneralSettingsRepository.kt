@@ -19,6 +19,7 @@ package com.gitlab.ykrasik.gamedex.core.settings
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.months
 
 /**
@@ -28,13 +29,13 @@ import com.gitlab.ykrasik.gamedex.util.months
  */
 class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, gameProviderRepository: GameProviderRepository) : SettingsRepository<ProviderGeneralSettingsRepository.Data>() {
     data class Data(
-        val redownloadGamesCondition: Filter,
+        val refetchGamesCondition: Filter,
         val resyncGamesCondition: Filter
     )
 
     override val storage = factory("general", Data::class) {
         Data(
-            redownloadGamesCondition = Filter.PeriodUpdateDate(2.months).not,
+            refetchGamesCondition = Filter.PeriodUpdateDate(2.months).not,
             resyncGamesCondition = if (gameProviderRepository.allProviders.isNotEmpty()) {
                 val providerIds = gameProviderRepository.allProviders.map { it.id }
                 providerIds.drop(1).fold(providerIds.first().missingProviderCondition) { condition, providerId ->
@@ -48,8 +49,8 @@ class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, gamePro
 
     private val ProviderId.missingProviderCondition: Filter get() = Filter.Provider(this).not
 
-    val redownloadGamesConditionChannel = storage.channel(Data::redownloadGamesCondition)
-    val redownloadGamesCondition by redownloadGamesConditionChannel
+    val refetchGamesConditionChannel = storage.channel(Data::refetchGamesCondition)
+    val refetchGamesCondition by refetchGamesConditionChannel
 
     val resyncGamesConditionChannel = storage.channel(Data::resyncGamesCondition)
     val resyncGamesCondition by resyncGamesConditionChannel

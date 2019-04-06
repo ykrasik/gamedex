@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.*
@@ -169,13 +169,13 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             }
         }
 
-        "download" should {
-            "download details" test {
+        "fetch" should {
+            "fetch details" test {
                 val detailsResult = detailsResult(releaseDate = releaseDate)
 
                 givenClientFetchReturns(detailsResult, apiUrl = baseUrl)
 
-                download(baseUrl) shouldBe ProviderDownloadData(
+                fetch(baseUrl) shouldBe ProviderFetchData(
                     gameData = GameData(
                         name = detailsResult.name,
                         description = detailsResult.summary,
@@ -196,82 +196,82 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
             "handle null summary" test {
                 givenClientFetchReturns(detailsResult().copy(summary = null))
 
-                download().gameData.description shouldBe null
+                fetch().gameData.description shouldBe null
             }
 
             "handle null releaseDates" test {
                 givenClientFetchReturns(detailsResult().copy(releaseDates = null))
 
-                download().gameData.releaseDate shouldBe null
+                fetch().gameData.releaseDate shouldBe null
             }
 
             "use null releaseDate when no releaseDate exists for given platform" test {
                 givenClientFetchReturns(detailsResult(releaseDatePlatformId = platformId + 1))
 
-                download().gameData.releaseDate shouldBe null
+                fetch().gameData.releaseDate shouldBe null
             }
 
             "parse a release date of format YYYY-MMM-dd and return YYYY-MM-dd instead" test {
                 givenClientFetchReturns(detailsResult(releaseDate = "2000-Apr-07"))
 
-                download().gameData.releaseDate shouldBe "2000-04-07"
+                fetch().gameData.releaseDate shouldBe "2000-04-07"
             }
 
             "fallback to returning the original release date when parsing as YYYY-MMM-dd fails" test {
                 givenClientFetchReturns(detailsResult(releaseDate = "2017-Q4"))
 
-                download().gameData.releaseDate shouldBe "2017-Q4"
+                fetch().gameData.releaseDate shouldBe "2017-Q4"
             }
 
             "handle null aggregatedRating and ignore aggregatedRatingCount" test {
                 givenClientFetchReturns(detailsResult().copy(aggregatedRating = null, aggregatedRatingCount = 1))
 
-                download().gameData.criticScore shouldBe null
+                fetch().gameData.criticScore shouldBe null
             }
 
             "handle null rating and ignore ratingCount" test {
                 givenClientFetchReturns(detailsResult().copy(rating = null, ratingCount = 1))
 
-                download().gameData.userScore shouldBe null
+                fetch().gameData.userScore shouldBe null
             }
 
             "handle null genres" test {
                 givenClientFetchReturns(detailsResult().copy(genres = null))
 
-                download().gameData.genres shouldBe emptyList<String>()
+                fetch().gameData.genres shouldBe emptyList<String>()
             }
 
             "handle null cover cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(cover = image(cloudinaryId = null)))
 
-                download().gameData.imageUrls.thumbnailUrl shouldBe null
-                download().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "handle null cover" test {
                 givenClientFetchReturns(detailsResult().copy(cover = null))
 
-                download().gameData.imageUrls.thumbnailUrl shouldBe null
-                download().gameData.imageUrls.posterUrl shouldBe null
+                fetch().gameData.imageUrls.thumbnailUrl shouldBe null
+                fetch().gameData.imageUrls.posterUrl shouldBe null
             }
 
             "handle null screenshot cloudinaryId" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null))))
 
-                download().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
+                fetch().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
 
             "handle null & non-null screenshot cloudinaryId" test {
                 val image = image()
                 givenClientFetchReturns(detailsResult().copy(screenshots = listOf(image(cloudinaryId = null), image)))
 
-                download().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
+                fetch().gameData.imageUrls.screenshotUrls shouldBe listOf(screenshotUrl(image.cloudinaryId!!))
             }
 
             "handle null screenshots" test {
                 givenClientFetchReturns(detailsResult().copy(screenshots = null))
 
-                download().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
+                fetch().gameData.imageUrls.screenshotUrls shouldBe emptyList<String>()
             }
         }
     }
@@ -342,7 +342,7 @@ class IgdbProviderTest : ScopedWordSpec<IgdbProviderTest.Scope>() {
         }
 
         suspend fun search(name: String = this.name) = provider.search(name, platform, account)
-        suspend fun download(apiUrl: String = baseUrl) = provider.download(apiUrl, platform, account)
+        suspend fun fetch(apiUrl: String = baseUrl) = provider.fetch(apiUrl, platform, account)
 
         private val client = mockk<IgdbClient>()
         val provider = IgdbProvider(

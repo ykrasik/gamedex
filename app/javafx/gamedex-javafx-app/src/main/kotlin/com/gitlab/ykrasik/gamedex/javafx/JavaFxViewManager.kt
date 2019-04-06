@@ -26,7 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
@@ -43,7 +43,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.tag.JavaFxTagGameView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxDeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.library.JavaFxEditLibraryView
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxCleanupDatabaseView
-import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRedownloadGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxRefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.provider.JavaFxResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxDeleteReportView
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxEditReportView
@@ -117,9 +117,9 @@ class JavaFxViewManager : Controller(), ViewManager {
     override fun showDeleteReportView(report: Report) = deleteReportView.showModal { this.report = report }
     override fun hide(view: DeleteReportView) = view.close()
 
-    private val redownloadGamesView: JavaFxRedownloadGamesView by inject()
-    override fun showRedownloadGamesView() = redownloadGamesView.showModal()
-    override fun hide(view: RedownloadGamesView) = view.close()
+    private val refetchGamesView: JavaFxRefetchGamesView by inject()
+    override fun showRefetchGamesView() = refetchGamesView.showModal()
+    override fun hide(view: RefetchGamesView) = view.close()
 
     private val resyncGamesView: JavaFxResyncGamesView by inject()
     override fun showResyncGamesView() = resyncGamesView.showModal()

@@ -24,6 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import com.gitlab.ykrasik.gamedex.core.provider.*
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
 import com.gitlab.ykrasik.gamedex.util.findCircular
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -56,7 +57,7 @@ class SyncGamesPresenter @Inject constructor(
 
         private fun onSyncGamesStarted(paths: List<Pair<LibraryPath, Game?>>, isAllowSmartChooseResults: Boolean) {
             check(!paths.isEmpty()) { "No games to sync!" }
-            val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders()
+            val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders
             val pathsWithEnabledProviders = paths.filter { (path, _) -> platformsWithEnabledProviders.contains(path.library.platform) }
 
             start()

@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import com.gitlab.ykrasik.gamedex.provider.*
 import com.gitlab.ykrasik.gamedex.util.logger
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -62,7 +62,7 @@ class GameProviderServiceImpl @Inject constructor(
                     }
 
                     data.enabled -> {
-                        val account = provider.accountFeature?.createAccount(data.account)
+                        val account = provider.accountFeature?.createAccount(data.account) ?: ProviderUserAccount.Null
                         val newProvider = EnabledGameProvider(provider, account)
                         if (enabledProvider != null) {
                             log.trace("Provider re-enabled: $enabledProvider")
@@ -76,8 +76,8 @@ class GameProviderServiceImpl @Inject constructor(
             }
         }
 
-        enabledProviders.itemsChannel.subscribe { enabledProviders ->
-            log.info("Enabled providers: ${enabledProviders.sortedBy { it.id }.joinToString()}")
+        enabledProviders.itemsChannel.subscribe {
+            log.info("Enabled providers: ${it.sortedBy { it.id }.joinToString()}")
         }
     }
 
@@ -85,18 +85,13 @@ class GameProviderServiceImpl @Inject constructor(
 
     override val logos = allProviders.map { it.id to imageService.createImage(it.logo) }.toMap()
 
-    override fun checkAtLeastOneProviderEnabled() =
-        check(enabledProviders.isNotEmpty()) {
-            "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
-        }
-
-    override fun platformsWithEnabledProviders(): Set<Platform> =
-        enabledProviders.fold(setOf()) { acc, provider -> acc + provider.supportedPlatforms }
+    override val platformsWithEnabledProviders: Set<Platform>
+        get() = enabledProviders.fold(setOf()) { acc, provider -> acc + provider.supportedPlatforms }
 
     override fun verifyAccount(providerId: ProviderId, account: Map<String, String>): Task<Unit> {
         val provider = allProviders.find { it.id == providerId }!!
         val accountFeature = checkNotNull(provider.accountFeature) { "Provider $providerId does not require an account!" }
-        return task("Verifying $providerId account...", initialImage = logos[providerId]!!) {
+        return task("Verifying $providerId account...", initialImage = logos.getValue(providerId)) {
             try {
                 val providerAccount = accountFeature.createAccount(account)
                 provider.search("TestSearchToVerifyAccount", Platform.Windows, providerAccount)
@@ -109,16 +104,16 @@ class GameProviderServiceImpl @Inject constructor(
     }
 
     override fun search(providerId: ProviderId, query: String, platform: Platform) =
-        task("Searching $providerId for '$query'...", initialImage = logos[providerId]!!) {
+        task("Searching $providerId for '$query'...", initialImage = logos.getValue(providerId)) {
             enabledProviders.find { it.id == providerId }!!.search(query, platform)
         }
 
-    override fun download(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
+    override fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>) = task("Downloading '$name'...") {
         totalItems = headers.size
         headers.map { header ->
             // TODO: Link to task scope.
             GlobalScope.async {
-                val data = enabledProviders.find { it.id == header.id }!!.download(header.apiUrl, platform)
+                val data = enabledProviders.find { it.id == header.id }!!.fetch(header.apiUrl, platform)
                 incProgress()
                 ProviderData(
                     header = header,

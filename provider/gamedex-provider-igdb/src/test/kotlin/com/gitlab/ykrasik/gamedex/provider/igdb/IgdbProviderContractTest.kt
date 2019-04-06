@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.GameData
 import com.gitlab.ykrasik.gamedex.ImageUrls
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.Score
-import com.gitlab.ykrasik.gamedex.provider.ProviderDownloadData
+import com.gitlab.ykrasik.gamedex.provider.ProviderFetchData
 import com.gitlab.ykrasik.gamedex.provider.ProviderSearchResult
 import com.gitlab.ykrasik.gamedex.test.ScopedWordSpec
 import com.gitlab.ykrasik.gamedex.test.assertScore
@@ -60,9 +60,9 @@ class IgdbProviderContractTest : ScopedWordSpec<IgdbProviderContractTest.Scope>(
                 )
             }
 
-            "download game details" test {
-                val result = provider.download(apiUrl, Platform.Windows, account)
-                result shouldBe ProviderDownloadData(
+            "fetch game details" test {
+                val result = provider.fetch(apiUrl, Platform.Windows, account)
+                result shouldBe ProviderFetchData(
                     gameData = GameData(
                         name = name,
                         description = description,

@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.maintenance.ClearUserDataView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGames
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.areYouSureDialog
@@ -45,7 +45,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ImportDatabaseView,
     ClearUserDataView,
     ViewCanCleanupDatabase,
-    ViewCanRedownloadGames,
+    ViewCanRefetchGames,
     ViewCanResyncGames,
     ViewCanBrowsePath {
 
@@ -53,7 +53,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     override val importDatabaseActions = channel<Unit>()
     override val clearUserDataActions = channel<Unit>()
     override val cleanupDatabaseActions = channel<Unit>()
-    override val redownloadGamesActions = channel<Unit>()
+    override val refetchGamesActions = channel<Unit>()
 
     override val canResyncGames = state(IsValid.valid)
     override val resyncGamesActions = channel<Unit>()
@@ -78,10 +78,10 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
         verticalGap()
 
-        infoButton("Re-Download Games", Icons.download) {
+        infoButton("Re-Fetch Games", Icons.download) {
             useMaxWidth = true
             alignment = Pos.CENTER_LEFT
-            action(redownloadGamesActions)
+            action(refetchGamesActions)
         }
         infoButton("Re-Sync Games", Icons.sync) {
             useMaxWidth = true

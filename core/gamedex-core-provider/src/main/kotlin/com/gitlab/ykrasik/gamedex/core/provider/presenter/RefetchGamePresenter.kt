@@ -14,19 +14,29 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.core.provider.presenter
 
-import com.gitlab.ykrasik.gamedex.app.api.ConfirmationView
-import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.util.IsValid
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import com.gitlab.ykrasik.gamedex.core.provider.RefetchGameService
+import com.gitlab.ykrasik.gamedex.core.task.TaskService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * User: ykrasik
- * Date: 06/05/2018
- * Time: 09:38
- */
-interface RedownloadGamesView : ConfirmationView {
-    val redownloadGamesCondition: UserMutableState<Filter>
-    val redownloadGamesConditionIsValid: UserMutableState<IsValid>
+@Singleton
+class RefetchGamePresenter @Inject constructor(
+    private val refetchGameService: RefetchGameService,
+    private val taskService: TaskService
+) : Presenter<ViewCanRefetchGame> {
+    override fun present(view: ViewCanRefetchGame) = object : ViewSession() {
+        init {
+            view.refetchGameActions.forEach { refetchGame(it) }
+        }
+
+        private suspend fun refetchGame(game: Game) {
+            taskService.execute(refetchGameService.refetchGame(game))
+        }
+    }
 }

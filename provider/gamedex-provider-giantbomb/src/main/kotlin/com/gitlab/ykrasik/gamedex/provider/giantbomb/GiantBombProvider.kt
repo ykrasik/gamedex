@@ -36,7 +36,7 @@ import javax.inject.Singleton
 class GiantBombProvider @Inject constructor(private val config: GiantBombConfig, private val client: GiantBombClient) : GameProvider {
     private val log = logger()
 
-    override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult> {
+    override suspend fun search(query: String, platform: Platform, account: ProviderUserAccount): List<ProviderSearchResult> {
         val results = log.logResult("[$platform] Searching '$query'...", { results -> "${results.size} results." }, Logger::debug) {
             val response = client.search(query, platform, account as GiantBombUserAccount)
             assertOk(response.statusCode)
@@ -56,8 +56,8 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
         apiUrl = apiDetailUrl
     )
 
-    override suspend fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData =
-        log.logResult("[$platform] Downloading $apiUrl...", log = Logger::debug) {
+    override suspend fun fetch(apiUrl: String, platform: Platform, account: ProviderUserAccount): ProviderFetchData =
+        log.logResult("[$platform] Fetching $apiUrl...", log = Logger::debug) {
             val response = client.fetch(apiUrl, account as GiantBombUserAccount)
             assertOk(response.statusCode)
             // When result is found - GiantBomb returns a Json object.
@@ -66,7 +66,7 @@ class GiantBombProvider @Inject constructor(private val config: GiantBombConfig,
             response.results.first().toProviderData()
         }
 
-    private fun GiantBombClient.DetailsResult.toProviderData() = ProviderDownloadData(
+    private fun GiantBombClient.DetailsResult.toProviderData() = ProviderFetchData(
         gameData = GameData(
             name = name,
             description = deck,

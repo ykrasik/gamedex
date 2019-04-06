@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.GameDetailsView
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanDeleteGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanEditGame
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanTagGame
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
@@ -56,7 +56,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     ViewCanDeleteGame,
     ViewCanTagGame,
     ViewCanResyncGame,
-    ViewCanRedownloadGame,
+    ViewCanRefetchGame,
     ViewCanBrowsePath {
 
     private val commonOps: JavaFxCommonOps by di()
@@ -74,7 +74,7 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val tagGameActions = channel<Game>()
-    override val redownloadGameActions = channel<Game>()
+    override val refetchGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
@@ -118,21 +118,21 @@ class JavaFxGameDetailsScreen : PresentableScreen(),
         toolbarButton("Tag", graphic = Icons.tag) { action(tagGameActions) { game.value!! } }
         gap()
         extraMenu {
-            deleteButton("Delete") {
+            infoButton("Re-Fetch", graphic = Icons.download) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
-                action(deleteGameActions) { game.value!! }
-            }
-            infoButton("Re-Download", graphic = Icons.download) {
-                useMaxWidth = true
-                alignment = Pos.CENTER_LEFT
-                action(redownloadGameActions) { game.value!! }
+                action(refetchGameActions) { game.value!! }
             }
             infoButton("Re-Sync", graphic = Icons.sync) {
                 useMaxWidth = true
                 alignment = Pos.CENTER_LEFT
                 enableWhen(canResyncGame)
                 action(resyncGameActions) { game.value!! }
+            }
+            deleteButton("Delete") {
+                useMaxWidth = true
+                alignment = Pos.CENTER_LEFT
+                action(deleteGameActions) { game.value!! }
             }
         }
     }

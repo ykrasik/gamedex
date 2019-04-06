@@ -33,38 +33,38 @@ import javax.inject.Singleton
  * Date: 29/04/2018
  * Time: 15:54
  */
-@ImplementedBy(RedownloadGameServiceImpl::class)
-interface RedownloadGameService {
-    fun redownloadGame(game: Game): Task<Unit>
-    fun redownloadGames(condition: Filter): Task<Unit>
+@ImplementedBy(RefetchGameServiceImpl::class)
+interface RefetchGameService {
+    fun refetchGame(game: Game): Task<Unit>
+    fun refetchGames(condition: Filter): Task<Unit>
 }
 
 @Singleton
-class RedownloadGameServiceImpl @Inject constructor(
+class RefetchGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
     private val filterContextFactory: FilterContextFactory
-) : RedownloadGameService {
-    override fun redownloadGame(game: Game) = redownloadGames(listOf(game))
+) : RefetchGameService {
+    override fun refetchGame(game: Game) = refetchGames(listOf(game))
 
-    override fun redownloadGames(condition: Filter): Task<Unit> {
+    override fun refetchGames(condition: Filter): Task<Unit> {
         val context = filterContextFactory.create(emptyList())
         val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.name }
-        return redownloadGames(games)
+        return refetchGames(games)
     }
 
-    private fun redownloadGames(games: List<Game>) = task("Re-Downloading " + if (games.size == 1) "'${games.first().name}'..." else "${games.size} games...", isCancellable = true) {
+    private fun refetchGames(games: List<Game>) = task("Re-Fetching ${if (games.size == 1) "'${games.first().name}'..." else "${games.size} games..."}", isCancellable = true) {
         gameProviderService.checkAtLeastOneProviderEnabled()
 
         successOrCancelledMessage { success ->
-            "${if (success) "Done" else "Cancelled"}: Re-Downloaded " + if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."
+            "${if (success) "Done" else "Cancelled"}: Re-Fetched ${if (games.size == 1) "'${games.firstOrNull()?.name}'." else "$processedItems / $totalItems Games."}"
         }
 
         games.forEachWithProgress { game ->
             val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.id) }
             if (providersToDownload.isEmpty()) return@forEachWithProgress
 
-            val downloadedProviderData = executeSubTask(gameProviderService.download(game.name, game.platform, providersToDownload))
+            val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))
 
             // Replace existing data with new data, pass-through any data that wasn't replaced.
             val newRawGame = game.rawGame.withProviderData(downloadedProviderData)

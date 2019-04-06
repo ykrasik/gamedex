@@ -19,7 +19,7 @@ package com.gitlab.ykrasik.gamedex.app.javafx.game
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.GameDataType
 import com.gitlab.ykrasik.gamedex.app.api.game.*
-import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRedownloadGame
+import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGame
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGame
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.javafx.control.enableWhen
@@ -47,14 +47,14 @@ import tornadofx.vbox
 // TODO: Allow adding extra buttons, like for report screen.
 class GameContextMenu : InstallableContextMenu<Game>(),
     ViewCanShowGameDetails, ViewCanEditGame, ViewCanDeleteGame,
-    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRedownloadGame, ViewCanResyncGame {
+    ViewCanRenameMoveGame, ViewCanTagGame, ViewCanRefetchGame, ViewCanResyncGame {
 
     override val showGameDetailsActions = channel<Game>()
     override val editGameActions = channel<Pair<Game, GameDataType>>()
     override val deleteGameActions = channel<Game>()
     override val renameMoveGameActions = channel<Pair<Game, String?>>()
     override val tagGameActions = channel<Game>()
-    override val redownloadGameActions = channel<Game>()
+    override val refetchGameActions = channel<Game>()
 
     override val canResyncGame = state(IsValid.valid)
     override val resyncGameActions = channel<Game>()
@@ -72,9 +72,9 @@ class GameContextMenu : InstallableContextMenu<Game>(),
         verticalGap()
         item("Tag", Icons.tag) { action(tagGameActions) { data } }
         verticalGap()
-        item("Re-Download", Icons.download) {
+        item("Re-Fetch", Icons.download) {
             addClass(CommonStyle.infoButton)
-            action(redownloadGameActions) { data }
+            action(refetchGameActions) { data }
         }
         item("Re-Sync", Icons.sync) {
             addClass(CommonStyle.infoButton)

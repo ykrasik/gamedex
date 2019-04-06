@@ -51,11 +51,12 @@ class SyncLibrariesPresenter @Inject constructor(
                 .forEach {
                     val (libraries, enabledProviders) = it.first
                     val isGameSyncRunning = it.second
+                    val platformsWithEnabledProviders = gameProviderService.platformsWithEnabledProviders
                     view.canSyncLibraries *= Try {
                         check(!isGameSyncRunning) { "Game sync in progress!" }
                         check(libraries.isNotEmpty()) { "Please add at least 1 library!" }
                         check(enabledProviders.isNotEmpty()) { "Please enable at least 1 provider!" }
-                        check(libraries.any { it.platform in gameProviderService.platformsWithEnabledProviders() }) { "Please enable a provider that supports your platform!" }
+                        check(libraries.any { it.platform in platformsWithEnabledProviders }) { "Please enable a provider that supports your platform!" }
                     }
                 }
             view.syncLibrariesActions.forEach { onSyncLibrariesStarted() }

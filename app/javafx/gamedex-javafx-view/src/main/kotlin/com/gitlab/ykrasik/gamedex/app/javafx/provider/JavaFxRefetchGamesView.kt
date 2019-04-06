@@ -14,16 +14,38 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.app.api.provider
+package com.gitlab.ykrasik.gamedex.app.javafx.provider
 
-import com.gitlab.ykrasik.gamedex.Game
-import kotlinx.coroutines.channels.ReceiveChannel
+import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
+import com.gitlab.ykrasik.gamedex.app.javafx.filter.JavaFxFilterView
+import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.userMutableState
+import com.gitlab.ykrasik.gamedex.javafx.view.ConfirmationWindow
+import tornadofx.borderpane
+import tornadofx.paddingAll
+import tornadofx.scrollpane
 
 /**
  * User: ykrasik
- * Date: 06/05/2018
- * Time: 14:23
+ * Date: 05/06/2017
+ * Time: 10:57
  */
-interface ViewCanRedownloadGame {
-    val redownloadGameActions: ReceiveChannel<Game>
+class JavaFxRefetchGamesView : ConfirmationWindow("Re-Fetch Games", Icons.download), RefetchGamesView {
+    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
+
+    override val refetchGamesCondition = filterView.externalMutations
+    override val refetchGamesConditionIsValid = userMutableState(filterView.filterIsValid)
+
+    init {
+        register()
+    }
+
+    override val root = borderpane {
+        top = confirmationToolbar()
+        center = scrollpane {
+            paddingAll = 10
+            add(filterView.root)
+            filterView.filter.onChange { resizeToContent() }
+        }
+    }
 }

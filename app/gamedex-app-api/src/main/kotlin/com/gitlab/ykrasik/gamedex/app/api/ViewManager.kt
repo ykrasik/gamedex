@@ -25,7 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
-import com.gitlab.ykrasik.gamedex.app.api.provider.RedownloadGamesView
+import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.SyncGamesView
 import com.gitlab.ykrasik.gamedex.app.api.report.DeleteReportView
@@ -79,8 +79,8 @@ interface ViewManager {
     fun showDeleteReportView(report: Report): DeleteReportView
     fun hide(view: DeleteReportView)
 
-    fun showRedownloadGamesView(): RedownloadGamesView
-    fun hide(view: RedownloadGamesView)
+    fun showRefetchGamesView(): RefetchGamesView
+    fun hide(view: RefetchGamesView)
 
     fun showResyncGamesView(): ResyncGamesView
     fun hide(view: ResyncGamesView)

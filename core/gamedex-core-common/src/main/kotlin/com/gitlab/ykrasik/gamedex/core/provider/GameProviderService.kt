@@ -33,8 +33,7 @@ interface GameProviderService {
     val allProviders: List<GameProvider>
     val enabledProviders: ListObservable<EnabledGameProvider>
 
-    fun checkAtLeastOneProviderEnabled()
-    fun platformsWithEnabledProviders(): Set<Platform>
+    val platformsWithEnabledProviders: Set<Platform>
 
     fun isEnabled(id: ProviderId): Boolean
 
@@ -44,12 +43,16 @@ interface GameProviderService {
 
     fun search(providerId: ProviderId, query: String, platform: Platform): Task<List<ProviderSearchResult>>
 
-    fun download(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
+    fun fetch(name: String, platform: Platform, headers: List<ProviderHeader>): Task<List<ProviderData>>
 }
 
-class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount?) : GameProvider by provider {
+class EnabledGameProvider(private val provider: GameProvider, private val account: ProviderUserAccount) : GameProvider by provider {
     suspend fun search(query: String, platform: Platform): List<ProviderSearchResult> = provider.search(query, platform, account)
-    suspend fun download(apiUrl: String, platform: Platform): ProviderDownloadData = provider.download(apiUrl, platform, account)
+    suspend fun fetch(apiUrl: String, platform: Platform): ProviderFetchData = provider.fetch(apiUrl, platform, account)
 
     override fun toString() = provider.toString()
+}
+
+fun GameProviderService.checkAtLeastOneProviderEnabled() = check(enabledProviders.isNotEmpty()) {
+    "No providers are enabled! Please make sure there's at least 1 enabled provider in the settings menu."
 }

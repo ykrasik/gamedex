@@ -19,6 +19,8 @@ package com.gitlab.ykrasik.gamedex.core.settings
 import com.gitlab.ykrasik.gamedex.app.api.settings.Order
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderRepository
 import com.gitlab.ykrasik.gamedex.provider.ProviderOrderPriorities
+import com.gitlab.ykrasik.gamedex.provider.defaultOrder
+import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.Extractor
 
 /**
@@ -28,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.util.Extractor
  */
 class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, gameProviderRepository: GameProviderRepository) :
     SettingsRepository<ProviderOrderSettingsRepository.Data>() {
+
     data class Data(
         val search: Order,
         val name: Order,
@@ -42,11 +45,7 @@ class ProviderOrderSettingsRepository(factory: SettingsStorageFactory, gameProvi
 
     override val storage = factory("order", Data::class) {
         fun defaultOrder(extractor: Extractor<ProviderOrderPriorities, Int>) =
-            gameProviderRepository.allProviders
-                .asSequence()
-                .sortedBy { extractor(it.defaultOrder) }
-                .map { it.id }
-                .toList()
+            gameProviderRepository.allProviders.sortedBy { extractor(it.defaultOrder) }.map { it.id }
 
         Data(
             search = defaultOrder { search },

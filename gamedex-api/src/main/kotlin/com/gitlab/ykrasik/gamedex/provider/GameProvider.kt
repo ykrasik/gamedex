@@ -25,19 +25,23 @@ import com.gitlab.ykrasik.gamedex.Score
  * Date: 29/05/2016
  * Time: 10:42
  */
-typealias ProviderId = String
-
 interface GameProvider {
     val metadata: GameProviderMetadata
-    val id get() = metadata.id
-    val logo get() = metadata.logo
-    val supportedPlatforms get() = metadata.supportedPlatforms
-    val defaultOrder get() = metadata.defaultOrder
-    val accountFeature get() = metadata.accountFeature
 
-    suspend fun search(query: String, platform: Platform, account: ProviderUserAccount?): List<ProviderSearchResult>
-    suspend fun download(apiUrl: String, platform: Platform, account: ProviderUserAccount?): ProviderDownloadData
+    suspend fun search(
+        query: String,
+        platform: Platform,
+        account: ProviderUserAccount = ProviderUserAccount.Null
+    ): List<ProviderSearchResult>
+
+    suspend fun fetch(
+        apiUrl: String,
+        platform: Platform,
+        account: ProviderUserAccount = ProviderUserAccount.Null
+    ): ProviderFetchData
 }
+
+typealias ProviderId = String
 
 data class GameProviderMetadata(
     val id: ProviderId,
@@ -47,6 +51,11 @@ data class GameProviderMetadata(
     val accountFeature: ProviderUserAccountFeature?
 )
 
+val GameProvider.id get() = metadata.id
+val GameProvider.logo get() = metadata.logo
+val GameProvider.supportedPlatforms get() = metadata.supportedPlatforms
+val GameProvider.defaultOrder get() = metadata.defaultOrder
+val GameProvider.accountFeature get() = metadata.accountFeature
 fun GameProvider.supports(platform: Platform) = supportedPlatforms.contains(platform)
 
 /**
@@ -62,7 +71,9 @@ interface ProviderUserAccountFeature {
     fun createAccount(fields: Map<String, String>): ProviderUserAccount
 }
 
-interface ProviderUserAccount
+interface ProviderUserAccount {
+    object Null : ProviderUserAccount
+}
 
 // Higher number means lower priority
 data class ProviderOrderPriorities(
@@ -101,7 +112,7 @@ data class ProviderSearchResult(
     val apiUrl: String
 )
 
-data class ProviderDownloadData(
+data class ProviderFetchData(
     val gameData: GameData,
     val siteUrl: String
 )
