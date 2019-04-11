@@ -56,9 +56,12 @@ data class LibraryData(
 )
 
 enum class LibraryType(val displayName: String) {
+    Physical("Physical"),
     Digital("Digital"),
-    Excluded("Excluded")
+    Excluded("Excluded");
 }
+
+val LibraryType.isDigital get() = this == LibraryType.Digital
 
 enum class Platform(val displayName: String) {
     Windows("Windows"),

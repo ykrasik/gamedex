@@ -97,9 +97,11 @@ class LibraryMenu : PresentableView("Libraries", Icons.folders),
                             row {
                                 children += if (library.type == LibraryType.Excluded) library.type.icon else library.platform.logo
                                 text(library.name)
-                                jfxButton(library.path.toString()) {
+                                jfxButton(library.path.toString(), graphic = if (library.type == LibraryType.Physical) Icons.disc else Icons.folder) {
                                     useMaxWidth = true
                                     addClass(CommonStyle.toolbarButton)
+                                    alignment = Pos.CENTER_LEFT
+                                    isMouseTransparent = library.type == LibraryType.Physical
                                     action(browsePathActions) { library.path }
                                 }
                                 editButton {

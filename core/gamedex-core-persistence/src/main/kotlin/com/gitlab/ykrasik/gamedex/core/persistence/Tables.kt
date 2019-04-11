@@ -34,8 +34,8 @@ internal object Libraries : IntIdTable() {
 internal object Games : IntIdTable() {
     val libraryId = reference("library_id", Libraries, onDelete = ReferenceOption.CASCADE)
     val path = varchar("path", 255)
-    val providerData = varchar("provider_data", 32.kb)
-    val userData = varchar("user_data", 16.kb).nullable()
+    val providerData = varchar("provider_data", 64.kb)
+    val userData = varchar("user_data", 64.kb).nullable()
     val updateDate = datetime("update_date")
     val createDate = datetime("create_date").defaultExpression(CurrentDateTime())
 

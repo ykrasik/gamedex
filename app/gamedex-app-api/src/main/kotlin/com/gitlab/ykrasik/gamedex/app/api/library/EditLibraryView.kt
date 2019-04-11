@@ -34,17 +34,19 @@ import java.io.File
 interface EditLibraryView : ConfirmationView {
     val library: Library?
 
-    val name: UserMutableState<String>
-    val nameIsValid: State<IsValid>
-
-    val path: UserMutableState<String>
-    val pathIsValid: State<IsValid>
-
     val type: UserMutableState<LibraryType>
     val canChangeType: State<IsValid>
 
     val platform: UserMutableState<Platform?>
+    val shouldShowPlatform: State<IsValid>
     val canChangePlatform: State<IsValid>
+
+    val name: UserMutableState<String>
+    val nameIsValid: State<IsValid>
+
+    val path: UserMutableState<String>
+    val shouldShowPath: State<IsValid>
+    val pathIsValid: State<IsValid>
 
     val browseActions: ReceiveChannel<Unit>
 

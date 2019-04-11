@@ -33,6 +33,7 @@ object Icons {
     val chart get() = fontIcon(MaterialDesign.MDI_CHART_BAR, color = Color.DARKBLUE)
     val book get() = fontIcon(MaterialDesign.MDI_BOOK_OPEN_OUTLINE, color = Color.BROWN)
     val hdd get() = fontIcon(MaterialDesign.MDI_HARDDISK, color = Colors.green)
+    val disc get() = fontIcon(MaterialDesign.MDI_DISC)
     val settings get() = fontIcon(MaterialDesign.MDI_SETTINGS, color = Color.GRAY)
     val wrench get() = fontIcon(MaterialDesign.MDI_WRENCH, color = Color.GRAY)
     val display get() = fontIcon(MaterialDesign.MDI_MONITOR_DASHBOARD, color = Color.DARKBLUE)

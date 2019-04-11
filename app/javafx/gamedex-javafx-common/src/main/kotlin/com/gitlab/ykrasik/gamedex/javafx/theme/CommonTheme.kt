@@ -43,6 +43,7 @@ val Platform.logo
 val LibraryType.icon
     get() = when (this) {
         LibraryType.Digital -> Icons.folder
+        LibraryType.Physical -> Icons.disc
         LibraryType.Excluded -> Icons.folderRemove
     }.size(26)
 

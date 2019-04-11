@@ -42,11 +42,16 @@ class PluginManagerImpl(injector: Injector, pluginScanners: List<PluginScanner>)
     private val allInternalPlugins: Map<PluginId, InternalPlugin> = log.time("Detecting plugins...", { time, plugins -> "${plugins.size} plugins in $time" }) {
         val results = pluginScanners.map { it.scan() }
         results.fold(mapOf()) { acc, pluginClasses ->
-            acc + pluginClasses.map { (pluginClass, classLoader) ->
-                val plugin = pluginClass.kotlin.objectInstance as Plugin
-                log.info("Detected plugin: ${plugin.fullyQualifiedName}")
-                val childInjector = injector.createChildInjector(plugin.module)
-                plugin.id to InternalPlugin(plugin, classLoader, childInjector)
+            acc + pluginClasses.mapNotNull { (pluginClass, classLoader) ->
+                runCatching {
+                    val plugin = pluginClass.kotlin.objectInstance as Plugin
+                    log.info("Detected plugin: ${plugin.fullyQualifiedName}")
+                    val childInjector = injector.createChildInjector(plugin.module)
+                    plugin.id to InternalPlugin(plugin, classLoader, childInjector)
+                }.getOrElse { e ->
+                    log.error("[$pluginClass] Ignoring due to error:", e)
+                    null
+                }
             }
         }
     }
@@ -105,7 +110,7 @@ class DirectoryPluginScanner(private val pluginsDir: String = "plugins") : Plugi
         return files.mapNotNull { file ->
             if (file.extension != "jar") return@mapNotNull null
             log.trace("[$file] Detecting plugin...")
-            try {
+            runCatching {
                 val classLoader = PluginClassLoader(file.toURI().toURL(), javaClass.classLoader)
                 val url = classLoader.findResource("META-INF/MANIFEST.MF")
                 val manifest = Manifest(url.openStream())
@@ -113,7 +118,7 @@ class DirectoryPluginScanner(private val pluginsDir: String = "plugins") : Plugi
                 val pluginClass = classLoader.loadClass(pluginClassName)
                 log.trace("[$file] Plugin: $pluginClassName")
                 pluginClass as Class<out Plugin> to classLoader
-            } catch (e: Exception) {
+            }.getOrElse { e ->
                 log.error("[$file] Ignoring due to error:", e)
                 null
             }

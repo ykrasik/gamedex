@@ -42,17 +42,19 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     private val libraryProperty = SimpleObjectProperty<Library?>(null)
     override var library by libraryProperty
 
-    override val name = userMutableState("")
-    override val nameIsValid = state(IsValid.valid)
-
-    override val path = userMutableState("")
-    override val pathIsValid = state(IsValid.valid)
-
     override val type = userMutableState(LibraryType.Digital)
     override val canChangeType = state(IsValid.valid)
 
     override val platform = userMutableState<Platform?>(null)
+    override val shouldShowPlatform = state(IsValid.valid)
     override val canChangePlatform = state(IsValid.valid)
+
+    override val name = userMutableState("")
+    override val nameIsValid = state(IsValid.valid)
+
+    override val path = userMutableState("")
+    override val shouldShowPath = state(IsValid.valid)
+    override val pathIsValid = state(IsValid.valid)
 
     override val browseActions = channel<Unit>()
 
@@ -68,19 +70,20 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
             form {
                 minWidth = 600.0
                 fieldset {
-                    pathField()
-                    verticalGap()
-                    nameField()
-                    verticalGap()
                     typeField()
                     verticalGap()
                     platformField()
+                    verticalGap()
+                    nameField()
+                    verticalGap()
+                    pathField()
                 }
             }
         }
     }
 
     private fun Fieldset.pathField() = horizontalField("Path") {
+        showWhen(shouldShowPath)
         jfxTextField(path.property, promptText = "Enter Path...") {
             validWhen(pathIsValid)
         }
@@ -105,7 +108,7 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     }
 
     private fun Fieldset.platformField() = horizontalField("Platform") {
-        showWhen { platform.property.isNotNull }
+        showWhen(shouldShowPlatform)
         enableWhen(canChangePlatform)
         platformComboBox(platform.property)
     }
