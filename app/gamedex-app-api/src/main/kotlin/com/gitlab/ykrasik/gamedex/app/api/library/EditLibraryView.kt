@@ -44,6 +44,7 @@ interface EditLibraryView : ConfirmationView {
     val canChangeType: State<IsValid>
 
     val platform: UserMutableState<Platform?>
+    val shouldShowPlatform: State<IsValid>
     val canChangePlatform: State<IsValid>
 
     val browseActions: ReceiveChannel<Unit>

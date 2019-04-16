@@ -47,7 +47,7 @@ import java.io.File
  * Date: 09/10/2016
  * Time: 15:03
  */
-class GameWallView : PresentableView("Games Wall"),
+class GameWallView : PresentableView("Game Wall"),
     ViewWithGames,
     ViewCanShowGameDetails,
     ViewWithGameWallDisplaySettings,

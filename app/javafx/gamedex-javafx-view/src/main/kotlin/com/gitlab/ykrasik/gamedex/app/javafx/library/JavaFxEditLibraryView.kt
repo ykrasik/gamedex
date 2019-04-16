@@ -52,6 +52,7 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     override val canChangeType = state(IsValid.valid)
 
     override val platform = userMutableState<Platform?>(null)
+    override val shouldShowPlatform = state(IsValid.valid)
     override val canChangePlatform = state(IsValid.valid)
 
     override val browseActions = channel<Unit>()
@@ -68,9 +69,9 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
             form {
                 minWidth = 600.0
                 fieldset {
-                    pathField()
-                    verticalGap()
                     nameField()
+                    verticalGap()
+                    pathField()
                     verticalGap()
                     typeField()
                     verticalGap()
@@ -105,7 +106,7 @@ class JavaFxEditLibraryView : ConfirmationWindow(icon = Icons.edit), EditLibrary
     }
 
     private fun Fieldset.platformField() = horizontalField("Platform") {
-        showWhen { platform.property.isNotNull }
+        showWhen(shouldShowPlatform)
         enableWhen(canChangePlatform)
         platformComboBox(platform.property)
     }

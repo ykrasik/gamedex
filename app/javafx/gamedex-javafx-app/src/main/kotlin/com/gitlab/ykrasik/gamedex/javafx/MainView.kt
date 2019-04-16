@@ -85,7 +85,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         addClass(CommonStyle.hiddenTabPaneHeader)
         isDisableAnimation = true   // Too slow by default
 
-        tab(gameScreen)
+        tab(gameScreen).select()
         tab(syncGamesScreen)
         tab(reportScreen)
         tab(logScreen)
@@ -108,6 +108,9 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
 
     private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
         navigationButton(gameScreen)
+
+        verticalGap(size = 15)
+
         subMenu(libraryMenu)
         subMenu(reportMenu)
         subMenu(maintenanceMenu)

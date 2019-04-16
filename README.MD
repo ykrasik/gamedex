@@ -2,7 +2,8 @@
 GameDex is an open source digital game collection management tool,
 written in Kotlin and powered by [TornadoFX](https://github.com/edvin/tornadofx) & [JFoenix](https://github.com/jfoenixadmin/JFoenix)
 
-It is currently in alpha, so there is no tutorial or binary distribution (yet), however you can [build it yourself](#build-distribution).
+It is currently in pre-release, so there is no tutorial (yet).
+You can [download it here](https://github.com/ykrasik/gamedex/releases) or [build it yourself](#build-distribution).
 
 Here's how it looks like:
 
@@ -21,31 +22,33 @@ Here's how it looks like:
 * Supports re-fetching game information from providers, so you always have the most up-to-date game information locally.
 
 # Build Distribution:
-Prerequisites: JDK 8 only, does not support any of the later JDKs. In root folder:
-
 `gradlew dist`
+
+Prerequisites: JDK 8 only, does not support any of the later JDKs. In root folder:
 
 The distribution will be under project root in `dist` folder
 and will contain a standalone copy of your JRE.
 On windows, if you also have InnoSetup installed, it will generate a native windows setup file.
 
-You can copy the distribution anywhere you like, it's portable.
+You can copy the distribution anywhere you like, it's portable & self-contained.
 
 # Run Distribution
 On windows: `dist\GameDex\GameDex.exe`
 
 # Run Demo Application
+`gradlew runDemo`
+
 The demo application is intended for development purposes,
 but you can use it to play around with GameDex without affecting any real world data.
 It generates a game database filled with randomly generated games and
 all providers are replaced with fake servers that emulate them.
 
-From the command line `gradlew runDemo`
-
-From the IDE, run `app\javafx\gamedex-javafx-app\src\test\kotlin\com\gitlab\ykrasik\gamedex\javafx\TestApplication.kt`
+You can also run the demo application from the IDE - `app\javafx\gamedex-javafx-app\src\test\kotlin\com\gitlab\ykrasik\gamedex\javafx\TestApplication.kt`
 
 # Run Tests
-For tests to pass, create a gradle.properties file under the root project with the following properties:
+`gradlew test`
+
+For tests to pass, you need to have the following entries in a [gradle.properties file](https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties) file:
 ```
 systemProp.gameDex.giantBomb.apiKey={yourApiKey}
 systemProp.gameDex.igdb.apiKey={yourApiKey}
@@ -53,9 +56,6 @@ systemProp.gameDex.igdb.apiKey={yourApiKey}
 This is because contract tests for providers require real credentials to work.
 
 # Maintenance Tasks
-
-#### Create release tag
-`gradlew tag -Prelease`
 
 #### Check for library version updates
 `gradlew versions`

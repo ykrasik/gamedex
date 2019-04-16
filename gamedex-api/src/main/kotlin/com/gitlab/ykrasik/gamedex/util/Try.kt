@@ -41,7 +41,7 @@ sealed class Try<out T> {
         fun <T> error(error: Exception): Try<T> = Error(error)
 
         val valid: IsValid = success(Unit)
-        fun invalid(error: String): IsValid = error(IllegalArgumentException(error))
+        fun invalid(error: String): IsValid = error(IllegalStateException(error))
 
         inline operator fun <T> invoke(f: () -> T): Try<T> =
             try {
@@ -56,3 +56,4 @@ typealias IsValid = Try<Any>
 
 fun IsValid.or(other: IsValid): IsValid = if (isError) other else this
 fun IsValid.and(other: IsValid): IsValid = if (isSuccess) other else this
+val IsValid.not get(): IsValid = if (isSuccess) IsValid.invalid("Negation") else IsValid.valid
