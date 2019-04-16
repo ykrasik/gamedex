@@ -26,7 +26,6 @@ import com.gitlab.ykrasik.gamedex.core.provider.*
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
-import com.gitlab.ykrasik.gamedex.util.findCircular
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.setAll
 import javax.inject.Inject
@@ -69,30 +68,30 @@ class SyncGamesPresenter @Inject constructor(
         }
 
         private fun onGameSearchStateUpdated(newState: GameSearchState) {
-            check(view.isGameSyncRunning.value || newState.isFinished) { "Received search update event when not syncing games" }
-            val prevState = view.state[newState.index]
-            view.state[newState.index] = newState
-
-            // This can be called for already finished states (for example, viewing results of previous completed searches).
-            // Only do this when the state transitions to 'finished' for the first time.
-            if (prevState.isFinished || !newState.isFinished) return
-
-            view.numProcessed.value += 1
-            val nextUnfinishedState = view.state.findCircular(startIndex = newState.index) { !it.isFinished }
-            if (nextUnfinishedState != null) {
-                startGameSearch(nextUnfinishedState)
-            } else {
-                if (view.state.size == 1 && newState.status == GameSearchStatus.Cancelled) {
-                    onCancel()
-                } else {
-                    finish(success = true)
-                    val message = finishedMessage()
-                    log.info("Done: $message")
-                    if (view.state.size != 1) {
-                        view.successMessage(message)
-                    }
-                }
-            }
+//            check(view.isGameSyncRunning.value || newState.isFinished) { "Received search update event when not syncing games" }
+//            val prevState = view.state[newState.index]
+//            view.state[newState.index] = newState
+//
+//            // This can be called for already finished states (for example, viewing results of previous completed searches).
+//            // Only do this when the state transitions to 'finished' for the first time.
+//            if (prevState.isFinished || !newState.isFinished) return
+//
+//            view.numProcessed.value += 1
+//            val nextUnfinishedState = view.state.findCircular(startIndex = newState.index) { !it.isFinished }
+//            if (nextUnfinishedState != null) {
+//                startGameSearch(nextUnfinishedState)
+//            } else {
+//                if (view.state.size == 1 && newState.status == GameSearchStatus.Cancelled) {
+//                    onCancel()
+//                } else {
+//                    finish(success = true)
+//                    val message = finishedMessage()
+//                    log.info("Done: $message")
+//                    if (view.state.size != 1) {
+//                        view.successMessage(message)
+//                    }
+//                }
+//            }
         }
 
         private fun onCurrentStateChanged(currentState: GameSearchState?) {

@@ -23,6 +23,7 @@ import com.gitlab.ykrasik.gamedex.javafx.*
 import com.gitlab.ykrasik.gamedex.javafx.control.*
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
+import com.gitlab.ykrasik.gamedex.javafx.theme.addButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.logo
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
 import javafx.event.EventTarget
@@ -39,7 +40,7 @@ import tornadofx.*
  * Date: 09/10/2016
  * Time: 22:14
  */
-class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
+class JavaFxGamesScreen : PresentableScreen("Games", Icons.games),
     ViewCanSelectPlatform,
     ViewCanSearchGames,
     ViewCanChangeGameSort,
@@ -67,16 +68,21 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     }
 
     override fun HBox.buildToolbar() {
+        searchField()
         filterButton()
         sortButton()
-        searchField()
 
         spacer()
 
+        addGameButton()
         platformButton()
     }
 
     override val root = gameWallView.root
+
+    private fun EventTarget.addGameButton() = addButton {
+
+    }
 
     private fun EventTarget.platformButton() = popoverComboMenu(
         possibleItems = availablePlatforms,
@@ -91,7 +97,11 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         mouseTransparentWhen { availablePlatforms.sizeProperty.lessThanOrEqualTo(1) }
     }
 
-    private fun EventTarget.sortButton() = buttonWithPopover(graphic = Icons.sort, onClickBehavior = PopOverOnClickBehavior.Ignore) {
+    private fun EventTarget.sortButton() = buttonWithPopover(
+        graphic = Icons.sort,
+        onClickBehavior = PopOverOnClickBehavior.Ignore/*,
+        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT*/
+    ) {
         defaultHbox {
             paddingAll = 5
             popoverComboMenu(
@@ -116,13 +126,18 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
         tooltip("Sort")
     }
 
-    private fun EventTarget.filterButton() = buttonWithPopover(graphic = Icons.filter, onClickBehavior = PopOverOnClickBehavior.Ignore) {
+    private fun EventTarget.filterButton() = buttonWithPopover(
+        graphic = Icons.filter,
+        onClickBehavior = PopOverOnClickBehavior.Ignore/*,
+        arrowLocation = PopOver.ArrowLocation.TOP_RIGHT*/
+    ) {
         addComponent(filterView)
     }.apply {
         tooltip("Filter")
     }
 
-    private fun EventTarget.searchField() = searchTextField(this@JavaFxGameScreen, searchText.property) {
+    private fun EventTarget.searchField() = searchTextField(this@JavaFxGamesScreen, searchText.property) {
+        prefWidth = 250.0
         val textField = this
         val suggestions = mutableListOf<String>().observable()
         autoCompleteSuggestions.onChange {

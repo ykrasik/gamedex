@@ -14,35 +14,22 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.provider.module
+package com.gitlab.ykrasik.gamedex.core.provider
 
-import com.gitlab.ykrasik.gamedex.core.module.InternalCoreModule
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
-import com.gitlab.ykrasik.gamedex.core.provider.GameProviderServiceImpl
-import com.gitlab.ykrasik.gamedex.core.provider.presenter.*
+import com.google.inject.ImplementedBy
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 15/10/2018
- * Time: 16:46
+ * Date: 16/04/2019
+ * Time: 08:12
  */
-object ProviderCoreModule : InternalCoreModule() {
-    override fun configure() {
-        bind(GameProviderService::class.java).to(GameProviderServiceImpl::class.java)
+@ImplementedBy(ProviderSearchServiceImpl::class)
+interface ProviderSearchService {
 
-        bindPresenter(SyncLibrariesPresenter::class)
-        bindPresenter(SyncGamesPresenter::class)
-        bindPresenter(ProviderSearchPresenter::class)
+}
 
-        bindPresenter(ShowRefetchGamesPresenter::class)
-        bindPresenter(RefetchGamePresenter::class)
-        bindPresenter(RefetchGamesPresenter::class)
+@Singleton
+class ProviderSearchServiceImpl : ProviderSearchService {
 
-        bindPresenter(ShowResyncGamesPresenter::class)
-        bindPresenter(ResyncGamePresenter::class)
-        bindPresenter(ResyncGamesPresenter::class)
-
-        bind(ShowSyncGamesPresenter::class.java)
-        bindPresenter(AddGamePresenter::class)
-    }
 }

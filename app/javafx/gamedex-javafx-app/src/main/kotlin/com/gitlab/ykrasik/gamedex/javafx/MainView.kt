@@ -21,7 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.common.ViewCanShowAboutView
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.settings.ViewCanShowSettings
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
-import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGameScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.game.JavaFxGamesScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
@@ -30,6 +30,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.task.JavaFxTaskView
 import com.gitlab.ykrasik.gamedex.javafx.control.*
+import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxAddGamesScreen
 import com.gitlab.ykrasik.gamedex.javafx.provider.JavaFxSyncGamesScreen
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -55,9 +56,11 @@ import java.util.*
 class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAboutView {
     val taskView: JavaFxTaskView by inject()
 
-    private val gameScreen: JavaFxGameScreen by inject()
-    private val libraryMenu: LibraryMenu by inject()
+    private val addGamesScreen: JavaFxAddGamesScreen by inject()
     private val syncGamesScreen: JavaFxSyncGamesScreen by inject()
+    private val gamesScreen: JavaFxGamesScreen by inject()
+
+    private val libraryMenu: LibraryMenu by inject()
     private val reportMenu: ReportMenu by inject()
     private val reportScreen: JavaFxReportScreen by inject()
     private val maintenanceMenu: MaintenanceMenu by inject()
@@ -85,7 +88,8 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         addClass(CommonStyle.hiddenTabPaneHeader)
         isDisableAnimation = true   // Too slow by default
 
-        tab(gameScreen)
+        tab(gamesScreen).select()
+        tab(addGamesScreen)
         tab(syncGamesScreen)
         tab(reportScreen)
         tab(logScreen)
@@ -107,7 +111,11 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     private fun TabPane.tab(screen: PresentableScreen) = tab(screen) { userData = screen }
 
     private val mainNavigationButton = buttonWithPopover(graphic = Icons.menu) {
-        navigationButton(gameScreen)
+        navigationButton(addGamesScreen)
+        navigationButton(gamesScreen)
+
+        verticalGap(size = 15)
+
         subMenu(libraryMenu)
         subMenu(reportMenu)
         subMenu(maintenanceMenu)

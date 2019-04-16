@@ -138,8 +138,13 @@ inline fun <reified T : Number> EventTarget.numberTextField(
     return value
 }
 
-inline fun EventTarget.searchTextField(component: UIComponent, textProperty: StringProperty, op: CustomJFXTextField.() -> Unit = {}) = clearableTextField(textProperty) {
-    promptText = "Search"
+inline fun EventTarget.searchTextField(
+    component: UIComponent,
+    textProperty: StringProperty,
+    promptText: String = "Search",
+    op: CustomJFXTextField.() -> Unit = {}
+) = clearableTextField(textProperty) {
+    this.promptText = promptText
     left = Icons.search.size(20)
     tooltip("Ctrl+f")
     component.shortcut("ctrl+f") { requestFocus() }

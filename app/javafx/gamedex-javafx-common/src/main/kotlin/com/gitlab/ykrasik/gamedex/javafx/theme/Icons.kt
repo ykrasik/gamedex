@@ -132,6 +132,7 @@ object Icons {
     val databaseCleanup get() = fontIcon(MaterialDesign.MDI_DATABASE_REMOVE)
     val earth get() = fontIcon(MaterialDesign.MDI_EARTH)
     val earthOff get() = fontIcon(MaterialDesign.MDI_EARTH_OFF)
+    val library get() = fontIcon(MaterialDesign.MDI_LIBRARY_BOOKS)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)

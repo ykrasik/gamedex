@@ -398,7 +398,7 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
             ConditionDisplayDescriptor(Filter.Or::class, "Or", Icons::or),
             ConditionDisplayDescriptor(Filter.True::class, "Select Condition", Icons::select),
             ConditionDisplayDescriptor(Filter.Platform::class, "Platform", Icons::computer, gap = true),
-            ConditionDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
+            ConditionDisplayDescriptor(Filter.Library::class, "Library", Icons::library),
             ConditionDisplayDescriptor(Filter.Genre::class, "Genre", Icons::script),
             ConditionDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
             ConditionDisplayDescriptor(Filter.Provider::class, "Provider", Icons::database, gap = true),

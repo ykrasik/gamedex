@@ -42,7 +42,7 @@ import java.io.File
  * Date: 12/01/2019
  * Time: 21:34
  */
-class LibraryMenu : PresentableView("Libraries", Icons.folders),
+class LibraryMenu : PresentableView("Libraries", Icons.library),
     ViewCanSyncLibraries,
     ViewWithLibraries,
     ViewCanAddLibrary,
