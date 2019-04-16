@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @ImplementedBy(RefetchGameServiceImpl::class)
 interface RefetchGameService {
     fun refetchGame(game: Game): Task<Unit>
-    fun refetchGames(condition: Filter): Task<Unit>
+    fun refetchGames(filter: Filter): Task<Unit>
 }
 
 @Singleton
@@ -47,9 +47,9 @@ class RefetchGameServiceImpl @Inject constructor(
 ) : RefetchGameService {
     override fun refetchGame(game: Game) = refetchGames(listOf(game))
 
-    override fun refetchGames(condition: Filter): Task<Unit> {
+    override fun refetchGames(filter: Filter): Task<Unit> {
         val context = filterContextFactory.create(emptyList())
-        val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.name }
+        val games = gameService.games.filter { filter.evaluate(it, context) }.sortedBy { it.name }
         return refetchGames(games)
     }
 

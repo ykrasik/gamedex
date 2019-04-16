@@ -40,28 +40,28 @@ class ResyncGamesPresenter @Inject constructor(
 ) : Presenter<ResyncGamesView> {
     override fun present(view: ResyncGamesView) = object : ViewSession() {
         init {
-//            view.redownloadGamesCondition.forEach { setCanAccept() }
-            view.resyncGamesConditionIsValid.forEach { setCanAccept() }
+//            view.redownloadGamesFilter.forEach { setCanAccept() }
+            view.resyncGamesFilterIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShow() {
-            view.resyncGamesCondition *= settingsService.providerGeneral.resyncGamesCondition
+            view.resyncGamesFilter *= settingsService.providerGeneral.resyncGamesFilter
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.resyncGamesConditionIsValid.value
+            view.canAccept *= view.resyncGamesFilterIsValid.value
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val condition = view.resyncGamesCondition.value
-            settingsService.providerGeneral.modify { copy(resyncGamesCondition = condition) }
+            val filter = view.resyncGamesFilter.value
+            settingsService.providerGeneral.modify { copy(resyncGamesFilter = filter) }
 
-            taskService.execute(resyncGameService.resyncGames(condition))
+            taskService.execute(resyncGameService.resyncGames(filter))
 
             finished()
         }

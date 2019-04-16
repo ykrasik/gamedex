@@ -1,11 +1,11 @@
 # GameDex
-GameDex is an open source digital game collection management tool,
+GameDex is an open source digital game collection management application,
 written in Kotlin and powered by [TornadoFX](https://github.com/edvin/tornadofx) & [JFoenix](https://github.com/jfoenixadmin/JFoenix)
 
-It is currently in pre-release, so there is no tutorial (yet).
-You can [download it here](https://github.com/ykrasik/gamedex/releases) or [build it yourself](#build-distribution).
+# Download
+You can [download it](https://github.com/ykrasik/gamedex/releases) or [build it](#build-distribution).
 
-Here's how it looks like:
+There is currently no tutorial (yet).
 
 ![GameDex Main Page](https://gitlab.com/ykrasik/gamedex/wikis/uploads/c07c1ba86490dabb8dc29a2c5c8ffb07/GameDex_Main.JPG)
 

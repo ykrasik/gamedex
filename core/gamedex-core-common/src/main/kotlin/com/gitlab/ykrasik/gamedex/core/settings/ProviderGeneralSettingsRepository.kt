@@ -29,17 +29,17 @@ import com.gitlab.ykrasik.gamedex.util.months
  */
 class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, providers: List<GameProvider>) : SettingsRepository<ProviderGeneralSettingsRepository.Data>() {
     data class Data(
-        val refetchGamesCondition: Filter,
-        val resyncGamesCondition: Filter
+        val refetchGamesFilter: Filter,
+        val resyncGamesFilter: Filter
     )
 
     override val storage = factory("general", Data::class) {
         Data(
-            refetchGamesCondition = Filter.PeriodUpdateDate(2.months).not,
-            resyncGamesCondition = if (providers.isNotEmpty()) {
+            refetchGamesFilter = Filter.PeriodUpdateDate(2.months).not,
+            resyncGamesFilter = if (providers.isNotEmpty()) {
                 val providerIds = providers.map { it.id }
-                providerIds.drop(1).fold(providerIds.first().missingProviderCondition) { condition, providerId ->
-                    condition or providerId.missingProviderCondition
+                providerIds.drop(1).fold(providerIds.first().missingProviderFilter) { filter, providerId ->
+                    filter or providerId.missingProviderFilter
                 }
             } else {
                 Filter.PeriodCreateDate(2.months).not
@@ -47,11 +47,11 @@ class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, provide
         )
     }
 
-    private val ProviderId.missingProviderCondition: Filter get() = Filter.Provider(this).not
+    private val ProviderId.missingProviderFilter: Filter get() = Filter.Provider(this).not
 
-    val refetchGamesConditionChannel = storage.channel(Data::refetchGamesCondition)
-    val refetchGamesCondition by refetchGamesConditionChannel
+    val refetchGamesFilterChannel = storage.channel(Data::refetchGamesFilter)
+    val refetchGamesFilter by refetchGamesFilterChannel
 
-    val resyncGamesConditionChannel = storage.channel(Data::resyncGamesCondition)
-    val resyncGamesCondition by resyncGamesConditionChannel
+    val resyncGamesFilterChannel = storage.channel(Data::resyncGamesFilter)
+    val resyncGamesFilter by resyncGamesFilterChannel
 }

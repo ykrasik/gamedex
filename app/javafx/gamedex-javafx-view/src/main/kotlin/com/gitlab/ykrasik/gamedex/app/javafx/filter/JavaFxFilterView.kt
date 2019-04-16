@@ -55,7 +55,7 @@ import kotlin.reflect.KClass
  * Date: 27/01/2018
  * Time: 13:07
  */
-class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolean) : PresentableView(), FilterView {
+class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) : PresentableView(), FilterView {
     override val possibleGenres = mutableListOf<String>()
     override val possibleTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
@@ -174,17 +174,17 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         val descriptor = filter.descriptor
         buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), onClickBehavior = PopOverOnClickBehavior.Ignore) {
             // TODO: As an optimization, can share this popover accross all menus.
-            fun EventTarget.conditionButton(descriptor: ConditionDisplayDescriptor) =
+            fun EventTarget.filterButton(descriptor: FilterDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
                     useMaxWidth = true
                     action {
                         popOver.hide()
-                        replaceFilterActions.event(filter to descriptor.condition)
+                        replaceFilterActions.event(filter to descriptor.filter)
                     }
                 }
 
-            val subMenus = mutableMapOf<ConditionDisplaySubMenu, VBox>()
-            fun subMenu(descriptor: ConditionDisplaySubMenu, f: VBox.() -> Unit) = f(subMenus.getOrPut(descriptor) {
+            val subMenus = mutableMapOf<FilterDisplaySubMenu, VBox>()
+            fun subMenu(descriptor: FilterDisplaySubMenu, f: VBox.() -> Unit) = f(subMenus.getOrPut(descriptor) {
                 lateinit var vbox: VBox
                 subMenu(descriptor.text, descriptor.icon().size(26)) { vbox = this }
                 vbox
@@ -199,10 +199,10 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
                 val newDescriptor = it.descriptor
                 if (newDescriptor.subMenu != null) {
                     subMenu(newDescriptor.subMenu) {
-                        conditionButton(newDescriptor)
+                        filterButton(newDescriptor)
                     }
                 } else {
-                    conditionButton(newDescriptor)
+                    filterButton(newDescriptor)
                 }
 
                 needGap = newDescriptor.gap
@@ -214,7 +214,7 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         val negated = parentFilter is Filter.Not
         val target = if (negated) parentFilter else filter
         jfxButton(graphic = (if (negated) descriptor.negatedActionIcon() else descriptor.actionIcon()).size(26)) {
-            tooltip("Reverse this condition")
+            tooltip("Reverse this filter")
             isDisable = filter is Filter.True
             action {
                 when {
@@ -252,13 +252,13 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         }
     }
 
-    private fun HBox.renderPlatformFilter(condition: Filter.Platform) {
-        val platform = condition.toProperty(Filter.Platform::platform, Filter::Platform)
+    private fun HBox.renderPlatformFilter(filter: Filter.Platform) {
+        val platform = filter.toProperty(Filter.Platform::platform, Filter::Platform)
         platformComboBox(platform)
     }
 
-    private fun HBox.renderProviderFilter(condition: Filter.Provider) {
-        val provider = condition.toProperty(Filter.Provider::providerId, Filter::Provider)
+    private fun HBox.renderProviderFilter(filter: Filter.Provider) {
+        val provider = filter.toProperty(Filter.Provider::providerId, Filter::Provider)
         popoverComboMenu(
             possibleItems = possibleProviderIds,
             selectedItemProperty = provider,
@@ -267,14 +267,14 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         )
     }
 
-    private fun HBox.renderLibraryFilter(condition: Filter.Library) {
-        // There is a race condition when switching platforms with a library filter active -
+    private fun HBox.renderLibraryFilter(filter: Filter.Library) {
+        // There is a race filter when switching platforms with a library filter active -
         // The actual filter & the possible rules are updated by different presenters, which can lead
         // to situations where the possible libraries already point to platform specific libraries
         // but the filter is still the filter for the old platform, which will mean the library isn't found.
         // Currently there's no other solution but to tolerate this situation, as the presenter in charge of
         // the platform filter will call us just a bit later and fix it.
-        val library = condition.toProperty(
+        val library = filter.toProperty(
             { possibleLibraries.find { it.id == id } ?: Library.Null },
             { Filter.Library(it.id) }
         )
@@ -286,54 +286,54 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         )
     }
 
-    private fun HBox.renderGenreFilter(condition: Filter.Genre) {
-        val genre = condition.toProperty(Filter.Genre::genre, Filter::Genre)
+    private fun HBox.renderGenreFilter(filter: Filter.Genre) {
+        val genre = filter.toProperty(Filter.Genre::genre, Filter::Genre)
         popoverComboMenu(
             possibleItems = possibleGenres,
             selectedItemProperty = genre
         )
     }
 
-    private fun HBox.renderTagFilter(condition: Filter.Tag) {
-        val tag = condition.toProperty(Filter.Tag::tag, Filter::Tag)
+    private fun HBox.renderTagFilter(filter: Filter.Tag) {
+        val tag = filter.toProperty(Filter.Tag::tag, Filter::Tag)
         popoverComboMenu(
             possibleItems = possibleTags,
             selectedItemProperty = tag
         )
     }
 
-    private fun HBox.renderTargetDateFilter(condition: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) {
+    private fun HBox.renderTargetDateFilter(filter: Filter.TargetDate, factory: (LocalDate) -> Filter.TargetDate) {
         tooltip("Is after the given date")
-        val date = condition.toProperty(Filter.TargetDate::date, factory)
+        val date = filter.toProperty(Filter.TargetDate::date, factory)
         jfxDatePicker(date)
     }
 
-    private fun HBox.renderPeriodDateFilter(condition: Filter.PeriodDate, factory: (Period) -> Filter.PeriodDate) {
+    private fun HBox.renderPeriodDateFilter(filter: Filter.PeriodDate, factory: (Period) -> Filter.PeriodDate) {
         tooltip("Is within a duration ago from now")
-        val initialPeriodType = PeriodType.values().firstOrNull { it.extractor(condition.period) > 0 } ?: PeriodType.Months
-        val initialAmount = initialPeriodType.extractor(condition.period)
+        val initialPeriodType = PeriodType.values().firstOrNull { it.extractor(filter.period) > 0 } ?: PeriodType.Months
+        val initialAmount = initialPeriodType.extractor(filter.period)
         val periodTypeProperty = initialPeriodType.toProperty()
         val amountProperty = initialAmount.toProperty()
         plusMinusSlider(amountProperty, min = 0, max = 100)
         enumComboMenu(periodTypeProperty)
         amountProperty.combineLatest(periodTypeProperty).bindChanges(updateFilterActions) { (amount, periodType) ->
-            condition to factory(Period().withField(periodType.fieldType, amount.toInt()))
+            filter to factory(Period().withField(periodType.fieldType, amount.toInt()))
         }
     }
 
-    private fun HBox.renderScoreFilter(condition: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
-        val target = condition.toProperty(Filter.TargetScore::score, factory)
+    private fun HBox.renderScoreFilter(filter: Filter.TargetScore, factory: (Double) -> Filter.TargetScore) {
+        val target = filter.toProperty(Filter.TargetScore::score, factory)
         plusMinusSlider(target, min = 0, max = 100)
     }
 
-    private fun HBox.renderFileSizeFilter(condition: Filter.FileSize) {
-        val (initialAmount, initialScale) = condition.target.scaled
+    private fun HBox.renderFileSizeFilter(filter: Filter.FileSize) {
+        val (initialAmount, initialScale) = filter.target.scaled
         val amountProperty = SimpleIntegerProperty(initialAmount.toInt())
         val scaleProperty = SimpleObjectProperty(initialScale)
         plusMinusSlider(amountProperty, min = 1, max = 999)
         enumComboMenu(scaleProperty)
         amountProperty.combineLatest(scaleProperty).bindChanges(updateFilterActions) { (amount, scale) ->
-            condition to Filter.FileSize(FileSize(amount, scale))
+            filter to Filter.FileSize(FileSize(amount, scale))
         }
     }
 
@@ -355,71 +355,71 @@ class JavaFxFilterView(override val onlyShowConditionsForCurrentPlatform: Boolea
         operator fun invoke(period: Period): Int = extractor(period)
     }
 
-    private data class ConditionDisplayDescriptor(
-        val condition: KClass<out Filter>,
+    private data class FilterDisplayDescriptor(
+        val filter: KClass<out Filter>,
         val name: String,
         val icon: () -> FontIcon,
         val gap: Boolean = false,
         val actionIcon: () -> FontIcon = Icons::checked,
         val negatedActionIcon: () -> FontIcon = Icons::checkX,
-        val subMenu: ConditionDisplaySubMenu? = null
+        val subMenu: FilterDisplaySubMenu? = null
     ) {
         val selectedName = subMenu?.text ?: name
         val selectedIcon = subMenu?.icon ?: icon
     }
 
-    private data class ConditionDisplaySubMenu(
+    private data class FilterDisplaySubMenu(
         val text: String,
         val icon: () -> FontIcon
     )
 
     private companion object {
-        private val criticScoreSubMenu = ConditionDisplaySubMenu("Critic Score", Icons::starFull)
-        private val userScoreSubMenu = ConditionDisplaySubMenu("User Score", Icons::starEmpty)
-        private val releaseDateSubMenu = ConditionDisplaySubMenu("Release Date", Icons::date)
-        private val createDateSubMenu = ConditionDisplaySubMenu("Create Date", Icons::createDate)
-        private val updateDateSubMenu = ConditionDisplaySubMenu("Update Date", Icons::updateDate)
+        private val criticScoreSubMenu = FilterDisplaySubMenu("Critic Score", Icons::starFull)
+        private val userScoreSubMenu = FilterDisplaySubMenu("User Score", Icons::starEmpty)
+        private val releaseDateSubMenu = FilterDisplaySubMenu("Release Date", Icons::date)
+        private val createDateSubMenu = FilterDisplaySubMenu("Create Date", Icons::createDate)
+        private val updateDateSubMenu = FilterDisplaySubMenu("Update Date", Icons::updateDate)
 
-        private inline fun <reified T : Filter.TargetScore> score(subMenu: ConditionDisplaySubMenu?, gap: Boolean = false) =
-            ConditionDisplayDescriptor(T::class, "Is bigger than", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
+        private inline fun <reified T : Filter.TargetScore> score(subMenu: FilterDisplaySubMenu?, gap: Boolean = false) =
+            FilterDisplayDescriptor(T::class, "Is bigger than", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
 
-        private inline fun <reified T : Filter.TargetDate> targetDate(subMenu: ConditionDisplaySubMenu, gap: Boolean = false) =
-            ConditionDisplayDescriptor(T::class, "Is after the given date", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
+        private inline fun <reified T : Filter.TargetDate> targetDate(subMenu: FilterDisplaySubMenu, gap: Boolean = false) =
+            FilterDisplayDescriptor(T::class, "Is after the given date", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
 
-        private inline fun <reified T : Filter.PeriodDate> periodDate(subMenu: ConditionDisplaySubMenu, gap: Boolean = false) =
-            ConditionDisplayDescriptor(T::class, "Is in a time period ending now", Icons::clockStart, gap, Icons::clockStart, Icons::clockEnd, subMenu)
+        private inline fun <reified T : Filter.PeriodDate> periodDate(subMenu: FilterDisplaySubMenu, gap: Boolean = false) =
+            FilterDisplayDescriptor(T::class, "Is in a time period ending now", Icons::clockStart, gap, Icons::clockStart, Icons::clockEnd, subMenu)
 
-        private inline fun <reified T : Filter> nullCondition(subMenu: ConditionDisplaySubMenu, gap: Boolean = false) =
-            ConditionDisplayDescriptor(T::class, "Is null", Icons::checkX, gap = gap, actionIcon = Icons::checkX, negatedActionIcon = Icons::checked, subMenu = subMenu)
+        private inline fun <reified T : Filter> nullFilter(subMenu: FilterDisplaySubMenu, gap: Boolean = false) =
+            FilterDisplayDescriptor(T::class, "Is null", Icons::checkX, gap = gap, actionIcon = Icons::checkX, negatedActionIcon = Icons::checked, subMenu = subMenu)
 
         val displayDescriptors = listOf(
-            ConditionDisplayDescriptor(Filter.Not::class, "Not", Icons::exclamation),
-            ConditionDisplayDescriptor(Filter.And::class, "And", Icons::and),
-            ConditionDisplayDescriptor(Filter.Or::class, "Or", Icons::or),
-            ConditionDisplayDescriptor(Filter.True::class, "Select Condition", Icons::select),
-            ConditionDisplayDescriptor(Filter.Platform::class, "Platform", Icons::computer, gap = true),
-            ConditionDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
-            ConditionDisplayDescriptor(Filter.Genre::class, "Genre", Icons::script),
-            ConditionDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
-            ConditionDisplayDescriptor(Filter.Provider::class, "Provider", Icons::database, gap = true),
+            FilterDisplayDescriptor(Filter.Not::class, "Not", Icons::exclamation),
+            FilterDisplayDescriptor(Filter.And::class, "And", Icons::and),
+            FilterDisplayDescriptor(Filter.Or::class, "Or", Icons::or),
+            FilterDisplayDescriptor(Filter.True::class, "Select Filter", Icons::select),
+            FilterDisplayDescriptor(Filter.Platform::class, "Platform", Icons::computer, gap = true),
+            FilterDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
+            FilterDisplayDescriptor(Filter.Genre::class, "Genre", Icons::script),
+            FilterDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
+            FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::database, gap = true),
             score<Filter.CriticScore>(criticScoreSubMenu),
-            nullCondition<Filter.NullCriticScore>(criticScoreSubMenu),
+            nullFilter<Filter.NullCriticScore>(criticScoreSubMenu),
             score<Filter.UserScore>(userScoreSubMenu),
-            nullCondition<Filter.NullUserScore>(userScoreSubMenu),
-            ConditionDisplayDescriptor(Filter.AvgScore::class, "Average Score", Icons::starHalf, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
-            ConditionDisplayDescriptor(Filter.MinScore::class, "Min Score", Icons::min, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
-            ConditionDisplayDescriptor(Filter.MaxScore::class, "Max Score", Icons::max, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+            nullFilter<Filter.NullUserScore>(userScoreSubMenu),
+            FilterDisplayDescriptor(Filter.AvgScore::class, "Average Score", Icons::starHalf, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+            FilterDisplayDescriptor(Filter.MinScore::class, "Min Score", Icons::min, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+            FilterDisplayDescriptor(Filter.MaxScore::class, "Max Score", Icons::max, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
             targetDate<Filter.TargetReleaseDate>(releaseDateSubMenu),
             periodDate<Filter.PeriodReleaseDate>(releaseDateSubMenu),
-            nullCondition<Filter.NullReleaseDate>(releaseDateSubMenu),
+            nullFilter<Filter.NullReleaseDate>(releaseDateSubMenu),
             targetDate<Filter.TargetCreateDate>(createDateSubMenu),
             periodDate<Filter.PeriodCreateDate>(createDateSubMenu),
             targetDate<Filter.TargetUpdateDate>(updateDateSubMenu),
             periodDate<Filter.PeriodUpdateDate>(updateDateSubMenu, gap = true),
-            ConditionDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
-            ConditionDisplayDescriptor(Filter.Duplications::class, "Duplications", Icons::duplicate),
-            ConditionDisplayDescriptor(Filter.NameDiff::class, "Folder-Game Name Diff", Icons::diff)
-        ).map { it.condition to it }.toMap()
+            FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+            FilterDisplayDescriptor(Filter.Duplications::class, "Duplications", Icons::duplicate),
+            FilterDisplayDescriptor(Filter.NameDiff::class, "Folder-Game Name Diff", Icons::diff)
+        ).map { it.filter to it }.toMap()
     }
 
     private val Filter.descriptor get() = this::class.descriptor

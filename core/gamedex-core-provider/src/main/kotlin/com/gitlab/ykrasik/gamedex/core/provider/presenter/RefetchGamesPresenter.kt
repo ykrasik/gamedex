@@ -40,30 +40,30 @@ class RefetchGamesPresenter @Inject constructor(
 ) : Presenter<RefetchGamesView> {
     override fun present(view: RefetchGamesView) = object : ViewSession() {
         init {
-//            view.refetchGamesCondition.forEach { setCanAccept() }
-            view.refetchGamesConditionIsValid.forEach { setCanAccept() }
+//            view.refetchGamesFilter.forEach { setCanAccept() }
+            view.refetchGamesFilterIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }
         }
 
         override suspend fun onShow() {
-            view.refetchGamesCondition *= settingsService.providerGeneral.refetchGamesCondition
+            view.refetchGamesFilter *= settingsService.providerGeneral.refetchGamesFilter
             setCanAccept()
         }
 
         private fun setCanAccept() {
-            view.canAccept *= view.refetchGamesConditionIsValid.value
+            view.canAccept *= view.refetchGamesFilterIsValid.value
         }
 
         private suspend fun onAccept() {
             view.canAccept.assert()
 
-            val condition = view.refetchGamesCondition.value
-            settingsService.providerGeneral.modify { copy(refetchGamesCondition = condition) }
+            val filter = view.refetchGamesFilter.value
+            settingsService.providerGeneral.modify { copy(refetchGamesFilter = filter) }
 
             finished()
 
-            taskService.execute(refetchGameService.refetchGames(condition))
+            taskService.execute(refetchGameService.refetchGames(filter))
         }
 
         private fun onCancel() {

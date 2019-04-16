@@ -46,7 +46,7 @@ class JavaFxGameScreen : PresentableScreen("Games", Icons.games),
     ViewWithCurrentPlatformFilter {
 
     private val gameWallView: GameWallView by inject()
-    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = true)
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = true)
 
     override val availablePlatforms = mutableListOf<Platform>().observable()
 

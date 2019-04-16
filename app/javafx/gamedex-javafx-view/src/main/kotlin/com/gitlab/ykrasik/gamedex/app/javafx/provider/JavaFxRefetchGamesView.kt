@@ -31,10 +31,10 @@ import tornadofx.scrollpane
  * Time: 10:57
  */
 class JavaFxRefetchGamesView : ConfirmationWindow("Re-Fetch Games", Icons.download), RefetchGamesView {
-    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
 
-    override val refetchGamesCondition = filterView.externalMutations
-    override val refetchGamesConditionIsValid = userMutableState(filterView.filterIsValid)
+    override val refetchGamesFilter = filterView.externalMutations
+    override val refetchGamesFilterIsValid = userMutableState(filterView.filterIsValid)
 
     init {
         register()

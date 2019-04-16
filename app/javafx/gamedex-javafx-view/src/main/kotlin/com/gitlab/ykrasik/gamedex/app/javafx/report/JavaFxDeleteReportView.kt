@@ -36,7 +36,7 @@ class JavaFxDeleteReportView : ConfirmationWindow(icon = Icons.delete), DeleteRe
     private val reportProperty = SimpleObjectProperty(Report.Null)
     override var report: Report by reportProperty
 
-    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
 
     init {
         titleProperty.bind(reportProperty.stringBinding { "Delete report '${it!!.name}'?" })

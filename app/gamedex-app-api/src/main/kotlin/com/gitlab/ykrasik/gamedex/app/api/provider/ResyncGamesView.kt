@@ -27,6 +27,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 15:49
  */
 interface ResyncGamesView : ConfirmationView {
-    val resyncGamesCondition: UserMutableState<Filter>
-    val resyncGamesConditionIsValid: UserMutableState<IsValid>
+    val resyncGamesFilter: UserMutableState<Filter>
+    val resyncGamesFilterIsValid: UserMutableState<IsValid>
 }

@@ -27,6 +27,6 @@ import com.gitlab.ykrasik.gamedex.util.IsValid
  * Time: 09:38
  */
 interface RefetchGamesView : ConfirmationView {
-    val refetchGamesCondition: UserMutableState<Filter>
-    val refetchGamesConditionIsValid: UserMutableState<IsValid>
+    val refetchGamesFilter: UserMutableState<Filter>
+    val refetchGamesFilterIsValid: UserMutableState<IsValid>
 }

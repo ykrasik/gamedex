@@ -36,7 +36,7 @@ import javax.inject.Singleton
 @ImplementedBy(ResyncGameServiceImpl::class)
 interface ResyncGameService {
     fun resyncGame(game: Game)
-    fun resyncGames(condition: Filter): Task<Unit>
+    fun resyncGames(filter: Filter): Task<Unit>
 }
 
 @Singleton
@@ -48,13 +48,13 @@ class ResyncGameServiceImpl @Inject constructor(
 ) : ResyncGameService {
     override fun resyncGame(game: Game) = resyncGames(listOf(game))
 
-    override fun resyncGames(condition: Filter) = task("Detecting games to re-sync...") {
+    override fun resyncGames(filter: Filter) = task("Detecting games to re-sync...") {
         val context = filterContextFactory.create(emptyList())
-        val games = gameService.games.filter { condition.evaluate(it, context) }.sortedBy { it.path }
+        val games = gameService.games.filter { filter.evaluate(it, context) }.sortedBy { it.path }
         if (games.isNotEmpty()) {
             resyncGames(games)
         } else {
-            successMessage = { "No games matching re-sync condition detected!" }
+            successMessage = { "No games matching re-sync filter detected!" }
         }
     }
 

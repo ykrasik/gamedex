@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
  * Time: 10:20
  */
 interface FilterView {
-    val onlyShowConditionsForCurrentPlatform: Boolean
+    val onlyShowFiltersForCurrentPlatform: Boolean
 
     val possibleGenres: MutableList<String>
     val possibleTags: MutableList<String>

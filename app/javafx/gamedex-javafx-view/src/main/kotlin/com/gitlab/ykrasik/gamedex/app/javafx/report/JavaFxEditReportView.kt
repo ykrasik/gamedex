@@ -44,7 +44,7 @@ import tornadofx.*
  * Time: 16:56
  */
 class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
-    private val filterView = JavaFxFilterView(onlyShowConditionsForCurrentPlatform = false)
+    private val filterView = JavaFxFilterView(onlyShowFiltersForCurrentPlatform = false)
 
     private val reportProperty = SimpleObjectProperty<Report?>(null)
     override var report by reportProperty
@@ -83,7 +83,7 @@ class JavaFxEditReportView : ConfirmationWindow(), EditReportView {
 
             defaultHbox {
                 vbox(spacing = 10) {
-                    header("Conditions")
+                    header("Filters")
                     addComponent(filterView)
                 }
                 gap { removeWhen { Bindings.isEmpty(excludedGames) } }

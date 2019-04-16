@@ -44,43 +44,43 @@ class FilterPresenter @Inject constructor(
 ) : Presenter<FilterView> {
     override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules =
-            if (view.onlyShowConditionsForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
+            if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
             else emptyList()
 
-        private val libraries = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
-        private val genres = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformGenres else commonData.genres
-        private val tags = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformTags else commonData.tags
-        private val providers = if (view.onlyShowConditionsForCurrentPlatform) commonData.platformProviders else commonData.allProviders
+        private val libraries = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
+        private val genres = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformGenres else commonData.genres
+        private val tags = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformTags else commonData.tags
+        private val providers = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformProviders else commonData.allProviders
 
         private val operators = listOf(
-            ConditionBuilder.singleParam<Filter.Not, Filter>(Filter::Not) { Filter.True() },
-            ConditionBuilder.twoParams<Filter.And, Filter, Filter>(Filter::And, { Filter.True() }, { Filter.True() }),
-            ConditionBuilder.twoParams<Filter.Or, Filter, Filter>(Filter::Or, { Filter.True() }, { Filter.True() })
+            FilterBuilder.singleParam<Filter.Not, Filter>(Filter::Not) { Filter.True() },
+            FilterBuilder.twoParams<Filter.And, Filter, Filter>(Filter::And, { Filter.True() }, { Filter.True() }),
+            FilterBuilder.twoParams<Filter.Or, Filter, Filter>(Filter::Or, { Filter.True() }, { Filter.True() })
         ).associateBy { it.klass }.toMap()
 
         private val rules = listOf(
-            ConditionBuilder.singleParam(Filter::Platform) { Platform.Windows },
-            ConditionBuilder.singleParam(Filter::Library) { libraries.first().id },
-            ConditionBuilder.singleParam(Filter::Genre) { genres.firstOrNull() ?: "" },
-            ConditionBuilder.singleParam(Filter::Tag) { tags.firstOrNull() ?: "" },
-            ConditionBuilder.singleParam(Filter::Provider) { commonData.allProviders.first().id },
-            ConditionBuilder.singleParam(Filter::CriticScore) { 60.0 },
-            ConditionBuilder.noParams(Filter::NullCriticScore),
-            ConditionBuilder.singleParam(Filter::UserScore) { 60.0 },
-            ConditionBuilder.noParams(Filter::NullUserScore),
-            ConditionBuilder.singleParam(Filter::AvgScore) { 60.0 },
-            ConditionBuilder.singleParam(Filter::MinScore) { 60.0 },
-            ConditionBuilder.singleParam(Filter::MaxScore) { 60.0 },
-            ConditionBuilder.singleParam(Filter::TargetReleaseDate) { "2014-01-01".date },
-            ConditionBuilder.singleParam(Filter::PeriodReleaseDate) { 1.years },
-            ConditionBuilder.noParams(Filter::NullReleaseDate),
-            ConditionBuilder.singleParam(Filter::TargetCreateDate) { "2014-01-01".date },
-            ConditionBuilder.singleParam(Filter::PeriodCreateDate) { 2.months },
-            ConditionBuilder.singleParam(Filter::TargetUpdateDate) { "2014-01-01".date },
-            ConditionBuilder.singleParam(Filter::PeriodUpdateDate) { 2.months },
-            ConditionBuilder.singleParam(Filter::FileSize) { FileSize(10.gb) },
-            ConditionBuilder.noParams(Filter::Duplications),
-            ConditionBuilder.noParams(Filter::NameDiff)
+            FilterBuilder.singleParam(Filter::Platform) { Platform.Windows },
+            FilterBuilder.singleParam(Filter::Library) { libraries.first().id },
+            FilterBuilder.singleParam(Filter::Genre) { genres.firstOrNull() ?: "" },
+            FilterBuilder.singleParam(Filter::Tag) { tags.firstOrNull() ?: "" },
+            FilterBuilder.singleParam(Filter::Provider) { commonData.allProviders.first().id },
+            FilterBuilder.singleParam(Filter::CriticScore) { 60.0 },
+            FilterBuilder.noParams(Filter::NullCriticScore),
+            FilterBuilder.singleParam(Filter::UserScore) { 60.0 },
+            FilterBuilder.noParams(Filter::NullUserScore),
+            FilterBuilder.singleParam(Filter::AvgScore) { 60.0 },
+            FilterBuilder.singleParam(Filter::MinScore) { 60.0 },
+            FilterBuilder.singleParam(Filter::MaxScore) { 60.0 },
+            FilterBuilder.singleParam(Filter::TargetReleaseDate) { "2014-01-01".date },
+            FilterBuilder.singleParam(Filter::PeriodReleaseDate) { 1.years },
+            FilterBuilder.noParams(Filter::NullReleaseDate),
+            FilterBuilder.singleParam(Filter::TargetCreateDate) { "2014-01-01".date },
+            FilterBuilder.singleParam(Filter::PeriodCreateDate) { 2.months },
+            FilterBuilder.singleParam(Filter::TargetUpdateDate) { "2014-01-01".date },
+            FilterBuilder.singleParam(Filter::PeriodUpdateDate) { 2.months },
+            FilterBuilder.singleParam(Filter::FileSize) { FileSize(10.gb) },
+            FilterBuilder.noParams(Filter::Duplications),
+            FilterBuilder.noParams(Filter::NameDiff)
         ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 
         private val rulesList = rules.keys.toList()
@@ -98,7 +98,7 @@ class FilterPresenter @Inject constructor(
             setState()
             libraries.changesChannel.forEach { setState() }
 
-            if (view.onlyShowConditionsForCurrentPlatform) {
+            if (view.onlyShowFiltersForCurrentPlatform) {
 //            settingsService.game.platformChannel.combineLatest(settingsService.game.platformSettingsChannel).distinctUntilChanged().subscribeOnUi {
                 // FIXME: Also reset the state when importing a database (settingsService.game.platformSettingsChannel is changed but not by the view)
                 settingsService.currentPlatformSettingsChannel.forEach { setState() }
@@ -128,7 +128,7 @@ class FilterPresenter @Inject constructor(
 
         private fun setPossibleRules() {
             val rules: List<KClass<out Filter.Rule>> = when {
-                !view.onlyShowConditionsForCurrentPlatform -> rulesList
+                !view.onlyShowFiltersForCurrentPlatform -> rulesList
                 commonData.games.size <= 1 -> emptyList()
                 else -> {
                     val rules = rulesList.toMutableList()
@@ -156,7 +156,7 @@ class FilterPresenter @Inject constructor(
         private fun setFilter(filter: Filter) = replaceFilter(view.filter.value, filter)
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
-            val conditionBuilder = when {
+            val filterBuilder = when {
                 filter is Filter.BinaryOperator && with.superclasses.first() == Filter.BinaryOperator::class ->
                     @Suppress("UNCHECKED_CAST")
                     newBinaryOperator(from = filter, to = with as KClass<out Filter.BinaryOperator>) { it }
@@ -169,8 +169,8 @@ class FilterPresenter @Inject constructor(
                 else ->
                     rules[with]!!
             }
-            val newRule = conditionBuilder()
-            replaceFilter(filter, newRule)
+            val newFilter = filterBuilder()
+            replaceFilter(filter, newFilter)
         }
 
         private fun replaceFilter(filter: Filter, with: Filter) = modifyFilter { replace(filter, with) }
@@ -184,7 +184,7 @@ class FilterPresenter @Inject constructor(
 
         private fun setIsValid() {
             view.filterIsValid *= Try {
-                check(view.filter.value is Filter.True || view.filter.value.find(Filter.True::class) == null) { "Please select a condition!" }
+                check(view.filter.value is Filter.True || view.filter.value.find(Filter.True::class) == null) { "Please select a filter!" }
             }
         }
 
@@ -254,7 +254,7 @@ class FilterPresenter @Inject constructor(
         }
     }
 
-    private data class ConditionBuilder<T : Filter>(
+    private data class FilterBuilder<T : Filter>(
         val klass: KClass<T>,
         private val param1: Any? = null,
         private val param2: Any? = null,
@@ -266,20 +266,20 @@ class FilterPresenter @Inject constructor(
         operator fun invoke(): T = this.build(param1, param2)
 
         companion object {
-            inline operator fun <reified T : Filter> invoke(crossinline build: (Any?, Any?) -> T): ConditionBuilder<T> =
-                ConditionBuilder(T::class) { param1, param2 -> build(param1, param2) }
+            inline operator fun <reified T : Filter> invoke(crossinline build: (Any?, Any?) -> T): FilterBuilder<T> =
+                FilterBuilder(T::class) { param1, param2 -> build(param1, param2) }
 
-            inline fun <reified T : Filter> noParams(crossinline factory: () -> T): ConditionBuilder<T> =
-                ConditionBuilder { _, _ -> factory() }
+            inline fun <reified T : Filter> noParams(crossinline factory: () -> T): FilterBuilder<T> =
+                FilterBuilder { _, _ -> factory() }
 
-            inline fun <reified T : Filter, reified A> singleParam(crossinline factory: (A) -> T, crossinline default: () -> A): ConditionBuilder<T> =
-                ConditionBuilder { param, _ -> factory(param as? A ?: default()) }
+            inline fun <reified T : Filter, reified A> singleParam(crossinline factory: (A) -> T, crossinline default: () -> A): FilterBuilder<T> =
+                FilterBuilder { param, _ -> factory(param as? A ?: default()) }
 
             inline fun <reified T : Filter, reified A, reified B> twoParams(
                 crossinline factory: (A, B) -> T,
                 crossinline defaultA: () -> A,
                 crossinline defaultB: () -> B
-            ): ConditionBuilder<T> = ConditionBuilder { param1, param2 ->
+            ): FilterBuilder<T> = FilterBuilder { param1, param2 ->
                 factory(param1 as? A ?: defaultA(), param2 as? B ?: defaultB())
             }
         }
