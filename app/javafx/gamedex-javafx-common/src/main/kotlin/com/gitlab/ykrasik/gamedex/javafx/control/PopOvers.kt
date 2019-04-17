@@ -16,6 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.javafx.control
 
+import com.gitlab.ykrasik.gamedex.javafx.boundsInScreen
 import com.gitlab.ykrasik.gamedex.javafx.screenBounds
 import com.gitlab.ykrasik.gamedex.javafx.theme.CommonStyle
 import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
@@ -102,11 +103,21 @@ class ObservableMouseEvent(e: MouseEvent, private val consumedProperty: Property
     }
 }
 
-fun PopOver.determineArrowLocation(x: Double, y: Double) = apply {
-    val leftBound = screenBounds.maxX / 3
-    val rightBound = leftBound * 2
-    val topBound = screenBounds.maxY / 3
-    val bottomBound = topBound * 2
+fun PopOver.determineArrowLocation(parent: Node, preferTop: Boolean = true, preferLeft: Boolean = true) = apply {
+    val bounds = parent.boundsInScreen
+    return determineArrowLocation(
+        x = bounds.minX + bounds.width / 2,
+        y = bounds.minY + bounds.height / 2,
+        preferTop = preferTop,
+        preferLeft = preferLeft
+    )
+}
+
+fun PopOver.determineArrowLocation(x: Double, y: Double, preferTop: Boolean = true, preferLeft: Boolean = true) = apply {
+    val leftBound = screenBounds.maxX / 3 * (if (preferLeft) 2 else 1)
+    val rightBound = if (preferLeft) leftBound else leftBound * 2
+    val topBound = screenBounds.maxY / 3 * (if (preferTop) 2 else 1)
+    val bottomBound = if (preferTop) topBound else topBound * 2
 
     val isLeft = x < leftBound
     val isRight = x > rightBound

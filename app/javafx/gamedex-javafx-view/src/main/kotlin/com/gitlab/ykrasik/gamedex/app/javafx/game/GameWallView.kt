@@ -132,7 +132,7 @@ class GameWallView : PresentableView("Game Wall"),
                             popOverShowing = false
                             hide()
                         } else if (e.button == MouseButton.PRIMARY) {
-                            determineArrowLocation(e.screenX, e.screenY)
+                            determineArrowLocation(e.screenX, e.screenY, preferTop = false, preferLeft = false)
                             gameProperty.value = cell.item
                             cell.markSelected(true)
                             show(cell)

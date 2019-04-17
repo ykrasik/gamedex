@@ -57,9 +57,9 @@ class FileSystemServiceImpl @Inject constructor(
         eventBus.on<DatabaseInvalidatedEvent>(Dispatchers.IO) { onDbInvalidated() }
     }
 
-    override fun fileTree(gameId: GameId, path: File): Ref<FileTree> {
+    override fun fileTree(gameId: GameId, path: File): Ref<FileTree?> {
         val fileTree = storage[gameId]
-        val ref = ref(fileTree ?: FileTree.NotAvailable)
+        val ref = ref(fileTree)
 
         // Refresh the cache, regardless of whether we got a hit or not - our cached result could already be invalid.
         GlobalScope.launch(Dispatchers.IO) {

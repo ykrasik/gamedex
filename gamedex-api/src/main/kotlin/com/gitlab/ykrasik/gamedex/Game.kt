@@ -36,7 +36,7 @@ data class Game(
     val library: Library,
     val gameData: GameData,
     val folderNameMetadata: FolderNameMetadata,
-    val fileTree: Ref<FileTree>
+    val fileTree: Ref<FileTree?>
 ) {
     val id get() = rawGame.id
     val path by lazy { library.path.resolve(metadata.path) }

@@ -20,6 +20,7 @@ import com.jfoenix.utils.JFXNodeUtils
 import javafx.animation.FadeTransition
 import javafx.beans.value.ObservableValue
 import javafx.event.EventTarget
+import javafx.geometry.Bounds
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
 import javafx.geometry.Rectangle2D
@@ -164,3 +165,5 @@ val Node.verticalScrollbar: ScrollBar?
 
 val Color.hex: String get() = JFXNodeUtils.colorToHex(this)
 val String.color: Color get() = Color.valueOf(this)
+
+val Node.boundsInScreen: Bounds get() = localToScreen(boundsInLocal)

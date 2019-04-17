@@ -30,7 +30,7 @@ import java.io.File
  * Time: 14:04
  */
 interface FileSystemService {
-    fun fileTree(gameId: GameId, path: File): Ref<FileTree>
+    fun fileTree(gameId: GameId, path: File): Ref<FileTree?>
     fun deleteCachedFileTree(gameId: GameId)
     fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
 

@@ -40,6 +40,7 @@ import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import kotlinx.coroutines.channels.Channel
+import org.controlsfx.control.PopOver
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.io.File
@@ -85,7 +86,7 @@ class GameDetailsPaneBuilder(
 
     var path: File? = null,
     var pathOp: (JFXButton.() -> Unit)? = null,
-    var fileTree: Ref<FileTree>? = null,
+    var fileTree: Ref<FileTree?>? = null,
     var fileTreeOp: (Label.() -> Unit)? = null,
     var browsePathActions: Channel<File>? = null,
 
@@ -125,30 +126,6 @@ class GameDetailsPaneBuilder(
                         addClass(Style.name)
                         tooltip("Name")
                         nameOp?.invoke(this)
-                    }
-                }
-            }
-            path?.let { path ->
-                row {
-                    children += Icons.folder.size(16)
-                    defaultHbox {
-                        jfxButton(path.toString()) {
-                            addClass(Style.path)
-                            isFocusTraversable = false
-                            browsePathActions?.let { browsePathActions ->
-                                setOnMouseClicked { browsePathActions.offer(path) }
-                            }
-                            tooltip("Browse to Path")
-                            pathOp?.invoke(this)
-                        }
-                        gap()
-                        fileTree?.let { fileTree ->
-                            label(fileTree.value.size.humanReadable) {
-                                addClass(Style.sizeTaken)
-                                tooltip("Size Taken")
-                                fileTreeOp?.invoke(this)
-                            }
-                        }
                     }
                 }
             }
@@ -206,7 +183,7 @@ class GameDetailsPaneBuilder(
             }
             if (providerUrls.isNotEmpty()) {
                 row {
-                    children += Icons.link.size(16)
+                    children += Icons.web.size(16)
                     vbox(spacing = 5) {
                         providerUrls.sortedBy { it.first }.forEach { (providerId, url) ->
                             defaultHbox {
@@ -225,6 +202,38 @@ class GameDetailsPaneBuilder(
                                         setId(Style.providerUrl)
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            path?.let { path ->
+                row {
+                    children += Icons.folder.size(16)
+                    defaultHbox {
+                        jfxButton(path.toString()) {
+                            addClass(Style.path)
+                            isFocusTraversable = false
+                            browsePathActions?.let { browsePathActions ->
+                                setOnMouseClicked { browsePathActions.offer(path) }
+                            }
+                            tooltip("Browse to Path")
+                            pathOp?.invoke(this)
+                        }
+                        fileTree?.value?.let { fileTree ->
+                            spacer()
+                            buttonWithPopover(
+                                text = fileTree.size.humanReadable,
+                                graphic = Icons.fileTree.size(18),
+                                arrowLocation = PopOver.ArrowLocation.LEFT_TOP,
+                                onClickBehavior = PopOverOnClickBehavior.Ignore
+                            ) {
+                                fileTreeView(fileTree) {
+                                    addClass(Style.fileTree)
+                                    minWidth = 600.0
+                                }
+                            }.apply {
+                                addClass(Style.sizeTaken)
                             }
                         }
                     }
@@ -353,6 +362,7 @@ class GameDetailsPaneBuilder(
             val criticScoreReviews by cssid()
             val userScore by cssid()
             val userScoreReviews by cssid()
+            val fileTree by cssclass()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -415,6 +425,12 @@ class GameDetailsPaneBuilder(
             userScoreReviews {
                 fontSize = 15.px
                 textFill = Color.WHITE
+            }
+
+            fileTree {
+                focusColor = Color.TRANSPARENT
+                faintFocusColor = Color.TRANSPARENT
+//                backgroundColor = multi(Colors.cloudyKnoxville)
             }
         }
     }

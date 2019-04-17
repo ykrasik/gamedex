@@ -33,6 +33,7 @@ object Icons {
     val chart get() = fontIcon(MaterialDesign.MDI_CHART_BAR, color = Color.DARKBLUE)
     val book get() = fontIcon(MaterialDesign.MDI_BOOK_OPEN_OUTLINE, color = Color.BROWN)
     val hdd get() = fontIcon(MaterialDesign.MDI_HARDDISK, color = Colors.green)
+    val disc get() = fontIcon(MaterialDesign.MDI_DISC)
     val settings get() = fontIcon(MaterialDesign.MDI_SETTINGS, color = Color.GRAY)
     val wrench get() = fontIcon(MaterialDesign.MDI_WRENCH, color = Color.GRAY)
     val display get() = fontIcon(MaterialDesign.MDI_MONITOR_DASHBOARD, color = Color.DARKBLUE)
@@ -106,14 +107,21 @@ object Icons {
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folders get() = fontIcon(MaterialDesign.MDI_FOLDER_MULTIPLE_OUTLINE, color = Colors.green)
-    val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER)
+    val folderFilled get() = fontIcon(MaterialDesign.MDI_FOLDER, color = Colors.orange)
     val folderEdit get() = fontIcon(MaterialDesign.MDI_FOLDER_EDIT, color = Colors.orange)
     val folderRemove get() = fontIcon(MaterialDesign.MDI_FOLDER_REMOVE_OUTLINE, color = Colors.red)
     val folderOpen get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN)
+    val folderOpenFilled get() = fontIcon(MaterialDesign.MDI_FOLDER_OPEN, color = Colors.orange)
     val folderSync get() = fontIcon(MaterialDesign.MDI_FOLDER_SYNC_OUTLINE, color = Colors.green)
     val folderSearch get() = fontIcon(MaterialDesign.MDI_FOLDER_SEARCH_OUTLINE)
     val fileTree get() = fontIcon(MaterialDesign.MDI_FILE_TREE)
     val fileQuestion get() = fontIcon(MaterialDesign.MDI_FILE_QUESTION)
+    val file get() = fontIcon(MaterialDesign.MDI_FILE_OUTLINE)
+    val fileDocument get() = fontIcon(MaterialDesign.MDI_FILE_DOCUMENT_OUTLINE)
+    val fileAlert get() = fontIcon(MaterialDesign.MDI_FILE_ALERT_OUTLINE)
+    val fileMusic get() = fontIcon(MaterialDesign.MDI_FILE_MUSIC)   // FIXME: Use outline version
+    val fileVideo get() = fontIcon(MaterialDesign.MDI_FILE_VIDEO)   // FIXME: Use outline version
+    val archive get() = fontIcon(MaterialDesign.MDI_ARCHIVE)
 
     val download get() = fontIcon(MaterialDesign.MDI_CLOUD_DOWNLOAD)
     val upload get() = fontIcon(MaterialDesign.MDI_CLOUD_UPLOAD)
@@ -124,6 +132,7 @@ object Icons {
     val siteMap get() = fontIcon(MaterialDesign.MDI_SITEMAP)
     val lan get() = fontIcon(MaterialDesign.MDI_LAN)
     val link get() = fontIcon(MaterialDesign.MDI_LINK)
+    val web get() = fontIcon(MaterialDesign.MDI_WEB)
     val tournament get() = fontIcon(MaterialDesign.MDI_TOURNAMENT)
     val history get() = fontIcon(MaterialDesign.MDI_HISTORY)
     val clockStart get() = fontIcon(MaterialDesign.MDI_CLOCK_START)

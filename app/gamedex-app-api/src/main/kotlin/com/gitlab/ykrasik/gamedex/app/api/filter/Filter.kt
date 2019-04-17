@@ -70,6 +70,7 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.Genre::class, name = "genre"),
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
+
     JsonSubTypes.Type(value = Filter.FileSize::class, name = "size"),
 
     JsonSubTypes.Type(value = Filter.Duplications::class, name = "duplications"),
@@ -285,15 +286,6 @@ sealed class Filter {
         override fun toString() = "Release Date == NULL"
     }
 
-    class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
-        override fun evaluate(game: Game, context: Context): Boolean {
-            return game.fileTree.value.size >= target
-        }
-
-        override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
-        override fun toString() = "File Size >= ${target.humanReadable}"
-    }
-
     class Platform(val platform: com.gitlab.ykrasik.gamedex.Platform) : Rule() {
         override fun evaluate(game: Game, context: Context) = game.platform == platform
         override fun isEqual(other: Filter) = other.ifIs<Platform> { this.platform == it.platform }
@@ -330,6 +322,15 @@ sealed class Filter {
 
         override fun isEqual(other: Filter) = other.ifIs<Provider> { this.providerId == it.providerId }
         override fun toString() = "Provider == '$providerId'"
+    }
+
+    class FileSize(val target: com.gitlab.ykrasik.gamedex.util.FileSize) : Rule() {
+        override fun evaluate(game: Game, context: Context): Boolean {
+            return game.fileTree.value?.let { it.size >= target } ?: false
+        }
+
+        override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
+        override fun toString() = "File Size >= ${target.humanReadable}"
     }
 
     // TODO: Add ignore case option

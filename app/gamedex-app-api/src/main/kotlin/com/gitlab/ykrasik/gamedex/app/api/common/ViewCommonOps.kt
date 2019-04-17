@@ -38,7 +38,7 @@ interface ViewCommonOps {
     suspend fun fetchPoster(game: Game): Image?
     suspend fun downloadImage(url: String): Image?
 
-    fun fetchFileTree(game: Game): Ref<FileTree>
+    fun fetchFileTree(game: Game): Ref<FileTree?>
 
     val providers: List<GameProviderMetadata>
     val providerLogos: Map<ProviderId, Image>
