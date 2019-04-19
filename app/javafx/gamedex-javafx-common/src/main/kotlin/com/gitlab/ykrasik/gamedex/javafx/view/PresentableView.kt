@@ -21,6 +21,7 @@ import com.gitlab.ykrasik.gamedex.app.api.ViewRegistry
 import com.gitlab.ykrasik.gamedex.javafx.error
 import com.gitlab.ykrasik.gamedex.javafx.notification
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.scene.Node
 import javafx.scene.control.Button
@@ -69,11 +70,10 @@ abstract class PresentableView(title: String? = null, icon: Node? = null) : View
 
     fun <E> Channel<E>.event(e: E) = offer(e)
 
-    fun <T, O : ObservableValue<T>> O.bindChanges(channel: Channel<T>): O = bindChanges(channel) { it }
+    fun <T> ObservableValue<T>.bindChanges(channel: Channel<T>): ChangeListener<T> = bindChanges(channel) { it }
 
-    inline fun <T, R, O : ObservableValue<out T>> O.bindChanges(channel: Channel<R>, crossinline factory: (T) -> R): O = apply {
+    inline fun <T, R> ObservableValue<T>.bindChanges(channel: Channel<R>, crossinline factory: (T) -> R): ChangeListener<T> =
         typeSafeOnChange { channel.event(factory(it)) }
-    }
 
     fun ButtonBase.action(channel: Channel<Unit>) = action(channel) { }
 

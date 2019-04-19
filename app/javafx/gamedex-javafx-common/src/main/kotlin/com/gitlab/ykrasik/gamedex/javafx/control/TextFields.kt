@@ -151,10 +151,8 @@ inline fun EventTarget.searchTextField(
     op()
 }
 
-inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: CustomJFXTextField.() -> Unit = {}) = opcr(this, CustomJFXTextField()) {
+inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: CustomJFXTextField.() -> Unit = {}) = customTextField(textProperty) {
     useMaxWidth = true
-    alignment = Pos.CENTER_LEFT
-    textProperty.bindBidirectional(textProperty())
 
     val clearButton = jfxButton {
         addClass(CommonStyle.customHoverable)
@@ -204,6 +202,16 @@ inline fun EventTarget.clearableTextField(textProperty: StringProperty, op: Cust
 
     op()
 }
+
+inline fun EventTarget.customTextField(text: String = "", op: CustomJFXTextField.() -> Unit = {}): CustomJFXTextField =
+    customTextField(text.toProperty(), op)
+
+inline fun EventTarget.customTextField(text: Property<String>, op: CustomJFXTextField.() -> Unit = {}): CustomJFXTextField =
+    opcr(this, CustomJFXTextField()) {
+        alignment = Pos.CENTER_LEFT
+        textProperty().bindBidirectional(text)
+        op()
+    }
 
 /**
  * A copy of [com.jfoenix.controls.JFXTextField] which allows setting a left & right node, like [org.controlsfx.control.textfield.CustomTextField]

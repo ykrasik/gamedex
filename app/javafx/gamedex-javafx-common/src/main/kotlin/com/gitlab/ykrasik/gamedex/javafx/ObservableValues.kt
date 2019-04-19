@@ -24,6 +24,7 @@ import javafx.beans.binding.ObjectBinding
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.Property
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -49,8 +50,10 @@ fun <T, R> ObservableValue<T>.map(f: (T) -> R): ObjectProperty<R> {
     return property
 }
 
-inline fun <T> ObservableValue<T>.typeSafeOnChange(crossinline op: (T) -> Unit) = apply {
-    addListener { _, _, newValue -> op(newValue) }
+inline fun <T> ObservableValue<T>.typeSafeOnChange(crossinline op: (T) -> Unit): ChangeListener<T> {
+    val listener = ChangeListener<T> { _, _, newValue -> op(newValue) }
+    addListener(listener)
+    return listener
 }
 
 inline fun <T, R> ObservableValue<T>.binding(crossinline op: (T) -> R): ObjectBinding<R> =

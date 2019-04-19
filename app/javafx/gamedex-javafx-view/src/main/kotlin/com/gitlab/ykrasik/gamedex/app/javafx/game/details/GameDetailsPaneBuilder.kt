@@ -151,7 +151,7 @@ class GameDetailsPaneBuilder(
             }
             if (genres.isNotEmpty()) {
                 row {
-                    children += Icons.script.size(16)
+                    children += Icons.masks.size(16)
                     flowpane {
                         hgap = 5.0
                         vgap = 3.0

@@ -78,6 +78,7 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.singleParam(Filter::PeriodCreateDate) { 2.months },
             FilterBuilder.singleParam(Filter::TargetUpdateDate) { "2014-01-01".date },
             FilterBuilder.singleParam(Filter::PeriodUpdateDate) { 2.months },
+            FilterBuilder.singleParam(Filter::FileName) { ".*" },
             FilterBuilder.singleParam(Filter::FileSize) { FileSize(10.gb) },
             FilterBuilder.noParams(Filter::Duplications),
             FilterBuilder.noParams(Filter::NameDiff)
@@ -233,7 +234,7 @@ class FilterPresenter @Inject constructor(
             from: Filter.BinaryOperator,
             to: KClass<out Filter.BinaryOperator> = from::class,
             transform: ((Filter) -> Filter)? = null
-        ) = operators[to]!!.let { new ->
+        ) = operators.getValue(to).let { new ->
             if (transform == null) {
                 new
             } else {
@@ -245,7 +246,7 @@ class FilterPresenter @Inject constructor(
             from: Filter.UnaryOperator,
             to: KClass<out Filter.UnaryOperator> = from::class,
             transform: ((Filter) -> Filter)? = null
-        ) = operators[to]!!.let { new ->
+        ) = operators.getValue(to).let { new ->
             if (transform == null) {
                 new
             } else {

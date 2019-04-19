@@ -104,6 +104,7 @@ object Icons {
     val duplicate get() = fontIcon(MaterialDesign.MDI_CONTENT_DUPLICATE)
     val diff get() = fontIcon(MaterialDesign.MDI_VECTOR_DIFFERENCE)
     val select get() = fontIcon(MaterialDesign.MDI_SELECT)
+    val regex get() = fontIcon(MaterialDesign.MDI_REGEX)
 
     val folder get() = fontIcon(MaterialDesign.MDI_FOLDER_OUTLINE)
     val folders get() = fontIcon(MaterialDesign.MDI_FOLDER_MULTIPLE_OUTLINE, color = Colors.green)
@@ -140,6 +141,7 @@ object Icons {
     val databaseCleanup get() = fontIcon(MaterialDesign.MDI_DATABASE_REMOVE)
     val earth get() = fontIcon(MaterialDesign.MDI_EARTH)
     val earthOff get() = fontIcon(MaterialDesign.MDI_EARTH_OFF)
+    val masks get() = fontIcon(MaterialDesign.MDI_DRAMA_MASKS)
 
     val computer get() = fontIcon(MaterialDesign.MDI_DESKTOP_CLASSIC)
     val windows get() = fontIcon(MaterialDesign.MDI_WINDOWS, Color.CORNFLOWERBLUE)
@@ -162,6 +164,7 @@ object Icons {
 
     val equal get() = fontIcon(MaterialDesign.MDI_EQUAL)
     val notEqual get() = fontIcon(MaterialDesign.MDI_NOT_EQUAL_VARIANT)
+    val match get() = fontIcon(MaterialDesign.MDI_TILDE)
     val gtOrEq get() = fontIcon(MaterialDesign.MDI_GREATER_THAN_OR_EQUAL)
     val lt get() = fontIcon(MaterialDesign.MDI_LESS_THAN)
     val min get() = fontIcon(MaterialDesign.MDI_ARROW_COLLAPSE_DOWN)

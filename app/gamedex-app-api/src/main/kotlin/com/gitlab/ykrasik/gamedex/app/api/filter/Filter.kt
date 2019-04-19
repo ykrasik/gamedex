@@ -16,12 +16,10 @@
 
 package com.gitlab.ykrasik.gamedex.app.api.filter
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.ProviderData
+import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.*
 import difflib.DiffUtils
@@ -71,7 +69,8 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
 
-    JsonSubTypes.Type(value = Filter.FileSize::class, name = "size"),
+    JsonSubTypes.Type(value = Filter.FileSize::class, name = "fileSize"),
+    JsonSubTypes.Type(value = Filter.FileName::class, name = "fileName"),
 
     JsonSubTypes.Type(value = Filter.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = Filter.NameDiff::class, name = "nameDiff")
@@ -331,6 +330,20 @@ sealed class Filter {
 
         override fun isEqual(other: Filter) = other.ifIs<FileSize> { this.target == it.target }
         override fun toString() = "File Size >= ${target.humanReadable}"
+    }
+
+    @JsonIgnoreProperties("regex")
+    class FileName(val value: String) : Rule() {
+        private val regex = value.toRegex()
+
+        override fun evaluate(game: Game, context: Context): Boolean {
+            return game.fileTree.value?.matches() ?: false
+        }
+
+        private fun FileTree.matches(): Boolean = name.matches(regex) || children.any { it.matches() }
+
+        override fun isEqual(other: Filter) = other.ifIs<FileName> { this.value == it.value }
+        override fun toString() = "File matches /$value/"
     }
 
     // TODO: Add ignore case option
