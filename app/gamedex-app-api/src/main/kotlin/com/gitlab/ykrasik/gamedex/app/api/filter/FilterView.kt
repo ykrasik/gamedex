@@ -35,7 +35,7 @@ interface FilterView {
     val possibleTags: MutableList<String>
     val possibleLibraries: MutableList<Library>
     val possibleProviderIds: MutableList<ProviderId>
-    val possibleRules: MutableList<KClass<out Filter.Rule>>
+    val possibleFilters: MutableList<KClass<out Filter.Rule>>
 
     val setFilterActions: ReceiveChannel<Filter>
     val wrapInAndActions: ReceiveChannel<Filter>

@@ -69,7 +69,7 @@ class ReportServiceImpl @Inject constructor(private val repo: ReportSettingsRepo
             ReportData("Duplications", Filter.Duplications()),
             ReportData("Low Score", Filter.CriticScore(60.0).not or Filter.UserScore(60.0).not),
             ReportData("Very Low Score", Filter.CriticScore(60.0).not and Filter.UserScore(60.0).not),
-            ReportData("No Score", Filter.NullCriticScore() and Filter.NullUserScore())
+            ReportData("No Score", Filter.CriticScore(0.0).not and Filter.UserScore(0.0).not)
         )
     }
 }

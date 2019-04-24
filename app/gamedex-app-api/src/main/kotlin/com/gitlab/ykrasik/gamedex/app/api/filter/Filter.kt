@@ -44,11 +44,7 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.True::class, name = "true"),
 
     JsonSubTypes.Type(value = Filter.CriticScore::class, name = "criticScore"),
-    JsonSubTypes.Type(value = Filter.NullCriticScore::class, name = "nullCriticScore"),
-
     JsonSubTypes.Type(value = Filter.UserScore::class, name = "userScore"),
-    JsonSubTypes.Type(value = Filter.NullUserScore::class, name = "nullUserScore"),
-
     JsonSubTypes.Type(value = Filter.AvgScore::class, name = "avgScore"),
     JsonSubTypes.Type(value = Filter.MinScore::class, name = "minScore"),
     JsonSubTypes.Type(value = Filter.MaxScore::class, name = "maxScore"),
@@ -84,9 +80,9 @@ sealed class Filter {
 
     abstract fun evaluate(game: Game, context: Context): Boolean
 
-    infix fun and(right: Filter) = And(this, right)
+    infix fun and(right: Filter) = And(listOf(this, right))
     infix fun and(right: () -> Filter) = and(right())
-    infix fun or(right: Filter) = Or(this, right)
+    infix fun or(right: Filter) = Or(listOf(this, right))
     infix fun or(right: () -> Filter) = or(right())
     val not get() = Not(this)
 
@@ -95,34 +91,33 @@ sealed class Filter {
 
     protected open fun evaluateNot(game: Game, context: Context): Boolean = !evaluate(game, context)
 
-    abstract class Operator : Filter()
-    abstract class BinaryOperator : Operator() {
-        abstract val left: Filter
-        abstract val right: Filter
+    abstract class MetaFilter : Filter()
+    abstract class Compound : MetaFilter() {
+        abstract val targets: List<Filter>
 
-        protected inline fun <reified T : BinaryOperator> isEqual0(other: Filter) =
-            other.ifIs<T> { this.left.isEqual(it.left) && this.right.isEqual(it.right) }
+        protected inline fun <reified T : Compound> isEqual0(other: Filter) =
+            other.ifIs<T> { this.targets == it.targets }
     }
 
-    abstract class UnaryOperator : Operator() {
+    abstract class Modifier : MetaFilter() {
         abstract val target: Filter
     }
 
-    class And(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
-        override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) && right.evaluate(game, context)
-        override fun evaluateNot(game: Game, context: Context) = left.evaluateNot(game, context) || right.evaluateNot(game, context)
+    class And(override val targets: List<Filter> = emptyList()) : Compound() {
+        override fun evaluate(game: Game, context: Context) = targets.all { it.evaluate(game, context) }
+        override fun evaluateNot(game: Game, context: Context) = targets.any { it.evaluateNot(game, context) }
         override fun isEqual(other: Filter) = isEqual0<And>(other)
-        override fun toString() = "($left) and ($right)"
+        override fun toString() = targets.joinToString(separator = ") and (", prefix = "(", postfix = ")")
     }
 
-    class Or(override val left: Filter = True(), override val right: Filter = True()) : BinaryOperator() {
-        override fun evaluate(game: Game, context: Context) = left.evaluate(game, context) || right.evaluate(game, context)
-        override fun evaluateNot(game: Game, context: Context) = left.evaluateNot(game, context) && right.evaluateNot(game, context)
+    class Or(override val targets: List<Filter> = emptyList()) : Compound() {
+        override fun evaluate(game: Game, context: Context) = targets.any { it.evaluate(game, context) }
+        override fun evaluateNot(game: Game, context: Context) = targets.all { it.evaluateNot(game, context) }
         override fun isEqual(other: Filter) = isEqual0<Or>(other)
-        override fun toString() = "($left) or ($right)"
+        override fun toString() = targets.joinToString(separator = ") or (", prefix = "(", postfix = ")")
     }
 
-    class Not(override val target: Filter = True()) : UnaryOperator() {
+    class Not(override val target: Filter = True()) : Modifier() {
         override fun evaluate(game: Game, context: Context) = target.evaluateNot(game, context)
         override fun evaluateNot(game: Game, context: Context) = target.evaluate(game, context)
         override fun isEqual(other: Filter) = other.ifIs<Not> { this.target.isEqual(it.target) }
@@ -143,7 +138,12 @@ sealed class Filter {
     abstract class TargetScore : ScoreRule() {
         abstract val score: Double
         override fun evaluate(game: Game, context: Context) = eval(game, context) { it >= score }
-        override fun evaluateNot(game: Game, context: Context) = eval(game, context) { it < score }
+        override fun evaluateNot(game: Game, context: Context) =
+            if (score > 0.0) {
+                eval(game, context) { it < score }
+            } else {
+                extractScore(game, context) == null
+            }
 
         private inline fun eval(game: Game, context: Context, f: (Double) -> Boolean): Boolean {
             val score = extractScore(game, context)
@@ -182,25 +182,6 @@ sealed class Filter {
         override fun extractScore(game: Game, context: Context) = game.maxScore
         override fun isEqual(other: Filter) = isEqual0<MaxScore>(other)
         override fun toString() = "Max Score >= $score"
-    }
-
-    abstract class NullScore : ScoreRule() {
-        override fun evaluate(game: Game, context: Context): Boolean {
-            val score = extractScore(game, context)
-            return score == null
-        }
-
-        override fun isEqual(other: Filter) = this::class == other::class
-    }
-
-    class NullCriticScore : NullScore() {
-        override fun extractScore(game: Game, context: Context) = game.criticScore?.score
-        override fun toString() = "Critic Score == NULL"
-    }
-
-    class NullUserScore : NullScore() {
-        override fun extractScore(game: Game, context: Context) = game.userScore?.score
-        override fun toString() = "User Score == NULL"
     }
 
     abstract class DateRule : Rule() {

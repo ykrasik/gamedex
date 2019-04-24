@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.core.settings
 
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.provider.GameProvider
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.util.months
 
@@ -37,17 +36,12 @@ class ProviderGeneralSettingsRepository(factory: SettingsStorageFactory, provide
         Data(
             refetchGamesFilter = Filter.PeriodUpdateDate(2.months).not,
             resyncGamesFilter = if (providers.isNotEmpty()) {
-                val providerIds = providers.map { it.id }
-                providerIds.drop(1).fold(providerIds.first().missingProviderFilter) { filter, providerId ->
-                    filter or providerId.missingProviderFilter
-                }
+                Filter.And(providers.map { Filter.Provider(it.id) }).not
             } else {
                 Filter.PeriodCreateDate(2.months).not
             }
         )
     }
-
-    private val ProviderId.missingProviderFilter: Filter get() = Filter.Provider(this).not
 
     val refetchGamesFilterChannel = storage.channel(Data::refetchGamesFilter)
     val refetchGamesFilter by refetchGamesFilterChannel

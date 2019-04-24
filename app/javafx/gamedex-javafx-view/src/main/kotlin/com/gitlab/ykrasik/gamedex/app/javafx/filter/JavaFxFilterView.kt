@@ -24,7 +24,6 @@ import com.gitlab.ykrasik.gamedex.app.api.util.channel
 import com.gitlab.ykrasik.gamedex.app.javafx.common.JavaFxCommonOps
 import com.gitlab.ykrasik.gamedex.javafx.combineLatest
 import com.gitlab.ykrasik.gamedex.javafx.control.*
-import com.gitlab.ykrasik.gamedex.javafx.importStylesheetSafe
 import com.gitlab.ykrasik.gamedex.javafx.state
 import com.gitlab.ykrasik.gamedex.javafx.theme.*
 import com.gitlab.ykrasik.gamedex.javafx.typeSafeOnChange
@@ -62,7 +61,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     override val possibleTags = mutableListOf<String>()
     override val possibleLibraries = mutableListOf<Library>()
     override val possibleProviderIds = mutableListOf<ProviderId>().observable()
-    override val possibleRules = mutableListOf<KClass<out Filter.Rule>>().observable()
+    override val possibleFilters = mutableListOf<KClass<out Filter.Rule>>().observable()
 
     override val setFilterActions = channel<Filter>()
     override val wrapInAndActions = channel<Filter>()
@@ -86,7 +85,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
 
     override val root = vbox {
         filter.property.addListener { _, oldValue, newValue -> reRender(newValue, prevFilter = oldValue) }
-        possibleRules.onChange { reRender(filter.property.value, prevFilter = null) }
+        possibleFilters.onChange { reRender(filter.property.value, prevFilter = null) }
     }
 
     private fun reRender(filter: Filter, prevFilter: Filter?): Unit = root.replaceChildren {
@@ -126,12 +125,14 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
 
     private fun EventTarget.render(filter: Filter, parentFilter: Filter, prevFilter: Filter?) {
         when (filter) {
-            is Filter.BinaryOperator -> renderOperator(filter, parentFilter) {
-                render(filter.left, parentFilter = filter, prevFilter = (prevFilter as? Filter.BinaryOperator)?.left)
-                render(filter.right, parentFilter = filter, prevFilter = (prevFilter as? Filter.BinaryOperator)?.right)
+            is Filter.Compound -> renderCompoundFilter(filter, parentFilter) {
+                val prevFilters = (prevFilter as? Filter.Compound)?.targets ?: emptyList()
+                filter.targets.forEachIndexed { i, childFilter ->
+                    render(childFilter, parentFilter = filter, prevFilter = prevFilters.getOrNull(i))
+                }
             }
-            is Filter.UnaryOperator -> render(filter.target, parentFilter = filter, prevFilter = (prevFilter as? Filter.UnaryOperator)?.target)
-            is Filter.Rule -> renderBasicRule(filter, parentFilter, possibleRules) {
+            is Filter.Modifier -> render(filter.target, parentFilter = filter, prevFilter = (prevFilter as? Filter.Modifier)?.target)
+            is Filter.Rule -> renderBasicRule(filter, parentFilter, possibleFilters) {
                 when (filter) {
                     is Filter.Platform -> renderPlatformFilter(filter)
                     is Filter.Library -> renderLibraryFilter(filter)
@@ -139,9 +140,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
                     is Filter.Tag -> renderTagFilter(filter)
                     is Filter.Provider -> renderProviderFilter(filter)
                     is Filter.CriticScore -> renderScoreFilter(filter, Filter::CriticScore)
-                    is Filter.NullCriticScore -> renderNullFilter()
                     is Filter.UserScore -> renderScoreFilter(filter, Filter::UserScore)
-                    is Filter.NullUserScore -> renderNullFilter()
                     is Filter.AvgScore -> renderScoreFilter(filter, Filter::AvgScore)
                     is Filter.MinScore -> renderScoreFilter(filter, Filter::MinScore)
                     is Filter.MaxScore -> renderScoreFilter(filter, Filter::MaxScore)
@@ -161,9 +160,8 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
         }
     }
 
-    private fun EventTarget.renderOperator(operator: Filter.Operator, parentFilter: Filter, op: VBox.() -> Unit) = vbox(spacing = 2) {
-        addClass(Style.borderedContent)
-        renderBasicRule(operator, parentFilter, possible = listOf(Filter.And::class, Filter.Or::class))
+    private fun EventTarget.renderCompoundFilter(metaFilter: Filter.Compound, parentFilter: Filter, op: VBox.() -> Unit) = vbox(spacing = 2) {
+        renderBasicRule(metaFilter, parentFilter, possible = listOf(Filter.And::class, Filter.Or::class))
 
         indent += 1
         op(this)
@@ -178,11 +176,11 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     ) = defaultHbox {
         useMaxWidth = true
 
-        gap(size = indent * 10.0)
+        gap(size = indent * 20.0)
 
         val descriptor = filter.descriptor
         buttonWithPopover(descriptor.selectedName, descriptor.selectedIcon().size(26), onClickBehavior = PopOverOnClickBehavior.Ignore) {
-            // TODO: As an optimization, can share this popover accross all menus.
+            // TODO: As an optimization, can share this popover across all menus.
             fun EventTarget.filterButton(descriptor: FilterDisplayDescriptor) =
                 jfxButton(descriptor.name, descriptor.icon().size(26), alignment = Pos.CENTER_LEFT) {
                     useMaxWidth = true
@@ -242,7 +240,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
 
     private fun HBox.renderAdditionalButtons(filter: Filter) {
         // FIXME: Use a NodeList
-        buttonWithPopover(graphic = Icons.fileTree.size(28)) {
+        buttonWithPopover(graphic = Icons.add.size(28)) {
             fun operatorButton(name: String, graphic: Node, channel: Channel<Filter>) = jfxButton(name, graphic, alignment = Pos.CENTER_LEFT) {
                 useMaxWidth = true
                 action(channel) { filter }
@@ -251,7 +249,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             operatorButton("And", Icons.and, wrapInAndActions)
             operatorButton("Or", Icons.or, wrapInOrActions)
         }.apply {
-            tooltip("Wrap in boolean operator")
+            tooltip("Add filter")
         }
         deleteButton {
             removeClass(CommonStyle.toolbarButton)
@@ -402,14 +400,12 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
     )
 
     private companion object {
-        private val criticScoreSubMenu = FilterDisplaySubMenu("Critic Score", Icons::starFull)
-        private val userScoreSubMenu = FilterDisplaySubMenu("User Score", Icons::starEmpty)
         private val releaseDateSubMenu = FilterDisplaySubMenu("Release Date", Icons::date)
         private val createDateSubMenu = FilterDisplaySubMenu("Create Date", Icons::createDate)
         private val updateDateSubMenu = FilterDisplaySubMenu("Update Date", Icons::updateDate)
 
-        private inline fun <reified T : Filter.TargetScore> score(subMenu: FilterDisplaySubMenu?, gap: Boolean = false) =
-            FilterDisplayDescriptor(T::class, "Is bigger than", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
+        private inline fun <reified T : Filter.TargetScore> score(name: String, noinline icon: () -> FontIcon, gap: Boolean = false) =
+            FilterDisplayDescriptor(T::class, name, icon, gap, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt)
 
         private inline fun <reified T : Filter.TargetDate> targetDate(subMenu: FilterDisplaySubMenu, gap: Boolean = false) =
             FilterDisplayDescriptor(T::class, "Is after the given date", Icons::gtOrEq, gap, Icons::gtOrEq, Icons::lt, subMenu)
@@ -425,18 +421,20 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             FilterDisplayDescriptor(Filter.And::class, "And", Icons::and),
             FilterDisplayDescriptor(Filter.Or::class, "Or", Icons::or),
             FilterDisplayDescriptor(Filter.True::class, "Select Filter", Icons::select),
+
             FilterDisplayDescriptor(Filter.Platform::class, "Platform", Icons::computer, gap = true),
+
             FilterDisplayDescriptor(Filter.Library::class, "Library", Icons::folder),
             FilterDisplayDescriptor(Filter.Genre::class, "Genre", Icons::masks),
             FilterDisplayDescriptor(Filter.Tag::class, "Tag", { Icons.tag.color(Color.BLACK) }),
             FilterDisplayDescriptor(Filter.Provider::class, "Provider", Icons::web, gap = true),
-            score<Filter.CriticScore>(criticScoreSubMenu),
-            nullFilter<Filter.NullCriticScore>(criticScoreSubMenu),
-            score<Filter.UserScore>(userScoreSubMenu),
-            nullFilter<Filter.NullUserScore>(userScoreSubMenu),
-            FilterDisplayDescriptor(Filter.AvgScore::class, "Average Score", Icons::starHalf, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
-            FilterDisplayDescriptor(Filter.MinScore::class, "Min Score", Icons::min, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
-            FilterDisplayDescriptor(Filter.MaxScore::class, "Max Score", Icons::max, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+
+            score<Filter.CriticScore>("Critic Score", Icons::starFull),
+            score<Filter.UserScore>("User Score", Icons::starEmpty),
+            score<Filter.AvgScore>("Average Score", Icons::starHalf),
+            score<Filter.MinScore>("Min Score", Icons::min),
+            score<Filter.MaxScore>("Max Score", Icons::max, gap = true),
+
             targetDate<Filter.TargetReleaseDate>(releaseDateSubMenu),
             periodDate<Filter.PeriodReleaseDate>(releaseDateSubMenu),
             nullFilter<Filter.NullReleaseDate>(releaseDateSubMenu),
@@ -444,8 +442,10 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             periodDate<Filter.PeriodCreateDate>(createDateSubMenu),
             targetDate<Filter.TargetUpdateDate>(updateDateSubMenu),
             periodDate<Filter.PeriodUpdateDate>(updateDateSubMenu, gap = true),
+
             FilterDisplayDescriptor(Filter.FileName::class, "File Name", Icons::fileDocument, actionIcon = Icons::match, negatedActionIcon = Icons::notEqual),
-            FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, gap = true, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt),
+            FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt, gap = true),
+
             FilterDisplayDescriptor(Filter.Duplications::class, "Duplications", Icons::duplicate),
             FilterDisplayDescriptor(Filter.NameDiff::class, "Folder-Game Name Diff", Icons::diff)
         ).map { it.filter to it }.toMap()
@@ -453,22 +453,4 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
 
     private val Filter.descriptor get() = this::class.descriptor
     private val KClass<out Filter>.descriptor get() = displayDescriptors.getValue(this)
-
-    class Style : Stylesheet() {
-        companion object {
-            val borderedContent by cssclass()
-
-            init {
-                importStylesheetSafe(Style::class)
-            }
-        }
-
-        init {
-            borderedContent {
-                padding = box(2.px)
-                borderColor = multi(box(Color.BLACK))
-                borderWidth = multi(box(0.5.px))
-            }
-        }
-    }
 }

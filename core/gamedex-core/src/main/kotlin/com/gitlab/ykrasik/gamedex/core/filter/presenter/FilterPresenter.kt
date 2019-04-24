@@ -52,39 +52,37 @@ class FilterPresenter @Inject constructor(
         private val tags = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformTags else commonData.tags
         private val providers = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformProviders else commonData.allProviders
 
-        private val operators = listOf(
-            FilterBuilder.singleParam<Filter.Not, Filter>(Filter::Not) { Filter.True() },
-            FilterBuilder.twoParams<Filter.And, Filter, Filter>(Filter::And, { Filter.True() }, { Filter.True() }),
-            FilterBuilder.twoParams<Filter.Or, Filter, Filter>(Filter::Or, { Filter.True() }, { Filter.True() })
+        private val metaFilters = listOf(
+            FilterBuilder.param<Filter.Not, Filter>(Filter::Not) { Filter.True() },
+            FilterBuilder.param<Filter.And, List<Filter>>(Filter::And) { listOf(Filter.True()) },
+            FilterBuilder.param<Filter.Or, List<Filter>>(Filter::Or) { listOf(Filter.True()) }
         ).associateBy { it.klass }.toMap()
 
-        private val rules = listOf(
-            FilterBuilder.singleParam(Filter::Platform) { Platform.Windows },
-            FilterBuilder.singleParam(Filter::Library) { libraries.first().id },
-            FilterBuilder.singleParam(Filter::Genre) { genres.firstOrNull() ?: "" },
-            FilterBuilder.singleParam(Filter::Tag) { tags.firstOrNull() ?: "" },
-            FilterBuilder.singleParam(Filter::Provider) { commonData.allProviders.first().id },
-            FilterBuilder.singleParam(Filter::CriticScore) { 60.0 },
-            FilterBuilder.noParams(Filter::NullCriticScore),
-            FilterBuilder.singleParam(Filter::UserScore) { 60.0 },
-            FilterBuilder.noParams(Filter::NullUserScore),
-            FilterBuilder.singleParam(Filter::AvgScore) { 60.0 },
-            FilterBuilder.singleParam(Filter::MinScore) { 60.0 },
-            FilterBuilder.singleParam(Filter::MaxScore) { 60.0 },
-            FilterBuilder.singleParam(Filter::TargetReleaseDate) { "2014-01-01".date },
-            FilterBuilder.singleParam(Filter::PeriodReleaseDate) { 1.years },
+        private val filters = listOf(
+            FilterBuilder.param(Filter::Platform) { Platform.Windows },
+            FilterBuilder.param(Filter::Library) { libraries.first().id },
+            FilterBuilder.param(Filter::Genre) { genres.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::Tag) { tags.firstOrNull() ?: "" },
+            FilterBuilder.param(Filter::Provider) { commonData.allProviders.first().id },
+            FilterBuilder.param(Filter::CriticScore) { 60.0 },
+            FilterBuilder.param(Filter::UserScore) { 60.0 },
+            FilterBuilder.param(Filter::AvgScore) { 60.0 },
+            FilterBuilder.param(Filter::MinScore) { 60.0 },
+            FilterBuilder.param(Filter::MaxScore) { 60.0 },
+            FilterBuilder.param(Filter::TargetReleaseDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::PeriodReleaseDate) { 1.years },
             FilterBuilder.noParams(Filter::NullReleaseDate),
-            FilterBuilder.singleParam(Filter::TargetCreateDate) { "2014-01-01".date },
-            FilterBuilder.singleParam(Filter::PeriodCreateDate) { 2.months },
-            FilterBuilder.singleParam(Filter::TargetUpdateDate) { "2014-01-01".date },
-            FilterBuilder.singleParam(Filter::PeriodUpdateDate) { 2.months },
-            FilterBuilder.singleParam(Filter::FileName) { ".*" },
-            FilterBuilder.singleParam(Filter::FileSize) { FileSize(10.gb) },
+            FilterBuilder.param(Filter::TargetCreateDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::PeriodCreateDate) { 2.months },
+            FilterBuilder.param(Filter::TargetUpdateDate) { "2014-01-01".date },
+            FilterBuilder.param(Filter::PeriodUpdateDate) { 2.months },
+            FilterBuilder.param(Filter::FileName) { ".*" },
+            FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) },
             FilterBuilder.noParams(Filter::Duplications),
             FilterBuilder.noParams(Filter::NameDiff)
         ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 
-        private val rulesList = rules.keys.toList()
+        private val filterList = filters.keys.toList()
 
         init {
             genres.bind(view.possibleGenres)
@@ -106,8 +104,8 @@ class FilterPresenter @Inject constructor(
             }
 
             view.setFilterActions.forEach { setFilter(it) }
-            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(it)) }
-            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(it)) }
+            view.wrapInAndActions.forEach { replaceFilter(it, with = Filter.And(listOf(it, Filter.True()))) }
+            view.wrapInOrActions.forEach { replaceFilter(it, with = Filter.Or(listOf(it, Filter.True()))) }
             view.wrapInNotActions.forEach { replaceFilter(it, with = Filter.Not(it)) }
             view.unwrapNotActions.forEach { replaceFilter(it, with = it.target) }
             view.clearFilterActions.forEach { replaceFilter(view.filter.value, Filter.Null) }
@@ -128,29 +126,29 @@ class FilterPresenter @Inject constructor(
         }
 
         private fun setPossibleRules() {
-            val rules: List<KClass<out Filter.Rule>> = when {
-                !view.onlyShowFiltersForCurrentPlatform -> rulesList
+            val filters: List<KClass<out Filter.Rule>> = when {
+                !view.onlyShowFiltersForCurrentPlatform -> filterList
                 commonData.games.size <= 1 -> emptyList()
                 else -> {
-                    val rules = rulesList.toMutableList()
+                    val filters = filterList.toMutableList()
                     if (view.possibleGenres.size <= 1) {
-                        rules -= Filter.Genre::class
+                        filters -= Filter.Genre::class
                     }
                     if (view.possibleTags.size < 1) {
-                        rules -= Filter.Tag::class
+                        filters -= Filter.Tag::class
                     }
                     if (view.possibleLibraries.size <= 1) {
-                        rules -= Filter.Library::class
+                        filters -= Filter.Library::class
                     }
                     if (view.possibleProviderIds.size <= 1) {
-                        rules -= Filter.Provider::class
+                        filters -= Filter.Provider::class
                     }
-                    rules
+                    filters
                 }
             }
 
-            if (rules != view.possibleRules) {
-                view.possibleRules.setAll(rules)
+            if (filters != view.possibleFilters) {
+                view.possibleFilters.setAll(filters)
             }
         }
 
@@ -158,17 +156,17 @@ class FilterPresenter @Inject constructor(
 
         private fun replaceFilter(filter: Filter, with: KClass<out Filter>) {
             val filterBuilder = when {
-                filter is Filter.BinaryOperator && with.superclasses.first() == Filter.BinaryOperator::class ->
+                filter is Filter.Compound && with.superclasses.first() == Filter.Compound::class ->
                     @Suppress("UNCHECKED_CAST")
-                    newBinaryOperator(from = filter, to = with as KClass<out Filter.BinaryOperator>) { it }
+                    newCompoundFilter(from = filter, to = with as KClass<out Filter.Compound>) { it }
                 filter is Filter.TargetScore && with.superclasses.first() == Filter.TargetScore::class ->
-                    rules[with]!!.withParams(filter.score)
+                    filters[with]!!.withParams(filter.score)
                 filter is Filter.TargetDate && with.superclasses.first() == Filter.TargetDate::class ->
-                    rules[with]!!.withParams(filter.date)
+                    filters[with]!!.withParams(filter.date)
                 filter is Filter.PeriodDate && with.superclasses.first() == Filter.PeriodDate::class ->
-                    rules[with]!!.withParams(filter.period)
+                    filters[with]!!.withParams(filter.period)
                 else ->
-                    rules[with]!!
+                    filters[with]!!
             }
             val newFilter = filterBuilder()
             replaceFilter(filter, newFilter)
@@ -192,61 +190,78 @@ class FilterPresenter @Inject constructor(
         private fun Filter.replace(target: Filter, with: Filter): Filter {
             fun doReplace(current: Filter): Filter = when {
                 current === target -> with
-                current is Filter.BinaryOperator -> newBinaryOperator(current, transform = ::doReplace)()
-                current is Filter.UnaryOperator -> newUnaryOperator(current, transform = ::doReplace)()
+                current is Filter.Compound -> newCompoundFilter(current, transform = ::doReplace)()
+                current is Filter.Modifier -> newModifierFilter(current, transform = ::doReplace)()
                 else -> current
             }
-            return doReplace(this)
+            return doReplace(this).flatten()
         }
 
         private fun Filter.delete(target: Filter): Filter? {
             fun doDelete(current: Filter): Filter? = when {
                 current === target -> null
-                current is Filter.BinaryOperator -> {
-                    val newLeft = doDelete(current.left)
-                    val newRight = doDelete(current.right)
-                    when {
-                        newLeft != null && newRight != null -> newBinaryOperator(current).withParams(newLeft, newRight)()
-                        newLeft != null -> newLeft
-                        else -> newRight
+                current is Filter.Compound -> {
+                    val newTargets = current.targets.mapNotNull(::doDelete)
+                    if (newTargets.size > 1) {
+                        newCompoundFilter(current).withParams(newTargets)()
+                    } else {
+                        newTargets.firstOrNull()
                     }
                 }
-                current is Filter.UnaryOperator -> {
+                current is Filter.Modifier -> {
                     val newRule = doDelete(current.target)
-                    if (newRule != null) newUnaryOperator(current).withParams(newRule)() else null
+                    if (newRule != null) newModifierFilter(current).withParams(newRule)() else null
                 }
                 else -> current
             }
-            return doDelete(this)
+            return doDelete(this)?.flatten()
         }
 
         private fun Filter.find(target: KClass<out Filter>): Filter? {
             fun doFind(current: Filter): Filter? = when {
                 current::class == target -> current
-                current is Filter.BinaryOperator -> doFind(current.left) ?: doFind(current.right)
-                current is Filter.UnaryOperator -> doFind(current.target)
+                current is Filter.Compound -> current.targets.find { doFind(it) != null }
+                current is Filter.Modifier -> doFind(current.target)
                 else -> null
             }
             return doFind(this)
         }
 
-        private fun newBinaryOperator(
-            from: Filter.BinaryOperator,
-            to: KClass<out Filter.BinaryOperator> = from::class,
+        private fun Filter.flatten(): Filter = when (this) {
+            is Filter.Compound -> {
+                val newTargets = targets.flatMap {
+                    val result = it.flatten()
+                    if (result is Filter.Compound && result::class == this::class) {
+                        result.targets
+                    } else {
+                        listOf(result)
+                    }
+                }
+                newCompoundFilter(this).withParams(newTargets)()
+            }
+            is Filter.Modifier -> {
+                newModifierFilter(this).withParams(target.flatten())()
+            }
+            else -> this
+        }
+
+        private fun newCompoundFilter(
+            from: Filter.Compound,
+            to: KClass<out Filter.Compound> = from::class,
             transform: ((Filter) -> Filter)? = null
-        ) = operators.getValue(to).let { new ->
+        ) = metaFilters.getValue(to).let { new ->
             if (transform == null) {
                 new
             } else {
-                new.withParams(transform(from.left), transform(from.right))
+                new.withParams(from.targets.map(transform))
             }
         }
 
-        private fun newUnaryOperator(
-            from: Filter.UnaryOperator,
-            to: KClass<out Filter.UnaryOperator> = from::class,
+        private fun newModifierFilter(
+            from: Filter.Modifier,
+            to: KClass<out Filter.Modifier> = from::class,
             transform: ((Filter) -> Filter)? = null
-        ) = operators.getValue(to).let { new ->
+        ) = metaFilters.getValue(to).let { new ->
             if (transform == null) {
                 new
             } else {
@@ -273,7 +288,7 @@ class FilterPresenter @Inject constructor(
             inline fun <reified T : Filter> noParams(crossinline factory: () -> T): FilterBuilder<T> =
                 FilterBuilder { _, _ -> factory() }
 
-            inline fun <reified T : Filter, reified A> singleParam(crossinline factory: (A) -> T, crossinline default: () -> A): FilterBuilder<T> =
+            inline fun <reified T : Filter, reified A> param(crossinline factory: (A) -> T, crossinline default: () -> A): FilterBuilder<T> =
                 FilterBuilder { param, _ -> factory(param as? A ?: default()) }
 
             inline fun <reified T : Filter, reified A, reified B> twoParams(

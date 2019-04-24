@@ -40,7 +40,7 @@ class ResyncGamesPresenter @Inject constructor(
 ) : Presenter<ResyncGamesView> {
     override fun present(view: ResyncGamesView) = object : ViewSession() {
         init {
-//            view.redownloadGamesFilter.forEach { setCanAccept() }
+//            view.resyncGamesFilter.forEach { setCanAccept() }
             view.resyncGamesFilterIsValid.forEach { setCanAccept() }
             view.acceptActions.forEach { onAccept() }
             view.cancelActions.forEach { onCancel() }

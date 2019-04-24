@@ -37,8 +37,13 @@ class ReportSettingsRepository @Inject constructor(private val storage: Storage<
 
     val reports = ListObservableImpl(fetchReports())
 
-    private fun fetchReports(): List<Report> = log.time("Fetching reports...", { time, reports -> "${reports.size} reports in $time" }) {
-        storage.getAll().map { (id, data) -> Report(id, data) }
+    private fun fetchReports(): List<Report> = try {
+        log.time("Fetching reports...", { time, reports -> "${reports.size} reports in $time" }) {
+            storage.getAll().map { (id, data) -> Report(id, data) }
+        }
+    } catch (e: Exception) {
+        log.error("Error fetching reports", e)
+        emptyList()
     }
 
     fun add(data: ReportData): Report {
