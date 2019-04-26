@@ -274,3 +274,19 @@ inline fun <T> ListObservable<T>.broadcastTo(
         broadcastEvents.forEach { eventBus.send(it) }
     }
 }
+
+inline fun <K, V> ListObservable<V>.toMap(crossinline keyExtractor: Extractor<V, K>): MutableMap<K, V> {
+    val map = associateByTo(LinkedHashMap(), keyExtractor)
+    changesChannel.subscribe { e ->
+        when (e) {
+            is ListEvent.ItemAdded -> map += keyExtractor(e.item) to e.item
+            is ListEvent.ItemsAdded -> map += e.items.map { keyExtractor(it) to it }
+            is ListEvent.ItemRemoved -> map -= keyExtractor(e.item)
+            is ListEvent.ItemsRemoved -> map -= e.items.map(keyExtractor)
+            is ListEvent.ItemSet -> map += keyExtractor(e.item) to e.item
+            is ListEvent.ItemsSet -> map += e.items.map { keyExtractor(it) to it }
+            else -> error("Unexpected event: $e")
+        }
+    }
+    return map
+}

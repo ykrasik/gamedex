@@ -49,11 +49,12 @@ class ImportDatabasePresenter @Inject constructor(
             val file = view.selectDatabaseImportFile(settingsService.general.exportDbDirectory) ?: return
             if ((gameService.games.isEmpty() && libraryService.libraries.isEmpty()) || view.confirmImportDatabase()) {
                 // Drop any filters we may currently have - they may be incorrect for the new database (point to non-existing libraries).
-                settingsService.platforms.forEach { _, settings ->
+                settingsService.platforms.forEach { (_, settings) ->
                     settings.resetDefaults()
                 }
                 taskService.execute(maintenanceService.importDatabase(file))
             }
+            settingsService.general.modify { copy(exportDbDirectory = file.parentFile) }
         }
     }
 }

@@ -77,7 +77,7 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
     private fun addGame(game: Game) = game.platform.engine.add(game.toIndexable())
     private fun addGames(games: List<Game>) {
         val gamesByPlatform = games.groupBy { it.platform }
-        gamesByPlatform.forEach { platform, platformGames ->
+        gamesByPlatform.forEach { (platform, platformGames) ->
             platform.engine.addAll(platformGames.map { it.toIndexable() })
         }
     }
@@ -85,7 +85,7 @@ class GameSearchServiceImpl @Inject constructor(private val gameService: GameSer
     private fun removeGame(game: Game) = check(game.platform.engine.remove(game.toIndexable())) { "Search index did not contain removed game: $game" }
     private fun removeGames(games: List<Game>) {
         val gamesByPlatform = games.groupBy { it.platform }
-        gamesByPlatform.forEach { platform, platformGames ->
+        gamesByPlatform.forEach { (platform, platformGames) ->
             check(platform.engine.removeAll(platformGames.map { it.toIndexable() })) { "Search index did not contain any removed games: $games" }
         }
     }

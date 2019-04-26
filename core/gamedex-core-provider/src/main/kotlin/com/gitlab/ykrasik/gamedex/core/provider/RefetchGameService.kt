@@ -61,7 +61,7 @@ class RefetchGameServiceImpl @Inject constructor(
         }
 
         games.forEachWithProgress { game ->
-            val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.id) }
+            val providersToDownload = game.providerHeaders.filter { gameProviderService.isEnabled(it.id) }.toList()
             if (providersToDownload.isEmpty()) return@forEachWithProgress
 
             val downloadedProviderData = executeSubTask(gameProviderService.fetch(game.name, game.platform, providersToDownload))

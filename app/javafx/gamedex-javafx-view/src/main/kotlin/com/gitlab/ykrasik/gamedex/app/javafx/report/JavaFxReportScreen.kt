@@ -134,19 +134,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                     spacer()
                     addProviderLogo(result.providerId)
                 }
-                is Filter.Duplications.GameDuplication -> HBox().apply {
-                    spacing = 5.0
-                    addClass(Style.duplication)
-                    val game = games.find { it.id == result.duplicatedGameId }!!
-                    jfxButton(game.name) {
-                        useMaxSize = true
-                        hgrow = Priority.ALWAYS
-                        action {
-                            gamesView.selectionModel.select(game)
-                        }
-                    }
-                    addProviderLogo(result.providerId)
-                }
                 else -> null
             }
         }
@@ -306,7 +293,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         companion object {
             val additionalDataView by cssid()
             val nameFolderDiff by cssclass()
-            val duplication by cssclass()
             val detailsView by cssclass()
             val detailsViewContent by cssclass()
             val detailsBrowser by cssclass()
@@ -323,10 +309,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
                 borderWidth = multi(box(0.5.px))
                 borderStyle = multi(BorderStrokeStyle.DASHED)
                 backgroundColor = multi(Colors.cloudyKnoxville)
-            }
-
-            duplication {
-                fontSize = 18.px
             }
 
             detailsView {

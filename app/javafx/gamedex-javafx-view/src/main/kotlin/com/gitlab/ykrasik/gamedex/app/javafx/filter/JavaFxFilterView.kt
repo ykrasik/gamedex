@@ -446,7 +446,6 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             FilterDisplayDescriptor(Filter.FileName::class, "File Name", Icons::fileDocument, actionIcon = Icons::match, negatedActionIcon = Icons::notEqual),
             FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt, gap = true),
 
-            FilterDisplayDescriptor(Filter.Duplications::class, "Duplications", Icons::duplicate),
             FilterDisplayDescriptor(Filter.NameDiff::class, "Folder-Game Name Diff", Icons::diff)
         ).map { it.filter to it }.toMap()
     }

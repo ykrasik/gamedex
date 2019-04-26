@@ -32,7 +32,7 @@ import javax.inject.Singleton
  * Time: 16:22
  */
 @Singleton
-class ReportSettingsRepository @Inject constructor(private val storage: Storage<ReportId, ReportData>) {
+class ReportRepository @Inject constructor(private val storage: Storage<ReportId, ReportData>) {
     private val log = logger()
 
     val reports = ListObservableImpl(fetchReports())
@@ -43,6 +43,7 @@ class ReportSettingsRepository @Inject constructor(private val storage: Storage<
         }
     } catch (e: Exception) {
         log.error("Error fetching reports", e)
+        storage.clear()
         emptyList()
     }
 

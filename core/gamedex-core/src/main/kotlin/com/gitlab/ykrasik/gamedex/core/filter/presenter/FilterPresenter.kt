@@ -44,7 +44,7 @@ class FilterPresenter @Inject constructor(
 ) : Presenter<FilterView> {
     override fun present(view: FilterView) = object : ViewSession() {
         private val excludedRules =
-            if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class, Filter.Duplications::class, Filter.NameDiff::class)
+            if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class, Filter.NameDiff::class)
             else emptyList()
 
         private val libraries = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
@@ -78,7 +78,6 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param(Filter::PeriodUpdateDate) { 2.months },
             FilterBuilder.param(Filter::FileName) { ".*" },
             FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) },
-            FilterBuilder.noParams(Filter::Duplications),
             FilterBuilder.noParams(Filter::NameDiff)
         ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 

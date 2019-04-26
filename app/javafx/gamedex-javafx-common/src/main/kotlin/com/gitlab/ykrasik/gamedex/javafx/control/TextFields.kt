@@ -144,6 +144,7 @@ inline fun EventTarget.searchTextField(
     promptText: String = "Search",
     op: CustomJFXTextField.() -> Unit = {}
 ) = clearableTextField(textProperty) {
+    prefWidth = 300.0
     this.promptText = promptText
     left = Icons.search.size(20)
     tooltip("Ctrl+f")

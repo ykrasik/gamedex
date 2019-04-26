@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.*
 import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
@@ -128,6 +129,9 @@ class JavaFxViewManager : Controller(), ViewManager {
     private val cleanupDatabaseView: JavaFxCleanupDatabaseView by inject()
     override fun showCleanupDatabaseView(staleData: StaleData) = cleanupDatabaseView.showModal { this.staleData = staleData }
     override fun hide(view: CleanupDatabaseView) = view.close()
+
+    override fun showDuplicatesView() = mainView.showDuplicatesReport()
+    override fun hide(view: DuplicatesView) = mainView.showPreviousScreen()
 
     private val settingsView: JavaFxSettingsView by inject()
     override fun showSettingsView() = settingsView.showModal()

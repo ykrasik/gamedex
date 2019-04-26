@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.*
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
-import com.gitlab.ykrasik.gamedex.util.*
+import com.gitlab.ykrasik.gamedex.util.JodaDateTime
+import com.gitlab.ykrasik.gamedex.util.dateTimeOrNull
+import com.gitlab.ykrasik.gamedex.util.humanReadable
 import difflib.DiffUtils
 import difflib.Patch
 import org.joda.time.DateTime
@@ -68,10 +70,8 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.FileSize::class, name = "fileSize"),
     JsonSubTypes.Type(value = Filter.FileName::class, name = "fileName"),
 
-    JsonSubTypes.Type(value = Filter.Duplications::class, name = "duplications"),
     JsonSubTypes.Type(value = Filter.NameDiff::class, name = "nameDiff")
 )
-// TODO: What if al the logic is moved into the context, and this will just be the structure?
 sealed class Filter {
     companion object {
         val Null = True()
@@ -325,54 +325,6 @@ sealed class Filter {
 
         override fun isEqual(other: Filter) = other.ifIs<FileName> { this.value == it.value }
         override fun toString() = "File matches /$value/"
-    }
-
-    // TODO: Add ignore case option
-    // TODO: Add option that makes metadata an optional match.
-    // TODO: This is not a filter.
-    class Duplications : Rule() {
-        override fun evaluate(game: Game, context: Context): Boolean {
-            val allDuplications = calcDuplications(context)
-            val gameDuplications = allDuplications[game.id]
-            if (gameDuplications != null) {
-                context.addAdditionalInfo(game, this, gameDuplications)
-            }
-            return gameDuplications != null
-        }
-
-        private fun calcDuplications(context: Context): MultiMap<GameId, GameDuplication> = context.cache("Duplications.result") {
-            val headerToGames = context.games.asSequence()
-                .flatMap { checkedGame -> checkedGame.providerHeaders.asSequence().map { it to checkedGame } }
-                .toMultiMap()
-
-            // Only detect duplications in the same platform.
-            val duplicateHeaders = headerToGames.mapValues { (_, games) ->
-                games.groupBy { it.platform }
-                    .asSequence()
-                    .filter { (_, games) -> games.size > 1 }
-                    .flatMap { (_, games) -> games.asSequence() }
-            }.filterValues { it.take(2).toList().size > 1 }
-
-            duplicateHeaders.flatMap { (header, games) ->
-                val results = mutableListOf<Pair<GameId, GameDuplication>>()
-                games.forEach { game1 ->
-                    games.forEach { game2 ->
-                        if (game1 != game2) {
-                            results += game1.id to GameDuplication(header.id, game2.id)
-                        }
-                    }
-                }
-                results
-            }.toMultiMap()
-        }
-
-
-        data class GameDuplication(
-            val providerId: ProviderId,
-            val duplicatedGameId: GameId
-        )
-
-        override fun isEqual(other: Filter) = other is Duplications
     }
 
     class NameDiff : Rule() {

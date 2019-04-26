@@ -102,6 +102,7 @@ object Icons {
     val poster get() = fontIcon(MaterialDesign.MDI_IMAGE)
     val screenshots get() = fontIcon(MaterialDesign.MDI_IMAGE_MULTIPLE)
     val duplicate get() = fontIcon(MaterialDesign.MDI_CONTENT_DUPLICATE)
+    val copy get() = fontIcon(MaterialDesign.MDI_CONTENT_COPY)
     val diff get() = fontIcon(MaterialDesign.MDI_VECTOR_DIFFERENCE)
     val select get() = fontIcon(MaterialDesign.MDI_SELECT)
     val regex get() = fontIcon(MaterialDesign.MDI_REGEX)

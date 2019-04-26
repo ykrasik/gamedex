@@ -16,9 +16,11 @@
 
 package com.gitlab.ykrasik.gamedex.core.report
 
+import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
+import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.util.ListObservable
 
@@ -37,4 +39,6 @@ interface ReportService {
     fun update(report: Report, data: ReportData): Task<Report>
 
     fun delete(report: Report): Task<Unit>
+
+    fun calc(report: Report, games: List<Game>): Task<ReportResult>
 }

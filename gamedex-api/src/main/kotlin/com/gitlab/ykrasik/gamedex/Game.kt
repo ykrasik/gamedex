@@ -67,7 +67,7 @@ data class Game(
 
     val tags get() = rawGame.userData.tags
 
-    val providerHeaders get() = rawGame.providerData.map { it.header }
+    val providerHeaders get() = rawGame.providerData.asSequence().map { it.header }
     val existingProviders get() = providerHeaders.map { it.id }
     val excludedProviders get() = userData.excludedProviders
 

@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.gitlab.ykrasik.gamedex.Library
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
+import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
@@ -31,8 +31,10 @@ import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.persistence.PersistenceService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
+import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import com.google.inject.ImplementedBy
 import java.io.File
 import javax.inject.Inject
@@ -52,6 +54,8 @@ interface MaintenanceService {
     fun deleteStaleData(staleData: StaleData): Task<Unit>
 
     fun deleteAllUserData(): Task<Unit>
+
+    fun detectDuplicates(): Task<List<GameDuplicates>>
 }
 
 @Singleton
@@ -156,4 +160,37 @@ class MaintenanceServiceImpl @Inject constructor(
             .joinToString("\n") { "${it.first} ${it.second}" }
 
     override fun deleteAllUserData() = gameService.deleteAllUserData()
+
+
+    // TODO: Add ignore case option
+    // TODO: Add option that makes metadata an optional match.
+    override fun detectDuplicates() = task("Detecting duplicate games...") {
+        val headerToGames = gameService.games.asSequence()
+            .flatMap { game -> game.providerHeaders.map { it to game } }
+            .toMultiMap()
+
+        // Only detect duplicates in the same platform.
+        val duplicateHeaders = headerToGames.mapValues { (_, games) ->
+            games.groupBy { it.platform }.flatMap { (_, games) -> if (games.size > 1) games else emptyList() }
+        }.filterValues { it.take(2).toList().size > 1 }
+
+        totalItems = duplicateHeaders.values.sumBy { it.size }
+
+        val gameIdsToDuplicates = mutableMapOf<GameId, MutableList<Pair<Game, ProviderId>>>()
+        duplicateHeaders.forEach { (header, games) ->
+            games.forEach { game1 ->
+                val duplicates = gameIdsToDuplicates.getOrPut(game1.id) { mutableListOf() }
+                games.forEach { game2 ->
+                    if (game1.id != game2.id) {
+                        duplicates += game2 to header.id
+                    }
+                }
+                incProgress()
+            }
+        }
+
+        gameIdsToDuplicates.map { (gameId, duplicates) ->
+            GameDuplicates(gameService[gameId], duplicates.map { (game, providerId) -> GameDuplicate(game, providerId) })
+        }
+    }
 }

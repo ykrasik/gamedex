@@ -28,8 +28,13 @@ object MaintenanceModule : InternalCoreModule() {
     override fun configure() {
         bindPresenter(ExportDatabasePresenter::class)
         bindPresenter(ImportDatabasePresenter::class)
+
         bindPresenter(ClearUserDataPresenter::class)
+
         bindPresenter(ShowCleanupDatabasePresenter::class)
         bindPresenter(CleanupDatabasePresenter::class)
+
+        bindPresenter(ShowDuplicatesReportPresenter::class)
+        bindPresenter(DuplicatesReportPresenter::class)
     }
 }

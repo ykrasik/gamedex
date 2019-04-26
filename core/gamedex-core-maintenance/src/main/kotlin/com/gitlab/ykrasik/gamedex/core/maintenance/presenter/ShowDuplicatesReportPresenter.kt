@@ -14,11 +14,11 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report.presenter
+package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReportResult
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanShowDuplicatesReport
+import com.gitlab.ykrasik.gamedex.core.EventBus
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
 import javax.inject.Inject
@@ -26,23 +26,21 @@ import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 07/10/2018
- * Time: 09:52
+ * Date: 26/04/2019
+ * Time: 09:03
  */
 @Singleton
-class SearchReportResultPresenter @Inject constructor() : Presenter<ViewCanSearchReportResult> {
-    override fun present(view: ViewCanSearchReportResult) = object : ViewSession() {
+class ShowDuplicatesReportPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : Presenter<ViewCanShowDuplicatesReport> {
+    override fun present(view: ViewCanShowDuplicatesReport) = object : ViewSession() {
         init {
-            view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
+            view.showDuplicatesReportActions.forEach {
+                val duplicatesView = viewManager.showDuplicatesView()
+                eventBus.awaitViewFinished(duplicatesView)
+                viewManager.hide(duplicatesView)
+            }
         }
-
-        private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isEmpty()) return
-            view.matchingGame *= view.result.value.games.firstOrNull { it.matchesSearchQuery(searchText) }
-        }
-
-        // TODO: Do I need the better search capabilities of searchService?
-        private fun Game.matchesSearchQuery(query: String) =
-            query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
     }
 }

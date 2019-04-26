@@ -17,10 +17,7 @@
 package com.gitlab.ykrasik.gamedex.app.javafx.maintenance
 
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.ClearUserDataView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.ExportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.ImportDatabaseView
-import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanCleanupDatabase
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.*
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanRefetchGames
 import com.gitlab.ykrasik.gamedex.app.api.provider.ViewCanResyncGames
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -47,6 +44,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ViewCanCleanupDatabase,
     ViewCanRefetchGames,
     ViewCanResyncGames,
+    ViewCanShowDuplicatesReport,
     ViewCanBrowsePath {
 
     override val exportDatabaseActions = channel<Unit>()
@@ -57,6 +55,8 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
 
     override val canResyncGames = state(IsValid.valid)
     override val resyncGamesActions = channel<Unit>()
+
+    override val showDuplicatesReportActions = channel<Unit>()
 
     override val browsePathActions = channel<File>()
 
@@ -74,6 +74,15 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             useMaxWidth = true
             alignment = Pos.CENTER_LEFT
             action(importDatabaseActions)
+        }
+
+        verticalGap()
+
+        infoButton("Duplicates Report", Icons.copy) {
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            tooltip("Show a report of different game that share the same provider data.")
+            action(showDuplicatesReportActions)
         }
 
         verticalGap()

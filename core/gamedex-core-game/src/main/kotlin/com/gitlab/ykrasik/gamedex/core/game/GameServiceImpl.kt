@@ -24,10 +24,7 @@ import com.gitlab.ykrasik.gamedex.core.library.LibraryService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
-import com.gitlab.ykrasik.gamedex.core.util.ListEvent
-import com.gitlab.ykrasik.gamedex.core.util.ListObservableImpl
-import com.gitlab.ykrasik.gamedex.core.util.broadcastTo
-import com.gitlab.ykrasik.gamedex.core.util.mapping
+import com.gitlab.ykrasik.gamedex.core.util.*
 import com.gitlab.ykrasik.gamedex.util.file
 import com.gitlab.ykrasik.gamedex.util.logger
 import com.gitlab.ykrasik.gamedex.util.time
@@ -52,6 +49,8 @@ class GameServiceImpl @Inject constructor(
     override val games = log.time("Processing games...") {
         repo.games.mapping { it.toGame() } as ListObservableImpl<Game>
     }
+
+    private val gamesById = games.toMap(Game::id)
 
     init {
         games.broadcastTo(eventBus, Game::id, ::GamesAddedEvent, ::GamesDeletedEvent, ::GamesUpdatedEvent)
@@ -122,9 +121,9 @@ class GameServiceImpl @Inject constructor(
 
     private fun rebuildGames() = repo.games.touch()
 
-    // FIXME: ineffective for large collections
-    override fun get(id: GameId): Game = games.find { it.id == id }
-        ?: throw IllegalArgumentException("Game doesn't exist: id=$id")
+    override fun get(id: GameId): Game = gamesById.getOrElse(id) {
+        throw NoSuchElementException("Game doesn't exist: id=$id")
+    }
 
     private fun RawGame.toGame(): Game = gameFactory.create(this)
 }

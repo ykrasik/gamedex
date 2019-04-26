@@ -14,35 +14,36 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.report.presenter
+package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.app.api.report.ViewCanSearchReportResult
-import com.gitlab.ykrasik.gamedex.app.api.util.debounce
-import com.gitlab.ykrasik.gamedex.core.Presenter
-import com.gitlab.ykrasik.gamedex.core.ViewSession
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 07/10/2018
- * Time: 09:52
+ * Date: 26/04/2019
+ * Time: 08:09
  */
-@Singleton
-class SearchReportResultPresenter @Inject constructor() : Presenter<ViewCanSearchReportResult> {
-    override fun present(view: ViewCanSearchReportResult) = object : ViewSession() {
-        init {
-            view.searchText.changes.debounce().forEach { onSearchTextChanged(it) }
-        }
+interface DuplicatesView {
+    val duplicates: MutableList<GameDuplicates>
 
-        private fun onSearchTextChanged(searchText: String) {
-            if (searchText.isEmpty()) return
-            view.matchingGame *= view.result.value.games.firstOrNull { it.matchesSearchQuery(searchText) }
-        }
+    val searchText: UserMutableState<String>
+    val matchingGame: State<Game?>
 
-        // TODO: Do I need the better search capabilities of searchService?
-        private fun Game.matchesSearchQuery(query: String) =
-            query.isEmpty() || query.split(" ").all { word -> name.contains(word, ignoreCase = true) }
-    }
+//    val excludeGameActions: ReceiveChannel<Game>
+
+    val hideViewActions: ReceiveChannel<Unit>
 }
+
+data class GameDuplicates(
+    val game: Game,
+    val duplicates: List<GameDuplicate>
+)
+
+data class GameDuplicate(
+    val game: Game,
+    val providerId: ProviderId
+)

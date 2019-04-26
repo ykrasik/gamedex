@@ -35,7 +35,7 @@ class GameCellDisplaySettingsRepository(factory: SettingsStorageFactory) : Setti
 
     override val storage = factory("cell", Data::class) {
         Data(
-            imageDisplayType = ImageDisplayType.Stretch,
+            imageDisplayType = ImageDisplayType.Fixed,
             showBorder = true,
             width = 163.0,
             height = 163.0,
