@@ -17,10 +17,8 @@
 package com.gitlab.ykrasik.gamedex.app.api.report
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.app.api.State
 import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 
 /**
  * User: ykrasik
@@ -34,13 +32,11 @@ interface ReportView {
 }
 
 data class ReportResult(
-    val games: List<Game>,
-    val additionalData: Map<GameId, Set<Filter.Context.AdditionalData>>
+    val games: List<Game>
 ) {
     companion object {
         val Null = ReportResult(
-            games = emptyList(),
-            additionalData = emptyMap()
+            games = emptyList()
         )
     }
 }

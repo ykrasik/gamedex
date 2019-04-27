@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.RawGame
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -43,13 +43,12 @@ interface RefetchGameService {
 class RefetchGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
-    private val filterContextFactory: FilterContextFactory
+    private val filterService: FilterService
 ) : RefetchGameService {
     override fun refetchGame(game: Game) = refetchGames(listOf(game))
 
     override fun refetchGames(filter: Filter): Task<Unit> {
-        val context = filterContextFactory.create(emptyList())
-        val games = gameService.games.filter { filter.evaluate(it, context) }.sortedBy { it.name }
+        val games = filterService.filter(gameService.games, filter).sortedBy { it.name }
         return refetchGames(games)
     }
 

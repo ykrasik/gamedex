@@ -20,7 +20,7 @@ import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.LibraryPath
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.core.EventBus
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameService
 import com.gitlab.ykrasik.gamedex.core.task.Task
 import com.gitlab.ykrasik.gamedex.core.task.task
@@ -43,14 +43,13 @@ interface ResyncGameService {
 class ResyncGameServiceImpl @Inject constructor(
     private val gameService: GameService,
     private val gameProviderService: GameProviderService,
-    private val filterContextFactory: FilterContextFactory,
+    private val filterService: FilterService,
     private val eventBus: EventBus
 ) : ResyncGameService {
     override fun resyncGame(game: Game) = resyncGames(listOf(game))
 
     override fun resyncGames(filter: Filter) = task("Detecting games to re-sync...") {
-        val context = filterContextFactory.create(emptyList())
-        val games = gameService.games.filter { filter.evaluate(it, context) }.sortedBy { it.path }
+        val games = filterService.filter(gameService.games, filter).sortedBy { it.path }
         if (games.isNotEmpty()) {
             resyncGames(games)
         } else {

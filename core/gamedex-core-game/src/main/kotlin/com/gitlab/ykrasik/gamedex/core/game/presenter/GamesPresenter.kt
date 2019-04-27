@@ -23,7 +23,7 @@ import com.gitlab.ykrasik.gamedex.app.api.game.ViewWithGames
 import com.gitlab.ykrasik.gamedex.core.CommonData
 import com.gitlab.ykrasik.gamedex.core.Presenter
 import com.gitlab.ykrasik.gamedex.core.ViewSession
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.game.GameSearchService
 import com.gitlab.ykrasik.gamedex.core.settings.SettingsService
 import kotlinx.coroutines.Job
@@ -39,7 +39,7 @@ import javax.inject.Singleton
 @Singleton
 class GamesPresenter @Inject constructor(
     private val commonData: CommonData,
-    private val filterContextFactory: FilterContextFactory,
+    private val filterService: FilterService,
     private val gameSearchService: GameSearchService,
     private val settingsService: SettingsService
 ) : Presenter<ViewWithGames> {
@@ -76,7 +76,7 @@ class GamesPresenter @Inject constructor(
             settingsService.currentPlatformSettingsChannel.forEach { settings ->
                 platformFilterJob?.cancelAndJoin()
                 platformFilterJob = settings.filterChannel.combineLatest(settings.searchChannel).forEach { (filter, search) ->
-                    val context = filterContextFactory.create(emptyList())
+                    val context = filterService.createContext()
                     val matches = gameSearchService.search(search, settings.platform).mapTo(HashSet()) { it.id }
                     view.filter *= { game: Game ->
                         (search.isBlank() || matches.contains(game.id)) && filter.evaluate(game, context)

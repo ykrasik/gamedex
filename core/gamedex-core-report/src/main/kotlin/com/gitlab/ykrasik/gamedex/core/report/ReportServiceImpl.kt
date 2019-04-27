@@ -22,7 +22,7 @@ import com.gitlab.ykrasik.gamedex.app.api.report.Report
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportData
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportId
 import com.gitlab.ykrasik.gamedex.app.api.report.ReportResult
-import com.gitlab.ykrasik.gamedex.core.filter.FilterContextFactory
+import com.gitlab.ykrasik.gamedex.core.filter.FilterService
 import com.gitlab.ykrasik.gamedex.core.task.task
 import com.gitlab.ykrasik.gamedex.util.flatMapIndexed
 import com.gitlab.ykrasik.gamedex.util.logger
@@ -37,7 +37,7 @@ import javax.inject.Singleton
 @Singleton
 class ReportServiceImpl @Inject constructor(
     private val repo: ReportRepository,
-    private val filterContextFactory: FilterContextFactory
+    private val filterService: FilterService
 ) : ReportService {
     private val log = logger()
 
@@ -69,7 +69,7 @@ class ReportServiceImpl @Inject constructor(
     }
 
     override fun calc(report: Report, games: List<Game>) = task("Calculating report '${report.name}'...") {
-        val context = filterContextFactory.create(games)
+        val context = filterService.createContext()
 
         totalItems = games.size
         // Report progress every 'chunkSize' games.
@@ -81,10 +81,7 @@ class ReportServiceImpl @Inject constructor(
             processedItems = i * chunkSize + chunk.size
             result
         }
-        ReportResult(
-            games = matchingGames.sortedBy { it.name },
-            additionalData = context.additionalData
-        )
+        ReportResult(matchingGames.sortedBy { it.name })
     }
 
     fun invalidate() = repo.invalidate()

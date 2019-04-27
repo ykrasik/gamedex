@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.gitlab.ykrasik.gamedex.FileTree
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.JodaDateTime
@@ -30,7 +29,6 @@ import com.gitlab.ykrasik.gamedex.util.humanReadable
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.joda.time.Period
-import kotlin.reflect.KClass
 
 /**
  * User: ykrasik
@@ -327,20 +325,8 @@ sealed class Filter {
     }
 
     interface Context {
-        val games: List<Game>
-        val additionalData: Map<GameId, Set<AdditionalData>>
         val now: JodaDateTime
-
         fun providerSupports(providerId: ProviderId, platform: com.gitlab.ykrasik.gamedex.Platform): Boolean
-
-        fun toFileName(name: String): String
-
-        fun addAdditionalInfo(game: Game, rule: Rule, values: List<Any>)
-        fun addAdditionalInfo(game: Game, rule: Rule, value: Any?)
-
-        fun <T> cache(key: String, defaultValue: () -> T): T
-
-        data class AdditionalData(val rule: KClass<out Filter.Rule>, val value: Any?)
     }
 }
 

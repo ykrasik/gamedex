@@ -17,44 +17,35 @@
 package com.gitlab.ykrasik.gamedex.core.filter
 
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
 import com.gitlab.ykrasik.gamedex.Platform
 import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
-import com.gitlab.ykrasik.gamedex.core.file.FileSystemService
 import com.gitlab.ykrasik.gamedex.core.provider.GameProviderService
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.provider.id
 import com.gitlab.ykrasik.gamedex.provider.supports
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 02/06/2018
- * Time: 16:43
+ * Date: 27/04/2019
+ * Time: 18:25
  */
-class FilterContextImpl(
-    override val games: List<Game>,
-    private val fileSystemService: FileSystemService,
+@Singleton
+class FilterServiceImpl @Inject constructor(
     private val gameProviderService: GameProviderService
-) : Filter.Context {
-    private val cache = mutableMapOf<String, Any>()
-    override val additionalData = mutableMapOf<GameId, MutableSet<Filter.Context.AdditionalData>>()
+) : FilterService {
+    override fun createContext(): Filter.Context = FilterContextImpl()
 
-    override val now = com.gitlab.ykrasik.gamedex.util.now
+    override fun filter(games: List<Game>, filter: Filter): List<Game> {
+        val context = createContext()
+        return games.filter { filter.evaluate(it, context) }
+    }
 
-    override fun providerSupports(providerId: ProviderId, platform: Platform) =
-        gameProviderService.allProviders.find { it.id == providerId }!!.supports(platform)
+    private inner class FilterContextImpl : Filter.Context {
+        override val now = com.gitlab.ykrasik.gamedex.util.now
 
-    override fun toFileName(name: String): String = fileSystemService.toFileName(name)
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T> cache(key: String, defaultValue: () -> T) = cache.getOrPut(key, defaultValue as () -> Any) as T
-
-    override fun addAdditionalInfo(game: Game, rule: Filter.Rule, values: List<Any>) =
-        values.forEach { addAdditionalInfo(game, rule, it) }
-
-    override fun addAdditionalInfo(game: Game, rule: Filter.Rule, value: Any?) {
-        val gameAdditionalInfo = additionalData.getOrPut(game.id) { mutableSetOf() }
-        val additionalInfo = Filter.Context.AdditionalData(rule::class, value)
-        if (!gameAdditionalInfo.contains(additionalInfo)) gameAdditionalInfo += additionalInfo
+        override fun providerSupports(providerId: ProviderId, platform: Platform) =
+            gameProviderService.allProviders.find { it.id == providerId }!!.supports(platform)
     }
 }
