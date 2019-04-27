@@ -25,6 +25,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
@@ -91,6 +92,9 @@ interface ViewManager {
 
     fun showDuplicatesView(): DuplicatesView
     fun hide(view: DuplicatesView)
+
+    fun showFolderNameDiffView(): FolderNameDiffView
+    fun hide(view: FolderNameDiffView)
 
     fun showSettingsView(): SettingsView
     fun hide(view: SettingsView)

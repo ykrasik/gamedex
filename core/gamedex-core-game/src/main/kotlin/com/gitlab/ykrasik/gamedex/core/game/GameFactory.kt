@@ -42,14 +42,14 @@ class GameFactory @Inject constructor(
     fun create(rawGame: RawGame): Game {
         val library = libraryService[rawGame.metadata.libraryId]
         val gameData = rawGame.toGameData()
-        val folderNameMetadata = fileSystemService.analyzeFolderName(rawGame.metadata.path.file.name)
+        val folderName = fileSystemService.analyzeFolderName(rawGame.metadata.path.file.name)
         val fileTree = fileSystemService.fileTree(rawGame.id, library.path.resolve(rawGame.metadata.path))
 
         return Game(
             library = library,
             rawGame = rawGame,
             gameData = gameData,
-            folderNameMetadata = folderNameMetadata,
+            folderName = folderName,
             fileTree = fileTree
         )
     }

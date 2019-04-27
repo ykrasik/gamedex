@@ -36,5 +36,8 @@ object MaintenanceModule : InternalCoreModule() {
 
         bindPresenter(ShowDuplicatesReportPresenter::class)
         bindPresenter(DuplicatesReportPresenter::class)
+
+        bindPresenter(ShowFolderNameDiffReportPresenter::class)
+        bindPresenter(FolderNameDiffReportPresenter::class)
     }
 }

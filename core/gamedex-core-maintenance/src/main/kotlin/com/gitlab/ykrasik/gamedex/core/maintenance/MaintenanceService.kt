@@ -36,6 +36,7 @@ import com.gitlab.ykrasik.gamedex.util.create
 import com.gitlab.ykrasik.gamedex.util.emptyToNull
 import com.gitlab.ykrasik.gamedex.util.toMultiMap
 import com.google.inject.ImplementedBy
+import difflib.DiffUtils
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -56,6 +57,8 @@ interface MaintenanceService {
     fun deleteAllUserData(): Task<Unit>
 
     fun detectDuplicates(): Task<List<GameDuplicates>>
+
+    fun detectFolderNameDiffs(): Task<List<FolderNameDiffs>>
 }
 
 @Singleton
@@ -192,5 +195,37 @@ class MaintenanceServiceImpl @Inject constructor(
         gameIdsToDuplicates.map { (gameId, duplicates) ->
             GameDuplicates(gameService[gameId], duplicates.map { (game, providerId) -> GameDuplicate(game, providerId) })
         }
+    }
+
+    override fun detectFolderNameDiffs() = task("Detecting game folder name diffs...") {
+        gameService.games.mapNotNull { game ->
+            val diffs = game.rawGame.providerData.mapNotNull { providerData ->
+                diff(game.folderName, providerData)
+            }
+            // TODO: If a majority of the providers agree on the name, this should not be a diff.
+            if (diffs.isNotEmpty()) FolderNameDiffs(game, diffs) else null
+        }
+    }
+
+    private fun diff(folderName: FolderName, providerData: ProviderData): FolderNameDiff? {
+        val expectedFolderName = providerData.toExpectedName(folderName)
+        if (folderName.rawName == expectedFolderName) return null
+
+        val patch = DiffUtils.diff(folderName.rawName.toList(), expectedFolderName.toList())
+        return FolderNameDiff(
+            providerId = providerData.header.id,
+            folderName = folderName.rawName,
+            expectedFolderName = expectedFolderName,
+            patch = patch
+        )
+    }
+
+    private fun ProviderData.toExpectedName(folderName: FolderName): String {
+        val expected = StringBuilder()
+        folderName.order?.let { order -> expected.append("[$order] ") }
+        expected.append(fileSystemService.toFileName(gameData.name))
+        folderName.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
+        folderName.version?.let { version -> expected.append(" [$version]") }
+        return expected.toString()
     }
 }

@@ -14,29 +14,33 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.core.maintenance.presenter
 
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.FolderName
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.Ref
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.ViewManager
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.ViewCanShowFolderNameDiffReport
+import com.gitlab.ykrasik.gamedex.core.EventBus
+import com.gitlab.ykrasik.gamedex.core.Presenter
+import com.gitlab.ykrasik.gamedex.core.ViewSession
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 27/04/2019
+ * Time: 13:35
  */
-interface FileSystemService {
-    fun fileTree(gameId: GameId, path: File): Ref<FileTree?>
-    fun deleteCachedFileTree(gameId: GameId)
-    fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    fun analyzeFolderName(rawName: String): FolderName
-    fun toFileName(name: String): String
+@Singleton
+class ShowFolderNameDiffReportPresenter @Inject constructor(
+    private val viewManager: ViewManager,
+    private val eventBus: EventBus
+) : Presenter<ViewCanShowFolderNameDiffReport> {
+    override fun present(view: ViewCanShowFolderNameDiffReport) = object : ViewSession() {
+        init {
+            view.showFolderNameDiffReportActions.forEach {
+                val folderNameDiffView = viewManager.showFolderNameDiffView()
+                eventBus.awaitViewFinished(folderNameDiffView)
+                viewManager.hide(folderNameDiffView)
+            }
+        }
+    }
 }

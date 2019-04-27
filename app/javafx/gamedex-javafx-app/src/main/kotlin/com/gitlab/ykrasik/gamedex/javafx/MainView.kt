@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.javafx.game.details.JavaFxGameDetailsScree
 import com.gitlab.ykrasik.gamedex.app.javafx.library.LibraryMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.log.JavaFxLogScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxDuplicatesScreen
+import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.JavaFxFolderNameDiffScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.maintenance.MaintenanceMenu
 import com.gitlab.ykrasik.gamedex.app.javafx.report.JavaFxReportScreen
 import com.gitlab.ykrasik.gamedex.app.javafx.report.ReportMenu
@@ -62,6 +63,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     private val reportMenu: ReportMenu by inject()
     private val reportScreen: JavaFxReportScreen by inject()
     private val duplicatesScreen: JavaFxDuplicatesScreen by inject()
+    private val folderNameDiffScreen: JavaFxFolderNameDiffScreen by inject()
     private val maintenanceMenu: MaintenanceMenu by inject()
     private val logScreen: JavaFxLogScreen by inject()
 
@@ -91,6 +93,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
         tab(syncGamesScreen)
         tab(reportScreen)
         tab(duplicatesScreen)
+        tab(folderNameDiffScreen)
         tab(logScreen)
         tab(gameDetailsScreen)
 
@@ -213,6 +216,7 @@ class MainView : PresentableView("GameDex"), ViewCanShowSettings, ViewCanShowAbo
     }
 
     fun showDuplicatesReport(): JavaFxDuplicatesScreen = selectScreen(duplicatesScreen)
+    fun showFolderNameDiffReport(): JavaFxFolderNameDiffScreen = selectScreen(folderNameDiffScreen)
 
     fun showPreviousScreen() {
         navigationHistory.pop()   // The current screen being shown is at the top of the stack.

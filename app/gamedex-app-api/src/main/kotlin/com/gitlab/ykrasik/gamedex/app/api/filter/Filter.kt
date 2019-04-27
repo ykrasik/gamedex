@@ -19,13 +19,14 @@ package com.gitlab.ykrasik.gamedex.app.api.filter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.gitlab.ykrasik.gamedex.*
+import com.gitlab.ykrasik.gamedex.FileTree
+import com.gitlab.ykrasik.gamedex.Game
+import com.gitlab.ykrasik.gamedex.GameId
+import com.gitlab.ykrasik.gamedex.ProviderData
 import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import com.gitlab.ykrasik.gamedex.util.JodaDateTime
 import com.gitlab.ykrasik.gamedex.util.dateTimeOrNull
 import com.gitlab.ykrasik.gamedex.util.humanReadable
-import difflib.DiffUtils
-import difflib.Patch
 import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.joda.time.Period
@@ -67,10 +68,8 @@ import kotlin.reflect.KClass
     JsonSubTypes.Type(value = Filter.Tag::class, name = "tag"),
     JsonSubTypes.Type(value = Filter.Provider::class, name = "provider"),
 
-    JsonSubTypes.Type(value = Filter.FileSize::class, name = "fileSize"),
     JsonSubTypes.Type(value = Filter.FileName::class, name = "fileName"),
-
-    JsonSubTypes.Type(value = Filter.NameDiff::class, name = "nameDiff")
+    JsonSubTypes.Type(value = Filter.FileSize::class, name = "fileSize")
 )
 sealed class Filter {
     companion object {
@@ -325,52 +324,6 @@ sealed class Filter {
 
         override fun isEqual(other: Filter) = other.ifIs<FileName> { this.value == it.value }
         override fun toString() = "File matches /$value/"
-    }
-
-    class NameDiff : Rule() {
-        override fun evaluate(game: Game, context: Context): Boolean {
-            // TODO: If the majority of providers agree with the name, it is not a diff.
-            val diffs = game.rawGame.providerData.mapNotNull { providerData ->
-                diff(game, providerData, context)
-            }
-            if (diffs.isNotEmpty()) {
-                context.addAdditionalInfo(game, this, diffs)
-            }
-            return diffs.isNotEmpty()
-        }
-
-        private fun diff(game: Game, providerData: ProviderData, context: Context): GameNameFolderDiff? {
-            val actualName = game.folderNameMetadata.rawName
-            val expectedName = expectedFrom(game.folderNameMetadata, providerData, context)
-            if (actualName == expectedName) return null
-
-            val patch = DiffUtils.diff(actualName.toList(), expectedName.toList())
-            return GameNameFolderDiff(
-                providerId = providerData.header.id,
-                actualName = actualName,
-                expectedName = expectedName,
-                patch = patch
-            )
-        }
-
-        // TODO: This logic looks like it should sit on FolderMetadata.
-        private fun expectedFrom(actual: FolderNameMetadata, providerData: ProviderData, context: Context): String {
-            val expected = StringBuilder()
-            actual.order?.let { order -> expected.append("[$order] ") }
-            expected.append(context.toFileName(providerData.gameData.name))
-            actual.metaTag?.let { metaTag -> expected.append(" [$metaTag]") }
-            actual.version?.let { version -> expected.append(" [$version]") }
-            return expected.toString()
-        }
-
-        data class GameNameFolderDiff(
-            val providerId: ProviderId,
-            val actualName: String,
-            val expectedName: String,
-            val patch: Patch<Char>
-        )
-
-        override fun isEqual(other: Filter) = other is NameDiff
     }
 
     interface Context {

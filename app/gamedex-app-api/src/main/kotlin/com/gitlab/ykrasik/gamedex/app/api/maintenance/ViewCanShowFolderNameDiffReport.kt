@@ -14,29 +14,15 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.FolderName
-import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.Ref
-import java.io.File
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 27/04/2019
+ * Time: 13:35
  */
-interface FileSystemService {
-    fun fileTree(gameId: GameId, path: File): Ref<FileTree?>
-    fun deleteCachedFileTree(gameId: GameId)
-    fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
-
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
-
-    fun analyzeFolderName(rawName: String): FolderName
-    fun toFileName(name: String): String
+interface ViewCanShowFolderNameDiffReport {
+    val showFolderNameDiffReportActions: ReceiveChannel<Unit>
 }

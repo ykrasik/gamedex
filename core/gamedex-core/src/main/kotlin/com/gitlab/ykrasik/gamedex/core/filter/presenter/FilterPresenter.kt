@@ -43,9 +43,7 @@ class FilterPresenter @Inject constructor(
     private val settingsService: SettingsService
 ) : Presenter<FilterView> {
     override fun present(view: FilterView) = object : ViewSession() {
-        private val excludedRules =
-            if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class, Filter.NameDiff::class)
-            else emptyList()
+        private val excludedRules = if (view.onlyShowFiltersForCurrentPlatform) listOf(Filter.Platform::class) else emptyList()
 
         private val libraries = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformLibraries else commonData.contentLibraries
         private val genres = if (view.onlyShowFiltersForCurrentPlatform) commonData.platformGenres else commonData.genres
@@ -77,8 +75,7 @@ class FilterPresenter @Inject constructor(
             FilterBuilder.param(Filter::TargetUpdateDate) { "2014-01-01".date },
             FilterBuilder.param(Filter::PeriodUpdateDate) { 2.months },
             FilterBuilder.param(Filter::FileName) { ".*" },
-            FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) },
-            FilterBuilder.noParams(Filter::NameDiff)
+            FilterBuilder.param(Filter::FileSize) { FileSize(1.gb) }
         ).associateBy { it.klass }.toMap().filterKeys { !excludedRules.contains(it) }
 
         private val filterList = filters.keys.toList()

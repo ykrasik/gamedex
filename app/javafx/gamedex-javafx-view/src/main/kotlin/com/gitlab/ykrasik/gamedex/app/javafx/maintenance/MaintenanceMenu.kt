@@ -45,6 +45,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     ViewCanRefetchGames,
     ViewCanResyncGames,
     ViewCanShowDuplicatesReport,
+    ViewCanShowFolderNameDiffReport,
     ViewCanBrowsePath {
 
     override val exportDatabaseActions = channel<Unit>()
@@ -57,6 +58,7 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
     override val resyncGamesActions = channel<Unit>()
 
     override val showDuplicatesReportActions = channel<Unit>()
+    override val showFolderNameDiffReportActions = channel<Unit>()
 
     override val browsePathActions = channel<File>()
 
@@ -83,6 +85,12 @@ class MaintenanceMenu : PresentableTabView("Maintenance", Icons.wrench),
             alignment = Pos.CENTER_LEFT
             tooltip("Show a report of different game that share the same provider data.")
             action(showDuplicatesReportActions)
+        }
+        infoButton("Folder Name Diff Report", Icons.diff) {
+            useMaxWidth = true
+            alignment = Pos.CENTER_LEFT
+            tooltip("Show a report of games whose folder names do not match the game name according to provider data.")
+            action(showFolderNameDiffReportActions)
         }
 
         verticalGap()

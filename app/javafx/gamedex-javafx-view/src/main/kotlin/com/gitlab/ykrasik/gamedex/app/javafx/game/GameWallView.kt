@@ -173,8 +173,8 @@ class GameWallView : PresentableView("Game Wall"),
 
             if (item != null) {
                 fragment.nameOverlay = item.name
-                fragment.metaTagOverlay = item.folderNameMetadata.metaTag
-                fragment.versionOverlay = item.folderNameMetadata.version
+                fragment.metaTagOverlay = item.folderName.metaTag
+                fragment.versionOverlay = item.folderName.version
                 fragment.setImage(commonOps.fetchThumbnail(item))
             } else {
                 fragment.nameOverlay = null

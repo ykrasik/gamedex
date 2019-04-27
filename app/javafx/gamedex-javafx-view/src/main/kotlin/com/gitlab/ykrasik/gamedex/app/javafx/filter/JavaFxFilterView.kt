@@ -444,9 +444,7 @@ class JavaFxFilterView(override val onlyShowFiltersForCurrentPlatform: Boolean) 
             periodDate<Filter.PeriodUpdateDate>(updateDateSubMenu, gap = true),
 
             FilterDisplayDescriptor(Filter.FileName::class, "File Name", Icons::fileDocument, actionIcon = Icons::match, negatedActionIcon = Icons::notEqual),
-            FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt, gap = true),
-
-            FilterDisplayDescriptor(Filter.NameDiff::class, "Folder-Game Name Diff", Icons::diff)
+            FilterDisplayDescriptor(Filter.FileSize::class, "File Size", Icons::fileQuestion, actionIcon = Icons::gtOrEq, negatedActionIcon = Icons::lt)
         ).map { it.filter to it }.toMap()
     }
 

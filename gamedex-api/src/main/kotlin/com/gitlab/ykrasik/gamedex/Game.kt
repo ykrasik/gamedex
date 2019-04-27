@@ -35,7 +35,7 @@ data class Game(
     val rawGame: RawGame,
     val library: Library,
     val gameData: GameData,
-    val folderNameMetadata: FolderNameMetadata,
+    val folderName: FolderName,
     val fileTree: Ref<FileTree?>
 ) {
     val id get() = rawGame.id
@@ -101,7 +101,7 @@ data class Game(
                     screenshotUrls = emptyList()
                 )
             ),
-            folderNameMetadata = FolderNameMetadata(
+            folderName = FolderName(
                 rawName = "",
                 gameName = "",
                 order = null,
@@ -206,10 +206,10 @@ data class FileTree(
     }
 }
 
-data class FolderNameMetadata(
+data class FolderName(
     val rawName: String,
     val gameName: String,
-    val order: Int?,            // TODO: Consider adding option to display this.
+    val order: String?,            // TODO: Consider adding option to display this.
     val metaTag: String?,
     val version: String?
 )

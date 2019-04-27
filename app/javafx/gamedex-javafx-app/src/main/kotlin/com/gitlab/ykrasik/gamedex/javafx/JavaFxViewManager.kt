@@ -26,6 +26,7 @@ import com.gitlab.ykrasik.gamedex.app.api.library.DeleteLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.library.EditLibraryView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.CleanupDatabaseView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.DuplicatesView
+import com.gitlab.ykrasik.gamedex.app.api.maintenance.FolderNameDiffView
 import com.gitlab.ykrasik.gamedex.app.api.maintenance.StaleData
 import com.gitlab.ykrasik.gamedex.app.api.provider.RefetchGamesView
 import com.gitlab.ykrasik.gamedex.app.api.provider.ResyncGamesView
@@ -132,6 +133,9 @@ class JavaFxViewManager : Controller(), ViewManager {
 
     override fun showDuplicatesView() = mainView.showDuplicatesReport()
     override fun hide(view: DuplicatesView) = mainView.showPreviousScreen()
+
+    override fun showFolderNameDiffView() = mainView.showFolderNameDiffReport()
+    override fun hide(view: FolderNameDiffView) = mainView.showPreviousScreen()
 
     private val settingsView: JavaFxSettingsView by inject()
     override fun showSettingsView() = settingsView.showModal()

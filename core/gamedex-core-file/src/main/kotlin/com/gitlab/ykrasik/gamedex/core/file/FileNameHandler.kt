@@ -16,7 +16,7 @@
 
 package com.gitlab.ykrasik.gamedex.core.file
 
-import com.gitlab.ykrasik.gamedex.FolderNameMetadata
+import com.gitlab.ykrasik.gamedex.FolderName
 
 /**
  * User: ykrasik
@@ -24,20 +24,20 @@ import com.gitlab.ykrasik.gamedex.FolderNameMetadata
  * Time: 13:54
  */
 object FileNameHandler {
-    private val orderRegex = "^\\[\\d*\\]".toRegex()
+    private val orderRegex = "^\\[\\d+\\]".toRegex()
     private val versionRegex = "\\[(?i:Alpha|Beta|Update|[A-Za-z])? ?v? ?[\\d\\.]*[A-Za-z]?[\\d\\.]*\\]".toRegex()
     private val metaTagRegex = "\\[.*?\\]".toRegex()
     private val spacesRegex = "\\s+".toRegex()
 
-    fun analyze(rawName: String): FolderNameMetadata {
+    fun analyze(rawName: String): FolderName {
         val (rawNameWithoutOrder, order) = extractMetadata(rawName, orderRegex)
         val (rawNameWithoutVersion, version) = extractMetadata(rawNameWithoutOrder, versionRegex)
         val (rawNameWithoutMetadata, metaTag) = extractMetadata(rawNameWithoutVersion, metaTagRegex)
 
-        return FolderNameMetadata(
+        return FolderName(
             rawName = rawName,
             gameName = rawNameWithoutMetadata.collapseSpaces().replace(" - ", ": "),
-            order = order?.toInt(),
+            order = order,
             metaTag = metaTag,
             version = version
         )

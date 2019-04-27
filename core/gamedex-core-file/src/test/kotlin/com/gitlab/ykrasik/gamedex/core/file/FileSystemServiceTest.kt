@@ -32,11 +32,12 @@ class FileSystemServiceTest : ScopedWordSpec<FileSystemServiceTest.Scope>() {
         "analyzeFileName" should {
             "order" should {
                 "correctly extract order" test {
-                    analyze("[1] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe 1
-                    analyze("[99999] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe 99999
+                    analyze("[1] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe "1"
+                    analyze("[99999] Some Name [Some MetaTag] [1.2.3] More Text").order shouldBe "99999"
                 }
 
-                "only consider integers eclosed in square brackets as order" test {
+                "only consider integers enclosed in square brackets as order" test {
+                    analyze("[] Some Name").order shouldBe null
                     analyze("[1a] Some Name").order shouldBe null
                     analyze("[1.2] Some Name").order shouldBe null
                     analyze("1 Some Name").order shouldBe null

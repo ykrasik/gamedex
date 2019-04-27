@@ -18,7 +18,6 @@ package com.gitlab.ykrasik.gamedex.app.javafx.report
 
 import com.gitlab.ykrasik.gamedex.Game
 import com.gitlab.ykrasik.gamedex.app.api.file.ViewCanBrowsePath
-import com.gitlab.ykrasik.gamedex.app.api.filter.Filter
 import com.gitlab.ykrasik.gamedex.app.api.game.ViewCanShowGameDetails
 import com.gitlab.ykrasik.gamedex.app.api.report.*
 import com.gitlab.ykrasik.gamedex.app.api.util.channel
@@ -33,12 +32,10 @@ import com.gitlab.ykrasik.gamedex.javafx.theme.Icons
 import com.gitlab.ykrasik.gamedex.javafx.theme.excludeButton
 import com.gitlab.ykrasik.gamedex.javafx.theme.header
 import com.gitlab.ykrasik.gamedex.javafx.view.PresentableScreen
-import com.gitlab.ykrasik.gamedex.provider.ProviderId
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.layout.*
-import javafx.scene.paint.Color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.consumeEach
@@ -118,26 +115,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
     }
 
     private val selectedGame = gamesView.selectionModel.selectedItemProperty()
-    private val additionalInfoProperty = selectedGame.binding { result.value.additionalData[it?.id] }
-    private val additionalInfo = additionalInfoProperty.mapToList { it?.toList() ?: emptyList() }
-
-    private val additionalInfoView = customListView(additionalInfo) {
-        customListCell { additionalData ->
-            text = null
-
-            val result = additionalData.value
-            graphic = when (result) {
-                is Filter.NameDiff.GameNameFolderDiff -> HBox().apply {
-                    spacing = 5.0
-                    addClass(Style.nameFolderDiff)
-                    children += DiffResultFragment(result, selectedGame.value!!).root
-                    spacer()
-                    addProviderLogo(result.providerId)
-                }
-                else -> null
-            }
-        }
-    }
 
     override val root = hbox {
         vgrow = Priority.ALWAYS
@@ -146,18 +123,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         // Left
         vbox {
             hgrow = Priority.ALWAYS
-            // Top
-            add(gamesView)
-
-            // Bottom
-            vbox(alignment = Pos.TOP_CENTER) {
-                setId(Style.additionalDataView)
-                showWhen { additionalInfoProperty.booleanBinding { it?.isNotEmpty() ?: false } }
-                header("Additional Info")
-                add(additionalInfoView)
-            }
-        }.apply {
             minWidth = width
+            add(gamesView)
         }
 
         // Right
@@ -273,10 +240,6 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         }
     }
 
-    private fun Pane.addProviderLogo(providerId: ProviderId) {
-        children += commonOps.providerLogo(providerId).toImageView(height = 80.0, width = 160.0)
-    }
-
     override fun HBox.buildToolbar() {
         jfxButton {
             textProperty().bind(report.property.stringBinding { it!!.name })
@@ -291,12 +254,7 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
 
     class Style : Stylesheet() {
         companion object {
-            val additionalDataView by cssid()
-            val nameFolderDiff by cssclass()
-            val detailsView by cssclass()
             val detailsViewContent by cssclass()
-            val detailsBrowser by cssclass()
-            val reportGameDescription by cssid()
 
             init {
                 importStylesheetSafe(Style::class)
@@ -304,24 +262,8 @@ class JavaFxReportScreen : PresentableScreen("Reports", Icons.chart),
         }
 
         init {
-            additionalDataView {
-                borderColor = multi(box(Color.BLACK))
-                borderWidth = multi(box(0.5.px))
-                borderStyle = multi(BorderStrokeStyle.DASHED)
-                backgroundColor = multi(Colors.cloudyKnoxville)
-            }
-
-            detailsView {
-            }
-
             detailsViewContent {
                 backgroundColor = multi(Colors.transparentWhite)
-            }
-
-            detailsBrowser {
-            }
-
-            reportGameDescription {
             }
         }
     }

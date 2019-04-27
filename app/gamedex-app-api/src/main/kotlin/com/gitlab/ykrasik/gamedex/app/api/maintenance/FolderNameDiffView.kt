@@ -14,29 +14,39 @@
  * limitations under the License.                                           *
  ****************************************************************************/
 
-package com.gitlab.ykrasik.gamedex.core.file
+package com.gitlab.ykrasik.gamedex.app.api.maintenance
 
-import com.gitlab.ykrasik.gamedex.FileTree
-import com.gitlab.ykrasik.gamedex.FolderName
 import com.gitlab.ykrasik.gamedex.Game
-import com.gitlab.ykrasik.gamedex.GameId
-import com.gitlab.ykrasik.gamedex.util.FileSize
-import com.gitlab.ykrasik.gamedex.util.Ref
-import java.io.File
+import com.gitlab.ykrasik.gamedex.app.api.State
+import com.gitlab.ykrasik.gamedex.app.api.UserMutableState
+import com.gitlab.ykrasik.gamedex.provider.ProviderId
+import difflib.Patch
+import kotlinx.coroutines.channels.ReceiveChannel
 
 /**
  * User: ykrasik
- * Date: 01/04/2018
- * Time: 14:04
+ * Date: 27/04/2019
+ * Time: 13:08
  */
-interface FileSystemService {
-    fun fileTree(gameId: GameId, path: File): Ref<FileTree?>
-    fun deleteCachedFileTree(gameId: GameId)
-    fun getFileTreeSizeTakenExcept(excludedGames: List<Game>): Map<GameId, FileSize>
+interface FolderNameDiffView {
+    val diffs: MutableList<FolderNameDiffs>
 
-    suspend fun move(from: File, to: File)
-    suspend fun delete(file: File)
+    val searchText: UserMutableState<String>
+    val matchingGame: State<Game?>
 
-    fun analyzeFolderName(rawName: String): FolderName
-    fun toFileName(name: String): String
+//    val excludeGameActions: ReceiveChannel<Game>
+
+    val hideViewActions: ReceiveChannel<Unit>
 }
+
+data class FolderNameDiffs(
+    val game: Game,
+    val diffs: List<FolderNameDiff>
+)
+
+data class FolderNameDiff(
+    val providerId: ProviderId,
+    val folderName: String,
+    val expectedFolderName: String,
+    val patch: Patch<Char>
+)
